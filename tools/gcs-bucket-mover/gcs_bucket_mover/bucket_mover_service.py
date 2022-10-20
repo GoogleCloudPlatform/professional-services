@@ -43,7 +43,6 @@ def main(config, parsed_args, cloud_logger):
         parsed_args: the configargparser parsing of command line options
         cloud_logger: A GCP logging client instance
     """
-
     cloud_logger.log_text("Starting GCS Bucket Mover")
     _print_config_details(cloud_logger, config)
 
@@ -60,7 +59,7 @@ def main(config, parsed_args, cloud_logger):
     # only if the corresponding feature is enabled in the configuration
     source_bucket_details = bucket_details.BucketDetails(
         conf=parsed_args, source_bucket=source_bucket)
-
+    transfer_log_value=_check_log_values(cloud_logger, config)
     _check_bucket_lock(cloud_logger, config, source_bucket,
                        source_bucket_details)
 
@@ -69,16 +68,76 @@ def main(config, parsed_args, cloud_logger):
 
     if config.is_rename:
         _rename_bucket(cloud_logger, config, source_bucket,
-                       source_bucket_details, sts_client)
+                       source_bucket_details, sts_client,transfer_log_value)
     else:
         _move_bucket(cloud_logger, config, source_bucket, source_bucket_details,
-                     sts_client)
+                     sts_client,transfer_log_value)
 
     cloud_logger.log_text('Completed GCS Bucket Mover')
 
+def _check_log_values(cloud_logger,config):
+    log_action_list = ['COPY', 'DELETE', 'FIND']
+    log_states_list = ['SUCCEEDED', 'FAILED']	
+    log_action_final = []
+    log_states_final= []
+
+    if config.log_action and not(config.log_action_state):
+        log_action = config.log_action.split(",")
+        for ele in log_action:
+            if ele in log_action_list:
+                log_action_final.append(ele) 
+            else:
+                msg="Entered log action is incorrect'"
+                cloud_logger.log_text(msg)
+                with yaspin(text=msg) as spinner:      
+                    spinner.ok(_CHECKMARK)
+                raise Exception(msg)
+        transfer_log_value={"logActions": log_action_final}
+
+    elif not(config.log_action) and (config.log_action_state):
+        log_states = config.log_action_state.split(",")
+        for ele in log_states:
+            if ele in log_states_list:
+                log_states_final.append(ele) 
+            else:
+                msg="Entered log states is incorrect'"
+                cloud_logger.log_text(msg)
+                with yaspin(text=msg) as spinner:
+                    spinner.ok(_CHECKMARK)
+                raise Exception(msg)
+        transfer_log_value={"logActionStates": log_states_final}
+
+    elif (config.log_action) and (config.log_action_state):
+        log_action = config.log_action.split(",")
+        for ele in log_action:
+            if ele in log_action_list:
+                log_action_final.append(ele) 
+            else:
+                msg="Entered log action or log state is incorrect'"
+                cloud_logger.log_text(msg)
+                with yaspin(text=msg) as spinner:     
+                    spinner.ok(_CHECKMARK)
+                raise Exception(msg)
+        log_states = config.log_action_state.split(",")
+        for ele in log_states:
+            if ele in log_states_list:
+                log_states_final.append(ele) 
+            else:
+                msg="Entered log states is incorrect'"
+                cloud_logger.log_text(msg)
+                with yaspin(text=msg) as spinner:       
+                    spinner.ok(_CHECKMARK)
+                raise Exception(msg)
+        transfer_log_value={"logActions": log_action_final,
+    "logActionStates": log_states_final}
+
+    else:
+        transfer_log_value=None
+    return transfer_log_value
+
 
 def _rename_bucket(cloud_logger, config, source_bucket, source_bucket_details,
-                   sts_client):
+                   sts_client,transfer_log_value):
     """Main method for doing a bucket rename
 
     This can also involve a move across projects.
@@ -96,7 +155,7 @@ def _rename_bucket(cloud_logger, config, source_bucket, source_bucket_details,
                                                 config, target_bucket)
     _run_and_wait_for_sts_job(sts_client, config.target_project,
                               config.bucket_name, config.target_bucket_name,
-                              cloud_logger)
+                              cloud_logger,config,transfer_log_value)
 
     _delete_empty_source_bucket(cloud_logger, source_bucket)
     _remove_sts_permissions(cloud_logger, sts_account_email, config,
@@ -104,7 +163,7 @@ def _rename_bucket(cloud_logger, config, source_bucket, source_bucket_details,
 
 
 def _move_bucket(cloud_logger, config, source_bucket, source_bucket_details,
-                 sts_client):
+                 sts_client,transfer_log_value):
     """Main method for doing a bucket move.
 
     This flow does not include a rename, the target bucket will have the same
@@ -123,7 +182,7 @@ def _move_bucket(cloud_logger, config, source_bucket, source_bucket_details,
                                                 config, target_temp_bucket)
     _run_and_wait_for_sts_job(sts_client, config.target_project,
                               config.bucket_name, config.temp_bucket_name,
-                              cloud_logger)
+                              cloud_logger,config,transfer_log_value)
 
     _delete_empty_source_bucket(cloud_logger, source_bucket)
     _recreate_source_bucket(cloud_logger, config, source_bucket_details)
@@ -131,7 +190,7 @@ def _move_bucket(cloud_logger, config, source_bucket, source_bucket_details,
                                           config)
     _run_and_wait_for_sts_job(sts_client, config.target_project,
                               config.temp_bucket_name, config.bucket_name,
-                              cloud_logger)
+                              cloud_logger,config,transfer_log_value)
 
     _delete_empty_temp_bucket(cloud_logger, target_temp_bucket)
     _remove_sts_permissions(cloud_logger, sts_account_email, config,
@@ -179,8 +238,11 @@ def _check_bucket_lock(cloud_logger, config, bucket, source_bucket_details):
                 'Logging source bucket IAM and ACLs to Stackdriver')
             cloud_logger.log_text(
                 json.dumps(source_bucket_details.iam_policy.to_api_repr()))
-            for entity in source_bucket_details.acl_entities:
-                cloud_logger.log_text(str(entity))
+            
+            
+            if source_bucket_details.acl_entities:
+                for entity in source_bucket_details.acl_entities:
+                    cloud_logger.log_text(str(entity))
 
             _lock_down_bucket(
                 spinner, cloud_logger, bucket, config.lock_file_name,
@@ -211,8 +273,11 @@ def _lock_down_bucket(spinner, cloud_logger, bucket, lock_file_name,
     spinner.text = msg
     cloud_logger.log_text(msg)
 
-    # Turn off any bucket ACLs
-    bucket.acl.save_predefined('private')
+    
+    is_uniform_bucket = vars(bucket)["_properties"]["iamConfiguration"]["uniformBucketLevelAccess"]["enabled"]
+    if not is_uniform_bucket:
+        # Turn off any bucket ACLs
+        bucket.acl.save_predefined('private')
 
     # Revoke all IAM access and only set the service account as an admin
     policy = api_core_iam.Policy()
@@ -427,7 +492,8 @@ def _create_bucket(spinner, cloud_logger, config, bucket_name,
         _write_spinner_and_log(
             spinner, cloud_logger,
             'IAM policies successfully copied over from the source bucket')
-
+    
+    
     if source_bucket_details.acl_entities:
         new_acl = _update_acl_entities(config,
                                        source_bucket_details.acl_entities)
@@ -435,6 +501,10 @@ def _create_bucket(spinner, cloud_logger, config, bucket_name,
         _write_spinner_and_log(
             spinner, cloud_logger,
             'ACLs successfully copied over from the source bucket')
+    else:
+        _print_and_log(cloud_logger,"setting target bucket to uniform level access")
+        bucket.iam_configuration.uniform_bucket_level_access_enabled = True
+        bucket.patch()
 
     if source_bucket_details.default_obj_acl_entities:
         new_default_obj_acl = _update_acl_entities(
@@ -725,7 +795,7 @@ def _assign_target_project_to_topic(spinner, cloud_logger, config, topic_name,
     wait_exponential_max=120000,
     stop_max_attempt_number=10)
 def _run_and_wait_for_sts_job(sts_client, target_project, source_bucket_name,
-                              sink_bucket_name, cloud_logger):
+                              sink_bucket_name, cloud_logger,config,transfer_log_value):
     """Kick off the STS job and wait for it to complete. Retry if it fails.
 
     Args:
@@ -750,7 +820,7 @@ def _run_and_wait_for_sts_job(sts_client, target_project, source_bucket_name,
     cloud_logger.log_text(spinner_text)
     with yaspin(text=spinner_text) as spinner:
         sts_job_name = _execute_sts_job(sts_client, target_project,
-                                        source_bucket_name, sink_bucket_name)
+                                        source_bucket_name, sink_bucket_name,config,transfer_log_value)
         spinner.ok(_CHECKMARK)
 
     # Check every 10 seconds until STS job is complete
@@ -763,7 +833,7 @@ def _run_and_wait_for_sts_job(sts_client, target_project, source_bucket_name,
             sleep(10)
 
     if job_status == sts_job_status.StsJobStatus.success:
-        print()
+  
         return True
 
     # Execution will only reach this code if something went wrong with the STS job
@@ -779,7 +849,7 @@ def _run_and_wait_for_sts_job(sts_client, target_project, source_bucket_name,
 
 
 def _execute_sts_job(sts_client, target_project, source_bucket_name,
-                     sink_bucket_name):
+                     sink_bucket_name,config,transfer_log_value):
     """Start the STS job.
 
     Args:
@@ -793,6 +863,25 @@ def _execute_sts_job(sts_client, target_project, source_bucket_name,
     """
 
     now = datetime.date.today()
+    if config.bucket_name == sink_bucket_name:
+        time_preserved = None
+    else:
+        if config.preserve_custom_time == None:
+            time_preserved = None
+
+        elif config.preserve_custom_time == "TIME_CREATED_PRESERVE_AS_CUSTOM_TIME":
+            time_preserved= config.preserve_custom_time
+
+        elif config.preserve_custom_time == "TIME_CREATED_SKIP":
+            time_preserved = config.preserve_custom_time
+        
+        elif config.preserve_custom_time == "TIME_CREATED_UNSPECIFIED":
+            time_preserved = config.preserve_custom_time
+
+        else:
+            msg = 'Time created value is not available'
+            raise SystemExit(msg)	
+    
     transfer_job = {
         'description':
         'Move bucket {} to {} in project {}'.format(
@@ -820,9 +909,13 @@ def _execute_sts_job(sts_client, target_project, source_bucket_name,
             },
             "transferOptions": {
                 "deleteObjectsFromSourceAfterTransfer": True,
+                "metadataOptions": {
+                    "timeCreated": time_preserved
+                }         
             }
         }
     }
+    transfer_job["loggingConfig"]=transfer_log_value   
     result = sts_client.transferJobs().create(body=transfer_job).execute(
         num_retries=5)
     return result['name']
@@ -933,7 +1026,7 @@ def _print_and_log(cloud_logger, message):
         cloud_logger: A GCP logging client instance
         message: The message to log
     """
-    print(message)
+   
     cloud_logger.log_text(message)
 
 

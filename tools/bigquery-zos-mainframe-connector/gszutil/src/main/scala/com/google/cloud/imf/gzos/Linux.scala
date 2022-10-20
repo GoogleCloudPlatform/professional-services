@@ -96,7 +96,7 @@ object Linux extends MVS with Logging {
 
   override def readKeyfile(): Array[Byte] = Array.empty
 
-  override def loadCopyBook(dd: String, picTCharset: Option[String] = Some("UTF-8")): CopyBook = {
+  override def loadCopyBook(dd: String, encoding: Option[String] = None, picTCharset: Option[String] = Some("UTF-8")): CopyBook = {
     val ddValue = System.getenv(dd)
     require(ddValue != null, s"$dd environment variable not defined")
     val ddPath = Paths.get(ddValue)
