@@ -1,0 +1,80 @@
+# Copyright 2022 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+apiVersion: constraints.gatekeeper.sh/v1beta1
+kind: K8sProhibitRoleWildcardAccess
+metadata:
+  name: cis-k8s-v1.5.1-prohibit-role-wildcard-access
+  labels:
+    policycontroller.gke.io/bundleName: cis-k8s-v1.5.1
+  annotations:
+    # This constraint is not certified by CIS.
+    policycontroller.gke.io/constraintData: |
+      "{
+        bundleName: 'cis-k8s-v1.5.1',
+        bundleDisplayName: 'CIS Kubernetes Benchmark 1.5.1',
+        bundleLink: 'https://cloud.google.com/anthos-config-management/docs/how-to/using-cis-k8s-benchmark',
+        bundleVersion: '202208.1',
+        bundleDescription: 'Use the CIS Kubernetes Benchmark 1.5.1 policy bundle with Anthos Policy Controller to evaluate the compliance of your in cluster resources against the CIS Kubernetes Benchmark, which is a set of recommendations for configuring Kubernetes to support a robust security posture.',
+        controlNumbers: '[5.1.3]',
+        severity: 'UNASSIGNED',
+        description: 'Restricts the use of wildcards in `Roles` and `ClusterRoles`.',
+        remediation: 'The use of wildcards ‘*’ in `Roles` and `ClusterRoles` is restricted, please remove all wildcards from your Roles and ClusterRoles.  See ‘RoleBinding and ClusterRoleBinding’ for more information: https://kubernetes.io/docs/reference/access-authn-authz/rbac/#rolebinding-and-clusterrolebinding',
+        minimumTemplateLibraryVersion: '1.12.0'
+      }"
+spec:
+  enforcementAction: dryrun
+  match:
+    excludedNamespaces:
+    - gke-connect
+    - resource-group-system
+  parameters:
+    exemptions:
+      clusterRoles:
+      # Modification: Added cilium ClusterRoles
+      - name: cilium
+      - name: cilium-operator
+      - name: config-management-operator
+      - name: configsync.gke.io:ns-reconciler
+      - name: cluster-admin
+      - name: external-metrics-reader
+      - name: gatekeeper-manager-role
+      - name: ^istio-reader-clusterrole-asm-[0-9]{4}-[0-9]-istio-system$
+        regexMatch: true
+      - name: istio-reader-istio-system
+      - name: ^istiod-clusterrole-asm-[0-9]{4}-[0-9]-istio-system$
+        regexMatch: true
+      - name: istiod-istio-system
+      # Modification: Added istiod for GKE system ClusterRole
+      - name: istiod-gke-system
+      - name: kubelet-api-admin
+      - name: metering
+      - name: resource-group-manager-role
+      - name: servicemesh
+      # Modification: Added stackdriver operator ClusterRole
+      - name: stackdriver-operator
+      - name: system:controller:disruption-controller
+      - name: system:controller:generic-garbage-collector
+      - name: system:controller:horizontal-pod-autoscaler
+      - name: system:controller:namespace-controller
+      - name: system:controller:resourcequota-controller
+      - name: system:gcp-controller-manager
+      - name: system:gke-common-webhooks
+      - name: system:gke-hpa-actor
+      - name: system:gke-master-resourcequota
+      - name: system:glbc-status
+      - name: system:kube-controller-manager
+      - name: system:kubestore-collector
+      - name: system:kubelet-api-admin
+      - name: system:managed-certificate-controller

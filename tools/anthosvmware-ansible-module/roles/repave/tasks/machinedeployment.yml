@@ -1,0 +1,78 @@
+# Copyright 2022 Google LLC
+# 
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+# 
+#     http://www.apache.org/licenses/LICENSE-2.0
+# 
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+
+- name: "[repave] Set repave id"
+  ansible.builtin.set_fact:
+    repave_id: '{{ lookup("pipe", "date +%s") }}'
+
+- name: "[repave] Annotate '{{ machinedeployment }}'' MachineDeployment with 'lastrepave: {{ repave_id }}' to trigger repave"
+  ansible.builtin.command:
+    argv:
+      - kubectl
+      - --kubeconfig
+      - "{{ repave_kubeconfig }}"
+      - patch
+      - machinedeployment
+      - "{{ machinedeployment }}"
+      - --patch
+      - "spec:\n template:\n  metadata:\n   annotations:\n    lastrepave: '{{ repave_id }}'"
+      - --type
+      - merge
+
+- name: "[repave] Wait for new '{{ machinedeployment }}' names with 'lastrepave: {{ repave_id }}'"
+  ansible.builtin.command:
+    argv:
+      - kubectl
+      - --kubeconfig
+      - "{{ repave_kubeconfig }}"
+      - get
+      - machine
+      - "-o=jsonpath='{.items[?(@.metadata.annotations.lastrepave==\"{{ repave_id }}\")].metadata.name}'"
+      - --no-headers
+  register: new_machines
+  retries: 240
+  delay: 15
+  until: new_machines.stdout | split(' ') | length >= (machine_count | int)
+
+- name: "[repave] Wait for '{{ machinedeployment }}' machines to be provisioned"
+  async: 610
+  poll: 15
+  ansible.builtin.command:
+    argv: "{{ _base_argv + (new_machines.stdout | replace(\"'\",'') | split(' ')) }}"
+  vars:
+    _base_argv:
+      - kubectl
+      - --kubeconfig
+      - "{{ repave_kubeconfig }}"
+      - wait
+      - --for=jsonpath=.status.phase=Ready
+      - --timeout=600s
+      - machine
+
+- name: "[repave] Wait for '{{ machinedeployment }}' nodes to be ready"
+  async: 610
+  poll: 15
+  ansible.builtin.command:
+    argv: "{{ _base_argv + (new_machines.stdout | replace(\"'\",'') | split(' ')) }}"
+  vars:
+    _base_argv:
+      - kubectl
+      - --kubeconfig
+      - "{{ repave_kubeconfig }}"
+      - wait
+      - --for=condition=Ready
+      - --timeout=600s
+      - node
+
