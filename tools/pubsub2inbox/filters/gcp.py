@@ -11,6 +11,12 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
+
+from helpers.base import get_branded_http
+from googleapiclient.http import HttpRequest
+import json
+
+
 def format_cost(cost, decimals=2):
     _format = '%%.%df %%s' % decimals
     return _format % (
@@ -20,3 +26,14 @@ def format_cost(cost, decimals=2):
 
 def get_cost(cost):
     return (float(cost['units']) + (float(cost['nanos']) / 1000000000.0))
+
+
+def get_gcp_resource(resource, api_domain, api_endpoint, api_version='v1'):
+    uri = "https://%s.googleapis.com/%s/%s/%s" % (api_domain, api_endpoint,
+                                                  api_version, resource)
+    req = HttpRequest(get_branded_http(), lambda resp, content: content, uri)
+    response = req.execute()
+    if response:
+        parsed_response = json.loads(response.decode('utf-8'))
+        return parsed_response
+    return None

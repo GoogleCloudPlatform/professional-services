@@ -1,6 +1,6 @@
 module github.com/professional-services/examples/dataflow-custom-templates/go
 
-go 1.20
+go 1.19
 
 require github.com/apache/beam/sdks/v2 v2.41.0
 
