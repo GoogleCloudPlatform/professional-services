@@ -1,0 +1,6 @@
+functions-framework==3.*
+google-cloud-dataproc==5.0.1
+google-cloud-storage
+google-cloud-compute
+google-api-python-client
+oauth2client

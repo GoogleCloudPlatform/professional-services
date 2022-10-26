@@ -26,6 +26,7 @@ from google.cloud import bigquery
 from lib.options import BigQueryOptions
 from lib.services import Services
 
+logging.basicConfig()
 logger = logging.getLogger(__name__)
 logger.setLevel(os.environ.get("LOGLEVEL", "INFO").upper())
 

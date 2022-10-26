@@ -16,7 +16,7 @@
  */
 organization := "com.google.cloud.imf"
 name := "mainframe-connector"
-version := "5.7.1"
+version := "5.7.2"
 
 scalaVersion := "2.13.8"
 
@@ -31,7 +31,8 @@ val log4j1 = ExclusionRule(organization = "log4j", name = "log4j")
 libraryDependencies ++= Seq(
   "com.google.cloud.imf" %% "mainframe-util" % "2.2.0",
   // enable users to compile without IBM JZOS jars
-  "com.google.cloud.imf" %% "jzos-shim" % "0.1" % Provided, 
+  // comment this line out and place IBM jars in lib directory to test against IBM classes
+  "com.google.cloud.imf" %% "jzos-shim" % "0.2" % Provided,
   "com.github.scopt" %% "scopt" % "3.7.1",
   "org.scalatest" %% "scalatest" % "3.2.9" % Test,
   "org.powermock" % "powermock-module-junit4" % "2.0.9" % Test,

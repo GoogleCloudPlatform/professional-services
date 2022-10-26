@@ -40,7 +40,7 @@ trait MVS {
   def getCredentialProvider(): CredentialProvider
   def readKeyfile(): Array[Byte]
   def listPDS(dsn: DSN): Iterator[PDSMemberInfo]
-  def loadCopyBook(dd: String, picTCharset: Option[String] = None): CopyBook
+  def loadCopyBook(dd: String, encoding: Option[String] = None, picTCharset: Option[String] = None): CopyBook
   def jobName: String
   def jobDate: String
   def jobTime: String
