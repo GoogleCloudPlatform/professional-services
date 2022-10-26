@@ -1,0 +1,226 @@
+# Copyright 2022 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+
+- name: "[asm] Block - Create NS, hydrate tempaltes, and configure asm"
+  block:
+    - name: "[asm] Setup cluster config"
+      include_tasks: setup-config.yml
+
+    - name: "[asm] Switch to Connect Register Service Account Name"
+      ansible.builtin.command: # noqa 305 301 no-changed-when
+        argv:
+          - gcloud
+          - auth
+          - activate-service-account
+          - --key-file
+          - "{{ job_sakeyfolder }}/{{ connect_register_gcpsa_path }}"
+
+    - name: "[asm] Add mesh_id label to cluster"
+      ansible.builtin.command: # noqa 305 301 no-changed-when
+        argv:
+          - gcloud
+          - container
+          - hub
+          - memberships
+          - update
+          - "{{ asm_cluster_name }}"
+          - --project
+          - "{{ asm_gcp_project }}"
+          - "--update-labels"
+          - "mesh_id={{ asm_mesh_id }}"
+
+    - name: "[asm] Switch to asm Service Account Name"
+      ansible.builtin.command: # noqa 305 301 no-changed-when
+        argv:
+          - gcloud
+          - auth
+          - activate-service-account
+          - --key-file
+          - "{{ job_sakeyfolder }}/{{ asm_gcpsa_path }}"
+
+    - name: "[asm] Template RBAC rule required for asm"
+      ansible.builtin.template:
+        src: cluster-role-binding.yaml.j2
+        dest: "{{ asm_temp }}/cluster-role-binding-asm.yaml"
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: '0600'
+
+    - name: "[asm] Delete old RBAC rule required for asm (if exists)"
+      ansible.builtin.command:
+        argv:
+          - kubectl
+          - delete
+          - -f
+          - "{{ asm_temp }}/cluster-role-binding-asm.yaml"
+          - --ignore-not-found
+
+    - name: "[asm] Create RBAC rule required for asm"
+      ansible.builtin.command:
+        argv:
+          - kubectl
+          - create
+          - -f
+          - "{{ asm_temp }}/cluster-role-binding-asm.yaml"
+
+    - name: "[asm] Template Istio system namespace"
+      ansible.builtin.template:
+        src: namespace.yaml.j2
+        dest: "{{ asm_temp }}/namespace-asm.yaml"
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: '0600'
+      when: not asm_upgrade|default(false)|bool
+
+    - name: "[asm] Create istio-system namespace"
+      ansible.builtin.command:
+        argv:
+          - kubectl
+          - apply
+          - -f
+          - "{{ asm_temp }}/namespace-asm.yaml"
+      when: not asm_upgrade|default(false)|bool
+
+    - name: "[asm] Template the ASM control plane config file"
+      ansible.builtin.template:
+        src: control-plane-config.yaml.j2
+        dest: "{{ asm_temp }}/control-plane-config-asm.yaml"
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: '0600'
+
+    # Install ASM
+    - name: "[asm] Install Anthos Service Mesh"
+      ansible.builtin.command: # noqa 305 204
+        argv: "{{ _req_args | reject('equalto', omit) | list }}"
+      vars:
+        _req_args:
+          - "{{ asm_temp }}/asmcli"
+          - install
+          - --output_dir
+          - "{{ asm_out_dir }}"
+          - --kubeconfig
+          - "{{ asm_kubeconfig }}"
+          - --fleet-id
+          - "{{ asm_gcp_project }}"
+          - --platform
+          - multicloud
+          - --network_id
+          - "{{ asm_network_id }}"
+          - --ca
+          - citadel
+          - "{{ omit if not asm_install_cert else '--ca_cert' }}"
+          - "{{ omit if not asm_install_cert else asm_ca_cert_path }}"
+          - "{{ omit if not asm_install_cert else '--ca_key' }}"
+          - "{{ omit if not asm_install_cert else asm_ca_key_path }}"
+          - "{{ omit if not asm_install_cert else '--root_cert' }}"
+          - "{{ omit if not asm_install_cert else asm_root_cert_path }}"
+          - "{{ omit if not asm_install_cert else '--cert_chain' }}"
+          - "{{ omit if not asm_install_cert else asm_cert_chain_path }}"
+          - --enable_meshconfig_init
+          - --enable_cluster_labels
+          - --option
+          - stackdriver
+          - --custom-overlay
+          - "{{ asm_temp }}/control-plane-config-asm.yaml"
+          - --revision_name
+          - "{{ asm_revision }}"
+          - "{{ omit if not ( (asm_registry_url is defined) and (asm_registry_url| length > 0) ) else '--disable_canonical_service' }}"
+          - --verbose
+          - "{{ omit if not asm_offline_mode else '--offline' }}"
+
+    # Find and replace kubebuilder hardcoded images in controller.yaml
+    - name: "[asm] Replace hardcoded kube-rbac-proxy image"
+      ansible.builtin.replace:
+        path: "{{ asm_out_dir }}/asm/canonical-service/controller.yaml"
+        regexp: '(image:)(.*?)\/(kubebuilder)(.*?):(.*)'
+        replace: '\1 {{ asm_registry_url }}\4:{{ asm_kubebuilder_tag }}'
+      when: (asm_registry_url is defined) and (asm_registry_url| length > 0)
+
+    # Find and replace CSC hardcoded images in controller.yaml
+    - name: "[asm] Replace hardcoded canonical services image"
+      ansible.builtin.replace:
+        path: "{{ asm_out_dir }}/asm/canonical-service/controller.yaml"
+        regexp: '(image:)(.*?)\/(canonical-service-controller.*?):(.*)'
+        replace: '\1 {{ asm_registry_url }}/\3:{{ asm_csc_tag }}'
+      when: (asm_registry_url is defined) and (asm_registry_url| length > 0)
+
+    # Deploy the Canonical Services Controller
+    - name: "[asm] Deploy Canonical Services Controller with private registry images"
+      ansible.builtin.command:
+        argv:
+          - kubectl
+          - apply
+          - -f
+          - "{{ asm_out_dir }}/asm/canonical-service/controller.yaml"
+      when: (asm_registry_url is defined) and (asm_registry_url| length > 0)
+
+    - name: "[asm] Template asm-ingress namespace"
+      ansible.builtin.template:
+        src: namespace-ingress.yaml.j2
+        dest: "{{ asm_temp }}/namespace-ingress-asm.yaml"
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: '0600'
+
+    - name: "[asm] Create asm-ingress namespace"
+      ansible.builtin.command:
+        argv:
+          - kubectl
+          - apply
+          - -f
+          - "{{ asm_temp }}/namespace-ingress-asm.yaml"
+
+    - name: "[asm] Template the Ingress Gateway manifest"
+      ansible.builtin.template:
+        src: "igw-deployment.yaml.j2"
+        dest: "{{ asm_temp }}/igw-asm.yaml"
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: '0600'
+      when: not asm_upgrade|default(false)|bool
+
+    - name: "[asm] Create the Ingress Gateway"
+      ansible.builtin.command:
+        argv:
+          - kubectl
+          - apply
+          - -f
+          - "{{ asm_temp }}/igw-asm.yaml"
+      when: not asm_upgrade|default(false)|bool
+
+    - name: "[asm] Setup TLS secret and Gateway configuration"
+      include_tasks: gateway-config.yml
+      
+    - name: "[asm] Delete RBAC rule created above"
+      ansible.builtin.command:
+        argv:
+          - kubectl
+          - delete
+          - -f
+          - "{{ asm_temp }}/cluster-role-binding-asm.yaml"
+          - --ignore-not-found
+
+  environment:
+    KUBECONFIG: "{{ asm_kubeconfig }}"
+    PATH: "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin"
+    http_proxy: "{{ glb_proxyurl }}"
+    https_proxy: "{{ glb_proxyurl }}"
+    no_proxy: "{{ glb_noproxy }}"
+
+  always:
+    - name: "Include role to delete sensitive files"
+      ansible.builtin.include_role:
+        name: cleanup

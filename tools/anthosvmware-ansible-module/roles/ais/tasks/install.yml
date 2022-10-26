@@ -1,0 +1,171 @@
+# Copyright 2022 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+- name: "[ais] Set kubeconfig path and patch file name"
+  ansible.builtin.set_fact:
+    ais_kubeconfig: "{{ uc_name + '-kubeconfig' if uc_name is defined else 'kubeconfig' }}"
+    ais_patch_file: "{{ uc_name + '-ais-patch.yaml' if uc_name is defined else 'admin-ais-patch.yaml' }}"
+    ais_login_config_file: "{{ uc_name + '-login-config.yaml' if uc_name is defined else 'admin-login-config.yaml' }}"
+    ais_ldap_tmp_dir: /tmp/{{ uc_name if uc_name is defined else 'admin' }}-ldap-secrets
+    ais_dir: yamldestpath/{{ uc_name if uc_name is defined else ac_name }}
+
+- name: "[ais] Manage LDAP service account secrets"
+  block:
+    - name: "[ais] Create LDAP secret template directory"
+      ansible.builtin.file:
+        path: "{{ ais_ldap_tmp_dir }}"
+        state: directory
+      when:
+        - ais_authentication is defined
+        - ais_ldap_secrets is defined
+
+    - name: "[ais] Template LDAP secrets"
+      ansible.builtin.template:
+        src: ais-ldap-basic-auth-secret.yaml.j2
+        dest: "{{ [ais_ldap_tmp_dir, item.authentication_name + '-ldap-secret.yaml'] | join('/') }}"
+        mode: 0600
+      loop: "{{ ais_ldap_secrets }}"
+      loop_control:
+        label: "{{ item.authentication_name }}"
+      no_log: true
+      when:
+        - ais_authentication is defined
+        - ais_ldap_secrets is defined
+
+    - name: "[ais] Refresh LDAP secrets (cleanup)"
+      ansible.builtin.command:
+        argv:
+          - kubectl
+          - --kubeconfig
+          - "{{ ais_kubeconfig }}"
+          - delete
+          - secret
+          - "{{ (ais_authentication |  selectattr('name', 'search', item.authentication_name) | list | first).ldap.serviceAccountSecret.name }}"
+          - -n
+          - "{{ (ais_authentication |  selectattr('name', 'search', item.authentication_name) | list | first).ldap.serviceAccountSecret.namespace }}"
+          - --ignore-not-found
+      loop: "{{ ais_ldap_secrets }}"
+      loop_control:
+        label: "{{ item.authentication_name }}"
+      no_log: true
+      when:
+        - ais_authentication is defined
+        - ais_ldap_secrets is defined
+
+    - name: "[ais] Refresh LDAP secrets (create)"
+      ansible.builtin.command:
+        argv:
+          - kubectl
+          - --kubeconfig
+          - "{{ ais_kubeconfig }}"
+          - apply
+          - -f
+          - "{{ [ais_ldap_tmp_dir, item.authentication_name + '-ldap-secret.yaml'] | join('/') }}"
+      loop: "{{ ais_ldap_secrets }}"
+      loop_control:
+        label: "{{ item.authentication_name }}"
+      no_log: true
+      register: apply_result
+      when:
+        - ais_authentication is defined
+        - ais_ldap_secrets is defined
+
+    - name: "[ais] Output Apply results Masked"
+      ansible.builtin.debug:
+        msg: "{{ item | to_json | replace(item.item.password, '****') }}"
+      loop: "{{ apply_result.results }}"
+      loop_control:
+        label: "{{ item.item.authentication_name }}"
+      when:
+        - ais_authentication is defined
+        - ais_ldap_secrets is defined
+                
+  always:
+    - name: "[ais] Cleanup templated LDAP secrets"
+      ansible.builtin.file:
+        path: "{{ ais_ldap_tmp_dir }}"
+        state: absent
+      when:
+        - ais_authentication is defined
+        - ais_ldap_secrets is defined
+
+- name: "[ais] Create patch file"
+  ansible.builtin.template:
+    src: ais-patch-file.yaml.j2
+    dest: "{{ [ais_dir, ais_patch_file] | join('/') }}"
+    mode: 0600
+  when:
+    - ais_authentication is defined
+
+- name: "[ais] Apply patch to ClientConfigs"
+  ansible.builtin.command:
+    argv:
+      - kubectl
+      - --kubeconfig
+      - "{{ ais_kubeconfig }}"
+      - patch
+      - ClientConfigs
+      - default
+      - -n
+      - kube-public
+      - --patch-file
+      - "{{ [ais_dir, ais_patch_file] | join('/') }}"
+      - --type
+      - merge
+  when:
+    - ais_authentication is defined
+
+- name: "[ais] Create proxy config for apt-get"
+  ansible.builtin.template:
+    src: apt-proxy.conf.j2
+    dest: /etc/apt/apt.conf.d/proxy.conf
+    mode: 0644
+  become: true
+  when:
+    - ( glb_proxyurl is defined and glb_proxyurl | length > 7 )
+    - ais_authentication is defined
+
+- name: "[ais] Install anthos-auth component"
+  ansible.builtin.apt:
+    name:
+      - google-cloud-sdk-anthos-auth
+    state: latest
+  become: true
+  when:
+    - ais_authentication is defined
+
+- name: "[ais] Delete old kubectl login config"
+  ansible.builtin.file:
+    path: "{{ [ais_dir, ais_login_config_file] | join('/') }}"
+    state: absent
+
+- name: "[ais] Export kubectl login config"
+  ansible.builtin.command:
+    argv:
+      - gcloud
+      - anthos
+      - create-login-config
+      - --kubeconfig
+      - "{{ ais_kubeconfig }}"
+      - --output
+      - "{{ [ais_dir, ais_login_config_file] | join('/') }}"
+  when:
+    - ais_authentication is defined
+
+- name: "[ais] Delete patch file"
+  ansible.builtin.file:
+    path: "{{ [ais_dir, ais_patch_file] | join('/') }}"
+    state: absent
+  when:
+    - ais_authentication is defined

@@ -1,0 +1,186 @@
+# Copyright 2022 Google LLC
+# 
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+# 
+#     http://www.apache.org/licenses/LICENSE-2.0
+# 
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+
+# ansible_ssh_common_args is required if your connection is: Ansible -> jumphost -> Admin Workstation
+# ansible_ssh_common_args: '-o ProxyCommand="ssh -W %h:%p -q anthosjumper@10.147.18.191"'
+
+# SSH private key on jump host to connect to Admin Workstation
+# ansible_ssh_private_key_file="/home/anthosjumper/.ssh/user_id_ed25519"
+
+ansible_user: "ubuntu"
+yamldestpath: "/home/ubuntu"
+
+# User Cluster (UC) role specific below
+uc_name: "uc2"
+component_access_gcpsa: '{{ lookup("env", "GCPSA_COMACC_FILE") }}'
+component_access_gcpsa_path: "component-access.json"
+
+# vSphere/vCenter - inherited from admin cluster by default but can be overwritten
+#                   to place user cluster in a different vSphere datacenter/cluster
+# uc_vc_fqdn: ""
+# uc_vc_credfile: "credential-{{ uc_name }}.yaml"
+# uc_vc_credentry: "vCenter"
+# uc_vc_username: ""
+# uc_vc_password: ""
+# uc_vc_datacenter: ""
+# uc_vc_datastore: ""
+# uc_vc_cluster: ""
+# uc_vc_network: "" # VM Network
+# uc_vc_folder: "" # optional
+# uc_vc_respool: "" # if default resourcePool use <uc_vc_cluster>/Resources
+# uc_vc_cacertpath: ""
+
+# Networking
+uc_nw_ipallocmode: "static" # dhcp or static
+uc_nw_ipfile: "{{ uc_name }}-ip-block.yaml"
+uc_nw_gw: "10.20.0.1" # gateway
+uc_nw_nm: "255.255.255.0" # netmask 255.255.255.0 or similar
+uc_nw_ntp: "{{ glb_ntp }}" # list from group_vars/all
+uc_nw_dns: "{{ glb_dns }}" # list from group_vars/all
+uc_nw_searchdomains: "{{ glb_dns_searchdomains }}" # list from group_vars/all
+uc_nw_servicecidr: "10.96.0.0/20"
+uc_nw_podcidr: "192.168.0.0/16"
+uc_nw_vc_net: "VM Network"
+
+# values for the file content of network.ipMode.ipBlockFilePath
+uc_ipblock_netmask: "255.255.255.0"
+uc_ipblock_gateway: "10.20.0.1"
+uc_ipblock_ips: ["10.20.0.52", "10.20.0.53", "10.20.0.54", "10.20.0.55"]
+
+# Load balancing
+uc_lb_kind: MetalLB
+uc_lb_vips_cp: "10.20.0.50"
+uc_lb_vips_ingress: "10.20.0.245"
+uc_lb_metallb_ips: "10.20.0.245-10.20.0.250"
+
+uc_dataplanev2: true
+
+# masternode sizing
+uc_masternode_cpus: 4
+uc_masternode_mem: 8192
+uc_masternode_replicas: 1
+uc_antiaffinitygroups: false
+# uc_masternode_datastore: "" # Set this to admin cluster datastore when you want to place user cluster in a differet vSphere cluster/datacenter than the admin cluster.
+
+# nodepools
+uc_nodepools_name: "{{ uc_name }}-pool-1"
+uc_nodepools_cpus: 4
+uc_nodepools_mem: 8192
+uc_nodepools_replicas: 3
+# uc_nodepools_osimagetype: cos
+uc_nodepools_osimagetype: ubuntu_containerd
+uc_nodepools:
+- name: "{{ uc_name | regex_replace('^(\\w*-)(.*)([au]-.*)', '\\1\\3') }}-p01"
+  cpus: "{{ uc_nodepools_cpus }}" # default 4
+  memoryMB: "{{ uc_nodepools_mem }}" # default 8192
+  replicas: "{{ uc_nodepools_replicas }}" # default 3
+  osImageType: "{{ uc_nodepools_osimagetype }}"
+  autoscaling:
+    minReplicas: 3
+    maxReplicas: 4
+  enableLoadBalancer: true # set to true only if uc_lb_kind equals MetalLB
+- name: "{{ uc_name | regex_replace('^(\\w*-)(.*)([au]-.*)', '\\1\\3') }}-p02"
+  cpus: "{{ uc_nodepools_cpus }}" # default 4
+  memoryMB: "{{ uc_nodepools_mem }}" # default 8192
+  replicas: "{{ uc_nodepools_replicas }}" # default 3
+  osImageType: "{{ uc_nodepools_osimagetype }}"
+  autoscaling:
+    minReplicas: 3
+    maxReplicas: 4
+  enableLoadBalancer: true # set to true only if uc_lb_kind equals MetalLB
+
+# GCP project IDs
+uc_stackdriver_projectid: "anthos-lab-01"
+uc_stackdriver_clusterlocation: "us-central1"
+uc_stackdriver_enablevpc: false
+logging_monitoring_gcpsa_path: "logging-monitoring.json"
+uc_stackdriver_disablevsphereresourcemetrics: false
+uc_gkeconnect_projectid: "anthos-lab-01"
+connect_register_gcpsa_path: "connect-register.json"
+uc_cloudauditlogging_projectid: "anthos-lab-01"
+uc_cloudauditlogging_clusterlocation: "us-central1"
+audit_logging_gcpsa_path: "audit-logging.json"
+
+uc_autorepair: true
+
+# Kubernetes Secrets at-rest encryption
+uc_secretsencryption_mode: "GeneratedKey"
+uc_secretsencryption_keyversion: 1
+
+uc_verbosity: 8
+uc_skipvalidations: ""
+# uc_skipvalidations: "--skip-validation-all"
+# uc_skipvalidations: "--skip-validation-load-balancer"
+# uc_skipvalidations: "--skip-validation-load-balancer --skip-validation-node-ips"
+
+# Optional - when using private artifact repository
+private_download_base: "{{ glb_private_download_base }}"
+private_download_auth_header: "{{ glb_private_download_auth_header }}"
+
+# Optional: ASM
+asm_version: "1.13"
+asm_revision: "asm-1137-3"
+asm_asmcli_version: "1.13.7-asm.3-config1"
+asm_network_id: "uc2-6789"
+# ASM - GCP related
+asm_gcp_project: "asm-test" # GCP project where user cluster is registered
+asm_gcp_project_number: "123456789"
+asm_gcpsa_path: "asm-meshconfig.json"
+asm_user_email: "asm-sa@asm-test.iam.gserviceaccount.com"
+
+# Optional: ACM
+acm_membership: "{{ uc_name }}" # user cluster name
+acm_version: "1.12.1" # version in format #.#.#
+# ACM - GCP related
+acm_gcpproject: "acm-test"
+acm_gcpsa_path: "acm-gcpsa.json"
+# ACM - Config Sync
+acm_configsync:
+  # Set to true to install and enable Config Sync
+  enabled: false
+  # FORMAT - unstructured, hierarchy
+  sourceFormat: unstructured
+  # REPO - git repository URL
+  syncRepo: ""
+  syncBranch: ""
+  # TYPE - none, ssh, cookiefile, token, gcpserviceaccount, gcenode
+  secretType: gcpserviceaccount
+  # If TYPE == gcpserviceaccount, then add its email below
+  gcpServiceAccountEmail: acm-sa@acm-test.iam.gserviceaccount.com
+  # DIRECTORY - folder in git repository for ACM
+  policyDir: ""
+  # PREVENT_DRIFT - true, false
+  preventDrift: true
+acm_root_repo_sshkey: "" # ssh file key if using acm_configsync.secretType: ssh
+# ACM - PolicyController 
+acm_policycontroller:
+  # Set to true to install and enable Policy Controller
+  enabled: false
+
+# Optional: AIS 
+# Uncomment out this section to specify AIS configuration
+# An uncommented empty block will result in errors 
+# ais_install: true
+# ais_authentication:
+# - name: oidc-ad
+#   oidc:
+#     clientID: ""
+#     clientSecret: ""
+#     cloudConsoleRedirectURI: ""
+#     extraParams: prompt=consent,access_type=offline
+#     issuerURI: ""
+#     kubectlRedirectURI: ""
+#     scopes: ""
+#     userClaim: ""
