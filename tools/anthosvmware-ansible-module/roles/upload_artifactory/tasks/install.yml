@@ -1,0 +1,205 @@
+# Copyright 2022 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+- name: "[upload_artifactory] Create folder"
+  ansible.builtin.file:
+    path: "{{ workdir }}"
+    state: directory
+    mode: 0770
+
+- name: "[upload_artifactory] Block - Copy/delete GCP SA JSON key files, Upload artifacts"
+  block:
+    - name: "Include role for GCP SA JSON key files"
+      ansible.builtin.include_role:
+        name: copy_credentials
+      vars:
+        is_upload: true
+
+    - name: "[upload_artifactory] Check Existence of http files in artifactory"
+      ansible.builtin.command:
+        argv:
+          - curl
+          - -k
+          - -s
+          - -o
+          - /dev/null
+          - -w
+          - "%{http_code}"
+          - "{{ upload_artifactory_url }}/api/storage/{{ upload_artifactory_repo_name }}/{{ item.dst }}"
+      loop: "{{ upload_artifactory_http_artifacts }}"
+      loop_control:
+        label: "{{ item.file }}"
+      no_log: true
+      ignore_errors: true
+      register: http_check_result
+
+    - name: "[upload_artifactory] Output Check results Masked"
+      ansible.builtin.debug:
+        msg: "{{ item | to_json | replace(upload_artifactory_password, '****') }}"
+      loop: "{{ http_check_result.results }}"
+      loop_control:
+        label: "{{ item.item.file }}"
+
+    - name: "[upload_artifactory] Download files from remote urls"
+      ansible.builtin.command:
+        argv:
+          - curl
+          - -k
+          - -L
+          - "{{ item.item.src }}"
+          - -o
+          - "{{ workdir }}/{{ item.item.file }}"
+      loop: "{{ http_check_result.results }}"
+      loop_control:
+        label: "{{ item.item.file }}"
+      no_log: true
+      ignore_errors: true
+      register: http_file_download_result
+      when: item.stdout != "200"
+
+    - name: "[upload_artifactory] Output Download results Masked"
+      ansible.builtin.debug:
+        msg: "{{ item | to_json | replace(upload_artifactory_password, '****') }}"
+      loop: "{{ http_file_download_result.results }}"
+      loop_control:
+        label: "{{ item.item.item.file }}"
+
+    - name: "[upload_artifactory] Upload HTTP Files to Artifactory"
+      ansible.builtin.command:
+        argv:
+          - curl
+          - -k
+          - -X
+          - PUT
+          - -T
+          - "{{ workdir }}/{{ item.item.file }}"
+          - "{{ upload_artifactory_url_with_repo }}/{{ item.item.dst }}"
+      loop: "{{ http_check_result.results }}"
+      loop_control:
+        label: "{{ item.item.file }}"
+      no_log: true
+      ignore_errors: true
+      register: http_file_upload_result
+      when: item.stdout != "200"
+
+    - name: "[upload_artifactory] Output Upload results Masked"
+      ansible.builtin.debug:
+        msg: "{{ item | to_json | replace(upload_artifactory_password, '****') }}"
+      loop: "{{ http_file_upload_result.results }}"
+      loop_control:
+        label: "{{ item.item.item.file }}"
+      failed_when:
+        - item.changed | bool
+        - "'created' not in item.stdout"
+        - item.item.item.file not in item.stdout
+
+    - name: "[upload_artifactory] Switch to Access Service Account Name"
+      ansible.builtin.command: # noqa 305 301 no-changed-when
+        argv:
+          - gcloud
+          - auth
+          - activate-service-account
+          - --key-file
+          - "{{ job_sakeyfolder }}/{{ component_access_gcpsa_path }}"
+
+    - name: "[upload_artifactory] Check Existence of gcs files in artifactory"
+      ansible.builtin.command:
+        argv:
+          - curl
+          - -k
+          - -s
+          - -o
+          - /dev/null
+          - -w
+          - "%{http_code}"
+          - "{{ upload_artifactory_url }}/api/storage/{{ upload_artifactory_repo_name }}/{{ item.dst }}"
+      loop: "{{ upload_artifactory_gs_artifacts }}"
+      loop_control:
+        label: "{{ item.file }}"
+      no_log: true
+      ignore_errors: true
+      register: gcs_check_result
+
+    - name: "[upload_artifactory] Output Check results Masked"
+      ansible.builtin.debug:
+        msg: "{{ item | to_json | replace(upload_artifactory_password, '****') }}"
+      loop: "{{ gcs_check_result.results }}"
+      loop_control:
+        label: "{{ item.item.file }}"
+
+    - name: "[upload_artifactory] Download files from GCS"
+      ansible.builtin.command: # noqa 305 301 no-changed-when
+        argv:
+          - gsutil
+          - cp
+          - "{{ item.item.src }}"
+          - "{{ workdir }}/{{ item.item.file }}"
+        creates: "{{ workdir }}/{{ item.item.file }}"
+      loop: "{{ gcs_check_result.results }}"
+      loop_control:
+        label: "{{ item.item.file }}"
+      no_log: true
+      ignore_errors: true
+      register: gcs_file_download_result
+      when: item.stdout != "200"
+
+    - name: "[upload_artifactory] Output Download results Masked"
+      ansible.builtin.debug:
+        msg: "{{ item | to_json | replace(upload_artifactory_password, '****') }}"
+      loop: "{{ gcs_file_download_result.results }}"
+      loop_control:
+        label: "{{ item.item.item.file }}"
+      failed_when:
+        - item.changed | bool
+        - item.failed | bool
+
+    - name: "[upload_artifactory] Upload GCS Files to Artifactory"
+      ansible.builtin.command:
+        argv:
+          - curl
+          - -k
+          - -X
+          - PUT
+          - -T
+          - "{{ workdir }}/{{ item.item.file }}"
+          - "{{ upload_artifactory_url_with_repo }}/{{ item.item.dst }}"
+      loop: "{{ gcs_check_result.results }}"
+      loop_control:
+        label: "{{ item.item.file }}"
+      no_log: true
+      ignore_errors: true
+      register: gcs_file_upload_result
+      when: item.stdout != "200"
+
+    - name: "[upload_artifactory] Output Upload results Masked"
+      ansible.builtin.debug:
+        msg: "{{ item | to_json | replace(upload_artifactory_password, '****') }}"
+      loop: "{{ gcs_file_upload_result.results }}"
+      loop_control:
+        label: "{{ item.item.item.file }}"
+      failed_when:
+        - item.changed | bool
+        - "'created' not in item.stdout"
+        - item.item.item.file not in item.stdout
+  
+  environment: # noqa 204
+    PATH: "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin" # noqa 204
+    http_proxy: "{{ glb_proxyurl }}"
+    https_proxy: "{{ glb_proxyurl }}"
+    no_proxy: "{{ glb_noproxy }}"
+
+  always:
+    - name: "Include role to delete sensitive files"
+      ansible.builtin.include_role:
+        name: cleanup

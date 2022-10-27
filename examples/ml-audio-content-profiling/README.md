@@ -76,7 +76,7 @@ git clone https://github.com/GoogleCloudPlatform/professional-services
 2. Change directories into this project
 
 `````
-cd tools/ml-audio-content-moderation/
+cd examples/ml-audio-content-profiling/
 `````
 
 <h3>Create Project Resources</h3>

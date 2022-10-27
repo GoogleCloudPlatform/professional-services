@@ -21,6 +21,8 @@ import argparse
 import logging
 import sys
 import concurrent.futures
+import copy
+import json
 
 from . import machine_image
 from . import instance
@@ -33,8 +35,6 @@ from . import fields
 from . import project
 from csv import DictReader
 from csv import DictWriter
-import copy
-import json
 
 
 def bulk_image_create(project, machine_image_region, file_name='export.csv') \
@@ -203,6 +203,65 @@ def bulk_instance_start(file_name) -> bool:
                 except Exception as exc:
                     logging.error(
                         'machine strating generated an exception: %s', exc)
+                    result = False
+    return result
+
+
+def bulk_move_instances_to_subnet(
+        file_name, to_subnet_uri: uri.Subnet, direction: str
+    ) -> bool:
+    if direction != 'backup' and direction != 'rollback':
+        logging.error(
+            "bulk_move_instances_to_subnet: specify a direction \
+            ('backup' or 'rollback')"
+        )
+        return False
+    result = True
+    # first go through the whole file and check for instance fingerprints
+    with open(file_name, 'r') as read_obj:
+        csv_dict_reader = DictReader(read_obj)
+        for row in csv_dict_reader:
+            if not row['fingerprint']:
+                logging.error(
+                    'Missing fingerprint for instance %s, aborting',
+                    row['name']
+                )
+                return False
+    # all fingerprints there, proceeding
+    with open(file_name, 'r') as read_obj:
+        csv_dict_reader = DictReader(read_obj)
+        count = 0
+        tracker = 0
+        instance_future = []
+        machine_name = ''
+        # We can use a with statement to ensure threads are cleaned up promptly
+        with concurrent.futures.ThreadPoolExecutor(max_workers=100) as executor:
+            # Start the load operations and mark each future with its URL
+            for row in csv_dict_reader:
+                instance_uri = uri.Instance.from_uri(row['self_link'])
+                if not row['fingerprint']:
+                    logging.error(
+                        'Missing fingerprint for %s, aborting',
+                        row['name']
+                    )
+                instance_future.append(
+                    executor.submit(
+                        instance.move_to_subnet_and_rename, instance_uri,
+                        row, to_subnet_uri, direction)
+                    )
+                count = count + 1
+            for future in concurrent.futures.as_completed(instance_future):
+                try:
+                    machine_name = future.result()
+                    tracker = tracker + 1
+                    logging.info('%r machine moved to subnet %s sucessfully',
+                                 machine_name, to_subnet_uri)
+                    logging.info('%i out of %i moved to subnet', tracker, count)
+                except Exception as exc:
+                    logging.error(
+                        'Moving machine to subnet %s: exception: %s',
+                        to_subnet_uri, exc
+                    )
                     result = False
     return result
 
@@ -395,7 +454,9 @@ def bulk_instance_disable_deletionprotection(file_name) -> bool:
                     logging.info('%i out of %i set ', tracker, count)
                 except Exception as exc:
                     logging.error(
-                        'disable deletion protection generated an exception: %s', exc)
+                        'Disable deletion protection: exception: %s',
+                        exc
+                    )
                     result = False
     return result
 
@@ -501,7 +562,8 @@ def release_individual_ips(source_subnet_uri, file_name) -> bool:
 def main(step, machine_image_region, source_project,
          source_subnet_uri: uri.Subnet, source_zone, source_zone_2,
          source_zone_3, target_project, target_service_account, target_scopes,
-         target_subnet_uri: uri.Subnet, source_csv, filter_csv, input_csv,
+         target_subnet_uri: uri.Subnet, backup_subnet_uri: uri.Subnet,
+         source_csv, filter_csv, input_csv, rollback_csv,
          log_level) -> bool:
     """
     The main method to trigger the VM migration.
@@ -541,8 +603,9 @@ def main(step, machine_image_region, source_project,
                                    source_csv):
             logging.info('%s now has exported records', source_csv)
         else:
-            logging.info('File %s was not overwriten', source_csv)
+            logging.info('File %s was not overwritten', source_csv)
             return False
+
     elif step == 'filter_inventory':
         logging.info('Exporting the inventory')
         if subnet.export_instances(source_project, source_zone, source_zone_2,
@@ -550,14 +613,30 @@ def main(step, machine_image_region, source_project,
                                    source_csv):
             logging.info('%s now has exported records', source_csv)
         else:
-            logging.info('File %s was not overwriten', source_csv)
+            logging.info('File %s was not overwritten', source_csv)
             return False
 
         logging.info('Filtering out the exported records')
         if filter_records(source_csv, filter_csv, input_csv):
             logging.info('%s now has filtered records', input_csv)
         else:
-            logging.info('File %s was not overwriten', input_csv)
+            logging.info('File %s was not overwritten', input_csv)
+            return False
+
+    elif step == 'prepare_rollback':
+        logging.info('Listing the VMs to roll back')
+        if subnet.list_instances_for_rollback(source_project, source_zone, backup_subnet_uri, input_csv, rollback_csv):
+            logging.info('%s now has exported records', rollback_csv)
+        else:
+            logging.info('File %s was not overwritten', rollback_csv)
+            return False
+
+    elif step == 'rollback_instances':
+        logging.info('Performing rollback of instances in file %s', rollback_csv)
+        if bulk_move_instances_to_subnet(rollback_csv, source_subnet_uri, 'rollback'):
+            logging.info('Instances rollback completed successfully')
+        else:
+            logging.info('Rollback failed, please see the log file for details')
             return False
 
     elif step == 'shutdown_instances':
@@ -698,6 +777,16 @@ def main(step, machine_image_region, source_project,
             logging.error('Creation of instances failed')
             return False
 
+    elif step == 'backup_instances':
+        logging.info(
+            'Backing up instances in file %s to backup_subnet_uri=%s',
+            input_csv, backup_subnet_uri)
+        if bulk_move_instances_to_subnet(input_csv, backup_subnet_uri, 'backup'):
+            logging.info('Instances backed up successfully')
+        else:
+            logging.error('Backup of instances failed')
+            return False
+
     elif step == 'release_ip_for_subnet':
         logging.info('Releasing all IPs of project %s present in '
                      'subnet %s', source_project, source_subnet_uri)
@@ -760,6 +849,8 @@ if __name__ == '__main__':
                         'account scopes in the target project')
     parser.add_argument('--target_subnet',
                         help='Target subnet uri')
+    parser.add_argument('--backup_subnet',
+                        help='Backup subnet uri')
     parser.add_argument('--source_csv',
                         default='source.csv',
                         help='The csv with the full dump of movable VMs.')
@@ -770,6 +861,9 @@ if __name__ == '__main__':
     parser.add_argument('--input_csv',
                         default='input.csv',
                         help='destination file to export the data to')
+    parser.add_argument('--rollback_csv',
+                        default='rollback.csv',
+                        help='destination file to list the VMs to rollback to')
     parser.add_argument('--log_level', default='INFO', help='Log Level')
     args = parser.parse_args()
 
@@ -777,6 +871,8 @@ if __name__ == '__main__':
                 uri.Subnet.from_uri(args.source_subnet), args.source_zone,
                 args.source_zone_2, args.source_zone_3, args.target_project,
                 args.target_project_sa, args.target_project_sa_scopes,
-                uri.Subnet.from_uri(args.target_subnet), args.source_csv,
-                args.filter_csv, args.input_csv, args.log_level):
+                uri.Subnet.from_uri(args.target_subnet),
+                uri.Subnet.from_uri(args.backup_subnet),
+                args.source_csv, args.filter_csv, args.input_csv, args.rollback_csv,
+                args.log_level):
         sys.exit(1)

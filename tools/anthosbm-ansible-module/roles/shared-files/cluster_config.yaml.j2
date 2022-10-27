@@ -1,0 +1,114 @@
+{#
+# Copyright 2021 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#}
+
+{% if (cluster_type != 'user') %}
+sshPrivateKeyPath: {{ ssh_private_key_path }}
+gcrKeyPath: bmctl-workspace/.sa-keys/{{ project_id }}-anthos-baremetal-gcr.json
+cloudOperationsServiceAccountKeyPath: bmctl-workspace/.sa-keys/{{ project_id }}-anthos-baremetal-cloud-ops.json
+{% endif %}
+gkeConnectAgentServiceAccountKeyPath: bmctl-workspace/.sa-keys/{{ project_id }}-anthos-baremetal-connect.json
+gkeConnectRegisterServiceAccountKeyPath: bmctl-workspace/.sa-keys/{{ project_id }}-anthos-baremetal-register.json
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: cluster-{{ cluster_name }}
+---
+apiVersion: baremetal.cluster.gke.io/v1
+kind: Cluster
+metadata:
+  name: {{ cluster_name }}
+  namespace: cluster-{{ cluster_name }}
+spec:
+  type: {{ cluster_type }}
+{% set bmctl_version = bmctl_download_url.split('/')[4] %}
+  anthosBareMetalVersion: {{ bmctl_version }}
+  gkeConnect:
+    projectID: {{ project_id }}
+  controlPlane:
+    nodePoolSpec:
+      nodes:
+{% for cp_node in groups['cp_nodes'] %}
+      - address: {{ cp_node }}
+{% endfor %}
+{% if maintenance_nodes_block is defined and maintenance_nodes_block|length %}
+  maintenanceBlocks:
+    cidrBlocks:
+{% for maintenance_node in maintenance_nodes_block %}
+    - {{ maintenance_node }}
+{% endfor %}
+{% endif %}
+  clusterNetwork:
+    pods:
+      cidrBlocks:
+      - {{ pod_cidr }}
+    services:
+      cidrBlocks:
+      - {{ service_cidr }}
+  loadBalancer:
+    mode: {{ lb_mode }}
+    ports:
+      controlPlaneLBPort: 443
+    vips:
+      controlPlaneVIP: {{ cp_vip }}
+{% if (cluster_type != 'admin') %}
+      ingressVIP: {{ ingress_vip }}
+{% if lb_mode is defined and lb_mode == 'bundled' %}
+    addressPools:
+{% for lb_address in lb_address_pool %}
+    - name: pool{{loop.index}}
+      addresses:
+      - {{ lb_address }}
+{% endfor %}
+{% endif %}
+{% endif %}
+  clusterOperations:
+    projectID: {{ project_id }}
+    location: {{ location }}
+    enableApplication: {{ app_logs }}
+  storage:
+    lvpNodeMounts:
+      path: /mnt/localpv-disk
+      storageClassName: local-disks
+    lvpShare:
+      path: /mnt/localpv-share
+      storageClassName: local-shared
+      numPVUnderSharedPath: 5
+  nodeConfig:
+    podDensity:
+      maxPodsPerNode: {{ max_pod_per_node }}
+    containerRuntime: {{ container_runtime }}
+  nodeAccess:
+{% if node_login_user is defined %}
+    loginUser: {{ node_login_user }}
+{% else %}
+    loginUser: {{ login_user }}
+{% endif %}
+{% if (cluster_type != 'admin') and groups['worker_nodes'] %}
+---
+apiVersion: baremetal.cluster.gke.io/v1
+kind: NodePool
+metadata:
+  name: node-pool-{{ cluster_name }}
+  namespace: cluster-{{ cluster_name }}
+spec:
+  clusterName: {{ cluster_name }}
+  nodes:
+{% for worker_node in groups['worker_nodes']%}
+  - address: {{ worker_node }}
+{% endfor %}
+{% endif %}
+
