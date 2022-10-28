@@ -1,0 +1,28 @@
+# logs
+*.log
+
+# Directories
+.config/
+.terraform/
+.vagrant/
+inventory/vmlab
+inventory/my-site
+
+# SSH Keys
+*.pem
+
+# Backup files
+*.bak
+
+# Ignore Mac .DS_Store files
+.DS_Store
+
+# Ignore vscode files
+.vscode/
+
+header
+headerj2
+footer
+search-and-replace.sh
+add-header.sh
+roles/TEST_CASES.md

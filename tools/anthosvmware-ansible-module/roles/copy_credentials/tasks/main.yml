@@ -1,0 +1,159 @@
+# Copyright 2022 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+
+- name: "[copy_creds] Set folder name for GCP SA JSON key files"
+  ansible.builtin.set_fact:
+    job_sakeyfolder: "{{ sakeyfolder_base }}-{{ ac_name if ac_name is defined else uc_name if uc_name is defined else adminws_name if adminws_name is defined else 'upload' }}"
+
+- name: "[copy_creds] Create folder for GCP SA JSON key files"
+  ansible.builtin.file:
+    path: "{{ job_sakeyfolder }}"
+    mode: 0700
+    state: directory
+
+# Not applicable when using Ansible Tower/AWX
+# The playbooks/sakeys/ folder can be used to store your GCP SA JSON key files when using OSS Ansible on the command-line
+- name: "[copy_creds] Copy local GCP SA JSON key files"
+  ansible.builtin.copy:
+    src: "{{ item }}"
+    dest: "{{ job_sakeyfolder }}"
+    mode: 0600
+  # with_fileglob assumes JSON files are located in playbooks/sakeys/ on the Ansible Controller
+  with_fileglob:
+    - sakeys/*.json
+
+- name: "[copy_creds] GCA SA Component Access Account Key"
+  include_tasks:
+    file: gcpsa.yml
+  vars:
+    gcpsa_key_file: "{{ component_access_gcpsa | default('') }}"
+    gcpsa_key_string: "{{ component_access_gcpsa_content | default('') }}"
+    gcpsa_dest_file: "{{ component_access_gcpsa_path }}"
+  when:
+    - is_admin_workstation | default(false) | bool 
+      or is_admin_cluster | default(false) | bool
+      or is_build_server | default(false) | bool
+      or is_upload | default(false) | bool
+      or is_standalone | default(false) | bool
+
+- name: "[copy_creds] GCA SA Connect Register Account Key"
+  include_tasks:
+    file: gcpsa.yml
+  vars:
+    gcpsa_key_file: "{{ connect_register_gcpsa | default('') }}"
+    gcpsa_key_string: "{{ connect_register_gcpsa_content | default('') }}"
+    gcpsa_dest_file: "{{ connect_register_gcpsa_path }}"
+  when:
+    - is_admin_cluster | default(false) | bool
+      or is_user_cluster | default(false) | bool
+      or is_asm | default(false) | bool
+      or is_label | default(false) | bool
+      or is_standalone | default(false) | bool
+
+- name: "[copy_creds] GCA SA Logging and Monitoring Account Key"
+  include_tasks:
+    file: gcpsa.yml
+  vars:
+    gcpsa_key_file: "{{ logging_monitoring_gcpsa | default('') }}"
+    gcpsa_key_string: "{{ logging_monitoring_gcpsa_content | default('') }}"
+    gcpsa_dest_file: "{{ logging_monitoring_gcpsa_path }}"
+  when:
+    - is_admin_cluster | default(false) | bool
+      or is_user_cluster | default(false) | bool
+      or is_standalone | default(false) | bool
+
+- name: "[copy_creds] GCA SA Audit Logging Account Key"
+  include_tasks:
+    file: gcpsa.yml
+  vars:
+    gcpsa_key_file: "{{ audit_logging_gcpsa | default('') }}"
+    gcpsa_key_string: "{{ audit_logging_gcpsa_content | default('') }}"
+    gcpsa_dest_file: "{{ audit_logging_gcpsa_path }}"
+  when:
+    - is_admin_cluster | default(false) | bool
+      or is_user_cluster | default(false) | bool
+      or is_standalone | default(false) | bool
+
+- name: "[copy_creds] GCA SA AIS Config Upload Account Key"
+  include_tasks:
+    file: gcpsa.yml
+  vars:
+    gcpsa_key_file: "{{ ais_gcpsa | default('') }}"
+    gcpsa_key_string: "{{ ais_gcpsa_content | default('') }}"
+    gcpsa_dest_file: "{{ ais_gcpsa_path }}"
+  when:
+    - is_ais | default(false) | bool
+      or is_standalone | default(false) | bool
+
+- name: "[copy_creds] GCA SA ASM Management Account Key"
+  include_tasks:
+    file: gcpsa.yml
+  vars:
+    gcpsa_key_file: "{{ asm_gcpsa | default('') }}"
+    gcpsa_key_string: "{{ asm_gcpsa_content | default('') }}"
+    gcpsa_dest_file: "{{ asm_gcpsa_path }}"
+  when:
+    - is_asm | default(false) | bool
+      or is_standalone | default(false) | bool
+
+- name: "[copy_creds] GCA SA ACM Management Account Key"
+  include_tasks:
+    file: gcpsa.yml
+  vars:
+    gcpsa_key_file: "{{ acm_gcpsa | default('') }}"
+    gcpsa_key_string: "{{ acm_gcpsa_content | default('') }}"
+    gcpsa_dest_file: "{{ acm_gcpsa_path }}"
+  when:
+    - is_acm | default(false) | bool
+      or is_standalone | default(false) | bool
+
+- name: "[copy_creds] Set credential.yaml directory (Admin WS)"
+  ansible.builtin.set_fact:
+    cred_path: "{{ yamldestpath }}"
+  when:
+    - is_admin_workstation | default(false) | bool
+      or is_standalone | default(false) | bool
+
+- name: "[copy_creds] Set credential.yaml directory (Cluster)"
+  ansible.builtin.set_fact:
+    cred_path: "{{ yamldestpath }}/{{ ac_name if ac_name is defined else uc_name }}"
+  when:
+    - is_admin_cluster | default(false) | bool
+      or is_user_cluster | default(false) | bool
+      or is_standalone | default(false) | bool
+
+- name: "[copy_creds] Ensure credentials directory exists"
+  ansible.builtin.file:
+    path: "{{ cred_path }}"
+    state: directory
+    mode: 0700
+  when:
+    - is_admin_workstation | default(false) | bool
+      or is_admin_cluster | default(false) | bool
+      or is_user_cluster | default(false) | bool
+      or is_standalone | default(false) | bool
+
+- name: "[copy_creds] Templating YAML files - vCenter credentials"
+  ansible.builtin.template:
+    src: credential.yaml.j2
+    dest: "{{ cred_path }}/credential.yaml"
+    mode: 0600
+  when:
+    - is_admin_workstation | default(false) | bool
+      or is_admin_cluster | default(false) | bool
+      or is_user_cluster | default(false) | bool
+      or is_standalone | default(false) | bool
+    - glb_vc_username is defined
+    - glb_vc_password is defined
