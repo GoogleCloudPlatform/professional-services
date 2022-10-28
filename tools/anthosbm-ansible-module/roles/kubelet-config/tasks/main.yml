@@ -1,0 +1,57 @@
+# Copyright 2021 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+---
+- name: Ensure that kubelet config fields exist with their default values in the config file
+  shell: |
+    grep 'serializeImagePulls: ' "{{ kubelet_config_file }}" || echo 'serializeImagePulls: true' >> "{{ kubelet_config_file }}"
+    grep 'registryPullQPS: ' "{{ kubelet_config_file }}" || echo 'registryPullQPS: 5' >> "{{ kubelet_config_file }}"
+    grep 'registryBurst: ' "{{ kubelet_config_file }}" || echo 'registryBurst: 10' >> "{{ kubelet_config_file }}"
+
+- name: Update serializeImagePulls in kubelet config
+  replace:
+    path: "{{ kubelet_config_file }}"
+    regexp: '^serializeImagePulls:.+$'
+    replace: "serializeImagePulls: {{ serialize_image_pulls }}"
+    backup: yes
+  register: update_serialize_image_pulls
+  when: serialize_image_pulls|default('',true)|trim|length > 0
+
+- name: Update registryPullQPS in kubelet config
+  replace:
+    path: "{{ kubelet_config_file }}"
+    regexp: '^registryPullQPS:.+$'
+    replace: "registryPullQPS: {{ registry_pull_qps|int }}"
+    backup: yes
+  register: update_registry_pull_qps
+  when: registry_pull_qps|int > 0
+
+- name: Update registryBurst in kubelet config
+  replace:
+    path: "{{ kubelet_config_file }}"
+    regexp: '^registryBurst:.+$'
+    replace: "registryBurst: {{ registry_burst|int }}"
+    backup: yes
+  register: update_registry_burst
+  when: registry_burst|int > 0
+
+- name: Restart kubelet if necessary
+  systemd:
+    state: restarted
+    daemon_reload: true
+    name: kubelet
+  when:
+  - update_serialize_image_pulls.changed or
+    update_registry_pull_qps.changed or
+    update_registry_burst.changed

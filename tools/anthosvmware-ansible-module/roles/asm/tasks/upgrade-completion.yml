@@ -1,0 +1,94 @@
+# Copyright 2022 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+- name: "[asm] Create folder for ASM files on admin workstation"
+  ansible.builtin.file:
+    path: "{{ asm_temp }}"
+    mode: 0700
+    state: directory
+  when:
+    - (asm_temp is defined) and (asm_temp | length > 0)
+
+- name: "[asm] Block - Complete the transition of Anthos Service Mesh Upgrade"
+  block:
+    - name: "[asm] Template validating webhook"
+      ansible.builtin.template:
+        src: validating-webhook.yaml.j2
+        dest: "{{ asm_temp }}/validating-webhook-asm.yaml"
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: '0600'
+
+    - name: "[asm] Delete the old version of validatingwebhook configuration"
+      ansible.builtin.command:
+        argv:
+          - kubectl
+          - delete
+          - validatingwebhookconfiguration
+          - istio-validator-{{ asm_old_revision }}-istio-system
+          - -n
+          - istio-system
+          - --ignore-not-found
+
+    - name: "[asm] Update validating webhook to new revision"
+      ansible.builtin.command:
+        argv:
+          - kubectl
+          - apply
+          - -f
+          - "{{ asm_temp }}/validating-webhook-asm.yaml"
+
+    - name: "[asm] Move the default tag to new revision"
+      ansible.builtin.command:
+        argv:
+          - "{{ istioctl_dest_path }}/istioctl"
+          - tag
+          - set
+          - default
+          - --revision
+          - "{{ asm_revision }}"
+          - --overwrite
+      ignore_errors: true
+
+    - name: "[asm] Delete the old version of istiod"
+      ansible.builtin.command:
+        argv:
+          - kubectl
+          - delete
+          - "Service,Deployment,HorizontalPodAutoscaler,PodDisruptionBudget"
+          - istiod-{{ asm_old_revision }}
+          - -n
+          - istio-system
+          - --ignore-not-found
+
+    - name: "[asm] Delete the old version of IstioOperator configuration"
+      ansible.builtin.command:
+        argv:
+          - kubectl
+          - delete
+          - IstioOperator
+          - installed-state-{{ asm_old_revision }}
+          - -n
+          - istio-system
+          - --ignore-not-found
+
+  environment:
+    KUBECONFIG: "{{ asm_kubeconfig }}"
+
+  always:
+    - name: "[cleanup] Delete temp directory created for ASM files"
+      ansible.builtin.file:
+        path: "{{ asm_temp }}"
+        state: absent
+      when: (asm_temp is defined) and (asm_temp | length > 0)
