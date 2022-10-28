@@ -1,0 +1,104 @@
+# Copyright 2022 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+
+- name: "[ASM] Include tasks - asserts.yml"
+  include_tasks: asserts.yml
+
+- name: "[ASM] Detect if ASM already installed and get current revision"
+  ansible.builtin.command:
+    chdir: "{{ yamldestpath }}"
+    argv:
+      - kubectl
+      - --kubeconfig
+      - "{{ asm_kubeconfig }}"
+      - get
+      - deploy
+      - -n
+      - istio-system
+      - -l
+      - app=istiod
+      - -o
+      - jsonpath={.items[*].metadata.name}
+  register: r_asm_revision
+  when: not mesh_install|default(false)|bool
+
+- name: "[ASM] Update ASM config if current revision is same as requested revision"
+  ansible.builtin.set_fact:
+    asm_update: true
+  when:
+    - (r_asm_revision.stdout is defined) and (r_asm_revision.stdout|length > 0)
+    - r_asm_revision.stdout is search(asm_revision)
+    - asm_install|default(false)|bool
+    - not mesh_install|default(false)|bool
+    - not asm_upgrade_completion|default(false)|bool
+
+- name: "[ASM] if installed revision is different then set upgrade flag to true"
+  ansible.builtin.set_fact:
+    asm_upgrade: true
+  when:
+    - (r_asm_revision.stdout is defined) and (r_asm_revision.stdout|length > 0)
+    - r_asm_revision.stdout is not search(asm_revision)
+    - asm_install|default(false)|bool
+    - not mesh_install|default(false)|bool
+    - not asm_upgrade_completion|default(false)|bool
+    - not asm_update|default(false)|bool
+
+- name: "[ASM] Include tasks - install.yml"
+  include_tasks: install.yml
+  when:
+    - asm_install|default(false)|bool
+    - not mesh_install|default(false)|bool
+    - not asm_upgrade|default(false)|bool
+    - not asm_upgrade_completion|default(false)|bool
+    - not asm_update|default(false)|bool
+
+- name: "[ASM] Include tasks - upgrade.yml"
+  include_tasks: upgrade.yml
+  when:
+    - asm_upgrade|default(false)|bool
+    - not asm_update|default(false)|bool
+
+- name: "[ASM] Include tasks - update.yml"
+  include_tasks: update.yml
+  when:
+    - asm_update|default(false)|bool
+    - not asm_upgrade|default(false)|bool
+
+- name: "[ASM] Check if request is for uninstall"
+  ansible.builtin.set_fact:
+    asm_uninstall: true
+  when:
+    - not asm_install|default(false)|bool
+    - not mesh_install|default(false)|bool
+    - not asm_upgrade|default(false)|bool
+    - not asm_upgrade_completion|default(false)|bool
+    - (r_asm_revision.stdout is defined) and (r_asm_revision.stdout|length > 0)
+
+- name: "[ASM] Include tasks - uninstall.yml"
+  include_tasks: uninstall.yml
+  when:
+    - asm_uninstall|default(false)|bool
+
+- name: "[ASM] Include tasks - upgrade-completion.yml"
+  include_tasks: upgrade-completion.yml
+  when:
+    - asm_upgrade_completion|default(false)|bool
+    - (asm_old_revision is defined) and (asm_old_revision|length > 0)
+    - (r_asm_revision.stdout is defined) and (r_asm_revision.stdout|length > 0)
+    - r_asm_revision.stdout is search(asm_old_revision)
+
+- name: "[mesh] Include tasks - multi-cluster-mesh.yml"
+  include_tasks: multi-cluster-mesh.yml
+  when: mesh_install|default(false)|bool

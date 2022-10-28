@@ -14,49 +14,77 @@
 
 - name: Reset ssh connection to allow group changes
   meta: reset_connection
-  
-- name: Delete bmctl workspace cluster directory if exists
-  ansible.builtin.file:
-    path: "{{ login_user_home }}/{{ bmctl_workspace_dir }}/{{ cluster_name }}"
-    state: absent
-    
+  tags: [preflight-admin, preflight-hybrid,create-admin,create-hybrid,create-user]
+      
 - name: Create bmctl workspace cluster directory
   ansible.builtin.file:
     path: "{{ login_user_home }}/{{ bmctl_workspace_dir }}/{{ cluster_name }}"
     state: directory
     owner: "{{ login_user }}"
     group: "{{ login_user_group }}"
+  tags: [preflight-admin,preflight-hybrid,preflight-user,create-admin,create-hybrid,create-user]  
 
 - name: Create Cluster Config file
   ansible.builtin.template:
-    src: cluster.yaml.j2
+    src: ../../shared-files/cluster_config.yaml.j2
     dest: "{{ login_user_home }}/{{ bmctl_workspace_dir }}/{{ cluster_name }}/{{ cluster_name}}.yaml"
     owner: "{{ login_user }}"
     group: "{{ login_user_group }}"
+  tags: [preflight-admin,preflight-hybrid,preflight-user,create-admin,create-hybrid,create-user]   
 
 - name: Check Config
   shell:
-    cmd: "bmctl check config -c {{ cluster_name }} --bootstrap-cluster-pod-cidr={{ pod_cidr }} --bootstrap-cluster-service-cidr={{ service_cidr }} --reuse-bootstrap-cluster --keep-bootstrap-cluster"
+    cmd: |
+      export GOOGLE_APPLICATION_CREDENTIALS="{{ gcp_sa_key_dir }}/{{ gcloud_preq_sa_name }}.json"
+      bmctl check config -c "{{ cluster_name }}"
     chdir: "{{ login_user_home }}"
   when: cluster_type != "user"
+  tags: [preflight-admin,preflight-hybrid,preflight-user,create-admin,create-hybrid] 
+
+- name: Check Config for User cluster
+  shell:
+    cmd: |
+      export GOOGLE_APPLICATION_CREDENTIALS="{{ gcp_sa_key_dir }}/{{ gcloud_preq_sa_name }}.json"
+      bmctl check config -c "{{ cluster_name }}" --admin-kubeconfig "{{ admin_kubeconfig_path }}"
+    chdir: "{{ login_user_home }}"
+  when: cluster_type == "user"
+  tags: [create-user,preflight-user]
 
 - name: Preflight check
   shell:
-    cmd: "bmctl check preflight -c {{ cluster_name }} --bootstrap-cluster-pod-cidr={{ pod_cidr }} --bootstrap-cluster-service-cidr={{ service_cidr }} --reuse-bootstrap-cluster --keep-bootstrap-cluster"
+    cmd: |
+      export GOOGLE_APPLICATION_CREDENTIALS="{{ gcp_sa_key_dir }}/{{ gcloud_preq_sa_name }}.json"
+      bmctl check preflight -c "{{ cluster_name }}"
     chdir: "{{ login_user_home }}"
   when: cluster_type != "user"
+  tags: [preflight-admin,preflight-hybrid]
+
+- name: Preflight check User Cluster
+  shell:
+    cmd: |
+      export GOOGLE_APPLICATION_CREDENTIALS="{{ gcp_sa_key_dir }}/{{ gcloud_preq_sa_name }}.json"
+      bmctl check preflight -c "{{ cluster_name }}" --admin-kubeconfig "{{ admin_kubeconfig_path }}"
+    chdir: "{{ login_user_home }}"
+  when: cluster_type == "user"
+  tags: [preflight-user]
 
 - name: Create Cluster
   shell:
-    cmd: "bmctl create cluster -c {{ cluster_name }} --bootstrap-cluster-pod-cidr={{ pod_cidr }} --bootstrap-cluster-service-cidr={{ service_cidr }} --reuse-bootstrap-cluster --keep-bootstrap-cluster"
+    cmd: |
+      export GOOGLE_APPLICATION_CREDENTIALS="{{ gcp_sa_key_dir }}/{{ gcloud_preq_sa_name }}.json"
+      bmctl create cluster -c "{{ cluster_name }}"
     chdir: "{{ login_user_home }}"
   when: cluster_type != "user"
+  tags: [create-admin,create-hybrid]
 
 - name: Create User Cluster
   shell:
-    cmd: "bmctl create cluster -c {{ cluster_name }} --kubeconfig {{ admin_kubeconfig_path }} --bootstrap-cluster-pod-cidr={{ pod_cidr }} --bootstrap-cluster-service-cidr={{ service_cidr }}"
+    cmd: |
+      export GOOGLE_APPLICATION_CREDENTIALS="{{ gcp_sa_key_dir }}/{{ gcloud_preq_sa_name }}.json"
+      bmctl create cluster -c "{{ cluster_name }}" --kubeconfig "{{ admin_kubeconfig_path }}"
     chdir: "{{ login_user_home }}"
   when: cluster_type == "user"
+  tags: [create-user]
 
 - name: Get kubeconfig location
   shell: echo "{{ login_user_home }}/{{ bmctl_workspace_dir }}/{{ cluster_name }}/{{ cluster_name }}-kubeconfig"

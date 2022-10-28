@@ -53,6 +53,12 @@ variable "python_file_name" {
   default     = "wordcount"
 }
 
+variable "go_application_name" {
+  type        = string
+  description = "Name of the go application"
+  default     = "wordcount"
+}
+
 variable "java_package_name" {
   type        = string
   description = "The Java package name of the executable class"

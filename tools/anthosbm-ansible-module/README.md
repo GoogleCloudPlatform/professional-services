@@ -32,7 +32,8 @@
 - [6. Connect Gateway Configuration](#6-connect-gateway-configuration)
   - [6.1 Configure Connect Gateway](#61-configure-connect-gateway)
   - [6.2 Validate Connect Gateway](#62-validate-connect-gateway)
-- [7 Reset Cluster](#7-reset-cluster)
+- [7. Reset Cluster](#7-reset-cluster)
+- [8. Update Kubelet Config](#8-update-kubelet-config)
 
 
 ## 1. Introduction
@@ -509,7 +510,7 @@ app_logs: false
 pod_cidr: 192.168.0.0/16
 service_cidr: 10.96.0.0/12
 cp_vip: 10.200.0.47
-cgw_members: 
+cgw_members:
 - [email id of IAM user or service account]
 ```
 
@@ -857,11 +858,26 @@ Run the below command to verify that you can connect successfully to the Cluster
 Kubectl get pods -A
 ```
 
-## 7 Reset Cluster
+## 7. Reset Cluster
 
 You can reset the anthos cluster using **reset_anthos_cluster.yml** playbook.
 
 ```
 cd <REPOSITORY_ROOT>/ansible
 ansible-playbook reset_anthos_cluster.yml
+```
+
+## 8. Update Kubelet Config
+
+You can update kubelet config of all nodes using **update_kubelet_config.yml** playbook. The playbook currently supports the following kubelet configs and if not provided, [default values](https://kubernetes.io/docs/reference/config-api/kubelet-config.v1beta1/#kubelet-config-k8s-io-v1beta1-KubeletConfiguration) will be used:
+
+* serializeImagePulls
+* registryPullQPS
+* registryBurst
+
+**NOTE:** This will add `serializeImagePulls`, `registryPullQPS`, and `registryBurst` to kubelet config with default values if it doesn't exists already (but it will not restart kubelet if there's no changes to the config values)\
+
+```
+cd <REPOSITORY_ROOT>/ansible
+ansible-playbook update_kubelet_config.yml -e "serialize_image_pulls=false registry_pull_qps=5 registry_burst=10"
 ```
