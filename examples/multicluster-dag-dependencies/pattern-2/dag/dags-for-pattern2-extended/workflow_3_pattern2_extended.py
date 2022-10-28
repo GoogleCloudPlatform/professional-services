@@ -36,7 +36,7 @@ def publish_pubsub_message(workflow_id, workflow_run_id, workflow_status):
         "workflow_status": workflow_status
     }
     payload = json.dumps(data)
-    future = publisher.publish(topic_path,
+    publisher.publish(topic_path,
                                payload.encode('utf-8'),
                                source_type="composer",
                                workflow_id=workflow_id,
