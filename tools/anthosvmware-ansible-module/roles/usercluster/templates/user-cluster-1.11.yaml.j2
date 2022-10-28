@@ -1,0 +1,249 @@
+{#
+# Copyright 2022 Google LLC
+# 
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+# 
+#     http://www.apache.org/licenses/LICENSE-2.0
+# 
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#}
+apiVersion: v1
+kind: UserCluster
+# (Required) A unique name for this cluster
+name: "{{ uc_name }}"
+# (Required) GKE on-prem version (example: 1.3.0-gke.16)
+gkeOnPremVersion: {{ glb_anthos_version }}
+# # (Optional) vCenter configuration (default: inherit from the admin cluster)
+vCenter:
+{% if (uc_vc_datacenter is defined) and (uc_vc_datacenter | length > 0) %}
+  datacenter: "{{ uc_vc_datacenter }}"
+{% endif %}
+{% if (uc_vc_cluster is defined) and (uc_vc_cluster | length > 0) %}
+  cluster: "{{ uc_vc_cluster }}"
+{% endif %}
+{% if (uc_vc_respool is defined) and (uc_vc_respool | length > 0) %}
+  resourcePool: "{{ uc_vc_respool }}"
+{% endif %}
+{% if (uc_vc_datastore is defined) and (uc_vc_datastore | length > 0) %}
+  datastore: "{{ uc_vc_datastore }}"
+{% endif %}
+{% if (uc_vc_cacertpath is defined) and (uc_vc_cacertpath | length > 0) %}
+  caCertPath: "{{ uc_vc_cacertpath }}"
+{% endif %}
+{% if (uc_vc_fqdn is defined) and (uc_vc_fqdn | length > 0) and (uc_vc_username is defined) and (uc_vc_username | length > 0) and (uc_vc_password is defined) and (uc_vc_password | length > 0) %}
+  credentials:
+    fileRef:
+      path: "{{ uc_vc_credfile }}"
+      entry: "{{ uc_vc_credentry }}"
+{% endif %}
+{% if (uc_vc_folder is defined) and (uc_vc_folder | length > 0) %}
+  folder: "{{ uc_vc_folder }}"
+{% endif %}
+# (Required) Network configuration; vCenter section is optional and inherits from
+# the admin cluster if not specified
+network:
+  # # (Optional) This section overrides ipBlockFile values. Use with ipType "static" mode.
+  hostConfig:
+  #   # List of DNS servers
+    dnsServers:
+{% for ip in uc_nw_dns %}
+    - "{{ ip }}"
+{% endfor %}
+  #   # List of NTP servers
+    ntpServers:
+{% for ntp in uc_nw_ntp %}
+    - "{{ ntp }}"
+{% endfor %}
+    searchDomainsForDNS:
+{% for domain in uc_nw_searchdomains %}
+    - "{{ domain }}"
+{% endfor %}
+  ipMode:
+    # (Required) Define what IP mode to use ("dhcp" "static" or "none"(multinic only))
+    type: {{ uc_nw_ipallocmode }}
+    # # (Required when using "static" mode) The absolute or relative path to the yaml file
+    # # to use for static IP allocation. Hostconfig part will be overwritten by network.hostconfig
+    # # if specified
+    ipBlockFilePath: "{{ uc_nw_ipfile }}"
+  # (Required) The Kubernetes service CIDR range for the cluster. Must not overlap
+  # with the pod CIDR range
+  serviceCIDR: {{ uc_nw_servicecidr }}
+  # (Required) The Kubernetes pod CIDR range for the cluster. Must not overlap with
+  # the service CIDR range
+  podCIDR: {{ uc_nw_podcidr }}
+  vCenter:
+    # vSphere network name
+    networkName: {{ uc_nw_vc_net }}
+  # # (Optional) List of additional node network interfaces feature enabled by multipleNetworkInterfaces
+  # additionalNodeInterfaces:
+  # # vSphere network name
+  # - networkName: ""
+  #   # (Required) Define what IP mode to use ("dhcp" "static" or "none"(multinic only))
+  #   type: dhcp
+  #   # # (Required when using "static" mode) The absolute or relative path to the yaml file
+  #   # # to use for static IP allocation. Hostconfig part will be overwritten by network.hostconfig
+  #   # # if specified
+  #   # ipBlockFilePath: ""
+# (Required) Load balancer configuration
+loadBalancer:
+  # (Required) The VIPs to use for load balancing
+  vips:
+    # Used to connect to the Kubernetes API
+    controlPlaneVIP: "{{ uc_lb_vips_cp }}"
+    # Shared by all services for ingress traffic
+    ingressVIP: "{{ uc_lb_vips_ingress }}"
+  # (Required) Which load balancer to use "F5BigIP" "Seesaw" "ManualLB" or "MetalLB".
+  # The automation script is configured to use MetalLB.
+  # Uncomment the corresponding field below to provide the detailed spec
+  kind: {{ uc_lb_kind }}
+  # # (Required when using "ManualLB" kind) Specify pre-defined nodeports
+  # manualLB:
+  #   # NodePort for ingress service's http (only needed for user cluster)
+  #   ingressHTTPNodePort: 30243
+  #   # NodePort for ingress service's https (only needed for user cluster)
+  #   ingressHTTPSNodePort: 30879
+  #   # NodePort for konnectivity server service (only needed for user cluster)
+  #   konnectivityServerNodePort: 30563
+  #   # NodePort for control plane service
+  #   controlPlaneNodePort: 30562
+  #   # NodePort for addon service (only needed for admin cluster)
+  #   addonsNodePort: 0
+  # # (Required when using "F5BigIP" kind) Specify the already-existing partition and
+  # # credentials
+  # f5BigIP:
+  #   address: ""
+  #   credentials:
+  #     # reference to external credentials file
+  #     fileRef:
+  #       # read credentials from this file
+  #       path: credential.yaml
+  #       # entry in the credential file
+  #       entry: f5BigIP
+  #   partition: ""
+  #   # # (Optional) Specify a pool name if using SNAT
+  #   # snatPoolName: ""
+{% if (uc_lb_kind is defined) and ('MetalLB' == uc_lb_kind) %}
+  # # (Required when using "MetalLB" kind in user clusters) Specify the MetalLB configs
+  metalLB:
+  #   # (Required) A list of non-overlapping IP pools used by load balancer typed services.
+  #   # Must include ingressVIP of the cluster.
+    addressPools:
+  #   # (Required) Name of the address pool
+    - name: "lbpool1"
+  #     # (Required) The addresses that are part of this pool. Each address must be either
+  #     # in the CIDR form (1.2.3.0/24) or range form (1.2.3.1-1.2.3.5).
+      addresses:
+{% for addr in uc_lb_metallb_ips %}
+      - "{{ addr }}"
+{% endfor %}
+  #     # # (Optional) Avoid using IPs ending in .0 or .255. This avoids buggy consumer devices
+  #     # # mistakenly dropping IPv4 traffic for those special IP addresses (default: false)
+      avoidBuggyIPs: true
+  #     # # (Optional) Prevent IP addresses to be automatically assigned from this pool (default:
+  #     # # false)
+      manualAssign: false
+{% endif %}
+# # (Optional) Enable dataplane v2
+enableDataplaneV2: {{ uc_dataplanev2 }}
+# # (Optional) Enable support for multiple networking interfaces
+# multipleNetworkInterfaces: false
+# # (Optional) Enable advanced dataplane v2 networking features such as Egress NAT Gateway
+# # and it requires enableDataplaneV2 to be set
+# advancedNetworking: false
+# enableWindowsDataplaneV2: false
+# # (Optional) Storage specification for the cluster
+# storage:
+#   # Whether to disable vSphere CSI components deployment. The feature is enabled by
+#   # default.
+#   vSphereCSIDisabled: false
+# (Optional) User cluster master nodes must have either 1 or 3 replicas (default:
+# 4 CPUs; 8192 MB memory; 1 replica)
+masterNode:
+  cpus: {{ uc_masternode_cpus }}
+  memoryMB: {{ uc_masternode_mem }}
+  # How many machines of this type to deploy
+  replicas: {{ uc_masternode_replicas }}
+  # # (Optional/Preview) Enable auto resizing on master
+  # autoResize:
+  #   # Whether to enable auto resize for master. Defaults to false.
+  #   enabled: false
+{% if (uc_masternode_datastore is defined) and (uc_masternode_datastore | length > 0) %}
+  vsphere:
+    datastore: "{{ uc_masternode_datastore }}"
+{% endif %}
+# (Required) List of node pools. The total un-tainted replicas across all node pools
+# must be greater than or equal to 3
+nodePools:
+{{ uc_nodepools | to_nice_yaml(indent=0) }}
+# Spread nodes across at least three physical hosts (requires at least three hosts)
+antiAffinityGroups:
+  # Set to false to disable DRS rule creation
+  enabled: {{ uc_antiaffinitygroups }}
+# # (Optional/Preview) Track user cluster VMs with vSphere tags
+# enableVMTracking: false
+# # (Optional) Configure additional authentication.
+# authentication:
+#   # (Optional) Provide an additional serving certificate for the API server
+#   sni:
+#     certPath: ""
+#     keyPath: ""
+# (Required) Specify which GCP project to connect your GKE clusters to
+gkeConnect:
+  projectID: "{{ uc_gkeconnect_projectid }}"
+  # The absolute or relative path to the key file for a GCP service account used to
+  # register the cluster
+  registerServiceAccountKeyPath: "{{ job_sakeyfolder }}/{{ connect_register_gcpsa_path}}"
+# (Optional) Specify which GCP project to connect your logs and metrics to
+stackdriver:
+  projectID: "{{ uc_stackdriver_projectid }}"
+  # A GCP region where you would like to store logs and metrics for this cluster.
+  clusterLocation: "{{ uc_stackdriver_clusterlocation }}"
+  enableVPC: {{ uc_stackdriver_enablevpc }}
+  # The absolute or relative path to the key file for a GCP service account used to
+  # send logs and metrics from the cluster
+  serviceAccountKeyPath: "{{ job_sakeyfolder }}/{{ logging_monitoring_gcpsa_path }}"
+  # (Optional) Disable vsphere resource metrics collection from vcenter.  False by
+  # default
+  disableVsphereResourceMetrics: false
+# # (Optional/Alpha) Configure the GKE usage metering feature
+# usageMetering:
+#   bigQueryProjectID: ""
+#   # The ID of the BigQuery Dataset in which the usage metering data will be stored
+#   bigQueryDatasetID: ""
+#   # The absolute or relative path to the key file for a GCP service account used by
+#   # gke-usage-metering to report to BigQuery
+#   bigQueryServiceAccountKeyPath: ""
+#   # Whether or not to enable consumption-based metering
+#   enableConsumptionMetering: false
+# # (Optional) Configure kubernetes apiserver audit logging
+{% if (uc_cloudauditlogging_projectid is defined) and (uc_cloudauditlogging_projectid|length > 0) %}
+cloudAuditLogging:
+  projectID: "{{ uc_cloudauditlogging_projectid }}"
+  # A GCP region where you would like to store audit logs for this cluster.
+  clusterLocation: "{{ uc_cloudauditlogging_clusterlocation }}"
+  # The absolute or relative path to the key file for a GCP service account used to
+  # send audit logs from the cluster
+  serviceAccountKeyPath: "{{ job_sakeyfolder }}/{{ audit_logging_gcpsa_path }}"
+{% endif %}
+# Enable auto repair for the cluster
+autoRepair:
+  # Whether to enable auto repair feature. Set false to disable.
+  enabled: {{ uc_autorepair }}
+# # Encrypt Kubernetes secrets at rest
+{% if (uc_secretsencryption_mode is defined) and ('GeneratedKey' == uc_secretsencryption_mode) %}
+secretsEncryption:
+  # Secrets Encryption Mode. Possible values are: GeneratedKey
+  mode: "{{ uc_secretsencryption_mode }}"
+  # GeneratedKey Secrets Encryption config
+  generatedKey:
+    # # key version
+    keyVersion: {{ uc_secretsencryption_keyversion }}
+    # # disable secrets encryption
+    # disabled: false
+{% endif %}
