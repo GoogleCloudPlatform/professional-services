@@ -50,6 +50,13 @@ object Encoding extends Logging {
     typ.stripSuffix(".") match {
       case charRegex(_) =>
         StringToBinaryEncoder(transcoder, decoderSize)
+      case charRegex3(_) =>
+        StringToBinaryEncoder(transcoder, decoderSize)
+      case numStrRegex2(_) =>
+        UnsignedIntStringEncoder(transcoder, decoderSize)
+      case decStrRegex(p, s) if p.toInt >= 1 =>
+        val scale = s.toInt
+        UnsignedDecimalStringEncoder(transcoder, p.toInt + scale, scale)
       case charRegex2(_) =>
         LocalizedStringToBinaryEncoder(LocalizedTranscoder(picTCharset), decoderSize)
       case "PIC X" | numStrRegex(_) =>
@@ -190,34 +197,102 @@ object Encoding extends Logging {
     }
 
     override def encodeValue(value: FieldValue): Array[Byte] = {
-      def encodeDecimal(d: BigDecimal): Array[Byte] = {
-        var v1 = d
-        if (maxValue.toBigInt < v1.toBigInt) {
-          throw new IllegalArgumentException(s"Decimal overflow '$d' is larger than $maxValue")
-        }
-        var scale = 0
-        while (scale < s) {
-          v1 *= 10d
-          scale += 1
-        }
-        encode(v1.toLong)
-      }
-
       if (value.isNull) Array.fill(size)(0x00)
       else {
         value.getValue match {
-          case s0: String => encodeDecimal(BigDecimal(s0))
-          case d0: BigDecimal => encodeDecimal(d0)
+          case s0: String => encode(decimal2Long(BigDecimal(s0), s, maxValue))
+          case d0: BigDecimal => encode(decimal2Long(d0, s, maxValue))
           case x =>
             throw new RuntimeException(s"Invalid decimal: $x")
         }
       }
     }
+  }
+  private def calcMaxValue(p: Int, s: Int): BigDecimal = {
+    val left = if (p == 0) "0" else "9" * p
+    val right = if (s == 0) "" else "." + ("9" * p)
+    BigDecimal(left + right)
+  }
 
-    def calcMaxValue(p: Int, s: Int): BigDecimal = {
-      val left = if (p == 0) "0" else "9" * p
-      val right = if (s == 0) "" else "." + ("9" * p)
-      BigDecimal(left + right)
+  def decimal2Long(d: BigDecimal, s: Int, maxValue: BigDecimal): Long = {
+    var v1 = d
+    if (v1 > maxValue) {
+      throw new IllegalArgumentException(s"Decimal overflow '$d' is larger than $maxValue")
+    }
+    var scale = 0
+    while (scale < s) {
+      v1 *= 10d
+      scale += 1
+    }
+    v1.toLong
+  }
+  case class UnsignedDecimalStringEncoder(transcoder: Transcoder, p: Int, s: Int) extends BinaryEncoder {
+    override type T = java.lang.Long
+    override val bqSupportedType: StandardSQLTypeName = StandardSQLTypeName.NUMERIC
+    private val maxValue: BigDecimal = calcMaxValue(p, s)
+    override val size: Int = PackedDecimal.sizeOf(p, s)
+
+    override def encode(x: T): Array[Byte] = {
+      if (x == null)
+        Array.fill(size)(0x00)
+      else {
+        if (x < 0)
+          throw new IllegalArgumentException(s"UnsignedDecimal '$x' is less than zero")
+        val toEncode = x.toString.reverse.padTo(size, '0').reverse
+        val buf = transcoder.charset.encode(toEncode)
+        if (buf.remaining() != size)
+          throw new RuntimeException(s"String length mismatch: ${buf.remaining()} != $size")
+        val array = new Array[Byte](size)
+        buf.get(array)
+        array
+      }
+    }
+
+    override def encodeValue(value: FieldValue): Array[Byte] = {
+      if (value.isNull) Array.fill(size)(0x00)
+      else {
+        value.getValue match {
+          case s0: String => encode(decimal2Long(BigDecimal(s0), s, maxValue))
+          case d0: BigDecimal => encode(decimal2Long(d0, s, maxValue))
+          case x =>
+            throw new RuntimeException(s"Invalid decimal: $x")
+        }
+      }
+    }
+  }
+  case class UnsignedIntStringEncoder(transcoder: Transcoder, p: Int) extends BinaryEncoder {
+    override type T = java.lang.Long
+    override val bqSupportedType: StandardSQLTypeName = StandardSQLTypeName.INT64
+    private val maxValue: BigDecimal = calcMaxValue(p, 0)
+    override val size: Int = p
+
+    override def encode(x: T): Array[Byte] = {
+      if (x == null)
+        Array.fill(size)(0x00)
+      else {
+        if (x < 0)
+          throw new IllegalArgumentException(s"unsigned integer '$x' is less than zero")
+        val toEncode = x.toString.reverse.padTo(size, '0').reverse
+        val buf = transcoder.charset.encode(toEncode)
+        if (buf.remaining() != size)
+          throw new RuntimeException(s"String length mismatch: ${buf.remaining()} != $size")
+        val array = new Array[Byte](size)
+        buf.get(array)
+        array
+      }
+    }
+
+    override def encodeValue(value: FieldValue): Array[Byte] = {
+      if (value.isNull) Array.fill(size)(0x00)
+      else {
+        value.getValue match {
+          case s0: String => encode(s0.toLong)
+          case d0: BigDecimal => encode(decimal2Long(d0, 0, maxValue))
+          case i: Integer => encode(i.longValue())
+          case x =>
+            throw new RuntimeException(s"Invalid integer: $x")
+        }
+      }
     }
   }
 

@@ -1,0 +1,159 @@
+# Copyright 2022 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+
+- name: "Include role for GCP SA JSON key files"
+  ansible.builtin.include_role:
+    name: copy_credentials
+  vars:
+    is_asm: true
+  when: not asm_uninstall|default(false)|bool
+
+- name: "[asm] Create folder for ASM files on admin workstation"
+  ansible.builtin.file:
+    path: "{{ asm_temp }}"
+    mode: 0700
+    state: directory
+  when:
+    - (asm_temp is defined) and (asm_temp | length > 0)
+
+- name: "[asm] Check if request is for upgrade, uninstall or mesh setup"
+  ansible.builtin.set_fact:
+    asm_install_cert: false
+  when:
+    - (asm_upgrade|default(false)|bool) or (mesh_install|default(false)|bool) or (asm_uninstall|default(false)|bool)
+
+# Uses lookup plugin to get the ASM ROOTCERT filename on Ansible controller
+# With OSS Ansible on the command-line, you could use --extra-vars
+- name: "[asm] Copy ROOT certificate"
+  include_tasks:
+    file: cert.yml
+  vars:
+    cert_file: "{{ asm_rootcert_file | default('') }}"
+    cert_string: "{{ asm_rootcert_content | default('') }}"
+    cert_dest_path: "{{ asm_root_cert_path | default('') }}"
+  when:
+    - asm_install_cert | default(false) | bool
+
+# Uses lookup plugin to get the ASM CACERT filename on Ansible controller
+# With OSS Ansible on the command-line, you could use --extra-vars
+- name: "[asm] Copy CA certificate"
+  include_tasks:
+    file: cert.yml
+  vars:
+    cert_file: "{{ asm_cacert_file | default('') }}"
+    cert_string: "{{ asm_cacert_content | default('') }}"
+    cert_dest_path: "{{ asm_ca_cert_path | default('') }}"
+  when:
+    - asm_install_cert | default(false) | bool
+
+# Uses lookup plugin to get the ASM CA key filename on Ansible controller
+# With OSS Ansible on the command-line, you could use --extra-vars
+- name: "[asm] Copy CA key"
+  include_tasks:
+    file: cert.yml
+  vars:
+    cert_file: "{{ asm_cakey_file | default('') }}"
+    cert_string: "{{ asm_cakey_content | default('') }}"
+    cert_dest_path: "{{ asm_ca_key_path | default('') }}"
+  when:
+    - asm_install_cert | default(false) | bool
+
+# Uses lookup plugin to get the ASM CERTCHAIN filename on Ansible controller
+# With OSS Ansible on the command-line, you could use --extra-vars
+- name: "[asm] Copy certificate chain file"
+  include_tasks:
+    file: cert.yml
+  vars:
+    cert_file: "{{ asm_certchain_file | default('') }}"
+    cert_string: "{{ asm_certchain_content | default('') }}"
+    cert_dest_path: "{{ asm_cert_chain_path | default('') }}"
+  when:
+    - asm_install_cert | default(false) | bool
+
+- name: "[asm] Check for private artifactory binary repo"
+  ansible.builtin.set_fact:
+    is_private_artifactory: true
+  when:
+    - private_download_base is defined
+    - private_download_base|length > 8
+    - private_download_auth_header is defined
+    - private_download_auth_header|length > 10
+
+- name: "[asm] Download asmcli from private location"
+  ansible.builtin.get_url:
+    url: "{{ private_download_base }}/asm/{{ asm_asmcli_version }}/asmcli_{{ asm_asmcli_version }}"
+    headers:
+      Authorization: "{{ private_download_auth_header }}"
+    dest: "{{ asm_temp }}/asmcli"
+    mode: 0700
+  when:
+    - is_private_artifactory|default(false)|bool
+
+- name: "[asm] Download asmcli"
+  ansible.builtin.get_url:
+    url: "{{ asm_asmcli_url }}/asmcli_{{ asm_asmcli_version }}"
+    dest: "{{ asm_temp }}/asmcli"
+    checksum: sha256:{{ asm_asmcli_url }}/asmcli_{{ asm_asmcli_version }}.sha256
+    mode: 0700
+  when:
+    - not (is_private_artifactory|default(false)|bool)
+
+- name: "[asm] Make asmcli executable"
+  ansible.builtin.file:
+    path: "{{ asm_temp }}/asmcli"
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: '0700'
+
+- name: "[asm] Extract ASM offline package bundle"
+  ansible.builtin.unarchive:
+    src: "{{ asm_offline_bundle_file }}"
+    dest: "{{ asm_temp }}"
+  when:
+    - asm_offline_mode|default(false)|bool
+    - asm_offline_bundle_file is defined
+    - asm_offline_bundle_file | length > 0
+
+- name: "[asm] Create ASM offline package bundle"
+  ansible.builtin.command:
+    argv:
+      - "{{ asm_temp }}/asmcli"
+      - build-offline-package
+      - --output_dir
+      - "{{ asm_out_dir }}"
+  when:
+    - not asm_offline_mode|default(false)|bool
+
+- name: "[asm] Copy istioctl to istioctl_dest_path"
+  ansible.builtin.shell:
+    cmd: 'sudo cp {{ asm_out_dir }}/istioctl {{ istioctl_dest_path }}; sudo chmod 755 {{ istioctl_dest_path }}/istioctl'
+  when:
+    - asm_copy_istioctl|default(false)|bool
+    - not mesh_install|default(false)|bool
+    - not asm_uninstall|default(false)|bool
+
+- name: "[asm] Check for private registry"
+  ansible.builtin.set_fact:
+    is_private_registry: true
+  when:
+    - not mesh_install|default(false)|bool
+    - not asm_uninstall|default(false)|bool
+    - glb_privatereg_url is defined and glb_privatereg_url | length > 3
+    - glb_privatereg_username is defined and glb_privatereg_username | length > 5
+    - glb_privatereg_password is defined and glb_privatereg_password | length > 5
+
+- name: "[asm] Upload ASM Images to Private Registry"
+  include_tasks: private-upload.yml
+  when: is_private_registry|default(false)|bool

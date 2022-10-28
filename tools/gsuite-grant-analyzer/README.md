@@ -4,16 +4,6 @@ G Suite Grant Analyzer is a tool to export to BigQuery data about all the OAuth 
 
 ## Installation
 
-### Install using pip
-
-To install using pip:
-
-```
-pip install --user gsuite-grant-analyzer
-```
-
-The required packages should be downloaded and installed automatically.
-
 ### Manual install
 
 Install the Python Google API Client and BigQuery Client libraries:

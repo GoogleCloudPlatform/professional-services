@@ -110,6 +110,10 @@ object GsUtilOptionParser extends OptionParser[GsUtilConfig]("gsutil") with ArgP
         .action { (x, c) =>
           c.copy(tfGCS = x)
         },
+      opt[String]("encoding")
+        .optional()
+        .text("(optional) charset used for encoding and decoding character fields. Overrides default set by ENCODING environment variable.")
+        .action((x,c) => c.copy(encoding = Option(x))),
       opt[String]("pic_t_charset")
         .optional()
         .text("(optional) charset used for encoding and decoding international strings, used with PIC T copybook type, default is EBCDIC")

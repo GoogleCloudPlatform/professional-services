@@ -1,0 +1,40 @@
+# Copyright 2022 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Role default values
+ais_kubeconfig: "{{ uc_name + '-kubeconfig' if uc_name is defined else 'kubeconfig' }}"
+ais_patch_file: "{{ uc_name + '-ais-patch.yaml' if uc_name is defined else 'admin-ais-patch.yaml' }}"
+ais_login_config_file: "{{ uc_name + '-login-config.yaml' if uc_name is defined else 'admin-login-config.yaml' }}"
+
+# OIDC auth values
+ais_oidc_clientid: '{{ lookup("env", "AIS_OIDC_CLIENTID") }}'
+ais_oidc_clientsecret: '{{ lookup("env", "AIS_OIDC_CLIENTSECRET") }}'
+
+# AIS configuration
+ais_authentication:
+- name: oidc-ad
+  oidc:
+    clientID: "{{ ais_oidc_clientid if ais_oidc_clientid is defined else '' }}"
+    clientSecret: "{{ ais_oidc_clientsecret if ais_oidc_clientsecret is defined else '' }}"
+    cloudConsoleRedirectURI: ""
+    extraParams: prompt=consent,access_type=offline
+    issuerURI: ""
+    kubectlRedirectURI: ""
+    scopes: ""
+    userClaim: ""
+
+# GCP related (Google Service Account, GCS bucket name)
+ais_gcpsa: '{{ lookup("env", "GCPSA_AIS_FILE") }}'
+ais_gcpsa_path: "ais-to-gcs.json"
+ais_gcsbucket: 'gs://{{ lookup("env", "AIS_GCS_BUCKET") }}'

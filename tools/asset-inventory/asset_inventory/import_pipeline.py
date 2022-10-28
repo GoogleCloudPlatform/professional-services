@@ -36,6 +36,7 @@ import pprint
 import random
 
 import apache_beam as beam
+from apache_beam.coders import Coder
 from apache_beam.io import ReadFromText
 from apache_beam.io.filesystems import FileSystems
 from apache_beam.options.pipeline_options import PipelineOptions
@@ -50,7 +51,7 @@ from google.api_core.exceptions import NotFound
 from google.cloud import bigquery
 
 
-class JsonCoder(object):
+class JsonCoder(Coder):
     """A coder interpreting each line as a JSON string."""
 
     def encode(self, x):

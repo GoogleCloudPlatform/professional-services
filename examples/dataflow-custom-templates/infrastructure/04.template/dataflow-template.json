@@ -1,0 +1,20 @@
+{
+  "description": "A batch pipeline that counts words",
+  "name": "Batch Wordcount",
+  "parameters": [
+    {
+      "name": "source",
+      "helpText": "The source file(s) to read and compute word count.",
+      "isOptional": false,
+      "label": "Source File(s)",
+      "paramType": "GCS_READ_FOLDER"
+    },
+    {
+      "name": "output",
+      "helpText": "The path to save results.",
+      "isOptional": false,
+      "label": "Output File(s)",
+      "paramType": "GCS_READ_FOLDER"
+    }
+  ]
+}
