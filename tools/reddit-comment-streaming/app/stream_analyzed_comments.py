@@ -31,6 +31,7 @@ from better_profanity import profanity
 
 from google.cloud import pubsub_v1
 
+
 def push_payload(pubsub_client, topic_path, payload):
     """
     Push data to a Google Cloud Pubsub Topic
@@ -168,8 +169,7 @@ def stream(subreddits):
                                 is_subjective = 1
 
                             # Readability statistics
-                            cmt_read_score = ts.flesch_reading_ease(
-                                cleaned_cmt)
+                            cmt_read_score = ts.flesch_reading_ease(cleaned_cmt)
                             cmt_read_ease = ""
                             if cmt_read_score >= 80:
                                 cmt_read_ease = "easy"
@@ -182,58 +182,33 @@ def stream(subreddits):
                                 cleaned_cmt, float_output=False)
 
                             # censor and lower
-                            censored_cmt = profanity.censor(
-                                cleaned_cmt).lower()
+                            censored_cmt = profanity.censor(cleaned_cmt).lower()
 
                             cmtjson = {
-                                "comment_id":
-                                    str(cmt),
-                                "subreddit":
-                                    str(cmt.subreddit),
-                                "author":
-                                    str(cmt.author),
-                                "comment_text":
-                                    censored_cmt,
-                                "distinguished":
-                                    cmt.distinguished,
-                                "submitter":
-                                    cmt.is_submitter,
-                                "total_words":
-                                    len(cleaned_cmt.split()),
-                                "reading_ease_score":
-                                    cmt_read_score,
-                                "reading_ease":
-                                    cmt_read_ease,
-                                "reading_grade_level":
-                                    cmt_reading_grade_level,
-                                "sentiment_score":
-                                    pattern_polarity,
-                                "censored":
-                                    is_censored,
-                                "positive":
-                                    is_positive,
-                                "neutral":
-                                    is_neutral,
-                                "negative":
-                                    is_negative,
-                                "subjectivity_score":
-                                    pattern_subjectivity,
-                                "subjective":
-                                    is_subjective,
-                                "url":
-                                    "https://reddit.com" + cmt.permalink,
-                                "comment_date":
-                                    cmt_date,
-                                "comment_timestamp":
-                                    cmt_timestamp,
-                                "comment_hour":
-                                    local_dt.hour,
-                                "comment_year":
-                                    local_dt.year,
-                                "comment_month":
-                                    local_dt.month,
-                                "comment_day":
-                                    local_dt.day
+                                "comment_id": str(cmt),
+                                "subreddit": str(cmt.subreddit),
+                                "author": str(cmt.author),
+                                "comment_text": censored_cmt,
+                                "distinguished": cmt.distinguished,
+                                "submitter": cmt.is_submitter,
+                                "total_words": len(cleaned_cmt.split()),
+                                "reading_ease_score": cmt_read_score,
+                                "reading_ease": cmt_read_ease,
+                                "reading_grade_level": cmt_reading_grade_level,
+                                "sentiment_score": pattern_polarity,
+                                "censored": is_censored,
+                                "positive": is_positive,
+                                "neutral": is_neutral,
+                                "negative": is_negative,
+                                "subjectivity_score": pattern_subjectivity,
+                                "subjective": is_subjective,
+                                "url": "https://reddit.com" + cmt.permalink,
+                                "comment_date": cmt_date,
+                                "comment_timestamp": cmt_timestamp,
+                                "comment_hour": local_dt.hour,
+                                "comment_year": local_dt.year,
+                                "comment_month": local_dt.month,
+                                "comment_day": local_dt.day
                             }
 
                             cmts_processed = cmts_processed + 1
@@ -255,6 +230,7 @@ def stream(subreddits):
                 sleep(7200)
             else:
                 error_msg = error_msg + " - Restarting stream now."
+
 
 if len(sys.argv) >= 2:
     # build list of subreddits
