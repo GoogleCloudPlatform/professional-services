@@ -26,34 +26,37 @@ Use PRAW, TextBlob, and Google Python API to collect and analyze reddit comments
 
 ```
 cd app/ || exit
+
+python3 -m pip install -r requirements.txt
+
 chmod 777 stream_analyzed_comments.py
 chmod 777 praw.ini
 
 echo "Please enter reddit client id:"
-read -s -r REDDIT_CLIENT_ID
+read -r REDDIT_CLIENT_ID
 echo "Please enter reddit client secret:"
 read -s -r REDDIT_CLIENT_SECRET
 echo "Please enter reddit user:"
-read -s -r REDDIT_USER
+read -r REDDIT_USER
 echo "Please enter reddit password:"
 read -s -r REDDIT_PASSWORD
 
-sed -i 's/<insert-client-id-here>/${REDDIT_CLIENT_ID}/g' praw.ini
-sed -i 's/<insert-client-secret-here>/${REDDIT_CLIENT_SECRET}/g' praw.ini
-sed -i 's/<insert-username-here>/${REDDIT_USER}/g' praw.ini
-sed -i 's/<insert-password-here>/${REDDIT_PASSWORD}/g' praw.ini
+sed -i "s/<insert-client-id-here>/$REDDIT_CLIENT_ID/g" praw.ini
+sed -i "s/<insert-client-secret-here>/$REDDIT_CLIENT_SECRET/g" praw.ini
+sed -i "s/<insert-username-here>/$REDDIT_USER/g" praw.ini
+sed -i "s/<insert-password-here>/$REDDIT_PASSWORD/g" praw.ini
 ```
 
 #### 3. Update stream_analyzed_comments.py
 
 ```
 echo "Please enter Google Cloud Project:"
-read -s -r PROJECT_ID
+read -r PROJECT_ID
 echo "Please enter Google Cloud Pub/Sub Topic:"
-read -s -r PUBSUB_TOPIC
+read -r PUBSUB_TOPIC
 
-sed -i -r 's/<insert-project-id-here>/${PROJECT_ID}/g' stream_analyzed_comments.py
-sed -i -r 's/<insert-topic-id-here>/${PUBSUB_TOPIC}/g' stream_analyzed_comments.py
+sed -i -r "s/<insert-project-id-here>/$PROJECT_ID/g" stream_analyzed_comments.py
+sed -i -r "s/<insert-topic-id-here>/$PUBSUB_TOPIC/g" stream_analyzed_comments.py
 ```
 
 ## Usage
