@@ -1,0 +1,67 @@
+# Copyright 2022 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+- name: "[acm] Upload ACM Images to Private Registry"
+  include_tasks: private-upload.yml
+  when:
+    - glb_privatereg_url is defined
+    - glb_privatereg_url|length > 3
+    - glb_privatereg_username is defined
+    - glb_privatereg_username | length > 3
+    - glb_privatereg_password is defined
+    - glb_privatereg_password | length > 3
+
+- name: "[acm] Upgrade ACM"
+  ansible.builtin.command:
+    argv:
+      - gcloud
+      - beta
+      - container
+      - hub
+      - config-management
+      - upgrade
+      - --membership={{ acm_membership }}
+      - --version={{ acm_version }}
+      - --project={{ acm_gcpproject }}
+      - --quiet
+  register: _results
+  retries: 5
+  delay: 10
+  until: _results.rc == 0
+
+- name: "[acm] Wait for upgrade to start"
+  ansible.builtin.pause:
+    seconds: 30
+
+- name: "[acm] Wait for Policy Controller"
+  ansible.builtin.shell:
+    cmd: gcloud beta container hub config-management status --project={{ acm_gcpproject }} --format=json | jq -c '.acm_status[] | select(.name | contains("{{ acm_membership }}"))' # noqa yaml[line-length]
+  register: _acmpc_status
+  retries: 30
+  until: "'\"policy_controller_state\":\"INSTALLED\"' in _acmpc_status.stdout"
+  delay: 20
+  when:
+    - acm_policycontroller.enabled is defined
+    - acm_policycontroller.enabled | bool
+
+- name: "[acm] Wait for Config Sync"
+  ansible.builtin.shell:
+    cmd: gcloud beta container hub config-management status --project={{ acm_gcpproject }} --format=json | jq -c '.acm_status[] | select(.name | contains("{{ acm_membership }}"))' # noqa yaml[line-length]
+  register: _acmcs_status
+  retries: 30
+  until: "'\"config_sync\":\"SYNCED\"' in _acmcs_status.stdout"
+  delay: 20
+  when:
+    - acm_configsync.enabled is defined
+    - acm_configsync.enabled | bool

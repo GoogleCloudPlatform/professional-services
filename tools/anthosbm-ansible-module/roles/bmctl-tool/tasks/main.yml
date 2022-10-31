@@ -13,10 +13,16 @@
 # limitations under the License.
 
 ---
+
 - set_fact: bmctl_path="/usr/local/sbin"
   when: bmctl_path is undefined
 
-- name: Create bmctl_path if it does not exists
+- name: Authenticate with the pre-req service account
+  shell: >
+     gcloud auth activate-service-account "{{ gcloud_preq_sa_name }}@{{ project_id }}.iam.gserviceaccount.com" --key-file="{{ gcp_sa_key_dir }}/{{ gcloud_preq_sa_name }}.json" --project={{ project_id }}
+  ignore_errors: yes
+
+-- name: Create bmctl_path if it does not exists
   file:
     path: "{{ bmctl_path }}"
     state: directory
@@ -60,3 +66,8 @@
     line: 'PATH=\1{{ bmctl_path }}:\2\3'
     backrefs: yes
   when: bmctl_path != "/usr/local/sbin" and lookup('file', "{{ login_user_home }}/.profile") is search('^\s*PATH\s*=')
+
+- name: Revoke access with pre-req service account
+  shell: >
+     gcloud auth revoke "{{ gcloud_preq_sa_name }}@{{ project_id }}.iam.gserviceaccount.com"
+  ignore_errors: yes

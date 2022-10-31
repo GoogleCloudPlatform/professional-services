@@ -18,7 +18,7 @@
     path: /etc/apt/sources.list.d/google-cloud-sdk.list
     state: absent
   when: os_type == "ubuntu"
-
+  
 - name: Add gcloud distribution URI as package source [Ubuntu]
   shell:
     cmd: echo "deb https://packages.cloud.google.com/apt cloud-sdk main" | sudo tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
