@@ -10,13 +10,13 @@
 
 ----
 
-## use-case
+## Use-case
 
 Simple deployment of a ([reddit](https://www.reddit.com)) social media data collection architecture on Google Cloud Platform.
 
 ----
 
-## about
+## About
 
 This repository contains the resources necessary to deploy a basic data stream and data lake on Google Cloud Platform.  Terraform templates deploy the entire infrastructure, which includes a [Google Compute Engine](https://cloud.google.com/compute) VM with a initialization script that clones a [reddit streaming application repository](https://github.com/CYarros10/reddit-streaming-application). The GCE VM executes a python script from that repo.  The python script accesses a user's [reddit developer client](https://www.reddit.com/prefs/apps/) and begins to collect reddit comments from a specified list of the top 50 subreddits. 
 
@@ -26,22 +26,22 @@ The user now has access to an ever-increasing dataset of reddit comments + senti
 
 ----
 
-## architecture
+## Architecture
 
 ![Stack-Resources](images/architecture.png)
 
 ----
 
-## guide
+## Guide
 
-### 1. Create your Reddit bot account
+### 1. Create your reddit bot account
 
 1. [Register a reddit account](https://www.reddit.com/register/)
 
 2. Follow prompts to create new reddit account:
     * Provide email address
     * Choose username and password
-    * Click Finish
+    * Click `Finish`
 
 3. Once your account is created, go to [reddit developer console.](https://www.reddit.com/prefs/apps/)
 
@@ -55,13 +55,28 @@ The user now has access to an ever-increasing dataset of reddit comments + senti
 
 8. You will now get a client_id (underneath web app) and secret
 
-9. Keep track of your Reddit account username, password, app client_id (in blue box), and app secret (in red box). These will be used in tutorial Step 11
+9. Keep track of your reddit account username, password, app client_id (in blue box), and app secret (in red box). These will be used in tutorial Step 11
 
 #### Further Learning / References: PRAW
 
 * [PRAW Quick start](https://praw.readthedocs.io/en/latest/getting_started/quick_start.html)
 
 ### 2. Run setup.sh
+
+
+If you need to allow externalIPs, run this command (or similar) in your project:
+
+```bash
+echo "{
+  \"constraint\": \"constraints/compute.vmExternalIpAccess\",
+	\"listPolicy\": {
+	    \"allValues\": \"ALLOW\"
+	  }
+}" > external_ip_policy.json
+
+gcloud resource-manager org-policies set-policy external_ip_policy.json --project="$projectId"
+```
+
 
 ```bash
 ./scripts/setup.sh -i <project-id> -r <region> -c <reddit-client-id> -u <reddit-user>
@@ -84,9 +99,9 @@ The VM will take a minute or two to setup. Then comments will start to flow into
 
 ----
 
-## sample
+## Sample
 
-### Example of a Collected+Analyzed Reddit Comment:
+### Example of a Collected+Analyzed reddit Comment:
 
 ```json
 {

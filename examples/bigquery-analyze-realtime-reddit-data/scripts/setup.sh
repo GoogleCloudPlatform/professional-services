@@ -59,27 +59,6 @@ echo " Enabling services ..."
 
 gcloud config set project "$projectId"
 
-gcloud services enable storage-component.googleapis.com 
-gcloud services enable compute.googleapis.com  
-gcloud services enable servicenetworking.googleapis.com 
-gcloud services enable iam.googleapis.com 
-gcloud services enable cloudbilling.googleapis.com
-gcloud services enable bigquery.googleapis.com
-gcloud services enable dataflow.googleapis.com
-gcloud services enable pubsub.googleapis.com
-
-echo "===================================================="
-echo " Setting external IP access ..."
-
-echo "{
-  \"constraint\": \"constraints/compute.vmExternalIpAccess\",
-	\"listPolicy\": {
-	    \"allValues\": \"ALLOW\"
-	  }
-}" > external_ip_policy.json
-
-gcloud resource-manager org-policies set-policy external_ip_policy.json --project="$projectId"
-
 cd terraform || exit
 
 # edit the variables.tf
