@@ -13,7 +13,7 @@
 # limitations under the License.
 
 
-- name: "Include role for GCP SA JSON key files"
+- name: "[ac] Include role for GCP SA JSON key files"
   ansible.builtin.include_role:
     name: copy_credentials
   vars:

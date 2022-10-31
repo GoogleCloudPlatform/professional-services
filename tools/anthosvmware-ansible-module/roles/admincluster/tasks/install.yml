@@ -148,6 +148,6 @@
     GOVC_INSECURE: "true"
 
   always:
-    - name: "Include role to delete sensitive files"
+    - name: "[ac] Include role to delete sensitive files"
       ansible.builtin.include_role:
         name: cleanup
