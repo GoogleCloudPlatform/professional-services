@@ -31,11 +31,10 @@ _LABEL_VAL = os.environ.get("LABEL_VAL", "Environment var not set.")
 _PRI_SIZE = str(os.environ.get("PRIMARY_SIZE", "Environment var not set."))
 _SEC_SIZE = str(os.environ.get("SECONDARY_SIZE", "Environment var not set."))
 
-
 # Create a client with the endpoint set to the desired cluster region.
 _DATAPROC_CLIENT = dataproc_v1.ClusterControllerClient(
-    client_options={"api_endpoint": f"{_REGION}-dataproc.googleapis.com:443"}
-)
+    client_options={"api_endpoint": f"{_REGION}-dataproc.googleapis.com:443"})
+
 
 def resize_cluster(cluster_name):
     """This sample walks a user through updating a Cloud Dataproc cluster
@@ -49,9 +48,9 @@ def resize_cluster(cluster_name):
     print(f"Beginning cluster update: {cluster_name}")
 
     # Get cluster you wish to update.
-    cluster = _DATAPROC_CLIENT.get_cluster(
-        project_id=_PROJECT_ID, region=_REGION, cluster_name=cluster_name
-    )
+    cluster = _DATAPROC_CLIENT.get_cluster(project_id=_PROJECT_ID,
+                                           region=_REGION,
+                                           cluster_name=cluster_name)
 
     mask = {
         "paths": {
@@ -77,6 +76,7 @@ def resize_cluster(cluster_name):
     updated_cluster = operation.result()
     print(f"Cluster was updated successfully: {updated_cluster.cluster_name}")
 
+
 def get_cluster_names():
     """
     Return a list of cluster names that all have a given cluster label.
@@ -84,15 +84,15 @@ def get_cluster_names():
 
     cluster_names = []
     filter_ex = f"labels.{_LABEL_KEY} = {_LABEL_VAL}"
-    print(f"Searching for clusters based on the following filter expression: {filter_ex}")
+    print(
+        f"Searching for clusters based on the following filter expression: {filter_ex}"
+    )
 
-    for cluster in _DATAPROC_CLIENT.list_clusters(
-        request={
-            "project_id": _PROJECT_ID, 
+    for cluster in _DATAPROC_CLIENT.list_clusters(request={
+            "project_id": _PROJECT_ID,
             "region": _REGION,
             "filter": filter_ex
-        }
-    ):
+    }):
         cluster_names.append[cluster.cluster_name]
 
     return cluster_names
