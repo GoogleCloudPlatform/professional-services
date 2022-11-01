@@ -46,12 +46,6 @@ gcloud services enable logging.googleapis.com
 gcloud services enable pubsub.googleapis.com
 gcloud services enable run.googleapis.com
 gcloud services enable eventarc.googleapis.com
-gcloud services enable storage-component.googleapis.com 
-gcloud services enable compute.googleapis.com  
-gcloud services enable servicenetworking.googleapis.com 
-gcloud services enable iam.googleapis.com 
-gcloud services enable dataproc.googleapis.com
-gcloud services enable cloudbilling.googleapis.com
 ```
 
 
