@@ -31,6 +31,28 @@ This repository contains infrastructure-as-code to set up an automated, event-dr
 ----
 
 ## guide
+Please note:- Project will enable following API's
+```
+gcloud services enable storage-component.googleapis.com 
+gcloud services enable compute.googleapis.com  
+gcloud services enable servicenetworking.googleapis.com 
+gcloud services enable iam.googleapis.com 
+gcloud services enable dataproc.googleapis.com
+gcloud services enable cloudbilling.googleapis.com
+gcloud services enable artifactregistry.googleapis.com
+gcloud services enable cloudbuild.googleapis.com
+gcloud services enable cloudfunctions.googleapis.com
+gcloud services enable logging.googleapis.com
+gcloud services enable pubsub.googleapis.com
+gcloud services enable run.googleapis.com
+gcloud services enable eventarc.googleapis.com
+gcloud services enable storage-component.googleapis.com 
+gcloud services enable compute.googleapis.com  
+gcloud services enable servicenetworking.googleapis.com 
+gcloud services enable iam.googleapis.com 
+gcloud services enable dataproc.googleapis.com
+gcloud services enable cloudbilling.googleapis.com
+```
 
 
 #### 1. To get started, update setup.sh with environment variables, then run.
