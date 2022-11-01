@@ -15,14 +15,13 @@
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
 """
-Script that runs in Cloud Functions to describe all dataproc clusters and
-generate spark property recommendations for these clusters.
+Script that runs in Cloud Functions to resize Dataproc clusters based on
+a provided cluster label key/value pair.
 """
 
 import os
 import functions_framework
 from google.cloud import dataproc_v1
-from oauth2client.client import GoogleCredentials
 
 _PROJECT_ID = os.environ.get("PROJECT_ID", "Environment var not set.")
 _REGION = os.environ.get("REGION", "Environment var not set.")
@@ -93,7 +92,7 @@ def get_cluster_names():
             "region": _REGION,
             "filter": filter_ex
     }):
-        cluster_names.append[cluster.cluster_name]
+        cluster_names.append(cluster.cluster_name)
 
     return cluster_names
 
@@ -103,6 +102,9 @@ def execute(trigger):
     """
     Cloud Function entry point.
     """
-    clusters = get_cluster_names()
-    for c in clusters:
-        resize_cluster(c)
+
+    print(trigger)
+
+    cluster_names = get_cluster_names()
+    for cluster in cluster_names:
+        resize_cluster(cluster)
