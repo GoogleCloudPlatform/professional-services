@@ -1,4 +1,4 @@
-#   Copyright 2021 Google LLC
+#   Copyright 2022 Google LLC
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -27,6 +27,9 @@ provider "google" {
 }
 
 provider "archive" {
+}
+
+data "google_project" "project" {
 }
 
 # Secret Manager secret for the function
@@ -59,11 +62,16 @@ locals {
   # If you specify function_roles, the Terraform code will grant the service account some
   # privileges required for the particular functionalities.
 
-  default_apis = ["cloudfunctions.googleapis.com", "cloudbuild.googleapis.com"]
+  default_apis = [var.cloud_run ? "run.googleapis.com" : "cloudfunctions.googleapis.com", "cloudbuild.googleapis.com"]
 
   iam_permissions = {
     scc = {
       org     = ["roles/browser"]
+      project = []
+      apis    = ["cloudresourcemanager.googleapis.com"]
+    }
+    scc_writer = {
+      org     = ["roles/browser", "roles/securitycenter.findingsEditor", "roles/securitycenter.findingSecurityMarksWriter", "roles/compute.networkViewer"]
       project = []
       apis    = ["cloudresourcemanager.googleapis.com"]
     }
@@ -115,8 +123,8 @@ resource "google_project_service" "service-account-apis" {
 
 # Activate the Secrets Manager API
 resource "google_project_service" "secret-manager-api" {
-  project  = var.project_id
-  service  = "secretmanager.googleapis.com"
+  project            = var.project_id
+  service            = "secretmanager.googleapis.com"
   disable_on_destroy = false
 }
 
@@ -158,13 +166,19 @@ resource "google_secret_manager_secret_iam_member" "config-secret-iam" {
   member    = format("serviceAccount:%s", google_service_account.service-account.email)
 }
 
+## Cloud Function
+
 resource "random_id" "bucket-suffix" {
+  count = !var.cloud_run ? 1 : 0
+
   byte_length = 8
 }
 
 # Bucket for storing the function archive
 resource "google_storage_bucket" "function-bucket" {
-  name                        = format("%s-%s", var.bucket_name, random_id.bucket-suffix.hex)
+  count = !var.cloud_run ? 1 : 0
+
+  name                        = format("%s-%s", var.bucket_name, random_id.bucket-suffix[0].hex)
   location                    = var.bucket_location
   uniform_bucket_level_access = true
 }
@@ -176,6 +190,8 @@ locals {
 }
 
 data "archive_file" "function-zip" {
+  count = !var.cloud_run ? 1 : 0
+
   type        = "zip"
   output_path = "${path.module}/index.zip"
   dynamic "source" {
@@ -188,11 +204,13 @@ data "archive_file" "function-zip" {
 }
 
 resource "google_storage_bucket_object" "function-archive" {
+  count = !var.cloud_run ? 1 : 0
+
   name   = format("index-%s.zip", md5(join(",", local.function_file_hashes)))
-  bucket = google_storage_bucket.function-bucket.name
+  bucket = google_storage_bucket.function-bucket[0].name
   source = format("%s/index.zip", path.root)
   depends_on = [
-    data.archive_file.function-zip
+    data.archive_file.function-zip.0
   ]
 }
 
@@ -202,6 +220,8 @@ resource "google_storage_bucket_object" "function-archive" {
 # Workaround is to use "terraform taint google_cloudfunctions_function.function"
 # before plan/apply.
 resource "google_cloudfunctions_function" "function" {
+  count = !var.cloud_run ? 1 : 0
+
   name        = var.function_name
   description = "Pubsub2Inbox"
   runtime     = "python38"
@@ -209,8 +229,8 @@ resource "google_cloudfunctions_function" "function" {
   service_account_email = google_service_account.service-account.email
 
   available_memory_mb   = 256
-  source_archive_bucket = google_storage_bucket.function-bucket.name
-  source_archive_object = google_storage_bucket_object.function-archive.name
+  source_archive_bucket = google_storage_bucket.function-bucket[0].name
+  source_archive_object = google_storage_bucket_object.function-archive[0].name
   entry_point           = "process_pubsub"
   timeout               = var.function_timeout
 
@@ -228,5 +248,94 @@ resource "google_cloudfunctions_function" "function" {
     CONFIG          = google_secret_manager_secret_version.config-secret-version.name
     LOG_LEVEL       = 10
     SERVICE_ACCOUNT = google_service_account.service-account.email
+  }
+}
+
+## Cloud Run
+
+# Service account for Pub/Sub invoker
+resource "google_service_account" "invoker-service-account" {
+  count = var.cloud_run ? 1 : 0
+
+  account_id   = var.service_account != "" ? format("%s-invoker", var.service_account) : format("%s-invoker", var.function_name)
+  display_name = format("%s Cloud Run invoker Service Account", title(var.function_name))
+}
+
+# Allow the invoker service account to run the Cloud Run function
+resource "google_cloud_run_service_iam_member" "pubsub-invoker" {
+  count = var.cloud_run ? 1 : 0
+
+  location = google_cloud_run_service.function[0].location
+  service  = google_cloud_run_service.function[0].name
+  role     = "roles/run.invoker"
+  member   = format("serviceAccount:%s", google_service_account.invoker-service-account[0].email)
+}
+
+# Grant Pub/Sub P4SA to create auth tokens for the invoker service account
+resource "google_service_account_iam_member" "pubsub-token-creator" {
+  count = var.cloud_run ? 1 : 0
+
+  service_account_id = google_service_account.invoker-service-account[0].name
+  role               = "roles/iam.serviceAccountTokenCreator"
+  member             = format("serviceAccount:service-%d@gcp-sa-pubsub.iam.gserviceaccount.com", data.google_project.project.number)
+}
+
+# Create a Pub/Sub push subscription that calls the Cloud Run function
+resource "google_pubsub_subscription" "pubsub-subscription" {
+  count = var.cloud_run ? 1 : 0
+
+  name  = format("%s-subscription", var.function_name)
+  topic = var.pubsub_topic
+  push_config {
+    push_endpoint = google_cloud_run_service.function[0].status[0].url
+    oidc_token {
+      service_account_email = google_service_account.invoker-service-account[0].email
+    }
+    attributes = {
+      x-goog-version = "v1"
+    }
+  }
+  retry_policy {
+    minimum_backoff = var.retry_minimum_backoff
+    maximum_backoff = var.retry_maximum_backoff
+  }
+  depends_on = [
+    google_service_account_iam_member.pubsub-token-creator[0],
+    google_cloud_run_service_iam_member.pubsub-invoker[0]
+  ]
+}
+
+resource "google_cloud_run_service" "function" {
+  count = var.cloud_run ? 1 : 0
+
+  name     = var.function_name
+  location = var.region
+
+  template {
+    spec {
+      containers {
+        image = var.cloud_run_container
+
+        env {
+          name  = "CONFIG"
+          value = google_secret_manager_secret_version.config-secret-version.name
+        }
+        env {
+          name  = "LOG_LEVEL"
+          value = 10
+        }
+        env {
+          name  = "SERVICE_ACCOUNT"
+          value = google_service_account.service-account.email
+        }
+      }
+      service_account_name  = google_service_account.service-account.email
+      container_concurrency = 8
+      timeout_seconds       = var.function_timeout
+    }
+  }
+  traffic {
+    percent         = 100
+    latest_revision = true
   }
 }

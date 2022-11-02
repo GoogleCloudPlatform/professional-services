@@ -1,0 +1,115 @@
+# Copyright 2022 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+- name: "[asm] Check for tls cert and key"
+  ansible.builtin.set_fact:
+    tls_cert_provided: true
+  when:
+    - asm_tlskey_file is defined and asm_tlskey_file|length > 3
+      or asm_tlskey_content is defined and asm_tlskey_content|length > 3
+    - asm_tlscert_file is defined and asm_tlscert_file|length > 3
+      or asm_tlscert_content is defined and asm_tlscert_content|length > 3
+    - asm_tls_key_path is defined and asm_tls_key_path|length > 3
+    - asm_tls_cert_path is defined and asm_tls_cert_path|length > 3
+
+# Uses lookup plugin to get the ASM TLS CERT filename on Ansible controller
+# With OSS Ansible on the command-line, you could use --extra-vars
+- name: "[asm] Copy TLS server-side certificate"
+  include_tasks:
+    file: cert.yml
+  vars:
+    cert_file: "{{ asm_tlscert_file | default('') }}"
+    cert_string: "{{ asm_tlscert_content | default('') }}"
+    cert_dest_path: "{{ asm_tls_cert_path }}"
+  when:
+    - tls_cert_provided | default(false) | bool
+
+# Uses lookup plugin to get the ASM TLS key filename on Ansible controller
+# With OSS Ansible on the command-line, you could use --extra-vars
+- name: "[asm] Copy TLS privatekey"
+  include_tasks:
+    file: cert.yml
+  vars:
+    cert_file: "{{ asm_tlskey_file | default('') }}"
+    cert_string: "{{ asm_tlskey_content | default('') }}"
+    cert_dest_path: "{{ asm_tls_key_path }}"
+  when:
+    - tls_cert_provided | default(false) | bool
+
+- name: "[asm] Generate secret for https/tls cert in asm ingress namespace"
+  ansible.builtin.command:
+    argv:
+      - kubectl
+      - create
+      - secret
+      - generic
+      - "{{ asm_tls_cred_name }}"
+      - --save-config
+      - --dry-run=client
+      - --from-file=key={{ asm_tls_key_path }}
+      - --from-file=cert={{ asm_tls_cert_path }}
+      - -n
+      - "{{ asm_ingress_namespace }}"
+      - -o
+      - yaml
+  register: tls_secret
+  no_log: true
+  when:
+    - tls_cert_provided|default(false)|bool
+
+- name: "[asm] Create file for TLS secret"
+  ansible.builtin.copy:
+    content: "{{ tls_secret.stdout }}"
+    dest: "{{ asm_temp }}/tls-secret.yaml"
+    mode: 0640
+  when:
+    - tls_cert_provided|default(false)|bool
+    - (tls_secret.stdout is defined) and (tls_secret.stdout|length > 0)
+
+- name: "[asm] Create TLS Secret in asm ingress namespace"
+  ansible.builtin.command:
+    argv:
+      - kubectl
+      - apply
+      - -f
+      - "{{ asm_temp }}/tls-secret.yaml"
+  when:
+    - tls_cert_provided|default(false)|bool
+    - (tls_secret.stdout is defined) and (tls_secret.stdout|length > 0)
+
+- name: "[asm] Template Gateway object in asm ingress namespace"
+  ansible.builtin.template:
+    src: "gateway.yaml.j2"
+    dest: "{{ asm_temp }}/gateway-asm.yaml"
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: '0600'
+  when:
+    - tls_cert_provided|default(false)|bool
+    - asm_ingress_hosts is defined
+    - asm_ingress_hosts | type_debug == 'list'
+    - asm_ingress_hosts | length > 0
+
+- name: "[asm] Create Gateway object in asm ingress namespace"
+  ansible.builtin.command:
+    argv:
+    - kubectl
+    - apply
+    - -f
+    - "{{ asm_temp }}/gateway-asm.yaml"
+  when:
+    - tls_cert_provided|default(false)|bool
+    - asm_ingress_hosts is defined
+    - asm_ingress_hosts | type_debug == 'list'
+    - asm_ingress_hosts | length > 0

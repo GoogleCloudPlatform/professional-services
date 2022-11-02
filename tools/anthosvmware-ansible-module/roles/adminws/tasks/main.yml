@@ -1,0 +1,54 @@
+# Copyright 2022 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+
+- name: "[adminws] Cleanup known_hosts"
+  ansible.builtin.file:
+    path: "~/.ssh/known_hosts"
+    state: absent
+
+- name: "[adminws] Include tasks - asserts.yml"
+  include_tasks: asserts.yml
+
+- name: "[adminws] Check for private download"
+  ansible.builtin.set_fact:
+    is_private_download: "{{ true if private_download_base is defined and private_download_base|length > 8 and private_download_auth_header is defined and private_download_auth_header|length > 5 else false }}"
+
+- name: "[adminws] Include tasks - setup.yml"
+  include_tasks: setup-config.yml
+
+- name: "[adminws] check if file {{ adminws_name }} exists"
+  ansible.builtin.stat:
+    path: "{{ yamldestpath }}/{{ adminws_name }}"
+  register: adminws_file_exists
+
+- name: "[adminws] Include tasks - install.yml"
+  include_tasks: install.yml
+  when:
+    - adminws_install|default(false)|bool
+    - not adminws_upgrade|default(false)|bool
+    - not adminws_file_exists.stat.exists
+
+- name: "[adminws] Include tasks - uninstall.yml"
+  include_tasks: uninstall.yml
+  when:
+    - not adminws_install|default(false)|bool
+    - not adminws_upgrade|default(false)|bool
+    - adminws_file_exists.stat.exists
+
+- name: "[adminws] Include tasks - upgrade.yml"
+  include_tasks: upgrade.yml
+  when:
+    - adminws_upgrade|default(false)|bool
+    - adminws_file_exists.stat.exists

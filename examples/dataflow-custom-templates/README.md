@@ -47,6 +47,7 @@ Additionally, refer to each of the following folders for specific requirements.
 
 - [Java](java)
 - [Python](python)
+- [Go](go)
 
 # Deployment
 

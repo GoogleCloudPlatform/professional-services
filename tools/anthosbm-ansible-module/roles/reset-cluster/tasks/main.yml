@@ -12,7 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-- name: Reset Cluster
+- name: Reset Hybrid Cluster
   shell:
-    cmd: "bmctl reset cluster -c {{ cluster_name }}"
+    cmd: |
+      export GOOGLE_APPLICATION_CREDENTIALS="{{ gcp_sa_key_dir }}/{{ gcloud_preq_sa_name }}.json"
+      bmctl reset cluster -c "{{ cluster_name }}"
     chdir: "{{ login_user_home }}"
+  when: cluster_type != "user"
+
+- name: Reset User Cluster
+  shell:
+    cmd: |
+      export GOOGLE_APPLICATION_CREDENTIALS="{{ gcp_sa_key_dir }}/{{ gcloud_preq_sa_name }}.json"
+      bmctl reset cluster -c "{{ cluster_name }}" --admin-kubeconfig "{{ admin_kubeconfig_path }}"
+    chdir: "{{ login_user_home }}"
+  when: cluster_type == "user"

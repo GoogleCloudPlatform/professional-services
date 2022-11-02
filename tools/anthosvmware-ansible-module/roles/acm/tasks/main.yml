@@ -1,0 +1,98 @@
+# Copyright 2022 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+
+- name: "[acm] Clean up old SSH host keys from incomplete runs"
+  ansible.builtin.file:
+    path: "/home/ubuntu/.ssh/known_hosts"
+    state: absent
+
+- name: "[acm] Include tasks - asserts.yml"
+  include_tasks: asserts.yml
+
+- name: "[acm] Include role for GCP SA JSON key files"
+  ansible.builtin.include_role:
+    name: copy_credentials
+  vars:
+    is_acm: true
+
+- name: "[acm] Block - Manage ACM" # noqa var-spacing
+  block:
+    - name: "[acm] Switch to ACM Service Account Name"
+      ansible.builtin.command: # noqa 305 301 no-changed-when
+        argv:
+          - gcloud
+          - auth
+          - activate-service-account
+          - --key-file
+          - "{{ job_sakeyfolder }}/{{ acm_gcpsa_path }}"
+
+    - name: "[acm] Verify cluster is registered"
+      ansible.builtin.command:
+        argv:
+          - gcloud
+          - container
+          - hub
+          - memberships
+          - list
+          - --project={{ acm_gcpproject }}
+      register: memberships
+      failed_when: not acm_membership in memberships.stdout
+      changed_when: false
+
+    - name: "[acm] Get current ACM version"
+      ansible.builtin.command:
+        argv:
+          - gcloud
+          - beta
+          - container
+          - hub
+          - config-management
+          - version
+          - --project={{ acm_gcpproject }}
+          - --format=value(version)
+          - --filter=name:{{ acm_membership }}
+      register: acm_live_version
+      changed_when: false
+
+    - name: "[acm] Compare current version with requested"
+      ansible.builtin.set_fact:
+        acm_upgrade: "{{ true if acm_live_version.stdout != 'NA' and acm_live_version.stdout != acm_version else false }}"
+
+    - name: "[acm] Include tasks - install.yml"
+      include_tasks: install.yml
+      when: 
+        - acm_install|default(false)|bool
+        - not acm_upgrade|bool
+
+    - name: "[acm] Include tasks - upgrade.yml"
+      include_tasks: upgrade.yml
+      when: 
+        - acm_install|default(false)|bool
+        - acm_upgrade|bool
+
+    - name: "[acm] Include tasks - uninstall.yml"
+      include_tasks: uninstall.yml
+      when: not acm_install|default(false)|bool
+
+  environment:
+    PATH: "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin"
+    http_proxy: "{{ glb_proxyurl }}"
+    https_proxy: "{{ glb_proxyurl }}"
+    no_proxy: "{{ glb_noproxy }}"
+
+  always:
+    - name: "[acm] Include role to delete sensitive files"
+      ansible.builtin.include_role:
+        name: cleanup

@@ -6,9 +6,9 @@ and output processors. Input processors can enrich the incoming messages with de
 (for example, fetching the budget from Cloud Billing Budgets API). Multiple output
 processors can be chained together. 
 
-Pubsub2Inbox is written in Python 3.8+ and can be deployed as a Cloud Function easily.
-To guard credentials and other sensitive information, the tool can fetch its
-YAML configuration from Google Cloud Secret Manager.
+Pubsub2Inbox is written in Python 3.8+ and can be deployed as a Cloud Function or as a 
+Cloud Run function easily. To guard credentials and other sensitive information, the tool can 
+fetch its YAML configuration from Google Cloud Secret Manager.
 
 The tool also supports templating of emails, messages and other parameters through
 [Jinja2 templating](https://jinja.palletsprojects.com/en/2.10.x/templates/).
@@ -24,6 +24,7 @@ Out of the box, you'll have the following functionality:
     - [How to set up programmatic notifications from billing budgets](https://cloud.google.com/billing/docs/how-to/budgets-programmatic-notifications)
   - [Cloud Security Command Center](https://cloud.google.com/security-command-center)
     - [Email notifications of findings](examples/scc-config.yaml) ([how to set up finding notifications from SCC](https://cloud.google.com/security-command-center/docs/how-to-notifications))
+    - [Create findings from Cloud IDS](examples/scc-cloud-ids.yaml)
     - [Create custom findings](examples/scc-finding-config.yaml)
   - [Cloud Storage notifications](examples/storage-config.yaml)
     - [How to set up Cloud Storage notifications](https://cloud.google.com/storage/docs/reporting-changes)
@@ -145,9 +146,12 @@ parameters in when using as a module:
   - `bucket_location` (string, optional): location of the bucket for Cloud Function archive (defaults to `EU`)
   - `helper_bucket_name` (string, optional): specify an additional Cloud Storage bucket where the service account is granted `storage.objectAdmin` on
   - `function_timeout` (number, optional): a timeout for the Cloud Function (defaults to `240` seconds)
+  - `retry_minimum_backoff` (string, optional): minimum backoff time for exponential backoff retries in Cloud Run. Defaults to 10s.
+  - `retry_maximum_backoff` (string, optional): maximum backoff time for exponential backoff retries in Cloud Run. Defaults to 600s.
+  - `cloud_run` (boolean, optional): deploy via Cloud Run instead of Cloud Function. Defaults to `false`. If set to `true`, also specify `cloud_run_container`.
+  - `cloud_run_container` (string, optional): container image to deploy on Cloud Run. See previous parameter.
 
-
-### Deploying manually
+## Deploying manually
 
 First, we have the configuration in `config.yaml` and we're going to store the configuration for
 the function as a Cloud Secret Manager secret.
@@ -206,6 +210,24 @@ gcloud functions deploy $FUNCTION_NAME \
     --region $REGION \
     --project $PROJECT_ID
 ```
+
+## Deploying via Cloud Run
+
+### Building the container
+
+A [`Dockerfile`](Dockerfile) has been provided for building the container. You can build the 
+image locally and push it to for example [Artifact Registry](https://cloud.google.com/artifact-registry).
+
+```sh
+docker build -t europe-west4-docker.pkg.dev/$PROJECT_ID/pubsub2inbox/pubsub2inbox . 
+docker push europe-west4-docker.pkg.dev/$PROJECT_ID/pubsub2inbox/pubsub2inbox
+```
+
+### Deploying via Terraform
+
+The provided Terraform scripts can deploy the code as a Cloud Function or Cloud Run. To enable
+Cloud Run deployment, build and push the image and set `cloud_run` and `cloud_run_container`
+parameters (see the parameter descriptions above).
 
 ### Running tests
 

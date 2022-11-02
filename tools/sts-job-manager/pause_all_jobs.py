@@ -26,6 +26,7 @@ from constants.status import STATUS, sts_operation_status_to_table_status
 from lib.options import STSJobManagerOptions
 from lib.services import Services
 
+logging.basicConfig()
 logger = logging.getLogger(__name__)
 logger.setLevel(os.environ.get("LOGLEVEL", "INFO").upper())
 

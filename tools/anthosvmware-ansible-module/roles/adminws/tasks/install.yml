@@ -1,0 +1,216 @@
+# Copyright 2022 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+
+- name: "[adminws] Block - Copy/delete GCP SA JSON key files, download vCenter certs, create workstation"
+  block:
+    
+    - name: "[adminws] Include role for GCP SA JSON key files"
+      ansible.builtin.include_role:
+        name: copy_credentials
+      vars:
+        is_admin_workstation: true
+
+    - name: "[adminws] Switch to Component Access Service Account"
+      ansible.builtin.command: # noqa 305 301 no-changed-when
+        argv:
+          - gcloud
+          - auth
+          - activate-service-account
+          - --key-file
+          - "{{ job_sakeyfolder }}/{{ component_access_gcpsa_path }}"
+
+    - name: "[adminws] Download gkeadm binary from private location"
+      ansible.builtin.get_url:
+        url: "{{ private_download_base }}/anthos/{{ glb_anthos_version }}/gkeadm-{{ glb_anthos_version }}"
+        headers:
+          Authorization: "{{ private_download_auth_header }}"
+        dest: "{{ yamldestpath }}/gkeadm-{{ glb_anthos_version }}"
+        mode: 0600
+      when: is_private_download|bool
+
+    - name: "[adminws] Download gkeadm binary"
+      ansible.builtin.command: # noqa 204 301
+        chdir: "{{ yamldestpath }}"
+        argv:
+          - gsutil
+          - cp
+          - gs://gke-on-prem-release/gkeadm/{{ glb_anthos_version }}/linux/gkeadm
+          - "{{ yamldestpath }}/gkeadm-{{ glb_anthos_version }}"
+      when: not (is_private_download|bool)
+
+    - name: "[adminws] Download gkeadm signature from private location"
+      ansible.builtin.get_url:
+        url: "{{ private_download_base }}/anthos/{{ glb_anthos_version }}/gkeadm-{{ glb_anthos_version }}.1.sig"
+        headers:
+          Authorization: "{{ private_download_auth_header }}"
+        dest: "{{ yamldestpath }}/gkeadm-{{ glb_anthos_version }}.1.sig"
+        mode: 0600
+      when: is_private_download|bool
+
+    - name: "[adminws] Download gkeadm signature"
+      ansible.builtin.command: # noqa 204 301
+        chdir: "{{ yamldestpath }}"
+        argv:
+          - gsutil
+          - cp
+          - gs://gke-on-prem-release/gkeadm/{{ glb_anthos_version }}/linux/gkeadm.1.sig
+          - "{{ yamldestpath }}/gkeadm-{{ glb_anthos_version }}.1.sig"
+      when: not (is_private_download|bool)
+
+    - name: "[adminws] Copy gkeadm signature key"
+      ansible.builtin.copy:
+        content: |
+          -----BEGIN PUBLIC KEY-----
+          MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEWZrGCUaJJr1H8a36sG4UUoXvlXvZ
+          wQfk16sxprI2gOJ2vFFggdq3ixF2h4qNBt0kI7ciDhgpwS8t+/960IsIgw==
+          -----END PUBLIC KEY-----
+        dest: "{{ yamldestpath }}/gkeadm.1.key"
+        mode: 0600
+
+    - name: "[adminws] Verify gkeadm binary"
+      ansible.builtin.command:
+        argv:
+          - openssl
+          - dgst
+          - -verify
+          - "{{ yamldestpath }}/gkeadm.1.key"
+          - -signature
+          - "{{ yamldestpath }}/gkeadm-{{ glb_anthos_version }}.1.sig"
+          - -binary
+          - "{{ yamldestpath }}/gkeadm-{{ glb_anthos_version }}"
+      changed_when: false
+
+    - name: "[adminws] Set file permissions on gkeadm binary"
+      ansible.builtin.file:
+        dest: "{{ yamldestpath }}/gkeadm-{{ glb_anthos_version }}"
+        mode: 0775
+
+    - name: "[adminws] Copy to generic gkeadm path"
+      ansible.builtin.copy:
+        src: "{{ yamldestpath }}/gkeadm-{{ glb_anthos_version }}"
+        dest: "{{ yamldestpath }}/gkeadm"
+        remote_src: true
+        mode: 0775
+
+    - name: "[adminws] Create vCenter CA cert directory"
+      ansible.builtin.file:
+        path: "{{ yamldestpath }}/vcenter"
+        mode: 0700
+        state: directory
+
+    - name: "[adminws] Download vCenter CA cert bundle"
+      ansible.builtin.command: # noqa 303
+        chdir: "{{ yamldestpath }}"
+        argv:
+          - curl
+          - -k
+          - https://{{ adminws_vc_fqdn }}/certs/download.zip
+          - -o
+          - "{{ yamldestpath }}/vcenter/download.zip"
+        creates: "{{ yamldestpath }}/vcenter/download.zip"
+
+    - name: "[adminws] Extract vCenter CA cert bundle"
+      ansible.builtin.unarchive:
+        src: "{{ yamldestpath }}/vcenter/download.zip"
+        dest: "{{ yamldestpath }}/vcenter"
+        creates: "{{ yamldestpath }}/vcenter/certs/lin"
+        remote_src: true
+
+    - name: "[adminws] Get vCenter CA cert file names"
+      ansible.builtin.find:
+        path: "{{ yamldestpath }}/vcenter/certs/lin"
+        pattern: '*.0'
+      register: cert_files
+
+    - name: "[adminws] Get vCenter CA cert details"
+      ansible.builtin.command:
+        argv:
+          - openssl
+          - x509
+          - -issuer
+          - -subject
+          - -noout
+          - -in
+          - "{{ item.path }}"
+      loop: "{{ cert_files.files }}"
+      loop_control:
+        label: "{{ item.path }}"
+      register: cert_details
+      changed_when: false
+
+    - name: "[adminws] Select the root vCenter CA cert"
+      ansible.builtin.copy:
+        src: "{{ item.cmd[6] }}" # References the file name in the openssl command used to generate the details
+        dest: "{{ yamldestpath }}/vcenter.pem"
+        remote_src: true
+        mode: 0600
+      loop: "{{ cert_details.results }}"
+      loop_control:
+        label: "{{ item.cmd[6] }}" # References the file name in the openssl command used to generate the details
+      when: item.stdout_lines[0] | replace('issuer=', '') == item.stdout_lines[1] | replace('subject=', '')
+
+    - name: "[adminws] Templating YAML files - config"
+      ansible.builtin.template:
+        src: admin-ws-config.yaml.j2
+        dest: "{{ yamldestpath }}/admin-ws-config-{{ adminws_name }}.yaml"
+        mode: 0600
+
+    - name: "[adminws] Pre-download admin workstation OVA from private location"
+      ansible.builtin.get_url:
+        url: "{{ private_download_base }}/anthos/{{ glb_anthos_version }}/gke-on-prem-admin-appliance-vsphere-{{ glb_anthos_version }}.ova"
+        headers:
+          Authorization: "{{ private_download_auth_header }}"
+        dest: "{{ yamldestpath }}/gke-on-prem-admin-appliance-vsphere-{{ glb_anthos_version }}.ova"
+        mode: 0600
+      when: is_private_download|bool
+
+    - name: "[adminws] Create admin workstation"
+      ansible.builtin.command: # noqa 204
+        chdir: "{{ yamldestpath }}"
+        argv: "{{ _argv }}"
+        creates: "{{ adminws_name }}"
+      vars:
+        _req_args:
+          - "{{ yamldestpath }}/gkeadm-{{ glb_anthos_version }}"
+          - create
+          - admin-workstation
+          - --config
+          - "admin-ws-config-{{ adminws_name }}.yaml"
+          - --ssh-key-path
+          - "{{ ssh_auth_key_priv_path }}"
+          - "{{ '--auto-create-service-accounts' if adminws_create_gsa else '' }}"
+        _skips: "{{ adminws_skipvalidations if adminws_skipvalidations | type_debug == 'list' else (adminws_skipvalidations.split(' ')) }}" # noqa 204
+        _argv: "{{ _req_args + _skips }}"
+
+    - name: "[adminws] Send status file to server"
+      ansible.builtin.command: # noqa 204
+        argv:
+          - scp
+          - -i
+          - "{{ ssh_auth_key_priv_path }}"
+          - -oStrictHostKeyChecking=no
+          - "{{ yamldestpath }}/{{ adminws_name }}"
+          - ubuntu@{{ adminws_nw_ip }}:{{ adminws_name }}
+
+  environment: # noqa 204
+    PATH: "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:{{ yamldestpath }}/google-cloud-sdk/bin/" # noqa 204
+    http_proxy: "{{ glb_proxyurl }}"
+    https_proxy: "{{ glb_proxyurl }}"
+    no_proxy: "{{ glb_noproxy }}"
+  
+  always:
+    - name: "[adminws] Include role to delete sensitive files"
+      ansible.builtin.include_role:
+        name: cleanup
