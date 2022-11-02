@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-- name: "Include role for GCP SA JSON key files"
+- name: "[uc] Include role for GCP SA JSON key files"
   ansible.builtin.include_role:
     name: copy_credentials
   vars:
