@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-- name: "Include role for GCP SA JSON key files"
+- name: "[uc] Include role for GCP SA JSON key files"
   ansible.builtin.include_role:
     name: copy_credentials
   vars:
@@ -21,30 +21,33 @@
 - name: "[uc] Block - Delete cluster and GCP SA JSON key files"
   block:
 
-  # async: 3600 poll: 5 results in task polling for approximately 5015s
-  - name: "[uc] Delete user cluster"
-    async: 3600
-    poll: 5
-    ansible.builtin.command: # noqa 305 no-changed-when
-      chdir: "{{ yamldestpath }}/{{ uc_name }}"
-      argv:
-        - gkectl
-        - delete
-        - cluster
-        - --cluster
-        - "{{ uc_name }}"
-        - --kubeconfig
-        - ../kubeconfig
-        - --alsologtostderr
-        - -v
-        - "{{ uc_verbosity }}"
-    register: uc_delete_status
+    # async: 3600 poll: 5 results in task polling for approximately 5015s
+    - name: "[uc] Delete user cluster"
+      async: 3600
+      poll: 5
+      ansible.builtin.command: # noqa 305 no-changed-when
+        chdir: "{{ yamldestpath }}/{{ uc_name }}"
+        argv: "{{ _req_args | reject('equalto', omit) | list }}"
+      vars:
+        _req_args:
+          - gkectl
+          - delete
+          - cluster
+          - --cluster
+          - "{{ uc_name }}"
+          - --kubeconfig
+          - ../kubeconfig
+          - --alsologtostderr
+          - "{{ omit if not uc_force_uninstall else '--force' }}"
+          - -v
+          - "{{ uc_verbosity }}"
+      register: uc_delete_status
 
-  - name: "[uc] Delete User Cluster Kubeconfig"
-    ansible.builtin.file:
-      path: "~/{{ uc_name }}-kubeconfig"
-      state: absent
-    when: uc_delete_status.rc | default('') == 0
+    - name: "[uc] Delete User Cluster Kubeconfig"
+      ansible.builtin.file:
+        path: "~/{{ uc_name }}-kubeconfig"
+        state: absent
+      when: uc_delete_status.rc | default('') == 0
 
   environment:
     PATH: "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin"
@@ -53,6 +56,6 @@
     no_proxy: "{{ glb_noproxy }}"
 
   always:
-  - name: "Include role to delete sensitive files"
-    ansible.builtin.include_role:
-      name: cleanup
+    - name: "[uc] Include role to delete sensitive files"
+      ansible.builtin.include_role:
+        name: cleanup

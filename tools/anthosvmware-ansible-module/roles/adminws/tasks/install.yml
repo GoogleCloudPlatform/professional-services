@@ -12,20 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-- name: "[adminws] Create folder"
-  ansible.builtin.file:
-    path: "{{ yamldestpath }}"
-    state: directory
-    mode: 0770
-
-- name: "[adminws] Check for private download"
-  ansible.builtin.set_fact:
-    is_private_download: "{{ true if private_download_base is defined and private_download_base|length > 8 and private_download_auth_header is defined and private_download_auth_header|length > 5 else false }}"
 
 - name: "[adminws] Block - Copy/delete GCP SA JSON key files, download vCenter certs, create workstation"
   block:
     
-    - name: "Include role for GCP SA JSON key files"
+    - name: "[adminws] Include role for GCP SA JSON key files"
       ansible.builtin.include_role:
         name: copy_credentials
       vars:
@@ -136,7 +127,6 @@
         dest: "{{ yamldestpath }}/vcenter"
         creates: "{{ yamldestpath }}/vcenter/certs/lin"
         remote_src: true
-        validate_certs: "{{ adminws_vc_validate_cert | bool }}"
 
     - name: "[adminws] Get vCenter CA cert file names"
       ansible.builtin.find:
@@ -151,7 +141,7 @@
           - x509
           - -issuer
           - -subject
-          - -nocert
+          - -noout
           - -in
           - "{{ item.path }}"
       loop: "{{ cert_files.files }}"
@@ -193,24 +183,34 @@
         creates: "{{ adminws_name }}"
       vars:
         _req_args:
-          - "gkeadm-{{ glb_anthos_version }}"
+          - "{{ yamldestpath }}/gkeadm-{{ glb_anthos_version }}"
           - create
           - admin-workstation
           - --config
           - "admin-ws-config-{{ adminws_name }}.yaml"
           - --ssh-key-path
-          - "{{ sshprivkeypath }}"
+          - "{{ ssh_auth_key_priv_path }}"
           - "{{ '--auto-create-service-accounts' if adminws_create_gsa else '' }}"
         _skips: "{{ adminws_skipvalidations if adminws_skipvalidations | type_debug == 'list' else (adminws_skipvalidations.split(' ')) }}" # noqa 204
         _argv: "{{ _req_args + _skips }}"
 
+    - name: "[adminws] Send status file to server"
+      ansible.builtin.command: # noqa 204
+        argv:
+          - scp
+          - -i
+          - "{{ ssh_auth_key_priv_path }}"
+          - -oStrictHostKeyChecking=no
+          - "{{ yamldestpath }}/{{ adminws_name }}"
+          - ubuntu@{{ adminws_nw_ip }}:{{ adminws_name }}
+
   environment: # noqa 204
-    PATH: "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin" # noqa 204
+    PATH: "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:{{ yamldestpath }}/google-cloud-sdk/bin/" # noqa 204
     http_proxy: "{{ glb_proxyurl }}"
     https_proxy: "{{ glb_proxyurl }}"
     no_proxy: "{{ glb_noproxy }}"
   
   always:
-    - name: "Include role to delete sensitive files"
+    - name: "[adminws] Include role to delete sensitive files"
       ansible.builtin.include_role:
         name: cleanup

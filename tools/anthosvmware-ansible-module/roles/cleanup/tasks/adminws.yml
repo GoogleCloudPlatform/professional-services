@@ -43,7 +43,7 @@
   loop: "{{ credyamlfiles.files }}"
   when: credyamlfiles.files is defined
 
-- name: "[cleanup] check if file {{ adminws_name }} exists"
+- name: "[cleanup] Check if file {{ adminws_name }} exists"
   ansible.builtin.stat:
     path: "{{ yamldestpath }}/{{ adminws_name }}"
   register: adminws_file_exists
@@ -51,7 +51,7 @@
 # SSH into new AdminWS to clean up sensitive files
 - name: "[cleanup] Clean up credential.yaml and GCP SA files on newly created AdminwWS"
   shell:
-    cmd: "eval '$(cat {{ yamldestpath }}/{{ adminws_name }} | grep @) -oStrictHostKeyChecking=no rm -f {{ adminws_vc_credfile }} {{ adminws_gcpsa }}'"
+    cmd: "eval '$(cat {{ yamldestpath }}/{{ adminws_name }} | grep @) -oStrictHostKeyChecking=no rm -f {{ adminws_vc_credfile }} {{ component_access_gcpsa_path }}'"
   ignore_errors: true
   when:
     - adminws_install|default(false)|bool

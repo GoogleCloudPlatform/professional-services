@@ -450,6 +450,9 @@ Platform usage.
 *   [Quota Monitoring and Alerting](tools/quota-monitoring-alerting) - An
     easy-to-deploy Data Studio Dashboard with alerting capabilities, showing
     usage and quota limits in an organization or folder.
+*   [reddit Comment Streaming](tools/reddit-comment-streaming/) - 
+    Use PRAW, TextBlob, and Google Python API to collect and analyze 
+    reddit comments. Pushes comments to a Google Pub/sub Topic.
 *   [XSD to BigQuery Schema Generator](tools/xsd-to-bigquery-schema) - A command
     line tool for converting an XSD schema representing deeply nested and
     repeated XML content into a BigQuery compatible table schema represented in

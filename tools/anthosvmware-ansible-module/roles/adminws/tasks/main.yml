@@ -13,8 +13,20 @@
 # limitations under the License.
 
 
+- name: "[adminws] Cleanup known_hosts"
+  ansible.builtin.file:
+    path: "~/.ssh/known_hosts"
+    state: absent
+
 - name: "[adminws] Include tasks - asserts.yml"
   include_tasks: asserts.yml
+
+- name: "[adminws] Check for private download"
+  ansible.builtin.set_fact:
+    is_private_download: "{{ true if private_download_base is defined and private_download_base|length > 8 and private_download_auth_header is defined and private_download_auth_header|length > 5 else false }}"
+
+- name: "[adminws] Include tasks - setup.yml"
+  include_tasks: setup-config.yml
 
 - name: "[adminws] check if file {{ adminws_name }} exists"
   ansible.builtin.stat:
