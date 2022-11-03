@@ -100,10 +100,8 @@ resource "google_compute_instance" "reddit_vm" {
     python3 -m pip install --upgrade pip
     echo \"importing python libraries...\"
     python3 -m pip install praw
-    python3 -m pip install pandas
     python3 -m pip install textblob
     python3 -m pip install better_profanity
-    python3 -m pip install google-cloud-dataflow-client
     python3 -m pip install textstat
     python3 -m textblob.download_corpora
     python3 -m pip install google-cloud-pubsub
@@ -112,23 +110,23 @@ resource "google_compute_instance" "reddit_vm" {
     mkdir reddit
     cd reddit
 
-    git clone https://github.com/CYarros10/reddit-streaming-application.git
+    git clone https://github.com/GoogleCloudPlatform/professional-services.git
     echo \"git clone complete...\"
-    cd reddit-streaming-application/app/
+    cd professional-services/tools/reddit-comment-streaming/app
     echo \"current dir:\"
     pwd
     echo \"changing permissions\"
-    chmod 777 comment-stream-detailed-gcp.py
+    chmod 777 stream_analyzed_comments.py
     chmod 777 praw.ini
     echo \"updating scripts with custom info\"
-    sed -i -r 's/<insert-project-id-here>/${var.project_id}/g' comment-stream-detailed-gcp.py
-    sed -i -r 's/<insert-topic-id-here>/${var.pubsub_topic_name}/g' comment-stream-detailed-gcp.py
+    sed -i -r 's/<insert-project-id-here>/${var.project_id}/g' stream_analyzed_comments.py
+    sed -i -r 's/<insert-topic-id-here>/${var.pubsub_topic_name}/g' stream_analyzed_comments.py
     sed -i 's/<insert-client-id-here>/${var.reddit_client_id}/g' praw.ini
     sed -i 's/<insert-client-secret-here>/${var.reddit_client_secret}/g' praw.ini
     sed -i 's/<insert-username-here>/${var.reddit_username}/g' praw.ini
     sed -i 's/<insert-password-here>/${var.reddit_password}/g' praw.ini
     echo \"starting stream\"
-    python3 comment-stream-detailed-gcp.py funny askreddit todayilearned science worldnews pics iama gaming videos movies aww blog music news explainlikeimfive askscience books television mildlyinteresting lifeprotips space showerthoughts diy jokes sports gadgets nottheonion internetisbeautiful photoshopbattles food history futurology documentaries dataisbeautiful listentothis upliftingnews personalfinance getmotivated oldschool cool philosophy art writingprompts fitness technology bestof adviceanimals politics atheism europe &>> logs.txt
+    python3 stream_analyzed_comments.py funny askreddit todayilearned science worldnews pics iama gaming videos movies aww blog music news explainlikeimfive askscience books television mildlyinteresting lifeprotips space showerthoughts diy jokes sports gadgets nottheonion internetisbeautiful photoshopbattles food history futurology documentaries dataisbeautiful listentothis upliftingnews personalfinance getmotivated oldschool cool philosophy art writingprompts fitness technology bestof adviceanimals politics atheism europe &>> logs.txt
   EOF
 
   service_account {
