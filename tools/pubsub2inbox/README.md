@@ -43,6 +43,7 @@ Out of the box, you'll have the following functionality:
      - Retrieves group and membership information from [Cloud Identity Groups API](https://cloud.google.com/identity/docs/apis)
      - Useful for example building membership review reports
   - [Groups that allow external members](examples/external-groups-example.yaml) ([general example for Directory API](examples/directory-example.yaml))
+  - [Update group default settings on creation](examples/groups-settings.yaml)
   - [GCP projects](examples/projects-example.yaml)
      - Retrieves a list of projects using Cloud Resource Manager API
   - [Send SMS messages](examples/twilio-example.yaml)
@@ -94,6 +95,7 @@ Available output processors are:
   - [bigquery.py](output/bigquery.py): Sends output to a BigQuery table via a load job.
   - [scc.py](output/scc.py): Sends findings to Cloud Security Command Center.
   - [twilio.py](output/twilio.py): Sends SMS messages via Twilio API.
+  - [groupssettings.py](output/groupssettings.py): Updates Google Groups settings.
 
 Please note that the output processors have some IAM requirements to be able to
 pull information from GCP:
