@@ -14,19 +14,16 @@
 
 
 # private ssh key on the jump host to use for the admin workstation creation
-sshprivkeypath: "/home/anthosjumper/.ssh/user_id_ed25519"
+ssh_auth_key_priv_path: "/home/anthosjumper/.ssh/user_id_ed25519"
 
 # folder where the templated YAML files result in
 yamldestpath: "/home/anthosjumper/anthos" # template out YAML files relative to playbooks/ subfolder
-
-# path to gkeadm binary on the jump host
-gkeadm: "{{ yamldestpath }}/gkeadm"
 
 # SSH user used by Ansible to ssh connect to the jump host
 ansible_user: "anthosjumper"
 
 # admin workstation specific below until end of file
-adminws_name: "user-admws"
+adminws_name: "admws"
 component_access_gcpsa: '{{ lookup("env", "GCPSA_COMACC_FILE") }}'
 component_access_gcpsa_path: "component-access.json"
 sakeyfolder_base: "/home/anthosjumper/sakeys" # different home directory on jumphost than adminWS
@@ -34,7 +31,6 @@ adminws_create_gsa: false
 
 # vSphere/vCenter
 adminws_vc_fqdn: "{{ glb_vc_fqdn }}"
-adminws_vc_validate_cert: true
 adminws_vc_credfile: "credential.yaml"
 adminws_vc_credentry: "{{ glb_vc_credentry }}"
 adminws_vc_datacenter: "{{ glb_vc_datacenter }}"
