@@ -4,27 +4,27 @@ jobs:
       spark.pyspark.driver.python: '/usr/bin/python3'
     args:
     - /RC_2022-06.zst
-    - cy-artifacts-services
+    - %%PROJECT_ID%%
     - "16384"
-    mainPythonFileUri: gs://cy-artifacts-services/scripts/social_data_generator.py
+    mainPythonFileUri: gs://%%PROJECT_ID%%/scripts/social_data_generator.py
   stepId: social-data-generator
 placement:
   managedCluster:
-    clusterName: cy-artifacts-dp-cluster-e
+    clusterName: %%CLUSTER_NAME%%
     config:
       gceClusterConfig:
-        zoneUri: us-central1-a
+        zoneUri: %%REGION%%-a
       masterConfig:
         diskConfig:
           bootDiskSizeGb: 500
         machineTypeUri: n1-standard-4
-        imageUri: projects/cy-artifacts/global/images/reddit-data-cluster
+        imageUri: projects/%%PROJECT_ID%%/global/images/%%IMAGE_NAME%%
       workerConfig:
         diskConfig:
           bootDiskSizeGb: 500
         machineTypeUri: n1-standard-4
         numInstances: 2
-        imageUri: projects/cy-artifacts/global/images/reddit-data-cluster
+        imageUri: projects/%%PROJECT_ID%%/global/images/%%IMAGE_NAME%%
       initializationActions:
-        - executableFile: gs://cy-artifacts-services/scripts/initialize.sh
+        - executableFile: gs://%%GCS_BUCKET_NAME%%/scripts/initialize.sh
           executionTimeout: '3600s'
