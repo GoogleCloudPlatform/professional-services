@@ -11,6 +11,15 @@ No special requirements.
 Available variables are listed below, along with default values (see `defaults/main.yml`):
 
 ```YAML
+ssh_auth_key_priv: ""
+ssh_auth_key_priv_path: "/home/user/.ssh/x_id_ed25519"
+ssh_auth_key: ""
+ssh_auth_key_path: "{{ ssh_auth_key_priv_path }}.pub"
+```
+
+SSH public/private key on the jump host to use for the admin workstation creation.
+
+```YAML
 adminws_install: true
 ```
 
@@ -31,7 +40,6 @@ Destination file name of the Anthos component access Google Service Account on t
 ```YAML
 # vSphere/vCenter
 adminws_vc_fqdn: '{{ lookup("env", "VMWARE_HOST") }}'
-adminws_vc_validate_cert: true
 adminws_vc_credfile: "credential.yaml"
 adminws_vc_credentry: "vCenter"
 adminws_vc_datacenter: ""
@@ -42,6 +50,8 @@ adminws_vc_folder: "" # optional
 adminws_vc_respool: "" # if default resourcePool use <adminws_vc_cluster>/Resources
 adminws_vc_cacertpath: "{{ yamldestpath }}/vcenter.pem" # Location for automatically downloaded CA cert
 adminws_datadiskname: "" # <name>-gke-on-prem-admin-workstation-data-disk/<name>-gke-admin-ws-data-disk.vmdk
+adminws_rootdisk_gb: "100"
+adminws_homedisk_mb: "512"
 ```
 
 The vSphere/vCenter-specific settings specify how to connect and with what credentials.
@@ -77,10 +87,10 @@ None.
 
 ```YAML
 - name: "[adminws] Installation"
-  hosts: all
-  gather_facts: False
+  hosts: adminws
+  gather_facts: false
   roles:
-  - adminws
+    - adminws
 ```
 
 ## **License**
