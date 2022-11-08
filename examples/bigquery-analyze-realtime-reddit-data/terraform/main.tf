@@ -73,7 +73,7 @@ resource "google_project_iam_binding" "reddit_vm_pubsub" {
 resource "google_compute_instance" "reddit_vm" {
   name         = "reddit-data-collector-1"
   machine_type = "e2-micro"
-  zone         = "us-central1-a"
+  zone         = "${var.zone}"
 
 
   boot_disk {
@@ -83,7 +83,7 @@ resource "google_compute_instance" "reddit_vm" {
   }
 
   network_interface {
-    network = "default"
+    network = "${var.vpc_id}"
 
     access_config {
       // Ephemeral public IP
@@ -98,13 +98,6 @@ resource "google_compute_instance" "reddit_vm" {
     curl https://bootstrap.pypa.io/pip/3.6/get-pip.py -o get-pip.py
     python3 get-pip.py
     python3 -m pip install --upgrade pip
-    echo \"importing python libraries...\"
-    python3 -m pip install praw
-    python3 -m pip install textblob
-    python3 -m pip install better_profanity
-    python3 -m pip install textstat
-    python3 -m textblob.download_corpora
-    python3 -m pip install google-cloud-pubsub
     echo \"downloads complete...\"
     echo \"creating dirs for git repo...\"
     mkdir reddit
@@ -115,6 +108,9 @@ resource "google_compute_instance" "reddit_vm" {
     cd professional-services/tools/reddit-comment-streaming/app
     echo \"current dir:\"
     pwd
+    echo \"importing python libraries...\"
+    python3 -m pip install -r requirements.txt
+    python3 -m textblob.download_corpora
     echo \"changing permissions\"
     chmod 777 stream_analyzed_comments.py
     chmod 777 praw.ini
@@ -145,7 +141,7 @@ resource "google_bigquery_dataset" "comments" {
   dataset_id                  = "${var.bq_dataset_name}"
   friendly_name               = "${var.bq_dataset_name}"
   description                 = "Contains contents of reddit stream"
-  location                    = "US"
+  location                    = "${var.location}"
 }
 
 resource "google_bigquery_table" "stream_raw" {
@@ -305,15 +301,15 @@ EOF
 
 resource "google_storage_bucket" "app_bucket" {
     name          = "${var.app_bucket}"
-    location      = "US"
+    location      = "${var.location}"
     force_destroy = true
 }
 
 resource "google_dataflow_job" "pubsub_stream" {
     name = "ps-to-bq-${var.pubsub_topic_name}"
-    template_gcs_path = "gs://dataflow-templates-us-central1/latest/PubSub_to_BigQuery"
+    template_gcs_path = "gs://dataflow-templates-${var.region}/latest/PubSub_to_BigQuery"
     temp_gcs_location = "gs://${google_storage_bucket.app_bucket.name}/dataflow/tmp"
-    region = "us-central1"
+    region = "${var.region}"
     enable_streaming_engine = true
     parameters = {
       inputTopic = "${google_pubsub_topic.pubsub-topic.id}"

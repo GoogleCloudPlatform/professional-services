@@ -63,3 +63,27 @@ variable "bq_table_name" {
     description = "bigquery dataset name"
     type    = string
 }
+
+variable "location" {
+    description = "gcp project / app location"
+    type    = string
+    default = "US"
+}
+
+variable "zone" {
+    description = "gcp project / app zone"
+    type    = string
+    default = "us-central1-a"
+}
+
+variable "region" {
+    description = "gcp project / app region"
+    type    = string
+    default = "us-central1"
+}
+
+variable "vpc_id" {
+    description = "vpc for app"
+    type    = string
+    default = "default"
+}
