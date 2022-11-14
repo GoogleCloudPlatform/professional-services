@@ -21,6 +21,10 @@ them to fit your particular use case.
 *   [Cloud Audit Log Samples](examples/audit-log-examples/) - A sample
     collection of Audit Logs for Users and Customers to better the structure,
     contents, and values contained in various log events.
+*   [BigQuery Analyze Realtime Reddit Data](examples/bigquery-analyze-realtime-reddit-data/) - 
+    Solution to deploy a ([reddit](https://www.reddit.com)) social media data collection
+    architecture on Google Cloud Platform.  Analyzes reddit comments in realtime and
+    provides free natural-language processing / sentiment.
 *   [BigQuery Audit Log Dashboard](examples/bigquery-audit-log) - Solution to
     help audit BigQuery usage using Data Studio for visualization and a sample
     SQL script to query the back-end data source consisting of audit logs.
