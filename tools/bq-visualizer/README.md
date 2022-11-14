@@ -153,7 +153,7 @@ This is a limitation in the Job Details providewd by BQ.
 ---
 
 # Building and Deploying
-The applicagtion is a Single Page Application without a backend. It can be built and deployed to any webserver that is capable of serving static pages,
+The application is a Single Page Application without a backend. It can be built and deployed to any webserver that is capable of serving static pages,
 such as:
 
 * Apache
