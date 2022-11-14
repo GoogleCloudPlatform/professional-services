@@ -1,3 +1,2 @@
-# https://github.com/googleapis/google-cloud-python
 google-cloud-resource-manager
 google-cloud-logging

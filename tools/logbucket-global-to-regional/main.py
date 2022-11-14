@@ -42,7 +42,8 @@
             and reconfigures the _Default sink
 
     If you already have a list of projects where you want to reconfigure the
-    _Default sink, you can disable project listing by setting "list_projects = False".
+    _Default sink, you can disable project listing by setting 
+    "list_projects = False" in variables.py
 
     Permissions and Roles Required: The principal running the utility needs
     the below roles attached to them at the organization level.
@@ -54,19 +55,18 @@
 from collections import deque
 import logging
 from pathlib import Path
-import time
 import errno
 import os
 from google.cloud import resourcemanager_v3
 from google.cloud.logging_v2.types import logging_config
 from google.cloud.logging_v2.services.config_service_v2 import ConfigServiceV2Client
+from variables import log_bucket_region, log_bucket_name, organization_id, list_projects, exclude_folders, exclude_projects, projectListFile, file_projects, file_folders, log_level
 
 # Logger configurations
 logger = logging.getLogger(__name__)
-logger.setLevel(level=logging.INFO)
+logger.setLevel(level=log_level)
 console_handler = logging.StreamHandler()
-console_handler.setFormatter(
-    logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s"))
+console_handler.setFormatter(logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s"))
 logger.addHandler(console_handler)
 
 
@@ -197,13 +197,11 @@ def list_all_projects(organization_id, file_projects, file_folders,
     projects_client = resourcemanager_v3.ProjectsClient()
 
     parentsToList = deque()  # holds list of folders to iterate
-    parents_list = (
-        []
-    )  # holds final list of folders including org to generate output file.
+    parents_list_info = []  # holds final list of folders including org to generate output file.
     projects_list = []  # holds final list of projects
     org_parent = "organizations/" + organization_id
     parentsToList.append(org_parent)
-    parents_list.append(org_parent)
+    parents_list_info.append(org_parent)
 
     logger.info("Organization ID: %s", org_parent)
 
@@ -230,7 +228,7 @@ def list_all_projects(organization_id, file_projects, file_folders,
         for folder in list_folder_response:
             if folder.name.split("/")[1] not in exclude_folders:
                 parentsToList.append(folder.name)
-                parents_list.append(folder.name)
+                parents_list_info.append(folder.name)
             else:
                 logger.info("%s in folder exclusion list", folder.name)
 
@@ -241,7 +239,7 @@ def list_all_projects(organization_id, file_projects, file_folders,
                 logger.info("%s in project exclusion list", project.project_id)
 
     with open(file_folders, "w") as folders:
-        folders.write("\n".join(parents_list))
+        folders.write("\n".join(parents_list_info))
 
     with open(file_projects, "w") as projects:
         projects.write("\n".join(projects_list))
@@ -250,7 +248,7 @@ def list_all_projects(organization_id, file_projects, file_folders,
     logger.info("Folders File:: " + str(Path.cwd() / file_folders))
     logger.info(
         "Number of Parents: %s, Number of Projects: %s",
-        str(len(parents_list)),
+        str(len(parents_list_info)),
         str(len(projects_list)),
     )
     logger.info("End of list project")
@@ -259,29 +257,6 @@ def list_all_projects(organization_id, file_projects, file_folders,
 
 def main():
     """Main function"""
-    log_bucket_region = ""  # Region where new log bucket needs to be created
-    log_bucket_name = "Default"  # Log bucket name for new log bucket, generally "Default"
-
-    organization_id = "123456789"  # Organization ID
-
-    list_projects = True  # If False: list_all_projects won't run. Provide the list of project in projectListFile
-
-    # If you don't want certain folders to be scanned for projects, you can skip.
-    # exclude_folders = {"123456", "123455678"}
-    exclude_folders = {""}  # Folder IDs to skip during listing
-
-    # If you don't want certain projects to be listed, you can skip.
-    # exclude_projects = {"project_id1", "project_id2"}
-    exclude_projects = {""}  # Project IDs to skip during listing
-
-    # If you already have a project list, provide the  projects list file location. See sample_projectid.txt
-    projectListFile = " "
-
-    current_time = time.strftime("%Y%m%d-%H%M%S")
-    file_projects = ("projects-" + current_time + ".txt"
-                    )  # Project list file locaiton, output of list_all_projects
-    file_folders = ("folders-" + current_time + ".txt"
-                   )  # Folder list file location, output of list_all_projects
 
     if list_projects:
         logger.info("list_projects is set to True")

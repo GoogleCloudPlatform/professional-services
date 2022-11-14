@@ -11,6 +11,8 @@ Read more: https://cloud.google.com/logging/docs/default-settings
 
 In some cases, customers may not have set these organization level setting and would want to change the log bucket's location to a specific region.
 
+Read more: https://cloud.google.com/logging/docs/regionalized-logs
+
 **NOTE: _Required log bucket region can NOT be changed once they are created. This utility only works for _Default**
 
 ## Solution
@@ -20,7 +22,7 @@ There are 2 parts to this utility:
 1. list_all_projects --> This function takes an Organization ID and scans through all the folders and sub folders to generate a list of projects within the organization
 2. create_bucket_update_sink --> This function takes a list of projects and reconfigures the _Default sink
 
-If you already have a list of projects where you want to reconfigure the _Default sink, you can disable project listing by setting  "list_projects = False".
+If you already have a list of projects where you want to reconfigure the _Default sink, you can disable project listing by setting  "list_projects = False" in the file **variables.py**.
 
 **NOTE: You can't move the existing logs from Global log buckets to the newly created regional log buckets. You can create log views to include both old and new buckets.**
 
@@ -39,7 +41,7 @@ The principal running the utility needs the below roles attached to them at the 
     pip3 install -r requirements.txt
     ```
 3. Ensure that the principal running this script has the required roles are mentioned above.
-4. In the **main** function provide the below varaibles:
+4. In the **variables.py** file provide the below varaibles:
    * log_bucket_region --> Region where new log bucket needs to be created. Eg: us-central1
    * log_bucket_name --> Log bucket name for new log bucket, generally "Default".
    * organization_id --> Your GCP Organization ID
