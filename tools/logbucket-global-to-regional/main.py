@@ -43,7 +43,7 @@
 
     If you already have a list of projects where you want to reconfigure the
     _Default sink, you can disable project listing by setting 
-    "list_projects = False" in variables.py
+    "list_projects = False" in user_inputs.py
 
     Permissions and Roles Required: The principal running the utility needs
     the below roles attached to them at the organization level.
