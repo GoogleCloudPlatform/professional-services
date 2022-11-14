@@ -42,7 +42,7 @@
             and reconfigures the _Default sink
 
     If you already have a list of projects where you want to reconfigure the
-    _Default sink, you can disable project listing by setting 
+    _Default sink, you can disable project listing by setting
     "list_projects = False" in user_inputs.py
 
     Permissions and Roles Required: The principal running the utility needs
@@ -63,13 +63,24 @@ from google.cloud import resourcemanager_v3
 from google.cloud.logging_v2.types import logging_config
 from google.cloud.logging_v2.services.config_service_v2 import ConfigServiceV2Client
 
-from user_inputs import log_bucket_region, log_bucket_name, organization_id, list_projects, exclude_folders, exclude_projects, projectListFile, file_projects, file_folders, log_level
+from user_inputs import (
+    log_bucket_region,
+    log_bucket_name,
+    organization_id,
+    list_projects,
+    exclude_folders,
+    exclude_projects,
+    projectListFile,
+    log_level,
+)
 
 # Logger configurations
 logger = logging.getLogger(__name__)
 logger.setLevel(level=log_level)
 console_handler = logging.StreamHandler()
-console_handler.setFormatter(logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s"))
+console_handler.setFormatter(
+    logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+)
 logger.addHandler(console_handler)
 
 
@@ -85,13 +96,14 @@ def create_default_bucket(project_id, region, bucket_id):
     """
     parent = "projects/" + project_id + "/locations/" + region
     client = ConfigServiceV2Client()
-    logger.info("Creating bucket:: Parent= %s, LogBucketName= %s", parent,
-                bucket_id)
+    logger.info("Creating bucket:: Parent= %s, LogBucketName= %s", parent, bucket_id)
     create_log_bucket_request = logging_config.CreateBucketRequest(
-        parent=parent, bucket_id=bucket_id)
+        parent=parent, bucket_id=bucket_id
+    )
     try:
         create_log_bucket_response = client.create_bucket(
-            request=create_log_bucket_request)
+            request=create_log_bucket_request
+        )
         logger.debug(create_log_bucket_response)
         logger.info(
             "Successfully Created Log Bucket:: %s, Project:: %s",
@@ -121,13 +133,20 @@ def update_sink(project_id, region, bucket_id):
     client = ConfigServiceV2Client()
     filter = 'NOT LOG_ID("cloudaudit.googleapis.com/activity") AND NOT LOG_ID("externalaudit.googleapis.com/activity") AND NOT LOG_ID("cloudaudit.googleapis.com/system_event") AND NOT LOG_ID("externalaudit.googleapis.com/system_event") AND NOT LOG_ID("cloudaudit.googleapis.com/access_transparency") AND NOT LOG_ID("externalaudit.googleapis.com/access_transparency")'
     sink_name = "projects/" + project_id + "/sinks/_Default"
-    destination = ("logging.googleapis.com/projects/" + project_id +
-                   "/locations/" + region + "/buckets/" + bucket_id)
-    sink = logging_config.LogSink(name=sink_name,
-                                  destination=destination,
-                                  filter=filter)
+    destination = (
+        "logging.googleapis.com/projects/"
+        + project_id
+        + "/locations/"
+        + region
+        + "/buckets/"
+        + bucket_id
+    )
+    sink = logging_config.LogSink(
+        name=sink_name, destination=destination, filter=filter
+    )
     update_sink_request = logging_config.UpdateSinkRequest(
-        sink_name=sink_name, sink=sink, unique_writer_identity=True)
+        sink_name=sink_name, sink=sink, unique_writer_identity=True
+    )
     try:
         update_sink_response = client.update_sink(request=update_sink_request)
         logger.debug(update_sink_response)
@@ -139,13 +158,11 @@ def update_sink(project_id, region, bucket_id):
         return True
     except Exception as e:
         logger.error(e)
-        logger.error("Error updating sink to new bucket for project:: %s",
-                     project_id)
+        logger.error("Error updating sink to new bucket for project:: %s", project_id)
         return False
 
 
-def create_bucket_update_sink(projectListFile, log_bucket_region,
-                              log_bucket_name):
+def create_bucket_update_sink(projectListFile, log_bucket_region, log_bucket_name):
     """This function iterates over the list of projects and creates
     new regional logbuckets and then reconfigures the _Default sink to
     point to the newly created log bucket.
@@ -160,25 +177,26 @@ def create_bucket_update_sink(projectListFile, log_bucket_region,
     if projectsList.exists():
         with projectsList.open("r") as projects:
             for project in projects:
-                _create_bucket = create_default_bucket(project.strip(),
-                                                       log_bucket_region,
-                                                       log_bucket_name)
+                _create_bucket = create_default_bucket(
+                    project.strip(), log_bucket_region, log_bucket_name
+                )
                 if _create_bucket:
-                    update_sink(project.strip(), log_bucket_region,
-                                log_bucket_name)
+                    update_sink(project.strip(), log_bucket_region, log_bucket_name)
                 else:
                     logger.error(
                         "Create log bucket failed for project:: %s, _Default Sink is not updated",
                         project.strip(),
                     )
     else:
-        raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT),
-                                str(projectsList))
+        raise FileNotFoundError(
+            errno.ENOENT, os.strerror(errno.ENOENT), str(projectsList)
+        )
     return
 
 
-def list_all_projects(organization_id, file_projects, file_folders,
-                      exclude_projects, exclude_folders):
+def list_all_projects(
+    organization_id, file_projects, file_folders, exclude_projects, exclude_folders
+):
     """Lists all projects and folders in the given organization.
     Outputs 2 files in the current working directory:
     projects-%timestamp%.txt --> Contains all the projects
@@ -200,7 +218,9 @@ def list_all_projects(organization_id, file_projects, file_folders,
     projects_client = resourcemanager_v3.ProjectsClient()
 
     parentsToList = deque()  # holds list of folders to iterate
-    parents_list_info = []  # holds final list of folders including org to generate output file.
+    parents_list_info = (
+        []
+    )  # holds final list of folders including org to generate output file.
     projects_list = []  # holds final list of projects
     org_parent = "organizations/" + organization_id
     parentsToList.append(org_parent)
@@ -213,20 +233,22 @@ def list_all_projects(organization_id, file_projects, file_folders,
         try:
             logger.debug("Listing folders under the parent: %s", parentId)
             list_folder_request = resourcemanager_v3.ListFoldersRequest(
-                parent=parentId, page_size=10)
+                parent=parentId, page_size=10
+            )
         except Exception as e:
             logger.error(e)
-        list_folder_response = folders_client.list_folders(
-            request=list_folder_request)
+        list_folder_response = folders_client.list_folders(request=list_folder_request)
 
         try:
             logger.debug("Listing projects under the parent: %s", parentId)
             list_projects_request = resourcemanager_v3.ListProjectsRequest(
-                parent=parentId, page_size=10)
+                parent=parentId, page_size=10
+            )
         except Exception as e:
             logger.error(e)
         list_projects_response = projects_client.list_projects(
-            request=list_projects_request)
+            request=list_projects_request
+        )
 
         for folder in list_folder_response:
             if folder.name.split("/")[1] not in exclude_folders:
@@ -255,30 +277,35 @@ def list_all_projects(organization_id, file_projects, file_folders,
         str(len(projects_list)),
     )
     logger.info("End of list project")
-    return (file_projects)
+    return file_projects
 
 
 def main():
     """Main function"""
 
     current_time = time.strftime("%Y%m%d-%H%M%S")
-    file_projects = ("projects-" + current_time + ".txt"
-                    )  # Project list file locaiton, output of list_all_projects
-    file_folders = ("folders-" + current_time + ".txt"
-                    )  # Folder list file location, output of list_all_projects
+    file_projects = (
+        "projects-" + current_time + ".txt"
+    )  # Project list file locaiton, output of list_all_projects
+    file_folders = (
+        "folders-" + current_time + ".txt"
+    )  # Folder list file location, output of list_all_projects
 
     if list_projects:
         logger.info("list_projects is set to True")
-        _projectListFile = list_all_projects(organization_id, file_projects,
-                                             file_folders, exclude_projects,
-                                             exclude_folders)
-        create_bucket_update_sink(_projectListFile, log_bucket_region,
-                                  log_bucket_name)
+        _projectListFile = list_all_projects(
+            organization_id,
+            file_projects,
+            file_folders,
+            exclude_projects,
+            exclude_folders,
+        )
+        create_bucket_update_sink(_projectListFile, log_bucket_region, log_bucket_name)
     else:
-        logger.info("list_projects is set to False, Input File for Project= %s",
-                    projectListFile)
-        create_bucket_update_sink(projectListFile, log_bucket_region,
-                                  log_bucket_name)
+        logger.info(
+            "list_projects is set to False, Input File for Project= %s", projectListFile
+        )
+        create_bucket_update_sink(projectListFile, log_bucket_region, log_bucket_name)
 
 
 if __name__ == "__main__":
