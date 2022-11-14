@@ -57,10 +57,13 @@ import logging
 from pathlib import Path
 import errno
 import os
+import time
+
 from google.cloud import resourcemanager_v3
 from google.cloud.logging_v2.types import logging_config
 from google.cloud.logging_v2.services.config_service_v2 import ConfigServiceV2Client
-from variables import log_bucket_region, log_bucket_name, organization_id, list_projects, exclude_folders, exclude_projects, projectListFile, file_projects, file_folders, log_level
+
+from user_inputs import log_bucket_region, log_bucket_name, organization_id, list_projects, exclude_folders, exclude_projects, projectListFile, file_projects, file_folders, log_level
 
 # Logger configurations
 logger = logging.getLogger(__name__)
@@ -257,6 +260,12 @@ def list_all_projects(organization_id, file_projects, file_folders,
 
 def main():
     """Main function"""
+
+    current_time = time.strftime("%Y%m%d-%H%M%S")
+    file_projects = ("projects-" + current_time + ".txt"
+                    )  # Project list file locaiton, output of list_all_projects
+    file_folders = ("folders-" + current_time + ".txt"
+                    )  # Folder list file location, output of list_all_projects
 
     if list_projects:
         logger.info("list_projects is set to True")
