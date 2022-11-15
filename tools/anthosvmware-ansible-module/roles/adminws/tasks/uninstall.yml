@@ -12,12 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-- name: "[ac] Clean up old SSH host keys from incomplete runs"
-  ansible.builtin.file:
-    path: "/home/ubuntu/.ssh/known_hosts"
-    state: absent
 
-- name: "Include role for GCP SA JSON key files"
+- name: "[adminws] Include role for GCP SA JSON key files"
   ansible.builtin.include_role:
     name: copy_credentials
   vars:
@@ -32,7 +28,7 @@
       ansible.builtin.command: # noqa 305 204 301
         chdir: "{{ yamldestpath }}"
         argv:
-          - "gkeadm-{{ glb_anthos_version }}"
+          - "{{ yamldestpath }}/gkeadm-{{ glb_anthos_version }}"
           - delete
           - admin-workstation
           - --config
@@ -45,7 +41,7 @@
         https_proxy: "{{ glb_proxyurl }}"
         no_proxy: "{{ glb_noproxy }}"
   always:
-    - name: "Include role to delete sensitive files"
+    - name: "[adminws] Include role to delete sensitive files"
       ansible.builtin.include_role:
         name: cleanup
 

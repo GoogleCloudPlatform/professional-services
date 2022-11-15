@@ -64,6 +64,7 @@
       - -o
       - yaml
   register: tls_secret
+  no_log: true
   when:
     - tls_cert_provided|default(false)|bool
 
