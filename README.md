@@ -153,6 +153,8 @@ them to fit your particular use case.
     loading XML data into BigQuery with DataFlow via XMLIO.
 *   [Dataproc GCS Connector](examples/dataproc-gcs-connector) - Install and test
     unreleased features on the GCS Connector for Dataproc.
+*   [Dataproc Job Optimization](examples/dataproc-job-optimization) - Step-by-step
+    guide for optimizing a sample Dataproc Job.
 *   [Dataproc Persistent History Server for Ephemeral Clusters](examples/dataproc-persistent-history-server) -
     Example of writing logs from an ephemeral cluster to GCS and using a
     separate single node cluster to look at Spark and YARN History UIs.
