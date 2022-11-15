@@ -84,9 +84,10 @@ console_handler.setFormatter(
 logger.addHandler(console_handler)
 
 
-def create_default_bucket(project_id, region, bucket_id):
+def create_default_bucket(logging_client, project_id, region, bucket_id):
     """A wrapper to create log buckets.
     Args:
+        logging_client: An instance of ConfigServiceV2Client from logging_v2
         project_id: Project ID where the log bucket needs to be created
         region: Region where the regional log bucket has to be created
         bucket_id: Name of the log bucket to be created.
@@ -95,7 +96,7 @@ def create_default_bucket(project_id, region, bucket_id):
         Bool representing the status of log bucket creation.
     """
     parent = "projects/" + project_id + "/locations/" + region
-    client = ConfigServiceV2Client()
+    client = logging_client
     logger.info("Creating bucket:: Parent= %s, LogBucketName= %s", parent, bucket_id)
     create_log_bucket_request = logging_config.CreateBucketRequest(
         parent=parent, bucket_id=bucket_id
@@ -117,11 +118,12 @@ def create_default_bucket(project_id, region, bucket_id):
         return False
 
 
-def update_sink(project_id, region, bucket_id):
+def update_sink(logging_client, project_id, region, bucket_id):
     """A wrapper to update sink, this will reconfigure the _Default sink
     with the newly created regional bucket.
 
     Args:
+        logging_client: An instance of ConfigServiceV2Client from logging_v2
         project_id: Project ID where _Default sink needs to be reconfigured
         region: Region of the newly created log bucket
         bucket_id: name of the newly created log bucket
@@ -130,7 +132,7 @@ def update_sink(project_id, region, bucket_id):
         Bool representing the status of sink update
     """
 
-    client = ConfigServiceV2Client()
+    client = logging_client
     filter = 'NOT LOG_ID("cloudaudit.googleapis.com/activity") AND NOT LOG_ID("externalaudit.googleapis.com/activity") AND NOT LOG_ID("cloudaudit.googleapis.com/system_event") AND NOT LOG_ID("externalaudit.googleapis.com/system_event") AND NOT LOG_ID("cloudaudit.googleapis.com/access_transparency") AND NOT LOG_ID("externalaudit.googleapis.com/access_transparency")'
     sink_name = "projects/" + project_id + "/sinks/_Default"
     destination = (
@@ -162,14 +164,19 @@ def update_sink(project_id, region, bucket_id):
         return False
 
 
-def create_bucket_update_sink(projectListFile, log_bucket_region, log_bucket_name):
+def create_bucket_update_sink(
+    logging_client, projectListFile, log_bucket_region, log_bucket_name
+):
     """This function iterates over the list of projects and creates
     new regional logbuckets and then reconfigures the _Default sink to
     point to the newly created log bucket.
 
     Args:
+        logging_client: An instance of ConfigServiceV2Client from logging_v2
         projectListFile: The file that contains the list of projects.
                         Check sample_projectid.txt for the format.
+        log_bucket_region: Region where new log bucket needs to be created
+        log_bucket_name: Name of the new log bucket to be created
 
     Returns: None
     """
@@ -178,10 +185,15 @@ def create_bucket_update_sink(projectListFile, log_bucket_region, log_bucket_nam
         with projectsList.open("r") as projects:
             for project in projects:
                 _create_bucket = create_default_bucket(
-                    project.strip(), log_bucket_region, log_bucket_name
+                    logging_client, project.strip(), log_bucket_region, log_bucket_name
                 )
                 if _create_bucket:
-                    update_sink(project.strip(), log_bucket_region, log_bucket_name)
+                    update_sink(
+                        logging_client,
+                        project.strip(),
+                        log_bucket_region,
+                        log_bucket_name,
+                    )
                 else:
                     logger.error(
                         "Create log bucket failed for project:: %s, _Default Sink is not updated",
@@ -195,7 +207,13 @@ def create_bucket_update_sink(projectListFile, log_bucket_region, log_bucket_nam
 
 
 def list_all_projects(
-    organization_id, file_projects, file_folders, exclude_projects, exclude_folders
+    folders_client,
+    projects_client,
+    organization_id,
+    file_projects,
+    file_folders,
+    exclude_projects,
+    exclude_folders,
 ):
     """Lists all projects and folders in the given organization.
     Outputs 2 files in the current working directory:
@@ -203,6 +221,8 @@ def list_all_projects(
     folders-%timestamp%.txt --> Contains all the folders
 
     Args:
+        folders_client: An instance of resourcemanager_v3.FoldersClient
+        projects_client: An instance of resourcemanager_v3.ProjectsClient
         organization_id: Organization ID
         file_projects: Path to output file that contains projects
         file_folders: Path to output file that contains folders
@@ -214,8 +234,6 @@ def list_all_projects(
     """
 
     logger.info("List project start")
-    folders_client = resourcemanager_v3.FoldersClient()
-    projects_client = resourcemanager_v3.ProjectsClient()
 
     parentsToList = deque()  # holds list of folders to iterate
     parents_list_info = (
@@ -291,21 +309,31 @@ def main():
         "folders-" + current_time + ".txt"
     )  # Folder list file location, output of list_all_projects
 
+    logging_client = ConfigServiceV2Client()
+    folders_client = resourcemanager_v3.FoldersClient()
+    projects_client = resourcemanager_v3.ProjectsClient()
+
     if list_projects:
         logger.info("list_projects is set to True")
         _projectListFile = list_all_projects(
+            folders_client,
+            projects_client,
             organization_id,
             file_projects,
             file_folders,
             exclude_projects,
             exclude_folders,
         )
-        create_bucket_update_sink(_projectListFile, log_bucket_region, log_bucket_name)
+        create_bucket_update_sink(
+            logging_client, _projectListFile, log_bucket_region, log_bucket_name
+        )
     else:
         logger.info(
             "list_projects is set to False, Input File for Project= %s", projectListFile
         )
-        create_bucket_update_sink(projectListFile, log_bucket_region, log_bucket_name)
+        create_bucket_update_sink(
+            logging_client, projectListFile, log_bucket_region, log_bucket_name
+        )
 
 
 if __name__ == "__main__":
