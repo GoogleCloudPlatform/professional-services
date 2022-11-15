@@ -35,10 +35,10 @@ class AverageSpeedEnhancer(object):
     """
     output_schema = [  # This is the schema of nyc-tlc:yellow.trips
         "vendor_id", "pickup_datetime", "dropoff_datetime", "pickup_longitude",
-        "pickup_latitude", "dropoff_longitude", "dropoff_latitude",
-        "rate_code", "passenger_count", "trip_distance", "payment_type",
-        "fare_amount", "extra", "mta_tax", "imp_surcharge", "tip_amount",
-        "tolls_amount", "total_amount", "store_and_fwd_flag", "average_speed"
+        "pickup_latitude", "dropoff_longitude", "dropoff_latitude", "rate_code",
+        "passenger_count", "trip_distance", "payment_type", "fare_amount",
+        "extra", "mta_tax", "imp_surcharge", "tip_amount", "tolls_amount",
+        "total_amount", "store_and_fwd_flag", "average_speed"
     ]
 
     def dict_to_csv(self, dictionary):
@@ -69,8 +69,8 @@ class AverageSpeedEnhancer(object):
                 "store_and_fwd_flag") not in "YN":
             record["store_and_fwd_flag"] = None
 
-        if (record["pickup_datetime"] and record["dropoff_datetime"]
-                and record["trip_distance"] > 0):
+        if (record["pickup_datetime"] and record["dropoff_datetime"] and
+                record["trip_distance"] > 0):
             # Parse strings output by BigQuery to create datetime objects
             pickup = datetime.datetime.strptime(record["pickup_datetime"],
                                                 datetime_format)
