@@ -90,7 +90,7 @@ def test_update_sink_error_in_update_sink(mock_logging_client):
 def test_create_bucket_update_sink_raises_error(mock_logging_client, *mocks):
     """Tests if FileNotFoundError is raised"""
 
-    with pytest.raises(FileNotFoundError) as info:
+    with pytest.raises(FileNotFoundError):
         create_bucket_update_sink(
             mock_logging_client, "dummy.txt", "fake_region", "fake_bucket_name"
         )
