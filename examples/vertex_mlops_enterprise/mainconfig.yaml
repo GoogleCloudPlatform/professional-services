@@ -1,0 +1,59 @@
+pbalm-google:
+    project: 'pbalm-cxb-aa'
+    region: 'europe-west1' # europe-west4 has Cloud NAT, europe-west1 does not
+    service_account: '188940921537-compute@developer.gserviceaccount.com'
+    vertex_dataset_name: 'creditcards'
+    raw_schema_dir: 'src/raw_schema'
+    bucket: 'pbalm-cxb-aa-eu'
+    limit: 5000
+    version: 'v03'
+    cloudfunction_region: 'europe-west1'
+    artifactregistry_region: 'europe-west1'
+   
+    python_pkg_repo: 'pyrepo'
+   
+    bq:
+       dataset: 'vertex_eu'
+       location: 'EU'
+       source_table: 'creditcards'
+       ml_table: 'creditcards_ml'
+    
+    dataflow:
+        subnet: 'default'
+        service_account: '188940921537-compute@developer.gserviceaccount.com'
+        
+    featurestore_id: 'creditcards'
+    
+    git:
+        repo_url: "https://github.com/pbalm/mlops-with-vertex-ai.git"
+        branch: "main"     
+
+caixa-novpcsc:
+    project: 'cxb1-prj-test-no-vpcsc'
+    region: 'europe-west4' 
+    service_account: 'sa-mlops@cxb1-prj-test-no-vpcsc.iam.gserviceaccount.com'
+    vertex_dataset_name: 'creditcards'
+    raw_schema_dir: 'src/raw_schema'
+    bucket: 'cxb1-prjtest-novpcsc-eu'
+    limit: 5000
+    version: 'v02'
+    cloudfunction_region: 'europe-west1'
+    artifactregistry_region: 'europe-west1'
+   
+    python_pkg_repo: 'pyrepo'
+   
+    bq:
+       dataset: 'vertex_eu'
+       location: 'EU'
+       source_table: 'creditcards'
+       ml_table: 'creditcards_ml'
+    
+    dataflow:
+        subnet: 'default'
+        service_account: 'sa-mlops@cxb1-prj-test-no-vpcsc.iam.gserviceaccount.com'
+        
+    featurestore_id: 'creditcards'
+
+    git:
+        repo_url: "https://source.developers.google.com/p/cxb1-prj-test-no-vpcsc/r/prjtest-novpcsc"
+        branch: "master"     
