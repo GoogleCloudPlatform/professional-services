@@ -35,9 +35,9 @@ adminWorkstation:
   name: {{ adminws_name }}
   cpus: 4
   memoryMB: 8192
-  diskGB: 50
+  diskGB: {{ adminws_rootdisk_gb }}
   dataDiskName: {{ adminws_datadiskname }}
-  dataDiskMB: 512
+  dataDiskMB: {{ adminws_homedisk_mb }}
   network:
     ipAllocationMode: "{{ adminws_nw_ipallocmode }}"
     hostConfig:
