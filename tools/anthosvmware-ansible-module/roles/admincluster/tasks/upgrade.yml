@@ -1,0 +1,108 @@
+# Copyright 2022 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+- name: "[ac] Include role for GCP SA JSON key files"
+  ansible.builtin.include_role:
+    name: copy_credentials
+  vars:
+    is_admin_cluster: true
+
+- name: "[ac] Block - Upload new bundle, upgrade cluster and delete GCP SA JSON key files"
+  block:
+    - name: "[ac] Get current admin cluster version"
+      ansible.builtin.command:
+        chdir: "{{ yamldestpath }}"
+        argv:
+          - kubectl
+          - --kubeconfig
+          - kubeconfig
+          - get
+          - onpremadmincluster
+          - "{{ ac_name }}"
+          - -n
+          - kube-system
+          - "-o=jsonpath={.spec.gkeOnPremVersion}"
+      register: live_version
+
+    - name: "[ac] Verify inventory version not equal current version"
+      ansible.builtin.assert:
+        that: glb_anthos_version != live_version.stdout
+        fail_msg: "Requested Admin cluster version {{ glb_anthos_version }} equals current live version {{ live_version.stdout }}."
+        success_msg: "Requested Admin cluster version different from live."
+
+    - name: "[ac] Get gkectl version from Admin Workstation"
+      ansible.builtin.shell: "gkectl version | head -n1 | awk '{print $2;}'"
+      register: gkectl_version
+
+    - name: "[ac] Verify inventory version matches Admin workstation version"
+      ansible.builtin.assert:
+        that: glb_anthos_version == gkectl_version.stdout
+        fail_msg: "Requested Admin cluster version {{ glb_anthos_version }} does not match Admin workstation version {{ gkectl_version.stdout }}."
+        success_msg: "Requested Admin cluster version matched Admin workstation version"
+
+    - name: "[ac] Replace bundlePath in admin cluster config YAML"
+      ansible.builtin.lineinfile:
+        path: "{{ yamldestpath }}/{{ ac_name }}/{{ ac_name }}-cluster.yaml"
+        regex: '(^bundlePath: )(.*?)\/(gke-onprem-vsphere-)(.*?)(\.tgz*)'
+        line: 'bundlePath: "/var/lib/gke/bundles/gke-onprem-vsphere-{{ glb_anthos_version }}-full.tgz"'
+
+    - name: "[ac] Upload new bundle to vSphere"
+      ansible.builtin.command:
+        chdir: "{{ yamldestpath }}/{{ ac_name }}"
+        argv: "{{ _argv }}"
+      vars:
+        _req_args:
+          - gkectl
+          - prepare
+          - --bundle-path
+          - "/var/lib/gke/bundles/gke-onprem-vsphere-{{ glb_anthos_version }}-full.tgz"
+          - --kubeconfig
+          - ~/kubeconfig
+          - --alsologtostderr
+          - -v
+          - "{{ ac_verbosity }}"
+        _skips: "{{ ac_skipvalidations if ac_skipvalidations | type_debug == 'list' else (ac_skipvalidations.split(' ')) }}"
+        _argv: "{{ _req_args + _skips }}"
+
+    - name: "[ac] Upgrade admin cluster"
+      async: 5400
+      poll: 5
+      ansible.builtin.command: # noqa 305 no-changed-when
+        chdir: "{{ yamldestpath }}/{{ ac_name }}"
+        argv: "{{ _argv }}"
+      vars:
+        _req_args:
+          - gkectl
+          - upgrade
+          - admin
+          - --config
+          - "{{ ac_name }}-cluster.yaml"
+          - --kubeconfig
+          - ~/kubeconfig
+          - --alsologtostderr
+          - -v
+          - "{{ ac_verbosity }}"
+        _skips: "{{ ac_skipvalidations if ac_skipvalidations | type_debug == 'list' else (ac_skipvalidations.split(' ')) }}"
+        _argv: "{{ _req_args + _skips }}"
+
+  environment:
+    PATH: "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin"
+    http_proxy: "{{ glb_proxyurl }}"
+    https_proxy: "{{ glb_proxyurl }}"
+    no_proxy: "{{ glb_noproxy }}"
+
+  always:
+    - name: "[ac] Include role to delete sensitive files"
+      ansible.builtin.include_role:
+        name: cleanup

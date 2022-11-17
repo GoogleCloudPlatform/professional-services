@@ -1,0 +1,30 @@
+# Copyright 2022 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+
+- name: "[ais] Include tasks - asserts.yml"
+  include_tasks: asserts.yml
+
+- name: "[ais] Include tasks - install.yml"
+  include_tasks: install.yml
+
+- name: "[ais] Include tasks - upload.yml"
+  include_tasks: upload.yml
+  when:
+    - ais_gcpsa is defined
+      or ais_gcpsa_content is defined
+    - ais_gcpsa | length > 0
+      or ais_gcpsa_content | length > 0
+    - ais_gcsbucket is defined
+    - ais_gcsbucket | length > 0

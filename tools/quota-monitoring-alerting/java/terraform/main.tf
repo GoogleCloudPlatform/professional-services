@@ -323,8 +323,8 @@ resource "google_bigquery_dataset" "quota_usage_alert_dataset" {
 # Custom log-based metric to send quota alert data through
 resource "google_logging_metric" "quota_logging_metric" {
   name        = "resource_usage"
-  description = "Tracks a log containing resources' quota data"
-  filter      = "logName=\"projects/${var.project_id}/logs/quota-alerts\""
+  description = "Tracks logs for quota usage above threshold"
+  filter      = "logName:\"projects/${var.project_id}/logs/\" jsonPayload.message:\"|ProjectId | Scope |\""
   depends_on  = [module.project-services]
   metric_descriptor {
     metric_kind = "DELTA"
@@ -336,7 +336,7 @@ resource "google_logging_metric" "quota_logging_metric" {
     }
   }
   label_extractors = {
-    "data" = "EXTRACT(textPayload)"
+    "data" = "EXTRACT(jsonPayload.message)"
   }
 }
 
@@ -406,7 +406,7 @@ resource "google_monitoring_alert_policy" "alert_policy_quota" {
   conditions {
     display_name = "Resources reaching Quotas"
     condition_threshold {
-      filter          = "metric.type=\"logging.googleapis.com/user/${google_logging_metric.quota_logging_metric.name}\" resource.type=\"global\""
+      filter          = "metric.type=\"logging.googleapis.com/user/${google_logging_metric.quota_logging_metric.name}\"  AND resource.type=\"cloud_function\""
       duration        = "60s"
       comparison      = "COMPARISON_GT"
       threshold_value = 0

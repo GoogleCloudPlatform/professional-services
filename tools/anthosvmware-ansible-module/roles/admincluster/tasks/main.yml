@@ -1,0 +1,67 @@
+# Copyright 2022 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+- name: "[ac] Clean up old SSH host keys from incomplete runs"
+  ansible.builtin.file:
+    path: "/home/ubuntu/.ssh/known_hosts"
+    state: absent
+
+- name: "[ac] Include tasks - asserts.yml"
+  include_tasks: asserts.yml
+
+- name: "[ac] Detect if Admin Cluster kubeconfig exists"
+  ansible.builtin.stat:
+    path: "{{ yamldestpath }}/kubeconfig"
+  register: ac_kubeconfig_file
+
+- name: "[ac] Detect if Admin Cluster already exists"
+  ansible.builtin.command:
+    chdir: "{{ yamldestpath }}"
+    argv:
+      - kubectl
+      - --kubeconfig
+      - kubeconfig
+      - cluster-info
+  register: r_ac_exists
+  ignore_errors: true
+  when: ac_kubeconfig_file.stat.exists
+  changed_when: false
+
+- name: "[ac] Set ac_exists flag if Admin Cluster already exists"
+  ansible.builtin.set_fact:
+    ac_exists: true
+  when:
+    - r_ac_exists.stdout_lines is defined
+    - r_ac_exists.stdout_lines is search('control plane')
+    - r_ac_exists.stdout_lines is search('is running')
+
+- name: "[ac] Include tasks - install.yml"
+  include_tasks: install.yml
+  when:
+    - ac_install|default(false)|bool
+    - not ac_upgrade|default(false)|bool
+    - not ac_exists|default(false)|bool
+
+- name: "[ac] Include tasks - uninstall.yml"
+  include_tasks: uninstall.yml
+  when:
+    - not ac_install|default(false)|bool
+    - not ac_upgrade|default(false)|bool
+    - ac_exists|default(false)|bool
+
+- name: "[ac] Include tasks - upgrade.yml"
+  include_tasks: upgrade.yml
+  when:
+    - ac_upgrade|default(false)|bool
+    - ac_exists|default(false)|bool

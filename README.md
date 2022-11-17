@@ -21,6 +21,10 @@ them to fit your particular use case.
 *   [Cloud Audit Log Samples](examples/audit-log-examples/) - A sample
     collection of Audit Logs for Users and Customers to better the structure,
     contents, and values contained in various log events.
+*   [BigQuery Analyze Realtime Reddit Data](examples/bigquery-analyze-realtime-reddit-data/) - 
+    Solution to deploy a ([reddit](https://www.reddit.com)) social media data collection
+    architecture on Google Cloud Platform.  Analyzes reddit comments in realtime and
+    provides free natural-language processing / sentiment.
 *   [BigQuery Audit Log Dashboard](examples/bigquery-audit-log) - Solution to
     help audit BigQuery usage using Data Studio for visualization and a sample
     SQL script to query the back-end data source consisting of audit logs.
@@ -309,6 +313,10 @@ Platform usage.
 *   [Composer Backup and Recovery](tools/cloud-composer-backup-restore) - A
     command line tool for applying backup and recovery operations on Cloud
     Composer Airflow environments.
+*   [Dataproc Event Driven Spark Recommendations](tools/dataproc-event-driven-spark-recommendations/) - 
+    Use Google Cloud Functions to analyze Cloud Dataproc clusters and recommend
+    best practices for Apache Spark jobs.  Also logs cluster configurations for
+    future reference.
 *   [DataStream Deployment Automation](tools/datastream-deployment-python-automation) -
     Python script to automate the deployment of Google Cloud DataStream. This
     script will create connection profiles, create stream and start stream.
@@ -442,6 +450,9 @@ Platform usage.
 *   [Quota Monitoring and Alerting](tools/quota-monitoring-alerting) - An
     easy-to-deploy Data Studio Dashboard with alerting capabilities, showing
     usage and quota limits in an organization or folder.
+*   [reddit Comment Streaming](tools/reddit-comment-streaming/) - 
+    Use PRAW, TextBlob, and Google Python API to collect and analyze 
+    reddit comments. Pushes comments to a Google Pub/sub Topic.
 *   [XSD to BigQuery Schema Generator](tools/xsd-to-bigquery-schema) - A command
     line tool for converting an XSD schema representing deeply nested and
     repeated XML content into a BigQuery compatible table schema represented in

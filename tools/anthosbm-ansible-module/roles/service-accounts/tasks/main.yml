@@ -12,115 +12,34 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-- name: Enable Google Cloud APIs for Anthos
-  shell: >
-    gcloud services enable --project="{{ project_id }}"
-    anthos.googleapis.com
-    anthosgke.googleapis.com
-    cloudresourcemanager.googleapis.com
-    container.googleapis.com
-    gkeconnect.googleapis.com
-    gkehub.googleapis.com
-    logging.googleapis.com
-    monitoring.googleapis.com
-    servicecontrol.googleapis.com
-    servicemanagement.googleapis.com
-    serviceusage.googleapis.com
-    stackdriver.googleapis.com
-
-- name: Create GCR Service Account
-  shell: gcloud iam service-accounts create "{{ local_gcr_sa_name }}" --project="{{ project_id }}"
-
-- name: Generate and download GCR Service Account Key
-  shell: >
-    gcloud iam service-accounts keys create "{{ local_gcr_sa_name }}".json
-    --iam-account="{{ local_gcr_sa_name }}@{{ project_id }}.iam.gserviceaccount.com"
-    --project="{{ project_id }}"
-
-- name: Create directory for GCP Keys if it does not exist
+- name: Create bmctl workspace cluster directory
   ansible.builtin.file:
-    path: "{{ gcp_sa_key_dir }}"
+    path: "{{ login_user_home }}/{{ bmctl_workspace_dir }}/{{ cluster_name }}"
     state: directory
-
-- name: Move GCR Service Account key file
-  shell: mv "{{ local_gcr_sa_name }}".json "{{ gcp_sa_key_dir }}"
-
-- name: Create Connect Agent Service Account
-  shell: gcloud iam service-accounts create "{{ local_connect_agent_sa_name }}" --project="{{ project_id }}"
-
-- name: Grant gkehub.connect role to Connect Agent Service Account
-  shell: >
-    gcloud projects add-iam-policy-binding "{{ project_id }}"
-    --member="serviceAccount:{{ local_connect_agent_sa_name }}@{{ project_id }}.iam.gserviceaccount.com"
-    --role="roles/gkehub.connect"
-
-- name: Generate and download Connect Agent Service Account key
-  shell: >
-    gcloud iam service-accounts keys create "{{ local_connect_agent_sa_name }}".json
-    --iam-account="{{ local_connect_agent_sa_name }}@{{ project_id }}.iam.gserviceaccount.com"
-    --project="{{ project_id }}"
-
-- name: Move Connect Agent Service Account key file
-  shell: mv "{{ local_connect_agent_sa_name }}".json "{{ gcp_sa_key_dir }}"
-
-- name: Create Connect Register Service Account
-  shell: gcloud iam service-accounts create "{{ local_connect_register_sa_name }}" --project="{{ project_id }}"
-
-- name: Grant gkehub.admin role to Connect Register Service account
-  shell: >
-    gcloud projects add-iam-policy-binding "{{ project_id }}"
-    --member="serviceAccount:{{ local_connect_register_sa_name }}@{{ project_id }}.iam.gserviceaccount.com"
-    --role="roles/gkehub.admin"
-
-- name: Generate and download Connect Register Service Account keys
-  shell: >
-    gcloud iam service-accounts keys create "{{ local_connect_register_sa_name }}".json
-    --iam-account="{{ local_connect_register_sa_name }}@{{ project_id }}.iam.gserviceaccount.com"
-    --project="{{ project_id }}"
-
-- name: Move Connect Register Service Account key file
-  shell: mv "{{ local_connect_register_sa_name }}".json "{{ gcp_sa_key_dir }}"
-
-- name: Create Cloud Operations Service Account
-  shell: gcloud iam service-accounts create "{{ local_cloud_operations_sa_name }}" --project="{{ project_id }}"
-
-- name: Grant logging.logWriter role to Cloud Operations Service Account
-  shell: >
-    gcloud projects add-iam-policy-binding "{{ project_id }}"
-    --member="serviceAccount:{{ local_cloud_operations_sa_name }}@{{ project_id }}.iam.gserviceaccount.com"
-    --role="roles/logging.logWriter"
-
-- name: Grant monitoring.metricWriter role to Cloud Operations Service Account
-  shell: >
-    gcloud projects add-iam-policy-binding "{{ project_id }}"
-    --member="serviceAccount:{{ local_cloud_operations_sa_name }}@{{ project_id }}.iam.gserviceaccount.com"
-    --role="roles/monitoring.metricWriter"
-
-- name: Grant stackdriver.resourceMetadata.writer role to Cloud Operations Service Account
-  shell: >
-    gcloud projects add-iam-policy-binding "{{ project_id }}"
-    --member="serviceAccount:{{ local_cloud_operations_sa_name }}@{{ project_id }}.iam.gserviceaccount.com"
-    --role="roles/stackdriver.resourceMetadata.writer"
-
-- name: Grant monitoring.dashboardEditor role to Cloud Operations Service Account
-  shell: >
-    gcloud projects add-iam-policy-binding "{{ project_id }}"
-    --member="serviceAccount:{{ local_cloud_operations_sa_name }}@{{ project_id }}.iam.gserviceaccount.com"
-    --role="roles/monitoring.dashboardEditor"
-
-- name: Generate and download Cloud Operations Service Account keys
-  shell: >
-    gcloud iam service-accounts keys create "{{ local_cloud_operations_sa_name }}".json
-    --iam-account="{{ local_cloud_operations_sa_name }}@{{ project_id }}.iam.gserviceaccount.com"
-    --project="{{ project_id }}"
-
-- name: Move Cloud Operations Service Account key file
-  shell: mv "{{ local_cloud_operations_sa_name }}".json "{{ gcp_sa_key_dir }}"
-
-- name: Recursively change ownership of GCP Key directory
-  ansible.builtin.file:
-    path: "{{ gcp_sa_key_dir }}"
-    state: directory
-    recurse: yes
     owner: "{{ login_user }}"
     group: "{{ login_user_group }}"
+  tags: [preflight-admin,preflight-hybrid,preflight-user,create-admin,create-hybrid,create-user]
+
+- name: Check if cluster config file exists
+  stat:
+    path: "{{ login_user_home }}/{{ bmctl_workspace_dir }}/{{ cluster_name }}/{{ cluster_name }}.yaml"
+  register: cluster_file_check
+
+- name: Print Message In Case of Creation of Service Accounts is skipped
+  ansible.builtin.debug:
+    msg: "Creation of Service Accounts for Anthos will be skipped because the anthos cluster configuartion file is already present. If default cluster configuration file is present, then execute create anthos script to update the cluster configuration file."
+  when: cluster_file_check.stat.exists == True
+
+- name: Enabling APIs and Creating Service Accounts
+  shell:
+    cmd: |
+      export GOOGLE_APPLICATION_CREDENTIALS="{{ gcp_sa_key_dir }}/{{ gcloud_preq_sa_name }}.json"
+      bmctl create config -c "{{ cluster_name }}" --enable-apis --create-service-accounts --project-id="{{ project_id }}"
+    chdir: "{{ login_user_home }}"
+  when: cluster_file_check.stat.exists == False
+  register: check_task_status
+
+- name: Print Message In Case of Creation of Service Accounts
+  ansible.builtin.debug:
+     msg: "Service Accounts for Anthos has been created. Kindly note that the current cluster configuration file is a default one. Execute create anthos script to update the cluster configuration file."
+  when: check_task_status.changed

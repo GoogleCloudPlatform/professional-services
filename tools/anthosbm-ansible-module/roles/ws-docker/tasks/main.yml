@@ -13,6 +13,7 @@
 # limitations under the License.
 
 ---
+
 - name: Remove previous docker versions [Ubuntu]
   apt:
     pkg:
@@ -24,15 +25,16 @@
     state: absent
     autoremove: yes
   when: os_type == "ubuntu"
-
+  
 - name: Update apt package manager [Ubuntu]
   apt:
     update_cache: yes
   when: os_type == "ubuntu"
 
-- name: install docker [Ubuntu]
+- name: install docker and containerd [Ubuntu]
   apt:
     pkg:
+    - containerd        
     - apt-transport-https
     - ca-certificates
     - curl
@@ -85,11 +87,6 @@
     state: present
   when: os_type == "rhel"
 
-- name: Start docker service
-  ansible.builtin.systemd:
-    name: docker
-    state: started
-
 - name: Ensure group "docker" exists
   ansible.builtin.group:
     name: docker
@@ -100,3 +97,8 @@
     name: "{{ login_user }}"
     groups: docker
     append: yes
+
+- name: Start/Restart docker service
+  ansible.builtin.systemd:
+    name: docker
+    state: restarted
