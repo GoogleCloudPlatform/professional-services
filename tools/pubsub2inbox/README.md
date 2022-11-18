@@ -47,6 +47,8 @@ Out of the box, you'll have the following functionality:
      - Retrieves a list of projects using Cloud Resource Manager API
   - [Send SMS messages](examples/twilio-example.yaml)
      - Retrieves a list of projects using Cloud Resource Manager API
+  - Any binary or shell script!
+    - [See the example of shell processor](examples/shellscript-config.yaml)
   - Any JSON
     - [See the example of generic JSON processing](examples/generic-config.yaml)
 
@@ -68,6 +70,7 @@ Available input processors are:
   - [monitoring.py](processors/monitoring.py): Retrieves time series data from Cloud Ops Monitoring
   - [projects.py](processors/projects.py): Searches or gets GCP project details
   - [cai.py](processors/cai.py): Fetch assets from Cloud Asset Inventory
+  - [shellscript.py](processors/shellscript.py): Run any binary or shell script and parse the output (JSON, YAML, CSV, TSV, ...)
 
 For full documentation of permissions, processor input and output parameters, see [PROCESSORS.md](PROCESSORS.md).
 

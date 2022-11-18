@@ -26,9 +26,6 @@ provider "google" {
   region  = var.region
 }
 
-provider "archive" {
-}
-
 data "google_project" "project" {
 }
 
@@ -49,7 +46,7 @@ resource "google_secret_manager_secret" "config-secret" {
 resource "google_secret_manager_secret_version" "config-secret-version" {
   secret = google_secret_manager_secret.config-secret.id
 
-  secret_data = file(var.config_file)
+  secret_data = var.config != null ? var.config : file(var.config_file)
 }
 
 # Service account for running the function

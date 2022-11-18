@@ -15,6 +15,7 @@ from .base import Output, NotConfiguredException
 import json
 from google.cloud import pubsub_v1
 from concurrent import futures
+import hashlib
 
 
 class PubsubOutput(Output):
@@ -55,6 +56,12 @@ class PubsubOutput(Output):
             publisher_options=publisher_options, client_options=client_options)
 
         publish_futures = []
+        if isinstance(messages, list):
+            new_messages = {}
+            for message in messages:
+                new_messages[hashlib.md5(
+                    json.dumps(message).encode()).hexdigest()] = message
+            messages = new_messages
         for message_key, message_value in messages.items():
             attributes = {}
             if 'attributes' in self.output_config:

@@ -26,6 +26,7 @@ import magic
 import re
 import logging
 import hashlib
+import yaml
 
 
 def make_list(s):
@@ -59,8 +60,25 @@ def json_encode(v):
         raise exc
 
 
+def yaml_encode(v):
+    try:
+        return yaml.dump(v)
+    except Exception as exc:
+        logger = logging.getLogger('pubsub2inbox')
+        logger.error('Exception when trying to encode YAML!',
+                     extra={
+                         'value': v,
+                         'error': str(exc)
+                     })
+        raise exc
+
+
 def json_decode(v):
     return json.decode(v)
+
+
+def yaml_decode(v):
+    return yaml.load(v, Loader=yaml.SafeLoader)
 
 
 def b64decode(v):

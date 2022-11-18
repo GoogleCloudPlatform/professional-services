@@ -53,9 +53,16 @@ variable "secret_id" {
 
 variable "config_file" {
   type        = string
-  description = "Configuration file"
+  description = "Configuration file (either specify config_file or config)"
 
   default = "config.yaml"
+}
+
+variable "config" {
+  type        = string
+  description = "Configuration contents (either specify config_file or config)"
+
+  default = null
 }
 
 variable "service_account" {

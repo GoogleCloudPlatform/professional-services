@@ -126,6 +126,29 @@ class BaseHelper:
                     ))
                 return list(map(lambda x: x.strip(), vals))
 
+    def _jinja_var_to_list_all(self, _var, _tpl='config'):
+        if isinstance(_var, list):
+            return self._jinja_expand_list(_var, _tpl)
+        else:
+            var_template = self.jinja_environment.from_string(_var)
+            var_template.name = _tpl
+            val_str = var_template.render()
+            try:
+                return json.loads(val_str)
+            except Exception:
+                self.logger.debug(
+                    'Error parsing variable to list, trying command or CR separated.',
+                    extra={
+                        'template': _var,
+                        'value': val_str
+                    })
+                vals = list(
+                    filter(
+                        lambda x: x.strip() != "",
+                        re.split('[\n,]', val_str),
+                    ))
+                return list(map(lambda x: x.strip(), vals))
+
     def _jinja_expand_dict(self, _var, _tpl='config'):
         for k, v in _var.items():
             if not isinstance(v, dict):
