@@ -52,7 +52,13 @@ object ExtractOptionParser
 
   opt[String]("field_delimiter")
     .text("(optional) For CSV exports, specifies the character that marks the boundary between columns in the output file. The delimiter can be any ISO-8859-1 single-byte character. You can use \\t or tab to specify tab delimiters.")
-    .action((x,c) => c.copy(delimiter = x))
+    .action {(x, c) =>
+      if (x.equalsIgnoreCase("dle")) {
+        c.copy(delimiter = "\u0010")
+      } else {
+        c.copy(delimiter = x)
+      }
+    }
 
   opt[Int]("timeOutMinutes")
     .action{(x,c) => c.copy(timeoutMinutes = x)}
