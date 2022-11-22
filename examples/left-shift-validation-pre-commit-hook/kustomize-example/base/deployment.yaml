@@ -1,0 +1,22 @@
+apiVersion: "apps/v1"
+kind: "Deployment"
+metadata:
+  name: "hello-app"
+  namespace: "default"
+  labels:
+    app: "nginx-1"
+    # owner: "tdesrosi"
+spec:
+  replicas: 4
+  selector:
+    matchLabels:
+      app: "nginx-1"
+  template:
+    metadata:
+      labels:
+        app: "nginx-1"
+        # owner: "tdesrosi"
+    spec:
+      containers:
+      - name: "hello-app"
+        image: "us-central1-docker.pkg.dev/prod-proj-sample/hell-repo/hello-app@sha256:8a3bd642b7a5691214a5e384fc9f59cac9c515143c9884a883410761c9066a28"
