@@ -15,7 +15,7 @@
  */
 organization := "com.google.cloud.imf"
 name := "mainframe-util"
-version := "2.2.0"
+version := "2.2.1"
 
 scalaVersion := "2.13.8"
 
@@ -27,6 +27,7 @@ libraryDependencies ++= Seq(
   "com.google.cloud" % "google-cloud-bigquery" % "2.5.1",
   "com.google.cloud" % "google-cloud-bigquerystorage" % "2.7.0",
   "com.google.cloud" % "google-cloud-storage" % "2.2.2",
+  "com.google.apis" % "google-api-services-pubsub" % "v1-rev20221020-2.0.0",
   ("com.google.apis" % "google-api-services-logging" % "v2-rev656-1.25.0").excludeAll(exGapiClient),
   "org.apache.avro" % "avro" % "1.7.7",
 
