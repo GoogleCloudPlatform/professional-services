@@ -5,6 +5,7 @@ import com.google.api.gax.core.FixedCredentialsProvider
 import com.google.api.gax.retrying.RetrySettings
 import com.google.api.gax.rpc.{FixedHeaderProvider, HeaderProvider}
 import com.google.api.services.bigquery.BigqueryScopes
+import com.google.api.services.dataflow.{Dataflow, DataflowScopes}
 import com.google.api.services.logging.v2.{Logging, LoggingScopes}
 import com.google.api.services.pubsub.{Pubsub, PubsubScopes}
 import com.google.api.services.storage.StorageScopes
@@ -119,6 +120,15 @@ object Services {
 
   def logging(credentials: Credentials): Logging =
     new Logging.Builder(CCATransportFactory.create,
+      GsonFactory.getDefaultInstance,
+      new HttpCredentialsAdapter(credentials))
+      .setApplicationName(UserAgent).build
+
+  def dataflowCredentials(): GoogleCredentials =
+    GoogleCredentials.getApplicationDefault.createScoped(DataflowScopes.CLOUD_PLATFORM)
+
+  def dataflow(credentials: Credentials): Dataflow =
+    new Dataflow.Builder(CCATransportFactory.create,
       GsonFactory.getDefaultInstance,
       new HttpCredentialsAdapter(credentials))
       .setApplicationName(UserAgent).build
