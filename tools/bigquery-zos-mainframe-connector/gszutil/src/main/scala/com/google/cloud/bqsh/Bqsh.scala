@@ -184,8 +184,10 @@ object Bqsh extends Logging {
         if (!(singleQuoted || doubleQuoted)) {
           if (c == '\'') {
             singleQuoted = true
+            sb.append(c)
           } else if (c == '"') {
             doubleQuoted = true
+            sb.append(c)
           } else if (c == '\\' && next == '$') {
             i += 1
             sb.append(next)
@@ -201,8 +203,10 @@ object Bqsh extends Logging {
         } else {
           if (singleQuoted && c == '\'') {
             singleQuoted = false
+            sb.append(c)
           } else if (doubleQuoted && c == '"') {
             doubleQuoted = false
+            sb.append(c)
           } else if (c == '\\' && next == '$') {
             i += 1
             sb.append(next)
