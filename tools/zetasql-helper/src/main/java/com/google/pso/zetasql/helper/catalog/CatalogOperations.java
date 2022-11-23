@@ -1,0 +1,111 @@
+/*
+ * Copyright 2022 Google LLC All Rights Reserved
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.google.pso.zetasql.helper.catalog;
+
+import com.google.zetasql.Function;
+import com.google.zetasql.SimpleCatalog;
+import com.google.zetasql.SimpleColumn;
+import com.google.zetasql.SimpleTable;
+import com.google.zetasql.ZetaSQLFunctions;
+import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedCreateFunctionStmt;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+
+public class CatalogOperations {
+  // TODO: All catalog operations respect ZetaSQL's case-insensitivity for now
+  //  Determine if we should make user able to choose case insensitivity
+
+  private CatalogOperations() {
+  }
+
+  public static SimpleTable buildSimpleTable(String fullTableName, List<SimpleColumn> columns) {
+    List<String> tablePath = Arrays.asList(fullTableName.split("\\."));
+    String tableName = tablePath.get(tablePath.size() - 1);
+    SimpleTable table = new SimpleTable(tableName, columns);
+    table.setFullName(fullTableName);
+    return table;
+  }
+
+  // Get a child catalog from an existing catalog, creating it if it does not exist
+  private static SimpleCatalog getOrCreateNestedCatalog(SimpleCatalog parent, String name) {
+    Optional<SimpleCatalog> maybeExistingCatalog =
+        parent.getCatalogList().stream()
+            .filter(catalog -> catalog.getFullName().equalsIgnoreCase(name))
+            .findFirst();
+
+    return maybeExistingCatalog.orElseGet(() -> {
+      SimpleCatalog newCatalog = new SimpleCatalog(name);
+      parent.addSimpleCatalog(newCatalog);
+      return newCatalog;
+    });
+  }
+
+  private static void createTableInCatalogImpl(
+      SimpleCatalog catalog,
+      List<String> tablePath,
+      String fullTableName,
+      List<SimpleColumn> columns
+  ) {
+    if (tablePath.size() > 1) {
+      String nestedCatalogName = tablePath.get(0);
+      List<String> pathSuffix = tablePath.subList(1, tablePath.size());
+      SimpleCatalog nestedCatalog = getOrCreateNestedCatalog(catalog, nestedCatalogName);
+      createTableInCatalogImpl(nestedCatalog, pathSuffix, fullTableName, columns);
+    } else {
+      String tableName = tablePath.get(0);
+      SimpleTable table = new SimpleTable(tableName, columns);
+      table.setFullName(fullTableName);
+      catalog.addSimpleTable(table);
+    }
+  }
+
+  public static void createTableInCatalog(
+      SimpleCatalog catalog,
+      List<List<String>> tablePaths,
+      List<SimpleColumn> columns
+  ) {
+    tablePaths.forEach(tablePath -> {
+          String fullTableName = String.join(".", tablePath);
+          createTableInCatalogImpl(catalog, tablePath, fullTableName, columns);
+        }
+    );
+  }
+
+  private static void createFunctionInCatalog(
+      SimpleCatalog catalog,
+      Function function
+  ) {
+    throw new UnsupportedOperationException("Unimplemented");
+  }
+
+  public static void createFunctionInCatalog(
+      SimpleCatalog catalog,
+      ResolvedCreateFunctionStmt createFunctionStmt
+  ) {
+    Function function = new Function(
+        createFunctionStmt.getNamePath(),
+        "UDF",
+        ZetaSQLFunctions.FunctionEnums.Mode.SCALAR,
+        List.of(
+            createFunctionStmt.getSignature()
+        )
+    );
+
+    createFunctionInCatalog(catalog, function);
+  }
+
+}
