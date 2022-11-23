@@ -16,9 +16,14 @@
 package com.google.pso.zetasql.helper.catalog;
 
 import com.google.zetasql.Function;
+import com.google.zetasql.FunctionArgumentType;
+import com.google.zetasql.FunctionSignature;
+import com.google.zetasql.Procedure;
 import com.google.zetasql.SimpleCatalog;
 import com.google.zetasql.SimpleColumn;
 import com.google.zetasql.SimpleTable;
+import com.google.zetasql.TableValuedFunction;
+import com.google.zetasql.Type;
 import com.google.zetasql.ZetaSQLFunctions;
 import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedCreateFunctionStmt;
 import java.util.Arrays;
@@ -29,8 +34,7 @@ public class CatalogOperations {
   // TODO: All catalog operations respect ZetaSQL's case-insensitivity for now
   //  Determine if we should make user able to choose case insensitivity
 
-  private CatalogOperations() {
-  }
+  private CatalogOperations() {}
 
   public static SimpleTable buildSimpleTable(String fullTableName, List<SimpleColumn> columns) {
     List<String> tablePath = Arrays.asList(fullTableName.split("\\."));
@@ -106,6 +110,51 @@ public class CatalogOperations {
     );
 
     createFunctionInCatalog(catalog, function);
+  }
+
+  private static SimpleTable copyTable(SimpleTable table) {
+      SimpleTable newTable = new SimpleTable(table.getName(), table.getColumnList());
+      newTable.setFullName(table.getFullName());
+      newTable.setIsValueTable(table.isValueTable());
+      newTable.setAllowAnonymousColumnName(table.allowAnonymousColumnName());
+      newTable.setAllowDuplicateColumnNames(table.allowDuplicateColumnNames());
+      newTable.setUserIdColumn(table.userIdColumn());
+      table.getPrimaryKey().ifPresent(newTable::setPrimaryKey);
+      return newTable;
+  }
+
+  public static SimpleCatalog copyCatalog(SimpleCatalog sourceCatalog, boolean deepCopy) {
+    // TODO: Constants are currently not copied over because SimpleCatalog.getConstant()
+    //  is protected and SimpleCatalog.getConstantList() isn't implemented.
+    //  To my knowledge, they should be available like any other getX() and getXList().
+    //  Do we need to submit a change to ZetaSQL to make these methods available?
+
+    SimpleCatalog newCatalog = new SimpleCatalog(
+        sourceCatalog.getFullName(), sourceCatalog.getTypeFactory()
+    );
+
+    // Copy sub-catalogs recursively
+    sourceCatalog.getCatalogList()
+        .stream()
+        .map(catalog -> copyCatalog(catalog, deepCopy))
+        .forEach(newCatalog::addSimpleCatalog);
+
+    // Copy tables
+    // The table objects are copied themselves if we're doing a deep copy
+    // because SimpleTables are mutable
+    sourceCatalog.getTableList()
+        .stream()
+        .map(table -> deepCopy ? copyTable(table) : table)
+        .forEach(newCatalog::addSimpleTable);
+
+    // Copy Functions and Types
+    // Functions and Types are immutable, so we don't need to copy them when doing a deep copy
+    sourceCatalog.getFunctionList().forEach(newCatalog::addFunction);
+    sourceCatalog.getProcedureList().forEach(newCatalog::addProcedure);
+    sourceCatalog.getTVFList().forEach(newCatalog::addTableValuedFunction);
+    sourceCatalog.getTypeList().forEach(type -> newCatalog.addType(type.typeName(), type));
+
+    return newCatalog;
   }
 
 }
