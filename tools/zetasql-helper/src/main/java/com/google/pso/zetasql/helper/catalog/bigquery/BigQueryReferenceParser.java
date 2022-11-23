@@ -15,8 +15,6 @@
  */
 package com.google.pso.zetasql.helper.catalog.bigquery;
 
-import com.google.cloud.bigquery.TableId;
-import com.pso.bigquery.optimization.exceptions.InvalidReference;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -54,7 +52,7 @@ public class BigQueryReferenceParser {
     Matcher matcher = Pattern.compile(BQ_QUALIFIED_RESOURCE_WITH_PROJECT).matcher(reference);
 
     if (!matcher.find()) {
-      throw new InvalidReference(reference);
+      throw new InvalidBigQueryReference(reference);
     }
 
     return new BigQueryReference(
@@ -71,7 +69,7 @@ public class BigQueryReferenceParser {
     Matcher matcher = Pattern.compile(BQ_QUALIFIED_RESOURCE_WITHOUT_PROJECT).matcher(reference);
 
     if (!matcher.find()) {
-      throw new InvalidReference(reference);
+      throw new InvalidBigQueryReference(reference);
     }
 
     return new BigQueryReference(
@@ -88,7 +86,7 @@ public class BigQueryReferenceParser {
       return parseReferenceWithoutProject(projectId, reference);
     }
 
-    throw new InvalidReference(reference);
+    throw new InvalidBigQueryReference(reference);
   }
 
   private static boolean matchesPattern(String s, String pattern) {
