@@ -128,7 +128,7 @@ public class ZetaSQLHelper {
 
   }
 
-  private static void validateStatement(
+  public static void validateStatement(
       ResolvedStatement statement,
       List<ValidatingVisitor> validations
   ) throws ValidationError {
