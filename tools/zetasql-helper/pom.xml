@@ -10,6 +10,7 @@
   <properties>
     <maven.compiler.source>11</maven.compiler.source>
     <maven.compiler.target>11</maven.compiler.target>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
 
   <dependencies>
@@ -31,9 +32,20 @@
       <groupId>com.google.zetasql</groupId>
       <version>2022.08.1</version>
     </dependency>
+    <!-- https://mvnrepository.com/artifact/org.antlr/antlr4-runtime -->
+    <dependency>
+      <groupId>org.antlr</groupId>
+      <artifactId>antlr4-runtime</artifactId>
+      <version>4.11.1</version>
+    </dependency>
     <!-- https://mvnrepository.com/artifact/com.google.cloud/google-cloud-bigquery -->
     <dependency>
       <artifactId>google-cloud-bigquery</artifactId>
+      <groupId>com.google.cloud</groupId>
+    </dependency>
+    <!-- https://mvnrepository.com/artifact/com.google.cloud/google-cloud-spanner -->
+    <dependency>
+      <artifactId>google-cloud-spanner</artifactId>
       <groupId>com.google.cloud</groupId>
     </dependency>
     <dependency>
@@ -61,5 +73,23 @@
       </dependency>
     </dependencies>
   </dependencyManagement>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.antlr</groupId>
+        <artifactId>antlr4-maven-plugin</artifactId>
+        <version>4.11.1</version>
+        <executions>
+          <execution>
+            <id>antlr</id>
+            <goals>
+              <goal>antlr4</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
 
 </project>
