@@ -6,27 +6,29 @@ import com.google.cloud.spanner.ResultSet;
 import com.google.cloud.spanner.Spanner;
 import com.google.cloud.spanner.SpannerOptions;
 import com.google.cloud.spanner.Statement;
-import com.google.pso.zetasql.helper.catalog.CatalogHelper;
 import com.google.pso.zetasql.helper.catalog.CatalogOperations;
+import com.google.pso.zetasql.helper.catalog.CatalogWrapper;
 import com.google.pso.zetasql.helper.catalog.typeparser.ZetaSQLTypeParser;
 import com.google.zetasql.SimpleCatalog;
 import com.google.zetasql.SimpleColumn;
 import com.google.zetasql.SimpleTable;
 import com.google.zetasql.Type;
+import com.google.zetasql.ZetaSQLBuiltinFunctionOptions;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public class SpannerCatalogHelper extends CatalogHelper {
+public class SpannerCatalog implements CatalogWrapper {
 
   private final String projectId;
   private final String instance;
   private final String database;
   private final DatabaseClient client;
+  private final SimpleCatalog catalog;
 
-  public SpannerCatalogHelper(String projectId, String instance, String database) {
+  public SpannerCatalog(String projectId, String instance, String database) {
     this(
         projectId,
         instance,
@@ -35,15 +37,37 @@ public class SpannerCatalogHelper extends CatalogHelper {
     );
   }
 
-  public SpannerCatalogHelper(String projectId, String instance, String database,
-      DatabaseClient client) {
+  public SpannerCatalog(
+      String projectId,
+      String instance,
+      String database,
+      DatabaseClient client
+  ) {
     this.projectId = projectId;
     this.instance = instance;
     this.database = database;
     this.client = client;
+    this.catalog = new SimpleCatalog("catalog");
+    this.catalog.addZetaSQLFunctions(new ZetaSQLBuiltinFunctionOptions());
   }
 
-  private static DatabaseClient buildDatabaseClient(String projectId, String instance, String database) {
+  public SpannerCatalog(
+      String projectId,
+      String instance,
+      String database,
+      DatabaseClient client,
+      SimpleCatalog internalCatalog
+  ) {
+    this.projectId = projectId;
+    this.instance = instance;
+    this.database = database;
+    this.client = client;
+    this.catalog = internalCatalog;
+  }
+
+  private static DatabaseClient buildDatabaseClient(
+      String projectId, String instance, String database
+  ) {
     DatabaseId databaseId = DatabaseId.of(projectId, instance, database);
     Spanner spannerClient = SpannerOptions
         .newBuilder()
@@ -65,9 +89,9 @@ public class SpannerCatalogHelper extends CatalogHelper {
   }
 
   @Override
-  public void registerTable(SimpleCatalog catalog, SimpleTable table, boolean isTemp) {
+  public void registerTable(SimpleTable table, boolean isTemp) {
     CatalogOperations.createTableInCatalog(
-        catalog,
+        this.catalog,
         List.of(List.of(table.getName())),
         table.getColumnList()
     );
@@ -121,7 +145,7 @@ public class SpannerCatalogHelper extends CatalogHelper {
   }
 
   @Override
-  public void addTables(SimpleCatalog catalog, List<List<String>> tablePaths) {
+  public void addTables(List<List<String>> tablePaths) {
     List<String> tableNames = tablePaths
         .stream()
         .map(tablePath -> tablePath.get(tablePath.size() - 1))  // Spanner tables paths should only have table name
@@ -130,13 +154,30 @@ public class SpannerCatalogHelper extends CatalogHelper {
     Statement query = this.buildQueryForSpecificTables(tableNames);
 
     this.fetchColumnAndBuildTables(query)
-        .forEach(table -> this.registerTable(catalog, table, false));
+        .forEach(table -> this.registerTable(table, false));
   }
 
-  public void addAllTablesInDatabase(SimpleCatalog catalog) {
+  @Override
+  public CatalogWrapper copy(boolean deepCopy) {
+    return new SpannerCatalog(
+        this.projectId,
+        this.instance,
+        this.database,
+        this.client,
+        CatalogOperations.copyCatalog(this.catalog, deepCopy)
+    );
+  }
+
+  @Override
+  public SimpleCatalog getZetaSQLCatalog() {
+    return this.catalog;
+  }
+
+  public void addAllTablesInDatabase() {
     Statement query = this.buildQueryForEntireDatabase();
 
     this.fetchColumnAndBuildTables(query)
-        .forEach(table -> this.registerTable(catalog, table, false));
+        .forEach(table -> this.registerTable(table, false));
   }
+
 }

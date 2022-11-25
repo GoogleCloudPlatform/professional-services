@@ -8,47 +8,55 @@ import com.google.cloud.bigquery.Dataset;
 import com.google.cloud.bigquery.DatasetId;
 import com.google.cloud.bigquery.Table;
 import com.google.cloud.bigquery.TableId;
-import com.google.pso.zetasql.helper.catalog.CatalogHelper;
 import com.google.pso.zetasql.helper.catalog.CatalogOperations;
+import com.google.pso.zetasql.helper.catalog.CatalogWrapper;
 import com.google.zetasql.SimpleCatalog;
 import com.google.zetasql.SimpleColumn;
 import com.google.zetasql.SimpleTable;
 import com.google.zetasql.Type;
 import com.google.zetasql.TypeFactory;
+import com.google.zetasql.ZetaSQLBuiltinFunctionOptions;
 import com.google.zetasql.ZetaSQLType;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import javax.xml.crypto.Data;
 
-public class BigQueryCatalogHelper extends CatalogHelper {
+public class BigQueryCatalog implements CatalogWrapper {
 
   private final String defaultProjectId;
   private final BigQueryService service;
+  private final SimpleCatalog catalog;
 
-  public BigQueryCatalogHelper(String defaultProjectId) {
+  public BigQueryCatalog(String defaultProjectId) {
     this(
         defaultProjectId,
         BigQueryService.buildDefault()
     );
   }
 
-  public BigQueryCatalogHelper(String defaultProjectId, BigQuery bigQueryClient) {
+  public BigQueryCatalog(String defaultProjectId, BigQuery bigQueryClient) {
     this(
         defaultProjectId,
         new BigQueryService(bigQueryClient)
     );
   }
 
-  private BigQueryCatalogHelper(String defaultProjectId, BigQueryService service) {
+  private BigQueryCatalog(String defaultProjectId, BigQueryService service) {
     this.defaultProjectId = defaultProjectId;
     this.service = service;
+    this.catalog = new SimpleCatalog("catalog");
+    this.catalog.addZetaSQLFunctions(new ZetaSQLBuiltinFunctionOptions());
+    this.addBigQueryTypeAliases(this.catalog);
   }
 
-  public SimpleCatalog createEmptyCatalog(String name) {
-    SimpleCatalog catalog = super.createEmptyCatalog(name);
-    this.addBigQueryTypeAliases(catalog);
-    return catalog;
+  private BigQueryCatalog(
+      String defaultProjectId,
+      BigQueryService service,
+      SimpleCatalog internalCatalog
+  ) {
+    this.defaultProjectId = defaultProjectId;
+    this.service = service;
+    this.catalog = internalCatalog;
   }
 
   private void addBigQueryTypeAliases(SimpleCatalog catalog) {
@@ -66,15 +74,15 @@ public class BigQueryCatalogHelper extends CatalogHelper {
     bigQueryTypeAliases.forEach(catalog::addType);
   }
 
-  private void registerTempTable(SimpleCatalog catalog, SimpleTable table) {
+  private void registerTempTable(SimpleTable table) {
     CatalogOperations.createTableInCatalog(
-        catalog,
+        this.catalog,
         List.of(List.of(table.getName())),
         table.getColumnList()
     );
   }
 
-  private void registerQualifiedTable(SimpleCatalog catalog, SimpleTable table) {
+  private void registerQualifiedTable(SimpleTable table) {
     BigQueryReference reference = BigQueryReference.from(
         this.defaultProjectId, table.getFullName()
     );
@@ -91,15 +99,15 @@ public class BigQueryCatalogHelper extends CatalogHelper {
         List.of(datasetName + "." + tableName)  // format: `dataset.table` (project implied)
     );
 
-    CatalogOperations.createTableInCatalog(catalog, tablePaths, table.getColumnList());
+    CatalogOperations.createTableInCatalog(this.catalog, tablePaths, table.getColumnList());
   }
 
   @Override
-  public void registerTable(SimpleCatalog catalog, SimpleTable table, boolean isTemp) {
+  public void registerTable(SimpleTable table, boolean isTemp) {
     if(isTemp) {
-      this.registerTempTable(catalog, table);
+      this.registerTempTable(table);
     } else {
-      this.registerQualifiedTable(catalog, table);
+      this.registerQualifiedTable(table);
     }
   }
 
@@ -115,7 +123,7 @@ public class BigQueryCatalogHelper extends CatalogHelper {
   }
 
   @Override
-  public void addTables(SimpleCatalog catalog, List<List<String>> tablePaths) {
+  public void addTables(List<List<String>> tablePaths) {
     tablePaths
         .stream()
         .map(tablePath -> String.join(".", tablePath))
@@ -123,10 +131,24 @@ public class BigQueryCatalogHelper extends CatalogHelper {
         .filter(Optional::isPresent)
         .map(Optional::get)
         .map(this::buildSimpleTable)
-        .forEach(simpleTable -> this.registerTable(catalog, simpleTable, false));
+        .forEach(simpleTable -> this.registerTable(simpleTable, false));
   }
 
-  public void addAllTablesFromDataset(SimpleCatalog catalog, String projectId, String datasetName) {
+  @Override
+  public BigQueryCatalog copy(boolean deepCopy) {
+    return new BigQueryCatalog(
+        this.defaultProjectId,
+        this.service,
+        CatalogOperations.copyCatalog(this.getZetaSQLCatalog(), deepCopy)
+    );
+  }
+
+  @Override
+  public SimpleCatalog getZetaSQLCatalog() {
+    return this.catalog;
+  }
+
+  public void addAllTablesFromDataset(String projectId, String datasetName) {
     DatasetId datasetId = DatasetId.of(projectId, datasetName);
     Page<Table> tables = this.service.getClient().listTables(
         datasetId, TableListOption.pageSize(100)
@@ -134,19 +156,19 @@ public class BigQueryCatalogHelper extends CatalogHelper {
 
     for(Table table : tables.iterateAll()) {
       this.addTable(
-          catalog, List.of(projectId, datasetName, table.getTableId().getTable())
+          List.of(projectId, datasetName, table.getTableId().getTable())
       );
     }
 
   }
 
-  public void addAllTablesFromProject(SimpleCatalog catalog, String projectId) {
+  public void addAllTablesFromProject(String projectId) {
     Page<Dataset> datasets = this.service.getClient().listDatasets(
         projectId, DatasetListOption.pageSize(100)
     );
 
     for(Dataset dataset : datasets.iterateAll()) {
-      this.addAllTablesFromDataset(catalog, projectId, dataset.getDatasetId().getDataset());
+      this.addAllTablesFromDataset(projectId, dataset.getDatasetId().getDataset());
     }
   }
 

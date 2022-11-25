@@ -1,14 +1,12 @@
 package com.google.pso.zetasql.helper.examples;
 
 import com.google.pso.zetasql.helper.ZetaSQLHelper;
-import com.google.pso.zetasql.helper.catalog.bigquery.BigQueryCatalogHelper;
+import com.google.pso.zetasql.helper.catalog.bigquery.BigQueryCatalog;
 import com.google.pso.zetasql.helper.validation.CannotRecreateExistingTable;
 import com.google.pso.zetasql.helper.validation.ValidatingVisitor;
 import com.google.pso.zetasql.helper.validation.ValidationError;
 import com.google.zetasql.AnalyzerOptions;
 import com.google.zetasql.LanguageOptions;
-import com.google.zetasql.NotFoundException;
-import com.google.zetasql.SimpleCatalog;
 import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedStatement;
 import java.util.Iterator;
 import java.util.List;
@@ -26,27 +24,24 @@ public class D_AnalyzeAndValidate {
     return analyzerOptions;
   }
 
-  public static void main(String[] args) throws NotFoundException {
+  public static void main(String[] args) {
     String query =
         "CREATE TABLE `bigquery-public-data.samples.wikipedia` AS SELECT 1 AS column;\n"
         + "SELECT column FROM `bigquery-public-data.samples.wikipedia`;";
     AnalyzerOptions options = getAnalyzerOptions();
 
-    BigQueryCatalogHelper catalogHelper = new BigQueryCatalogHelper(
+    BigQueryCatalog catalog = new BigQueryCatalog(
         "bigquery-public-data"
     );
-    SimpleCatalog catalog = catalogHelper.createEmptyCatalog("catalog");
 
-    catalogHelper.addAllTablesUsedInQuery(
-        catalog, query, options
-    );
+    catalog.addAllTablesUsedInQuery(query, options);
 
     Iterator<ResolvedStatement> statementIterator = ZetaSQLHelper.analyzeStatements(
-        query, options, catalog,catalogHelper
+        query, options, catalog
     );
 
     List<ValidatingVisitor> validations = List.of(
-        new CannotRecreateExistingTable(catalog)
+        new CannotRecreateExistingTable(catalog.getZetaSQLCatalog())
     );
 
     try {

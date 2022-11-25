@@ -1,7 +1,8 @@
 package com.google.pso.zetasql.helper;
 
-import com.google.pso.zetasql.helper.catalog.CatalogHelper;
 import com.google.pso.zetasql.helper.catalog.CatalogOperations;
+import com.google.pso.zetasql.helper.catalog.CatalogWrapper;
+import com.google.pso.zetasql.helper.catalog.basic.BasicCatalogWrapper;
 import com.google.pso.zetasql.helper.validation.ValidatingVisitor;
 import com.google.pso.zetasql.helper.validation.ValidationError;
 import com.google.zetasql.Analyzer;
@@ -21,27 +22,6 @@ import java.util.stream.Collectors;
 
 public class ZetaSQLHelper {
 
-  // Catalog helper that can register tables (e.g. for processing a CreateTableStmt),
-  // but not fetch tables otherwise.
-  // Used for ZetaSQLHelper.analyzeStatements when no catalog or helper is provided.
-  private static class SimpleCatalogHelper extends CatalogHelper {
-    // TODO: Revise if this class should be here or event exist at all
-
-    @Override
-    public void registerTable(SimpleCatalog catalog, SimpleTable table, boolean isTemp) {
-      CatalogOperations.createTableInCatalog(
-          catalog,
-          List.of(List.of(table.getFullName())),
-          table.getColumnList()
-      );
-    }
-
-    @Override
-    public void addTables(SimpleCatalog catalog, List<List<String>> tablePaths) {
-      throw new UnsupportedOperationException("SimpleCatalogHelper cannot fetch tables");
-    }
-  }
-
   private static List<SimpleColumn> extractColumnsFromCreateTableStmt(
       ResolvedCreateTableStmtBase resolvedCreateTableStmtBase) {
 
@@ -58,26 +38,25 @@ public class ZetaSQLHelper {
   }
 
   private static void registerTableCreation(
-      SimpleCatalog catalog,
-      CatalogHelper catalogHelper,
+      CatalogWrapper catalog,
       ResolvedCreateTableStmtBase createTableStmtBase
   ) {
     // TODO: should validate if the table already exists and fail
     //  or replace it accordingly.
     List<SimpleColumn> columns = extractColumnsFromCreateTableStmt(createTableStmtBase);
-    SimpleTable table = catalogHelper.buildSimpleTable(
-        createTableStmtBase.getNamePath(),
+    SimpleTable table = CatalogOperations.buildSimpleTable(
+        String.join(".", createTableStmtBase.getNamePath()),
         columns
     );
 
     CreateScope createScope = createTableStmtBase.getCreateScope();
     boolean isTemp = createScope.equals(CreateScope.CREATE_TEMP);
 
-    catalogHelper.registerTable(catalog, table, isTemp);
+    catalog.registerTable(table, isTemp);
   }
 
   private  static void registerFunctionCreation(
-      SimpleCatalog catalog,
+      CatalogWrapper catalog,
       ResolvedCreateFunctionStmt createFunctionStmt
   ) {
     throw new UnsupportedOperationException("Unimplemented");
@@ -89,16 +68,24 @@ public class ZetaSQLHelper {
     return analyzeStatements(
         query,
         options,
-        new SimpleCatalog("catalog"),
-        new SimpleCatalogHelper()
+        new BasicCatalogWrapper()
+    );
+  }
+
+  public static Iterator<ResolvedStatement> analyzeStatements(
+      String query, AnalyzerOptions options, SimpleCatalog catalog
+  ) {
+    return analyzeStatements(
+        query,
+        options,
+        new BasicCatalogWrapper(catalog)
     );
   }
 
   public static Iterator<ResolvedStatement> analyzeStatements(
       String query,
       AnalyzerOptions options,
-      SimpleCatalog catalog,
-      CatalogHelper catalogHelper
+      CatalogWrapper catalog
   ) {
     ParseResumeLocation parseResumeLocation = new ParseResumeLocation(query);
 
@@ -109,7 +96,7 @@ public class ZetaSQLHelper {
       private void applyCatalogMutation(ResolvedStatement statement) {
         if(statement instanceof ResolvedCreateTableStmtBase) {
           ZetaSQLHelper.registerTableCreation(
-              catalog, catalogHelper, (ResolvedCreateTableStmtBase) statement
+              catalog, (ResolvedCreateTableStmtBase) statement
           );
         } else if (statement instanceof ResolvedCreateFunctionStmt) {
           ZetaSQLHelper.registerFunctionCreation(catalog, (ResolvedCreateFunctionStmt) statement);
@@ -130,7 +117,7 @@ public class ZetaSQLHelper {
         ResolvedStatement statement = Analyzer.analyzeNextStatement(
             parseResumeLocation,
             options,
-            catalog
+            catalog.getZetaSQLCatalog()
         );
 
         this.previous = Optional.of(statement);
