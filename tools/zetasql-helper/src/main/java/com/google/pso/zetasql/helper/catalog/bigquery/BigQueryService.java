@@ -53,19 +53,17 @@ class BigQueryService {
       Function<BigQueryReference, T> getter,
       Map<String, T> cache
   ) {
-    if(!BigQueryReferenceParser.isValidReference(reference)) {
+    try {
+      BigQueryReference parsedReference = BigQueryReference.from(projectId, reference);
+      return Optional.of(
+          cache.computeIfAbsent(
+              parsedReference.getFullName(),
+              key -> getter.apply(parsedReference)
+          )
+      );
+    } catch (InvalidBigQueryReference err) {
       return Optional.empty();
     }
-
-    BigQueryReference parsedReference = BigQueryReferenceParser
-        .parseReference(projectId, reference);
-
-    return Optional.of(
-        cache.computeIfAbsent(
-            parsedReference.getFullName(),
-            key -> getter.apply(parsedReference)
-        )
-    );
   }
 
   // Fetches a BigQuery table from the API

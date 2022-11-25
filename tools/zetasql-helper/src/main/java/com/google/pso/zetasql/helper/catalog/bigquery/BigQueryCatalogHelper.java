@@ -75,7 +75,7 @@ public class BigQueryCatalogHelper extends CatalogHelper {
   }
 
   private void registerQualifiedTable(SimpleCatalog catalog, SimpleTable table) {
-    BigQueryReference reference = BigQueryReferenceParser.parseReference(
+    BigQueryReference reference = BigQueryReference.from(
         this.defaultProjectId, table.getFullName()
     );
     String projectId = reference.getProjectId();

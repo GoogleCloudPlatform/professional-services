@@ -5,7 +5,7 @@ public class InvalidBigQueryReference extends RuntimeException {
   private final String reference;
 
   public InvalidBigQueryReference(String reference) {
-    super("Invalid BigQueryReference: " + reference);
+    super("Invalid BigQuery reference: " + reference);
     this.reference = reference;
   }
 
