@@ -1,5 +1,4 @@
 #!/bin/bash
-#
 # Copyright 2022 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+#
 # Precommit Hook for K8s Manifest Validation pre-CI/CD pipeline.
 # Janine Bariuan and Thomas Desrosiers
 
@@ -27,7 +27,7 @@ unset CDPATH
 
 # Send errors to STDERR
 err() {
-  echo "[$(date +'%Y-%m-%dT%H:%M:%S%z')]: $*" >&2
+    echo "[$(date +'%Y-%m-%dT%H:%M:%S%z')]: $*" >&2
 }
 
 # Define tput sequences for bold text output to terminal
@@ -43,9 +43,9 @@ readonly KPT_DOWNLOAD_BASE_URL="https://api.github.com/repos/GoogleContainerTool
 # Determine OS and System Architecture
 opsys=windows
 if [[ "$OSTYPE" == linux* ]]; then
-  opsys=linux
+    opsys=linux
 elif [[ "$OSTYPE" == darwin* ]]; then
-  opsys=darwin
+    opsys=darwin
 fi
 
 case $(uname -m) in
@@ -73,17 +73,17 @@ esac
 echo $'\nInstalling Dependencies\n'
 
 # Create install directory and create a file to track versions/defaults
-mkdir -p $PWD/$INSTALL_DIR/
-cd $PWD/$INSTALL_DIR/
-    # create empty config.json file if it doesn't exits already.
-    # if it does exist, store value of each line in the file to a variable
+mkdir -p "$PWD/$INSTALL_DIR/"
+cd "$PWD/$INSTALL_DIR/" || exit 1
+# create empty config.json file if it doesn't exits already.
+# if it does exist, store value of each line in the file to a variable
 touch dependency_info.txt
+# shellcheck disable=SC1091
 source dependency_info.txt &>/dev/null
 system_info=$SYS_INFO
 last_kpt_version=$KPT_VERSION
 last_kustomize_version=$KUSTOMIZE_VERSION
 last_gator_version=$GATOR_VERSION
-
 
 #######################################################
 ################### DEFINE FUNCTIONS ##################
@@ -101,14 +101,13 @@ last_gator_version=$GATOR_VERSION
 function readlink_f {
     TARGET_FILE=$1
 
-    cd "$(dirname "$TARGET_FILE")"
+    cd "$(dirname "$TARGET_FILE")" || exit 1
     TARGET_FILE=$(basename "$TARGET_FILE")
 
     # Iterate down a (possible) chain of symlinks
-    while [ -L "$TARGET_FILE" ]
-    do
+    while [ -L "$TARGET_FILE" ]; do
         TARGET_FILE=$(readlink "$TARGET_FILE")
-        cd "$(dirname "$TARGET_FILE")"
+        cd "$(dirname "$TARGET_FILE")" || exit 1
         TARGET_FILE=$(readlink "$TARGET_FILE")
     done
 
@@ -121,23 +120,23 @@ function readlink_f {
 
 #######################################
 # Check if a dependency needs an update.
-# If it's determined the dependency doesn't exist or is out of date, 
+# If it's determined the dependency doesn't exist or is out of date,
 # it will install the latest version.
 # Arguments:
 #   $1 = Base URL of the Github repo
 #   $2 = Name of tool (ie. kpt, gator, etc.)
 #   $3 = Format of compressed file (ie. kustomize_v*_${opsys}_${arch}.tar.gz)
-#   $4 = Format of download url to grep 
-#        (ie. grep browser_download.*${opsys}_${arch} for Kustomize)
+#   $4 = Format of download url to grep (ie. grep browser_download.*${opsys}_${arch} for Kustomize)
 # Outputs:
 #   Stores the new version in global variable, if changed
 #######################################
 function install_dependency {
 
+    # Need this exact command to work with directory names with spaces.
+    # shellcheck disable=SC2046
     where="$(readlink_f $(printf "%q\n" "$(PWD)"))/"
 
-    # Verify the script can rationalize the current directory into an absolute
-    # path
+    # Verify the script can rationalize the current directory into an absolute path
     if ! test -d "$where"; then
         err "Could not locate your current directory, $where"
         exit 1
@@ -148,7 +147,7 @@ function install_dependency {
     fi
 
     # Create temp directory to pull release history into
-    tmpDir=`mktemp -d`
+    tmpDir=$(mktemp -d)
     if [[ ! "$tmpDir" || ! -d "$tmpDir" ]]; then
         err "Could not create temp dir."
         exit 1
@@ -156,46 +155,42 @@ function install_dependency {
 
     # Run installation in temp directory to enable parallel installations
     function cleanup {
-    rm -rf "$tmpDir"
+        rm -rf "$tmpDir"
     }
     trap cleanup EXIT ERR
-    pushd "$tmpDir" >& /dev/null
+    pushd "$tmpDir" >&/dev/null || exit 1
 
     #  Find Latest Release and pull down from repo history
-    releases=$(curl -s $1)
+    releases=$(curl -s "$1")
     if [[ $releases == *"API rate limit exceeded"* ]]; then
-    err $'\nGithub rate-limiter failed the request. Either authenticate or wait a couple of minutes.'
-    exit 1
+        err $'\nGithub rate-limiter failed the request. Either authenticate or wait a couple of minutes.'
+        exit 1
     fi
 
-    # Find most up-to-date release URL and compare to what exists in 
-    # dependency_info already
-    # This step will determine if the latest version is already installed, or 
-    # if it needs to update
-    RELEASE_URL=$(echo "${releases}" |\
-    grep $4 |\
-    cut -d '"' -f 4 |\
-    sort -V | tail -n 1)
+    # Find most up-to-date release URL and compare to what exists in dependency_info already
+    # This step will determine if the latest version is already installed, or if it needs to update
+    RELEASE_URL=$(echo "${releases}" |
+        grep "$4" |
+        cut -d '"' -f 4 |
+        sort -V | tail -n 1)
 
     # Grab the latest version from dependency_info.txt
-    # If dependency_info.txt shows a version, but the command doesn't exist, 
-    # download it.
-    # If neither the command nor the information in dependency_info.txt exist, 
-    # download it.
+    # If dependency_info.txt shows a version, but the command doesn't exist, download it.
+    # If neither the command nor the information in dependency_info.txt exist, download it.
     if [[ -f "${where}/$2" ]]; then
         if [[ "$5" == "$RELEASE_URL" ]]; then
             echo "Already have the latest version of $2"
         else
             echo "Version Change Detected. Installing $2"
             # Get latest release from github
-            curl -sLO $RELEASE_URL
+            curl -sLO "$RELEASE_URL"
             # extract file and overwrite the older file if it exists in here
-            tar -xvf  $3
+            tar -xvf "$3"
             # delete source file when finished extracting
-            rm $3
+            rm "$3"
             # Bring function into depency folder
-            cp ./$2 "$where"
-            chmod 775 ${where}$2
+            cp ./"$2" "$where"
+            chmod 775 "${where}$2"
             echo $'\n'
             echo "$2 installed to $where/$2"
             # Figure out which var to update in dependency_info.txt
@@ -217,14 +212,14 @@ function install_dependency {
     else
         echo "Config lists version, but it is not installed. Installing $2"
         # Get latest release from github
-        curl -sLO $RELEASE_URL
+        curl -sLO "$RELEASE_URL"
         # extract file and overwrite the older file if it exists in here
-        tar -xvf  $3
+        tar -xvf "$3"
         # delete source file when finished extracting
-        rm $3
+        rm "$3"
         # Bring function into depency folder
-        cp ./$2 "$where"
-        chmod +x ${where}$2
+        cp ./"$2" "$where"
+        chmod +x "${where}$2"
         echo $'\n'
         echo "$2 installed to $where/$2"
         # Figure out which var to update in dependency_info.txt
@@ -243,7 +238,7 @@ function install_dependency {
             ;;
         esac
     fi
-    popd >& /dev/null
+    popd >&/dev/null || exit 1
 }
 
 ######################################################
@@ -251,25 +246,25 @@ function install_dependency {
 ######################################################
 
 install_dependency \
-$KUSTOMIZE_DOWNLOAD_BASE_URL \
-kustomize \
-kustomize_v*_${opsys}_${arch}.tar.gz \
-browser_download.*${opsys}_${arch} \
-$last_kustomize_version
+    $KUSTOMIZE_DOWNLOAD_BASE_URL \
+    kustomize \
+    kustomize_v*_${opsys}_${arch}.tar.gz \
+    browser_download.*${opsys}_${arch} \
+    "$last_kustomize_version"
 
 install_dependency \
-$GATORCLI_DOWNLOAD_BASE_URL \
-gator \
-gator-v*-${opsys}-${arch}.tar.gz \
-browser_download.*${opsys}-${arch} \
-$last_gator_version
+    $GATORCLI_DOWNLOAD_BASE_URL \
+    gator \
+    gator-v*-${opsys}-${arch}.tar.gz \
+    browser_download.*${opsys}-${arch} \
+    "$last_gator_version"
 
 install_dependency \
-$KPT_DOWNLOAD_BASE_URL \
-kpt \
-kpt_${opsys}_${arch}*.tar.gz \
-browser_download.*${opsys}_${arch} \
-$last_kpt_version
+    $KPT_DOWNLOAD_BASE_URL \
+    kpt \
+    kpt_${opsys}_${arch}*.tar.gz \
+    browser_download.*${opsys}_${arch} \
+    "$last_kpt_version"
 
 echo $'\nDependencies installed/updated.'
 
@@ -284,7 +279,7 @@ if [[ $system_info != "${opsys}_${arch}" ]]; then
 fi
 
 # Reconcile dependency_info text file
-cat > dependency_info.txt << EOL
+cat >dependency_info.txt <<EOL
 LAST_UPDATED=$(date)
 SYS_INFO=${system_info}
 KPT_VERSION=${last_kpt_version}
@@ -303,8 +298,7 @@ cd ..
 #########################################################
 
 # Warn user that this scrip will overwrite current pre-commit hook in .git/hooks
-read -r -p "This script will overwrite your current ${bold}ACTIVE${normal} 
-pre-commit hook. Are you sure you want to continue? [y/N] " response
+read -r -p "This script will overwrite your current ${bold}ACTIVE${normal} pre-commit hook. Are you sure you want to continue? [y/N] " response
 if [[ ! "$response" =~ ^([yY][eE][sS]|[yY])$ ]]; then
     exit 0
 fi
@@ -312,7 +306,7 @@ fi
 # Move validate.sh script to pre-commit hook folder
 echo $'\nUpdating pre-commit hook...'
 cp validate.sh .git/hooks/
-cd .git/hooks/
+cd .git/hooks/ || exit 1
 mv validate.sh pre-commit
 
 # Make pre-commit hook an executable
@@ -329,19 +323,16 @@ echo $'\n-----\n'
 #########################################################
 
 # This section will allow a user to easily update their configuration without
-# needing to run the main validation script which will be inaccessible in the 
+# needing to run the main validation script which will be inaccessible in the
 # .git/hooks folder. This configuration includes information on which directories
 # to use for constraints, constraint templates, and kubernetes manifests.
 
-
 # Warn user that this script will overwrite their current configuration.
-read -r -p "This script will overwrite your current pre-validate configuration. 
-Are you sure you want to continue? [y/N] " response
+read -r -p "This script will overwrite your current pre-validate configuration. Are you sure you want to continue? [y/N] " response
 if [[ ! "$response" =~ ^([yY][eE][sS]|[yY])$ ]]; then
     exit 0
 fi
 echo $'\n-----\n'
-
 
 ########################################################
 ################### Obtain Policies ###################
@@ -356,43 +347,30 @@ echo $'Gator works with both public repositories and local files. You can provid
 
 # Formatting for locations
 echo $'\nFormatting'
-echo "* For ${bold}remote repositories${normal}, use URL format: 
-https://github.com/[USER]/[REPO].git/[SUBDIRECTORY]/[CONSTRAINTS_SUBDIRECTORY]"
+echo "* For ${bold}remote repositories${normal}, use URL format: https://github.com/[USER]/[REPO].git/[SUBDIRECTORY]/[CONSTRAINTS_SUBDIRECTORY]"
 echo "* For ${bold}local directories${normal}, input ABSOLUTE directory path"
-echo $'* Ensure that the repositories/directories contain ONLY constraint and/
-or constraint template manifests.\n'
-echo $'* Link DIRECTLY to folder where constraints and/or templates are 
-located\n'
+echo $'* Ensure that the repositories/directories contain ONLY constraint and/or constraint template manifests.\n'
+echo $'* Link DIRECTLY to folder where constraints and/or templates are located\n'
 
 # Obtain CONSTRAINT TEMPLATES location
 echo $'\n'
 echo "${bold}CONSTRAINT TEMPLATES${normal} location:"
-echo "* If you are using the open-source constraint templates, ${bold}leave 
-BLANK and press ENTER${normal}"
-echo "* Open-source constraint templates are located in /
-constraints-and-templates/oss-constraint-templates-library."
-echo "* They are pulled from https://github.com/open-policy-agent/
-gatekeeper-library/library/general."
+echo "* If you are using the open-source constraint templates, ${bold}leave BLANK and press ENTER${normal}"
+echo "* Open-source constraint templates are located in /constraints-and-templates/oss-constraint-templates-library."
+echo "* They are pulled from https://github.com/open-policy-agent/gatekeeper-library/library/general."
 read -r -p "> " templates_location
 if [[ -z $templates_location ]]; then
-    templates_location=
-    '/constraints-and-templates/oss-constraint-templates-library' 
-    # Using OSS Templates
+    templates_location='/constraints-and-templates/oss-constraint-templates-library' # Using OSS Templates
 fi
 
 # Obtain CONSTRAINT TEMPLATES location
 echo $'\n'
-while [[ -z $constraints_location ]]; do
-    read -r -p "${bold}CONSTRAINTS${normal} location:`echo $'\n> '`" 
-    constraints_location
-done
+read -r -p "${bold}CONSTRAINTS${normal} location:" constraints_location
 
 # See if user is going to be using Kustomize or not
 echo $'\n'
 echo "${bold}USING KUSTOMIZE${normal}:"
-read -r -p "Are you using Kustomize? If so, you will need to specify which 
-environment you would like to build every time you commit changes. [y/N]" 
-kustomize_yes_no
+read -r -p "Are you using Kustomize? If so, you will need to specify which environment you would like to build every time you commit changes. [y/N] " kustomize_yes_no
 if [[ "$kustomize_yes_no" =~ ^([yY][eE][sS]|[yY])$ ]]; then
     kustomize_yes_no_answer="YES"
 fi
@@ -400,10 +378,8 @@ fi
 # Obtain KUBERNETES MANIFESTS location if user IS using Kustomize:
 if [[ $kustomize_yes_no_answer == "YES" ]]; then
     echo $'\n'
-    echo "${bold}KUBERNETES MANIFESTS${normal} location -- should be a local 
-    directory:"
-    echo "* If you are running this script in that directory, please press 
-    ENTER."
+    echo "${bold}KUBERNETES MANIFESTS${normal} location (should be a local directory):"
+    echo "* If you are running this script in that directory, please press ENTER."
     read -r -p "> " kubernetes_filepath
     if [[ -z $kubernetes_filepath ]]; then
         kubernetes_filepath=$PWD
@@ -418,15 +394,12 @@ fi
 # Create or overwrite configuration directory
 touch .oss_dependencies/user_config.txt
 
-# Reconcile constraints into text file ---- TODO: STILL NECESSARY IF COULD 
-# EXPORT VARS?
-cat > .oss_dependencies/user_config.txt << EOL
+# Reconcile constraints into text file ---- TODO: STILL NECESSARY IF COULD EXPORT VARS?
+cat >.oss_dependencies/user_config.txt <<EOL
 TEMPLATES_LOCATION=$templates_location
 CONSTRAINTS_LOCATION=$constraints_location
 KUBERNETES_DIR=$kubernetes_filepath
 KUSTOMIZED_FILES=$kustomize_yes_no_answer
 EOL
 
-# Leave and Exit
-cd ..
 echo $'\nConfiguration Updated'

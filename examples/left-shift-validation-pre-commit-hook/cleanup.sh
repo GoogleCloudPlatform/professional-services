@@ -1,5 +1,4 @@
 #!/bin/bash
-#
 # Copyright 2022 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,16 +13,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+#
 # Precommit Hook for K8s Manifest Validation pre-CI/CD pipeline.
 # Janine Bariuan and Thomas Desrosiers
 
 #########################################################
 ####### STEP 0 - DEPENDENCY INSTALLATION PRE-WORK #######
 #########################################################
-
-# Colors
-green='\033[0;32m'
-nocolor='\033[0m'
 
 # Unset CDPATH to restore default cd behavior. An exported CDPATH can
 # cause cd to output the current directory to STDOUT.
@@ -32,6 +28,7 @@ unset CDPATH
 # Send errors to STDERR
 err() {
     echo "[$(date +'%Y-%m-%dT%H:%M:%S%z')]: $*" >&2
+    exit 1
 }
 
 #Define location of dependencies, consistent across files
@@ -49,13 +46,13 @@ readonly INSTALL_DIR=".oss_dependencies"
 function readlink_f {
     TARGET_FILE=$1
 
-    cd "$(dirname "$TARGET_FILE")"
+    cd "$(dirname "$TARGET_FILE")" || err "Could not cd in realink_f"
     TARGET_FILE=$(basename "$TARGET_FILE")
 
     # Iterate down a (possible) chain of symlinks
     while [ -L "$TARGET_FILE" ]; do
         TARGET_FILE=$(readlink "$TARGET_FILE")
-        cd "$(dirname "$TARGET_FILE")"
+        cd "$(dirname "$TARGET_FILE")" || err "Could not cd in readlink_f"
         TARGET_FILE=$(readlink "$TARGET_FILE")
     done
 
@@ -67,8 +64,8 @@ function readlink_f {
 }
 
 # Prompt user if they really want to continue with the deletion
-echo "* This script will delete Pre-Validate Dependencies and remove 
-.git/hooks/pre-commit.sh."
+echo "* This script will delete Pre-Validate Dependencies and remove .git/hooks/
+pre-commit.sh."
 read -r -p "Are you sure you want to continue? [y/N] " response
 if [[ ! "$response" =~ ^([yY][eE][sS]|[yY])$ ]]; then
     exit 0
@@ -79,16 +76,18 @@ fi
 #############################################
 
 # Determine if user has run this code from the correct directory
-where="$(readlink_f $(printf "%q\n" "$(PWD)"))/"
-if [[ ! -f $where/.git/hooks/pre-commit ]]; then
-    err "It seems this code is either not being run in a git repository, or 
-    being run in the wrong place and can't access your pre-commit hook. Please 
-    Make sure you run this command in your project root."
-    exit 1
+# Disable unused variable error.
+# shellcheck disable=SC2034
+cwd=$(printf "%q\n" "$(pwd)")
+full_path="$(readlink_f "$(cwd)")"
+where=$(printf "%q\n" "$full_path")
+
+if [[ ! -f "$where"/.git/hooks/pre-commit ]]; then
+    err "It seems this code is either not being run in a git repository, or being run in the wrong place and can't access your pre-commit hook. Please Make sure you run this command in your project root."
 fi
 
 # Rename Pre-Commit Hook with .sample
-mv $where/.git/hooks/pre-commit $where/.git/hooks/pre-commit.sample
+mv "$where"/.git/hooks/pre-commit "$where"/.git/hooks/pre-commit.sample
 
 #############################################################
 ###### STEP 2 - Delete Necessary Files and Directories ######
@@ -101,7 +100,7 @@ rm -rf $INSTALL_DIR
 rm -rf constraints_and_templates
 
 ###############################################
-###### STEP 3 - Remove Remaining Scripts ######
+###### STEP 2 - Remove Remaining Scripts ######
 ###############################################
 
 rm -f validate.sh
@@ -109,10 +108,11 @@ rm -f setup.sh
 rm -f cleanup.sh
 
 #############################################
-########### STEP 4 - Finish and UX ##########
+########### STEP 3 - Finish and UX ##########
 #############################################
 
 # Finish
-echo "${green}Pre-Validate has been removed. Thank you for trying it out!"
-echo "Visit https://github.com/tdesrosi/pre-validate for more information.
-${nocolor}"
+printf '\033[0;32mPre-Validate has been removed. Thank you for trying it out!\n'
+echo "Visit https://github.com/GoogleCloudPlatform/professional-services/tree/
+main/examples/left-shift-validation-pre-commit-hook"
+printf 'for more information.\033[0m\n'

@@ -18,5 +18,5 @@ spec:
         # owner: "tdesrosi"
     spec:
       containers:
-      - name: "hello-app"
-        image: "us-central1-docker.pkg.dev/prod-proj-sample/hell-repo/hello-app@sha256:8a3bd642b7a5691214a5e384fc9f59cac9c515143c9884a883410761c9066a28"
+        - name: "hello-app"
+          image: "us-central1-docker.pkg.dev/prod-proj-sample/hell-repo/hello-app@latest"
