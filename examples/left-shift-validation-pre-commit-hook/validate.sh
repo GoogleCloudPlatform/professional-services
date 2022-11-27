@@ -51,7 +51,7 @@ unset CDPATH
 # Send errors to STDERR
 err() {
     err_string="> [$(date +'%Y-%m-%dT%H:%M:%S%z')]: $*"
-    printf "%40s\n" "${red}$err_string${normal}" >&2
+    printf "%40s\\n" "${red}$err_string${normal}" >&2
     exit 1
 }
 
@@ -95,13 +95,13 @@ function check_dependency {
 
     if command -v "$1" &>/dev/null; then
         echo "$1 exists in your path:"
-        printf "%40s\n" "$PATH"
-        printf "Using preconfigured command, %s\n\n" "$1"
+        printf "%40s\\n" "$PATH"
+        printf "Using preconfigured command, %s\\n\\n" "$1"
         update_path "$1" "$1"
         return
     elif [[ -f .oss_dependencies/$1 ]]; then
         echo "$1 exists in your dependency folder. Using:"
-        printf ".oss_dependencies/%s \n\n" "$1"
+        printf ".oss_dependencies/%s \\n\\n" "$1"
         update_path "$1" ".oss_dependencies/$1"
         return
     else
@@ -112,13 +112,13 @@ function check_dependency {
 ########################################################
 ###### STEP 1 - Ensure Dependencies are Installed ######
 ########################################################
-echo $'Step 1: Ensuring Dependencies are Installed and Properly Configured\n'
+echo $'Step 1: Ensuring Dependencies are Installed and Properly Configured\\n'
 
 check_dependency kpt
 check_dependency gator
 check_dependency kustomize
 
-echo $'Dependencies installed and properly configured.\n'
+echo $'Dependencies installed and properly configured.\\n'
 
 ########################################################
 ############ STEP 2 - PREPARE CONFIGURATION ############
@@ -130,15 +130,15 @@ if [[ ! -f "$user_config" ]]; then
     err "Can't find user configuration. Have you run setup.sh yet?"
 fi
 export "$(xargs <.oss_dependencies/user_config.txt)"
-printf "%s\n" "${yellow}Templates location: $TEMPLATES_LOCATION\n"
-printf "%s\n" "Constraints location: $CONSTRAINTS_LOCATION\n"
+printf "%s\\n" "${yellow}Templates location: $TEMPLATES_LOCATION\\n"
+printf "%s\\n" "Constraints location: $CONSTRAINTS_LOCATION\\n"
 
 if [[ -z $KUSTOMIZED_FILES ]]; then
-    printf "%s\n" "Using Kustomize: NO"
-    printf "%s\n" "K8s Manifests location: <Not using Kustomize>${normal}\n"
+    printf "%s\\n" "Using Kustomize: NO"
+    printf "%s\\n" "K8s Manifests location: <Not using Kustomize>${normal}\\n"
 else
-    printf "%s\n" "Using Kustomize: $KUSTOMIZED_FILES\n"
-    printf "%s\n" "K8s Manifests location: $KUBERNETES_DIR ${normal}\n"
+    printf "%s\\n" "Using Kustomize: $KUSTOMIZED_FILES\\n"
+    printf "%s\\n" "K8s Manifests location: $KUBERNETES_DIR ${normal}\\n"
 fi
 
 ########################################################
@@ -203,9 +203,9 @@ if [[ $KUSTOMIZED_FILES == "YES" ]]; then
     # This step builds the final manifests for the app
     # using kustomize and the configuration files
     # available in the repository.
-    echo $'\n'
+    echo $'\\n'
     echo "${bold}KUSTOMIZE SOURCES:${normal}"
-    printf "%s\n" \
+    printf "%s\\n" \
         "* ${red}${bold}If you are NOT using Kustomize, rerun setup.sh${normal}"
     echo "* Please enter the path to your current environment's overlays."
     echo "* i.e. For the Following Folder Structure:"
@@ -240,27 +240,27 @@ if [[ $KUSTOMIZED_FILES == "YES" ]]; then
     echo 'Validating against Policies'
     pass_or_fail=$($FULL_COMMAND_PATH_GATOR test -f=.oss_dependencies/.hydrated_manifests/kustomization.yaml -f=constraints-and-templates)
     if [[ -z $pass_or_fail ]] || [[ $pass_or_fail == 'null' ]]; then
-        printf "%s\n" \
+        printf "%s\\n" \
             "${green}> Congrats! No policy violations found.${normal}"
     else
         found_violations=true
-        printf "%s\n" \
+        printf "%s\\n" \
             "${red}> Violations found in Kustomized File: .oss_dependencies/.hydrated_manifests/kustomization.yaml"
-        printf "%s\n" "> See details below:\n\n${normal}"
+        printf "%s\\n" "> See details below:\\n\\n${normal}"
         echo "$pass_or_fail"
     fi
 else
     # Loop through updated yamls and run gator test against them.
     IFS=$'' read -d '' -r -a files_to_check <<<"$updated_yamls"
     for yaml in $files_to_check; do
-        printf "%s\n" "\n> Checking file: $yaml"
+        printf "%s\\n" "\\n> Checking file: $yaml"
         pass_or_fail=$($FULL_COMMAND_PATH_GATOR test -f=constraints-and-templates -f="$yaml")
         if [[ -z $pass_or_fail ]] || [[ $pass_or_fail == 'null' ]]; then
-            printf "%s\n" \
+            printf "%s\\n" \
                 "${green}> Congrats! No policy violations found.${normal}"
         else
             found_violations=true
-            printf "%s\n\n" \
+            printf "%s\\n\\n" \
                 "${red}> Violations found. See details below:${normal}"
             echo "$pass_or_fail"
         fi
@@ -279,7 +279,7 @@ fi
 # Open STDIN
 exec </dev/tty
 if [[ $found_violations = true ]]; then
-    printf "%s\n" \
+    printf "%s\\n" \
         "${red}> Some resources have policy violations. Would you like to halt the commit and fix these files? [y/N]${normal}"
     read -r -p "> " halt_commit
     if [[ "$halt_commit" =~ ^([yY][eE][sS]|[yY])$ ]]; then

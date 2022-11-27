@@ -78,9 +78,9 @@ fi
 # Determine if user has run this code from the correct directory
 # Disable unused variable error.
 # shellcheck disable=SC2034
-cwd=$(printf "%q\n" "$(pwd)")
+cwd=$(printf "%q\\n" "$(pwd)")
 full_path="$(readlink_f "$(cwd)")"
-where=$(printf "%q\n" "$full_path")
+where=$(printf "%q\\n" "$full_path")
 
 if [[ ! -f "$where"/.git/hooks/pre-commit ]]; then
     err "It seems this code is either not being run in a git repository, or being run in the wrong place and can't access your pre-commit hook. Please Make sure you run this command in your project root."
@@ -112,7 +112,7 @@ rm -f cleanup.sh
 #############################################
 
 # Finish
-printf '\033[0;32mPre-Validate has been removed. Thank you for trying it out!\n'
+printf '\033[0;32mPre-Validate has been removed. Thank you for trying it out!\\n'
 echo "Visit https://github.com/GoogleCloudPlatform/professional-services/tree/
 main/examples/left-shift-validation-pre-commit-hook"
-printf 'for more information.\033[0m\n'
+printf 'for more information.\033[0m\\n'
