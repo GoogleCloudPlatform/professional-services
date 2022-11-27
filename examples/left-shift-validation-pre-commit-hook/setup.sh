@@ -314,7 +314,7 @@ echo $'Making pre-commit hook executable...'
 chmod +x pre-commit
 
 # Return to project root directory
-cd ../../
+cd ../../ || exit 1
 echo $'Done!'
 echo $'\\n-----\\n'
 
