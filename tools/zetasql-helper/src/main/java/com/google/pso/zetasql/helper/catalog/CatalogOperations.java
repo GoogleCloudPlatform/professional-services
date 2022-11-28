@@ -89,11 +89,36 @@ public class CatalogOperations {
     );
   }
 
-  private static void createFunctionInCatalog(
+  private static void createFunctionInCatalogImpl(
       SimpleCatalog catalog,
+      List<String> functionPath,
       Function function
   ) {
-    throw new UnsupportedOperationException("Unimplemented");
+    if (functionPath.size() > 1) {
+      String nestedCatalogName = functionPath.get(0);
+      List<String> pathSuffix = functionPath.subList(1, functionPath.size());
+      SimpleCatalog nestedCatalog = getOrCreateNestedCatalog(catalog, nestedCatalogName);
+      createFunctionInCatalogImpl(nestedCatalog, pathSuffix, function);
+    } else {
+      Function fixedPathFunction = new Function(
+          functionPath,
+          function.getGroup(),
+          function.getMode(),
+          function.getSignatureList(),
+          function.getOptions()
+      );
+      catalog.addFunction(fixedPathFunction);
+    }
+  }
+
+  public static void createFunctionInCatalog(
+      SimpleCatalog catalog,
+      List<List<String>> functionPaths,
+      Function function
+  ) {
+    functionPaths.forEach(
+        functionPath -> createFunctionInCatalogImpl(catalog, functionPath, function)
+    );
   }
 
   public static void createFunctionInCatalog(
@@ -109,7 +134,7 @@ public class CatalogOperations {
         )
     );
 
-    createFunctionInCatalog(catalog, function);
+    createFunctionInCatalogImpl(catalog, createFunctionStmt.getNamePath(), function);
   }
 
   private static SimpleTable copyTable(SimpleTable table) {

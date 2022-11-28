@@ -55,7 +55,7 @@ class BigQueryService {
   ) {
     try {
       BigQueryReference parsedReference = BigQueryReference.from(projectId, reference);
-      return Optional.of(
+      return Optional.ofNullable(
           cache.computeIfAbsent(
               parsedReference.getFullName(),
               key -> getter.apply(parsedReference)

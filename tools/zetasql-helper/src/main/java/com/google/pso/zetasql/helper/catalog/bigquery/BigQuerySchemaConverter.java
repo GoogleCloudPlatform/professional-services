@@ -16,6 +16,9 @@
 package com.google.pso.zetasql.helper.catalog.bigquery;
 
 import com.google.cloud.bigquery.Field;
+import com.google.cloud.bigquery.StandardSQLDataType;
+import com.google.cloud.bigquery.StandardSQLField;
+import com.google.cloud.bigquery.StandardSQLStructType;
 import com.google.cloud.bigquery.StandardSQLTypeName;
 import com.google.cloud.bigquery.Table;
 import com.google.cloud.bigquery.TableId;
@@ -25,12 +28,42 @@ import com.google.zetasql.Type;
 import com.google.zetasql.TypeFactory;
 import com.google.zetasql.ZetaSQLType.TypeKind;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 // Utility class for converting BigQuery API
 // schemas into ZetaSQL-compatible schemas
 public class BigQuerySchemaConverter {
+  // TODO: Review this class. Rename? Refactor?
+
+  public static Type convertStandardSQLType(StandardSQLDataType type) {
+    String typeKind = type.getTypeKind();
+
+    if(typeKind.equals("ARRAY")) {
+      return TypeFactory.createArrayType(
+          convertStandardSQLType(Objects.requireNonNull(type.getArrayElementType()))
+      );
+    } else if(typeKind.equals("STRUCT")) {
+      StandardSQLStructType structType = Objects.requireNonNull(
+          type.getStructType()
+      );
+      List<StructField> structFields = structType
+          .getFields()
+          .stream()
+          .map(field ->
+            new StructField(
+                field.getName(),
+                convertStandardSQLType(field.getDataType())
+            )
+          )
+          .collect(Collectors.toList());
+      return TypeFactory.createStructType(structFields);
+    } else {
+      StandardSQLTypeName typeName = StandardSQLTypeName.valueOf(typeKind);
+      return TypeFactory.createSimpleType(convertSimpleType(typeName));
+    }
+  }
 
   // Given a BigQuery API Table object, return a list of
   // ita columns in as ZetaSQL SimpleColumns.

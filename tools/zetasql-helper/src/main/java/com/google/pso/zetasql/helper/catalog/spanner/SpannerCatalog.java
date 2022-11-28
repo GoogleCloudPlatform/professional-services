@@ -9,6 +9,7 @@ import com.google.cloud.spanner.Statement;
 import com.google.pso.zetasql.helper.catalog.CatalogOperations;
 import com.google.pso.zetasql.helper.catalog.CatalogWrapper;
 import com.google.pso.zetasql.helper.catalog.typeparser.ZetaSQLTypeParser;
+import com.google.zetasql.Function;
 import com.google.zetasql.SimpleCatalog;
 import com.google.zetasql.SimpleColumn;
 import com.google.zetasql.SimpleTable;
@@ -97,6 +98,15 @@ public class SpannerCatalog implements CatalogWrapper {
     );
   }
 
+  @Override
+  public void registerFunction(Function function, boolean isTemp) {
+    CatalogOperations.createFunctionInCatalog(
+        this.catalog,
+        List.of(function.getNamePath()),
+        function
+    );
+  }
+
   private Statement buildQueryForEntireDatabase() {
     String query = "SELECT table_name, column_name, spanner_type "
         + "FROM information_schema.columns";
@@ -155,6 +165,11 @@ public class SpannerCatalog implements CatalogWrapper {
 
     this.fetchColumnAndBuildTables(query)
         .forEach(table -> this.registerTable(table, false));
+  }
+
+  @Override
+  public void addFunctions(List<List<String>> functionPaths) {
+    throw new UnsupportedOperationException("Unimplemented");
   }
 
   @Override

@@ -53,6 +53,14 @@ public class BigQueryReference {
     );
   }
 
+  public List<String> getNamePath() {
+    return List.of(
+        this.getProjectId(),
+        this.getDatasetId(),
+        this.getResourceName()
+    );
+  }
+
   public TableId toTableId() {
     return TableId.of(
         this.getProjectId(),
@@ -74,6 +82,14 @@ public class BigQueryReference {
         tableId.getProject(),
         tableId.getDataset(),
         tableId.getTable()
+    );
+  }
+
+  public static BigQueryReference from(RoutineId routineId) {
+    return new BigQueryReference(
+        routineId.getProject(),
+        routineId.getDataset(),
+        routineId.getRoutine()
     );
   }
 
