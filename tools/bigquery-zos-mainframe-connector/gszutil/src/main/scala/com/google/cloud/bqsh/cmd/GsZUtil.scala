@@ -118,7 +118,7 @@ object GsZUtil extends Command[GsZUtilConfig] with Logging {
       val statsTable: TableId = BQ.resolveTableSpec(c.statsTable, c.projectId, c.datasetId)
       logger.info(s"writing stats to ${BQ.tableSpec(statsTable)}")
       val bqProj = if (c.projectId.nonEmpty) c.projectId else statsTable.getProject
-      val jobId = BQ.genJobId(bqProj, c.location, zos, "gszutil")
+      val jobId = BQ.genJobId(bqProj, c.location, zos.getInfo, "gszutil")
       StatsUtil.retryableInsertJobStats(
         zos = zos,
         jobId = jobId,
