@@ -55,6 +55,27 @@ class ShellSpec extends AnyFlatSpec {
     assert(parsed == expected)
   }
 
+  it should "handle quotes and replace envvars" in {
+    val example =
+      """bq --project_id project query \
+        |  --sql "select '|$table' as a, b from $table"""".stripMargin
+    val parsed = Bqsh.readArgs(example)
+    val expected = Seq(
+      "bq", "--project_id", "project",
+      // outer double quotes should be removed by readArgs
+      "query", "--sql", "select '|$table' as a, b from $table"
+    )
+    assert(parsed == expected)
+    val env = Map(("table","tablename"))
+    val replaced = parsed.map(Bqsh.replaceEnvVars(_, env))
+    val expected2 = Seq(
+      "bq", "--project_id", "project",
+      // shouldn't replace envvar within single quotes
+      "query", "--sql", "select '|$table' as a, b from tablename"
+    )
+    assert(replaced == expected2)
+  }
+
   it should "split commands" in {
     val in =
       """gsutil cp INFILE gs://bucket/path.orc
@@ -81,7 +102,7 @@ class ShellSpec extends AnyFlatSpec {
       "SOURCE" -> "gs://mybucket/path.orc/*"
     )
     val cmd = """bq --project_id=project --dataset_id='dataset' mk   --external_table_definition="ORC=$SOURCE" $TABLE"""
-    val expected = """bq --project_id=project --dataset_id=dataset mk   --external_table_definition=ORC=gs://mybucket/path.orc/* project:dataset.table"""
+    val expected = """bq --project_id=project --dataset_id='dataset' mk   --external_table_definition="ORC=gs://mybucket/path.orc/*" project:dataset.table"""
     assert(Bqsh.replaceEnvVars(cmd, env) == expected)
   }
 
