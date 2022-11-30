@@ -390,6 +390,7 @@ Platform usage.
 *   [LabelMaker](tools/labelmaker) - A tool that reads key:value pairs from a
     json file and labels the running instance and all attached drives
     accordingly.
+*   [Logbucket Global to Regional](tools/logbucket-global-to-regional) - Utility to change _Default sink destination to regional log buckets
 *   [Machine Learning Auto Exploratory Data Analysis and Feature Recommendation](tools/ml-auto-eda) -
     A tool to perform comprehensive auto EDA, based on which feature
     recommendations are made, and a summary report will be generated.
