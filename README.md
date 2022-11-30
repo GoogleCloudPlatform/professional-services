@@ -385,6 +385,7 @@ Platform usage.
     using a customizable score-based method. Also supports database instances.
 *   [IPAM Autopilot](tools/ipam-autopilot) - A simple tool for managing IP
     address ranges for GCP subnets.
+*   [K8S-2-GSM](tools/k8s-2-gsm) - A containerized golang app to migrate Kubernetes secrets to Google Secrets Manger (to leverage [CSI secret driver](https://secrets-store-csi-driver.sigs.k8s.io/)).
 *   [LabelMaker](tools/labelmaker) - A tool that reads key:value pairs from a
     json file and labels the running instance and all attached drives
     accordingly.
