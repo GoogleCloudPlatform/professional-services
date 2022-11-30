@@ -124,9 +124,14 @@ class ShellSpec extends AnyFlatSpec {
 
   it should "scp args" in {
     val examples = Seq(
+      Seq("HLQ.DATASET.NAME", "gs://bucket/prefix/"),
+      Seq("HLQ.DATASET.NAME", "gs://bucket/prefix/", "--encoding", "CP037"),
+      Seq("HLQ.DATASET.NAME", "gs://bucket/prefix/", "--noConvert"),
       Seq("--inDsn", "HLQ.DATASET.NAME"),
       Seq("--inDsn", "HLQ.DATASET.NAME", "--gcsOutUri", "gs://bucket/prefix/data.gz"),
-      Seq("--inDD", "DDNAME", "--count", "1000", "--noCompress"),
+      Seq("--inDD", "DDNAME", "--count", "1000"),
+      Seq("--inDD", "DDNAME", "-n", "1000"),
+      Seq("--inDD", "DDNAME", "--compress"),
     )
     for (args <- examples) {
       if (Scp.parser.parse(args, sys.env).isEmpty)
