@@ -51,14 +51,35 @@ object ExtractOptionParser
     .action((x,c) => c.copy(format = x))
 
   opt[String]("field_delimiter")
-    .text("(optional) For CSV exports, specifies the character that marks the boundary between columns in the output file. The delimiter can be any ISO-8859-1 single-byte character. You can use \\t or tab to specify tab delimiters.")
+    .text("(optional) For CSV exports, specifies the character that marks the boundary between columns in the output " +
+      "file. The delimiter can be any ISO-8859-1 single-byte character. " +
+      "You can use '\\t' or 'tab' to specify tab delimiters. " +
+      "Control characters common to both ebcdic and ascii such as 'dle' are also accepted. " +
+      "You can also specify hex values such as '0x10'.")
     .action {(x, c) =>
-      if (x.equalsIgnoreCase("dle")) {
-        c.copy(delimiter = "\u0010")
-      } else {
-        c.copy(delimiter = x)
+      val delimiter = x.toLowerCase() match {
+        case "nul" => "\u0000"
+        case "soh" => "\u0001"
+        case "stx" => "\u0002"
+        case "etx" => "\u0003"
+        case "vt" => "\u000b"
+        case "ff" => "\u000c"
+        case "cr" => "\u000d"
+        case "so" => "\u000e"
+        case "si" => "\u000f"
+        case "dle" => "\u0010"
+        case "dc1" => "\u0011"
+        case "dc2" => "\u0012"
+        case "dc3" => "\u0013"
+        case "can" => "\u0018"
+        case "em" => "\u0019"
+        case s if s.length <= 4 && s.startsWith("0x") =>
+          new String(Array(java.lang.Integer.parseInt(s.stripPrefix("0x"),16).toByte))
+        case _ => x
       }
+      c.copy(delimiter = delimiter)
     }
+    .action((x,c) => c.copy(delimiter = x))
 
   opt[Int]("timeOutMinutes")
     .action{(x,c) => c.copy(timeoutMinutes = x)}
