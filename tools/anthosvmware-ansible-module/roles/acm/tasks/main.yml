@@ -21,7 +21,7 @@
 - name: "[acm] Include tasks - asserts.yml"
   include_tasks: asserts.yml
 
-- name: "Include role for GCP SA JSON key files"
+- name: "[acm] Include role for GCP SA JSON key files"
   ansible.builtin.include_role:
     name: copy_credentials
   vars:
@@ -93,6 +93,6 @@
     no_proxy: "{{ glb_noproxy }}"
 
   always:
-    - name: "Include role to delete sensitive files"
+    - name: "[acm] Include role to delete sensitive files"
       ansible.builtin.include_role:
         name: cleanup

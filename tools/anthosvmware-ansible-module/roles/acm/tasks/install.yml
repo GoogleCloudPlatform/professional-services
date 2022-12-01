@@ -13,15 +13,6 @@
 # limitations under the License.
 
 
-- name: "[acm] Copy SSH key for authenticating to root repository"
-  ansible.builtin.template:
-    src: ssh-key.j2
-    dest: "{{ yamldestpath }}/{{ uc_name }}/acm-sshkey"
-    mode: 0600
-  when:
-    - acm_configsync.secretType is defined
-    - acm_configsync.secretType == "ssh"
-
 - name: "[acm] Block - Create NS, git-creds secret, and configure ACM" # noqa var-spacing
   block:
     - name: "[acm] Copy ACM namespace file"
@@ -40,25 +31,16 @@
           - -f
           - "{{ yamldestpath }}/{{ uc_name }}/namespace.yaml"
 
-    - name: "[acm] Check for root repository SSH key secret"
-      ansible.builtin.command:
-        argv:
-          - kubectl
-          - --kubeconfig
-          - "{{ yamldestpath }}/{{ uc_name }}-kubeconfig"
-          - get
-          - secret
-          - -n
-          - config-management-system
-          - git-creds
-      changed_when: false
-      failed_when: false
+    - name: "[acm] Copy SSH key for authenticating to root repository"
+      ansible.builtin.template:
+        src: ssh-key.j2
+        dest: "{{ yamldestpath }}/{{ uc_name }}/acm-sshkey"
+        mode: 0600
       when:
         - acm_configsync.secretType is defined
         - acm_configsync.secretType == "ssh"
-      register: git_secret_status
 
-    - name: "[acm] Add root repository SSH key secret"
+    - name: "[acm] Generate root repository SSH key secret"
       ansible.builtin.command:
         argv:
           - kubectl
@@ -68,13 +50,40 @@
           - secret
           - generic
           - git-creds
+          - --save-config
+          - --dry-run=client
+          - --from-file=ssh={{ yamldestpath }}/{{ uc_name }}/acm-sshkey
           - -n
           - config-management-system
-          - "--from-file=ssh={{ yamldestpath }}/{{ uc_name }}/acm-sshkey"
+          - -o
+          - yaml
+      register: ssh_secret
+      no_log: true
       when:
         - acm_configsync.secretType is defined
         - acm_configsync.secretType == "ssh"
-        - "'secrets \"git-creds\" not found' in git_secret_status.stderr"
+
+    - name: "[acm] Create file for SSH key secret"
+      ansible.builtin.copy:
+        content: "{{ ssh_secret.stdout }}"
+        dest: "{{ yamldestpath }}/{{ uc_name }}/ssh-secret.yaml"
+        mode: 0640
+      when:
+        - acm_configsync.secretType is defined
+        - acm_configsync.secretType == "ssh"
+
+    - name: "[acm] Apply SSH key secret"
+      ansible.builtin.command:
+        argv:
+          - kubectl
+          - --kubeconfig
+          - "{{ yamldestpath }}/{{ uc_name }}-kubeconfig"
+          - apply
+          - -f
+          - "{{ yamldestpath }}/{{ uc_name }}/ssh-secret.yaml"
+      when:
+        - acm_configsync.secretType is defined
+        - acm_configsync.secretType == "ssh"
 
     - name: "[acm] Upload ACM Images to Private Registry"
       include_tasks: private-upload.yml
@@ -165,4 +174,9 @@
     - name: "[acm] Clean up root repository ssh key file"
       ansible.builtin.file:
         path: "{{ yamldestpath }}/{{ uc_name }}/acm-sshkey"
+        state: absent
+
+    - name: "[acm] Clean up root repository ssh secret file"
+      ansible.builtin.file:
+        path: "{{ yamldestpath }}/{{ uc_name }}/ssh-secret.yaml"
         state: absent

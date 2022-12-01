@@ -15,6 +15,7 @@
 
 # role uc default values
 uc_install: true
+uc_force_uninstall: false
 uc_name: "uc1"
 component_access_gcpsa: ""
 component_access_gcpsa_path: ""

@@ -14,6 +14,7 @@ Available variables are listed below, along with default values (see `defaults/m
 
 ```
 uc_name: "uc1"
+uc_force_uninstall: false
 ```
 
 Name of the user cluster. This will be the name that shows up in the Google Cloud Console. It will

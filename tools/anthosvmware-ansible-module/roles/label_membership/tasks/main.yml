@@ -51,6 +51,8 @@
           - "{{ target_membership }}"
           - --update-labels
           - "{{ gcp_labels.items() | map('join', '=') | join(',')}}"
+      retries: 5
+      delay: 10
 
   environment:
     PATH: "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin"

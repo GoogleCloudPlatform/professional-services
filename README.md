@@ -21,6 +21,10 @@ them to fit your particular use case.
 *   [Cloud Audit Log Samples](examples/audit-log-examples/) - A sample
     collection of Audit Logs for Users and Customers to better the structure,
     contents, and values contained in various log events.
+*   [BigQuery Analyze Realtime Reddit Data](examples/bigquery-analyze-realtime-reddit-data/) - 
+    Solution to deploy a ([reddit](https://www.reddit.com)) social media data collection
+    architecture on Google Cloud Platform.  Analyzes reddit comments in realtime and
+    provides free natural-language processing / sentiment.
 *   [BigQuery Audit Log Dashboard](examples/bigquery-audit-log) - Solution to
     help audit BigQuery usage using Data Studio for visualization and a sample
     SQL script to query the back-end data source consisting of audit logs.
@@ -381,9 +385,11 @@ Platform usage.
     using a customizable score-based method. Also supports database instances.
 *   [IPAM Autopilot](tools/ipam-autopilot) - A simple tool for managing IP
     address ranges for GCP subnets.
+*   [K8S-2-GSM](tools/k8s-2-gsm) - A containerized golang app to migrate Kubernetes secrets to Google Secrets Manger (to leverage [CSI secret driver](https://secrets-store-csi-driver.sigs.k8s.io/)).
 *   [LabelMaker](tools/labelmaker) - A tool that reads key:value pairs from a
     json file and labels the running instance and all attached drives
     accordingly.
+*   [Logbucket Global to Regional](tools/logbucket-global-to-regional) - Utility to change _Default sink destination to regional log buckets
 *   [Machine Learning Auto Exploratory Data Analysis and Feature Recommendation](tools/ml-auto-eda) -
     A tool to perform comprehensive auto EDA, based on which feature
     recommendations are made, and a summary report will be generated.
@@ -446,6 +452,9 @@ Platform usage.
 *   [Quota Monitoring and Alerting](tools/quota-monitoring-alerting) - An
     easy-to-deploy Data Studio Dashboard with alerting capabilities, showing
     usage and quota limits in an organization or folder.
+*   [reddit Comment Streaming](tools/reddit-comment-streaming/) - 
+    Use PRAW, TextBlob, and Google Python API to collect and analyze 
+    reddit comments. Pushes comments to a Google Pub/sub Topic.
 *   [XSD to BigQuery Schema Generator](tools/xsd-to-bigquery-schema) - A command
     line tool for converting an XSD schema representing deeply nested and
     repeated XML content into a BigQuery compatible table schema represented in

@@ -20,6 +20,8 @@ import com.google.cloud.bqsh.cmd._
 import com.google.cloud.imf.gzos.{MVS, Util}
 import com.google.cloud.imf.util.{Logging, Services}
 
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 
@@ -40,11 +42,42 @@ object Bqsh extends Logging {
     logger.info(jobInfoMap)
 
     // TODO collect job-specific environment variables from parm file
-    val jobEnv: Map[String, String] = sys.env
-    val interpreter = new Interpreter(zos, jobEnv, true, true)
+    val interpreter = new Interpreter(zos, getEnv(sys.env), true, true)
     val result = interpreter.runScript(script)
     if (result.exitCode == 0) Util.exit
     else System.exit(result.exitCode)
+  }
+
+  /** adds date and time environment variables
+    * useful for naming
+    * @return
+    */
+  def getEnv(env0: Map[String, String]): Map[String, String] = {
+    val env = mutable.Map.from(env0)
+    val t = LocalDateTime.now()
+
+    def format(t: LocalDateTime, pattern: String): String =
+      t.format(DateTimeFormatter.ofPattern(pattern))
+
+    // date '+%Y%m%d' YYYYMMDD
+    env.put("DATE", format(t,"uuuuMMdd"))
+
+    // date '+%Y%m%d%H%M%S' YYYYMMDDHHMMSS
+    // timestamp at second resolution
+    env.put("DATE14", format(t,"uuuuMMddHHmmss"))
+    env.put("DATE15", format(t,"uuuuMMdd_HHmmss"))
+
+    // date '+%H%M' HHMM
+    env.put("TIME", format(t,"HHmm"))
+    // date '+%H%M%S' HHMMSS
+    env.put("TIME6", format(t,"HHmmss"))
+
+    // timestamp at minute resolution
+    // date '+%Y%m%d%H%M' YYYYMMDDHHMM
+    env.put("DATE12", format(t,"uuuuMMddHHmm"))
+    env.put("UNIXTIME", (System.currentTimeMillis() / 1000L).toString)
+
+    env.toMap
   }
 
   class Interpreter(zos: MVS, sysEnv: Map[String, String], var exitOnError: Boolean = true, var printCommands: Boolean = true) {
@@ -108,6 +141,8 @@ object Bqsh extends Logging {
               runCommand(Query, subArgs, zos, cmd.env)
             case "export" =>
               runCommand(Export, subArgs, zos, cmd.env)
+            case "extract" =>
+              runCommand(Extract, subArgs, zos, cmd.env)
             case "load" =>
               runCommand(Load, subArgs, zos, cmd.env)
             case "rm" =>
@@ -184,8 +219,10 @@ object Bqsh extends Logging {
         if (!(singleQuoted || doubleQuoted)) {
           if (c == '\'') {
             singleQuoted = true
+            sb.append(c)
           } else if (c == '"') {
             doubleQuoted = true
+            sb.append(c)
           } else if (c == '\\' && next == '$') {
             i += 1
             sb.append(next)
@@ -201,8 +238,10 @@ object Bqsh extends Logging {
         } else {
           if (singleQuoted && c == '\'') {
             singleQuoted = false
+            sb.append(c)
           } else if (doubleQuoted && c == '"') {
             doubleQuoted = false
+            sb.append(c)
           } else if (c == '\\' && next == '$') {
             i += 1
             sb.append(next)

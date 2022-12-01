@@ -26,7 +26,7 @@
     path: "~/{{ uc_kubeconfig }}"
   register: uc_kubeconfig_file
 
-- name: "[uc] Check if existing api server is up"
+- name: "[uc] Check if existing API server is up"
   ansible.builtin.command:
     argv:
       - kubectl
@@ -37,6 +37,20 @@
     - uc_kubeconfig_file.stat.exists
     - uc_install|default(false)|bool
   changed_when: false
+
+- name: "[uc] Search Admin Cluster for User Cluster namespaces"
+  command:
+    argv:
+      - kubectl
+      - --kubeconfig
+      - kubeconfig
+      - get
+      - ns
+      - -o
+      - name
+  register: uc_namespaces
+  when:
+    - not uc_install|default(false)|bool
 
 - name: "[uc] Include tasks - install.yml"
   include_tasks: install.yml
@@ -65,3 +79,4 @@
   when:
     - not uc_install|default(false)|bool
     - uc_kubeconfig_file.stat.exists
+    - uc_namespaces is search(uc_name)
