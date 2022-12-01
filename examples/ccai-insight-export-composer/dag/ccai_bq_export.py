@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Example DAG to copy CCAI Insight data to BigQuerye."""
-
 import json
 from datetime import datetime, timedelta
 import airflow
