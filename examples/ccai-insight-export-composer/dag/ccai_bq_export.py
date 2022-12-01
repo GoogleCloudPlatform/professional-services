@@ -15,7 +15,6 @@
 
 import json
 from datetime import datetime, timedelta
-
 import airflow
 import google.auth
 import google.auth.transport.requests
