@@ -15,7 +15,7 @@
  */
 package com.google.cloud.imf.gzos
 
-import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
+import java.io.{ByteArrayInputStream, ByteArrayOutputStream, IOException}
 import java.nio.ByteBuffer
 import java.nio.channels.{Channels, ReadableByteChannel, WritableByteChannel}
 import java.nio.charset.Charset
@@ -108,9 +108,13 @@ object Util extends Logging {
     }
   }
 
-  def transfer(rc: ReadableByteChannel, wc: WritableByteChannel, chunkSize: Int = 4096): Unit = {
+  def transfer(rc: ReadableByteChannel, wc: WritableByteChannel, chunkSize: Int = 4096, limit: Int = 10000000): Unit = {
     val buf = ByteBuffer.allocate(chunkSize)
+    var bytesRead = 0
     while (rc.read(buf) > -1) {
+      bytesRead += buf.position()
+      if (bytesRead > limit)
+        throw new IOException(s"read limit of $limit bytes exceeded")
       buf.flip()
       wc.write(buf)
       buf.clear()
@@ -134,7 +138,14 @@ object Util extends Logging {
     Resources.toByteArray(Resources.getResource(x).toURI.toURL)
   }
 
-  def readAllBytes(in: ReadableByteChannel): Array[Byte] = {
+  /** Read all bytes from a dataset.
+    * This is meant to be used on small datasets only.
+    *
+    * @param in ReadableByteChannel, typically an instance of ZRecordReaderT
+    * @param limit if dataset exceeds this limit, an IOException will be thrown
+    * @return Array[Byte] from dataset.
+    */
+  def readAllBytes(in: ReadableByteChannel, limit: Int = 10000000): Array[Byte] = {
     val chunkSize = in match {
       case x: ZRecordReaderT =>
         x.blkSize
@@ -143,7 +154,7 @@ object Util extends Logging {
     }
     val os = new ByteArrayOutputStream()
     val out = Channels.newChannel(os)
-    transfer(in, out, chunkSize)
+    transfer(in, out, chunkSize, limit)
     os.toByteArray
   }
 
