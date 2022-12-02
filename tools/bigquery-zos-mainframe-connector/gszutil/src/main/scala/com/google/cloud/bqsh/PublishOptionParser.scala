@@ -46,4 +46,24 @@ object PublishOptionParser extends OptionParser[PublishConfig]("publish") with A
       """The key for ordering delivery to subscribers. All messages with the same ordering key are sent to subscribers in the order that Pub/Sub receives them.""")
     .action((x, c) => c.copy(orderingKey = x))
 
+  opt[String]("messageDSN")
+    .text(
+      """Read message contents from DSN.""")
+    .action((x, c) => c.copy(messageDsn = x))
+
+  opt[String]("messageDD")
+    .text(
+      """Read message contents from DD.""")
+    .action((x, c) => c.copy(messageDD = x))
+
+  opt[String]("encoding")
+    .text(
+      """Character encoding of input dataset. Takes precedence over ENCODING environment variable. Default: CP037""")
+    .action((x, c) => c.copy(encoding = x))
+
+  opt[Unit]("convert")
+    .text(
+      """When specified, input data is converted to ASCII/UTF8.""")
+    .action((x, c) => c.copy(convert = true))
+
 }

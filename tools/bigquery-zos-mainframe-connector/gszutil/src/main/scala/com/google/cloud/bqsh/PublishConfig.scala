@@ -15,7 +15,15 @@
  */
 package com.google.cloud.bqsh
 
+import com.google.cloud.imf.gzos.MVSStorage.{DSN, MVSDataset}
+
 case class PublishConfig(topic: String = "",
                          message: String = "",
                          attributes: Map[String,String] = Map.empty,
-                         orderingKey: String = "")
+                         orderingKey: String = "",
+                         messageDsn: String = "",
+                         messageDD: String = "",
+                         convert: Boolean = false,
+                         encoding: String = "") {
+  def messageDSN: DSN = MVSDataset(messageDsn)
+}

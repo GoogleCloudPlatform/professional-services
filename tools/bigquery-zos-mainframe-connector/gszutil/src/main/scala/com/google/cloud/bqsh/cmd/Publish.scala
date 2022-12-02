@@ -18,7 +18,7 @@ package com.google.cloud.bqsh.cmd
 import com.google.api.client.json.jackson2.JacksonFactory
 import com.google.api.services.pubsub.model.{PublishRequest, PubsubMessage}
 import com.google.cloud.bqsh.{ArgParser, Command, PublishConfig, PublishOptionParser}
-import com.google.cloud.imf.gzos.MVS
+import com.google.cloud.imf.gzos.{CharsetTranscoder, MVS, Util}
 import com.google.cloud.imf.util.{Logging, Services}
 
 import java.nio.charset.StandardCharsets
@@ -32,8 +32,23 @@ object Publish extends Command[PublishConfig] with Logging {
   override def run(config: PublishConfig, zos: MVS, env: Map[String, String]): Result = {
     val pubsub = Services.pubsub(Services.pubsubCredentials())
 
+    val messageBytes: Array[Byte] =
+      if (config.messageDsn.nonEmpty)
+        Util.readAllBytes(zos.readDSN(config.messageDSN))
+      else if (config.messageDD.nonEmpty)
+        Util.readAllBytes(zos.readDD(config.messageDD))
+      else
+        config.message.getBytes(StandardCharsets.UTF_8)
+
+    if (config.convert) {
+      val encoding =
+        if (config.encoding.nonEmpty) config.encoding
+        else env.getOrElse("ENCODING", "CP037")
+      CharsetTranscoder(encoding).decodeBytes(messageBytes)
+    }
+
     val message = new PubsubMessage()
-      .setData(new String(Base64.getEncoder.encode(config.message.getBytes(StandardCharsets.UTF_8))))
+      .setData(new String(Base64.getEncoder.encode(messageBytes)))
       .setAttributes(config.attributes.asJava)
 
     if (config.orderingKey.nonEmpty)
@@ -41,9 +56,24 @@ object Publish extends Command[PublishConfig] with Logging {
 
     val content = new PublishRequest()
       .setMessages((message::Nil).asJava)
+
+    len(message) match {
+      case x if x > 4096 =>
+        logger.info(s"publishing message:\n${JacksonFactory.getDefaultInstance.toPrettyString(message)}")
+      case x =>
+        logger.info(s"publishing message with total size $x")
+    }
+
     val response = pubsub.projects().topics().publish(config.topic, content).execute()
-    System.out.println("PublishResponse:")
-    System.out.println(JacksonFactory.getDefaultInstance.toPrettyString(response))
+    logger.info(s"PublishResponse:\n${JacksonFactory.getDefaultInstance.toPrettyString(response)}")
     Result.Success
+  }
+
+  def len(msg: PubsubMessage): Int = {
+    var attLen = 0
+    Option(msg.getAttributes).map(_.forEach((k, v) => attLen += k.length + v.length))
+    val dataLen = Option(msg.getData).map(_.length).getOrElse(0)
+    val keyLen = Option(msg.getOrderingKey).map(_.length).getOrElse(0)
+    attLen + dataLen + keyLen
   }
 }
