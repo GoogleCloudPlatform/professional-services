@@ -57,12 +57,7 @@ object Publish extends Command[PublishConfig] with Logging {
     val content = new PublishRequest()
       .setMessages((message::Nil).asJava)
 
-    len(message) match {
-      case x if x > 4096 =>
-        logger.info(s"publishing message:\n${JacksonFactory.getDefaultInstance.toPrettyString(message)}")
-      case x =>
-        logger.info(s"publishing message with total size $x")
-    }
+    logger.info(s"publishing message with total size ${len(message)}")
 
     val response = pubsub.projects().topics().publish(config.topic, content).execute()
     logger.info(s"PublishResponse:\n${JacksonFactory.getDefaultInstance.toPrettyString(response)}")
