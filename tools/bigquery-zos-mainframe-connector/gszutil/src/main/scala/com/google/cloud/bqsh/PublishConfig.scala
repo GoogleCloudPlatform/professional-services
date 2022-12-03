@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Google LLC All Rights Reserved.
+ * Copyright 2022 Google LLC All Rights Reserved
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,12 +17,13 @@ package com.google.cloud.bqsh
 
 import com.google.cloud.imf.gzos.MVSStorage.{DSN, MVSDataset}
 
-case class ScpConfig(inDD: String = "",
-                     inDsn: String = "",
-                     gcsOutUri: String = "",
-                     convert: Boolean = true,
-                     encoding: String = "CP037",
-                     compress: Boolean = false,
-                     limit: Long = -1) {
-  def inDSN: DSN = MVSDataset(inDsn)
+case class PublishConfig(topic: String = "",
+                         message: String = "",
+                         attributes: Map[String,String] = Map.empty,
+                         orderingKey: String = "",
+                         messageDsn: String = "",
+                         messageDD: String = "",
+                         convert: Boolean = false,
+                         encoding: String = "") {
+  def messageDSN: DSN = MVSDataset(messageDsn)
 }

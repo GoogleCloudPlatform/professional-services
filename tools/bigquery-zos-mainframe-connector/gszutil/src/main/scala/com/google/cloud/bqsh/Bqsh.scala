@@ -141,6 +141,8 @@ object Bqsh extends Logging {
               runCommand(Query, subArgs, zos, cmd.env)
             case "export" =>
               runCommand(Export, subArgs, zos, cmd.env)
+            case "extract" =>
+              runCommand(Extract, subArgs, zos, cmd.env)
             case "load" =>
               runCommand(Load, subArgs, zos, cmd.env)
             case "rm" =>
@@ -159,6 +161,18 @@ object Bqsh extends Logging {
           }
         } else if (cmd.name == "gszutil") {
           runCommand(GsZUtil, cmd.args, zos, cmd.env)
+        } else if (cmd.name == "gcloud") {
+          sub match {
+            case "pubsub" =>
+              subArgs.toList match {
+                case "topics" :: "publish" :: runArgs =>
+                  runCommand(Publish, runArgs, zos, cmd.env)
+                case _ =>
+                  Result.Failure(s"invalid command '${args.mkString(" ")}'")
+              }
+            case _ =>
+              Result.Failure(s"invalid command '${args.mkString(" ")}'")
+          }
         } else if (cmd.name == "scp") {
           runCommand(Scp, cmd.args, zos, cmd.env)
         } else if (cmd.name == "jclutil") {
