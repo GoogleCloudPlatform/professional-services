@@ -12,14 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Example DAG to copy CCAI Insight data to BigQuerye."""
+
+from datetime import timedelta, datetime
 import json
-from datetime import datetime, timedelta
-import airflow
-import google.auth
-import google.auth.transport.requests
 from airflow.operators.dummy_operator import DummyOperator
 from airflow.operators.http_operator import SimpleHttpOperator
 from airflow.sensors.http_sensor import HttpSensor
+import google.auth
+import google.auth.transport.requests
+import airflow
 
 
 default_dag_args = {
