@@ -161,6 +161,25 @@ object Bqsh extends Logging {
           }
         } else if (cmd.name == "gszutil") {
           runCommand(GsZUtil, cmd.args, zos, cmd.env)
+        } else if (cmd.name == "gcloud") {
+          sub match {
+            case "dataflow" =>
+              subArgs.toList match {
+                case "flex-template" :: "run" :: runArgs =>
+                  runCommand(DataflowFlexTemplateRun, runArgs, zos, cmd.env)
+                case _ =>
+                  Result.Failure(s"invalid command '${args.mkString(" ")}'")
+              }
+            case "pubsub" =>
+              subArgs.toList match {
+                case "topics" :: "publish" :: runArgs =>
+                  runCommand(Publish, runArgs, zos, cmd.env)
+                case _ =>
+                  Result.Failure(s"invalid command '${args.mkString(" ")}'")
+              }
+            case _ =>
+              Result.Failure(s"invalid command '${args.mkString(" ")}'")
+          }
         } else if (cmd.name == "scp") {
           runCommand(Scp, cmd.args, zos, cmd.env)
         } else if (cmd.name == "jclutil") {
