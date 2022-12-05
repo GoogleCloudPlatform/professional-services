@@ -22,7 +22,6 @@ import google.auth
 import google.auth.transport.requests
 import airflow
 
-
 default_dag_args = {
     'depends_on_past':
         False,
