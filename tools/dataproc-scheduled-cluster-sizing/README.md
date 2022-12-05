@@ -11,7 +11,7 @@
 
 ## use-case
 
-Use [Google Cloud Scheduler](https://cloud.google.com/scheduler) and [Google Cloud Functions](https://cloud.google.com/functions) to schedule the resizing of a [Dataproc](https://cloud.google.com/dataproc) cluster.  Changes the primary worker count.
+Use [Google Cloud Scheduler](https://cloud.google.com/scheduler) and [Google Cloud Functions](https://cloud.google.com/functions) to schedule the resizing of a [Dataproc](https://cloud.google.com/dataproc) cluster.
 
 
 In scenarios where [Workflow Templates](https://cloud.google.com/dataproc/docs/concepts/workflows/overview) and [Dataproc autoscaling](https://cloud.google.com/dataproc/docs/concepts/configuring-clusters/autoscaling) aren't viable options for your cluster use-case, this code repo provides another solution for cost-optimization.
