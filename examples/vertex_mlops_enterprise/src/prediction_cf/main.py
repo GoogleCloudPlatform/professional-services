@@ -54,8 +54,10 @@ def predict(request):
     fs_features = {} 
     
     if 'userid' in raw_features:
-        fs_features = fs.read_features(project, region, store_id, entity, ['v27', 'v28'], raw_features['userid'])
-    
+        try:
+            fs_features = fs.read_features(project, region, store_id, entity, ['v27', 'v28'], raw_features['userid'])
+        except:
+            logging.warn("Feature store is not available")
         if not 'v27' in fs_features:
             logging.error(f'User {raw_features["userid"]} not present in Feature Store, using defaults') 
             fs_features['v27'] = default_v27

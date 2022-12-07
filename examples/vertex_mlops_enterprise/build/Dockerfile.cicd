@@ -1,12 +1,9 @@
 FROM gcr.io/tfx-oss-public/tfx:1.8.0
 
-
 #RUN pip install keyring keyrings.google-artifactregistry-auth
-
 
 COPY pip.conf pip.conf
 ENV PIP_CONFIG_FILE=pip.conf
-
 
 ADD pydist pydist
 # These need to go in order so we don't hit unsatisfied deps
@@ -34,10 +31,7 @@ RUN pip install -vv pydist/requests-2.28.1-py3-none-any.whl
 RUN pip install -vv pydist/pluggy-1.0.0-py2.py3-none-any.whl
 RUN pip install -vv pydist/keyrings.google_artifactregistry_auth-1.0.0-py3-none-any.whl
 
-
 RUN keyring --list-backends
-
-
 
 RUN pip install -U pip
 RUN pip install google-cloud-aiplatform==1.14.0 google-cloud-aiplatform[tensorboard]

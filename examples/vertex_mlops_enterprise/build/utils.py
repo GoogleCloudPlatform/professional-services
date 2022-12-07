@@ -21,6 +21,7 @@ import logging
 import json
 
 from google.cloud import aiplatform as vertex_ai
+from google.cloud import storage
 
 
 SCRIPT_DIR = os.path.dirname(
@@ -36,6 +37,7 @@ def get_args():
     parser.add_argument(
         '--mode', 
         type=str,
+        required=True
     )
 
     parser.add_argument(
@@ -65,6 +67,21 @@ def get_args():
     
     parser.add_argument(
         '--pipelines-store', 
+        type=str,
+    )
+
+    parser.add_argument(
+        '--service-account', 
+        type=str,
+    )
+
+    parser.add_argument(
+        '--parameter-values', 
+        type=str,
+    )
+
+    parser.add_argument(
+        '--labels', 
         type=str,
     )
 
@@ -121,11 +138,42 @@ def compile_pipeline(pipeline_name):
     pipeline_definition = runner.compile_training_pipeline(pipeline_definition_file)
     return pipeline_definition
 
+def run_pipeline(project, region, service_account, pipelines_store, pipeline_name, parameter_values, labels_str):
+    if labels_str:
+        # Converting string into dictionary using dict comprehension
+        labels = dict(item.split("=") for item in labels_str.split(","))
+        #labels=json.loads(labels_str)
+
+    storage_client = storage.Client()
     
+    gcs_pipeline_file_location = pipelines_store if pipelines_store.endswith("/") else pipelines_store + "/"
+    gcs_pipeline_file_location = gcs_pipeline_file_location + pipeline_name + ".json"
+    
+    path_parts = gcs_pipeline_file_location.replace("gs://", "").split("/")
+    bucket_name = path_parts[0]
+    blob_name = "/".join(path_parts[1:])
+
+    bucket = storage_client.bucket(bucket_name)
+    blob = storage.Blob(bucket=bucket, name=blob_name)
+
+    if not blob.exists(storage_client):
+        raise ValueError(f"{pipelines_store}/{pipeline_name} does not exist.")
+    
+    parameter_values_json = json.loads(parameter_values)
+    job = vertex_ai.PipelineJob(display_name = "DISPLAY_NAME",
+                             template_path = gcs_pipeline_file_location,
+                             parameter_values = parameter_values_json,
+                             project = project,
+                             location = region,
+                             labels = labels)
+
+    response = job.submit(service_account=service_account,
+           network=None)
+
 
 def main():
     args = get_args()
-    
+
     if args.mode == 'create-endpoint':
         if not args.project:
             raise ValueError("project must be supplied.")
@@ -163,10 +211,30 @@ def main():
         
     elif args.mode == 'compile-pipeline':
         if not args.pipeline_name:
-            raise ValueError("pipeline-name must be supplied.")
-            
+            raise ValueError("pipeline-name must be supplied.")            
         result = compile_pipeline(args.pipeline_name)
+    elif args.mode == 'run-pipeline':
+        if not args.project:
+            raise ValueError("project must be supplied.")
+        if not args.region:
+            raise ValueError("region must be supplied.")
+        if not args.pipelines_store:
+            raise ValueError("pipelines-store must be supplied.")
+        if not args.pipeline_name:
+            raise ValueError("pipeline-name must be supplied.")
+        if not args.service_account:
+            raise ValueError("service-account must be supplied.")
+        if not args.parameter_values:
+            raise ValueError("parameter-values must be supplied.")
 
+        result = run_pipeline(
+            args.project,
+            args.region,
+            args.service_account,
+            args.pipelines_store,
+            args.pipeline_name,
+            args.parameter_values,
+            args.labels)
     else:
         raise ValueError(f"Invalid mode {args.mode}.")
         

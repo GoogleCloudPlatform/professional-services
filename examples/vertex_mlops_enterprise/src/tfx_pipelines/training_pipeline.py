@@ -342,7 +342,7 @@ def create_pipeline(
         beam_pipeline_args = config.BEAM_DATAFLOW_PIPELINE_ARGS
 
     logging.info(f"Beam pipeline args: {beam_pipeline_args}")
-
+    print(f"Beam pipeline args: {beam_pipeline_args}")
     return pipeline.Pipeline(
         pipeline_name=config.PIPELINE_NAME,
         pipeline_root=pipeline_root,

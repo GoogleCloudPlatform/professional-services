@@ -19,6 +19,7 @@ from tfx import v1 as tfx
 PROJECT = os.getenv("PROJECT", "")
 REGION = os.getenv("REGION", "")
 GCS_LOCATION = os.getenv("GCS_LOCATION", "")
+DOCKER_REPO_NAME = os.getenv("DOCKER_REPO_NAME", "docker-repo")
 
 ARTIFACT_STORE_URI = os.path.join(GCS_LOCATION, "tfx_artifacts")
 MODEL_REGISTRY_URI = os.getenv(
@@ -45,7 +46,11 @@ ACCURACY_THRESHOLD = os.getenv("ACCURACY_THRESHOLD", "0.8")
 USE_KFP_SA = os.getenv("USE_KFP_SA", "False")
 
 TFX_IMAGE_URI = os.getenv(
-    "TFX_IMAGE_URI", f"{REGION}-docker.pkg.dev/{PROJECT}/{VERTEX_DATASET_NAME}/vertex:latest"
+    "TFX_IMAGE_URI", f"{REGION}-docker.pkg.dev/{PROJECT}/{DOCKER_REPO_NAME}/vertex:latest"
+)
+
+DATAFLOW_IMAGE_URI = os.getenv(
+    "DATAFLOW_IMAGE_URI", f"{REGION}-docker.pkg.dev/{PROJECT}/{DOCKER_REPO_NAME}/dataflow:latest"
 )
 
 BEAM_RUNNER = os.getenv("BEAM_RUNNER", "DirectRunner")
@@ -64,7 +69,7 @@ BEAM_DATAFLOW_PIPELINE_ARGS = [
     f"--service_account_email={SERVICE_ACCOUNT}",
     f"--no_use_public_ips",
     f"--subnetwork={SUBNETWORK}",
-    f"--sdk_container_image={REGION}-docker.pkg.dev/{PROJECT}/{VERTEX_DATASET_NAME}/dataflow:latest"
+    f"--sdk_container_image={DATAFLOW_IMAGE_URI}"
 ]
 
 TRAINING_RUNNER = os.getenv("TRAINING_RUNNER", "local")
@@ -120,5 +125,6 @@ UPLOAD_MODEL = os.getenv("UPLOAD_MODEL", "1")
 
 os.environ["PROJECT"] = PROJECT
 os.environ["PIPELINE_NAME"] = PIPELINE_NAME
+os.environ["DATAFLOW_IMAGE_URI"] = DATAFLOW_IMAGE_URI
 os.environ["TFX_IMAGE_URI"] = TFX_IMAGE_URI
 os.environ["MODEL_REGISTRY_URI"] = MODEL_REGISTRY_URI

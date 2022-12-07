@@ -4,3 +4,6 @@ creditcards-classifier-v01-train-pipeline.json
 features_user.csv
 build/pip.conf
 tfx_artifacts/
+*.bak
+build/*.yaml
+
