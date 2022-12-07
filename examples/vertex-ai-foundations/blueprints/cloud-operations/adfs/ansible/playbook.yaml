@@ -1,0 +1,53 @@
+# Copyright 2022 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+- name: Prepare
+  hosts: adfs
+  gather_facts: yes
+  vars_files:
+    - vars/vars.yaml
+  roles:
+    - role: server-setup
+
+- name: Provision organizational units users, groups and memberships
+  hosts: adfs
+  gather_facts: no
+  vars_files:
+    - vars/vars.yaml
+  vars:
+    ansible_become: yes
+    ansible_become_method: runas
+    ansible_become_user: "SetupAdmin@{{ ad_dns_domain_name }}"
+    ansible_become_password: "{{ setupadmin_password }}"
+  roles:
+    - role: ad-provisioning
+
+- name: Install AD FS
+  hosts: adfs
+  gather_facts: no
+  vars_files:
+    - vars/vars.yaml
+  vars:
+    ansible_become: yes
+    ansible_become_method: runas
+    adfssvc_password: "{{ lookup('ansible.builtin.password', '~/.adfssvc-password.txt chars=ascii_letters,digits') }}"
+  roles:
+    - role: adfs-prerequisites
+      vars:
+        ansible_become_user: "SetupAdmin@{{ ad_dns_domain_name }}"
+        ansible_become_password: "{{ setupadmin_password }}"
+    - role: adfs-installation
+      vars:
+        ansible_become_user: "adfssvc@{{ ad_dns_domain_name }}"
+        ansible_become_password: "{{ adfssvc_password }}"  

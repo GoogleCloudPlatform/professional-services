@@ -1,0 +1,2 @@
+bq query --project_id=${project_id} --use_legacy_sql=false \
+  'SELECT * FROM `${project_id}.${bigquery_dataset}.${bigquery_table}` LIMIT ${sql_limit}'
