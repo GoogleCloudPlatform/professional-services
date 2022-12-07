@@ -20,7 +20,6 @@ import sys
 
 from google.cloud import aiplatform as vertex_ai
 
-
 # configure logging to print to stdout
 root = logging.getLogger()
 root.setLevel(logging.DEBUG)
@@ -29,8 +28,6 @@ handler.setLevel(logging.DEBUG)
 #formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 #handler.setFormatter(formatter)
 root.addHandler(handler)
-
-
 
 test_instance = {
     'V1': [-0.906611],
@@ -64,140 +61,134 @@ test_instance = {
     'Amount': [15.99]
 }
 
-
 SERVING_DEFAULT_SIGNATURE_NAME = "serving_default"
 
 
 def test_model_artifact():
 
-    feature_types = {
-        'V1': tf.dtypes.float32,
-        'V2': tf.dtypes.float32,
-        'V3': tf.dtypes.float32,
-        'V4': tf.dtypes.float32,
-        'V5': tf.dtypes.float32,
-        'V6': tf.dtypes.float32,
-        'V7': tf.dtypes.float32,
-        'V8': tf.dtypes.float32,
-        'V9': tf.dtypes.float32,
-        'V10': tf.dtypes.float32,
-        'V11': tf.dtypes.float32,
-        'V12': tf.dtypes.float32,
-        'V13': tf.dtypes.float32,
-        'V14': tf.dtypes.float32,
-        'V15': tf.dtypes.float32,
-        'V16': tf.dtypes.float32,
-        'V17': tf.dtypes.float32,
-        'V18': tf.dtypes.float32,
-        'V19': tf.dtypes.float32,
-        'V20': tf.dtypes.float32,
-        'V21': tf.dtypes.float32,
-        'V22': tf.dtypes.float32,
-        'V23': tf.dtypes.float32,
-        'V24': tf.dtypes.float32,
-        'V25': tf.dtypes.float32,
-        'V26': tf.dtypes.float32,
-        'V27': tf.dtypes.float32,
-        'V28': tf.dtypes.float32,
-        'Amount': tf.dtypes.float32
-    }
+  feature_types = {
+      'V1': tf.dtypes.float32,
+      'V2': tf.dtypes.float32,
+      'V3': tf.dtypes.float32,
+      'V4': tf.dtypes.float32,
+      'V5': tf.dtypes.float32,
+      'V6': tf.dtypes.float32,
+      'V7': tf.dtypes.float32,
+      'V8': tf.dtypes.float32,
+      'V9': tf.dtypes.float32,
+      'V10': tf.dtypes.float32,
+      'V11': tf.dtypes.float32,
+      'V12': tf.dtypes.float32,
+      'V13': tf.dtypes.float32,
+      'V14': tf.dtypes.float32,
+      'V15': tf.dtypes.float32,
+      'V16': tf.dtypes.float32,
+      'V17': tf.dtypes.float32,
+      'V18': tf.dtypes.float32,
+      'V19': tf.dtypes.float32,
+      'V20': tf.dtypes.float32,
+      'V21': tf.dtypes.float32,
+      'V22': tf.dtypes.float32,
+      'V23': tf.dtypes.float32,
+      'V24': tf.dtypes.float32,
+      'V25': tf.dtypes.float32,
+      'V26': tf.dtypes.float32,
+      'V27': tf.dtypes.float32,
+      'V28': tf.dtypes.float32,
+      'Amount': tf.dtypes.float32
+  }
 
-    new_test_instance = dict()
-    for key in test_instance:
-        new_test_instance[key] = tf.constant(
-            [test_instance[key]], dtype=feature_types[key]
-        )
+  new_test_instance = dict()
+  for key in test_instance:
+    new_test_instance[key] = tf.constant([test_instance[key]],
+                                         dtype=feature_types[key])
 
-    print(new_test_instance)
+  print(new_test_instance)
 
-    project = os.getenv("PROJECT")
-    region = os.getenv("REGION")
-    model_display_name = os.getenv("MODEL_DISPLAY_NAME")
+  project = os.getenv("PROJECT")
+  region = os.getenv("REGION")
+  model_display_name = os.getenv("MODEL_DISPLAY_NAME")
 
-    assert project, "Environment variable PROJECT is None!"
-    assert region, "Environment variable REGION is None!"
-    assert model_display_name, "Environment variable MODEL_DISPLAY_NAME is None!"
+  assert project, "Environment variable PROJECT is None!"
+  assert region, "Environment variable REGION is None!"
+  assert model_display_name, "Environment variable MODEL_DISPLAY_NAME is None!"
 
-    vertex_ai.init(project=project, location=region,)
+  vertex_ai.init(
+      project=project,
+      location=region,
+  )
 
-    models = vertex_ai.Model.list(
-        filter=f'display_name={model_display_name}',
-        order_by="update_time"
-    )
+  models = vertex_ai.Model.list(filter=f'display_name={model_display_name}',
+                                order_by="update_time")
 
-    assert (
-        models
-    ), f"No model with display name {model_display_name} exists!"
+  assert (models), f"No model with display name {model_display_name} exists!"
 
-    model = models[-1]
-    artifact_uri = model.gca_resource.artifact_uri
-    logging.info(f"Model artifact uri:{artifact_uri}")
-    assert tf.io.gfile.exists(
-        artifact_uri
-    ), f"Model artifact uri {artifact_uri} does not exist!"
+  model = models[-1]
+  artifact_uri = model.gca_resource.artifact_uri
+  logging.info(f"Model artifact uri:{artifact_uri}")
+  assert tf.io.gfile.exists(
+      artifact_uri), f"Model artifact uri {artifact_uri} does not exist!"
 
-    saved_model = tf.saved_model.load(artifact_uri)
-    logging.info("Model loaded successfully.")
+  saved_model = tf.saved_model.load(artifact_uri)
+  logging.info("Model loaded successfully.")
 
-    assert (
-        SERVING_DEFAULT_SIGNATURE_NAME in saved_model.signatures
-    ), f"{SERVING_DEFAULT_SIGNATURE_NAME} not in model signatures!"
+  assert (SERVING_DEFAULT_SIGNATURE_NAME in saved_model.signatures
+         ), f"{SERVING_DEFAULT_SIGNATURE_NAME} not in model signatures!"
 
-    prediction_fn = saved_model.signatures["serving_default"]
-    predictions = prediction_fn(**new_test_instance)
-    logging.info("Model produced predictions.")
+  prediction_fn = saved_model.signatures["serving_default"]
+  predictions = prediction_fn(**new_test_instance)
+  logging.info("Model produced predictions.")
 
-    keys = ["classes", "scores"]
-    for key in keys:
-        assert key in predictions, f"{key} in prediction outputs!"
+  keys = ["classes", "scores"]
+  for key in keys:
+    assert key in predictions, f"{key} in prediction outputs!"
 
-    assert predictions["classes"].shape == (
-        1,
-        2,
-    ), f"Invalid output classes shape: {predictions['classes'].shape}!"
-    assert predictions["scores"].shape == (
-        1,
-        2,
-    ), f"Invalid output scores shape: {predictions['scores'].shape}!"
-    logging.info(f"Prediction output: {predictions}")
+  assert predictions["classes"].shape == (
+      1,
+      2,
+  ), f"Invalid output classes shape: {predictions['classes'].shape}!"
+  assert predictions["scores"].shape == (
+      1,
+      2,
+  ), f"Invalid output scores shape: {predictions['scores'].shape}!"
+  logging.info(f"Prediction output: {predictions}")
 
 
 def test_model_endpoint():
 
-    project = os.getenv("PROJECT")
-    region = os.getenv("REGION")
-    model_display_name = os.getenv("MODEL_DISPLAY_NAME")
-    endpoint_display_name = os.getenv("ENDPOINT_DISPLAY_NAME")
+  project = os.getenv("PROJECT")
+  region = os.getenv("REGION")
+  model_display_name = os.getenv("MODEL_DISPLAY_NAME")
+  endpoint_display_name = os.getenv("ENDPOINT_DISPLAY_NAME")
 
-    assert project, "Environment variable PROJECT is None!"
-    assert region, "Environment variable REGION is None!"
-    assert model_display_name, "Environment variable MODEL_DISPLAY_NAME is None!"
-    assert endpoint_display_name, "Environment variable ENDPOINT_DISPLAY_NAME is None!"
-  
-    vertex_ai.init(project=project, location=region,)
+  assert project, "Environment variable PROJECT is None!"
+  assert region, "Environment variable REGION is None!"
+  assert model_display_name, "Environment variable MODEL_DISPLAY_NAME is None!"
+  assert endpoint_display_name, "Environment variable ENDPOINT_DISPLAY_NAME is None!"
 
-    endpoints = vertex_ai.Endpoint.list(
-        filter=f'display_name={endpoint_display_name}',
-        order_by="update_time"
-    )
-    assert (
-        endpoints
-    ), f"Endpoint with display name {endpoint_display_name} does not exist! in region {region}"
+  vertex_ai.init(
+      project=project,
+      location=region,
+  )
 
-    endpoint = endpoints[-1]
-    logging.info(f"Calling endpoint: {endpoint}.")
+  endpoints = vertex_ai.Endpoint.list(
+      filter=f'display_name={endpoint_display_name}', order_by="update_time")
+  assert (
+      endpoints
+  ), f"Endpoint with display name {endpoint_display_name} does not exist! in region {region}"
 
-    prediction = endpoint.predict([test_instance]).predictions[0]
+  endpoint = endpoints[-1]
+  logging.info(f"Calling endpoint: {endpoint}.")
 
-    keys = ["classes", "scores"]
-    for key in keys:
-        assert key in prediction, f"{key} in prediction outputs!"
+  prediction = endpoint.predict([test_instance]).predictions[0]
 
-    assert (
-        len(prediction["classes"]) == 2
-    ), f"Invalid number of output classes: {len(prediction['classes'])}!"
-    assert (
-        len(prediction["scores"]) == 2
-    ), f"Invalid number output scores: {len(prediction['scores'])}!"
+  keys = ["classes", "scores"]
+  for key in keys:
+    assert key in prediction, f"{key} in prediction outputs!"
 
-    logging.info(f"Prediction output: {prediction}")
+  assert (len(prediction["classes"]) == 2
+         ), f"Invalid number of output classes: {len(prediction['classes'])}!"
+  assert (len(prediction["scores"]) == 2
+         ), f"Invalid number output scores: {len(prediction['scores'])}!"
+
+  logging.info(f"Prediction output: {prediction}")

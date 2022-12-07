@@ -21,7 +21,6 @@ import pytest
 from src.common import features
 from src.model_training import model, defaults
 
-
 root = logging.getLogger()
 root.setLevel(logging.INFO)
 handler = logging.StreamHandler(sys.stdout)
@@ -37,51 +36,49 @@ EXPECTED_HYPERPARAMS_KEYS = [
 
 
 def test_hyperparams_defaults():
-    hyperparams = {"hidden_units": [64, 32]}
+  hyperparams = {"hidden_units": [64, 32]}
 
-    hyperparams = defaults.update_hyperparams(hyperparams)
-    assert set(hyperparams.keys()) == set(EXPECTED_HYPERPARAMS_KEYS)
+  hyperparams = defaults.update_hyperparams(hyperparams)
+  assert set(hyperparams.keys()) == set(EXPECTED_HYPERPARAMS_KEYS)
 
-    
+
 def test_create_model():
 
-    hyperparams = hyperparams = defaults.update_hyperparams(dict())
+  hyperparams = hyperparams = defaults.update_hyperparams(dict())
 
-    model_inputs = {
-        'V1': tf.convert_to_tensor([-0.9066112, -0.9066112, -0.9066112]),
-        'V2': tf.convert_to_tensor([-0.9066112, -0.9066112, -0.9066112]),
-        'V3': tf.convert_to_tensor([-0.9066112, -0.9066112, -0.9066112]),
-        'V4': tf.convert_to_tensor([-0.9066112, -0.9066112, -0.9066112]),
-        'V5': tf.convert_to_tensor([-0.9066112, -0.9066112, -0.9066112]),
-        'V6': tf.convert_to_tensor([-0.9066112, -0.9066112, -0.9066112]),
-        'V7': tf.convert_to_tensor([-0.9066112, -0.9066112, -0.9066112]),
-        'V8': tf.convert_to_tensor([-0.9066112, -0.9066112, -0.9066112]),
-        'V9': tf.convert_to_tensor([-0.9066112, -0.9066112, -0.9066112]),
-        'V10': tf.convert_to_tensor([-0.9066112, -0.9066112, -0.9066112]),
-        'V11': tf.convert_to_tensor([-0.9066112, -0.9066112, -0.9066112]),
-        'V12': tf.convert_to_tensor([-0.9066112, -0.9066112, -0.9066112]),
-        'V13': tf.convert_to_tensor([-0.9066112, -0.9066112, -0.9066112]),
-        'V14': tf.convert_to_tensor([-0.9066112, -0.9066112, -0.9066112]),
-        'V15': tf.convert_to_tensor([-0.9066112, -0.9066112, -0.9066112]),
-        'V16': tf.convert_to_tensor([-0.9066112, -0.9066112, -0.9066112]),
-        'V17': tf.convert_to_tensor([-0.9066112, -0.9066112, -0.9066112]),
-        'V18': tf.convert_to_tensor([-0.9066112, -0.9066112, -0.9066112]),
-        'V19': tf.convert_to_tensor([-0.9066112, -0.9066112, -0.9066112]),
-        'V20': tf.convert_to_tensor([-0.9066112, -0.9066112, -0.9066112]),
-        'V21': tf.convert_to_tensor([-0.9066112, -0.9066112, -0.9066112]),
-        'V22': tf.convert_to_tensor([-0.9066112, -0.9066112, -0.9066112]),
-        'V23': tf.convert_to_tensor([-0.9066112, -0.9066112, -0.9066112]),
-        'V24': tf.convert_to_tensor([-0.9066112, -0.9066112, -0.9066112]),
-        'V25': tf.convert_to_tensor([-0.9066112, -0.9066112, -0.9066112]),
-        'V26': tf.convert_to_tensor([-0.9066112, -0.9066112, -0.9066112]),
-        'V27': tf.convert_to_tensor([-0.9066112, -0.9066112, -0.9066112]),
-        'V28': tf.convert_to_tensor([-0.9066112, -0.9066112, -0.9066112]),
-        "Amount": tf.convert_to_tensor([10, 100, 1000]),
-    }
-    
-    
+  model_inputs = {
+      'V1': tf.convert_to_tensor([-0.9066112, -0.9066112, -0.9066112]),
+      'V2': tf.convert_to_tensor([-0.9066112, -0.9066112, -0.9066112]),
+      'V3': tf.convert_to_tensor([-0.9066112, -0.9066112, -0.9066112]),
+      'V4': tf.convert_to_tensor([-0.9066112, -0.9066112, -0.9066112]),
+      'V5': tf.convert_to_tensor([-0.9066112, -0.9066112, -0.9066112]),
+      'V6': tf.convert_to_tensor([-0.9066112, -0.9066112, -0.9066112]),
+      'V7': tf.convert_to_tensor([-0.9066112, -0.9066112, -0.9066112]),
+      'V8': tf.convert_to_tensor([-0.9066112, -0.9066112, -0.9066112]),
+      'V9': tf.convert_to_tensor([-0.9066112, -0.9066112, -0.9066112]),
+      'V10': tf.convert_to_tensor([-0.9066112, -0.9066112, -0.9066112]),
+      'V11': tf.convert_to_tensor([-0.9066112, -0.9066112, -0.9066112]),
+      'V12': tf.convert_to_tensor([-0.9066112, -0.9066112, -0.9066112]),
+      'V13': tf.convert_to_tensor([-0.9066112, -0.9066112, -0.9066112]),
+      'V14': tf.convert_to_tensor([-0.9066112, -0.9066112, -0.9066112]),
+      'V15': tf.convert_to_tensor([-0.9066112, -0.9066112, -0.9066112]),
+      'V16': tf.convert_to_tensor([-0.9066112, -0.9066112, -0.9066112]),
+      'V17': tf.convert_to_tensor([-0.9066112, -0.9066112, -0.9066112]),
+      'V18': tf.convert_to_tensor([-0.9066112, -0.9066112, -0.9066112]),
+      'V19': tf.convert_to_tensor([-0.9066112, -0.9066112, -0.9066112]),
+      'V20': tf.convert_to_tensor([-0.9066112, -0.9066112, -0.9066112]),
+      'V21': tf.convert_to_tensor([-0.9066112, -0.9066112, -0.9066112]),
+      'V22': tf.convert_to_tensor([-0.9066112, -0.9066112, -0.9066112]),
+      'V23': tf.convert_to_tensor([-0.9066112, -0.9066112, -0.9066112]),
+      'V24': tf.convert_to_tensor([-0.9066112, -0.9066112, -0.9066112]),
+      'V25': tf.convert_to_tensor([-0.9066112, -0.9066112, -0.9066112]),
+      'V26': tf.convert_to_tensor([-0.9066112, -0.9066112, -0.9066112]),
+      'V27': tf.convert_to_tensor([-0.9066112, -0.9066112, -0.9066112]),
+      'V28': tf.convert_to_tensor([-0.9066112, -0.9066112, -0.9066112]),
+      "Amount": tf.convert_to_tensor([10, 100, 1000]),
+  }
 
-    classifier = model.create_model(model_inputs.keys(), hyperparams)
-    model_outputs = classifier(model_inputs)  # .numpy()
-    assert model_outputs.shape == (3, 1)
-    assert model_outputs.dtype == "float32"
+  classifier = model.create_model(model_inputs.keys(), hyperparams)
+  model_outputs = classifier(model_inputs)  # .numpy()
+  assert model_outputs.shape == (3, 1)
+  assert model_outputs.dtype == "float32"
