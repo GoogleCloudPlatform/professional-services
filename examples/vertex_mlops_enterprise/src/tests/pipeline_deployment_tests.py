@@ -48,7 +48,8 @@ def test_e2e_pipeline():
 
   assert project, "Environment variable PROJECT is None!"
   assert region, "Environment variable REGION is None!"
-  assert dataset_display_name, "Environment variable VERTEX_DATASET_NAME is None!"
+  assert dataset_display_name, \
+      "Environment variable VERTEX_DATASET_NAME is None!"
   assert model_display_name, "Environment variable MODEL_DISPLAY_NAME is None!"
   assert gcs_location, "Environment variable GCS_LOCATION is None!"
   assert model_registry, "Environment variable MODEL_REGISTRY_URI is None!"

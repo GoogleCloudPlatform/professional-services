@@ -25,40 +25,38 @@ root = logging.getLogger()
 root.setLevel(logging.DEBUG)
 handler = logging.StreamHandler(sys.stdout)
 handler.setLevel(logging.DEBUG)
-#formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-#handler.setFormatter(formatter)
 root.addHandler(handler)
 
 test_instance = {
-    'V1': [-0.906611],
-    'V2': [-0.906611],
-    'V3': [-0.906611],
-    'V4': [-0.906611],
-    'V5': [-0.906611],
-    'V6': [-0.906611],
-    'V7': [-0.906611],
-    'V8': [-0.906611],
-    'V9': [-0.906611],
-    'V10': [-0.906611],
-    'V11': [-0.906611],
-    'V12': [-0.906611],
-    'V13': [-0.906611],
-    'V14': [-0.906611],
-    'V15': [-0.906611],
-    'V16': [-0.906611],
-    'V17': [-0.906611],
-    'V18': [-0.906611],
-    'V19': [-0.906611],
-    'V20': [-0.906611],
-    'V21': [-0.906611],
-    'V22': [-0.906611],
-    'V23': [-0.906611],
-    'V24': [-0.906611],
-    'V25': [-0.906611],
-    'V26': [-0.906611],
-    'V27': [-0.906611],
-    'V28': [-0.906611],
-    'Amount': [15.99]
+    "V1": [-0.906611],
+    "V2": [-0.906611],
+    "V3": [-0.906611],
+    "V4": [-0.906611],
+    "V5": [-0.906611],
+    "V6": [-0.906611],
+    "V7": [-0.906611],
+    "V8": [-0.906611],
+    "V9": [-0.906611],
+    "V10": [-0.906611],
+    "V11": [-0.906611],
+    "V12": [-0.906611],
+    "V13": [-0.906611],
+    "V14": [-0.906611],
+    "V15": [-0.906611],
+    "V16": [-0.906611],
+    "V17": [-0.906611],
+    "V18": [-0.906611],
+    "V19": [-0.906611],
+    "V20": [-0.906611],
+    "V21": [-0.906611],
+    "V22": [-0.906611],
+    "V23": [-0.906611],
+    "V24": [-0.906611],
+    "V25": [-0.906611],
+    "V26": [-0.906611],
+    "V27": [-0.906611],
+    "V28": [-0.906611],
+    "Amount": [15.99],
 }
 
 SERVING_DEFAULT_SIGNATURE_NAME = "serving_default"
@@ -67,38 +65,38 @@ SERVING_DEFAULT_SIGNATURE_NAME = "serving_default"
 def test_model_artifact():
 
   feature_types = {
-      'V1': tf.dtypes.float32,
-      'V2': tf.dtypes.float32,
-      'V3': tf.dtypes.float32,
-      'V4': tf.dtypes.float32,
-      'V5': tf.dtypes.float32,
-      'V6': tf.dtypes.float32,
-      'V7': tf.dtypes.float32,
-      'V8': tf.dtypes.float32,
-      'V9': tf.dtypes.float32,
-      'V10': tf.dtypes.float32,
-      'V11': tf.dtypes.float32,
-      'V12': tf.dtypes.float32,
-      'V13': tf.dtypes.float32,
-      'V14': tf.dtypes.float32,
-      'V15': tf.dtypes.float32,
-      'V16': tf.dtypes.float32,
-      'V17': tf.dtypes.float32,
-      'V18': tf.dtypes.float32,
-      'V19': tf.dtypes.float32,
-      'V20': tf.dtypes.float32,
-      'V21': tf.dtypes.float32,
-      'V22': tf.dtypes.float32,
-      'V23': tf.dtypes.float32,
-      'V24': tf.dtypes.float32,
-      'V25': tf.dtypes.float32,
-      'V26': tf.dtypes.float32,
-      'V27': tf.dtypes.float32,
-      'V28': tf.dtypes.float32,
-      'Amount': tf.dtypes.float32
+      "V1": tf.dtypes.float32,
+      "V2": tf.dtypes.float32,
+      "V3": tf.dtypes.float32,
+      "V4": tf.dtypes.float32,
+      "V5": tf.dtypes.float32,
+      "V6": tf.dtypes.float32,
+      "V7": tf.dtypes.float32,
+      "V8": tf.dtypes.float32,
+      "V9": tf.dtypes.float32,
+      "V10": tf.dtypes.float32,
+      "V11": tf.dtypes.float32,
+      "V12": tf.dtypes.float32,
+      "V13": tf.dtypes.float32,
+      "V14": tf.dtypes.float32,
+      "V15": tf.dtypes.float32,
+      "V16": tf.dtypes.float32,
+      "V17": tf.dtypes.float32,
+      "V18": tf.dtypes.float32,
+      "V19": tf.dtypes.float32,
+      "V20": tf.dtypes.float32,
+      "V21": tf.dtypes.float32,
+      "V22": tf.dtypes.float32,
+      "V23": tf.dtypes.float32,
+      "V24": tf.dtypes.float32,
+      "V25": tf.dtypes.float32,
+      "V26": tf.dtypes.float32,
+      "V27": tf.dtypes.float32,
+      "V28": tf.dtypes.float32,
+      "Amount": tf.dtypes.float32,
   }
 
-  new_test_instance = dict()
+  new_test_instance = {}
   for key in test_instance:
     new_test_instance[key] = tf.constant([test_instance[key]],
                                          dtype=feature_types[key])
@@ -118,10 +116,10 @@ def test_model_artifact():
       location=region,
   )
 
-  models = vertex_ai.Model.list(filter=f'display_name={model_display_name}',
+  models = vertex_ai.Model.list(filter=f"display_name={model_display_name}",
                                 order_by="update_time")
 
-  assert (models), f"No model with display name {model_display_name} exists!"
+  assert models, f"No model with display name {model_display_name} exists!"
 
   model = models[-1]
   artifact_uri = model.gca_resource.artifact_uri
@@ -164,7 +162,8 @@ def test_model_endpoint():
   assert project, "Environment variable PROJECT is None!"
   assert region, "Environment variable REGION is None!"
   assert model_display_name, "Environment variable MODEL_DISPLAY_NAME is None!"
-  assert endpoint_display_name, "Environment variable ENDPOINT_DISPLAY_NAME is None!"
+  assert endpoint_display_name, \
+      "Environment variable ENDPOINT_DISPLAY_NAME is None!"
 
   vertex_ai.init(
       project=project,
@@ -172,10 +171,11 @@ def test_model_endpoint():
   )
 
   endpoints = vertex_ai.Endpoint.list(
-      filter=f'display_name={endpoint_display_name}', order_by="update_time")
+      filter=f"display_name={endpoint_display_name}", order_by="update_time")
   assert (
       endpoints
-  ), f"Endpoint with display name {endpoint_display_name} does not exist! in region {region}"
+  ), f"Endpoint with display name {endpoint_display_name} " + \
+      "does not exist! in region {region}"
 
   endpoint = endpoints[-1]
   logging.info(f"Calling endpoint: {endpoint}.")
