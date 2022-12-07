@@ -18,26 +18,16 @@ instantclient_21_7 (oracle-instant-client via manual download)
 
 Steps to run this script:
 
-1.  Create the orcl-ddl-extraction-config[-replica or -cdc].json file and place it in the gcs bucket. 
-      (For reference: gs://orcl-ddl-migration/orcl-ddl-extraction-config-replica.json)
+1.  Create the orcl-ddl-extraction-config.json file and place it in the gcs bucket. 
 
-2. Create the object_name_mapping.json file and place it in the gcs bucket. 
-      (For reference gs://orcl-ddl-migration/config/object_name_mapping.json)
+2. Create the object_name_mapping.json file and place it in the gcs bucket.
 
-3. Add the needed additional metadata columns to the metadata_columns[ replica or _cdc ].json file and place it in the gcs bucket
-      (For reference gs://orcl-ddl-migration/config/metadata_columns_replica.json) 
-4. After completing the above steps, the script can be run using two methods:
+3. Add the needed additional metadata columns to the metadata_columns.json file and place it in the gcs bucket
 
-    a) Using Composer:
-          Trigger the dag Oracle_BQ_DDL_Migration
+4. After completing the above steps, the script can be run as
 
-    b) Using VM:
-         Place the file in a VM which has acccess to Oracle Database and execute the python script as below
-        #Command to run the script    
-        #python3 oracle_ddl_extraction.py <json_config_file_path> <project_name> <orc-instant-client-path>
-        #eg) python3 oracle_ddl_extraction.py gs://orcl-ddl-migration/orcl-ddl-extraction-config.json helix-poc /home/airflow/gcs/dags/ddlmigration/instantclient_21_7
+        a) pip install -r requirements.txt  
+        b) python3 oracle_ddl_extraction.py <gcs_json_config_file_path> <project_name> <orc-instant-client-path>
 
 5. Once done, verify that the extracted ddl is placed in the specified gcs path (oracle_ddl)
-       (For reference gs://orcl-ddl-migration/oracle_ddl/SIEBEL-S_ORDER.sql)
-
 

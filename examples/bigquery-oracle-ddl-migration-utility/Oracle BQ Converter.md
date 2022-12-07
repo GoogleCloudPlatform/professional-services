@@ -5,7 +5,7 @@ The Oracle BQ Converter Script does the following functionalities
 
 
 Below packages are need to run the script
-google-cloud-bigquery-migration==0.4.0
+google-cloud-bigquery-migration
 google-cloud-bigquery
 google-cloud-storage
 google-api-core
@@ -13,25 +13,17 @@ google-api-core
 
 Steps to run this script:
 
-1.  Create the orcl-ddl-extraction-config[-replica or -cdc ].json file and place it in the gcs bucket. 
-      (For reference: gs://orcl-ddl-migration/orcl-ddl-extraction-config-replica.json)
+1.  Create the orcl-ddl-extraction-config.json file and place it in the gcs bucket. 
 
-2. Create the additional metadata columns to the metadata_columns[ replica or _cdc ].json file and place it in the gcs bucket
-      (For reference gs://orcl-ddl-migration/config/metadata_columns_replica.json)
+2. Create the additional metadata columns to the metadata_columns.json file and place it in the gcs bucket
 
 3. Create the object_name_mapping.json file and place it in the gcs bucket. 
-      (For reference gs://orcl-ddl-migration/config/object_name_mapping.json)
- 
-4. After completing the above steps, the script can be run using two methods:
+  
+4. After completing the above steps, the script can be run as
 
-    a) Using Composer:
-          Trigger the dag Oracle_BQ_DDL_Migration
+         a) pip install -r requirements.txt
+         b) python3 oracle_bq_converter.py <gcs_json_config_file_path> <project_name>    
 
-    b) Using VM:
-         Place the file in a VM and execute the python script as below
-         #Command to run the script
-         #python3 oracle_bq_converter.py <json_config_file_path> <project_name>    
-         #eg) python3 oracle_bq_converter.py gs://orcl-ddl-migration/orcl-ddl-extraction-config-replica.json helix-poc
 5. Once done, verify that the converted ddl is placed in the specified gcs path
 
 

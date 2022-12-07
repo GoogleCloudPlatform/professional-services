@@ -15,17 +15,10 @@ Steps to run this script:
 
 1.  Make Sure the pre-requsitie of the script (oracle_bq_converter.py) is met.
  
-2. After completing the above steps, the script can be run using two methods:
+2. After completing the above steps, the script can be run as
 
-    a) Using Composer:
-          Trigger the dag Oracle_BQ_DDL_Migration
+         a) pip install -r requirements.txt
+		 b) python3 bq_table_creator.py <gcs_json_config_file_path> <project_name>    
 
-    b) Using VM:
-         Place the file in a VM and execute the python script as below
-         #Command to run the script
-		 #python3 bq_table_creator.py <json_config_file_path> <project_name>    
-		 # eg) python3 bq_table_creator.py gs://orcl-ddl-migration/orcl-ddl-extraction-config-replica.json helix-poc
-		 # eg) python3 bq_table_creator.py gs://orcl-ddl-migration/orcl-ddl-extraction-config-cdc.json helix-poc
-
-5. Once done, verify that the bigquery tables are created in the specified dataset and the final DDL is placed in the specified gcs path
+3. Once done, verify that the bigquery tables are created in the specified dataset and the final DDL is placed in the specified gcs path
 
