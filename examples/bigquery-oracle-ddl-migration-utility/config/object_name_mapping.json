@@ -1,0 +1,15 @@
+{
+        "name_map": [
+        {
+        "source": {
+            "type_": "SCHEMA",
+            "database": "helix-poc",
+            "schema": "SIEBEL",
+        },
+        "target": {
+            "database": "helix-poc",
+            "schema": "SIEBEL_TGT",
+        }
+        }                       
+        ]
+    }
