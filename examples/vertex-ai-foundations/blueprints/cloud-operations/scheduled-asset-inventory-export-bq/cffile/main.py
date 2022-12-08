@@ -20,10 +20,8 @@ Scheduler trigger to create a JSON of IP to hostname mappings from BigQuery.
 '''
 
 import base64
-import datetime
 import json
 import logging
-import os
 import warnings
 
 from google.api_core.exceptions import GoogleAPIError

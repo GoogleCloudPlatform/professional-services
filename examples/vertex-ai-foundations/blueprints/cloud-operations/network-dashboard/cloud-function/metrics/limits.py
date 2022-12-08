@@ -67,10 +67,10 @@ def get_quota_project_limit(config, regions=["global"]):
         quotas[project][region] = get_quotas_dict(response['quotas'])
 
     return quotas
-  except exceptions.PermissionDenied as err:
+  except exceptions.PermissionDenied:
     print(
         f"Warning: error reading quotas for {project}. " +
-        f"This can happen if you don't have permissions on the project, for example if the project is in another organization or a Google managed project"
+        "This can happen if you don't have permissions on the project, for example if the project is in another organization or a Google managed project"
     )
   return None
 
@@ -148,10 +148,10 @@ def get_quota_current_limit(config, project_link, metric_name):
         })
     results_list = list(results)
     return results_list
-  except exceptions.PermissionDenied as err:
+  except exceptions.PermissionDenied:
     print(
         f"Warning: error reading quotas for {project_link}. " +
-        f"This can happen if you don't have permissions on the project, for example if the project is in another organization or a Google managed project"
+        "This can happen if you don't have permissions on the project, for example if the project is in another organization or a Google managed project"
     )
   return None
 

@@ -23,7 +23,6 @@ import base64
 import datetime
 import json
 import logging
-import os
 import warnings
 
 import click
@@ -100,7 +99,7 @@ def _main(project=None, bq_project=None, bq_dataset=None, bq_table=None, bq_tabl
   output_config.bigquery_destination.separate_tables_per_asset_type = True
   output_config.bigquery_destination.force = True
   try:
-    response = client.export_assets(
+    client.export_assets(
         request={
             'parent': target_node,
             'read_time': read_time,

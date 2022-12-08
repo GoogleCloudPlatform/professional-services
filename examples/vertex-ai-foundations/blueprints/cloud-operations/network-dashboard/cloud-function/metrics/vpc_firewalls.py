@@ -18,14 +18,12 @@ import re
 import time
 
 from collections import defaultdict
-from pydoc import doc
-from collections import defaultdict
 from google.protobuf import field_mask_pb2
-from . import metrics, networks, limits
+from . import metrics, networks
 
 
 def get_firewalls_dict(config: dict):
-  '''
+    '''
     Calls the Asset Inventory API to get all VPC Firewall Rules under the GCP organization.
 
       Parameters:
@@ -34,39 +32,42 @@ def get_firewalls_dict(config: dict):
         firewalls_dict (dictionary of dictionary: int): Keys are projects, subkeys are networks, values count #of VPC Firewall Rules
   '''
 
-  firewalls_dict = defaultdict(int)
-  read_mask = field_mask_pb2.FieldMask()
-  read_mask.FromJsonString('name,versionedResources')
+    firewalls_dict = defaultdict(int)
+    read_mask = field_mask_pb2.FieldMask()
+    read_mask.FromJsonString('name,versionedResources')
 
-  response = config["clients"]["asset_client"].search_all_resources(
-      request={
-          "scope": f"organizations/{config['organization']}",
-          "asset_types": ["compute.googleapis.com/Firewall"],
-          "read_mask": read_mask,
-          "page_size": config["page_size"],
-      })
-  for resource in response:
-    project_id = re.search("(compute.googleapis.com/projects/)([\w\-\d]+)",
-                           resource.name).group(2)
-    network_name = ""
-    for versioned in resource.versioned_resources:
-      for field_name, field_value in versioned.resource.items():
-        if field_name == "network":
-          network_name = re.search("[a-z0-9\-]*$", field_value).group(0)
-          firewalls_dict[project_id] = defaultdict(
-              int
-          ) if not project_id in firewalls_dict else firewalls_dict[project_id]
-          firewalls_dict[project_id][
-              network_name] = 1 if not network_name in firewalls_dict[
-                  project_id] else firewalls_dict[project_id][network_name] + 1
-          break
-      break
-  return firewalls_dict
+    response = config["clients"]["asset_client"].search_all_resources(
+        request={
+            "scope": f"organizations/{config['organization']}",
+            "asset_types": ["compute.googleapis.com/Firewall"],
+            "read_mask": read_mask,
+            "page_size": config["page_size"],
+        })
+    for resource in response:
+        project_id = re.search("(compute.googleapis.com/projects/)([\w\-\d]+)",
+                               resource.name).group(2)
+        network_name = ""
+        for versioned in resource.versioned_resources:
+            for field_name, field_value in versioned.resource.items():
+                if field_name == "network":
+                    network_name = re.search("[a-z0-9\-]*$",
+                                             field_value).group(0)
+                    firewalls_dict[project_id] = defaultdict(
+                        int
+                    ) if not project_id in firewalls_dict else firewalls_dict[
+                        project_id]
+                    firewalls_dict[project_id][
+                        network_name] = 1 if not network_name in firewalls_dict[
+                            project_id] else firewalls_dict[project_id][
+                                network_name] + 1
+                    break
+            break
+    return firewalls_dict
 
 
 def get_firewalls_data(config, metrics_dict, project_quotas_dict,
                        firewalls_dict):
-  '''
+    '''
     Gets the data for VPC Firewall Rules per VPC Network and writes it to the metric defined in vpc_firewalls_metric.
 
       Parameters:
@@ -78,45 +79,54 @@ def get_firewalls_data(config, metrics_dict, project_quotas_dict,
         None
   '''
 
-  timestamp = time.time()
-  for project_id in config["monitored_projects"]:
+    timestamp = time.time()
+    for project_id in config["monitored_projects"]:
 
-    current_quota_limit = project_quotas_dict[project_id]['global']["firewalls"]
-    if current_quota_limit is None:
-      print(
-          f"Could not determine VPC firewal rules  metric for projects/{project_id} due to missing quotas"
-      )
-      continue
+        current_quota_limit = project_quotas_dict[project_id]['global'][
+            "firewalls"]
+        if current_quota_limit is None:
+            print(
+                f"Could not determine VPC firewal rules  metric for projects/{project_id} due to missing quotas"
+            )
+            continue
 
-    network_dict = networks.get_networks(config, project_id)
+        network_dict = networks.get_networks(config, project_id)
 
-    project_usage = 0
-    for net in network_dict:
-      usage = 0
-      if project_id in firewalls_dict and net['network_name'] in firewalls_dict[
-          project_id]:
-        usage = firewalls_dict[project_id][net['network_name']]
-        project_usage += usage
-      metric_labels = {
-          'project': project_id,
-          'network_name': net['network_name']
-      }
-      metrics.append_data_to_series_buffer(
-          config,
-          metrics_dict["metrics_per_project"][f"firewalls"]["usage"]["name"],
-          usage, metric_labels, timestamp=timestamp)
+        project_usage = 0
+        for net in network_dict:
+            usage = 0
+            if project_id in firewalls_dict and net[
+                    'network_name'] in firewalls_dict[project_id]:
+                usage = firewalls_dict[project_id][net['network_name']]
+                project_usage += usage
+            metric_labels = {
+                'project': project_id,
+                'network_name': net['network_name']
+            }
+            metrics.append_data_to_series_buffer(
+                config,
+                metrics_dict["metrics_per_project"]["firewalls"]["usage"]
+                ["name"],
+                usage,
+                metric_labels,
+                timestamp=timestamp)
 
-    metric_labels = {'project': project_id}
-    # firewall quotas are per project, not per single VPC
-    metrics.append_data_to_series_buffer(
-        config,
-        metrics_dict["metrics_per_project"][f"firewalls"]["limit"]["name"],
-        current_quota_limit['limit'], metric_labels, timestamp=timestamp)
-    metrics.append_data_to_series_buffer(
-        config, metrics_dict["metrics_per_project"][f"firewalls"]["utilization"]
-        ["name"], project_usage / current_quota_limit['limit']
-        if current_quota_limit['limit'] != 0 else 0, metric_labels,
-        timestamp=timestamp)
-    print(
-        f"Buffered number of VPC Firewall Rules to metric for projects/{project_id}"
-    )
+        metric_labels = {'project': project_id}
+        # firewall quotas are per project, not per single VPC
+        metrics.append_data_to_series_buffer(
+            config,
+            metrics_dict["metrics_per_project"]["firewalls"]["limit"]["name"],
+            current_quota_limit['limit'],
+            metric_labels,
+            timestamp=timestamp)
+        metrics.append_data_to_series_buffer(
+            config,
+            metrics_dict["metrics_per_project"]["firewalls"]["utilization"]
+            ["name"],
+            project_usage / current_quota_limit['limit']
+            if current_quota_limit['limit'] != 0 else 0,
+            metric_labels,
+            timestamp=timestamp)
+        print(
+            f"Buffered number of VPC Firewall Rules to metric for projects/{project_id}"
+        )

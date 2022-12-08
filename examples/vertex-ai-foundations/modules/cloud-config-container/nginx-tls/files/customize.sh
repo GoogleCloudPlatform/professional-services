@@ -14,7 +14,7 @@
 # limitations under the License.
 
 FQDN=$(curl -s -H "Metadata-Flavor: Google" http://metadata/computeMetadata/v1/instance/hostname)
-HOSTNAME=$(echo $FQDN | cut -d"." -f1)
-openssl req -new -newkey rsa:4096 -days 365 -nodes -x509 -subj /CN=$HOSTNAME/ -addext "subjectAltName = DNS:$FQDN" -keyout /etc/ssl/self-signed.key -out /etc/ssl/self-signed.crt
+HOSTNAME=$(echo "$FQDN" | cut -d"." -f1)
+openssl req -new -newkey rsa:4096 -days 365 -nodes -x509 -subj /CN="$HOSTNAME"/ -addext "subjectAltName = DNS:$FQDN" -keyout /etc/ssl/self-signed.key -out /etc/ssl/self-signed.crt
 chgrp nginx /etc/ssl/self-signed.key -out /etc/ssl/self-signed.crt
 sed -i "s/HOSTNAME/${HOSTNAME}/" /etc/nginx/conf.d/default.conf

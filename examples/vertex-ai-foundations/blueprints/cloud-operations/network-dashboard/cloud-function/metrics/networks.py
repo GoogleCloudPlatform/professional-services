@@ -14,7 +14,6 @@
 # limitations under the License.
 #
 
-from code import interact
 from collections import defaultdict
 from google.protobuf import field_mask_pb2
 from googleapiclient import errors
@@ -112,7 +111,7 @@ def get_network_id(config, project_id, network_name):
     if err.resp.status == http.HTTPStatus.FORBIDDEN:
       print(
           f"Warning: error reading networks for {project_id}. " +
-          f"This can happen if you don't have permissions on the project, for example if the project is in another organization or a Google managed project"
+          "This can happen if you don't have permissions on the project, for example if the project is in another organization or a Google managed project"
       )
     else:
       print(f"Warning: error reading networks for {project_id}: {err}")

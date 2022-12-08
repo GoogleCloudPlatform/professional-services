@@ -16,7 +16,6 @@
 
 import time
 
-from code import interact
 from collections import defaultdict
 from . import metrics, networks, limits
 

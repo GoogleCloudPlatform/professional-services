@@ -22,8 +22,8 @@ set -o errexit
 
 IP=$(which ip)
 
-PLUTO_MARK_OUT_ARR=(${PLUTO_MARK_OUT//// })
-PLUTO_MARK_IN_ARR=(${PLUTO_MARK_IN//// })
+PLUTO_MARK_OUT_ARR=("${PLUTO_MARK_OUT//// }")
+PLUTO_MARK_IN_ARR=("${PLUTO_MARK_IN//// }")
 
 VTI_TUNNEL_ID=${1}
 VTI_REMOTE=${2}
@@ -38,23 +38,23 @@ VTI_MTU=$((GCP_MTU-73))
 
 case "${PLUTO_VERB}" in
     up-client)
-        sudo ${IP} link add ${VTI_IF} type vti local ${PLUTO_ME} remote ${PLUTO_PEER} okey ${PLUTO_MARK_OUT_ARR[0]} ikey ${PLUTO_MARK_IN_ARR[0]}
-        sudo ${IP} addr add ${VTI_LOCAL} remote ${VTI_REMOTE} dev "${VTI_IF}"
-        sudo ${IP} link set ${VTI_IF} up mtu ${VTI_MTU}
+        sudo "${IP}" link add "${VTI_IF}" type vti local "${PLUTO_ME}" remote "${PLUTO_PEER}" okey "${PLUTO_MARK_OUT_ARR[0]}" ikey "${PLUTO_MARK_IN_ARR[0]}"
+        sudo "${IP}" addr add "${VTI_LOCAL}" remote "${VTI_REMOTE}" dev "${VTI_IF}"
+        sudo "${IP}" link set "${VTI_IF}" up mtu "${VTI_MTU}"
 
         # Disable IPSEC Policy
-        sudo /sbin/sysctl -w net.ipv4.conf.${VTI_IF}.disable_policy=1
+        sudo /sbin/sysctl -w net.ipv4.conf "${VTI_IF}".disable_policy=1
 
         # Enable loosy source validation, if possible. Otherwise disable validation.
-        sudo /sbin/sysctl -w net.ipv4.conf.${VTI_IF}.rp_filter=2 || sysctl -w net.ipv4.conf.${VTI_IF}.rp_filter=0
+        sudo /sbin/sysctl -w net.ipv4.conf "${VTI_IF}".rp_filter=2 || sysctl -w net.ipv4.conf "${VTI_IF}".rp_filter=0
 
         # If you would like to use VTI for policy-based you shoud take care of routing by yourselv, e.x.
         if [[ "${PLUTO_PEER_CLIENT}" != "0.0.0.0/0" ]]; then
-            ${IP} r add "${PLUTO_PEER_CLIENT}" dev "${VTI_IF}"
+            "${IP}" r add "${PLUTO_PEER_CLIENT}" dev "${VTI_IF}"
         fi
         ;;
     down-client)
-        sudo ${IP} tunnel del "${VTI_IF}"
+        sudo "${IP}" tunnel del "${VTI_IF}"
         ;;
 esac
 
@@ -62,5 +62,5 @@ esac
 sudo /sbin/sysctl -w net.ipv4.ip_forward=1
 
 # Disable IPSEC Encryption on local net
-sudo /sbin/sysctl -w net.ipv4.conf.${LOCAL_IF}.disable_xfrm=1
-sudo /sbin/sysctl -w net.ipv4.conf.${LOCAL_IF}.disable_policy=1
+sudo /sbin/sysctl -w net.ipv4.conf "${LOCAL_IF}".disable_xfrm=1
+sudo /sbin/sysctl -w net.ipv4.conf "${LOCAL_IF}".disable_policy=1

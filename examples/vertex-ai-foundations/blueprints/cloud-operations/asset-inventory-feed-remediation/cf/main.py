@@ -42,7 +42,6 @@ import binascii
 import json
 import logging
 import re
-import sys
 import time
 
 from googleapiclient import discovery

@@ -14,8 +14,7 @@
 # limitations under the License.
 # CFv2 define whether to use Cloud function 2nd generation or 1st generation
 
-import re
-from distutils.command.config import config
+#from distutils.command.config import config
 import os
 import time
 from google.cloud import monitoring_v3, asset_v1

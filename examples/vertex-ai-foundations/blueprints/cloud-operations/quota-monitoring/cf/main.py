@@ -20,7 +20,6 @@ can be used to set alert policies or create charts.
 """
 
 import base64
-import datetime
 import json
 import logging
 import os
@@ -30,7 +29,7 @@ import warnings
 import click
 
 from google.api_core.exceptions import GoogleAPIError
-from google.api import label_pb2 as ga_label
+#from google.api import label_pb2 as ga_label
 from google.api import metric_pb2 as ga_metric
 from google.cloud import monitoring_v3
 
@@ -214,7 +213,7 @@ def _main(monitoring_project, gce_project=None, gce_region=None, verbose=False,
         quotas.append((project, region, quota))
   client, i = monitoring_v3.MetricServiceClient(), 0
 
-  x = len(quotas)
+  #x = len(quotas)
   while i < len(quotas):
     series = sum(
         [_quota_to_series_triplet(*q) for q in quotas[i:i + _BATCH_SIZE]], [])

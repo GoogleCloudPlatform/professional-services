@@ -118,7 +118,7 @@ def compute_subnet_utilization(config, all_subnets_dict):
           # Network self link:
           # https://www.googleapis.com/compute/v1/projects/<project_id>/global/networks/<network_name>
           project_id = response_dict['network'].split('/')[6]
-          network_name = response_dict['network'].split('/')[-1]
+          #network_name = response_dict['network'].split('/')[-1]
 
           all_subnets_dict[project_id][f"{subnet_region}/{subnet_name}"][
               'used_ip_addresses'] += 1
@@ -180,11 +180,11 @@ def compute_subnet_utilization(config, all_subnets_dict):
     purpose = ""
     status = ""
     project_id = ""
-    network_name = ""
+#    network_name = ""
     subnet_name = ""
     subnet_region = ""
     address = ""
-    prefixLength = ""
+#    prefixLength = ""
     for versioned in asset.versioned_resources:
       for field_name, field_value in versioned.resource.items():
         if field_name == 'purpose':
@@ -196,13 +196,13 @@ def compute_subnet_utilization(config, all_subnets_dict):
         elif field_name == 'address':
           address = field_value
         elif field_name == 'network':
-          network_name = field_value.split('/')[-1]
+#          network_name = field_value.split('/')[-1]
           project_id = field_value.split('/')[6]
         elif field_name == 'subnetwork':
           subnet_name = field_value.split('/')[-1]
           project_id = field_value.split('/')[6]
-        elif field_name == 'prefixLength':
-          prefixLength = field_value
+#        elif field_name == 'prefixLength':
+#          prefixLength = field_value
 
     # Rserved IP addresses for GCE instances or PSC Forwarding Rule PENDING state
     if purpose == "GCE_ENDPOINT" and status == "RESERVED":

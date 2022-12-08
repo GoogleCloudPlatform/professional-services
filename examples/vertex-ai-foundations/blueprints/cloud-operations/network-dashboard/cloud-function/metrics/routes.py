@@ -190,7 +190,6 @@ def get_static_routes_dict(config):
       routes_per_vpc_dict (dictionary of string: int): Keys are the network links and values are the number of custom static routes per network.
   '''
   routes_per_vpc_dict = defaultdict()
-  usage_dict = defaultdict()
 
   read_mask = field_mask_pb2.FieldMask()
   read_mask.FromJsonString('name,versionedResources')

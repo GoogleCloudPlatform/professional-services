@@ -16,18 +16,18 @@
 # Load The Dependencies
 # --------------------------------------------------------------------------------
 
-import csv
+#import csv
 import datetime
-import io
+#import io
 import json
-import logging
+#import logging
 import os
 
 from airflow import models
 from airflow.providers.google.cloud.operators.dataflow import DataflowTemplatedJobStartOperator
 from airflow.operators import dummy
-from airflow.providers.google.cloud.operators.bigquery import  BigQueryInsertJobOperator, BigQueryUpsertTableOperator, BigQueryUpdateTableSchemaOperator
-from airflow.utils.task_group import TaskGroup
+from airflow.providers.google.cloud.operators.bigquery import  BigQueryInsertJobOperator
+#from airflow.utils.task_group import TaskGroup
 
 # --------------------------------------------------------------------------------
 # Set variables - Needed for the DEMO

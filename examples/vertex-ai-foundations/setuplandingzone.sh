@@ -1,18 +1,20 @@
 #!/bin/bash
 
 # These variables should be set in landingzone.conf
-GCP_ORG_DOMAIN=''
-GCP_BILLING_ID=''
-GCP_PROJ_PREFIX=''
-FAST_CONFIG_DIR=''
-source ./landingzone.conf
+export GCP_ORG_DOMAIN=''
+export GCP_BILLING_ID=''
+export GCP_PROJ_PREFIX=''
+export FAST_CONFIG_DIR=''
+#source ./landingzone.conf
 
 # set variable for current logged in user
-export FAST_BU=$(gcloud config list --format 'value(core.account)')
+FAST_BU=$(gcloud config list --format 'value(core.account)')
+export FAST_BU
 
 # find and set your org id
-gcloud organizations list --filter display_name:$GCP_ORG_DOMAIN
-export FAST_ORG_ID=$( gcloud organizations list --filter display_name:vertexai --format='value(name)' )
+gcloud organizations list --filter display_name:"$GCP_ORG_DOMAIN"
+FAST_ORG_ID=$( gcloud organizations list --filter display_name:vertexai --format='value(name)' )
+export FAST_ORG_ID
 
 echo "Found GCP Org ID: $FAST_ORG_ID"
 
@@ -22,15 +24,15 @@ export FAST_ROLES="roles/billing.admin roles/logging.admin \
 
 echo "Adding roles..."
 for role in $FAST_ROLES; do
-  gcloud organizations add-iam-policy-binding $FAST_ORG_ID \
-    --member user:$FAST_BU --role $role
+  gcloud organizations add-iam-policy-binding "$FAST_ORG_ID" \
+    --member user:"$FAST_BU" --role "$role"
 done
 
 echo "Setting up Billing..."
 
 export FAST_BILLING_ACCOUNT_ID=$GCP_BILLING_ID
-gcloud beta billing accounts add-iam-policy-binding $FAST_BILLING_ACCOUNT_ID \
-  --member user:$FAST_BU --role roles/billing.admin
+gcloud beta billing accounts add-iam-policy-binding "$FAST_BILLING_ACCOUNT_ID" \
+  --member user:"$FAST_BU" --role roles/billing.admin
 
 # TODO
 # Create these groups in Workspace:
@@ -55,7 +57,7 @@ gcloud auth application-default login
 #########
 # Stage 0
 
-cd 00-bootstrap
+cd 00-bootstrap || exit
 
 #terraform init
 #terraform plan -input=false -out bootstrap.tfplan
@@ -68,11 +70,11 @@ terraform init -migrate-state
 
 # Remove bootstrap user
 terraform apply
-cd ../
+cd ../ || exit
 
 #########
 # Stage 1
-cd 01-resourcemanager
+cd 01-resourcemanager || exit
 
 # Link configuration files
 ln -s ../fast-config/tfvars/globals.auto.tfvars.json .
@@ -89,11 +91,11 @@ terraform apply
 terraform output -json providers | jq -r '.["02-networking"]' > ../02-networking-peering/providers.tf
 terraform output -json providers | jq -r '.["02-security"]' > ../02-security/providers.tf
 
-cd ../
+cd ../ || exit
 
 #########
 # Stage 2 - Networking
-cd 02-networking
+cd 02-networking || exit
 
 # Don't need this, did the tf output ... above
 # ln -s ../fast-config/providers/02-networking-providers.tf .
@@ -107,11 +109,11 @@ ln -s ../fast-config/tfvars/01-resman.auto.tfvars.json .
 #gcloud auth application-default login
 terraform init
 terraform apply
-cd ../
+cd ../ || exit
 
 #########
 # Stage 2 - Security
-cd 02-security
+cd 02-security || exit
 
 # Don't need this, did the tf output ... above
 # ln -s ../fast-config/providers/02-networking-providers.tf .
@@ -125,11 +127,11 @@ cp ../00-bootstrap/terraform.tfvars .
 #gcloud auth application-default login
 terraform init
 terraform apply
-cd ../
+cd ../ || exit
 
 #########
 # Stage 3.1 - Project Factory for Dev env
-cd 03-project-factory/dev
+cd 03-project-factory/dev || exit
 
 
 rm -f 00-bootstrap.auto.tfvars.json  01-resman.auto.tfvars.json  02-networking.auto.tfvars.json  03-project-factory-dev-providers.tf  globals.auto.tfvars.json 
@@ -140,26 +142,28 @@ ln -s ../../fast-config/providers/03-project-factory-dev-providers.tf .
 ln -s ../../fast-config/tfvars/globals.auto.tfvars.json .
 
 echo "Getting folder info for VertexAI projects..."
-DEV_FOLDER_ID=$(cat fast-config/tfvars/01-resman.auto.tfvars.json | jq '.folder_ids.dev')
-PROD_FOLDER_ID=$(cat fast-config/tfvars/01-resman.auto.tfvars.json | jq '.folder_ids.prod')
-sed -i '' s^%DEV_FOLDER_ID%^$DEV_FOLDER_ID^g 03-project-factory/dev/data/projects/vertexai1.yaml
-sed -i '' s^%PROD_FOLDER_ID%^$PROD_FOLDER_ID^g 03-project-factory/dev/data/projects/vertexai1.yaml
+#DEV_FOLDER_ID=$(cat fast-config/tfvars/01-resman.auto.tfvars.json | jq '.folder_ids.dev')
+#PROD_FOLDER_ID=$(cat fast-config/tfvars/01-resman.auto.tfvars.json | jq '.folder_ids.prod')
+DEV_FOLDER_ID=$(jq '.folder_ids.dev' fast-config/tfvars/01-resman.auto.tfvars.json)
+PROD_FOLDER_ID=$(jq '.folder_ids.prod' fast-config/tfvars/01-resman.auto.tfvars.json)
+sed -i '' s^%DEV_FOLDER_ID%^"$DEV_FOLDER_ID"^g 03-project-factory/dev/data/projects/vertexai1.yaml
+sed -i '' s^%PROD_FOLDER_ID%^"$PROD_FOLDER_ID"^g 03-project-factory/dev/data/projects/vertexai1.yaml
 
 
 echo "Configuring $VERTEXAI_DEV_GROUP for VertexAI dev project..."
-sed -i '' s^%VERTEXAI_DEV_GROUP%^$VERTEXAI_DEV_GROUP^g 03-project-factory/dev/data/projects/vertexai1.yaml
+sed -i '' s^%VERTEXAI_DEV_GROUP%^"$VERTEXAI_DEV_GROUP"^g 03-project-factory/dev/data/projects/vertexai1.yaml
 echo "Configuring $VERTEXAI_PROD_GROUP for VertexAI prod project..."
-sed -i '' s^%VERTEXAI_PROD_GROUP%^$VERTEXAI_PROD_GROUP^g 03-project-factory/prod/data/projects/vertexai1.yaml
+sed -i '' s^%VERTEXAI_PROD_GROUP%^"$VERTEXAI_PROD_GROUP"^g 03-project-factory/prod/data/projects/vertexai1.yaml
 
 # IF not current...
 #gcloud auth application-default login
 terraform init
 terraform apply
-cd ../
+cd ../ || exit
 
 #########
 # Stage 4.1 - Project Factory for Prod env
-cd 03-project-factory/prod
+cd 03-project-factory/prod || exit
 
 rm -f 00-bootstrap.auto.tfvars.json  01-resman.auto.tfvars.json  02-networking.auto.tfvars.json  03-project-factory-prod-providers.tf  globals.auto.tfvars.json 
 ln -s ../../fast-config/tfvars/00-bootstrap.auto.tfvars.json .
@@ -169,19 +173,19 @@ ln -s ../../fast-config/providers/03-project-factory-prod-providers.tf .
 ln -s ../../fast-config/tfvars/globals.auto.tfvars.json .
 
 echo "Getting folder info for VertexAI projects..."
-DEV_FOLDER_ID=$(cat fast-config/tfvars/01-resman.auto.tfvars.json | jq '.folder_ids.dev')
-PROD_FOLDER_ID=$(cat fast-config/tfvars/01-resman.auto.tfvars.json | jq '.folder_ids.prod')
-sed -i '' s^%DEV_FOLDER_ID%^$DEV_FOLDER_ID^g 03-project-factory/dev/data/projects/vertexai1.yaml
-sed -i '' s^%PROD_FOLDER_ID%^$PROD_FOLDER_ID^g 03-project-factory/dev/data/projects/vertexai1.yaml
+DEV_FOLDER_ID=$(jq '.folder_ids.dev' fast-config/tfvars/01-resman.auto.tfvars.json)
+PROD_FOLDER_ID=$(jq '.folder_ids.prod' fast-config/tfvars/01-resman.auto.tfvars.json)
+sed -i '' s^%DEV_FOLDER_ID%^"$DEV_FOLDER_ID"^g 03-project-factory/dev/data/projects/vertexai1.yaml
+sed -i '' s^%PROD_FOLDER_ID%^"$PROD_FOLDER_ID"^g 03-project-factory/dev/data/projects/vertexai1.yaml
 
 echo "Configuring $VERTEXAI_DEV_GROUP for VertexAI dev project..."
-sed -i '' s^%VERTEXAI_DEV_GROUP%^$VERTEXAI_DEV_GROUP^g 03-project-factory/dev/data/projects/vertexai1.yaml
+sed -i '' s^%VERTEXAI_DEV_GROUP%^"$VERTEXAI_DEV_GROUP"^g 03-project-factory/dev/data/projects/vertexai1.yaml
 echo "Configuring $VERTEXAI_PROD_GROUP for VertexAI prod project..."
-sed -i '' s^%VERTEXAI_PROD_GROUP%^$VERTEXAI_PROD_GROUP^g 03-project-factory/prod/data/projects/vertexai1.yaml
+sed -i '' s^%VERTEXAI_PROD_GROUP%^"$VERTEXAI_PROD_GROUP"^g 03-project-factory/prod/data/projects/vertexai1.yaml
 
 # IF not current...
 #gcloud auth application-default login
 terraform init
 terraform apply
-cd ../
+cd ../ || exit
 

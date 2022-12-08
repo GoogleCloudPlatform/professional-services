@@ -14,7 +14,6 @@
 # limitations under the License.
 #
 
-from curses import KEY_MARK
 import re
 import time
 import yaml

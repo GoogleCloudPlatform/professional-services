@@ -19,4 +19,4 @@ def main(request):
   elif request_json and 'message' in request_json:
     return request_json['message']
   else:
-    return f'Hello World!!1\n'
+    return 'Hello World!!1\n'

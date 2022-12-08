@@ -23,11 +23,11 @@ files, that create the infrastructure for a cluster.
 It helps supporting features like Shared VPC, CMEK encryption for disks, etc.
 '''
 
-import glob
+#import glob
 import logging
 import os
 import pathlib
-import re
+#import re
 import subprocess
 import sys
 

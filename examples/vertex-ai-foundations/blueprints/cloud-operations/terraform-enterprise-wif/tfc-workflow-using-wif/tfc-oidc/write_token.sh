@@ -16,8 +16,9 @@
 # Exit if any of the intermediate steps fail
 set -e
 
-FILENAME=$@
+#FILENAME=$@
+FILENAME=$*
 
-echo $TFC_WORKLOAD_IDENTITY_TOKEN > $FILENAME
+echo "$TFC_WORKLOAD_IDENTITY_TOKEN" > "$FILENAME"
 
 echo -n "{\"file\":\"${FILENAME}\"}"
