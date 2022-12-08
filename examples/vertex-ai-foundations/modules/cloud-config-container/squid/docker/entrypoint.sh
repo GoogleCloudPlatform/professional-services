@@ -35,20 +35,20 @@ create_log_dir
 create_cache_dir
 
 # allow arguments to be passed to squid
+# shellcheck disable=SC2230
 if [[ ${1:0:1} = '-' ]]; then
   EXTRA_ARGS="$*"
   set --
-# shellcheck disable=SC2230
 elif [[ ${1} == squid || ${1} == $(which squid) ]]; then
   EXTRA_ARGS="${*:2}"
   set --
 fi
 
 # default behaviour is to launch squid
+# shellcheck disable=SC2230
 if [[ -z ${1} ]]; then
   if [[ ! -d "${SQUID_CACHE_DIR}"/00 ]]; then
     echo "Initializing cache..."
-    # shellcheck disable=SC2230
     $(which squid) -N -f /etc/squid/squid.conf -z
   fi
   echo "Starting squid..."
