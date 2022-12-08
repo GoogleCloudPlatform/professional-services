@@ -1,0 +1,86 @@
+# Copyright 2022 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+- name: Install Windows features 
+  ansible.windows.win_feature:
+    name: "{{ item.feature }}"
+    include_mamangement_tools: "{{ item.include_management_tools }}"        
+    state: present
+  with_items:
+    - { "feature": "RSAT-AD-Tools", "include_management_tools": false }
+    - { "feature": "GPMC", "include_management_tools": false }
+    - { "feature": "RSAT-DNS-Server", "include_management_tools": false }
+    - { "feature": "ADFS-Federation", "include_management_tools": true }
+    - { "feature": "RSAT-AD-PowerShell", "include_management_tools": false }
+    - { "feature": "RSAT-ADDS-Tools", "include_management_tools": false }
+
+- name: Check if SetupAdmin password has already been reset
+  stat:
+    path: ~/.setupadmin-password.txt
+  register: setupadmin_password_file_check
+  delegate_to: localhost
+
+- name: Set AD SetupAdmin password fact
+  set_fact: 
+    setupadmin_password: "{{ lookup('file', '~/.setupadmin-password.txt') }}"
+  no_log: true    
+  when: setupadmin_password_file_check.stat.exists
+  delegate_to: localhost
+
+- name: Reset AD deletegated admin password
+  shell: >
+    gcloud active-directory domains reset-admin-password {{ ad_dns_domain_name }} 
+    --project={{ project_id }} 
+    --quiet 
+    --format "value(password)"
+  register: setupadmin_password_reset
+  no_log: yes
+  when: not setupadmin_password_file_check.stat.exists
+  delegate_to: localhost
+
+- name: Set AD SetupAdmin password fact
+  set_fact: 
+    setupadmin_password: "{{ setupadmin_password_reset.stdout }}"
+  no_log: yes    
+  when: not setupadmin_password_file_check.stat.exists
+
+- name: Creating a file setupadmin password
+  copy:
+    dest: ~/.setupadmin-password.txt
+    content: "{{ setupadmin_password }}"
+  when: not setupadmin_password_file_check.stat.exists
+  delegate_to: localhost
+
+- name: Add computer to domain 
+  ansible.windows.win_domain_membership:
+    dns_domain_name: "{{ ad_dns_domain_name }}" 
+    domain_admin_user: "SetupAdmin@{{ ad_dns_domain_name }}" 
+    domain_admin_password: "{{ setupadmin_password }}" 
+    state: domain
+  register: domain_state
+
+- name: Restart computer
+  ansible.windows.win_reboot:
+  when: domain_state.reboot_required
+
+- name: Get Domain info
+  community.windows.win_domain_object_info:
+    filter: ObjectClass -eq 'domain'
+    domain_username: "SetupAdmin@{{ ad_dns_domain_name }}" 
+    domain_password: "{{ setupadmin_password }}"
+  register: ad_domain
+  
+- name: Set facts
+  set_fact:
+    cloud_path: "OU=Cloud,{{ ad_domain.objects[0].DistinguishedName }}"

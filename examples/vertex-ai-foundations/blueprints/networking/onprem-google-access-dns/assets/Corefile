@@ -1,0 +1,21 @@
+onprem.example.org {
+  root /etc/coredns
+  hosts onprem.hosts
+  log
+  errors
+}
+gcp.example.org googleapis.com {
+  forward . ${dns_forwarder_address}
+  log
+  errors
+}
+google.internal {
+  hosts {
+    169.254.169.254 metadata.google.internal
+  }
+}
+. {
+  forward . 8.8.8.8
+  log
+  errors
+}
