@@ -20,6 +20,7 @@
 set -o nounset
 set -o errexit
 
+# shellcheck disable=SC2230
 IP=$(which ip)
 
 PLUTO_MARK_OUT_ARR=("${PLUTO_MARK_OUT//// }")
