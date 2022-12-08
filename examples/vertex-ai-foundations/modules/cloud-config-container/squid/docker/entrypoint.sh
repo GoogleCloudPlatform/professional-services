@@ -19,6 +19,8 @@
 
 set -e
 
+# shellcheck disable=SC2230
+
 create_log_dir() {
   mkdir -p "${SQUID_LOG_DIR}"
   chmod -R 755 "${SQUID_LOG_DIR}"
