@@ -1,0 +1,97 @@
+#cloud-config
+
+# Copyright 2022 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# TODO: switch to the gcplogs logging driver, and set driver labels
+
+users:
+- name: squid
+  uid: 2000
+
+write_files:
+  - path: /var/lib/docker/daemon.json
+    permissions: 0644
+    owner: root
+    content: |
+      {
+        "live-restore": true,
+        "storage-driver": "overlay2",
+        "log-opts": {
+          "max-size": "1024m"
+        }
+      }
+
+  - path: /etc/squid/squid.conf
+    permissions: 0644
+    owner: root
+    content: |
+      ${indent(6, squid_config)}
+
+  - path: /etc/squid/allowlist.txt
+    permissions: 0644
+    owner: root
+    content: |
+      ${indent(6, join("\n", allow))}
+
+  - path: /etc/squid/denylist.txt
+    permissions: 0644
+    owner: root
+    content: |
+      ${indent(6, join("\n", deny))}
+
+  - path: /etc/squid/clients.txt
+    permissions: 0644
+    owner: root
+    content: |
+      ${indent(6, join("\n", clients))}
+
+  # squid container service
+  - path: /etc/systemd/system/squid.service
+    permissions: 0644
+    owner: root
+    content: |
+      [Unit]
+      Description=Start squid container
+      After=gcr-online.target docker.socket
+      Wants=gcr-online.target docker.socket docker-events-collector.service
+
+      [Service]
+      Environment="HOME=/home/squid"
+      ExecStartPre=/usr/bin/docker-credential-gcr configure-docker
+      ExecStart=/usr/bin/docker run --rm --name=squid  \
+        %{~ if docker_logging ~}
+        --log-driver=gcplogs \
+        %{~ endif ~}
+        --network host \
+        -v /etc/squid:/etc/squid \
+        gcr.io/pso-cft-fabric/squid:0.10
+      ExecStop=/usr/bin/docker stop squid
+      ExecStopPost=/usr/bin/docker rm squid
+
+  %{ for path, data in files }
+  - path: ${path}
+    owner: ${lookup(data, "owner", "root")}
+    permissions: ${lookup(data, "permissions", "0644")}
+    content: |
+      ${indent(4, data.content)}
+  %{ endfor }
+
+bootcmd:
+  - systemctl start node-problem-detector
+
+runcmd:
+  - iptables -I INPUT 1 -p tcp -m tcp --dport 3128 -m state --state NEW,ESTABLISHED -j ACCEPT
+  - systemctl daemon-reload
+  - systemctl start squid

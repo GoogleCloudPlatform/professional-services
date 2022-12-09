@@ -1,0 +1,25 @@
+# terraform local cache directory
+**/.terraform/*
+
+# terraform state files
+*.tfstate
+*.tfstate.backup
+
+# terraform lock file
+*.terraform.lock.hcl
+
+# terraform variable files
+*.tfvars
+
+# terraform backend configuration files
+backend.tf
+*.tfbackend
+
+# node modules
+**/node_modules/*
+
+# python virtual environment
+**/venv/*
+
+ansible/vars/vars.yaml
+ansible/gssh.sh
