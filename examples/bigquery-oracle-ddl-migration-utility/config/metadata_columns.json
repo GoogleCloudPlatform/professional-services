@@ -13,15 +13,5 @@
     "name": "_metadata_read_method",
     "type": "STRING",
     "mode": "NULLABLE"
-  },
-  {
-    "name": "insertion_time",
-    "type": "TIMESTAMP",
-    "mode": "NULLABLE"
-  },
-  {
-    "name": "DELETE_FLAG",
-    "type": "STRING",
-    "mode": "NULLABLE"
   }
 ]

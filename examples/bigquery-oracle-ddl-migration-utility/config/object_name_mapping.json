@@ -3,12 +3,12 @@
         {
         "source": {
             "type_": "SCHEMA",
-            "database": "helix-poc",
-            "schema": "SIEBEL",
+            "database": "POC",
+            "schema": "ACCOUNT",
         },
         "target": {
-            "database": "helix-poc",
-            "schema": "SIEBEL_TGT",
+            "database": "POC",
+            "schema": "ACCOUNT_TGT",
         }
         }                       
         ]
