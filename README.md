@@ -18,9 +18,6 @@ them to fit your particular use case.
 *   [Audio Content Profiling](examples/ml-audio-content-profiling) - A tool that
     builds a pipeline to scale the process of moderating audio files for
     inappropriate content using machine learning APIs.
-*   [Cloud Audit Log Samples](examples/audit-log-examples/) - A sample
-    collection of Audit Logs for Users and Customers to better the structure,
-    contents, and values contained in various log events.
 *   [BigQuery Analyze Realtime Reddit Data](examples/bigquery-analyze-realtime-reddit-data/) - 
     Solution to deploy a ([reddit](https://www.reddit.com)) social media data collection
     architecture on Google Cloud Platform.  Analyzes reddit comments in realtime and
@@ -74,20 +71,23 @@ them to fit your particular use case.
     Oracle DDL Migration Utility to migrate the tables schema (DDL) from Oracle DB to BigQuery.
     The utility leverages BigQuery Translation API and offers additional features
     such as adding partitioning, clustering, metadata columns and prefixes to table names.
+*   [Cloud Audit Log Samples](examples/audit-log-examples/) - A sample
+*   collection of Audit Logs for Users and Customers to better the structure,
+    contents, and values contained in various log events.
 *   [Cloud Build with Proxy Running in Background](examples/cloudbuild-with-tcp-proxy) -
     Examples of cloudbuild with docker-compose running tcp proxy in the
     background for all build steps.
+*   [Cloud Composer CI/CD](examples/cloud-composer-cicd) - Examples of using
+    Cloud Build to deploy airflow DAGs to Cloud Composer.
+*   [Cloud Composer Deployment in Shared VPC](examples/composer-shared-vpc) -
+    Terraform code to deploy cloud composer in shared VPC environment.
 *   [Cloud Composer Examples](examples/cloud-composer-examples) - Examples of
     using Cloud Composer, GCP's managed Apache Airflow service.
-*   [Cloud Composer deployment in shared VPC](examples/composer-shared-vpc) -
-    Terraform code to deploy cloud composer in shared VPC environment.
+*   [Cloud Data Fusion Functions and Plugins](examples/cloud-datafusion-functions-plugins) -
+    Examples of Cloud Data Fusion Functions and Plugins.
 *   [Cloud Function Act As](examples/cloud-function-act-as) - Example of
     executing a Cloud Function on behalf and with IAM permissions of the GitHub
     Workload Identity caller.
-*   [Cloud Composer CI/CD](examples/cloud-composer-cicd) - Examples of using
-    Cloud Build to deploy airflow DAGs to Cloud Composer.
-*   [Cloud Data Fusion Functions and Plugins](examples/cloud-datafusion-functions-plugins) -
-    Examples of Cloud Data Fusion Functions and Plugins.
 *   [Cloud Function VM Delete Event Handler Example](examples/gcf-pubsub-vm-delete-event-handler) -
     Solution to automatically delete A records in Cloud DNS when a VM is
     deleted. This solution implements a [Google Cloud Function][gcf]
@@ -115,13 +115,13 @@ them to fit your particular use case.
     Predicting the future energy price based on historical price and weather.
 *   [CloudML Fraud Detection](examples/cloudml-fraud-detection) - Fraud
     detection model for credit-cards transactions.
-*   [CloudML Sentiment Analysis](examples/cloudml-sentiment-analysis) -
-    Sentiment analysis for movie reviews using TensorFlow `RNNEstimator`.
 *   [CloudML Scikit-learn Pipeline](examples/cloudml-sklearn-pipeline) - This is
     a example for building a scikit-learn-based machine learning pipeline
     trainer that can be run on AI Platform. The pipeline can be trained locally
     or remotely on AI platform. The trained model can be further deployed on AI
     platform to serve online traffic.
+*   [CloudML Sentiment Analysis](examples/cloudml-sentiment-analysis) -
+    Sentiment analysis for movie reviews using TensorFlow `RNNEstimator`.
 *   [CloudML TensorFlow Profiling](examples/tensorflow-profiling-examples) -
     TensorFlow profiling examples for training models with CloudML
 *   [Cost Optimization DataStudio Dashboard](examples/cost-optimization-dashboard) -
@@ -217,7 +217,7 @@ them to fit your particular use case.
 *   [Pub/Sub Client Batching Example](examples/pubsub-publish-avro-example) -
     Batching in Pub/Sub's Java client API.
 *   [QAOA](examples/qaoa) - Examples of parsing a max-SAT problem in a
-    proprietary format.
+    proprietary format, for Quantum Approximate Optimization Algorithm (QAOA)
 *   [Redis Cluster on GKE Example](examples/redis-cluster-gke) - Deploying Redis
     cluster on GKE.
 *   [Spanner Interleave Subquery](examples/spanner-interleave-subquery) -
@@ -231,10 +231,10 @@ them to fit your particular use case.
     to write unit tests for TensorFlow ML models.
 *   [Terraform Internal HTTP Load Balancer](examples/terraform-ilb) - Terraform
     example showing how to deploy an internal HTTP load balancer.
+*   [Terraform NetApp CVS](examples/tf-netapp-cvs) - This example shows how to
 *   [Uploading files directly to Google Cloud Storage by using Signed URL](examples/direct-upload-to-gcs) -
     Example architecture to enable uploading files directly to GCS by using
     [Signed URL](https://cloud.google.com/storage/docs/access-control/signed-urls).
-*   [Terraform NetApp CVS](examples/tf-netapp-cvs) - This example shows how to
     deploy NetApp CVS volumes using terraform.
 *   [Vertex AI MLOps Pipeline](examples/vertex_pipeline) - Demonstrates
     end-to-end MLOps process using Vertex AI platform and Smart Analytics
@@ -365,6 +365,8 @@ Platform usage.
     into BigQuery for further analysis.
 *   [GKE Billing Export](tools/gke-billing-export) - Google Kubernetes Engine
     fine grained billing export.
+*   [gmon](tools/gmon/) - A command-line interface (CLI) for Cloud Monitoring
+    written in Python.
 *   [Google Cloud Support Slackbot](tools/google-cloud-support-slackbot) - Slack
     application that pulls Google Cloud support case information via the Cloud
     Support API and pushes the information to Slack
@@ -389,11 +391,14 @@ Platform usage.
     using a customizable score-based method. Also supports database instances.
 *   [IPAM Autopilot](tools/ipam-autopilot) - A simple tool for managing IP
     address ranges for GCP subnets.
-*   [K8S-2-GSM](tools/k8s-2-gsm) - A containerized golang app to migrate Kubernetes secrets to Google Secrets Manger (to leverage [CSI secret driver](https://secrets-store-csi-driver.sigs.k8s.io/)).
-*   [LabelMaker](tools/labelmaker) - A tool that reads key:value pairs from a
+*   [K8S-2-GSM](tools/k8s-2-gsm) - A containerized golang app to migrate Kubernetes
+    secrets to Google Secrets Manger
+    (to leverage [CSI secret driver](https://secrets-store-csi-driver.sigs.k8s.io/)).
+    [LabelMaker](tools/labelmaker) - A tool that reads key:value pairs from a
     json file and labels the running instance and all attached drives
     accordingly.
-*   [Logbucket Global to Regional](tools/logbucket-global-to-regional) - Utility to change _Default sink destination to regional log buckets
+*   [Logbucket Global to Regional](tools/logbucket-global-to-regional) - Utility
+    to change _Default sink destination to regional log buckets
 *   [Machine Learning Auto Exploratory Data Analysis and Feature Recommendation](tools/ml-auto-eda) -
     A tool to perform comprehensive auto EDA, based on which feature
     recommendations are made, and a summary report will be generated.
@@ -413,6 +418,12 @@ Platform usage.
     or GCS objects.
 *   [Quota Manager](tools/quota-manager) - A python module to programmatically
     update GCP service quotas such as bigquery.googleapis.com.
+*   [Quota Monitoring and Alerting](tools/quota-monitoring-alerting) - An
+    easy-to-deploy Data Studio Dashboard with alerting capabilities, showing
+    usage and quota limits in an organization or folder.
+*   [Reddit Comment Streaming](tools/reddit-comment-streaming/) - 
+    Use PRAW, TextBlob, and Google Python API to collect and analyze 
+    reddit comments. Pushes comments to a Google Pub/sub Topic.
 *   [Secret Manager Helper](tools/secret-manager-helper) - A Java library to
     make it easy to replace placeholder strings with Secret Manager secret
     payloads.
@@ -434,6 +445,11 @@ Platform usage.
 *   [STS Job Manager](tools/sts-job-manager/) - A petabyte-scale bucket
     migration tool utilizing
     [Storage Transfer Service](https://cloud.google.com/storage-transfer-service)
+*   [VM Migrator](tools/vm-migrator) - This utility automates migrating Virtual
+    Machine instances within GCP. You can migrate VM's from one zone to another
+    zone/region within the same project or different projects while retaining
+    all the original VM properties like disks, network interfaces, ip, metadata,
+    network tags and much more.
 *   [VPC Flow Logs Analysis](tools/vpc-flowlogs-analysis) - A configurable Log
     sink + BigQuery report that shows traffic attributed to the projects in the
     Shared VPCs.
@@ -443,22 +459,9 @@ Platform usage.
 *   [VPC Flow Logs Top Talkers](tools/vpc-flowlogs-toptalkers) - A configurable
     Log sink + BigQuery view to generate monthly/daily aggregate traffic reports
     per subnet or host, with the configurable labelling of IP ranges and ports.
-*   [VM Migrator](tools/vm-migrator) - This utility automates migrating Virtual
-    Machine instances within GCP. You can migrate VM's from one zone to another
-    zone/region within the same project or different projects while retaining
-    all the original VM properties like disks, network interfaces, ip, metadata,
-    network tags and much more.
 *   [Webhook Ingestion Data Pipeline](tools/webhook-ingestion-pipeline) - A
     deployable app to accept and ingest unauthenticated webhook data to
     BigQuery.
-*   [gmon](tools/gmon/) - A command-line interface (CLI) for Cloud Monitoring
-    written in Python.
-*   [Quota Monitoring and Alerting](tools/quota-monitoring-alerting) - An
-    easy-to-deploy Data Studio Dashboard with alerting capabilities, showing
-    usage and quota limits in an organization or folder.
-*   [reddit Comment Streaming](tools/reddit-comment-streaming/) - 
-    Use PRAW, TextBlob, and Google Python API to collect and analyze 
-    reddit comments. Pushes comments to a Google Pub/sub Topic.
 *   [XSD to BigQuery Schema Generator](tools/xsd-to-bigquery-schema) - A command
     line tool for converting an XSD schema representing deeply nested and
     repeated XML content into a BigQuery compatible table schema represented in
