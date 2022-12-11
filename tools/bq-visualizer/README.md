@@ -164,10 +164,10 @@ such as:
 
 To be able to access the BigQuery REST API you need to have create an OAuth client. Create this in the Google Cloud
 Console under APIs & Services > Credentials.
-When setting up the Client ID the #Authorized JavaScript origins# 
+When setting up the Client ID the Authorized JavaScript origins
 needs to be set to the URL from where the app is downloaded.
 
-And #Authorized redirect URIs# need to be set to:
+And Authorized redirect URIs need to be set to:
 
 *  [download URL] 
 *  [download URL]/ 
