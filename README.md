@@ -463,6 +463,7 @@ Platform usage.
     line tool for converting an XSD schema representing deeply nested and
     repeated XML content into a BigQuery compatible table schema represented in
     JSON.
+*   [Numeric Family Recommender - Oracle](tools/numeric-family-recommender-oracle) - The Numeric Family Recommender is a database script that recommends the best numeric data type for the NUMBER data type when migrating from legacy databases like Oracle to Google Cloud platforms like BigQuery, AlloyDB, Cloud SQL for PostgreSQL, and Google Cloud Storage.
 
 ## Contributing
 
