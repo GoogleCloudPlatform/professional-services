@@ -1,0 +1,6 @@
+oracledb
+google-cloud-storage
+google-cloud-bigquery
+google-cloud-secret-manager
+google-cloud-bigquery-migration
+google-api-core

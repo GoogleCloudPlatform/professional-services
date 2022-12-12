@@ -1,0 +1,49 @@
+# skip boilerplate check
+
+allow-admins:
+  description: Access from the admin subnet to all subnets
+  direction: INGRESS
+  action: allow
+  priority: 1000
+  ranges:
+    - $rfc1918
+  ports:
+    all: []
+  target_resources: null
+  enable_logging: false
+
+allow-healthchecks:
+  description: Enable HTTP and HTTPS healthchecks
+  direction: INGRESS
+  action: allow
+  priority: 1001
+  ranges:
+    - $healthchecks
+  ports:
+    tcp: ["80", "443"]
+  target_resources: null
+  enable_logging: false
+
+allow-ssh-from-iap:
+  description: Enable SSH from IAP
+  direction: INGRESS
+  action: allow
+  priority: 1002
+  ranges:
+    - 35.235.240.0/20
+  ports:
+    tcp: ["22"]
+  target_resources: null
+  enable_logging: false
+
+allow-icmp:
+  description: Enable ICMP
+  direction: INGRESS
+  action: allow
+  priority: 1003
+  ranges:
+    - 0.0.0.0/0
+  ports:
+    icmp: []
+  target_resources: null
+  enable_logging: false
