@@ -1,0 +1,87 @@
+# Copyright 2022 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+
+# role ac default values
+ac_name: "ac01" # Name of admin cluster
+ac_install: true
+component_access_gcpsa: ""
+component_access_gcpsa_path: ""
+
+# vSphere/vCenter
+ac_vc_fqdn: ""
+ac_vc_credfile: "credential.yaml"
+ac_vc_credentry: "vCenter"
+ac_vc_username: ""
+ac_vc_password: ""
+ac_vc_datacenter: ""
+ac_vc_datastore: ""
+ac_vc_cluster: ""
+ac_vc_folder: "" # optional
+ac_vc_respool: "" # if default resourcePool use <ac_vc_cluster>/Resources
+ac_vc_cacertpath: "/home/ubuntu/vcenter.pem" # Default location with automatically downloaded cert file name
+# for vSAN: ac_vc_datadisk must be created inside a folder when using vSAN. Folder must be created manually
+ac_vc_datadisk: "{{ ac_name }}-admin-cluster.vmdk"
+
+# Networking
+ac_nw_ipallocmode: "" # dhcp or static
+ac_nw_ipfile: "{{ ac_name }}-ip-block.yaml"
+ac_nw_gw: "" # gateway
+ac_nw_nm: "" # netmask 255.255.255.0 or similar
+ac_nw_ntp: ["", ""] # list from group_vars/all
+ac_nw_dns: ["", "", ""] # list of DNS servers
+ac_nw_searchdomains: [""] # list from group_vars/all
+ac_nw_servicecidr: "10.96.232.0/24"
+ac_nw_podcidr: "192.168.0.0/16"
+ac_nw_vc_net: "VM Network"
+
+# values for the file content of network.ipMode.ipBlockFilePath
+ac_ipblock_netmask: 255.255.255.0
+ac_ipblock_gateway: a.b.c.d
+ac_ipblock_ips: [""]
+
+# Load balancing
+ac_lb_kind: MetalLB
+ac_lb_vips_cp: ""
+ac_lb_vips_addons: ""
+
+# masternode sizing
+ac_masternode_cpus: 4
+ac_masternode_mem: 8192
+ac_antiaffinitygroups: true
+
+# GCP project IDs
+ac_stackdriver_projectid: ""
+ac_stackdriver_clusterlocation: ""
+ac_stackdriver_enablevpc: false
+logging_monitoring_gcpsa_path: ""
+ac_stackdriver_disablevsphereresourcemetrics: false
+ac_gkeconnect_projectid: ""
+connect_register_gcpsa_path: ""
+ac_cloudauditlogging_projectid: ""
+ac_cloudauditlogging_clusterlocation: ""
+audit_logging_gcpsa_path: ""
+
+ac_autorepair: true
+
+# Kubernetes Secrets at-rest encryption
+ac_secretsencryption_mode: "GeneratedKey" # optional
+ac_secretsencryption_keyversion: 1 # optional
+
+# optional --skip-validation for gkectl
+ac_skipvalidations: ""
+ac_verbosity: 5
+
+# upgrades
+ac_upgrade: false

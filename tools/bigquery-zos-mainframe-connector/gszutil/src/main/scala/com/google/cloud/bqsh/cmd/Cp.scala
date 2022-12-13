@@ -54,7 +54,7 @@ object Cp extends Command[GsUtilConfig] with Logging {
       case Some(x) => {
         logger.info("Merging copybook with provided transformations ...")
 
-        val sch = c.schemaProvider.getOrElse(zos.loadCopyBook(c.copyBook, c.picTCharset))
+        val sch = c.schemaProvider.getOrElse(zos.loadCopyBook(c.copyBook, c.encoding, c.picTCharset))
         logger.info(s"Current Schema: ${sch.toString}")
 
         val newSchema = merge(sch, x)
@@ -63,7 +63,7 @@ object Cp extends Command[GsUtilConfig] with Logging {
       }
       case None => {
         logger.info("Use original copybook")
-        c.schemaProvider.getOrElse(zos.loadCopyBook(c.copyBook, c.picTCharset))
+        c.schemaProvider.getOrElse(zos.loadCopyBook(c.copyBook, c.encoding, c.picTCharset))
       }
     }
     val in: ZRecordReaderT = c.testInput.getOrElse(zos.readCloudDD(c.source))
@@ -126,7 +126,7 @@ object Cp extends Command[GsUtilConfig] with Logging {
     if (c.statsTable.nonEmpty) {
       val statsTable = BQ.resolveTableSpec(c.statsTable, c.projectId, c.datasetId)
       logger.debug(s"writing stats to ${BQ.tableSpec(statsTable)}")
-      val jobId = BQ.genJobId(c.projectId, c.location, zos, "cp")
+      val jobId = BQ.genJobId(c.projectId, c.location, zos.getInfo, "cp")
       val bqProj = if (c.projectId.nonEmpty) c.projectId else statsTable.getProject
       StatsUtil.retryableInsertJobStats(
         zos = zos,

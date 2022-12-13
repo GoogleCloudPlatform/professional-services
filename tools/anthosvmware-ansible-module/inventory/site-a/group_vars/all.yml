@@ -1,0 +1,56 @@
+# Copyright 2022 Google LLC
+# 
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+# 
+#     http://www.apache.org/licenses/LICENSE-2.0
+# 
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+
+# vSphere parameters - shared by the admin and user clusters
+glb_vc_fqdn: '{{ lookup("env", "VMWARE_HOST") }}'
+glb_vc_username: '{{ lookup("env", "VMWARE_USER") }}'
+glb_vc_password: '{{ lookup("env", "VMWARE_PASSWORD") }}'
+glb_vc_credfile: "credential.yaml"
+glb_vc_credentry: "vCenter"
+glb_vc_datacenter: "dc.anthoslab.gke"
+glb_vc_datastore: "vm-data"
+glb_vc_cluster: "cluster.anthoslab.gke"
+glb_vc_network: "VM Network"
+glb_vc_folder: "user" # optional
+glb_vc_respool: "cluster.anthoslab.gke/Resources" # if default resourcePool use <adminws_vc_cluster>/Resources
+glb_vc_cacertpath: "/home/ubuntu/vcenter.pem"
+
+# networking
+glb_dns: ["10.20.0.5"] # list
+glb_dns_searchdomains: [""] # list
+glb_proxyurl: "" # optional used by admin workstation, admin and user clusters
+glb_noproxy: ""
+glb_ntp: ["ntp.ubuntu.com"] # list
+
+# GCP
+sakeyfolder_base: "/home/ubuntu/sakeys"
+glb_anthos_version: "1.11.1-gke.53" # The Anthos version that will be used across the admin workstation, admin cluster, and user cluster installs
+glb_major_version: "{{ glb_anthos_version | regex_search('[\\d]\\.[\\d]+') }}"
+
+# Optional - when using private container registry
+glb_privatereg_url: '{{ lookup("env", "PRIV_REG_ADDRESS") }}' # fqdn and repo_name (ie, artifactory.domain.com/repo_name)
+glb_privatereg_cacertfile: '{{ lookup("env", "PRIV_REG_CA_FILE") }}' # The CA certificate for this registry, will be copied to  glb_privatereg_cacertpath
+glb_privatereg_cacertpath: "ca.crt" # The absolute or relative path where CA certificate stored for this registry
+glb_privatereg_cacerturl: "" # if you want to download the cert for url, specify here
+glb_privatereg_username: '{{ lookup("env", "PRIV_REG_USERNAME") }}'
+glb_privatereg_password: '{{ lookup("env", "PRIV_REG_PASSWORD") }}' # API token or password
+glb_privatereg_email: '{{ lookup("env", "PRIV_REG_EMAIL") }}'
+
+# Optional - when using private artifact repository
+glb_private_download_base: '{{ lookup("env", "ARTIFACT_HOST") }}'
+glb_private_download_username: '{{ lookup("env", "ARTIFACT_USERNAME") }}'
+glb_private_download_enc_pass: '{{ lookup("env", "ARTIFACT_ENC_PASS") }}'
+glb_private_download_api_token: '{{ lookup("env", "ARTIFACT_API_TOKEN") }}'
+glb_private_download_auth_header: "{{ 'Bearer ' + glb_private_download_api_token if glb_private_download_api_token|length > 2 else 'Basic ' + ([glb_private_download_username, glb_private_download_enc_pass] | join(':') | b64encode) }}"

@@ -1,0 +1,51 @@
+# Copyright 2022 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+apiVersion: constraints.gatekeeper.sh/v1beta1
+kind: K8sPSPAllowPrivilegeEscalationContainer
+metadata:
+  name: cis-k8s-v1.5.1-psp-allow-privilege-escalation
+  labels:
+    policycontroller.gke.io/bundleName: cis-k8s-v1.5.1
+  annotations:
+    # This constraint is not certified by CIS.
+    policycontroller.gke.io/constraintData: |
+      "{
+        bundleName: 'cis-k8s-v1.5.1',
+        bundleDisplayName: 'CIS Kubernetes Benchmark 1.5.1',
+        bundleLink: 'https://cloud.google.com/anthos-config-management/docs/how-to/using-cis-k8s-benchmark',
+        bundleVersion: '202208.1',
+        bundleDescription: 'Use the CIS Kubernetes Benchmark 1.5.1 policy bundle with Anthos Policy Controller to evaluate the compliance of your in cluster resources against the CIS Kubernetes Benchmark, which is a set of recommendations for configuring Kubernetes to support a robust security posture.',
+        controlNumbers: '[5.2.5]',
+        severity: 'UNASSIGNED',
+        description: 'Restricts containers with `allowPrivilegeEscalation` set to `true`.',
+        remediation: 'Containers are restricted from running with `allowPrivilegeEscalation` set to `true`, please remove the `allowPrivilegeEscalation: true` from your containers.',
+        minimumTemplateLibraryVersion: '1.11.1'
+      }"
+spec:
+  enforcementAction: dryrun
+  match:
+    kinds:
+    - apiGroups:
+      - ""
+      kinds:
+      - Pod
+    excludedNamespaces:
+    - kube-system
+    - istio-system
+    - asm-system
+    - config-management-system
+    - config-management-monitoring
+    - resource-group-system
+    - cert-manager

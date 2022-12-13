@@ -58,8 +58,8 @@ To create a self-signed certification, run the following command in the `certifi
 export DOMAIN=webhook.internal
 
 openssl genrsa -out server.key 2048
-openssl req -nodes -new -key server.key -subj "/CN=${DOMAIN}" -out server.csr
-openssl x509 -req -days 3650 -in server.csr -signkey server.key -out server.crt -extfile <(printf "\nsubjectAltName='DNS:${DOMAIN}")
+openssl req -nodes -new -sha256 -newkey rsa:2048 -key server.key -subj "/CN=${DOMAIN}" -out server.csr
+openssl x509 -req -days 3650 -sha256 -in server.csr -signkey server.key -out server.crt -extfile <(printf "\nsubjectAltName='DNS:${DOMAIN}'")
 openssl x509 -in server.crt -out server.der -outform DER
 ```
 

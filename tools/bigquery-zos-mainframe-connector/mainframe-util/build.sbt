@@ -15,9 +15,9 @@
  */
 organization := "com.google.cloud.imf"
 name := "mainframe-util"
-version := "2.2.0"
+version := "2.2.2"
 
-scalaVersion := "2.13.1"
+scalaVersion := "2.13.8"
 
 val exGapiClient = ExclusionRule(organization = "com.google.api-client", name = "google-api-client")
 val exGuava = ExclusionRule(organization = "com.google.guava")
@@ -27,6 +27,8 @@ libraryDependencies ++= Seq(
   "com.google.cloud" % "google-cloud-bigquery" % "2.5.1",
   "com.google.cloud" % "google-cloud-bigquerystorage" % "2.7.0",
   "com.google.cloud" % "google-cloud-storage" % "2.2.2",
+  "com.google.apis" % "google-api-services-pubsub" % "v1-rev20221020-2.0.0",
+  "com.google.apis" % "google-api-services-dataflow" % "v1b3-rev20221025-2.0.0",
   ("com.google.apis" % "google-api-services-logging" % "v2-rev656-1.25.0").excludeAll(exGapiClient),
   "org.apache.avro" % "avro" % "1.7.7",
 
@@ -51,31 +53,32 @@ libraryDependencies ++= Seq(
 )
 
 // Don't run tests during assembly
-test in assembly := Seq()
+assembly / test := Seq()
 
 Test / testOptions := Seq(Tests.Filter(!_.endsWith("ITSpec")))
 
-assemblyMergeStrategy in assembly := {
+assembly / assemblyMergeStrategy := {
   case PathList("META-INF", _) => MergeStrategy.discard
   case _ => MergeStrategy.first
 }
 
 // Exclude IBM jars from assembly jar since they will be provided
-assemblyExcludedJars in assembly := {
-  val IBMJars = Set("ibmjzos.jar", "ibmjcecca.jar")
-  (fullClasspath in assembly).value
+assembly / assemblyExcludedJars := {
+  val IBMJars = Set("ibmjzos.jar", "ibmjcecca.jar", "isfjcall.jar", "dataaccess.jar")
+  (assembly / fullClasspath).value
     .filter(file => IBMJars.contains(file.data.getName))
 }
 
 publishMavenStyle := false
 
-resourceGenerators in Compile += Def.task {
-  val file = (resourceDirectory in Compile).value / "mainframe-util-build.txt"
+Compile/ resourceGenerators += Def.task {
+  val file = (Compile / resourceDirectory).value / "mainframe-util-build.txt"
   val fmt = new java.text.SimpleDateFormat("yyyy/MM/dd HH:mm:ss")
   val timestamp = fmt.format(new java.util.Date)
   IO.write(file, timestamp)
   Seq(file)
 }.taskValue
+
 scalacOptions ++= Seq(
   "-opt:l:inline",
   "-opt-inline-from:**",

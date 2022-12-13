@@ -1,0 +1,13 @@
+{
+    "project_id" : "<your-project>",
+    "ccm_bucket" : "<bucket-name>",
+    "prefix_azure_lz" : "<folder-name>",
+    "prefix_aws_lz" : "<folder-name>",
+    "prefix_hist_azure" : "<folder-name>",
+    "prefix_hist_aws" : "<folder-name>",
+    "sts_id_azure" : "<transferJobs/id>",
+    "sts_id_aws" : "<transferJobs/id>",
+    "gcp_billing_table" : "<table-name>",
+    "ccm_staging_dataset" : "<dataset-id>",
+    "ccm_final_dataset" : "<dataset-id>"
+}
