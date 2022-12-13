@@ -182,6 +182,8 @@ object Bqsh extends Logging {
           }
         } else if (cmd.name == "scp") {
           runCommand(Scp, cmd.args, zos, cmd.env)
+        } else if (cmd.name == "curl") {
+          runCommand(Curl, cmd.args, zos, cmd.env)
         } else if (cmd.name == "jclutil") {
           runCommand(JCLUtil, cmd.args, zos, cmd.env)
         } else if (cmd.name == "sdsfutil") {
