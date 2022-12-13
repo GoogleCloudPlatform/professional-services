@@ -16,7 +16,7 @@
 
 variable "terraform_service_account" {
   description = "Terraform Service Account to be impersonated."
-  type = string
+  type        = string
 }
 
 variable "region" {
