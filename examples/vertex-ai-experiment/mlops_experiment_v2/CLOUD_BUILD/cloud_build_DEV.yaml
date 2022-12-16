@@ -1,0 +1,110 @@
+# Step 1 : Subsitute environment veriables
+substitutions:
+  _MLOPS_PIPELINE_VERSION: ${_BASE_BRANCH}-${_PR_NUMBER}
+  _MLOPS_REGION_ENV : 'us-central1'
+  _ARTIFACT_REPOSITORY_NAME : 'mlops-experiment-v2'
+  _MLOPS_BUCKET : 'mlops-experiment-v2-bucket'
+  _PROJECT_ID : 'mlops-experiment-v2'
+  _VERTEX_AI_SERVICE_ACCOUNT : 'vertex-ai-sa@mlops-experiment-v2.iam.gserviceaccount.com'
+  _TRAINING_CONTAINER_IMAGE : '${_MLOPS_REGION_ENV}-docker.pkg.dev/${PROJECT_ID}/${_ARTIFACT_REPOSITORY_NAME}/training'
+  _PREDICTION_CONTAINER_IMAGE : '${_MLOPS_REGION_ENV}-docker.pkg.dev/${PROJECT_ID}/${_ARTIFACT_REPOSITORY_NAME}/prediction'
+  _HYPER_PARAMETER_TUNNING_CONTAINER_IMAGE : '${_MLOPS_REGION_ENV}-docker.pkg.dev/${PROJECT_ID}/${_ARTIFACT_REPOSITORY_NAME}/hyperparameter_tunning'
+  _IS_PREPROCESSING : 'TRUE'
+  _TRAINING_BQ_SOURCE : 'mlops-experiment-v2.mlops_experiment_v2.training_dataset'
+  _VERTEX_AI_TRAINING_DATASET_BQ : 'bq://mlops-experiment-v2'
+  _TRAINING_BQ_TEMP_DESTINATION : 'mlops-experiment-v2.training_temp_dataset'
+  _READ_INSTANCE_URL : 'gs://mlops-experiment-v2-bucket/feature_store/read_instances_uri.csv'
+  _FEATURE_STORE_ID : 'mlops_experiment_feature_store'
+  _E2E_TEST : 'FALSE'
+  _ML_MODEL_NAME : '${_MLOPS_PIPELINE_VERSION}-model.joblib'
+  _F1_SCORE_THRESHOLD: "0.4"
+  _VERTEX_AI_END_POINT: "online-prediction-v1"
+  _MLOPS_METADATA_TABLE: "mlops-experiment-v2.mlops_metadata.mlops_experiment_v2_metadata"
+  _EXPERIMENT_NAME : "mlops-experiment-v2"
+  _BQ_DESTINATION_PREDICTION_URI : "mlops-experiment-v2.training_temp_dataset"
+# Cloud build steps
+steps:
+# Step 2 : Pull docker base images for cache
+- name: 'gcr.io/cloud-builders/docker'
+  entrypoint: 'bash'
+  args: ['-c', 'docker pull ${_TRAINING_CONTAINER_IMAGE}:base || exit 0']
+- name: 'gcr.io/cloud-builders/docker'
+  entrypoint: 'bash'
+  args: ['-c', 'docker pull ${_PREDICTION_CONTAINER_IMAGE}:base || exit 0']
+- name: 'gcr.io/cloud-builders/docker'
+  entrypoint: 'bash'
+  args: ['-c', 'docker pull ${_HYPER_PARAMETER_TUNNING_CONTAINER_IMAGE}:base || exit 0']
+
+# Step 3 : Build and push training container image.
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['build', '-f','./TRAIN/Dockerfile','-t', '${_TRAINING_CONTAINER_IMAGE}:${_MLOPS_PIPELINE_VERSION}',
+                  '-t', '${_TRAINING_CONTAINER_IMAGE}:base','--cache-from','${_TRAINING_CONTAINER_IMAGE}:base','./TRAIN']
+
+# Push Training Container Image
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['push', '${_TRAINING_CONTAINER_IMAGE}:${_MLOPS_PIPELINE_VERSION}']
+
+# Push Training Container Base Image for cache
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['push', '${_TRAINING_CONTAINER_IMAGE}:base']
+
+# Step 4 : Build and push training container image.
+- name: 'gcr.io/cloud-builders/docker'
+  args: [
+    'build', '-f','./PREDICT/Dockerfile','-t', '${_PREDICTION_CONTAINER_IMAGE}:${_MLOPS_PIPELINE_VERSION}',
+             '-t', '${_PREDICTION_CONTAINER_IMAGE}:base','--cache-from','${_PREDICTION_CONTAINER_IMAGE}:base','./PREDICT']
+# Push Prediction Container Image
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['push', '${_PREDICTION_CONTAINER_IMAGE}:${_MLOPS_PIPELINE_VERSION}']
+
+# Push Prediction Container Base Image
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['push','${_PREDICTION_CONTAINER_IMAGE}:base']
+
+# Step 5 : Build and push hyper parameter tunning container image.
+- name: 'gcr.io/cloud-builders/docker'
+  args: [
+    'build', '-f','./HYPER_PARAMETER_TRAIN/Dockerfile','-t', '${_HYPER_PARAMETER_TUNNING_CONTAINER_IMAGE}:${_MLOPS_PIPELINE_VERSION}',
+             '-t', '${_HYPER_PARAMETER_TUNNING_CONTAINER_IMAGE}:base','--cache-from','${_HYPER_PARAMETER_TUNNING_CONTAINER_IMAGE}:base','./HYPER_PARAMETER_TRAIN']
+# Push Prediction Container Image
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['push', '${_HYPER_PARAMETER_TUNNING_CONTAINER_IMAGE}:${_MLOPS_PIPELINE_VERSION}']
+
+# Push Prediction Container Base Image
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['push','${_HYPER_PARAMETER_TUNNING_CONTAINER_IMAGE}:base']
+
+# 6. Upload Data Flow Artifacts to GCS
+- name: 'gcr.io/cloud-builders/gsutil'
+  args: ['cp','./DATAFLOW/requirements.txt', 'gs://${_MLOPS_BUCKET}/dataflow/requirements.txt' ]
+
+- name: 'gcr.io/cloud-builders/gsutil'
+  args: ['cp','./DATAFLOW/pre_processing.py', 'gs://${_MLOPS_BUCKET}/dataflow/pre_processing.py' ]
+
+# 7. Trigger Vertex AI Pipeline
+- name: 'python:3.9.2-buster'
+  args: ["python","-m","pip","--trusted-host=pypi.python.org","--trusted-host=pypi.org","--trusted-host=files.pythonhosted.org","install",
+        "apache-beam==2.41.0","wheel","kfp==1.8.16","google-cloud-aiplatform==1.19.0","google-cloud-pipeline-components==1.0.28","google-cloud-bigquery==2.34.4",
+        "db-dtypes==1.0.5","google-cloud-storage==2.6.0","--user"]
+
+# Step 8 : Compile Batch Prediction Pipeline and upload JSON file to GCS
+- name: 'python:3.9.2-buster'
+  args: ["python","./VERTEX_AI/PREDICTION_PIPELINE/vertex_ai_batch_prediction_pipeline.py",
+                "--mlops_bucket_name=${_MLOPS_BUCKET}","--mlops_pipeline_version=${_MLOPS_PIPELINE_VERSION}",]
+
+# Step 9 : Trigger Training Pipeline
+- name: 'python:3.9.2-buster'
+  args: ["python","./VERTEX_AI/TRAINING_PIPELINE/vertex_ai_training_pipeline.py",
+                "--mlops_pipeline_version=${_MLOPS_PIPELINE_VERSION}","--project_id=${_PROJECT_ID}","--location=${_MLOPS_REGION_ENV}",
+                "--mlops_bucket_name=${_MLOPS_BUCKET}","--service_account=${_VERTEX_AI_SERVICE_ACCOUNT}",
+                "--training_container_uri=${_TRAINING_CONTAINER_IMAGE}:${_MLOPS_PIPELINE_VERSION}","--prediction_container_uri=${_PREDICTION_CONTAINER_IMAGE}:${_MLOPS_PIPELINE_VERSION}",
+                "--training_bq_source=${_TRAINING_BQ_SOURCE}","--training_bq_temp_destination=${_TRAINING_BQ_TEMP_DESTINATION}",
+                "--is_preprocessing=${_IS_PREPROCESSING}","--read_instances_csv=${_READ_INSTANCE_URL}","--feature_store_id=${_FEATURE_STORE_ID}",
+                "--vertex_ai_training_dataset_bq=${_VERTEX_AI_TRAINING_DATASET_BQ}","--hyper_parameter_container_uri=${_HYPER_PARAMETER_TUNNING_CONTAINER_IMAGE}:${_MLOPS_PIPELINE_VERSION}",
+                "--e2e_test=FALSE","--model_name=${_ML_MODEL_NAME}","--f1_score_threshold=${_F1_SCORE_THRESHOLD}","--vertex_ai_end_point=${_VERTEX_AI_END_POINT}",
+                "--mlops_metadata_table=${_MLOPS_METADATA_TABLE}","--experiment_name=${_EXPERIMENT_NAME}","--bq_destination_prediction_uri=${_BQ_DESTINATION_PREDICTION_URI}"]
+
+
+
+options:
+  logging: CLOUD_LOGGING_ONLY

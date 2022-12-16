@@ -1,0 +1,3 @@
+pandas
+tensorflow_data_validation==1.11.0
+apache-beam==2.41.0
