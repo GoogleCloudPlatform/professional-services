@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Test utilities for generating BigQuery data querying scirpts."""
+"""Test utilities for generating BigQuery data querying scripts."""
 
 import sys
 import os
@@ -76,9 +76,10 @@ def test_training_query():
   assert bq_dataset_name, "Environment variable BQ_DATASET_NAME is None!"
   assert bq_table_name, "Environment variable ML_TABLE is None!"
 
-  logging.info(f"BigQuery Source: {project}.{bq_dataset_name}.{bq_table_name}")
+  logging.info("BigQuery Source: %s.%s.%s", project, bq_dataset_name,
+               bq_table_name)
 
-  query = datasource_utils._get_source_query(
+  query = datasource_utils.get_source_query(
       bq_dataset_name=bq_dataset_name,
       bq_table_name=bq_table_name,
       ml_use="UNASSIGNED",
@@ -104,9 +105,10 @@ def test_serving_query():
   assert bq_dataset_name, "Environment variable BQ_DATASET_NAME is None!"
   assert bq_table_name, "Environment variable ML_TABLE is None!"
 
-  logging.info(f"BigQuery Source: {project}.{bq_dataset_name}.{bq_table_name}")
+  logging.info("BigQuery Source: %s.%s.%s", project, bq_dataset_name,
+               bq_table_name)
 
-  query = datasource_utils._get_source_query(
+  query = datasource_utils.get_source_query(
       bq_dataset_name=bq_dataset_name,
       bq_table_name=bq_table_name,
       ml_use=None,

@@ -6,4 +6,6 @@ build/pip.conf
 tfx_artifacts/
 *.bak
 build/*.yaml
-
+venv
+.pytest_cache
+*~

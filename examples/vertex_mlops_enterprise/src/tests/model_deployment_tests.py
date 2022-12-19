@@ -97,8 +97,8 @@ def test_model_artifact():
   }
 
   new_test_instance = {}
-  for key in test_instance:
-    new_test_instance[key] = tf.constant([test_instance[key]],
+  for key, instance in test_instance.items():
+    new_test_instance[key] = tf.constant(instance,
                                          dtype=feature_types[key])
 
   print(new_test_instance)
@@ -123,9 +123,9 @@ def test_model_artifact():
 
   model = models[-1]
   artifact_uri = model.gca_resource.artifact_uri
-  logging.info(f"Model artifact uri:{artifact_uri}")
-  assert tf.io.gfile.exists(
-      artifact_uri), f"Model artifact uri {artifact_uri} does not exist!"
+  logging.info("Model artifact uri: %s", artifact_uri)
+  assert tf.io.gfile.exists(artifact_uri), \
+      f"Model artifact uri {artifact_uri} does not exist!"
 
   saved_model = tf.saved_model.load(artifact_uri)
   logging.info("Model loaded successfully.")
@@ -149,7 +149,7 @@ def test_model_artifact():
       1,
       2,
   ), f"Invalid output scores shape: {predictions['scores'].shape}!"
-  logging.info(f"Prediction output: {predictions}")
+  logging.info("Prediction output: %s", predictions)
 
 
 def test_model_endpoint():
@@ -178,7 +178,7 @@ def test_model_endpoint():
       "does not exist! in region {region}"
 
   endpoint = endpoints[-1]
-  logging.info(f"Calling endpoint: {endpoint}.")
+  logging.info("Calling endpoint: %s",  endpoint)
 
   prediction = endpoint.predict([test_instance]).predictions[0]
 
@@ -191,4 +191,4 @@ def test_model_endpoint():
   assert (len(prediction["scores"]) == 2
          ), f"Invalid number output scores: {len(prediction['scores'])}!"
 
-  logging.info(f"Prediction output: {prediction}")
+  logging.info("Prediction output: %s", prediction)

@@ -54,10 +54,10 @@ def test_e2e_pipeline():
   assert gcs_location, "Environment variable GCS_LOCATION is None!"
   assert model_registry, "Environment variable MODEL_REGISTRY_URI is None!"
 
-  logging.info(f"upload_model: {upload_model}")
+  logging.info("upload_model: %s", upload_model)
   if tf.io.gfile.exists(gcs_location):
     tf.io.gfile.rmtree(gcs_location)
-  logging.info(f"Pipeline e2e test artifacts stored in: {gcs_location}")
+  logging.info("Pipeline e2e test artifacts stored in: %s", gcs_location)
 
   if tf.io.gfile.exists(MLMD_SQLLITE):
     tf.io.gfile.remove(MLMD_SQLLITE)
@@ -87,5 +87,5 @@ def test_e2e_pipeline():
   runner.run(pipeline)
 
   logging.info(
-      f"Model output: {os.path.join(model_registry, model_display_name)}")
+      "Model output: %s",  os.path.join(model_registry, model_display_name))
   assert tf.io.gfile.exists(os.path.join(model_registry, model_display_name))

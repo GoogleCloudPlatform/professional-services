@@ -17,7 +17,7 @@
 from google.cloud import aiplatform as vertex_ai
 
 
-def _get_source_query(bq_dataset_name, bq_table_name, ml_use, limit=None):
+def get_source_query(bq_dataset_name, bq_table_name, ml_use, limit=None):
     query = f"""
     SELECT *
     """
@@ -53,8 +53,8 @@ def get_training_source_query(
     ]
     _, bq_dataset_name, bq_table_name = bq_source_uri.replace("g://", "").split(".")
 
-    return _get_source_query(bq_dataset_name, bq_table_name, ml_use, limit)
+    return get_source_query(bq_dataset_name, bq_table_name, ml_use, limit)
 
 
 def get_serving_source_query(bq_dataset_name, bq_table_name, limit=None):
-    return _get_source_query(bq_dataset_name, bq_table_name, ml_use=None, limit=limit)
+    return get_source_query(bq_dataset_name, bq_table_name, ml_use=None, limit=limit)
