@@ -37,3 +37,10 @@ gcloud functions deploy tsop-logs-processor --runtime python37 \
 --region $LOCATION --vpc-connector "projects/$NETWORK_PROJECT/locations/$LOCATION/connectors/$VPC_CONNECTOR" \
 --ingress-settings internal-only --egress-settings all --project $PROJECT_ID
 ```
+
+### View Logs
+
+Run a TSOP transfer job. Written logs can be seen in the Log Explorer by using the below query:
+Note: It can take upto 15 minutes for the transfer log to be created by TSOP service.
+
+logName="projects/<project-id>/logs/tsop-transfer-logs"
