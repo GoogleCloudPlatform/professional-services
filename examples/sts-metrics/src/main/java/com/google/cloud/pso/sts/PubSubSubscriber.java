@@ -26,9 +26,7 @@ import java.io.IOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * PubSub subscriber class that encapsulates subscriber functionality
- */
+/** PubSub subscriber class that encapsulates subscriber functionality */
 public class PubSubSubscriber {
 
   private String projectId;
@@ -46,9 +44,7 @@ public class PubSubSubscriber {
     this.eventHandler = eventHandler;
   }
 
-  /**
-   * Run the subscriber
-   */
+  /** Run the subscriber */
   public void run() throws IOException {
     ProjectTopicName topicName = ProjectTopicName.of(projectId, topicId);
     ProjectSubscriptionName subscriptionName =
@@ -78,9 +74,7 @@ public class PubSubSubscriber {
     subscriber.startAsync();
   }
 
-  /**
-   * Stop the subscriber
-   */
+  /** Stop the subscriber */
   public void stop() {
     if (subscriber != null) {
       subscriber.stopAsync();
@@ -88,4 +82,3 @@ public class PubSubSubscriber {
     }
   }
 }
-

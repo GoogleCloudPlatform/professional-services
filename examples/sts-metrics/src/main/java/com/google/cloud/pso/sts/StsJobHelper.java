@@ -41,9 +41,7 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * Helper class to manage STS jobs.
- */
+/** Helper class to manage STS jobs. */
 public class StsJobHelper {
   public static final String STS_ENABLED_STRING = "ENABLED";
   public static final String STS_JOB_NAME_PREFIX = "transferJobs/";
@@ -53,13 +51,13 @@ public class StsJobHelper {
   /**
    * Create immediately run STS job
    *
-   * @param jobName  Job name for STS job
-   * @param projectId  project where STS job is configured and run
-   * @param sourceBucket  Source GCS bucket
-   * @param destinationBucket  Destination GCS bucket where objects are copied to
-   * @param prefixes  includePrex list
+   * @param jobName Job name for STS job
+   * @param projectId project where STS job is configured and run
+   * @param sourceBucket Source GCS bucket
+   * @param destinationBucket Destination GCS bucket where objects are copied to
+   * @param prefixes includePrex list
    * @param description
-   * @param notificationTopic  Pubsub topic where STS sends notificaiton when job is complete
+   * @param notificationTopic Pubsub topic where STS sends notificaiton when job is complete
    * @return
    * @throws IOException
    */
@@ -76,17 +74,11 @@ public class StsJobHelper {
     // create STS immediately run job.
     TransferJob transferJob =
         buildTransferJob(
-            jobName,
-            projectId,
-            sourceBucket,
-            destinationBucket,
-            prefixes,
-            description);
+            jobName, projectId, sourceBucket, destinationBucket, prefixes, description);
 
     if (notificationTopic != null) {
-      NotificationConfig notificationConfig = new NotificationConfig()
-          .setPubsubTopic(notificationTopic)
-          .setPayloadFormat("JSON");
+      NotificationConfig notificationConfig =
+          new NotificationConfig().setPubsubTopic(notificationTopic).setPayloadFormat("JSON");
       transferJob.setNotificationConfig(notificationConfig);
     }
 
@@ -102,23 +94,18 @@ public class StsJobHelper {
       String sourceBucket,
       String destinationBucket,
       List<String> prefixes,
-      String description
-  ) {
+      String description) {
     return new TransferJob()
         .setName(STS_JOB_NAME_PREFIX + jobName)
         .setProjectId(projectId)
         .setDescription(description)
-        .setTransferSpec(
-            buildTransferSpec(
-                sourceBucket, destinationBucket, prefixes))
+        .setTransferSpec(buildTransferSpec(sourceBucket, destinationBucket, prefixes))
         .setSchedule(buildSchedule())
         .setStatus(STS_ENABLED_STRING);
   }
 
   private static TransferSpec buildTransferSpec(
-      String sourceBucket,
-      String destinationBucket,
-      List<String> prefixes) {
+      String sourceBucket, String destinationBucket, List<String> prefixes) {
     return new TransferSpec()
         .setGcsDataSource(new GcsData().setBucketName(sourceBucket))
         .setGcsDataSink(new GcsData().setBucketName(destinationBucket))
@@ -151,7 +138,6 @@ public class StsJobHelper {
     objectConditions.setIncludePrefixes(prefixes);
     return objectConditions;
   }
-
 
   private static Storagetransfer createStsClient() {
     try {

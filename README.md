@@ -224,6 +224,8 @@ them to fit your particular use case.
     Example code to benchmark Cloud Spanner's subqueries for interleaved tables.
 *   [Spinnaker](examples/spinnaker) - Example pipelines for a Canary /
     Production deployment process.
+*   [STS Metrics from STS Notification](examples/sts-metrics) - Example code to 
+    generate custom metrics from STS notification.
 *   [TensorFlow Serving on GKE and Load Testing](examples/tf-load-testing) -
     Examples how to implement Tensorflow model inference on GKE and to perform a
     load testing of such solution.

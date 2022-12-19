@@ -50,13 +50,12 @@ import org.slf4j.LoggerFactory;
 
 /**
  * The class provides functionality to instrument application and JVM metrics and expose them
- * through /metrics endpoint in Prometheus format. The implementation is based on OpenCensus.
- * In OpenCensus, a metric is defined by the following components
- *    1) Measure -- Defines what is measured, value(long/double) and unit(i.e. byte, count)
- *    2) View -- Associates a measure with aggregate functions and tags, and defines a metric
- * Metrics data are recorded using StatsRecorder. PrometheusStatsCollector and JmxCollector
- * are used to collect metrics data recorded so far, apply aggregate functions, and return the
- * metrics in Prometheus format when /metrics is called.
+ * through /metrics endpoint in Prometheus format. The implementation is based on OpenCensus. In
+ * OpenCensus, a metric is defined by the following components 1) Measure -- Defines what is
+ * measured, value(long/double) and unit(i.e. byte, count) 2) View -- Associates a measure with
+ * aggregate functions and tags, and defines a metric Metrics data are recorded using StatsRecorder.
+ * PrometheusStatsCollector and JmxCollector are used to collect metrics data recorded so far, apply
+ * aggregate functions, and return the metrics in Prometheus format when /metrics is called.
  */
 public class Metrics {
 
@@ -71,22 +70,25 @@ public class Metrics {
   public static final String METRIC_NAME_STS_OPERATION_LATENCY = "sts_operation_latency";
 
   // Measures
-  public static final MeasureLong M_STS_OPERATION_NUM = MeasureLong
-      .create(METRIC_NAME_STS_OPERATION_NUM, "The number of STS operations", "1");
-  public static final MeasureLong M_OBJECT_DELETED_NUM = MeasureLong
-      .create(METRIC_NAME_OBJECT_DELETED_NUM, "The number of object deleted", "1");
-  public static final MeasureLong M_OBJECT_DELETED_BYTES = MeasureLong
-      .create(METRIC_NAME_OBJECT_DELETED_BYTES, "The bytes of objected deleted", "By");
-  public static final MeasureDouble M_STS_OPERATION_LATENCY_MS = MeasureDouble
-      .create(METRIC_NAME_STS_OPERATION_LATENCY, "The latency of STS operations", "ms");
+  public static final MeasureLong M_STS_OPERATION_NUM =
+      MeasureLong.create(METRIC_NAME_STS_OPERATION_NUM, "The number of STS operations", "1");
+  public static final MeasureLong M_OBJECT_DELETED_NUM =
+      MeasureLong.create(METRIC_NAME_OBJECT_DELETED_NUM, "The number of object deleted", "1");
+  public static final MeasureLong M_OBJECT_DELETED_BYTES =
+      MeasureLong.create(METRIC_NAME_OBJECT_DELETED_BYTES, "The bytes of objected deleted", "By");
+  public static final MeasureDouble M_STS_OPERATION_LATENCY_MS =
+      MeasureDouble.create(
+          METRIC_NAME_STS_OPERATION_LATENCY, "The latency of STS operations", "ms");
 
   // Tagkey and tag definition
   public static final TagKey TAG_KEY_PROJECT_ID = TagKey.create("projectId");
   public static final TagKey TAG_KEY_STATUS = TagKey.create("status");
   public static final TagKey TAG_KEY_SRC_BUCKET_ID = TagKey.create("srcBucketId");
   public static final TagKey TAG_KEY_DEST_BUCKET_ID = TagKey.create("destBucketId");
-  public static final List<TagKey> STS_OPS_TAGS = Collections.unmodifiableList(Arrays
-      .asList(TAG_KEY_STATUS, TAG_KEY_SRC_BUCKET_ID, TAG_KEY_DEST_BUCKET_ID, TAG_KEY_PROJECT_ID));
+  public static final List<TagKey> STS_OPS_TAGS =
+      Collections.unmodifiableList(
+          Arrays.asList(
+              TAG_KEY_STATUS, TAG_KEY_SRC_BUCKET_ID, TAG_KEY_DEST_BUCKET_ID, TAG_KEY_PROJECT_ID));
 
   public static final List<Double> STS_OPS_DISTRIBUTION_BUCKETS =
       Arrays.asList(
@@ -119,7 +121,7 @@ public class Metrics {
    * Record metrics data with long value
    *
    * @param ml A measure with long value
-   * @param n  The recorded long value
+   * @param n The recorded long value
    */
   public static void recordStat(MeasureLong ml, Long n) {
     TagContext tctx = tagger.emptyBuilder().build();
@@ -128,13 +130,12 @@ public class Metrics {
     }
   }
 
-
   /**
    * Record long value metrics data with tags
    *
-   * @param tagMap  A tag map with tag key and value paris
-   * @param ml      A measure with long value
-   * @param n       The recorded long value
+   * @param tagMap A tag map with tag key and value paris
+   * @param ml A measure with long value
+   * @param n The recorded long value
    */
   public static void recordTaggedStat(Map<TagKey, String> tagMap, MeasureLong ml, Long n) {
     TagContextBuilder builder = tagger.emptyBuilder();
@@ -150,9 +151,9 @@ public class Metrics {
   /**
    * Record double value metrics data with tags
    *
-   * @param tagMap  A tag map with tag key and value paris
-   * @param md      A measure with double value
-   * @param d       The recorded double value
+   * @param tagMap A tag map with tag key and value paris
+   * @param md A measure with double value
+   * @param d The recorded double value
    */
   public static void recordTaggedStat(Map<TagKey, String> tagMap, MeasureDouble md, Double d) {
     TagContextBuilder builder = tagger.emptyBuilder();
@@ -167,6 +168,7 @@ public class Metrics {
 
   /**
    * Get the stats recorder
+   *
    * @return
    */
   public static StatsRecorder getStatsRecorder() {
@@ -175,23 +177,37 @@ public class Metrics {
 
   private static void registerAllViews() {
     Aggregation stsOpsLatencyDistribution =
-        Distribution.create(
-            BucketBoundaries.create(STS_OPS_DISTRIBUTION_BUCKETS));
+        Distribution.create(BucketBoundaries.create(STS_OPS_DISTRIBUTION_BUCKETS));
 
     ViewManager viewManager = getViewManager();
 
-    View[] views = new View[]{
-        View.create(Name.create(METRIC_NAME_OBJECT_DELETED_NUM), "The number of deleted objects",
-            M_OBJECT_DELETED_NUM, Aggregation.Sum.create(), STS_OPS_TAGS),
-        View.create(Name.create(METRIC_NAME_OBJECT_DELETED_BYTES), "The number of bytes deleted",
-            M_OBJECT_DELETED_BYTES, Aggregation.Sum.create(), STS_OPS_TAGS),
-        View.create(Name.create(METRIC_NAME_STS_OPERATION_NUM), "The number of STS operations",
-            M_STS_OPERATION_NUM, Aggregation.Count.create(),
-            STS_OPS_TAGS),
-        View.create(Name.create(METRIC_NAME_STS_OPERATION_LATENCY), "The latency of STS operations",
-            M_STS_OPERATION_LATENCY_MS, stsOpsLatencyDistribution,
-            STS_OPS_TAGS)
-    };
+    View[] views =
+        new View[] {
+          View.create(
+              Name.create(METRIC_NAME_OBJECT_DELETED_NUM),
+              "The number of deleted objects",
+              M_OBJECT_DELETED_NUM,
+              Aggregation.Sum.create(),
+              STS_OPS_TAGS),
+          View.create(
+              Name.create(METRIC_NAME_OBJECT_DELETED_BYTES),
+              "The number of bytes deleted",
+              M_OBJECT_DELETED_BYTES,
+              Aggregation.Sum.create(),
+              STS_OPS_TAGS),
+          View.create(
+              Name.create(METRIC_NAME_STS_OPERATION_NUM),
+              "The number of STS operations",
+              M_STS_OPERATION_NUM,
+              Aggregation.Count.create(),
+              STS_OPS_TAGS),
+          View.create(
+              Name.create(METRIC_NAME_STS_OPERATION_LATENCY),
+              "The latency of STS operations",
+              M_STS_OPERATION_LATENCY_MS,
+              stsOpsLatencyDistribution,
+              STS_OPS_TAGS)
+        };
 
     for (View view : views) {
       viewManager.registerView(view);
@@ -216,8 +232,14 @@ public class Metrics {
     logger.info(String.format("*** %d MetricFamily End ***", i));
   }
 
-  public static void generateStsMetrics(String sourceBucket, String destBucket, String projectId,
-      String status, double latency, long objectsCopied, long bytesCopied) {
+  public static void generateStsMetrics(
+      String sourceBucket,
+      String destBucket,
+      String projectId,
+      String status,
+      double latency,
+      long objectsCopied,
+      long bytesCopied) {
     Map<TagKey, String> tagMap = new HashMap<>();
     tagMap.put(TAG_KEY_SRC_BUCKET_ID, sourceBucket);
     tagMap.put(TAG_KEY_DEST_BUCKET_ID, destBucket);
@@ -230,4 +252,3 @@ public class Metrics {
     recordTaggedStat(tagMap, M_OBJECT_DELETED_BYTES, bytesCopied);
   }
 }
-

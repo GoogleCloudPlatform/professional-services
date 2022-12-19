@@ -121,4 +121,3 @@ public class RetryHttpInitializerWrapper implements HttpRequestInitializer {
                 || response.getStatusCode() == TOO_MANY_REQUESTS_429;
   }
 }
-

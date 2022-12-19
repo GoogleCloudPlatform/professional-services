@@ -37,10 +37,7 @@ public class StsMetricsMain {
   public static final long MAX_RUN_TIME = 1000 * 60 * 30;
   public static final long SLEEP_TIME = 1000 * 60;
 
-
   private static final Logger logger = LoggerFactory.getLogger(StsMetricsMain.class);
-
-
 
   public static void main(String[] args) {
     try {
@@ -49,21 +46,20 @@ public class StsMetricsMain {
       Metrics.init();
       initSubscriber();
       generateStsJobs();
-      while(elapsedTime < MAX_RUN_TIME) {
-        Thread.sleep(SLEEP_TIME );
+      while (elapsedTime < MAX_RUN_TIME) {
+        Thread.sleep(SLEEP_TIME);
         elapsedTime = Instant.now().toEpochMilli() - startTime;
       }
     } catch (IOException | InterruptedException e) {
       logger.error(e.getMessage(), e);
     }
-
   }
 
   private static void initSubscriber() throws IOException {
-    PubSubSubscriber stsJobNotificationSubscriber = new PubSubSubscriber(PROJECT_ID,
-        TOPIC_ID, SUBSCRIPTION_ID, new StsJobNotificationHandler());
+    PubSubSubscriber stsJobNotificationSubscriber =
+        new PubSubSubscriber(
+            PROJECT_ID, TOPIC_ID, SUBSCRIPTION_ID, new StsJobNotificationHandler());
     stsJobNotificationSubscriber.run();
-
   }
 
   private static void generateStsJobs() {
@@ -72,7 +68,7 @@ public class StsMetricsMain {
     scheduledExecutor.scheduleAtFixedRate(worker, 0L, 20, TimeUnit.SECONDS);
   }
 
-  private static Properties loadConfigProps (String fileName) {
+  private static Properties loadConfigProps(String fileName) {
     Properties props = new Properties();
     try {
       props.load(StsMetricsMain.class.getClassLoader().getResourceAsStream(fileName));

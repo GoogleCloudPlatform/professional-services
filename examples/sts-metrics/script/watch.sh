@@ -21,8 +21,9 @@ timestamp() {
 
 while :;
   do
-  echo "**** `timestamp`  ****"
-  curl $url
-  sleep $duration
+
+  echo "**** $(timestamp)  ****"
+  curl "$url"
+  sleep "$duration"
 done
 
