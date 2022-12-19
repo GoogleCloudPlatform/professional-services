@@ -78,6 +78,7 @@ gcloud projects add-iam-policy-binding mlops-experiment-v2  --member=serviceAcco
 Step 13 : Add Permission to build-sa for "Cloud Build Service Agent" to Cloud Storage bucket "mlops-experiment-v2-bucket"
 
 Step 14 : Add following permission to vertex-ai-sa on IAM Page.
+```
 AI Platform Service Agent
 Artifact Registry Service Agent
 Cloud Build Service Account
@@ -92,8 +93,10 @@ Dataflow Worker
 Storage Admin
 Storage Object Admin
 Storage Object Creator
+```
 
 Step 14 : Add following permission to build-sa on IAM Page.
+```
 AI Platform Service Agent
 Artifact Registry Service Agent
 Cloud Build Service Account
@@ -107,13 +110,16 @@ Storage Admin
 Storage Object Admin
 Storage Object Creator
 Vertex AI Service Agent
+```
 
 Step 15: add Following permission to Cloud Storage bucket "mlops-experiment-v2-bucket" vertex-ai-sa service account
+```
 Dataflow Admin
 Dataflow Worker
 Storage Admin
 Storage Object Admin
 Storage Object Creator
+```
 
 Step 16: Add following roles for dataflow
 
@@ -129,6 +135,7 @@ gcloud projects add-iam-policy-binding ${PROJECT_ID} --member="serviceAccount:${
 ```
 
 Step 17 : Add following permission to PROJECT_ID-compute@developer.gserviceaccount.com on IAM Page.
+```
 AI Platform Admin
 AI Platform Developer
 BigQuery Admin
@@ -137,3 +144,4 @@ Dataflow Worker
 Service Account User
 Storage Object Admin
 Vertex AI User
+```
