@@ -151,7 +151,7 @@ def run(argv=None, save_main_session=True):
     setup_python_file_string="""
 from setuptools import setup, find_packages
 
-setup(name='magneto-dataflow-setup',
+setup(name='dataflow-setup',
         version='0.1',
         description='Dependencies',
         install_requires=[
