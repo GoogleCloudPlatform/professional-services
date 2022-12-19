@@ -1,6 +1,6 @@
 MLOPS - End To End Workflow using :
 
-![alt text](professional-services/examples/vertex-ai-experiment/mlops_experiment_v2/ARCHITECTURE/High_Level_Architecture.png)
+![alt text](https://github.com/paragsmhatre/professional-services/blob/vertex-ai-experiment/examples/vertex-ai-experiment/mlops_experiment_v2/ARCHITECTURE/High_Level_Architecture.png?raw=true)
 
 Dataset: Random Dataset For Link Prediction
 
