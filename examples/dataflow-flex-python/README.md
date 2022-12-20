@@ -78,7 +78,7 @@ bq --location=us-central1 mk --dataset $PROJECT_ID:$BQ_DATASET
 
 #### Create ARtifactory registry
 ```
-gcloud  artifacts  repositories create $REPO --location us-central1 --repository-format docker --project prj-gke-app-ci-cd
+gcloud  artifacts  repositories create $REPO --location $LOCATION --repository-format docker --project $PROJECT_ID
 ```
 
 ### Build and Push Docker Images for template
