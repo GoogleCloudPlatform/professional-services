@@ -1,0 +1,32 @@
+steps:
+  - name: "gcr.io/cloud-builders/docker"
+    args:
+      [
+        "build",
+        "-t",
+        "${_LOCATION}-docker.pkg.dev/${_PROJECT_ID}/${_REPOSITORY}/df-xml-to-bq:dev",
+        "-f",
+        "df-sample-xml-to-bq/Dockerfile",
+        "./df-sample-xml-to-bq/",
+      ]
+  - name: "gcr.io/cloud-builders/docker"
+    args:
+      [
+        "push",
+        "${_LOCATION}-docker.pkg.dev/${_PROJECT_ID}/${_REPOSITORY}/df-xml-to-bq:dev",
+      ]
+  - name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
+    entrypoint: gcloud
+    args:
+      [
+        "dataflow",
+        "flex-template",
+        "build",
+        "${_TEMPLATE_PATH}/xml-to-bq.json",
+        "--image",
+        "${_LOCATION}-docker.pkg.dev/${_PROJECT_ID}/${_REPOSITORY}/df-xml-to-bq:dev",
+        "--sdk-language",
+        "PYTHON",
+        "--metadata-file",
+        "df-sample-xml-to-bq/metadata.json",
+      ]
