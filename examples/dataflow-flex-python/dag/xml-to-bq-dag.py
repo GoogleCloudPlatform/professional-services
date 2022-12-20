@@ -18,49 +18,52 @@ JOB_NAME = "bq-to-xml-sample-job"
 PIPELINE_NAME = "bq_to_xml_sample_dag"
 
 PAYLOAD = {
-   "launchParameter": {
-       "containerSpecGcsPath": GCS_TEMPLATE_PATH,
-       "jobName": JOB_NAME,
-       "parameters": {
-           "input": INPUT_DATA_PATH,
-           "output": f"{PROJECT_ID}:{DATASET_ID}.{BQ_TABLE}",
-           "sdk_container_image": SDK_DOCKER_IMAGE,
-           "sdk_location": "container"
-       },
-       "environment": {
-           "serviceAccountEmail": DF_WORKER_SA,
-           "tempLocation": TEMP_LOCATION,
-           "stagingLocation": STAGING_LOCATION,
-           "network": NETWORK,
-           "subnetwork": SUBNET,
-           "ipConfiguration": "WORKER_IP_PRIVATE",
-           "workerRegion": JOB_LOCATION,
-           "additionalExperiments": [
-               "use_runner_v2",
-               "use_network_tags_for_flex_templates=dataflow-worker",
-               "use_network_tags=dataflow-worker"
-           ]
-       }
-   }
+    "launchParameter": {
+        "containerSpecGcsPath": GCS_TEMPLATE_PATH,
+        "jobName": JOB_NAME,
+        "parameters": {
+            "input": INPUT_DATA_PATH,
+            "output": f"{PROJECT_ID}:{DATASET_ID}.{BQ_TABLE}",
+            "sdk_container_image": SDK_DOCKER_IMAGE,
+            "sdk_location": "container"
+        },
+        "environment": {
+            "serviceAccountEmail":
+                DF_WORKER_SA,
+            "tempLocation":
+                TEMP_LOCATION,
+            "stagingLocation":
+                STAGING_LOCATION,
+            "network":
+                NETWORK,
+            "subnetwork":
+                SUBNET,
+            "ipConfiguration":
+                "WORKER_IP_PRIVATE",
+            "workerRegion":
+                JOB_LOCATION,
+            "additionalExperiments": [
+                "use_runner_v2",
+                "use_network_tags_for_flex_templates=dataflow-worker",
+                "use_network_tags=dataflow-worker"
+            ]
+        }
+    }
 }
 
 ## DAG_CONFIG
-default_args = {
-   'start_date': days_ago(1),
-   'retries': 1
-}
+default_args = {'start_date': days_ago(1), 'retries': 1}
 
 with models.DAG(
-       PIPELINE_NAME,
-       default_args=default_args,
-       schedule_interval='@once',
+        PIPELINE_NAME,
+        default_args=default_args,
+        schedule_interval='@once',
 ) as dag:
 
-   start_flex_template = DataflowStartFlexTemplateOperator(
-       task_id="bq_to_xml_sample_df_job",
-       project_id=PROJECT_ID,
-       location=JOB_LOCATION,
-       body=PAYLOAD
-   )
+    start_flex_template = DataflowStartFlexTemplateOperator(
+        task_id="bq_to_xml_sample_df_job",
+        project_id=PROJECT_ID,
+        location=JOB_LOCATION,
+        body=PAYLOAD)
 
-   start_flex_template
+    start_flex_template
