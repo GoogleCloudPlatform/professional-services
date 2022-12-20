@@ -13,8 +13,11 @@ avoid dependency downloading, its helpful in scenarios where workers dont have i
 Another Dockerfile in directory `df-sample-xml-to-bq` creates an image to be used by launcher in order to launch the
 dataflow job.
 
+### Prerequisites
 
-### Setup
+This example assumes Project, Network, DNS and Firewalls has already been setup.
+
+#### Export Variables
 ```
 export PROJECT_ID=<project_id>
 export PROJECT_NUMBER=$(gcloud projects describe $PROJECT_ID --format="value(projectNumber)")
@@ -27,7 +30,6 @@ export NETWORK=shared-vpc
 export SUBNET=bh-subnet-usc1
 export REPO=dataflowf-image-repo
 export DF_WORKER_SA=dataflow-worker-sa@$PROJECT_ID.iam.gserviceaccount.com
-
 ```
 
 #### Setup IAM
@@ -47,7 +49,7 @@ gcloud projects add-iam-policy-binding $PROJECT_ID --member "serviceAccount:data
 # Assign Service Account User permissions
 gcloud projects add-iam-policy-binding $PROJECT_ID --member "serviceAccount:dataflow-worker-sa@$PROJECT_ID.iam.gserviceaccount.com" --role roles/iam.serviceAccountUser
 
-# Assign BigQuery job ser permissions
+# Assign BigQuery job user permissions
 gcloud projects add-iam-policy-binding $PROJECT_ID --member "serviceAccount:dataflow-worker-sa@$PROJECT_ID.iam.gserviceaccount.com" --role roles/bigquery.jobUser
 
 # Assign bigquery data editor permissions
@@ -56,7 +58,7 @@ gcloud projects add-iam-policy-binding $PROJECT_ID --member "serviceAccount:data
 # Assign Artifactory Reader Permissions
 gcloud projects add-iam-policy-binding $PROJECT_ID --member "serviceAccount:dataflow-worker-sa@$PROJECT_ID.iam.gserviceaccount.com" --role roles/artifactregistry.reader
 
-# Assign network user permissions on Host project
+# Assign network user permissions on Host project, this is needed only if dataflow workers will be using shared VPC
 gcloud projects add-iam-policy-binding $HOST_PROJECT_ID --member "serviceAccount:service-$PROJECT_NUMBER@dataflow-service-producer-prod.iam.gserviceaccount.com" --role roles/compute.networkUser
 ```
 
@@ -73,7 +75,7 @@ gsutil iam ch serviceAccount:dataflow-worker-sa@$PROJECT_ID.iam.gserviceaccount.
 
 #### Create BQ Dataset
 ```
-bq --location=us-central1 mk --dataset $PROJECT_ID:$BQ_DATASET
+bq --location=$LOCATION mk --dataset $PROJECT_ID:$BQ_DATASET
 ```
 
 #### Create ARtifactory registry
@@ -81,7 +83,9 @@ bq --location=us-central1 mk --dataset $PROJECT_ID:$BQ_DATASET
 gcloud  artifacts  repositories create $REPO --location $LOCATION --repository-format docker --project $PROJECT_ID
 ```
 
-### Build and Push Docker Images for template
+### Build Templates
+
+#### Build and Push Docker Images for template
 ```
 # Build Base Image, all packages will be used from this image when dataflow job runs
 docker build -t $LOCATION-docker.pkg.dev/$PROJECT_ID/$REPO/dataflow-2.40-base:dev .
@@ -104,6 +108,8 @@ gcloud dataflow flex-template build gs://$INPUT_BUCKET_NAME/dataflow-templates/x
 --metadata-file df-sample-xml-to-bq/metadata.json \
 --project $PROJECT_ID
 ```
+
+### Demo
 
 #### Upload Sample Data
 ```
@@ -145,6 +151,8 @@ gcloud dataflow flex-template run xml-to-bq-sample-pipeline \
 --project $PROJECT_ID
 ```
 
+### CI/CD using Cloudbuild
+
 #### Build Docker Image and Template with Cloud build
 The below section uses gcloud command. In Real World scenario Cloud build triggers
 can be created ahich can run this build job whenever their is change in the code.
@@ -157,9 +165,9 @@ gcloud builds submit --config cloudbuild_base.yaml . --project $PROJECT_ID --sub
 gcloud builds submit --config cloudbuild_df_job.yaml . --project $PROJECT_ID --substitutions _LOCATION=$LOCATION,_PROJECT_ID=$PROJECT_ID,_REPOSITORY=$REPO,_TEMPLATE_PATH=gs://$INPUT_BUCKET_NAME/dataflow-templates
 ```
 
-#### Run Dataflow Flex template job from Composer Dags
+### Run Dataflow Flex template job from Composer Dags
 
-##### Set Environment Variables for composer
+#### Set Environment Variables for composer
 ```
 export COMPOSER_ENV_NAME=<composer-env-name>
 export COMPOSER_REGION=$LOCATION
@@ -181,7 +189,7 @@ ${COMPOSER_ENV_NAME} \
 variables import -- /home/airflow/gcs/data/${COMPOSER_VAR_FILE}
 ```
 
-##### Assign permissions to Composer Worker SA
+#### Assign permissions to Composer Worker SA
 ```
 COMPOSER_SA=$(gcloud composer environments describe  $COMPOSER_ENV_NAME --location $COMPOSER_REGION --project $PROJECT_ID --format json | jq '.config.nodeConfig.serviceAccount')
 
@@ -190,7 +198,7 @@ gcloud projects add-iam-policy-binding $PROJECT_ID --member "serviceAccount:$COM
 gcloud projects add-iam-policy-binding $PROJECT_ID --member "serviceAccount:$COMPOSER_SA" --role roles/dataflow.admin
 ```
 
-##### Upload the dag to composer's dag bucket
+#### Upload the dag to composer's dag bucket
 ```
 DAG_PATH=$(gcloud composer environments describe $COMPOSER_ENV_NAME --location $COMPOSER_REGION --project $PROJECT_ID --format json | jq '.config.dagGcsPrefix')
 gcloud storage cp dag/xml-to-bq-dag.py $DAG_PATH
