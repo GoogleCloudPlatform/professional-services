@@ -18,7 +18,7 @@ import sys
 import json
 import logging
 from google.cloud import aiplatform as vertex_ai
-import base64
+
 
 # To enable the Cloud Function to work out the
 # next import
@@ -62,7 +62,7 @@ def predict(request):
             logging.error(f'User {raw_features["userid"]} not present in Feature Store, using defaults') 
             fs_features['v27'] = default_v27
         if not 'v28' in fs_features:
-            fs_features['v28'] = default_v27
+            fs_features['v28'] = default_v28
     else:
         logging.error('No userid provided, using defaults')
         return {'error': 'No userid'}

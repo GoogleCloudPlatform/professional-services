@@ -31,13 +31,6 @@ from tfx.dsl.experimental import latest_artifacts_resolver
 from tfx.dsl.experimental import latest_blessed_model_resolver
 from tfx.v1.extensions.google_cloud_big_query import BigQueryExampleGen
 from tfx.v1.extensions.google_cloud_ai_platform import Trainer as VertexTrainer 
-from tfx.v1.extensions.google_cloud_ai_platform import (
-    ENABLE_VERTEX_KEY,
-    VERTEX_REGION_KEY,
-    VERTEX_CONTAINER_IMAGE_URI_KEY,
-    VERTEX_CONTAINER_IMAGE_URI_KEY,
-    SERVING_ARGS_KEY
-)
 from tfx.v1.components import (
     StatisticsGen,
     ExampleValidator,
@@ -46,16 +39,18 @@ from tfx.v1.components import (
     Evaluator,
     Pusher
 )
-from tfx.extensions.google_cloud_ai_platform.pusher.component import Pusher as VertexPusher
+
 
 SCRIPT_DIR = os.path.dirname(
     os.path.realpath(os.path.join(os.getcwd(), os.path.expanduser(__file__)))
 )
 sys.path.append(os.path.normpath(os.path.join(SCRIPT_DIR, "..")))
 
+
 from src.tfx_pipelines import config
 from src.tfx_pipelines import components as custom_components
 from src.common import features, datasource_utils
+
 
 RAW_SCHEMA_DIR = "src/raw_schema"
 TRANSFORM_MODULE_FILE = "src/preprocessing/transformations.py"
@@ -262,40 +257,12 @@ def create_pipeline(
     ).with_id("GcsModelPusher")
 
     # Push to Vertex AI
-    vertex_serving_spec = {
-        'project_id': config.PROJECT,
-        'endpoint_name': config.MODEL_DISPLAY_NAME,
-        # Remaining argument is passed to aiplatform.Model.deploy()
-        # See https://cloud.google.com/vertex-ai/docs/predictions/deploy-model-api#deploy_the_model
-        # for the detail.
-        #
-        # Machine type is the compute resource to serve prediction requests.
-        # See https://cloud.google.com/vertex-ai/docs/predictions/configure-compute#machine-types
-        # for available machine types and acccerators.
-        'machine_type': 'n1-standard-4'
-    }
-
-    # Upload custom trained model to Vertex AI.
-
-    # This implementation gives you no control over the name of the model, which complicates
-    # automatic steps downstream. It also immediately deploys to an AI Endpoint.
-    #
-    # vertex_pusher = VertexPusher(
-    #     model=trainer.outputs["model"],
-    #     model_blessing=evaluator.outputs["blessing"],
-    #     custom_config={
-    #           ENABLE_VERTEX_KEY: True,
-    #           VERTEX_REGION_KEY: config.REGION,
-    #           VERTEX_CONTAINER_IMAGE_URI_KEY: config.SERVING_IMAGE_URI,
-    #           SERVING_ARGS_KEY: vertex_serving_spec,
-    #       }
-    # ).with_id("VertexModelPusher")
-    
     labels = {
         "dataset_name": config.VERTEX_DATASET_NAME[:62],
         "pipeline_name": config.PIPELINE_NAME[:62],
         "pipeline_root": pipeline_root[:62]
     }
+    
     labels = json.dumps(labels)
     explanation_config = json.dumps(features.generate_explanation_config())
     

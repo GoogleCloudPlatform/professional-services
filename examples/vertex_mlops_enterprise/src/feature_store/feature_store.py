@@ -1,9 +1,7 @@
-from google.api_core import operations_v1
 from google.cloud.aiplatform_v1beta1 import FeaturestoreOnlineServingServiceClient, FeaturestoreServiceClient, FeatureSelector
 from google.cloud.aiplatform_v1beta1.types import featurestore_online_service as featurestore_online_service_pb2
 from google.cloud.aiplatform_v1beta1.types import entity_type as entity_type_pb2
 from google.cloud.aiplatform_v1beta1.types import feature as feature_pb2
-from google.cloud.aiplatform_v1beta1.types import featurestore as featurestore_pb2
 from google.cloud.aiplatform_v1beta1.types import featurestore_service as featurestore_service_pb2
 from google.cloud.aiplatform_v1beta1.types import io as io_pb2
 from google.cloud.aiplatform_v1beta1.types import ListFeaturestoresRequest, CreateFeaturestoreRequest, Featurestore, ListEntityTypesRequest
@@ -104,7 +102,7 @@ def create_entity(project, region, store_id, entity, entity_descr, features, fea
     print(f'\nCreating features: {",".join(features)}')
 
     lro = admin_client.batch_create_features(
-        parent=admin_client.entity_type_path(PROJECT, REGION, FEATURESTORE_ID, entity),
+        parent=admin_client.entity_type_path(project, region, store_id, entity),
         requests=requests).result()
     
     return lro

@@ -15,8 +15,7 @@
 
 import tensorflow as tf
 from tensorflow import keras
-from tensorflow.keras import layers, activations, metrics, losses, optimizers
-
+from tensorflow.keras import layers, activations
 import logging
 
 from src.common import features

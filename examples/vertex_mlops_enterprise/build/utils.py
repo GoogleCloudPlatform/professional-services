@@ -169,6 +169,7 @@ def run_pipeline(project, region, service_account, pipelines_store, pipeline_nam
 
     response = job.submit(service_account=service_account,
            network=None)
+    return response
 
 
 def main():

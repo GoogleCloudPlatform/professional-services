@@ -18,7 +18,6 @@ import sys
 import os
 import json
 import logging
-from datetime import datetime
 import tensorflow as tf
 
 from tfx.types import artifact_utils
@@ -32,7 +31,6 @@ from tfx.dsl.component.experimental.annotations import (
 )
 from tfx.types.standard_artifacts import HyperParameters, ModelBlessing
 from tfx.types.experimental.simple_artifacts import File as UploadedModel
-from tfx.types.experimental.simple_artifacts import Dataset
 
 from google.cloud import aiplatform as vertex_ai
 
@@ -41,9 +39,6 @@ SCRIPT_DIR = os.path.dirname(
     os.path.realpath(os.path.join(os.getcwd(), os.path.expanduser(__file__)))
 )
 sys.path.append(os.path.normpath(os.path.join(SCRIPT_DIR, "..")))
-
-
-from src.preprocessing import etl
 
 
 HYPERPARAM_FILENAME = "hyperparameters.json"

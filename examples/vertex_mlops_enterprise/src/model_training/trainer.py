@@ -86,8 +86,7 @@ def train(
         epochs=hyperparams["num_epochs"],
         steps_per_epoch=steps_per_epoch,
         validation_data=eval_dataset,
-        #callbacks=[early_stopping, tensorboard_callback],
-        callbacks=[tensorboard_callback],
+        callbacks=[early_stopping, tensorboard_callback],
     )
     logging.info("Model training completed.")
 
@@ -118,7 +117,6 @@ def evaluate(model, data_dir, raw_schema_location, tft_output_dir, hyperparams):
 def f1(y_true, y_pred):
     y_pred = K.round(y_pred)
     tp = K.sum(K.cast(y_true*y_pred, 'float'), axis=0)
-    tn = K.sum(K.cast((1-y_true)*(1-y_pred), 'float'), axis=0)
     fp = K.sum(K.cast((1-y_true)*y_pred, 'float'), axis=0)
     fn = K.sum(K.cast(y_true*(1-y_pred), 'float'), axis=0)
 
