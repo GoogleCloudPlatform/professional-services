@@ -1,0 +1,15 @@
+steps:
+  - name: "gcr.io/cloud-builders/docker"
+    args:
+      [
+        "build",
+        "-t",
+        "${_LOCATION}-docker.pkg.dev/${_PROJECT_ID}/${_REPOSITORY}/dataflow-2.40-base:dev",
+        ".",
+      ]
+  - name: "gcr.io/cloud-builders/docker"
+    args:
+      [
+        "push",
+        "${_LOCATION}-docker.pkg.dev/${_PROJECT_ID}/${_REPOSITORY}/dataflow-2.40-base:dev",
+      ]
