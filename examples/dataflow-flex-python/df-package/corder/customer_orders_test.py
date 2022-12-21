@@ -24,11 +24,9 @@ def test_xml_to_bq():
         for file_name in output_files:
             if "order" in file_name:
                 lines = open(output_file).read().splitlines()
-                json_data = json.loads(lines[0].replace("'", '"'))
                 assert len(lines) == 44
             if "customer" in file_name:
                 lines = open(output_file).read().splitlines()
-                json_data = json.loads(lines[0].replace("'", '"'))
                 assert len(lines) == 4
 
 
