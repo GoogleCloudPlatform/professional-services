@@ -6,7 +6,6 @@ GCS_TEMPLATE_PATH = models.Variable.get('GCS_TEMPLATE_PATH')
 INPUT_DATA_PATH = models.Variable.get('INPUT_DATA_PATH')
 PROJECT_ID = models.Variable.get('PROJECT_ID')
 DATASET_ID = models.Variable.get('DATASET_ID')
-BQ_TABLE = models.Variable.get('BQ_TABLE')
 SDK_DOCKER_IMAGE = models.Variable.get('SDK_DOCKER_IMAGE')
 DF_WORKER_SA = models.Variable.get('DF_WORKER_SA')
 TEMP_LOCATION = models.Variable.get('TEMP_LOCATION')
@@ -23,7 +22,7 @@ PAYLOAD = {
         "jobName": JOB_NAME,
         "parameters": {
             "input": INPUT_DATA_PATH,
-            "output": f"{PROJECT_ID}:{DATASET_ID}.{BQ_TABLE}",
+            "output": f"{PROJECT_ID}:{DATASET_ID}",
             "sdk_container_image": SDK_DOCKER_IMAGE,
             "sdk_location": "container"
         },
