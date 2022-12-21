@@ -5,6 +5,8 @@ steps:
         "build",
         "-t",
         "${_LOCATION}-docker.pkg.dev/${_PROJECT_ID}/${_REPOSITORY}/dataflow-2.40-base:dev",
+        "-f",
+        "Dockerfile_SDK",
         ".",
       ]
   - name: "gcr.io/cloud-builders/docker"

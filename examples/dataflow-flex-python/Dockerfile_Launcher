@@ -9,8 +9,16 @@ RUN mkdir -p ${WORKDIR}
 
 WORKDIR ${WORKDIR}
 
-COPY xmltobq.py .
+COPY requirements.txt /tmp/requirements.txt
 
-ENV FLEX_TEMPLATE_PYTHON_PY_FILE="${WORKDIR}/xmltobq.py"
+RUN pip install --upgrade pip
 
-RUN pip install apache-beam[gcp]==2.40.0 xmltodict==0.13.0
+RUN pip install --no-cache-dir -r /tmp/requirements.txt
+
+COPY df-package/ .
+
+RUN python setup.py install
+
+ENV FLEX_TEMPLATE_PYTHON_PY_FILE="${WORKDIR}/main.py"
+
+

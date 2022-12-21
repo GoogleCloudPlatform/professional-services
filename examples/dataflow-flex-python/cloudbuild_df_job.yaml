@@ -6,8 +6,8 @@ steps:
         "-t",
         "${_LOCATION}-docker.pkg.dev/${_PROJECT_ID}/${_REPOSITORY}/df-xml-to-bq:dev",
         "-f",
-        "df-sample-xml-to-bq/Dockerfile",
-        "./df-sample-xml-to-bq/",
+        "Dockerfile_Launcher",
+        ".",
       ]
   - name: "gcr.io/cloud-builders/docker"
     args:
@@ -28,5 +28,5 @@ steps:
         "--sdk-language",
         "PYTHON",
         "--metadata-file",
-        "df-sample-xml-to-bq/metadata.json",
+        "metadata.json",
       ]
