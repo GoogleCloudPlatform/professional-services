@@ -1,0 +1,20 @@
+# This Dockerfile is for creating an Image installed with all
+# dependencies that will be used by Dataflow workers at run time.
+
+FROM apache/beam_python3.8_sdk:2.40.0
+
+COPY requirements.txt /tmp/
+
+RUN pip install --upgrade pip
+
+RUN pip install --no-cache-dir -r /tmp/requirements.txt
+
+ARG WORKDIR=/dataflow/
+
+RUN mkdir -p ${WORKDIR}
+
+WORKDIR ${WORKDIR}
+
+COPY df-package/ .
+
+RUN python setup.py install

@@ -10,12 +10,9 @@
         },
         {
             "name": "output",
-            "label": "BQ output table",
-            "helpText": "Specify BQ Output table(project:dataset.table) or json file(example.json)",
-            "isOptional": false,
-            "regexes": [
-                "([^:]+:)?[^.]+[.].+"
-            ]
+            "label": "BQ output dataset",
+            "helpText": "Specify BQ Output dataset in form of 'project:dataset' (tables 'orders' and 'customers' will be created automatically) or json file(example.json)",
+            "isOptional": false
         },
         {
             "name": "sdk_location",
