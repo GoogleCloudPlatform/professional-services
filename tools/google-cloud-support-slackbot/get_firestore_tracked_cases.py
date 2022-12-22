@@ -24,32 +24,32 @@ logger = logging.getLogger(__name__)
 
 
 def get_firestore_tracked_cases() -> list:
-    """
-    Fetches the cases in Firestore and returns the copy for each case id with the
-    greatest timestamp value.
+  """
+    Fetches the cases in Firestore and returns the copy for each case id with
+    the greatest timestamp value.
 
     Returns
     -------
     tracked_cases
-        list of dicts containing the tracked case information
+      list of dicts containing the tracked case information
     """
-    # Initialize the Firebase app if it hasn't already been done
-    if not firebase_admin._apps:
-        PROJECT_ID = os.environ.get('PROJECT_ID')
-        cred = credentials.ApplicationDefault()
-        firebase_admin.initialize_app(cred, {
-            'projectId': PROJECT_ID,
-        })
+  # Initialize the Firebase app if it hasn"t already been done
+  if not firebase_admin._apps:
+    PROJECT_ID = os.environ.get("PROJECT_ID")
+    cred = credentials.ApplicationDefault()
+    firebase_admin.initialize_app(cred, {
+        "projectId": PROJECT_ID,
+    })
 
-    db = firestore.client()
-    tracked_cases = []
-    collection = 'tracked_cases'
-    firestore_tracked_cases = db.collection(collection).get()
-    for case in firestore_tracked_cases:
-        tracked_cases.append(case.to_dict())
+  db = firestore.client()
+  tracked_cases = []
+  collection = "tracked_cases"
+  firestore_tracked_cases = db.collection(collection).get()
+  for case in firestore_tracked_cases:
+    tracked_cases.append(case.to_dict())
 
-    return tracked_cases
+  return tracked_cases
 
 
 if __name__ == "__main__":
-    print(str(get_firestore_tracked_cases()))
+  print(str(get_firestore_tracked_cases()))

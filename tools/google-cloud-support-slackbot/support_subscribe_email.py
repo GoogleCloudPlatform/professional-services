@@ -28,84 +28,111 @@ logger = logging.getLogger(__name__)
 
 
 def support_subscribe_email(channel_id, case, emails, user_id):
-    """
+  """
     Changes the priority of a Google Cloud Support case.
 
     Parameters
     ----------
     channel_id : str
-        unique string used to idenify a Slack channel. Used to send messages to the channel
+        unique string used to idenify a Slack channel. Used to send messages
+        to the channel
     case : str
         unique id of the case
     emails : str
         emails to be subscribed to the case
     user_id : str
-        the Slack user_id of the user who submitted the request. Used to send ephemeral
-        messages to the user
+        the Slack user_id of the user who submitted the request. Used to send
+        ephemeral messages to the user
+
+    Returns
+    ----------
+    str[]
+        a list of unique emails that have been newly added to the Google
+        Cloud Support case
     """
-    API_KEY = os.environ.get('API_KEY')
-    MAX_RETRIES = 3
+  API_KEY = os.environ.get("API_KEY")
+  MAX_RETRIES = 3
 
-    # Get our discovery doc and build our service
-    r = requests.get('https://cloudsupport.googleapis.com/$discovery/rest'
-                     '?key={}&labels=V2_TRUSTED_TESTER&version=v2beta'.format(API_KEY))
-    r.raise_for_status()
-    support_service = build_from_document(r.json())
+  # Get our discovery doc and build our service
+  r = requests.get(f"https://cloudsupport.googleapis.com/$discovery/rest\
+      ?key={API_KEY}&labels=V2_TRUSTED_TESTER&version=v2beta",
+                   timeout=5)
+  r.raise_for_status()
+  support_service = build_from_document(r.json())
 
-    client = slack.WebClient(token=os.environ.get('SLACK_TOKEN'))
-    client.chat_postEphemeral(
-        channel=channel_id,
-        user=user_id,
-        text="Your request is processing ...")
+  client = slack.WebClient(token=os.environ.get("SLACK_TOKEN"))
+  client.chat_postEphemeral(channel=channel_id,
+                            user=user_id,
+                            text="Your request is processing ...")
 
-    cases = get_firestore_cases()
-    case_found = False
+  cases = get_firestore_cases()
+  case_found = False
 
-    for fs_case in cases:
-        if case == fs_case['case_number']:
-            case_found = True
-            parent = fs_case['resource_name']
-            body = {
-                       "subscriberEmailAddresses": [emails]
-                   }
-            update_mask = 'case.subscriberEmailAddresses'
-            req = support_service.cases().patch(name=parent, updateMask=update_mask, body=body)
-            try:
-                req.execute(num_retries=MAX_RETRIES)
-            except BrokenPipeError as e:
-                error_message = str(e) + ' : {}'.format(datetime.now())
-                logger.error(error_message)
-                client.chat_postEphemeral(
-                    channel=channel_id,
-                    user=user_id,
-                    text="Your attempt to change the subscriber email addresses has failed."
-                         " Please try again later.")
-            except HttpError as e:
-                error_message = str(e) + ' : {}'.format(datetime.now())
-                logger.error(error_message)
-                client.chat_postEphemeral(
-                    channel=channel_id,
-                    user=user_id,
-                    text="Your attempt to change the subscriber email addresses has failed."
-                         " Please confirm that 'Enable case sharing' is on in your"
-                         " project's Support settings. If this setting was off, then for"
-                         " this case you will need to ask support to add the email"
-                         " addresses.")
-            else:
-                client.chat_postEphemeral(
-                    channel=channel_id,
-                    user=user_id,
-                    text=f"You have updated the subcscriber email addreses to {emails}")
+  for fs_case in cases:
+    if case == fs_case["case_number"]:
+      case_found = True
+      parent = fs_case["resource_name"]
 
-    if case_found is False:
-        case_not_found(channel_id, user_id, case)
+      get_case_req = support_service.cases().get(name=parent)
+
+      try:
+        # Retrieve current list of CC'd emails
+        case_details = get_case_req.execute(num_retries=MAX_RETRIES)
+        new_cc = emails
+        if "subscriberEmailAddresses" in case_details:
+          current_cc = case_details["subscriberEmailAddresses"]
+          # List of added emails not already in CC list for notifications
+          new_cc = [x for x in emails if x not in current_cc]
+          # Update list
+          emails.extend(current_cc)
+
+        # Update CC list
+        body = {"subscriberEmailAddresses": [emails]}
+        update_mask = "subscriberEmailAddresses"
+        update_req = support_service.cases().patch(name=parent,
+                                                   updateMask=update_mask,
+                                                   body=body)
+        update_req.execute(num_retries=MAX_RETRIES)
+      except BrokenPipeError as e:
+        error_message = f"{e} : {datetime.now()}"
+        logger.error(error_message)
+        client.chat_postEphemeral(
+            channel=channel_id,
+            user=user_id,
+            text=
+            "Your attempt to change the subscriber email addresses has failed."
+            + " Please try again later.")
+      except HttpError as e:
+        error_message = f"{e} : {datetime.now()}"
+        logger.error(error_message)
+        client.chat_postEphemeral(
+            channel=channel_id,
+            user=user_id,
+            text=
+            "Your attempt to change the subscriber email addresses has failed."
+            + " Please confirm that 'Enable case sharing' is on in your" +
+            " project's Support settings. If this setting was off, then for" +
+            " this case you will need to ask support to add the email" +
+            " addresses.")
+      else:
+        updated_cc_list = list(set(emails))
+        client.chat_postEphemeral(
+            channel=channel_id,
+            user=user_id,
+            text=f"You have updated the subcscriber email addreses for\
+            {case} to {updated_cc_list}")
+
+        return new_cc
+
+  if not case_found:
+    case_not_found(channel_id, user_id, case)
+
+  return []
 
 
 if __name__ == "__main__":
-    channel_id = os.environ.get('TEST_CHANNEL_ID')
-    case = 'xxxxxxxx'
-    emails = ["testaccount1@example.com", "testaccount2@example.com"]
-    user_id = os.environ.get('TEST_USER_ID')
-    support_subscribe_email(channel_id, case, emails, user_id)
-    case = os.environ.get('TEST_CASE')
-    support_subscribe_email(channel_id, case, emails, user_id)
+  test_channel_id = os.environ.get("TEST_CHANNEL_ID")
+  test_case = "42610245"
+  test_emails = ["testaccount1@example.com", "testaccount5@example.com"]
+  test_user_id = os.environ.get("TEST_USER_ID")
+  support_subscribe_email(test_channel_id, test_case, test_emails, test_user_id)

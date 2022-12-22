@@ -22,38 +22,41 @@ from datetime import datetime
 logger = logging.getLogger(__name__)
 
 
-def case_not_found(channel_id, user_id, case):
+def send_slack_ephemeral_message(client,
+                                 channel_id,
+                                 user_id,
+                                 text,
+                                 silence_alerts=False):
   """
     Informs the user of their case could not be found.
 
     Parameters
     ----------
+    client : WebClient
+      allows communication to Slack API
     channel_id : str
-      unique string used to idenify a Slack channel. Used to send messages to
-      the channel
+      unique string used to idenify a Slack channel. Used to send messages
+      to the channel
     user_id : str
       the Slack user_id of the user who submitted the request. Used to send
       ephemeral messages to the user
-    case : str
-      unique id of the case
+    text : str
+      string to send in Slack message
+    silence_alerts : bool
+      determines whether to send the Slack ephemeral message or not
     """
-  client = slack.WebClient(token=os.environ.get("SLACK_TOKEN"))
-  try:
-    client.chat_postEphemeral(
-        channel=channel_id,
-        user=user_id,
-        text=
-        f"Case {case} could not be found in your org. If this case was recently"
-        " created, please give the system 60 seconds to fetch it. Otherwise,"
-        " double check your case number or confirm the org being tracked"
-        " with your Slack admin.")
-  except slack.errors.SlackApiError as e:
-    error_message = f"{e} : {datetime.now()}"
-    logger.error(error_message)
+  if not silence_alerts:
+    try:
+      client.chat_postEphemeral(channel=channel_id, user=user_id, text=text)
+    except slack.errors.SlackApiError as e:
+      error_message = f"{e} : {datetime.now()}"
+      logger.error(error_message)
 
 
 if __name__ == "__main__":
+  slack_client = slack.WebClient(token=os.environ.get("SLACK_TOKEN"))
   test_channel_id = os.environ.get("TEST_CHANNEL_ID")
   test_user_id = os.environ.get("TEST_USER_ID")
   test_case = "xxxxxxxx"
-  case_not_found(test_channel_id, test_user_id, test_case)
+  send_slack_ephemeral_message(slack_client, test_channel_id, test_user_id,
+                               test_case)
