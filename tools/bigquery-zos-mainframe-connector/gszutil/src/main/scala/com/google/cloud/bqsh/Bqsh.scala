@@ -163,6 +163,13 @@ object Bqsh extends Logging {
           runCommand(GsZUtil, cmd.args, zos, cmd.env)
         } else if (cmd.name == "gcloud") {
           sub match {
+            case "dataflow" =>
+              subArgs.toList match {
+                case "flex-template" :: "run" :: runArgs =>
+                  runCommand(DataflowFlexTemplateRun, runArgs, zos, cmd.env)
+                case _ =>
+                  Result.Failure(s"invalid command '${args.mkString(" ")}'")
+              }
             case "pubsub" =>
               subArgs.toList match {
                 case "topics" :: "publish" :: runArgs =>

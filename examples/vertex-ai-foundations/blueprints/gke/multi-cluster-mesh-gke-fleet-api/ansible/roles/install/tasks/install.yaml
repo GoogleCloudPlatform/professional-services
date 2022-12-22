@@ -1,0 +1,58 @@
+# Copyright 2021 Google LLC
+# 
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+# 
+#     http://www.apache.org/licenses/LICENSE-2.0
+# 
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+- name: Get cluster credentials
+  shell: >
+    gcloud container clusters get-credentials {{ cluster }} \
+    --region {{ region }} \
+    --project {{ project_id }} \
+    --internal-ip
+
+- name: Set context
+  set_fact:
+    context: "gke_{{ project_id }}_{{ region }}_{{ cluster }}"
+
+- name: Install ASM in cluster
+  shell: > 
+    gcloud container fleet mesh update \
+    --control-plane automatic \
+    --memberships {{ cluster }} \
+    --project {{ project_id }}
+
+- name: Wait until MCP is provisioned
+  shell: > 
+    for i in $(seq 12); do
+      result=$(gcloud container fleet mesh describe --project {{ project_id }} --format json \
+      | jq -r '.membershipStates | to_entries[] | select(.key | endswith("{{ cluster }}")) | .value.servicemesh.controlPlaneManagement.state')
+      if [ "$result" = "ACTIVE" ]; then
+        break
+      fi
+      echo "ASM control plane is not ready yet..."
+      sleep 60
+    done
+ 
+- name: Get endpoint IP
+  shell: > 
+    gcloud container clusters describe "{{ cluster }}" \
+    --project "{{ project_id }}" \
+    --region "{{ region }}" \
+    --format "value(privateClusterConfig.publicEndpoint)"
+  register: endpoint
+
+- name: Create secret
+  shell: > 
+    ~/istio-*/bin/istioctl x create-remote-secret \
+    --context={{ context }} \
+    --name={{ cluster }} \
+    --server=https://{{ endpoint.stdout }} > ~/{{ cluster }}.secret    

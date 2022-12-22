@@ -1,0 +1,41 @@
+# skip boilerplate check
+apiVersion: v1
+baseDomain: ""
+compute:
+  - architecture: amd64
+    hyperthreading: Enabled
+    name: worker
+    platform:
+      gcp:
+        osDisk:
+          diskType: pd-ssd
+          diskSizeGB: 0
+    replicas: 0
+controlPlane:
+  architecture: amd64
+  hyperthreading: Enabled
+  name: master
+  platform: {}
+  replicas: 3
+metadata:
+  creationTimestamp: null
+  name: ""
+networking:
+  clusterNetwork:
+    - cidr: ""
+      hostPrefix: 23
+  machineNetwork:
+    - cidr: ""
+  networkType: OpenShiftSDN
+  serviceNetwork:
+    - ""
+platform:
+  gcp:
+    projectID: ""
+    region: ""
+publish: Internal
+pullSecret: ""
+sshKey: |
+  xxx
+
+# additionalTrustBundle: |

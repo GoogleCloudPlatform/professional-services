@@ -1,0 +1,73 @@
+# skip boilerplate check
+#
+# sample subset of useful organization policies, edit to suit requirements
+
+compute.disableGuestAttributesAccess:
+  enforce: true
+
+compute.requireOsLogin:
+  enforce: true
+
+compute.restrictLoadBalancerCreationForTypes:
+  allow:
+    values:
+    - in:INTERNAL
+
+compute.skipDefaultNetworkCreation:
+  enforce: true
+
+compute.vmExternalIpAccess:
+  deny:
+    all: true
+
+
+# compute.disableInternetNetworkEndpointGroup:
+#   enforce: true
+
+# compute.disableNestedVirtualization:
+#   enforce: true
+
+# compute.disableSerialPortAccess:
+#   enforce: true
+
+# compute.restrictCloudNATUsage:
+#   deny:
+#     all: true
+
+# compute.restrictDedicatedInterconnectUsage:
+#   deny:
+#     all: true
+
+# compute.restrictPartnerInterconnectUsage:
+#   deny:
+#     all: true
+
+# compute.restrictProtocolForwardingCreationForTypes:
+#   deny:
+#     all: true
+
+# compute.restrictSharedVpcHostProjects:
+#   deny:
+#     all: true
+
+# compute.restrictSharedVpcSubnetworks:
+#   deny:
+#     all: true
+
+# compute.restrictVpcPeering:
+#   deny:
+#     all: true
+
+# compute.restrictVpnPeerIPs:
+#   deny:
+#     all: true
+
+# compute.restrictXpnProjectLienRemoval:
+#   enforce: true
+
+# compute.setNewProjectDefaultToZonalDNSOnly:
+#   enforce: true
+
+# compute.vmCanIpForward:
+#   deny:
+#     all: true

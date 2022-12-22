@@ -1,0 +1,31 @@
+# Copyright 2022 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+region: str()
+description: str()
+ip_cidr_range: str()
+# optional attributes
+enable_private_access: bool(required=False) # defaults to true
+iam_users: list(str(), required=False)
+iam_groups: list(str(), required=False)
+iam_service_accounts: list(str(), required=False)
+secondary_ip_ranges: map(str(), key=str(), required=False)
+flow_logs: any(include('flow_logs'), required=False)
+---
+flow_logs:
+  - aggregation_interval: enum('INTERVAL_5_SEC', 'INTERVAL_30_SEC', 'INTERVAL_1_MIN', 'INTERVAL_5_MIN', 'INTERVAL_10_MIN', 'INTERVAL_15_MIN', required=False)
+  - filter_expression: str()
+  - flow_sampling: num(min=0, max=1, required=False)
+  - metadata: enum('EXCLUDE_ALL_METADATA', 'INCLUDE_ALL_METADATA', 'CUSTOM_METADATA', required=False)
+  - metadata_fields: map(str(), key=str(), required=False)
