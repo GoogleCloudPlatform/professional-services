@@ -50,20 +50,20 @@ class MonolithicTestCase(unittest.TestCase):
     Attributes
     ----------
     channel_id : str
-      unique string used to idenify a Slack channel. Used to send messages to \
+      unique string used to idenify a Slack channel. Used to send messages to
       the channel
     channel_name : str
-      designated channel name of the channel. For users to understand where \
+      designated channel name of the channel. For users to understand where
       their cases are being tracked in Slack
     user_id : str
-      the Slack user_id of the user who submitted the request. Used to send \
+      the Slack user_id of the user who submitted the request. Used to send
       ephemeral messages to the user
     user_name : str
-      Slack user_name of the user that ran the command. Appended to the end of \
-      the comment to identify who submitted submitted it, otherwise all \
+      Slack user_name of the user that ran the command. Appended to the end of
+      the comment to identify who submitted submitted it, otherwise all
       comments will show as coming from the case creator
     project_number : str
-      unique number of the project where we will be creating and modifying our \
+      unique number of the project where we will be creating and modifying our
       test case
     case : str
       unique id of the case
@@ -72,10 +72,10 @@ class MonolithicTestCase(unittest.TestCase):
     update_time : str
       the reported time that the case was last updated
     guid : str
-      unique string that is used by the firestore_read module to determine if \
+      unique string that is used by the firestore_read module to determine if
       this instance was the first to write the data into Firestore
     resource_name : str
-      parent or name of the case in the format of "projects/12345/cases/67890" \
+      parent or name of the case in the format of "projects/12345/cases/67890"
       or "organizations/12345/cases/67890"
     """
   channel_id = os.environ.get("TEST_CHANNEL_ID")
@@ -92,7 +92,8 @@ class MonolithicTestCase(unittest.TestCase):
   #pylint: disable=assignment-from-no-return,assignment-from-none
   def step01_post_help_message(self):
     """
-        Run the post_help_message procedure. If successful, a message will appear in Slack.
+        Run the post_help_message procedure. If successful, a message will
+        appear in Slack.
     """
     context = "This is a unit test of the post_help_message procedure. "
     post_help_message_output = post_help_message(self.channel_id, self.user_id,
@@ -101,7 +102,8 @@ class MonolithicTestCase(unittest.TestCase):
 
   def step02_case_not_found(self):
     """
-        Run the case_not_found procedure. If successful, a message will appear in Slack.
+        Run the case_not_found procedure. If successful, a message will appear
+        in Slack.
     """
     case_not_found_output = case_not_found(self.channel_id, self.user_id,
                                            self.case)
@@ -119,11 +121,12 @@ class MonolithicTestCase(unittest.TestCase):
         " Support Slackbot. Please delete this case if it is open for"
         " more than 30 minutes")
     severity = 4
-    classification_id = "100H41Q3DTMN0TBKCKD0SGRFDLO7AT35412MSPR9DPII4229DPPN8O\
-                        BECDIG"
+    classification_id = (
+        "100H41Q3DTMN0TBKCKD0SGRFDLO7AT35412MSPR9DPII4229DPPN8O"
+        "BECDIG")
 
-    classification_display_name = "Compute \u003e Compute Engine \u003e \
-                                  Instance"
+    classification_display_name = ("Compute \u003e Compute Engine \u003e"
+                                   " Instance")
 
     time_zone = "-7:00"
     test_case = True
@@ -237,8 +240,8 @@ class MonolithicTestCase(unittest.TestCase):
         will appear in Slack.
     """
     update_type = "comment"
-    update_text = "This is a test comment that doesn\"t actually appear on the \
-                  case."
+    update_text = ("This is a test comment that doesn\"t actually appear on the"
+                   "case.")
 
     notify_slack_comment_output = notify_slack(self.case, update_type,
                                                update_text)

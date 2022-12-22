@@ -27,22 +27,22 @@ logger = logging.getLogger(__name__)
 
 def track_case(channel_id, channel_name, case, user_id):
   """
-    Add a Google Cloud support case to the tracked_cases collection in \
-    Firestore. If the case can"t be found in the list of active support cases, \
+    Add a Google Cloud support case to the tracked_cases collection in
+    Firestore. If the case can"t be found in the list of active support cases,
     notify the user.
 
     Parameters
     ----------
     channel_id : str
-      unique string used to idenify a Slack channel. Used to send messages to \
+      unique string used to idenify a Slack channel. Used to send messages to
       the channel
     channel_name : str
-      designated channel name of the channel. For users to understand where \
+      designated channel name of the channel. For users to understand where
       their cases are being tracked in Slack
     case : str
       unique id of the case
     user_id : str
-      the Slack user_id of the user who submitted the request. Used to send \
+      the Slack user_id of the user who submitted the request. Used to send
       ephemeral messages to the user
     """
   client = slack.WebClient(token=os.environ.get("SLACK_TOKEN"))

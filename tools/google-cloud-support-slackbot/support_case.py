@@ -72,9 +72,9 @@ class SupportCase:
     API_KEY = os.environ.get("API_KEY")
 
     # Get our discovery doc and build our service
-    r = requests.get(f"https://cloudsupport.googleapis.com/$discovery/rest\
-      ?key={API_KEY}&labels=V2_TRUSTED_TESTER&version=v2beta",
-                     timeout=5)
+    r = requests.get(
+        f"https://cloudsupport.googleapis.com/$discovery/rest?key={API_KEY}&labels=V2_TRUSTED_TESTER&version=v2beta",
+        timeout=5)
     r.raise_for_status()
     support_service = build_from_document(r.json())
 

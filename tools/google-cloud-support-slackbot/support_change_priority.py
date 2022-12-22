@@ -33,23 +33,23 @@ def support_change_priority(channel_id, case, priority, user_id):
     Parameters
     ----------
     channel_id : str
-      unique string used to idenify a Slack channel. Used to send messages to \
+      unique string used to idenify a Slack channel. Used to send messages to
       the channel
     case : str
       unique id of the case
     priority : str
       the current priority of the case, represented as S0, S1, S2, S3, or S4
     user_id : str
-      the Slack user_id of the user who submitted the request. Used to send \
+      the Slack user_id of the user who submitted the request. Used to send
       ephemeral messages to the user
     """
   API_KEY = os.environ.get("API_KEY")
   MAX_RETRIES = 3
 
   # Get our discovery doc and build our service
-  r = requests.get(f"https://cloudsupport.googleapis.com/$discovery/rest\
-      ?key={API_KEY}&labels=V2_TRUSTED_TESTER&version=v2beta",
-                   timeout=5)
+  r = requests.get(
+      f"https://cloudsupport.googleapis.com/$discovery/rest?key={API_KEY}&labels=V2_TRUSTED_TESTER&version=v2beta",
+      timeout=5)
   r.raise_for_status()
   support_service = build_from_document(r.json())
 
@@ -69,7 +69,7 @@ def support_change_priority(channel_id, case, priority, user_id):
     try:
       req.execute(num_retries=MAX_RETRIES)
     except BrokenPipeError as e:
-      error_message = str(e) + " : {}".format(datetime.now())
+      error_message = f"{e} : {datetime.now()}"
       logger.error(error_message)
       client.chat_postEphemeral(
           channel=channel_id,

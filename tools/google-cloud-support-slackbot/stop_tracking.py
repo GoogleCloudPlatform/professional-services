@@ -31,15 +31,15 @@ def stop_tracking(channel_id, channel_name, case, user_id):
     Parameters
     ----------
     channel_id : str
-      unique string used to idenify a Slack channel. Used to send messages \
+      unique string used to idenify a Slack channel. Used to send messages
       to the channel
     channel_name : str
-      user designated channel name. For users to understand where their cases \
+      user designated channel name. For users to understand where their cases
       are being tracked in Slack
     case : str
       unique id of the case
     user_id : str
-      the Slack user_id of the user who submitted the request. Used to send \
+      the Slack user_id of the user who submitted the request. Used to send
       ephemeral messages to the user
     """
   # Initialize the Firebase app if it hasn"t already been done

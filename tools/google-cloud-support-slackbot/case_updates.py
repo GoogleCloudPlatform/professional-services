@@ -56,9 +56,9 @@ def case_updates(is_test):
   query_string = f"organization='organizations/{ORG_ID}' AND state=OPEN"
 
   # Get our discovery doc and build our service
-  r = requests.get(f"https://cloudsupport.googleapis.com/$discovery/\
-      rest?key={API_KEY}&labels=V2_TRUSTED_TESTER&version=v2beta",
-                   timeout=5)
+  r = requests.get(
+      f"https://cloudsupport.googleapis.com/$discovery/rest?key={API_KEY}&labels=V2_TRUSTED_TESTER&version=v2beta",
+      timeout=5)
   r.raise_for_status()
   support_service = build_from_document(r.json())
 
@@ -212,8 +212,8 @@ def auto_cc(case):
     ]
 
     if combined_new_emails:
-      response = f"The following emails have been added automatically through\
-         asset subscription: {', '.join(combined_new_emails)}"
+      response = ("The following emails have been added automatically through"
+                  f" asset subscription: {', '.join(combined_new_emails)}")
 
       # Write a comment on the case to notify all newly added emails. Silence
       # the Slack messages to avoid spam. Can leave user_id blank since we're

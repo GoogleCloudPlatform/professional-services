@@ -61,9 +61,9 @@ MAX_RETRIES = 3
 slack_events = SlackEventAdapter(SLACK_SIGNING_SECRET, "/slack/events", app)
 
 # Get our discovery doc and build our service
-r = requests.get(f"https://cloudsupport.googleapis.com/$discovery/\
-      rest?key={API_KEY}&labels=V2_TRUSTED_TESTER&version=v2beta",
-                 timeout=5)
+r = requests.get(
+    f"https://cloudsupport.googleapis.com/$discovery/rest?key={API_KEY}&labels=V2_TRUSTED_TESTER&version=v2beta",
+    timeout=5)
 r.raise_for_status()
 support_service = build_from_document(r.json())
 
@@ -115,8 +115,10 @@ def gcp_support() -> Response:
       client.chat_postEphemeral(
           channel=channel_id,
           user=user_id,
-          text="The track-case command expects argument [case_number]."
-          " The case number provided did not match with any cases in your org")
+          text=
+          ("The track-case command expects argument [case_number]."
+           " The case number provided did not match with any cases in your org"
+          ))
     else:
       track_case(channel_id, channel_name, case, user_id)
   elif command == "add-comment":
@@ -131,9 +133,9 @@ def gcp_support() -> Response:
           channel=channel_id,
           user=user_id,
           text=
-          "The add-comment command expects arguments [case_number] [comment]."
-          " The comment does not need to be encapsulated in quotes."
-          " Your case number did not match with any cases in your org.")
+          ("The add-comment command expects arguments [case_number] [comment]."
+           " The comment does not need to be encapsulated in quotes."
+           " Your case number did not match with any cases in your org."))
     else:
       p = mp.Process(target=support_add_comment,
                      args=(
@@ -155,10 +157,10 @@ def gcp_support() -> Response:
       client.chat_postEphemeral(
           channel=channel_id,
           user=user_id,
-          text="The change-priority command expects arguments "
-          "[case_number] [priority, must be either P1|P2|P3|P4]."
-          " Your case number did not match with any cases in your org,"
-          " or the priority did not match the expected values.")
+          text=("The change-priority command expects arguments "
+                "[case_number] [priority, must be either P1|P2|P3|P4]."
+                " Your case number did not match with any cases in your org,"
+                " or the priority did not match the expected values."))
     else:
       p = mp.Process(target=support_change_priority,
                      args=(
@@ -179,10 +181,10 @@ def gcp_support() -> Response:
       client.chat_postEphemeral(
           channel=channel_id,
           user=user_id,
-          text="The subscribe command expects arguments "
-          "[case_number] [email_1] ... [email_n]."
-          " Your case number did not match with any cases in your org,"
-          " or your command did not match the expected input format.")
+          text=("The subscribe command expects arguments "
+                "[case_number] [email_1] ... [email_n]."
+                " Your case number did not match with any cases in your org,"
+                " or your command did not match the expected input format."))
     else:
       p = mp.Process(target=support_subscribe_email,
                      args=(
@@ -204,12 +206,13 @@ def gcp_support() -> Response:
       client.chat_postEphemeral(
           channel=channel_id,
           user=user_id,
-          text="The escalate command expects arguments "
-          "[reason, must be either RESOLUTION_TIME|TECHNICAL_EXPERTISE"
-          "|BUSINESS_IMPACT] [justification]. The justification does not need \
+          text=
+          ("The escalate command expects arguments "
+           "[reason, must be either RESOLUTION_TIME|TECHNICAL_EXPERTISE"
+           "|BUSINESS_IMPACT] [justification]. The justification does not need \
           to be encapsulated in quotes. Either your case number did not match \
           with any cases in your org, the reason did not match one of the \
-          expected values, or the justification was missing")
+          expected values, or the justification was missing"))
     else:
       p = mp.Process(target=support_escalate,
                      args=(channel_id, case, user_id, reason, justification,
@@ -247,7 +250,7 @@ def gcp_support() -> Response:
     case = user_inputs[1]
     case_details(channel_id, case, user_id)
   elif command == "sitrep":
-    sitrep(channel_id, user_id)
+    sitrep(channel_id)
   elif command == "help":
     context = ""
     post_help_message(channel_id, user_id, context)
@@ -267,11 +270,12 @@ def gcp_support() -> Response:
       client.chat_postEphemeral(
           channel=channel_id,
           user=user_id,
-          text="The auto-subscribe command expects arguments "
-          "[asset_type] [asset_id] [email_1] ... [email_n]. "
-          "asset_type must be one of the following: organizations, folders, \
-          projects "
-          "Your command did not match the expected input format.")
+          text=(
+              "The auto-subscribe command expects arguments "
+              "[asset_type] [asset_id] [email_1] ... [email_n]. "
+              "asset_type must be one of the following: organizations, folders, \
+              projects "
+              "Your command did not match the expected input format."))
     else:
       p = mp.Process(target=asset_auto_cc,
                      args=(channel_id, channel_name, asset_type, asset_id,
@@ -295,12 +299,13 @@ def gcp_support() -> Response:
       client.chat_postEphemeral(
           channel=channel_id,
           user=user_id,
-          text="The edit-subscribe command expects arguments "
-          "[asset_type] [asset_id] [email_1] ... [email_n]. "
-          "asset_type must be one of the following: organizations, folders, \
-          projects. "
-          "A pre-existing asset subscribtion must already exist. "
-          "Your command did not match the expected input format.")
+          text=(
+              "The edit-subscribe command expects arguments "
+              "[asset_type] [asset_id] [email_1] ... [email_n]. "
+              "asset_type must be one of the following: organizations, folders,"
+              " projects. "
+              "A pre-existing asset subscribtion must already exist. "
+              "Your command did not match the expected input format."))
     else:
       p = mp.Process(target=edit_asset_auto_cc,
                      args=(channel_id, channel_name, asset_type, asset_id,
@@ -321,10 +326,11 @@ def gcp_support() -> Response:
       client.chat_postEphemeral(
           channel=channel_id,
           user=user_id,
-          text="The stop-auto-subscribe command expects arguments [asset_type] \
-          [asset_id]."
-          "asset_type must be one of the following: organizations, folders, \
-          projects")
+          text=(
+              "The stop-auto-subscribe command expects arguments [asset_type]"
+              " [asset_id]."
+              " asset_type must be one of the following: organizations, folders,"
+              " projects"))
     else:
       stop_asset_auto_cc(channel_id, channel_name, asset_type, asset_id,
                          user_id)

@@ -54,9 +54,9 @@ def support_subscribe_email(channel_id, case, emails, user_id):
   MAX_RETRIES = 3
 
   # Get our discovery doc and build our service
-  r = requests.get(f"https://cloudsupport.googleapis.com/$discovery/rest\
-      ?key={API_KEY}&labels=V2_TRUSTED_TESTER&version=v2beta",
-                   timeout=5)
+  r = requests.get(
+      f"https://cloudsupport.googleapis.com/$discovery/rest?key={API_KEY}&labels=V2_TRUSTED_TESTER&version=v2beta",
+      timeout=5)
   r.raise_for_status()
   support_service = build_from_document(r.json())
 
@@ -109,18 +109,18 @@ def support_subscribe_email(channel_id, case, emails, user_id):
             channel=channel_id,
             user=user_id,
             text=
-            "Your attempt to change the subscriber email addresses has failed."
-            + " Please confirm that 'Enable case sharing' is on in your" +
-            " project's Support settings. If this setting was off, then for" +
-            " this case you will need to ask support to add the email" +
-            " addresses.")
+            ("Your attempt to change the subscriber email addresses has failed."
+             " Please confirm that 'Enable case sharing' is on in your"
+             " project's Support settings. If this setting was off, then for"
+             " this case you will need to ask support to add the email"
+             " addresses."))
       else:
         updated_cc_list = list(set(emails))
         client.chat_postEphemeral(
             channel=channel_id,
             user=user_id,
-            text=f"You have updated the subcscriber email addreses for\
-            {case} to {updated_cc_list}")
+            text=("You have updated the subcscriber email addreses for"
+                  f"{case} to {updated_cc_list}"))
 
         return new_cc
 

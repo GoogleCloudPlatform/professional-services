@@ -29,21 +29,21 @@ def support_create_case(channel_id, user_id, user_name, display_name,
                         classification_display_name, time_zone, project_number,
                         test_case) -> str:
   """
-    Creates a support case. This is meant for automated testing purposes as \
-    implementing this method in Slack would allow individuals to open cases in \
+    Creates a support case. This is meant for automated testing purposes as
+    implementing this method in Slack would allow individuals to open cases in
     projects they don"t have access to.
 
     Parameters
     ----------
     channel_id : str
-      unique string used to idenify a Slack channel. Used to send messages to \
+      unique string used to idenify a Slack channel. Used to send messages to
       the channel
     user_id : str
-      the Slack user_id of the user who submitted the request. Used to send \
+      the Slack user_id of the user who submitted the request. Used to send
       ephemeral messages to the user
     user_name : str
-      Slack user_name of the user that ran the command. Appended to the end of \
-      the justification to identify who submitted the escalation, otherwise \
+      Slack user_name of the user that ran the command. Appended to the end of
+      the justification to identify who submitted the escalation, otherwise
       all escalations will show as coming from the case creator
     display_name : str
       title for our case
@@ -72,9 +72,9 @@ def support_create_case(channel_id, user_id, user_name, display_name,
   API_KEY = os.environ.get("API_KEY")
 
   # Get our discovery doc and build our service
-  r = requests.get(f"https://cloudsupport.googleapis.com/$discovery/rest\
-      ?key={API_KEY}&labels=V2_TRUSTED_TESTER&version=v2beta",
-                   timeout=5)
+  r = requests.get(
+      f"https://cloudsupport.googleapis.com/$discovery/rest?key={API_KEY}&labels=V2_TRUSTED_TESTER&version=v2beta",
+      timeout=5)
   r.raise_for_status()
   support_service = build_from_document(r.json())
 
@@ -106,8 +106,8 @@ def support_create_case(channel_id, user_id, user_name, display_name,
     client.chat_postEphemeral(
         channel=channel_id,
         user=user_id,
-        text="Your attempt to create a case may have failed. Please contact \
-        your account team or try again later.")
+        text=("Your attempt to create a case may have failed. Please contact"
+              " your account team or try again later."))
   else:
     case = resp["name"].split("/")[-1]
     client.chat_postEphemeral(channel=channel_id,
@@ -127,8 +127,8 @@ if __name__ == "__main__":
       " more than 30 minutes")
   test_severity = 4
   test_class_id = "100H41Q3DTMN0TBKCKD0SGRFDLO7AT35412MSPR9DPII4229DPPN8OBECDIG"
-  test_classification_display_name = "Compute \u003e Compute Engine \u003e \
-                                      Instance"
+  test_classification_display_name = ("Compute \u003e Compute Engine \u003e"
+                                      " Instance")
 
   test_time_zone = "-7:00"
   test_project_number = os.environ.get("TEST_PROJECT_NUMBER")

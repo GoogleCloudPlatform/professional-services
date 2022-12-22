@@ -33,21 +33,21 @@ def support_close_case(channel_id, case, user_id):
     Parameters
     ----------
     channel_id : str
-      unique string used to idenify a Slack channel. Used to send messages to \
+      unique string used to idenify a Slack channel. Used to send messages to
       the channel
     case : str
       unique id of the case
     user_id : str
-      the Slack user_id of the user who submitted the request. Used to send \
+      the Slack user_id of the user who submitted the request. Used to send
       ephemeral messages to the user
     """
   API_KEY = os.environ.get("API_KEY")
   MAX_RETRIES = 3
 
   # Get our discovery doc and build our service
-  r = requests.get(f"https://cloudsupport.googleapis.com/$discovery/rest\
-      ?key={API_KEY}&labels=V2_TRUSTED_TESTER&version=v2beta",
-                   timeout=5)
+  r = requests.get(
+      f"https://cloudsupport.googleapis.com/$discovery/rest?key={API_KEY}&labels=V2_TRUSTED_TESTER&version=v2beta",
+      timeout=5)
   r.raise_for_status()
   support_service = build_from_document(r.json())
 

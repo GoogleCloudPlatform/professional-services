@@ -77,8 +77,8 @@ def asset_auto_cc(channel_id, channel_name, asset_type, asset_id, user_id,
     client.chat_postEphemeral(
         channel=channel_id,
         user=user_id,
-        text=f"The {asset_id[:-1]} {asset_id} is already being tracked in \
-        {channel_name}. Consider updating the pre-existing CC list.")
+        text=(f"The {asset_id[:-1]} {asset_id} is already being tracked in"
+              f" {channel_name}. Consider updating the pre-existing CC list."))
   else:
     collection = f"tracked_assets/{channel_id}/{asset_type}"
 
@@ -94,8 +94,8 @@ def asset_auto_cc(channel_id, channel_name, asset_type, asset_id, user_id,
 
     client.chat_postMessage(
         channel=channel_id,
-        text=f"{channel_name} is now tracking the {asset_type} {asset_id[:-1]} \
-        to auto CC {cc_list}.")
+        text=(f"{channel_name} is now tracking the {asset_type} {asset_id[:-1]}"
+              f" to auto CC {cc_list}."))
 
 
 if __name__ == "__main__":

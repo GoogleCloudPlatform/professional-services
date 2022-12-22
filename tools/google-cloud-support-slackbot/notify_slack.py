@@ -47,8 +47,8 @@ def notify_slack(case, update_type, update_text):
       elif update_type == "priority":
         client.chat_postMessage(
             channel=t["channel_id"],
-            text=f"The priority of case {case} has been changed to \
-              {update_text}")
+            text=(f"The priority of case {case} has been changed"
+                  f" to {update_text}"))
       elif update_type == "closed":
         client.chat_postMessage(channel=t["channel_id"],
                                 text=f"Case {case} has been closed")
@@ -63,8 +63,8 @@ def notify_slack(case, update_type, update_text):
 if __name__ == "__main__":
   test_case = os.environ.get("TEST_CASE")
   test_update_type = "comment"
-  test_update_text = "This is a test comment that doesn't actually appear on \
-  the case."
+  test_update_text = ("This is a test comment that doesn't actually appear on"
+                      "the case.")
 
   notify_slack(test_case, test_update_type, test_update_text)
   test_update_type = "priority"

@@ -76,8 +76,8 @@ def edit_asset_auto_cc(channel_id, channel_name, asset_type, asset_id, user_id,
       client.chat_postMessage(
           channel=channel_id,
           text=
-          f"{channel_name} is now tracking the {asset_type} {asset_id} to auto\
-          CC {cc_list}.")
+          (f"{channel_name} is now tracking the {asset_type} {asset_id} to auto"
+           f" CC {cc_list}."))
       return
     except NotFound as e:
       error_message = f"{e} : {datetime.now()}"
@@ -89,8 +89,8 @@ def edit_asset_auto_cc(channel_id, channel_name, asset_type, asset_id, user_id,
     client.chat_postEphemeral(
         channel=channel_id,
         user=user_id,
-        text=f"The {asset_type} {asset_id} is not currently being tracked in\
-        {channel_name}. User auto-subscribe to create a tracking.")
+        text=(f"The {asset_type} {asset_id} is not currently being tracked in"
+              f" {channel_name}. User auto-subscribe to create a tracking."))
 
 
 if __name__ == "__main__":

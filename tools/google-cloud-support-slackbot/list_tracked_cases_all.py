@@ -27,7 +27,7 @@ def list_tracked_cases_all(channel_id, user_id):
     Parameters
     ----------
     channel_id : str
-      unique string used to idenify a Slack channel. Used to send messages to 
+      unique string used to idenify a Slack channel. Used to send messages to
       the channel
     user_id : str
       the Slack user_id of the user who submitted the request. Used to send

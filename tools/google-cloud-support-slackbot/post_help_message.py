@@ -44,26 +44,41 @@ def post_help_message(channel_id, user_id, context):
       text=f"{context}Here are the available commands:"
       "\n/google-cloud-support track-case [case number] -- case updates will be"
       " posted to this channel"
-      "\n/google-cloud-support add-comment [case number] [comment] -- adds a \
-      comment to the case"
-      "\n/google-cloud-support change-priority [case number] \
-      [priority, e.g. P1] -- changes the priority of the case"
-      "\n/google-cloud-support subscribe [case number] [email 1] ... [email n] \
-      -- subscribes the given emails addresses to the case to receive updates \
-      to their inboxes. This overwrites the previous list of emails"
-      "\n/google-cloud-support escalate [case number] [reason] [justification] \
-      -- escalates the support case. Reason must be either RESOLUTION_TIME, \
-      TECHNICAL_EXPERTISE, or BUSINESS_IMPACT"
+      "\n/google-cloud-support add-comment [case number] [comment] -- adds a"
+      " comment to the case"
+      "\n/google-cloud-support change-priority [case number]"
+      " [priority, e.g. P1] -- changes the priority of the case"
+      "\n/google-cloud-support subscribe [case number] [email 1] ... [email n]"
+      " -- subscribes the given emails addresses to the case to receive updates"
+      " to their inboxes. This overwrites the previous list of emails"
+      "\n/google-cloud-support escalate [case number] [reason] [justification]"
+      " -- escalates the support case. Reason must be either RESOLUTION_TIME,"
+      " TECHNICAL_EXPERTISE, or BUSINESS_IMPACT"
       "\n/google-cloud-support close-case [case number] -- closes a case"
-      "\n/google-cloud-support stop-tracking [case number] -- case updates \
-      will no longer be posted to this channel"
-      "\n/google-cloud-support list-tracked-cases -- lists all cases being \
-      tracked in this channel"
+      "\n/google-cloud-support stop-tracking [case number] -- case updates"
+      " will no longer be posted to this channel"
+      "\n/google-cloud-support list-tracked-cases -- lists all cases being"
+      " tracked in this channel"
       "\n/google-cloud-support list-tracked-cases-all -- lists all cases being"
       " tracked in the workspace"
-      "\n/google-cloud-support case-details [case_number] -- pull all of the \
-      case data as json"
-      "\n/google-cloud-support sitrep -- report of all active cases in the org")
+      "\n/google-cloud-support case-details [case_number] -- pull all of the"
+      " case data as json"
+      "\n/google-cloud-support sitrep -- report of all active cases in the org"
+      "\n/google-cloud-support auto-subscribe [asset type] [asset name]"
+      " [email 1] ... [email n] -- creates a subscription to a specific asset"
+      " that will automatically add the provided emails as CC on any new cases"
+      " under the asset. asset type must one of the following values:"
+      " organizations, folders, projects"
+      "\n/google-cloud-support edit-auto-subscribe [asset type] [asset name]"
+      " [email 1] ... [email n] -- edits an existing asset subscription with"
+      " the provided emails. Warning: this will overwrite the existing emails"
+      " in the subscription. asset type must one of the following values:"
+      " organizations, folders, projects"
+      "\n/google-cloud-support stop-auto-subscribe [asset type] [asset name]"
+      "  -- deletes an existing asset subscription. asset type must one of the"
+      " following values: organizations, folders, projects"
+      "\n/google-cloud-support list-auto-subscriptions-all -- lists all"
+      " the subscriptions being in the current channel")
 
 
 if __name__ == "__main__":

@@ -25,16 +25,16 @@ logger = logging.getLogger(__name__)
 def sitrep(channel_id):
   """
     Lists the following details for all cases in the org:
-    case id, priority, title, isEscalated, case creation time, last case \
+    case id, priority, title, isEscalated, case creation time, last case
     update time, case status, and case creator.
-    Additionally, provides a summary of the number of the number of cases open \
-    by priority, the total number of cases, and the total number of escalated \
+    Additionally, provides a summary of the number of the number of cases open
+    by priority, the total number of cases, and the total number of escalated
     cases.
 
     Parameters
     ----------
     channel_id : str
-      unique string used to idenify a Slack channel. Used to send messages to \
+      unique string used to idenify a Slack channel. Used to send messages to
       the channel
     """
   client = slack.WebClient(token=os.environ.get("SLACK_TOKEN"))
@@ -61,17 +61,18 @@ def sitrep(channel_id):
     if case["escalated"]:
       esc_count += 1
 
-    report = report + f"\n{case['case_number']}, {case['priority']}, \
-      {case['case_title']}, { case['escalated']}, {case['create_time']}, \
-      {case['update_time']}, {case['state']}, {case['case_creator']}"
+    report = report + (
+        f"\n{case['case_number']}, {case['priority']},"
+        f" {case['case_title']}, { case['escalated']}, {case['create_time']},"
+        f" {case['update_time']}, {case['state']}, {case['case_creator']}")
 
-  report = report + f"\n\n\
-            \n{p1} P1 cases are open\
-            \n{p2} P2 cases are open\
-            \n{p3} P3 cases are open\
-            \n{p4} P4 cases are open\
-            \nTotal cases open: {p1 + p2 + p3 + p4}\
-            \nEscalated cases: {esc_count}"
+  report = report + (f"\n\n"
+                     f"\n{p1} P1 cases are open"
+                     f"\n{p2} P2 cases are open"
+                     f"\n{p3} P3 cases are open"
+                     f"\n{p4} P4 cases are open"
+                     f"\nTotal cases open: {p1 + p2 + p3 + p4}"
+                     f"\nEscalated cases: {esc_count}")
 
   client.chat_postMessage(channel=channel_id, text=f"{report}")
 

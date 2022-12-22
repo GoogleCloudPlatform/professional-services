@@ -33,19 +33,19 @@ logger = logging.getLogger(__name__)
 def support_escalate(channel_id, case, user_id, reason, justification,
                      user_name):
   """
-    Escalates a Google Cloud support case, setting the escalated boolean to \
-    True. This code is currently disabled and we will look to include a \
+    Escalates a Google Cloud support case, setting the escalated boolean to
+    True. This code is currently disabled and we will look to include a
     working version of it in the v1 release of the bot.
 
     Parameters
     ----------
     channel_id : str
-      unique string used to idenify a Slack channel. Used to send messages to \
+      unique string used to idenify a Slack channel. Used to send messages to
       the channel
     case : str
       unique id of the case
     user_id : str
-      the Slack user_id of the user who submitted the request. Used to send \
+      the Slack user_id of the user who submitted the request. Used to send
         ephemeral messages to the user
     reason : str
       reason for the escalation. Must be a value of either RESOLUTION_TIME,
@@ -53,8 +53,8 @@ def support_escalate(channel_id, case, user_id, reason, justification,
     justification : str
       user submitted string justifying the need for an escalation
     user_name : str
-      Slack user_name of the user that ran the command. Appended to the end of \
-      the justification to identify who submitted the escalation, otherwise \
+      Slack user_name of the user that ran the command. Appended to the end of
+      the justification to identify who submitted the escalation, otherwise
       all escalations will show as coming from the case creator
     """
   client = slack.WebClient(token=os.environ.get("SLACK_TOKEN"))
@@ -62,9 +62,9 @@ def support_escalate(channel_id, case, user_id, reason, justification,
   API_KEY = os.environ.get("API_KEY")
 
   # Get our discovery doc and build our service
-  r = requests.get(f"https://cloudsupport.googleapis.com/$discovery/rest\
-      ?key={API_KEY}&labels=V2_TRUSTED_TESTER&version=v2beta",
-                   timeout=5)
+  r = requests.get(
+      f"https://cloudsupport.googleapis.com/$discovery/rest?key={API_KEY}&labels=V2_TRUSTED_TESTER&version=v2beta",
+      timeout=5)
   r.raise_for_status()
   support_service = build_from_document(r.json())
 
@@ -76,8 +76,8 @@ def support_escalate(channel_id, case, user_id, reason, justification,
     case_not_found(channel_id, user_id, case)
   else:
     signed_justification = (justification +
-                            f"\n *Sent by {user_name} via Google Cloud Support \
-                            Slack bot")
+                            (f"\n *Sent by {user_name} via Google Cloud Support"
+                             "Slack bot"))
     body = {
         "escalation": {
             "reason": reason,
@@ -93,8 +93,8 @@ def support_escalate(channel_id, case, user_id, reason, justification,
       client.chat_postEphemeral(
           channel=channel_id,
           user=user_id,
-          text="Your attempt to escalate may have failed. Please contact your"
-          " account team or try again later.")
+          text=("Your attempt to escalate may have failed. Please contact your"
+                " account team or try again later."))
     else:
       client.chat_postEphemeral(channel=channel_id,
                                 user=user_id,
