@@ -22,9 +22,9 @@ set -euo pipefail
 function check_build() {
   WORKDIR=$(pwd)
   TMPDIR=$(mktemp -d)
-  
+
   rval=0
-  cp -rf ./* ${TMPDIR}
+  cp -rf ./* "${TMPDIR}"
 
   cd "${TMPDIR}"
   make build >/dev/null 2>/dev/null
@@ -37,7 +37,7 @@ function check_build() {
     echo "Run 'make build' and commit the above changes."
     ((rval++))
   fi
-  cd ${TMPDIR}
+  cd "${TMPDIR}"
   rm -Rf "${TMPDIR}"
   return $((rval))
 }

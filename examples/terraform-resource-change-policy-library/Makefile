@@ -123,11 +123,6 @@ docker_check_build: ## Check that templates have been built using CV rego docker
 		$(CV_IMAGE_URL)/$(REGO_IMAGE_V15):$(REGO_IMAGE_TAG) \
 		check_build
 
-.PHONY: audit
-audit: ## Run audit against real CAI dump data
-	@echo "Running config-validator audit ..."
-	@bash scripts/cft.sh -o "$(ORG_ID)" -f "$(FOLDER_ID)" -p "$(PROJECT_ID)" -b "$(BUCKET_NAME)" -e "$(EXPORT)"
-
 help: ## Prints help for targets with comments
 	@grep -E '^[a-zA-Z._-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "make \033[36m%- 30s\033[0m %s\n", $$1, $$2}'
 
