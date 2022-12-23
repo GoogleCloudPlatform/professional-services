@@ -10,6 +10,12 @@
         },
         {
             "name": "output",
+            "label": "Dead letter location",
+            "helpText": "Specify dead_letter_dir, it can be a dir (/tmp) or a gcs bucket path gs://<some-bucket>",
+            "isOptional": false
+        },
+        {
+            "name": "dead_letter_dir",
             "label": "BQ output dataset",
             "helpText": "Specify BQ Output dataset in form of 'project:dataset' (tables 'orders' and 'customers' will be created automatically) or json file(example.json)",
             "isOptional": false

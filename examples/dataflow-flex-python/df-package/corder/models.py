@@ -1,5 +1,20 @@
-from dataclasses import dataclass, field
+# Copyright 2022 Google, LLC.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+from dataclasses import field
 from decimal import Decimal
+from pydantic.dataclasses import dataclass
 from typing import List, Optional
 from xsdata.models.datatype import XmlDateTime
 
@@ -203,36 +218,46 @@ class OrderType:
 
 
 @dataclass
+class RootCustomers:
+
+    class Meta:
+        global_type = False
+
+    customer: List[CustomerType] = field(default_factory=list,
+                                         metadata={
+                                             "name": "Customer",
+                                             "type": "Element",
+                                             "namespace": "",
+                                         })
+
+
+@dataclass
+class RootOrders:
+
+    class Meta:
+        global_type = False
+
+    order: List[OrderType] = field(default_factory=list,
+                                   metadata={
+                                       "name": "Order",
+                                       "type": "Element",
+                                       "namespace": "",
+                                   })
+
+
+@dataclass
 class Root:
-    customers: Optional["Root.Customers"] = field(default=None,
-                                                  metadata={
-                                                      "name": "Customers",
-                                                      "type": "Element",
-                                                      "namespace": "",
-                                                      "required": True
-                                                  })
-    orders: Optional["Root.Orders"] = field(default=None,
-                                            metadata={
-                                                "name": "Orders",
-                                                "type": "Element",
-                                                "namespace": "",
-                                                "required": True,
-                                            })
-
-    @dataclass
-    class Customers:
-        customer: List[CustomerType] = field(default_factory=list,
-                                             metadata={
-                                                 "name": "Customer",
-                                                 "type": "Element",
-                                                 "namespace": "",
-                                             })
-
-    @dataclass
-    class Orders:
-        order: List[OrderType] = field(default_factory=list,
-                                       metadata={
-                                           "name": "Order",
-                                           "type": "Element",
-                                           "namespace": "",
-                                       })
+    customers: Optional[RootCustomers] = field(default=None,
+                                               metadata={
+                                                   "name": "Customers",
+                                                   "type": "Element",
+                                                   "namespace": "",
+                                                   "required": True,
+                                               })
+    orders: Optional[RootOrders] = field(default=None,
+                                         metadata={
+                                             "name": "Orders",
+                                             "type": "Element",
+                                             "namespace": "",
+                                             "required": True,
+                                         })
