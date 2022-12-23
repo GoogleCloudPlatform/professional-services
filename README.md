@@ -231,6 +231,11 @@ them to fit your particular use case.
     to write unit tests for TensorFlow ML models.
 *   [Terraform Internal HTTP Load Balancer](examples/terraform-ilb) - Terraform
     example showing how to deploy an internal HTTP load balancer.
+*   [Terraform Resource Change Policy Library](examples/terraform-resource-change-policy-library) -
+    Contains a library of policies written in the
+    [OPA Constraint Framework](https://github.com/open-policy-agent/frameworks/blob/master/constraint/README.md)
+    format to be used by `gcloud beta terraform vet` to validate Terraform resource
+    changes in a CI/CD pipeline.
 *   [Uploading files directly to Google Cloud Storage by using Signed URL](examples/direct-upload-to-gcs) -
     Example architecture to enable uploading files directly to GCS by using
     [Signed URL](https://cloud.google.com/storage/docs/access-control/signed-urls).
