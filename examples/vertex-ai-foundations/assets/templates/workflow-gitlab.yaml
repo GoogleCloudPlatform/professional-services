@@ -1,0 +1,120 @@
+# Copyright 2022 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+default:
+  before_script:
+    - echo "$${CI_JOB_JWT_V2}" > token.txt
+  image:
+    name: hashicorp/terraform
+    entrypoint:
+      - "/usr/bin/env"
+      - "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+
+variables:
+  GOOGLE_CREDENTIALS: cicd-sa-credentials.json
+  FAST_OUTPUTS_BUCKET: ${outputs_bucket}
+  FAST_SERVICE_ACCOUNT: ${service_account}
+  FAST_WIF_PROVIDER: ${identity_provider}
+  SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+  TF_PROVIDERS_FILE: ${tf_providers_file}
+  TF_VAR_FILES: ${tf_var_files == [] ? "''" : join("\n    ", tf_var_files)}
+
+stages:
+  - gcp-auth
+  - tf-files
+  - tf-plan
+  - tf-apply
+
+cache:
+  key: gcp-auth
+  paths:
+    - cicd-sa-credentials.json
+    - .tf-setup
+
+gcp-auth:
+  image:
+    name: google/cloud-sdk:slim
+  stage: gcp-auth
+  script:
+    - |
+      gcloud iam workload-identity-pools create-cred-config \
+        $${FAST_WIF_PROVIDER} \
+        --service-account=$${FAST_SERVICE_ACCOUNT} \
+        --service-account-token-lifetime-seconds=3600 \
+        --output-file=$${GOOGLE_CREDENTIALS} \
+        --credential-source-file=token.txt
+tf-files:
+  dependencies:
+    - gcp-auth
+  image:
+    name: google/cloud-sdk:slim
+  stage: tf-files
+  script:
+    # - gcloud components install -q alpha
+    - gcloud config set auth/credential_file_override $${GOOGLE_CREDENTIALS}
+    - mkdir -p .tf-setup
+    - |
+      gcloud alpha storage cp -r \
+        "gs://$${FAST_OUTPUTS_BUCKET}/providers/$${TF_PROVIDERS_FILE}" .tf-setup/
+    - |
+      gcloud alpha storage cp -r \
+        "gs://$${FAST_OUTPUTS_BUCKET}/tfvars" .tf-setup/
+
+tf-plan:
+  # uncomment the following lines and set the SSH key secret for private modules repo
+  # before_script:
+  #   - |
+  #     ssh-agent -a $SSH_AUTH_SOCK > /dev/null
+  #     echo "$CICD_MODULES_KEY" | base64 -d | tr -d '\r' | ssh-add - > /dev/null
+  #     mkdir -p ~/.ssh
+  #     ssh-keyscan -H 'gitlab.com' >> ~/.ssh/known_hosts
+  #     ssh-keyscan gitlab.com | sort -u - ~/.ssh/known_hosts -o ~/.ssh/known_hosts
+  stage: tf-plan
+  script:
+    - cp .tf-setup/$${TF_PROVIDERS_FILE} ./
+    - |
+      for f in $${TF_VAR_FILES}; do
+        ln -s ".tf-setup/tfvars/$f" ./
+      done
+    - terraform init
+    - terraform validate
+    - terraform plan
+  dependencies:
+    - tf-files
+
+tf-apply:
+  # uncomment the following lines and set the SSH key secret for private modules repo
+  # before_script:
+  #   - |
+  #     ssh-agent -a $SSH_AUTH_SOCK > /dev/null
+  #     echo "$CICD_MODULES_KEY" | base64 -d | tr -d '\r' | ssh-add - > /dev/null
+  #     mkdir -p ~/.ssh
+  #     ssh-keyscan -H 'gitlab.com' >> ~/.ssh/known_hosts
+  #     ssh-keyscan gitlab.com | sort -u - ~/.ssh/known_hosts -o ~/.ssh/known_hosts
+  stage: tf-apply
+  script:
+    - cp .tf-setup/$${TF_PROVIDERS_FILE} ./
+    - |
+      for f in $${TF_VAR_FILES}; do
+        ln -s ".tf-setup/tfvars/$f" ./
+      done
+    - terraform init
+    - terraform validate
+    - terraform apply -input=false -auto-approve
+  dependencies:
+    - tf-files
+  when: manual
+  only:
+    variables:
+      - $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH

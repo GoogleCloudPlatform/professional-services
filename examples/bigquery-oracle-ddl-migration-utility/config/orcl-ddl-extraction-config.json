@@ -1,29 +1,29 @@
 {
         "table_config": [
             {
-                "table_name": "SIEBEL.S_ORDER",
-                "clustering_fields": "row_id",
+                "table_name": "ACCOUNT.ORDER",
+                "clustering_fields": "account_id",
                 "partitioning_field": "insertion_time"
 
             },
             {
-                "table_name": "SIEBEL.S_ORG_EXT",
-                "clustering_fields": "row_id",
+                "table_name": "ACCOUNT.ORDER_ITEM",
+                "clustering_fields": "account_id",
                 "partitioning_field": "insertion_time"
 
             }
         ],
-        "project_id" : "helix-poc" ,
+        "project_id" : "POC" ,
         "dataset_location" : "US" ,
         "target_table_prefix" : "",
-        "gcs_source_path" : "gs://orcl-ddl-migration/oracle_ddl",
-        "target_dataset"  : "SIEBEL_TGT",
-        "archive_bucket_name" : "orcl-ddl-migration_archive",
+        "gcs_source_path" : "gs://oracle-migration/oracle_ddl",
+        "target_dataset"  : "ACCOUNT_TGT",
+        "archive_bucket_name" : "oracle-migration-archive",
         "table_create_flag" : "true",
         "object_name_mapping_path" : "config/object_name_mapping.json",
-        "audit_column_config_path" : "config/metadata_columns_replica.json",
-        "source_bucket_name" : "orcl-ddl-migration",
-        "secret_resource_id": "projects/556722937391/secrets/orc-bq-migration/versions/latest",
-        "default_database" : "helix-poc"
+        "audit_column_config_path" : "config/metadata_columns.json",
+        "source_bucket_name" : "oracle-migration",
+        "secret_resource_id": "projects/123456/secrets/oracle-connection/versions/latest",
+        "default_database" : "POC"
     
 }

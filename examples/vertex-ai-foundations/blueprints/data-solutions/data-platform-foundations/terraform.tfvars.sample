@@ -1,0 +1,4 @@
+prefix              = "prefix"
+folder_id           = "folders/123456789012"
+billing_account_id  = "111111-222222-333333"
+organization_domain = "example.com"

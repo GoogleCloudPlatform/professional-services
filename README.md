@@ -70,6 +70,10 @@ them to fit your particular use case.
     alternatives to improve performance.
 *   [BigQuery Automated Schema Management](tools/bqman) - Command-line utility
     for automated provisioning and management of BigQuery datasets and tables.
+*   [BigQuery Oracle DDL Migration Utility](examples/bigquery-oracle-ddl-migration-utility) - 
+    Oracle DDL Migration Utility to migrate the tables schema (DDL) from Oracle DB to BigQuery.
+    The utility leverages BigQuery Translation API and offers additional features
+    such as adding partitioning, clustering, metadata columns and prefixes to table names.
 *   [Cloud Build with Proxy Running in Background](examples/cloudbuild-with-tcp-proxy) -
     Examples of cloudbuild with docker-compose running tcp proxy in the
     background for all build steps.

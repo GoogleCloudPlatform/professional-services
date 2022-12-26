@@ -1,0 +1,12 @@
+# skip boilerplate check
+#
+# sample subset of useful organization policies, edit to suit requirements
+
+iam.automaticIamGrantsForDefaultServiceAccounts:
+  enforce: true
+
+iam.disableServiceAccountKeyCreation:
+  enforce: true
+
+iam.disableServiceAccountKeyUpload:
+  enforce: true
