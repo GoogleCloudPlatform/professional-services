@@ -16,11 +16,12 @@
 package com.google.api.gax.grpc
 
 import io.grpc.{ClientInterceptor, ManagedChannel}
+import com.google.api.gax.grpc.ChannelPoolSettings
 
 /** Expose package private classes */
 object ChannelUtil {
   def createPool(poolSize: Int, channelFactory: ChannelFactory): ManagedChannel =
-    ChannelPool.create(poolSize, channelFactory)
+    ChannelPool.create(ChannelPoolSettings.builder().setMaxChannelCount(poolSize).build(), channelFactory)
   def metaInterceptor: ClientInterceptor = new GrpcMetadataHandlerInterceptor
   def uuidInterceptor: ClientInterceptor = new GrpcChannelUUIDInterceptor
 }

@@ -16,7 +16,7 @@
  */
 organization := "com.google.cloud.imf"
 name := "mainframe-connector"
-version := "5.7.6"
+version := "5.7.7"
 
 scalaVersion := "2.13.8"
 
@@ -29,7 +29,7 @@ val exProtobufJava = ExclusionRule(organization = "com.google.protobuf", name = 
 val log4j1 = ExclusionRule(organization = "log4j", name = "log4j")
 
 libraryDependencies ++= Seq(
-  "com.google.cloud.imf" %% "mainframe-util" % "2.2.2",
+  "com.google.cloud.imf" %% "mainframe-util" % "2.2.3",
   // enable users to compile without IBM JZOS jars
   // comment this line out and place IBM jars in lib directory to test against IBM classes
   "com.google.cloud.imf" %% "jzos-shim" % "0.2" % Provided,
