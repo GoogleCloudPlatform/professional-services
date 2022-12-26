@@ -408,6 +408,8 @@ Platform usage.
 *   [Permission Discrepancy Finder](tools/permission-discrepancy-finder) - A
     tool to find the principals with missing permissions on a resource within a
     project, subsequently, grants them the missing permissions.
+*   [Powerwash-my-org](tools/powerwash-my-org) - Python script to clean a GCP
+    Organization. Deletes every project, folder, organization and IAM policy.
 *   [Pubsub2Inbox](tools/pubsub2inbox) - A generic Cloud Function-based tool
     that takes input from Pub/Sub messages and turns them into email, webhooks
     or GCS objects.

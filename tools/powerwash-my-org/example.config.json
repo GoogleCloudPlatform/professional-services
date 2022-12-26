@@ -1,0 +1,22 @@
+{
+  "organization_id": "000000000000",
+  "protected_principals": [
+    "group:xxxxxx@email.com",
+    "serviceAccount:xxxxxx@email.com",
+    "user:xxxxxx@email.com"
+  ],
+  "organization_policies": [
+    {
+      "name": "compute.skipDefaultNetworkCreation",
+      "rules": {
+        "enforce": true
+      }
+    },
+    {
+      "name": "iam.automaticIamGrantsForDefaultServiceAccounts",
+      "rules": {
+        "enforce": true
+      }
+    }
+  ]
+}
