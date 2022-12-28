@@ -45,7 +45,7 @@ object Scp extends Command[ScpConfig] with Logging {
     logger.debug(s"Staring scp $config")
     try {
       CloudDataSet.readEnv(env)
-      val gcs = Services.storage(Services.storageCredentials())
+      val gcs = Services.storage(zos.getCredentialProvider().getCredentials)
 
       Try(zos.listPDS(config.inDSN)) match {
         case Success(members) =>

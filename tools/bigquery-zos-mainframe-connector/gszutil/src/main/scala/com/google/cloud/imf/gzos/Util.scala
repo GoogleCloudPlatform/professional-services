@@ -72,18 +72,12 @@ object Util extends Logging {
     s"Memory: ${used}M used\t${free}M free\t${total}M total"
   }
 
-  val StorageScope = "https://www.googleapis.com/auth/devstorage.read_write"
-  val BigQueryScope = "https://www.googleapis.com/auth/bigquery"
-  val BigQueryReadScope = "https://www.googleapis.com/auth/bigquery.readonly"
-  val ComputeScope = "https://www.googleapis.com/auth/compute"
-  val LoggingScope = "https://www.googleapis.com/auth/logging.write"
-  final val Scopes = ImmutableSet.of(StorageScope, BigQueryScope, LoggingScope)
+  private final val CloudPlatformScope = "https://www.googleapis.com/auth/cloud-platform"
 
   class DefaultCredentialProvider extends CredentialProvider {
     private val credentials =
       GoogleCredentials
-        .getApplicationDefault
-        .createScoped(Scopes)
+        .getApplicationDefault().createScoped(ImmutableSet.of(CloudPlatformScope))
     override def getCredentials: GoogleCredentials = {
       credentials.refreshIfExpired()
       credentials
@@ -94,7 +88,7 @@ object Util extends Logging {
     private val credentials: GoogleCredentials =
       GoogleCredentials
         .fromStream(new ByteArrayInputStream(bytes))
-        .createScoped(Scopes)
+        .createScoped(ImmutableSet.of(CloudPlatformScope))
 
     def getClientEmail: Option[String] =
       credentials match {
