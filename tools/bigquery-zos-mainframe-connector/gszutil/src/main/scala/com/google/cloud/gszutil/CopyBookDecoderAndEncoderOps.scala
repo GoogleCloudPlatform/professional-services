@@ -20,14 +20,16 @@ import com.google.cloud.gszutil.Decoding.Decimal64Decoder
 import com.google.cloud.gszutil.Encoding.DecimalToBinaryEncoder
 
 object CopyBookDecoderAndEncoderOps {
-
+  // Note: omit trailing '.' because it will be removed prior to regex matching
   val charRegex = """PIC X\((\d{1,3})\)""".r
   val charRegex2 = """PIC T\((\d{1,4})\)""".r
   val charRegex3 = """PIC (X{1,9})""".r
   val bytesRegex = """PIC X\((\d{4,})\)""".r
   val numStrRegex = """PIC 9\((\d{1,3})\)""".r
   val numStrRegex2 = """PIC (9{1,9})""".r
+  val numStrRegex3 = """PIC \+9\((\d{1,3})\)""".r
   val decStrRegex = """PIC 9\((\d{1,3})\)V9\((\d{1,3})\)""".r
+  val decStrRegex2 = """PIC \+9\((\d{1,3})\)\.9\((\d{1,3})\)""".r
   val intRegex = """PIC S9\((\d{1,3})\) COMP""".r
   val uintRegex = """PIC 9\((\d{1,3})\) COMP""".r
   val decRegex = """PIC S9\((\d{1,3})\) COMP-3""".r

@@ -1,0 +1,50 @@
+[
+  {
+    "mode": "REQUIRED",
+    "name": "id",
+    "type": "INTEGER",
+    "description": "ID"
+  },
+  {
+    "mode": "REQUIRED",
+    "name": "customer_id",
+    "type": "INTEGER",
+    "description": "ID"
+  },
+  {
+    "mode": "REQUIRED",
+    "name": "purchase_id",
+    "type": "INTEGER",
+    "description": "ID"
+  },
+  {
+    "mode": "REQUIRED",
+    "name": "customer_name",
+    "type": "STRING",
+    "description": "Name"
+  },
+  {
+    "mode": "REQUIRED",
+    "name": "customer_surname",
+    "type": "STRING",
+    "description": "Surname"
+  },
+  {
+    "mode": "REQUIRED",
+    "name": "purchase_item",
+    "type": "STRING",
+    "description": "Item Name"
+  },
+  {
+    "mode": "REQUIRED",
+    "name": "price",
+    "type": "FLOAT",
+    "description": "Item Price"
+  },
+  {
+    "mode": "REQUIRED",
+    "name": "purchase_timestamp",
+    "type": "TIMESTAMP",
+    "description": "Timestamp"
+  }
+]

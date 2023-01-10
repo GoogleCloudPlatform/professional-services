@@ -1,0 +1,31 @@
+# Copyright 2022 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Allow traffic from the frontend VMs
+app1-backend:
+  allow:
+    - ports: ["443", "80"]
+      protocol: tcp
+  direction: INGRESS
+  source_tags: ["app1-frontend"]
+  target_tags: ["app1-backend"]
+
+# Allow traffic to MySQL Servers from App1 backend
+app1-db:
+  allow:
+    - ports: ["3306"]
+      protocol: tcp
+  direction: INGRESS
+  source_tags: ["app1-backend"]
+  target_tags: ["mysql-server"]
