@@ -40,7 +40,7 @@ class BqQueryJobExecutor(bq: BigQuery, cfg: QueryConfig, zos: MVS) extends Loggi
 
     @tailrec
     def run(query: String): (JobId, Job) = {
-      val jobId = BQ.genJobId(cfg.projectId, cfg.location, zos, "query", generateHashString)
+      val jobId = BQ.genJobId(cfg.projectId, cfg.location, zos.getInfo, "query", randomSuffix = true)
       logger.info(s"Submitting Query Job\njobid=${BQ.toStr(jobId)}, jobQuery=\n$query")
       val job = BQ.runJob(bq, queryConfigurer(query, cfg), jobId, cfg.timeoutMinutes * 60, cfg.sync)
 

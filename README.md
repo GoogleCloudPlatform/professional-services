@@ -70,6 +70,10 @@ them to fit your particular use case.
     alternatives to improve performance.
 *   [BigQuery Automated Schema Management](tools/bqman) - Command-line utility
     for automated provisioning and management of BigQuery datasets and tables.
+*   [BigQuery Oracle DDL Migration Utility](examples/bigquery-oracle-ddl-migration-utility) - 
+    Oracle DDL Migration Utility to migrate the tables schema (DDL) from Oracle DB to BigQuery.
+    The utility leverages BigQuery Translation API and offers additional features
+    such as adding partitioning, clustering, metadata columns and prefixes to table names.
 *   [Cloud Build with Proxy Running in Background](examples/cloudbuild-with-tcp-proxy) -
     Examples of cloudbuild with docker-compose running tcp proxy in the
     background for all build steps.
@@ -385,9 +389,11 @@ Platform usage.
     using a customizable score-based method. Also supports database instances.
 *   [IPAM Autopilot](tools/ipam-autopilot) - A simple tool for managing IP
     address ranges for GCP subnets.
+*   [K8S-2-GSM](tools/k8s-2-gsm) - A containerized golang app to migrate Kubernetes secrets to Google Secrets Manger (to leverage [CSI secret driver](https://secrets-store-csi-driver.sigs.k8s.io/)).
 *   [LabelMaker](tools/labelmaker) - A tool that reads key:value pairs from a
     json file and labels the running instance and all attached drives
     accordingly.
+*   [Logbucket Global to Regional](tools/logbucket-global-to-regional) - Utility to change _Default sink destination to regional log buckets
 *   [Machine Learning Auto Exploratory Data Analysis and Feature Recommendation](tools/ml-auto-eda) -
     A tool to perform comprehensive auto EDA, based on which feature
     recommendations are made, and a summary report will be generated.
