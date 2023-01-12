@@ -747,11 +747,18 @@ object Decoding extends Logging {
       case numStrRegex2(s) =>
         val size = s.length
         new StringAsIntDecoder(transcoder, size, filler = filler)
+      case numStrRegex3(s) if s.toInt > 0 =>
+        StringAsIntDecoder(transcoder, s.toInt, filler = filler)
       case decRegex(p) if p.toInt >= 1 =>
         Decimal64Decoder(p.toInt, 0, filler = filler)
       case decRegex2(p, s) if p.toInt >= 1 =>
         Decimal64Decoder(p.toInt, s.toInt, filler = filler)
       case decStrRegex(p, s) if p.toInt >= 1 =>
+        val scale = s.toInt
+        val precision = p.toInt + scale
+        val size = precision
+        new StringAsDecimalDecoder(transcoder, size, precision, scale, filler = filler)
+      case decStrRegex2(p, s) if p.toInt >= 1 =>
         val scale = s.toInt
         val precision = p.toInt + scale
         val size = precision

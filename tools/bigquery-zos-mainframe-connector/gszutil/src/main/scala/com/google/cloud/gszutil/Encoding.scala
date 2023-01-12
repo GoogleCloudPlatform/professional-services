@@ -54,9 +54,14 @@ object Encoding extends Logging {
         StringToBinaryEncoder(transcoder, decoderSize)
       case numStrRegex2(_) =>
         UnsignedIntStringEncoder(transcoder, decoderSize)
+      case numStrRegex3(_) =>
+        SignedIntStringEncoder(transcoder, decoderSize)
       case decStrRegex(p, s) if p.toInt >= 1 =>
         val scale = s.toInt
         UnsignedDecimalStringEncoder(transcoder, p.toInt + scale, scale)
+      case decStrRegex2(p, s) if p.toInt >= 1 =>
+        val scale = s.toInt
+        SignedDecimalStringEncoder(transcoder, p.toInt + scale, scale)
       case charRegex2(_) =>
         LocalizedStringToBinaryEncoder(LocalizedTranscoder(picTCharset), decoderSize)
       case "PIC X" | numStrRegex(_) =>
@@ -230,7 +235,9 @@ object Encoding extends Logging {
     override type T = java.lang.Long
     override val bqSupportedType: StandardSQLTypeName = StandardSQLTypeName.NUMERIC
     private val maxValue: BigDecimal = calcMaxValue(p, s)
-    override val size: Int = PackedDecimal.sizeOf(p, s)
+
+    // output field width is equal to maximum number of digits
+    override val size: Int = p
 
     override def encode(x: T): Array[Byte] = {
       if (x == null)
@@ -291,6 +298,89 @@ object Encoding extends Logging {
           case i: Integer => encode(i.longValue())
           case x =>
             throw new RuntimeException(s"Invalid integer: $x")
+        }
+      }
+    }
+  }
+
+  /** Encodes integer values as character string with sign character
+    * @param transcoder Transcoder to serialize string using output character set
+    * @param p maximum number of digits
+    */
+  case class SignedIntStringEncoder(transcoder: Transcoder, p: Int) extends BinaryEncoder {
+    override type T = java.lang.Long
+    override val bqSupportedType: StandardSQLTypeName = StandardSQLTypeName.INT64
+    private val maxValue: BigDecimal = calcMaxValue(p, 0)
+
+    // one byte for sign character plus one byte for each digit of precision
+    override val size: Int = 1 + p
+
+    override def encode(x: T): Array[Byte] = {
+      if (x == null)
+        Array.fill(size)(0x00)
+      else {
+        val buf = transcoder.charset.encode(
+          x.toString.reverse.padTo(size-1, '0').appended(if (x < 0) '-' else '+').reverse)
+        if (buf.remaining() != size)
+          throw new RuntimeException(s"String length mismatch: ${buf.remaining()} != $size")
+        val array = new Array[Byte](size)
+        buf.get(array)
+        array
+      }
+    }
+
+    override def encodeValue(value: FieldValue): Array[Byte] = {
+      if (value.isNull) Array.fill(size)(0x00)
+      else {
+        value.getValue match {
+          case s0: String => encode(s0.toLong)
+          case d0: BigDecimal => encode(decimal2Long(d0, 0, maxValue))
+          case i: Integer => encode(i.longValue())
+          case x =>
+            throw new RuntimeException(s"Invalid integer: $x")
+        }
+      }
+    }
+  }
+
+  /** Encodes decimal values as character string with sign character
+    * @param transcoder Transcoder to serialize string using output character set
+    * @param p maximum number of digits
+    * @param s scale (number of digits after decimal point)
+    */
+  case class SignedDecimalStringEncoder(transcoder: Transcoder, p: Int, s: Int) extends BinaryEncoder {
+    override type T = java.lang.Long
+    override val bqSupportedType: StandardSQLTypeName = StandardSQLTypeName.NUMERIC
+    private val maxValue: BigDecimal = calcMaxValue(p, s)
+
+    // one byte for sign character, one byte for decimal, one byte for each digit of precision
+    override val size: Int = 2+p
+
+    override def encode(x: T): Array[Byte] = {
+      if (x == null)
+        Array.fill(size)(0x00)
+      else {
+        // pad with zeros and add sign
+        val withSign: String = x.toString.reverse.padTo(size-2, '0').appended(if (x < 0) '-' else '+').reverse
+        // insert decimal point
+        val toEncode: String = withSign.take(p-s+1).appended('.').appendedAll(withSign.takeRight(s))
+        val buf = transcoder.charset.encode(toEncode)
+        if (buf.remaining() != size)
+          throw new RuntimeException(s"String length mismatch: ${buf.remaining()} != $size")
+        val array = new Array[Byte](size)
+        buf.get(array)
+        array
+      }
+    }
+
+    override def encodeValue(value: FieldValue): Array[Byte] = {
+      if (value.isNull) Array.fill(size)(0x00)
+      else {
+        value.getValue match {
+          case s0: String => encode(decimal2Long(BigDecimal(s0), s, maxValue))
+          case d0: BigDecimal => encode(decimal2Long(d0, s, maxValue))
+          case x =>
+            throw new RuntimeException(s"Invalid decimal: $x")
         }
       }
     }
