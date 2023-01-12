@@ -83,7 +83,7 @@ case class OkHttpTransportChannelProvider(endpoint: String = null,
 
     OkHttpChannelBuilder.forAddress(serviceAddress, port)
       .useTransportSecurity()
-      .sslSocketFactory(CCASSLSocketFactory)
+      .sslSocketFactory(CCASSLSocketFactory.factory())
       .compressorRegistry(GzipCodec.compressorRegistry)
       .maxInboundMessageSize(Int.MaxValue)
       .userAgent(headerInterceptor.getUserAgentHeader)

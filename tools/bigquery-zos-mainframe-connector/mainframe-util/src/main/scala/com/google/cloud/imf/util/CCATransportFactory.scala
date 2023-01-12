@@ -23,27 +23,38 @@ object CCATransportFactory extends HttpTransportFactory with Logging {
   private val maxConnectionTotal = sys.env.get("HTTP_CLIENT_MAX_CONNECTIONS_COUNT").flatMap(_.toIntOption)
     .getOrElse(math.max(32, Runtime.getRuntime.availableProcessors()))
 
-  override def create: HttpTransport = new ApacheHttpTransport(newDefaultHttpClient)
+  override def create: HttpTransport = new ApacheHttpTransport(newDefaultHttpClient())
 
 
-  def newDefaultHttpClient: HttpClient = {
-    val socketConfig = SocketConfig.custom
-      .setRcvBufSize(256 * 1024)
-      .setSndBufSize(256 * 1024)
-      .build
+  /** Creates an instance of Apache HttpClient with default configuration
+   * TCP send and receive buffer size are set to 2M
+   * tcpnodelay and sokeepalive are enabled
+   * redirect handling is disabled
+   *
+   * @param optionalCaCertsPath
+   * @return
+   */
+  def newDefaultHttpClient(optionalCaCertsPath: Option[String] = None): HttpClient = {
+    val socketConfig = SocketConfig.custom()
+      .setRcvBufSize(2 * 1024 * 1024)
+      .setSndBufSize(2 * 1024 * 1024)
+      .setTcpNoDelay(true)
+      .setSoKeepAlive(true)
+      .build()
 
-    logger.info(s"Http client was created. (MaxConnTotal=$maxConnectionTotal)")
-
-    HttpClientBuilder.create
+    val httpClient = HttpClientBuilder.create()
       .useSystemProperties()
-      .setSSLSocketFactory(CCASSLSocketFactory.create)
+      .setSSLSocketFactory(CCASSLSocketFactory.create(optionalCaCertsPath))
       .setDefaultSocketConfig(socketConfig)
       .setMaxConnTotal(maxConnectionTotal)
       .setMaxConnPerRoute(maxConnectionTotal)
       .setConnectionTimeToLive(-1, TimeUnit.MILLISECONDS)
-      .disableRedirectHandling
+      .disableRedirectHandling()
       .setRetryHandler(new StandardHttpRequestRetryHandler)
       .setDefaultHeaders(ImmutableList.of(new BasicHeader("user-agent", Services.UserAgent)))
-      .build
+      .build()
+
+    logger.info(s"Created Apache HttpClient with maximum of $maxConnectionTotal connections")
+    httpClient
   }
 }
