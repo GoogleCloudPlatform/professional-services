@@ -31,20 +31,16 @@ object CurlOptionParser
 
   arg[String]("uri")
     .optional()
-    .text("URL to work with")
-    .action((x, c) => c.copy(url = x))
+    .text("URI of HTTP request")
+    .action((x, c) => c.copy(uri = x))
 
   opt[Boolean]("basic")
     .text("Use HTTP Basic Authentication")
     .action((x, c) => c.copy(basicAuth = x))
 
   opt[String]("cacert")
-    .text("CA certificate to verify peer against")
+    .text("path to CA certificates file in PEM format to verify peer against")
     .action((x, c) => c.copy(caCert = x))
-
-  opt[String]("capath")
-    .text("CA directory to verify peer against")
-    .action((x, c) => c.copy(caPath = x))
 
   opt[String]('E', "cert")
     .text("Client certificate file and password")
@@ -75,10 +71,6 @@ object CurlOptionParser
     .text("Send cookies from string/file")
     .action((x, c) => c.copy(cookie = x))
 
-  opt[String]('c', "cookie-jar")
-    .text("Write cookies to <filename> after operation")
-    .action((x, c) => c.copy(cookieJar = x))
-
   opt[String]('d', "data")
     .text("HTTP POST data")
     .action((x, c) => c.copy(data = x))
@@ -86,11 +78,6 @@ object CurlOptionParser
   opt[Boolean]('f', "fail")
     .text("Fail fast with no output on HTTP errors")
     .action((x, c) => c.copy(fail = x))
-
-  opt[Map[String,String]]('F', "form")
-    .unbounded()
-    .text("Specify multipart MIME data")
-    .action((x, c) => c.copy(form = c.form ++ x))
 
   opt[Boolean]('G', "get")
     .text("Put the post data in the URL and use GET")
@@ -107,7 +94,7 @@ object CurlOptionParser
 
   opt[String]("json")
     .text("HTTP POST JSON")
-    .action((x, c) => c.copy(data = x, requestMethod = "POST", mimeType = "application/json"))
+    .action((x, c) => c.copy(data = x, requestMethod = "POST", contentType = "application/json; charset=utf-8"))
 
   opt[Boolean]('n', "netrc")
     .text("Must read .netrc for user name and password")
@@ -120,10 +107,6 @@ object CurlOptionParser
   opt[String]("oauth2-bearer")
     .text("OAuth 2 Bearer Token")
     .action((x, c) => c.copy(oauth2BearerToken = x))
-
-  opt[String]('o', "output")
-    .text("Write to file instead of stdout")
-    .action((x, c) => c.copy(output = x))
 
   opt[Seq[String]]('r', "range")
     .text("Retrieve only the bytes within RANGE")
@@ -159,7 +142,7 @@ object CurlOptionParser
 
   opt[String]("url")
     .text("URL to work with")
-    .action((x, c) => c.copy(url = x))
+    .action((x, c) => c.copy(uri = x))
 
   opt[String]('u', "user")
     .text("<user:password> Server user and password")
@@ -172,8 +155,4 @@ object CurlOptionParser
   opt[Boolean]('v', "verbose")
     .text("Make the operation more talkative")
     .action((x, c) => c.copy(verbose = x))
-
-  opt[Boolean]('V', "version")
-    .text("Show version number and quit")
-    .action((x, c) => c.copy(version = x))
 }

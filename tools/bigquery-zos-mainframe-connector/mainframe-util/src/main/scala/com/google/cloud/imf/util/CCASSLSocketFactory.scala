@@ -1,15 +1,14 @@
 package com.google.cloud.imf.util
 
-import java.security.{KeyStore, SecureRandom}
 import com.google.api.client.util.{PemReader, SslUtils}
-
-import javax.net.ssl.{SSLContext, SSLSocketFactory, TrustManagerFactory}
 import org.apache.http.conn.ssl.{DefaultHostnameVerifier, SSLConnectionSocketFactory}
 
 import java.io.{ByteArrayInputStream, StringReader}
 import java.nio.charset.StandardCharsets
 import java.nio.file.{Files, Path, Paths}
 import java.security.cert.{CertificateFactory, X509Certificate}
+import java.security.{KeyStore, SecureRandom}
+import javax.net.ssl.{SSLContext, SSLSocketFactory, TrustManagerFactory}
 import scala.collection.mutable.ArrayBuffer
 
 

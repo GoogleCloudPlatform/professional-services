@@ -29,7 +29,7 @@ val exProtobufJava = ExclusionRule(organization = "com.google.protobuf", name = 
 val log4j1 = ExclusionRule(organization = "log4j", name = "log4j")
 
 libraryDependencies ++= Seq(
-  "com.google.cloud.imf" %% "mainframe-util" % "2.2.5-SNAPSHOT",
+  "com.google.cloud.imf" %% "mainframe-util" % "2.2.5",
   // enable users to compile without IBM JZOS jars
   // comment this line out and place IBM jars in lib directory to test against IBM classes
   "com.google.cloud.imf" %% "jzos-shim" % "0.2" % Provided,
@@ -75,7 +75,10 @@ Compile / resourceGenerators += Def.task {
 
 Test / testOptions := Seq(Tests.Filter(!_.endsWith("ITSpec")))
 
+javacOptions ++= Seq("-source", "1.8", "-target", "1.8", "-Xlint")
+
 scalacOptions ++= Seq(
+  "-target:jvm-1.8",
   "-deprecation",
   "-opt-warnings",
   "-feature"

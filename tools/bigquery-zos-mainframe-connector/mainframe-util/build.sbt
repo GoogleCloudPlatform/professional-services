@@ -79,7 +79,10 @@ Compile/ resourceGenerators += Def.task {
   Seq(file)
 }.taskValue
 
+javacOptions ++= Seq("-source", "1.8", "-target", "1.8", "-Xlint")
+
 scalacOptions ++= Seq(
+  "-target:jvm-1.8",
   "-opt:l:inline",
   "-opt-inline-from:**",
   "-opt-warnings",
