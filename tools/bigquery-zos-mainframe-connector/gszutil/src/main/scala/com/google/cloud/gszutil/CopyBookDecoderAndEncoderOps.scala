@@ -29,12 +29,16 @@ object CopyBookDecoderAndEncoderOps {
   val numStrRegex2 = """PIC (9{1,9})""".r
   val numStrRegex3 = """PIC \+9\((\d{1,3})\)""".r
   val decStrRegex = """PIC 9\((\d{1,3})\)V9\((\d{1,3})\)""".r
+  val decStrRegex3 = """PIC 9\((\d{1,3})\)V(9{1,7})""".r
+  val decStrRegex4 = """PIC (9{1,9})V(9{1,9})""".r
   val decStrRegex2 = """PIC \+9\((\d{1,3})\)\.9\((\d{1,3})\)""".r
   val intRegex = """PIC S9\((\d{1,3})\) COMP""".r
   val uintRegex = """PIC 9\((\d{1,3})\) COMP""".r
   val decRegex = """PIC S9\((\d{1,3})\) COMP-3""".r
+  val decRegex4 = """PIC S(9{1,9}) COMP-3""".r
   val decRegex2 = """PIC S9\((\d{1,3})\)V9\((\d{1,3})\) COMP-3""".r
-  val decRegex3 = """PIC S9\((\d{1,3})\)V(9{1,6}) COMP-3""".r
+  val decRegex3 = """PIC S9\((\d{1,3})\)V(9{1,9}) COMP-3""".r
+  val decRegex5 = """PIC S(9{1,9})V(9{1,9}) COMP-3""".r
 
   val types: Map[String,(Decoder, BinaryEncoder)] = Map(
     "PIC S9(6)V99 COMP-3" -> (Decimal64Decoder(9,2), DecimalToBinaryEncoder(9,2)),

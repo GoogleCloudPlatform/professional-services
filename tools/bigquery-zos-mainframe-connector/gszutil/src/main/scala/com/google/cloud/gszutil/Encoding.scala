@@ -59,6 +59,13 @@ object Encoding extends Logging {
       case decStrRegex(p, s) if p.toInt >= 1 =>
         val scale = s.toInt
         UnsignedDecimalStringEncoder(transcoder, p.toInt + scale, scale)
+      case decStrRegex3(p, s) if p.toInt >= 1 =>
+        val scale = s.length
+        UnsignedDecimalStringEncoder(transcoder, p.toInt + scale, scale)
+      case decStrRegex4(p, s) =>
+        val scale = s.length
+        val precision = p.length
+        UnsignedDecimalStringEncoder(transcoder, precision + scale, scale)
       case decStrRegex2(p, s) if p.toInt >= 1 =>
         val scale = s.toInt
         SignedDecimalStringEncoder(transcoder, p.toInt + scale, scale)
@@ -71,10 +78,16 @@ object Encoding extends Logging {
       case decRegex(p) if p.toInt >= 1 && cbf.decoder.isInstanceOf[Decimal64Decoder] =>
         val dec = cbf.decoder.asInstanceOf[Decimal64Decoder]
         DecimalToBinaryEncoder(dec.p, dec.s)
+      case decRegex4(p) if cbf.decoder.isInstanceOf[Decimal64Decoder] =>
+        val dec = cbf.decoder.asInstanceOf[Decimal64Decoder]
+        DecimalToBinaryEncoder(dec.p, dec.s)
       case decRegex2(p, _) if p.toInt >= 1 && cbf.decoder.isInstanceOf[Decimal64Decoder] =>
         val dec = cbf.decoder.asInstanceOf[Decimal64Decoder]
         DecimalToBinaryEncoder(dec.p, dec.s)
       case decRegex3(p, _) if p.toInt >= 1 && cbf.decoder.isInstanceOf[Decimal64Decoder] =>
+        val dec = cbf.decoder.asInstanceOf[Decimal64Decoder]
+        DecimalToBinaryEncoder(dec.p, dec.s)
+      case decRegex5(p, _) if cbf.decoder.isInstanceOf[Decimal64Decoder] =>
         val dec = cbf.decoder.asInstanceOf[Decimal64Decoder]
         DecimalToBinaryEncoder(dec.p, dec.s)
       case "PIC S9 COMP" | "PIC 9 COMP" =>

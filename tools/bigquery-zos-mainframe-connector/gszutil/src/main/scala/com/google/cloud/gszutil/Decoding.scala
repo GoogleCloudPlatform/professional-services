@@ -751,11 +751,23 @@ object Decoding extends Logging {
         StringAsIntDecoder(transcoder, s.toInt, filler = filler)
       case decRegex(p) if p.toInt >= 1 =>
         Decimal64Decoder(p.toInt, 0, filler = filler)
+      case decRegex4(p) =>
+        Decimal64Decoder(p.length, 0, filler = filler)
       case decRegex2(p, s) if p.toInt >= 1 =>
         Decimal64Decoder(p.toInt, s.toInt, filler = filler)
       case decStrRegex(p, s) if p.toInt >= 1 =>
         val scale = s.toInt
         val precision = p.toInt + scale
+        val size = precision
+        new StringAsDecimalDecoder(transcoder, size, precision, scale, filler = filler)
+      case decStrRegex3(p, s) if p.toInt >= 1 =>
+        val scale = s.length
+        val precision = p.toInt + scale
+        val size = precision
+        new StringAsDecimalDecoder(transcoder, size, precision, scale, filler = filler)
+      case decStrRegex4(p, s) if p.toInt >= 1 =>
+        val scale = s.length
+        val precision = p.length + scale
         val size = precision
         new StringAsDecimalDecoder(transcoder, size, precision, scale, filler = filler)
       case decStrRegex2(p, s) if p.toInt >= 1 =>
@@ -765,6 +777,8 @@ object Decoding extends Logging {
         new StringAsDecimalDecoder(transcoder, size, precision, scale, filler = filler)
       case decRegex3(p, s) if p.toInt >= 1 =>
         Decimal64Decoder(p.toInt, s.length, filler = filler)
+      case decRegex5(p, s) =>
+        Decimal64Decoder(p.length, s.length, filler = filler)
       case "PIC S9 COMP" =>
         new LongDecoder(2, filler = filler)
       case "PIC 9 COMP" =>
