@@ -78,6 +78,7 @@ class CopyBookSpec extends AnyFlatSpec with Logging {
     "PIC S9(9) COMP-3." -> (Decimal64Decoder(9,0), DecimalToBinaryEncoder(9,0)),
     "PIC S9(9)V99 COMP-3." -> (Decimal64Decoder(9,2), DecimalToBinaryEncoder(9,2)),
     "PIC S999V99 COMP-3." -> (Decimal64Decoder(3,2), DecimalToBinaryEncoder(3,2)),
+    "PIC S999V9(2) COMP-3." -> (Decimal64Decoder(3,2), DecimalToBinaryEncoder(3,2)),
     "PIC S9(6)V99 COMP-3." -> (Decimal64Decoder(6,2), DecimalToBinaryEncoder(6,2)),
     "PIC S9(13)V99 COMP-3." -> (Decimal64Decoder(13,2), DecimalToBinaryEncoder(13,2)),
     "PIC S9(7)V99 COMP-3." -> (Decimal64Decoder(7,2), DecimalToBinaryEncoder(7,2)),
