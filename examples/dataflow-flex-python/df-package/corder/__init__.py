@@ -11,3 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+# This software is provided as-is,
+# without warranty or representation for any use or purpose.
+# Your use of it is subject to your agreement with Google.

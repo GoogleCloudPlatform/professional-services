@@ -12,6 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# This software is provided as-is,
+# without warranty or representation for any use or purpose.
+# Your use of it is subject to your agreement with Google.
+
 import argparse
 import json
 import logging
@@ -67,6 +71,7 @@ class GetItemsFn(DoFn):
 
     def process(self, element, item_collection, item):
         from xsdata_pydantic.bindings import JsonSerializer
+
         for item_val in getattr(getattr(element, item_collection), item, []):
             yield json.loads(JsonSerializer().render(item_val))
 
@@ -76,8 +81,8 @@ class WriteToFileFn(DoFn):
 
     def process(self, element, dead_letter_dir):
         source_file, data = element[0], element[1]
-        source_file_base_name = source_file.split('/')[-1]
-        target_file_full_path = f'{dead_letter_dir}/{source_file_base_name}'
+        source_file_base_name = source_file.split("/")[-1]
+        target_file_full_path = f"{dead_letter_dir}/{source_file_base_name}"
         if dead_letter_dir.startswith("gs://"):
             with GcsIO().open(filename=target_file_full_path, mode="w") as f:
                 f.write(bytes(data))
@@ -112,22 +117,23 @@ class DeleteFileFn(DoFn):
 def run(argv=None):
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        '--input',
+        "--input",
         required=True,
-        help="Specify source path, it can be local files or files on GCS")
-
-    parser.add_argument(
-        '--output',
-        required=True,
-        help=
-        "Specify output to be a json file(example.json) or BQ dataset (project:dataset)"
+        help="Specify source path, it can be local files or files on GCS",
     )
 
     parser.add_argument(
-        '--dead_letter_dir',
+        "--output",
         required=True,
         help=
-        "Specify dead_letter_dir, it can be a dir (/tmp) or a gcs bucket path gs://<some-bucket>"
+        "Specify output to be a json file(example.json) or BQ dataset (project:dataset)",
+    )
+
+    parser.add_argument(
+        "--dead_letter_dir",
+        required=True,
+        help=
+        "Specify dead_letter_dir, it can be a dir (/tmp) or a gcs bucket path gs://<some-bucket>",
     )
 
     known_args, pipeline_args = parser.parse_known_args(argv)
@@ -137,45 +143,47 @@ def run(argv=None):
     with Pipeline(argv=pipeline_args) as p:
         # Parse File and tag them into valid and invalid category
         parsed_input_files = (
-            p | 'Match input files' >> MatchFiles(input) |
-            'Read input files' >> ReadMatches() |
-            'Check Valid XML Files' >> ParDo(ParseXMLFilesFn()).with_outputs(
+            p | "Match input files" >> MatchFiles(input) |
+            "Read input files" >> ReadMatches() |
+            "Check Valid XML Files" >> ParDo(ParseXMLFilesFn()).with_outputs(
                 ParseXMLFilesFn.OUTPUT_TAG_VALID_FILE,
-                ParseXMLFilesFn.OUTPUT_TAG_INVALID_FILE))
+                ParseXMLFilesFn.OUTPUT_TAG_INVALID_FILE,
+            ))
 
         # Get customer and order data from valid files
-        customers_data = (parsed_input_files.valid | "get valid customers" >>
-                          ParDo(GetItemsFn(), 'customers', 'customer'))
+        customers_data = parsed_input_files.valid | "get valid customers" >> ParDo(
+            GetItemsFn(), "customers", "customer")
 
-        orders_data = (
-            parsed_input_files.valid |
-            "get valid orders" >> ParDo(GetItemsFn(), 'orders', 'order'))
+        orders_data = parsed_input_files.valid | "get valid orders" >> ParDo(
+            GetItemsFn(), "orders", "order")
 
         # Write to output
-        if '.json' in known_args.output:
+        if ".json" in known_args.output:
             # Write Customers Data to TextFile
-            customers_data | 'to customer json' >> WriteToText(
+            customers_data | "to customer json" >> WriteToText(
                 output, "customer", num_shards=0)
 
             # Write Orders Data to TextFile
-            orders_data | 'to order json' >> WriteToText(
+            orders_data | "to order json" >> WriteToText(
                 output, "order", num_shards=0)
 
         else:
 
             # Write Customers Data to BQ Table
-            customers_data | 'to customer bq' >> WriteToBigQuery(
+            customers_data | "to customer bq" >> WriteToBigQuery(
                 "{}.{}".format(output, "customers"),
                 schema=CUSTOMER_TABLE_SCHEMA,
                 write_disposition=BigQueryDisposition.WRITE_APPEND,
-                create_disposition=BigQueryDisposition.CREATE_IF_NEEDED)
+                create_disposition=BigQueryDisposition.CREATE_IF_NEEDED,
+            )
 
             # Write Orders Data to BQ Table
-            orders_data | 'to order bq' >> WriteToBigQuery(
+            orders_data | "to order bq" >> WriteToBigQuery(
                 "{}.{}".format(output, "orders"),
                 schema=ORDER_TABLE_SCHEMA,
                 write_disposition=BigQueryDisposition.WRITE_APPEND,
-                create_disposition=BigQueryDisposition.CREATE_IF_NEEDED)
+                create_disposition=BigQueryDisposition.CREATE_IF_NEEDED,
+            )
 
         # Write Invalid files to Dead Letter Directory
         (parsed_input_files.invalid |
@@ -185,6 +193,6 @@ def run(argv=None):
          "Delete Source Invalid File" >> ParDo(DeleteFileFn()))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     logging.getLogger().setLevel(logging.INFO)
     run()

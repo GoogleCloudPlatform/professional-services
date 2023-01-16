@@ -12,6 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# This software is provided as-is,
+# without warranty or representation for any use or purpose.
+# Your use of it is subject to your agreement with Google.
+
+
 # This Dockerfile is to create an Image used by launcher to
 # launch Dataflow workers.
 
@@ -34,6 +39,7 @@ COPY df-package/ .
 RUN python setup.py install
 
 ENV FLEX_TEMPLATE_PYTHON_PY_FILE="${WORKDIR}/main.py"
+
 
 
 
