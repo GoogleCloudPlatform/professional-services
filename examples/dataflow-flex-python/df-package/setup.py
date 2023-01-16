@@ -12,10 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# This software is provided as-is,
+# without warranty or representation for any use or purpose.
+# Your use of it is subject to your agreement with Google.
+
 import setuptools
 
 setuptools.setup(
-    name='corder',
-    version='0.0.1',
+    name="corder",
+    version="0.0.1",
     packages=setuptools.find_packages(),
 )

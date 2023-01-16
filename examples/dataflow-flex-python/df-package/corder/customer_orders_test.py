@@ -12,6 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# This software is provided as-is,
+# without warranty or representation for any use or purpose.
+# Your use of it is subject to your agreement with Google.
+
 import glob
 import logging
 import os
@@ -30,13 +34,13 @@ def test_xml_to_bq():
         input_file = os.path.join("../../sample-data", "customer-orders.xml")
         output_file = os.path.join(temp_dir.get_path(), "example.json")
         extra_opts = {
-            'input': input_file,
-            'output': output_file,
-            'dead_letter_dir': temp_dir.get_path()
+            "input": input_file,
+            "output": output_file,
+            "dead_letter_dir": temp_dir.get_path(),
         }
         customer_orders.run(
             test_pipeline.get_full_options_as_args(**extra_opts))
-        output_files = glob.glob(output_file + '*')
+        output_files = glob.glob(output_file + "*")
         for file_name in output_files:
             if "order" in file_name:
                 lines = open(file_name).read().splitlines()
@@ -46,6 +50,6 @@ def test_xml_to_bq():
                 assert len(lines) == 4
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     logging.getLogger().setLevel(logging.INFO)
     pytest.main()

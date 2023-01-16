@@ -72,3 +72,4 @@
     <xs:attribute name='ShippedDate' type='xs:dateTime'/>
   </xs:complexType>
 </xs:schema>
+
