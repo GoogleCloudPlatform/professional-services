@@ -77,7 +77,7 @@ Enter a job id in the field. The format of the job id must be:
 ![GetById](src/assets/images/GetById.png)
 
 
-Assuming you have previously downloaded the query plan using the `bq show -j <jobid>i --format prettyjson` command to a local file,
+Assuming you have previously downloaded the query plan using the `bq show -j --format=prettyjson <job-id>` command to a local file,
 click on this card the 'Select File to upload' button, navigate to the file and select it. To start uploading click the
 Upload button.
 
