@@ -74,6 +74,10 @@ them to fit your particular use case.
     Oracle DDL Migration Utility to migrate the tables schema (DDL) from Oracle DB to BigQuery.
     The utility leverages BigQuery Translation API and offers additional features
     such as adding partitioning, clustering, metadata columns and prefixes to table names.
+*   [BigQuery Snowflake Table Migration Tool](examples/bigquery-snowflake-tables-migration-utility) - 
+    BigQuery Snowflake Table Migration Tool helps to migrate the table DDL's from Snowflake to BigQuery.
+    The utility leverages BigQuery Translation API and offers additional features
+    such as adding partitioning, clustering, metadata columns and prefixes to table names.
 *   [Cloud Build with Proxy Running in Background](examples/cloudbuild-with-tcp-proxy) -
     Examples of cloudbuild with docker-compose running tcp proxy in the
     background for all build steps.
