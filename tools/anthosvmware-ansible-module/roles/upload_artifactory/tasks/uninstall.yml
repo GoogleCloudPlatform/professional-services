@@ -1,0 +1,76 @@
+# Copyright 2022 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Ansible Lint skipping rules
+# ruleID 301 Commands should not change things if nothing needs doing
+# ruleID 204 Lines should be no longer than 160 chars
+- name: "[upload_artifactory] Block - Delete artifacts from Artificatory"
+  block:
+    # - name: Get Results
+    #   ansible.builtin.debug:
+    #     msg: "{{ item }}"
+    #   loop:
+    #     - "{{ upload_artifactory_http_artifacts }}"
+    #     - "{{ upload_artifactory_gs_artifacts }}"
+
+    - name: "[upload_artifactory] Check Existence of files in artifactory"
+      ansible.builtin.command:
+        argv:
+          - curl
+          - -k
+          - -s
+          - -o
+          - /dev/null
+          - -w
+          - "%{http_code}"
+          - "{{ upload_artifactory_url }}/api/storage/{{ upload_artifactory_repo_name }}/{{ item.dst }}"
+      loop: "{{ upload_artifactory_http_artifacts + upload_artifactory_gs_artifacts }}"
+      no_log: true
+      ignore_errors: true
+      register: check_result
+
+    - name: "[upload_artifactory] Output Check results Masked"
+      ansible.builtin.debug:
+        msg: "{{ item | to_json | replace(upload_artifactory_password, '****') }}"
+      loop: "{{ check_result.results }}"
+      loop_control:
+        label: "{{ item.item.file }}"
+
+    - name: "[upload_artifactory] Delete HTTP Files from Artifactory"
+      ansible.builtin.command:
+        argv:
+          - curl
+          - -k
+          - -X
+          - DELETE
+          - "{{ upload_artifactory_url_with_repo }}/{{ item.item.dst }}"
+      loop: "{{ check_result.results }}"
+      no_log: true
+      when: item.stdout == "200"
+
+    - name: "[upload_artifactory] Delete work directory"
+      ansible.builtin.file:
+        path: "{{ workdir }}"
+        state: absent
+
+  environment:
+    PATH: "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin" # noqa 204
+    http_proxy: "{{ glb_proxyurl }}"
+    https_proxy: "{{ glb_proxyurl }}"
+    no_proxy: "{{ glb_noproxy }}"
+
+  always:
+    - name: "Include role to delete sensitive files"
+      ansible.builtin.include_role:
+        name: cleanup

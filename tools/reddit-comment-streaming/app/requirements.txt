@@ -1,0 +1,6 @@
+praw
+pandas
+textblob
+better_profanity
+textstat
+google-cloud-pubsub

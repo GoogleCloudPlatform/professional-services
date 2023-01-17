@@ -1,0 +1,58 @@
+# Copyright 2022 Google LLC
+# 
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+# 
+#     http://www.apache.org/licenses/LICENSE-2.0
+# 
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+
+- name: "[cleanup] Find GCP SA JSON files on jumphost"
+  find:
+    paths: ["{{ yamldestpath }}"]
+    file_type: file
+    pattern: '*.json'
+  register: jsonfiles
+
+# only runs when JSON files are present
+- name: "[cleanup] Clean up GCP SA JSON files on jumphost"
+  file:
+    path: "{{ item.path }}"
+    state: absent
+  loop: "{{ jsonfiles.files }}"
+  when: jsonfiles.files is defined
+
+- name: "[cleanup] Find *credential*.yaml files on jumphost"
+  find:
+    paths: ["{{ yamldestpath }}"]
+    file_type: file
+    pattern: '*credential*.yaml'
+  register: credyamlfiles
+
+# only runs when *credential*.yaml files are present
+- name: "[cleanup] Clean up *credential*.yaml on jumphost"
+  file:
+    path: "{{ item.path }}"
+    state: absent
+  loop: "{{ credyamlfiles.files }}"
+  when: credyamlfiles.files is defined
+
+- name: "[cleanup] Check if file {{ adminws_name }} exists"
+  ansible.builtin.stat:
+    path: "{{ yamldestpath }}/{{ adminws_name }}"
+  register: adminws_file_exists
+
+# SSH into new AdminWS to clean up sensitive files
+- name: "[cleanup] Clean up credential.yaml and GCP SA files on newly created AdminwWS"
+  shell:
+    cmd: "eval '$(cat {{ yamldestpath }}/{{ adminws_name }} | grep @) -oStrictHostKeyChecking=no rm -f {{ adminws_vc_credfile }} {{ component_access_gcpsa_path }}'"
+  ignore_errors: true
+  when:
+    - adminws_install|default(false)|bool
+    - adminws_file_exists.stat.exists

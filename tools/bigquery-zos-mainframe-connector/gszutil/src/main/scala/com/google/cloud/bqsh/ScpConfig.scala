@@ -15,8 +15,14 @@
  */
 package com.google.cloud.bqsh
 
+import com.google.cloud.imf.gzos.MVSStorage.{DSN, MVSDataset}
+
 case class ScpConfig(inDD: String = "",
                      inDsn: String = "",
                      gcsOutUri: String = "",
-                     compress: Boolean = true,
-                     limit: Long = Long.MaxValue)
+                     convert: Boolean = true,
+                     encoding: String = "CP037",
+                     compress: Boolean = false,
+                     limit: Long = -1) {
+  def inDSN: DSN = MVSDataset(inDsn)
+}

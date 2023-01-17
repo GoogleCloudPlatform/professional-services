@@ -1,0 +1,245 @@
+# Copyright 2022 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+- name: "[ac] Include role for GCP SA JSON key files"
+  ansible.builtin.include_role:
+    name: copy_credentials
+  vars:
+    is_admin_cluster: true
+
+- name: "[ac] Block - delete VMs, data disk, cluster and GCP SA JSON key files"
+  block:
+    - name: "[ac] Get Register Service Account Name"
+      ansible.builtin.command: # noqa 305 301 no-changed-when
+        argv:
+          - gcloud
+          - auth
+          - list
+          - --filter
+          - 'account~reg AND account~{{ ac_gkeconnect_projectid }}'
+          - --format
+          - 'value(account)'
+      register: register_sa
+      tags: delete
+
+    - name: "[ac] Switch to Register Service Account Name"
+      ansible.builtin.command: # noqa 305 301 no-changed-when
+        argv:
+          - gcloud
+          - config
+          - set
+          - account
+          - "{{ register_sa.stdout }}"
+      tags: delete
+
+    - name: "[ac] Unregister Admin Cluster from GKE Hub"
+      ansible.builtin.command: # noqa 305 301 no-changed-when
+        chdir: "{{ yamldestpath }}"
+        argv:
+          - gcloud
+          - container
+          - hub
+          - memberships
+          - delete
+          - "{{ ac_name }}"
+          - --project
+          - "{{ ac_gkeconnect_projectid }}"
+          - --quiet
+      tags: delete
+
+    - name: "[ac] Delete Monitoring System Pods"
+      ansible.builtin.command: # noqa 305 301 no-changed-when
+        chdir: "{{ yamldestpath }}"
+        argv:
+          - kubectl
+          - delete
+          - monitoring
+          - --all
+          - -n
+          - kube-system
+          - --kubeconfig
+          - kubeconfig
+      tags: delete
+
+    - name: "[ac] Delete Logging System Pods"
+      ansible.builtin.command: # noqa 305 301 no-changed-when
+        chdir: "{{ yamldestpath }}"
+        argv:
+          - kubectl
+          - delete
+          - stackdriver
+          - --all
+          - -n
+          - kube-system
+          - --kubeconfig
+          - kubeconfig
+      tags: delete
+
+    - name: "[ac] Get vSphere VM Names"
+      ansible.builtin.command: # noqa 305 301 no-changed-when
+        argv:
+          - kubectl
+          - get
+          - machines
+          - --kubeconfig
+          - kubeconfig
+          - --no-headers
+      register: vm_names
+      tags: delete
+
+    - name: "[ac] Get Admin Cluster Master VM Name"
+      ansible.builtin.command: # noqa 305 301 no-changed-when
+        argv:
+          - kubectl
+          - get
+          - machines
+          - --kubeconfig
+          - kubeconfig
+          - -l
+          - set=master
+          - --no-headers
+      register: ac_master_vm_name
+      tags: delete
+
+    - name: "[ac] admin cluster debug kubeconfig file status"
+      ansible.builtin.stat:
+        path: "{{ yamldestpath }}/internal-cluster-kubeconfig-debug"
+      register: ac_kubeconfig_debug_file
+
+    - name: "[ac] admin cluster kubeconfig file status"
+      ansible.builtin.stat:
+        path: "~/kubeconfig"
+      register: ac_kubeconfig_file
+
+    - name: "[ac] Delete VMs from vCenter"
+      with_items: "{{ vm_names.stdout_lines }}"
+      ansible.builtin.command: # noqa 305 301 no-changed-when
+        argv:
+          - govc
+          - vm.destroy
+          - "{{ item }}"
+      register: ac_vms_delete_status
+      when: ac_kubeconfig_file.stat.exists
+      tags: delete
+
+    - name: "[ac] Check for Admin Cluster Master Template"
+      ansible.builtin.command: # noqa 305 301 no-changed-when
+        argv:
+          - govc
+          - ls
+          - "vm/{{ ac_master_vm_name.stdout }}-tmpl"
+      register: ac_master_vm_tmpl_full_name
+      when: ac_master_vm_name.rc | default('') == 0
+      tags: delete
+
+    - name: "[ac] Delete Admin Cluster Master Template"
+      ansible.builtin.command: # noqa 305 301 no-changed-when
+        argv:
+          - govc
+          - vm.destroy
+          - "{{ ac_master_vm_tmpl_full_name.stdout }}"
+      when:
+        - ac_master_vm_tmpl_full_name.rc | default('') == 0
+        - ac_master_vm_tmpl_full_name.stdout | length > 0
+      tags: delete
+
+    - name: "[ac] Delete Admin Cluster Debug Kubeconfig"
+      ansible.builtin.file:
+        path: "{{ yamldestpath }}/internal-cluster-kubeconfig-debug"
+        state: absent
+      when: ac_vms_delete_status.results[0].rc | default('') == 0
+
+    - name: "[ac] Delete Admin Cluster Kubeconfig"
+      ansible.builtin.file:
+        path: "~/kubeconfig"
+        state: absent
+      when: ac_vms_delete_status.results[0].rc | default('') == 0
+
+    - name: "[ac] Check for Admin Cluster Data Disk vmdk"
+      ansible.builtin.command: # noqa 305 301 no-changed-when
+        argv:
+          - govc
+          - datastore.ls
+          - "{{ ac_vc_datadisk }}"
+      ignore_errors: true
+      register: ac_datadisk_status
+      when: ac_vms_delete_status.results[0].rc | default('') == 0
+      tags: delete
+
+    - name: "[ac] Delete Data Disk vmdk"
+      ansible.builtin.command: # noqa 305 301 no-changed-when
+        argv:
+          - govc
+          - datastore.rm
+          - "{{ ac_vc_datadisk }}"
+      when:
+        - ac_datadisk_status.stdout | default('') | length > 0
+      tags: delete
+
+    - name: "[ac] Check Data Disk Checkpoint file"
+      ansible.builtin.command: # noqa 305 301 no-changed-when
+        argv:
+          - govc
+          - datastore.ls
+          - "{{ ac_name }}/{{ ac_name }}-checkpoint.yaml"
+      ignore_errors: true
+      register: ac_datadisk_checkpoint_status
+      when: ac_vms_delete_status.results[0].rc | default('') == 0
+      tags: delete
+
+    - name: "[ac] Delete Data Disk Checkpoint file"
+      ansible.builtin.command: # noqa 305 301 no-changed-when
+        argv:
+          - govc
+          - datastore.rm
+          - "{{ ac_name }}/{{ ac_name }}-checkpoint.yaml"
+      when:
+        - ac_datadisk_checkpoint_status.stdout | default('') | length > 0
+      tags: delete
+
+    - name: "[ac] Check existence of datastore folder for admin cluster"
+      ansible.builtin.command: # noqa 305 301 no-changed-when
+        argv:
+          - govc
+          - datastore.ls
+          - -p
+      register: r_ac_folder
+      tags: delete
+
+    - name: "[ac] Delete datastore folder for admin cluster"
+      ansible.builtin.command: # noqa 305 301 no-changed-when
+        argv:
+          - govc
+          - datastore.rm
+          - "{{ ac_name }}"
+      when: r_ac_folder is search(ac_name)
+      tags: delete
+  
+  environment:
+    PATH: "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin"
+    http_proxy: "{{ glb_proxyurl }}"
+    https_proxy: "{{ glb_proxyurl }}"
+    no_proxy: "{{ glb_noproxy }}"
+    GOVC_URL: "https://{{ ac_vc_fqdn }}/sdk"
+    GOVC_USERNAME: "{{ ac_vc_username }}"
+    GOVC_PASSWORD: "{{ ac_vc_password }}"
+    GOVC_DATASTORE: "{{ ac_vc_datastore }}"
+    GOVC_DATACENTER: "{{ ac_vc_datacenter }}"
+    GOVC_RESOURCE_POOL: "{{ ac_vc_respool }}"
+    GOVC_INSECURE: "true"
+  
+  always:
+    - name: "[ac] Include role to delete sensitive files"
+      ansible.builtin.include_role:
+        name: cleanup

@@ -21,9 +21,12 @@ import com.google.api.services.bigquery.{Bigquery, model}
 import com.google.auth.Credentials
 import com.google.auth.http.HttpCredentialsAdapter
 import com.google.cloud.bigquery.InsertAllRequest.RowToInsert
-import com.google.cloud.bigquery.{BigQuery, BigQueryError, BigQueryException, CopyJobConfiguration, DatasetId, ExtractJobConfiguration, Field, FieldList, InsertAllRequest, InsertAllResponse, Job, JobConfiguration, JobId, JobInfo, JobStatus, LoadJobConfiguration, QueryJobConfiguration, Schema, StandardSQLTypeName, StandardTableDefinition, TableDefinition, TableId}
-import com.google.cloud.imf.gzos.pb.GRecvProto
-import com.google.cloud.imf.gzos.{MVS, Util}
+import com.google.cloud.bigquery.{BigQuery, BigQueryError, BigQueryException, CopyJobConfiguration, DatasetId,
+  ExtractJobConfiguration, Field, InsertAllRequest, InsertAllResponse, Job, JobConfiguration, JobId, JobInfo,
+  JobStatus, LoadJobConfiguration, QueryJobConfiguration, Schema, StandardSQLTypeName, StandardTableDefinition,
+  TableDefinition, TableId}
+import com.google.cloud.imf.gzos.Util
+import com.google.cloud.imf.gzos.pb.GRecvProto.ZOSJobInfo
 import com.google.cloud.imf.util.{CCATransportFactory, GoogleApiL2Retrier, Logging, Services, StatsUtil}
 import com.google.common.collect.ImmutableList
 
@@ -37,25 +40,41 @@ object BQ extends Logging with GoogleApiL2Retrier {
   override val retriesCount: Int = Services.l2RetriesCount
   override val retriesTimeoutMillis: Int = Services.l2RetriesTimeoutMillis
 
-  def genJobId(projectId: String, location: String, zos: MVS, jobType: String, suffix: String): JobId = {
-    val t = LocalDateTime.now
-    val job = zos.getInfo
-    val jobId = Seq(
-      job.getJobname, job.getStepName, job.getJobid, jobType, s"${t.getHour}${t.getMinute}${t.getSecond}", suffix
+  /** Creates a standardized BigQuery job id from timestamp and job info
+    * job id is used to query the status of a BigQuery job.
+    *
+    * @param t LocalDateTime
+    * @param job ZOSJobInfo
+    * @param jobType user specified job type such as query, load, mk
+    * @param randomSuffix when true, a random 8 digit string will be appended
+    * @return job id String
+    */
+  private def mkJobId(t: LocalDateTime, job: ZOSJobInfo, jobType: String, randomSuffix: Boolean): String =
+    Seq(
+      job.getJobname.filter(_.isLetterOrDigit),
+      job.getStepName.filter(_.isLetterOrDigit),
+      job.getJobid.filter(_.isLetterOrDigit),
+      jobType,
+      s"${t.getHour}${t.getMinute}${t.getSecond}",
+      if (randomSuffix) Util.generateHashString else ""
     ).filter(_.nonEmpty).mkString("_")
-    JobId.newBuilder.setProject(projectId).setLocation(location).setJob(jobId).build
-  }
 
-  def genJobId(projectId: String, location: String, zos: MVS, jobType: String): JobId =
-    genJobId(projectId, location, zos, jobType, "")
-
-  def genJobId(projectId: String, location: String, jobInfo: GRecvProto.ZOSJobInfo, jobType: String): JobId = {
-    val t = LocalDateTime.now
-    val jobId = Seq(
-      jobInfo.getJobname,jobInfo.getStepName,jobInfo.getJobid,jobType,s"${t.getHour}${t.getMinute}${t.getSecond}"
-    ).mkString("_")
-    JobId.newBuilder.setProject(projectId).setLocation(location).setJob(jobId).build
-  }
+  /** Creates BigQuery JobId from timestamp and job info
+    * job id is used to query the status of a BigQuery job.
+    *
+    * @param projectId Google Cloud project id
+    * @param location Google Cloud location
+    * @param job ZOSJobInfo
+    * @param jobType user specified job type such as query, load, mk
+    * @param randomSuffix when true, a random 8 digit string will be appended
+    * @return JobId
+    */
+  def genJobId(projectId: String, location: String, job: ZOSJobInfo, jobType: String, randomSuffix: Boolean = false): JobId =
+    JobId.newBuilder()
+      .setProject(projectId)
+      .setLocation(location)
+      .setJob(mkJobId(LocalDateTime.now(), job, jobType, randomSuffix))
+      .build()
 
   /** Converts TableId to String */
   def tableSpec(t: TableId): String = s"${t.getProject}.${t.getDataset}.${t.getTable}"

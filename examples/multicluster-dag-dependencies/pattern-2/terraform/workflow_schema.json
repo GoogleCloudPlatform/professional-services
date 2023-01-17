@@ -1,0 +1,23 @@
+{
+    "type" : "record",
+    "name" : "workflow_status",
+    "fields" : [
+      {
+        "name" : "source_type",
+        "type" : "string"
+      },
+      {
+        "name" : "workflow_id",
+        "type" : "string"
+      },
+      {
+        "name" : "workflow_run_id",
+        "type" : "string"
+      },
+      {
+        "name" : "workflow_status",
+        "type" : "string"
+      }
+    ]
+   }
+   

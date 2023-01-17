@@ -1,0 +1,72 @@
+# Copyright 2022 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+- name: "[asm] Login to private container registry"
+  ansible.builtin.command:
+    argv:
+      - docker
+      - login
+      - -u
+      - '{{ glb_privatereg_username }}'
+      - -p
+      - '{{ glb_privatereg_password }}'
+      - '{{ glb_privatereg_url }}'
+  no_log: true
+
+- name: "[asm] Check if images are already pushed to private container registry"
+  ansible.builtin.command:
+    argv:
+      - docker
+      - manifest
+      - inspect
+      - "{{ glb_privatereg_url }}/{{ item.split('/')[-1] }}"
+  loop: "{{ asm_container_images[asm_minor_version] }}"
+  loop_control:
+    label: "{{ glb_privatereg_url }}/{{ item.item.split('/')[-1] }}"
+  register: r_image_check
+  failed_when: false
+
+- name: "[asm] Download new images from gcr"
+  ansible.builtin.command:
+    argv:
+      - docker
+      - pull
+      - "{{ item.item }}"
+  loop: "{{ r_image_check.results }}"
+  loop_control:
+    label: "{{ item.item }}"
+  when: item.rc != 0
+
+- name: "[asm] Change new image tags to private registry"
+  ansible.builtin.command:
+    argv:
+      - docker
+      - tag
+      - "{{ item.item }}"
+      - "{{ glb_privatereg_url }}/{{ item.item.split('/')[-1] }}"
+  loop: "{{ r_image_check.results }}"
+  loop_control:
+    label: "{{ glb_privatereg_url }}/{{ item.item.split('/')[-1] }}"
+  when: item.rc != 0
+
+- name: "[asm] Push new images to private registry"
+  ansible.builtin.command:
+    argv:
+      - docker
+      - push
+      - "{{ glb_privatereg_url }}/{{ item.item.split('/')[-1] }}"
+  loop: "{{ r_image_check.results }}"
+  loop_control:
+    label: "{{ glb_privatereg_url }}/{{ item.item.split('/')[-1] }}"
+  when: item.rc != 0

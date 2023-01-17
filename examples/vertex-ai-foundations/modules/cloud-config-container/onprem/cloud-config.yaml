@@ -1,0 +1,375 @@
+#cloud-config
+
+# Copyright 2022 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+package_update: true
+package_upgrade: true
+package_reboot_if_required: true
+
+packages:
+  - apt-transport-https
+  - ca-certificates
+  - curl
+  - gnupg-agent
+  - software-properties-common
+
+write_files:
+
+# Docker daemon configuration
+- path: /etc/docker/daemon.json
+  owner: root:root
+  permissions: '0644'
+  content: |
+    {
+      "log-driver": "json-file",
+      "log-opts": {
+        "max-size": "10m"
+      }
+    }
+
+# Docker compose systemd unit for onprem
+- path: /etc/systemd/system/docker-onprem.service
+  permissions: 0644
+  owner: root
+  content: |
+    [Install]
+    WantedBy=multi-user.target
+    [Unit]
+    Description=Start Docker Compose onprem infrastructure
+    After=network-online.target docker.socket
+    Wants=network-online.target docker.socket
+    [Service]
+    ExecStart=/bin/sh -c "cd /var/lib/docker-compose/onprem && /usr/local/bin/docker-compose up"
+    ExecStop=/bin/sh -c "cd /var/lib/docker-compose/onprem && /usr/local/bin/docker-compose down"
+
+# Docker compose configuration file for onprem
+- path: /var/lib/docker-compose/onprem/docker-compose.yaml
+  permissions: 0644
+  owner: root
+  content: |
+    version: "3"
+    services:
+      vpn:
+        image: gcr.io/pso-cft-fabric/strongswan:latest
+        networks:
+          onprem:
+            ipv4_address: ${local_addresses.vpn}
+        ports:
+          - "500:500/udp"
+          - "4500:4500/udp"
+          %{~ if vpn_config.type == "dynamic" ~}
+          - "179:179/tcp"
+          %{~ endif ~}
+        privileged: true
+        cap_add:
+          - NET_ADMIN
+        volumes:
+          - "/lib/modules:/lib/modules:ro"
+          - "/etc/localtime:/etc/localtime:ro"
+          - "/var/lib/docker-compose/onprem/ipsec/ipsec.conf:/etc/ipsec.conf:ro"
+          - "/var/lib/docker-compose/onprem/ipsec/ipsec.secrets:/etc/ipsec.secrets:ro"
+          %{~ if vpn_config.type == "dynamic" ~}
+          - "/var/lib/docker-compose/onprem/ipsec/vti.conf:/etc/strongswan.d/vti.conf:ro"
+          %{~ endif ~}
+        environment:
+          - LAN_NETWORKS=${ip_cidr_ranges.local}
+      %{~ if vpn_config.type == "dynamic" ~}
+      bird:
+        image: pierky/bird
+        network_mode: service:vpn
+        cap_add:
+          - NET_ADMIN
+          - NET_BROADCAST
+          - NET_RAW
+        privileged: true
+        volumes:
+          - "/var/lib/docker-compose/onprem/bird/bird.conf:/etc/bird/bird.conf:ro"
+      %{~ endif ~}
+      dns:
+        image: coredns/coredns
+        command: "-conf /etc/coredns/Corefile"
+        depends_on:
+          - "vpn"
+          %{~ if vpn_config.type == "dynamic" ~}
+          - "bird"
+          %{~ endif ~}
+        networks:
+          onprem:
+            ipv4_address: ${local_addresses.dns}
+        volumes:
+          - "/var/lib/docker-compose/onprem/coredns:/etc/coredns:ro"
+      routing_sidecar_dns:
+        image: alpine
+        network_mode: service:dns
+        command: |
+          /bin/sh -c "\
+             ip route del default &&\
+             ip route add default via ${local_addresses.vpn}"
+        privileged: true
+      web:
+        image: nginx:stable-alpine
+        depends_on:
+          - "vpn"
+          %{~ if vpn_config.type == "dynamic" ~}
+          - "bird"
+          %{~ endif ~}
+          - "dns"
+        dns:
+          - ${local_addresses.dns}
+        networks:
+          onprem:
+            ipv4_address: ${local_addresses.www}
+        volumes:
+          - "/var/lib/docker-compose/onprem/nginx:/usr/share/nginx/html:ro"
+      routing_sidecar_web:
+        image: alpine
+        network_mode: service:web
+        command: |
+          /bin/sh -c "\
+             ip route del default &&\
+             ip route add default via ${local_addresses.vpn}"
+        privileged: true
+      toolbox:
+        image: gcr.io/pso-cft-fabric/toolbox:latest
+        networks:
+          onprem:
+            ipv4_address: ${local_addresses.shell}
+        depends_on:
+          - "vpn"
+          - "dns"
+          - "web"
+        dns:
+          - ${local_addresses.dns}
+      routing_sidecar_toolbox:
+        image: alpine
+        network_mode: service:toolbox
+        command: |
+          /bin/sh -c "\
+             ip route del default &&\
+             ip route add default via ${local_addresses.vpn}"
+        privileged: true
+    networks:
+      onprem:
+        ipam:
+          driver: default
+          config:
+            - subnet: ${ip_cidr_ranges.local}
+
+# IPSEC tunnel secret
+- path: /var/lib/docker-compose/onprem/ipsec/ipsec.secrets
+  owner: root:root
+  permissions: '0600'
+  content: |
+    ${vpn_config.peer_ip} : PSK "${vpn_config.shared_secret}"
+    ${vpn_config.peer_ip2} : PSK "${vpn_config.shared_secret2}"
+
+# IPSEC tunnel configuration
+- path: /var/lib/docker-compose/onprem/ipsec/ipsec.conf
+  owner: root:root
+  permissions: '0644'
+  content: |
+    conn %default
+      ikelifetime=600m
+      keylife=180m
+      rekeymargin=3m
+      keyingtries=3
+      keyexchange=ikev2
+      mobike=no
+      ike=aes256gcm16-sha512-modp2048
+      esp=aes256gcm16-sha512-modp8192
+      authby=psk
+
+    conn gcp
+      %{~ if vpn_config.type == "dynamic" ~}
+      leftupdown="/var/lib/strongswan/ipsec-vti.sh 0 ${vpn_dynamic_config.peer_bgp_address}/30 ${vpn_dynamic_config.local_bgp_address}/30"
+      %{~ endif ~}
+      left=%any
+      leftid=%any
+      %{~ if vpn_config.type == "dynamic" ~}
+      leftsubnet=0.0.0.0/0
+      %{~ else ~}
+      leftsubnet=${ip_cidr_ranges.local}
+      %{~ endif ~}
+      leftauth=psk
+      right=${vpn_config.peer_ip_wildcard}
+      rightid=${vpn_config.peer_ip}
+      %{~ if vpn_config.type == "dynamic" ~}
+      rightsubnet=0.0.0.0/0
+      %{~ else ~}
+      rightsubnet=${ip_cidr_ranges.remote}
+      %{~ endif ~}
+      rightauth=psk
+      type=tunnel
+      auto=start
+      dpdaction=restart
+      closeaction=restart
+      %{~ if vpn_config.type == "dynamic" ~}
+      mark=%unique
+      %{~ endif ~}
+      
+    conn gcp2
+      %{~ if vpn_config.type == "dynamic" ~}
+      leftupdown="/var/lib/strongswan/ipsec-vti.sh 1 ${vpn_dynamic_config.peer_bgp_address2}/30 ${vpn_dynamic_config.local_bgp_address2}/30"
+      %{~ endif ~}
+      left=%any
+      leftid=%any
+      %{~ if vpn_config.type == "dynamic" ~}
+      leftsubnet=0.0.0.0/0
+      %{~ else ~}
+      leftsubnet=${ip_cidr_ranges.local}
+      %{~ endif ~}
+      leftauth=psk
+      right=${vpn_config.peer_ip_wildcard2}
+      rightid=${vpn_config.peer_ip2}
+      %{~ if vpn_config.type == "dynamic" ~}
+      rightsubnet=0.0.0.0/0
+      %{~ else ~}
+      rightsubnet=${ip_cidr_ranges.remote}
+      %{~ endif ~}
+      rightauth=psk
+      type=tunnel
+      auto=start
+      dpdaction=restart
+      closeaction=restart
+      %{~ if vpn_config.type == "dynamic" ~}
+      mark=%unique
+      %{~ endif ~}
+
+ %{~ if vpn_config.type == "dynamic" ~}
+    
+# Charon configuration
+- path: /var/lib/docker-compose/onprem/ipsec/vti.conf
+  owner: root:root
+  permissions: '0644'
+  content: |
+    charon {
+        install_routes = no
+    }
+
+# Bird bgp routing configuration
+- path: /var/lib/docker-compose/onprem/bird/bird.conf
+  owner: root:root
+  permissions: '0644'
+  content: |
+    router id ${vpn_dynamic_config.local_bgp_address};
+
+    # watch interface up/down events
+    protocol device {
+      scan time 10;
+    }
+
+    # sync routes to kernel
+    protocol kernel {
+      learn;
+      merge paths on; # For ECMP
+      export filter {
+        # internal IP of the strongswan VM
+        krt_prefsrc = ${local_addresses.vpn};
+        # sync all routes to kernel
+        accept;
+      };
+      import all; # Required due to /32 on GCE VMs for the static route below
+    }
+
+    # Configure a static route to make sure route exists
+    protocol static {
+      # network connected to eth0
+      route ${ip_cidr_ranges.local} recursive ${local_addresses.gw};
+      %{~ for range in netblocks ~}
+      # route ${range} via ${vpn_dynamic_config.peer_bgp_address};
+      %{~ endfor ~}
+    }
+    # prefix lists for routing security
+    # allow any possible GCP Subnet
+    define GCP_VPC_A_PREFIXES = [ 10.0.0.0/8{8,29}, 172.16.0.0/12{12,29}, 192.168.0.0/16{16,29} ];
+    define GCP_NETBLOCKS = [ ${join(", ", netblocks)} ];
+    define LOCAL_PREFIXES     = [ ${ip_cidr_ranges.local} ];
+
+    # filter received prefixes
+    filter gcp_vpc_a_in {
+      if (net ~ GCP_VPC_A_PREFIXES || net ~ GCP_NETBLOCKS) then accept;
+      else reject;
+    }
+
+    # filter advertised prefixes
+    filter gcp_vpc_a_out {
+      if (net ~ LOCAL_PREFIXES) then accept;
+      else reject;
+    }
+
+    template bgp gcp_vpc_a {
+      keepalive time 20;
+      hold time 60;
+      # Cloud Router uses GR during maintenance
+      graceful restart aware;
+      import filter gcp_vpc_a_in;
+      import limit 10 action warn; # restart | block | disable
+      export filter gcp_vpc_a_out;
+      export limit 10 action warn; # restart | block | disable
+    }
+
+    protocol bgp gcp_vpc_a_tun1 from gcp_vpc_a {
+      local ${vpn_dynamic_config.local_bgp_address} as ${vpn_dynamic_config.local_bgp_asn};
+      neighbor ${vpn_dynamic_config.peer_bgp_address} as ${vpn_dynamic_config.peer_bgp_asn};
+    }
+     protocol bgp gcp_vpc_a_tun2 from gcp_vpc_a {
+      local ${vpn_dynamic_config.local_bgp_address2} as ${vpn_dynamic_config.local_bgp_asn2};
+      neighbor ${vpn_dynamic_config.peer_bgp_address2} as ${vpn_dynamic_config.peer_bgp_asn2};
+    }
+
+  %{~ endif ~}
+
+# CoreDNS configuration
+- path: /var/lib/docker-compose/onprem/coredns/Corefile
+  owner: root:root
+  permissions: '0644'
+  content: |
+    ${coredns_config}
+
+# CoreDNS onprem hosts file
+- path: /var/lib/docker-compose/onprem/coredns/onprem.hosts
+  owner: root:root
+  permissions: '0644'
+  content: |
+    %{~ for name, address in local_addresses ~}
+    ${address} ${name}.onprem.example.org
+    %{~ endfor ~}
+
+# Minimal nginx index page
+- path: /var/lib/docker-compose/onprem/nginx/index.html
+  owner: root:root
+  permissions: '0644'
+  content: |
+    <!DOCTYPE html>
+    <html>
+    <head><meta charset="utf-8"></head>
+    <body>
+    <h1>On Prem in a Box</h1>
+    <p>onprem</p>
+    </body>
+    </html>
+
+runcmd:
+- [systemctl, daemon-reload]
+- [ sh, -c, 'curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -' ]
+- [ sh, -c, 'add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"' ]
+- [ sh, -c, 'apt update' ]
+- [ sh, -c, 'apt install -y docker-ce docker-ce-cli containerd.io' ]
+- [ sh, -c, 'curl -L https://github.com/docker/compose/releases/download/$(curl -s https://api.github.com/repos/docker/compose/releases/latest | grep "tag_name" | cut -d \" -f4)/docker-compose-$(uname -s)-$(uname -m) -o /usr/local/bin/docker-compose' ]
+- [ sh, -c, 'chmod 755 /usr/local/bin/docker-compose' ]
+- [systemctl, enable, docker.service]
+- [systemctl, start, docker.service]
+- [systemctl, enable, docker-onprem.service]
+- [systemctl, start, docker-onprem.service]
