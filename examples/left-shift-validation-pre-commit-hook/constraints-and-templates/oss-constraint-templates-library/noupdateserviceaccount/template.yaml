@@ -1,0 +1,102 @@
+apiVersion: templates.gatekeeper.sh/v1
+kind: ConstraintTemplate
+metadata: # kpt-merge: /noupdateserviceaccount
+  name: noupdateserviceaccount
+  annotations:
+    description: "Blocks updating the service account on resources that abstract over Pods. This policy is ignored in audit mode."
+spec:
+  crd:
+    spec:
+      names:
+        kind: NoUpdateServiceAccount
+      validation:
+        openAPIV3Schema:
+          type: object
+          properties:
+            allowedGroups:
+              description: Groups that should be allowed to bypass the policy.
+              type: array
+              items:
+                type: string
+            allowedUsers:
+              description: Users that should be allowed to bypass the policy.
+              type: array
+              items:
+                type: string
+  targets:
+  - target: admission.k8s.gatekeeper.sh
+    rego: |
+      package noupdateserviceaccount
+
+      privileged(userInfo, allowedUsers, allowedGroups) {
+        # Allow if the user is in allowedUsers.
+        # Use object.get so omitted parameters can't cause policy bypass by
+        # evaluating to undefined.
+        username := object.get(userInfo, "username", "")
+        allowedUsers[_] == username
+      } {
+        # Allow if the user's groups intersect allowedGroups.
+        # Use object.get so omitted parameters can't cause policy bypass by
+        # evaluating to undefined.
+        userGroups := object.get(userInfo, "groups", [])
+        groups := {g | g := userGroups[_]}
+        allowed := {g | g := allowedGroups[_]}
+        intersection := groups & allowed
+        count(intersection) > 0
+      }
+
+      get_service_account(obj) = spec {
+        obj.kind == "Pod"
+        spec := obj.spec.serviceAccountName
+      } {
+        obj.kind == "ReplicationController"
+        spec := obj.spec.template.spec.serviceAccountName
+      } {
+        obj.kind == "ReplicaSet"
+        spec := obj.spec.template.spec.serviceAccountName
+      } {
+        obj.kind == "Deployment"
+        spec := obj.spec.template.spec.serviceAccountName
+      } {
+        obj.kind == "StatefulSet"
+        spec := obj.spec.template.spec.serviceAccountName
+      } {
+        obj.kind == "DaemonSet"
+        spec := obj.spec.template.spec.serviceAccountName
+      } {
+        obj.kind == "Job"
+        spec := obj.spec.template.spec.serviceAccountName
+      } {
+        obj.kind == "CronJob"
+        spec := obj.spec.jobTemplate.spec.template.spec.serviceAccountName
+      }
+
+      violation[{"msg": msg}] {
+        # This policy only applies to updates of existing resources.
+        input.review.operation == "UPDATE"
+
+        # Use object.get so omitted parameters can't cause policy bypass by
+        # evaluating to undefined.
+        params := object.get(input, "parameters", {})
+        allowedUsers := object.get(params, "allowedUsers", [])
+        allowedGroups := object.get(params, "allowedGroups", [])
+
+        # Extract the service account.
+        oldKSA := get_service_account(input.review.oldObject)
+        newKSA := get_service_account(input.review.object)
+
+        # Deny unprivileged users and groups from changing serviceAccountName.
+        not privileged(input.review.userInfo, allowedUsers, allowedGroups)
+        oldKSA != newKSA
+        msg := "user does not have permission to modify serviceAccountName"
+      } {
+        # Defensively require object to have a serviceAccountName.
+        input.review.operation == "UPDATE"
+        not get_service_account(input.review.object)
+        msg := "missing serviceAccountName field in object under review"
+      } {
+        # Defensively require oldObject to have a serviceAccountName.
+        input.review.operation == "UPDATE"
+        not get_service_account(input.review.oldObject)
+        msg := "missing serviceAccountName field in oldObject under review"
+      }
