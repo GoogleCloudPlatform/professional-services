@@ -215,6 +215,10 @@ them to fit your particular use case.
     three notebooks to demonstrate the usage of Kubeflow Faring to train machine
     learning jobs (Scikit-Learn, XGBoost, Tensorflow) locally or in the Cloud
     (AI platform training or Kubeflow cluster).
+*   [Left-Shift Validation Pre-Commit Hook](examples/left-shift-validation-pre-commit-hook/) -
+    An example that uses a set of Bash scripts to set up a pre-commit hook that
+    validates Kubernetes resources with Gatekeeper constraints and constraint
+    templates from your choice of sources.
 *   [Python CI/CD with Cloud Builder and CSR](examples/python-cicd-with-cloudbuilder) -
     Example that uses Cloud Builder and Cloud Source Repositories to automate
     testing and linting.
