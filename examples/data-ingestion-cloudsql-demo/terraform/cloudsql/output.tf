@@ -5,3 +5,8 @@ output "user1_password" {
   value     = module.db.user_passwords
   sensitive = true
 }
+
+output "connection_name" {
+  value     = module.db.name
+  sensitive = false
+}

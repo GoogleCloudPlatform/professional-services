@@ -54,13 +54,8 @@ variable "user_password" {
   default     = ""
 }
  
-variable "postgres_client_cert" {
-  description = "Map of cert keys connect to the application(s) using public IP."
-  type        = list(string)
-  default     = null
-}
-
-variable "network" {
-  type        = any
+variable "network_name" {
+  type        = string
   description = "Network in which Cloud SQL should reside. Format as returned by google_compute_network"
+  default     = "private-network"
 }

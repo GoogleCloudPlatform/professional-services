@@ -1,10 +1,15 @@
 # Copyright 2022 Google. This software is provided as-is, without warranty or representation for any use or purpose.
 # Your use of it is subject to your agreement with Google.
 
+data "google_compute_network" "vpc-network" {
+  name = var.network_name
+  project = var.project
+}
+
 module "db" {
-  source           = "https://github.com/GoogleCloudPlatform/cloud-foundation-fabric/tree/v16.0.0/modules/cloudsql-instance"
+  source           = "github.com/GoogleCloudPlatform/cloud-foundation-fabric.git?ref=v19.0.0/modules/cloudsql-instance"
   project_id       = var.project
-  network          = var.network.self_link
+  network          = data.google_compute_network.vpc-network.self_link
   name             = var.instance_name
   region           = var.region
   database_version = var.database_version
@@ -13,16 +18,11 @@ module "db" {
     "people",
     "departments"
   ]
-  postgres_client_cert = [
-    "terraform-test"
-  ]
   authorized_networks = var.authorized_networks
 
   users = {
     # generatea password for user1
     cloudsql-vmo2 = null
-    # assign a password to user2
-    user2 = "mypassword"
   }
 
 
@@ -36,5 +36,3 @@ module "db" {
   #   }
 
 }
-
-
