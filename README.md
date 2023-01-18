@@ -230,6 +230,8 @@ them to fit your particular use case.
     cluster on GKE.
 *   [Spanner Interleave Subquery](examples/spanner-interleave-subquery) -
     Example code to benchmark Cloud Spanner's subqueries for interleaved tables.
+* [Spanner Change Stream to BigQuery using Dataflow](examples/spanner-changestreams-bigquery) - 
+    Terraform code to deploy Spanner change stream and publish changes to BigQuery using Dataflow Streaming Job.
 *   [Spinnaker](examples/spinnaker) - Example pipelines for a Canary /
     Production deployment process.
 *   [TensorFlow Serving on GKE and Load Testing](examples/tf-load-testing) -
