@@ -15,28 +15,28 @@
  */
 organization := "com.google.cloud.imf"
 name := "mainframe-util"
-version := "2.2.3"
+version := "2.2.4"
 
-scalaVersion := "2.13.8"
+scalaVersion := "2.13.10"
 
 val exGapiClient = ExclusionRule(organization = "com.google.api-client", name = "google-api-client")
 val exGuava = ExclusionRule(organization = "com.google.guava")
 val exGrpcCore = ExclusionRule(organization = "io.grpc", name = "grpc-core")
 
 libraryDependencies ++= Seq(
-  "com.google.cloud" % "google-cloud-bigquery" % "2.19.1",
-  "com.google.cloud" % "google-cloud-bigquerystorage" % "2.26.0",
-  "com.google.cloud" % "google-cloud-storage" % "2.15.1",
+  "com.google.cloud" % "google-cloud-bigquery" % "2.20.0",
+  "com.google.cloud" % "google-cloud-bigquerystorage" % "2.27.0",
+  "com.google.cloud" % "google-cloud-storage" % "2.16.0",
   "com.google.apis" % "google-api-services-pubsub" % "v1-rev20221020-2.0.0",
   "com.google.apis" % "google-api-services-dataflow" % "v1b3-rev20221025-2.0.0",
   ("com.google.apis" % "google-api-services-logging" % "v2-rev20220922-2.0.0").excludeAll(exGapiClient),
   "org.apache.avro" % "avro" % "1.7.7",
 
   //TCP TransportChannelProvider for BigQuery Storage API
-  ("io.grpc" % "grpc-okhttp" % "1.51.0").excludeAll(exGuava, exGrpcCore),
+  ("io.grpc" % "grpc-okhttp" % "1.51.1").excludeAll(exGuava, exGrpcCore),
 
   //Grecv server
-  ("io.grpc" % "grpc-netty" % "1.51.0").excludeAll(exGuava, exGrpcCore),
+  ("io.grpc" % "grpc-netty" % "1.51.1").excludeAll(exGuava, exGrpcCore),
 
   //logging
   "org.apache.logging.log4j" % "log4j-api" % "2.19.0",

@@ -185,3 +185,7 @@ kubectl auth can-i --list --namespace ${NAMESPACE} --as system:serviceaccount:${
 ## Disclaimer
 
 This is not an official Google project.
+
+## Thanks
+
+Special thanks to Eric Hole ([@geojaz](https://github.com/geojaz)) for helping improve the original MVP design.
