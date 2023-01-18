@@ -1,0 +1,34 @@
+# Capacity Planner Sheets Extension
+
+This tool is a sheets extension to be used for capacity planning on Google Cloud. It fetches metrics data from the Google Cloud Monitoring API and finds the peak usage value and timestamp.
+
+[insert image here]
+
+## Setup
+
+1. Create a new Google Sheet.
+2. Go to Extensions > Apps Script
+3. Copy all the `.gs` files in this directory to the Apps Script editor. There should be 3 file  total: `main.gs`, `queries.gs`, and `sheets.gs`.
+5. In Apps Script Settings, change the Google Cloud Project to a project you have permissions to use the Monitoring API in. This project will be used to back requests to the Monitoring API. It is only used for quota/and billing purposes and does not need to be the same project you want to collect metrics in.
+   1. [Enable the Monitoring API](https://console.cloud.google.com/apis/api/monitoring.googleapis.com/metrics), if it is not already enabled. 
+   2. [Collect the project number](https://console.cloud.google.com/welcome).
+   3. Paste the project number into Apps Script Settings.
+6. In Apps Script settings, select the 'Show "appsscript.json" manifest file in editor' checkbox.
+7. Edit the `appsscript.json` file to have the `oauthScopes` shown below. Do not edit the other fields.
+```json
+{
+  "timeZone": "Asia/Seoul",
+  "dependencies": {},
+  "exceptionLogging": "STACKDRIVER",
+  "runtimeVersion": "V8",
+  "oauthScopes": [
+    "https://www.googleapis.com/auth/script.external_request",
+    "https://www.googleapis.com/auth/monitoring.read",
+    "https://www.googleapis.com/auth/spreadsheets"
+  ]
+}
+```
+
+## Using the Capacity Planner
+
+1. 
