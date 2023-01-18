@@ -74,6 +74,10 @@ them to fit your particular use case.
     Oracle DDL Migration Utility to migrate the tables schema (DDL) from Oracle DB to BigQuery.
     The utility leverages BigQuery Translation API and offers additional features
     such as adding partitioning, clustering, metadata columns and prefixes to table names.
+*   [BigQuery Snowflake Table Migration Tool](examples/bigquery-snowflake-tables-migration-utility) - 
+    BigQuery Snowflake Table Migration Tool helps to migrate the table DDL's from Snowflake to BigQuery.
+    The utility leverages BigQuery Translation API and offers additional features
+    such as adding partitioning, clustering, metadata columns and prefixes to table names.
 *   [Cloud Build with Proxy Running in Background](examples/cloudbuild-with-tcp-proxy) -
     Examples of cloudbuild with docker-compose running tcp proxy in the
     background for all build steps.
@@ -211,6 +215,10 @@ them to fit your particular use case.
     three notebooks to demonstrate the usage of Kubeflow Faring to train machine
     learning jobs (Scikit-Learn, XGBoost, Tensorflow) locally or in the Cloud
     (AI platform training or Kubeflow cluster).
+*   [Left-Shift Validation Pre-Commit Hook](examples/left-shift-validation-pre-commit-hook/) -
+    An example that uses a set of Bash scripts to set up a pre-commit hook that
+    validates Kubernetes resources with Gatekeeper constraints and constraint
+    templates from your choice of sources.
 *   [Python CI/CD with Cloud Builder and CSR](examples/python-cicd-with-cloudbuilder) -
     Example that uses Cloud Builder and Cloud Source Repositories to automate
     testing and linting.
@@ -233,6 +241,11 @@ them to fit your particular use case.
     to write unit tests for TensorFlow ML models.
 *   [Terraform Internal HTTP Load Balancer](examples/terraform-ilb) - Terraform
     example showing how to deploy an internal HTTP load balancer.
+*   [Terraform Resource Change Policy Library](examples/terraform-resource-change-policy-library) -
+    Contains a library of policies written in the
+    [OPA Constraint Framework](https://github.com/open-policy-agent/frameworks/blob/master/constraint/README.md)
+    format to be used by `gcloud beta terraform vet` to validate Terraform resource
+    changes in a CI/CD pipeline.
 *   [Uploading files directly to Google Cloud Storage by using Signed URL](examples/direct-upload-to-gcs) -
     Example architecture to enable uploading files directly to GCS by using
     [Signed URL](https://cloud.google.com/storage/docs/access-control/signed-urls).

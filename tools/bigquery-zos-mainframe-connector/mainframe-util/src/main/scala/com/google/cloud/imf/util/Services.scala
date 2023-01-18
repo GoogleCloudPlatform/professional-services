@@ -15,7 +15,7 @@ import com.google.auth.oauth2.GoogleCredentials
 import com.google.cloud.bigquery.storage.v1.{BigQueryReadClient, BigQueryReadSettings}
 import com.google.cloud.bigquery.{BigQuery, BigQueryOptions}
 import com.google.cloud.http.HttpTransportOptions
-import com.google.cloud.storage.{Storage, StorageOptions}
+import com.google.cloud.storage.{HttpStorageOptions, Storage}
 import org.threeten.bp.Duration
 
 object Services {
@@ -45,8 +45,8 @@ object Services {
     .build
 
   def storage(credentials: Credentials): Storage = {
-    new StorageWithRetries(new StorageOptions.DefaultStorageFactory()
-      .create(StorageOptions.newBuilder
+    new StorageWithRetries(HttpStorageOptions.defaults().getDefaultServiceFactory().create(
+      HttpStorageOptions.newBuilder()
         .setCredentials(credentials)
         .setTransportOptions(transportOptions(HttpConnectionConfigs.storageHttpConnectionConfigs))
         .setRetrySettings(retrySettings(HttpConnectionConfigs.storageHttpConnectionConfigs))

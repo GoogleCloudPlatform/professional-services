@@ -1,0 +1,15 @@
+{
+    "name_map": [
+    {
+    "source": {
+        "type_": "SCHEMA",
+        "database": "MYDATABASE",
+        "schema": "PUBLIC"
+    },
+    "target": {
+        "database": "poc-env-aks",
+        "schema": "PUBLIC"
+    }
+    }                       
+    ]
+}
