@@ -1,0 +1,175 @@
+# Step 1 : Subsitute environment veriables
+substitutions:
+  _MLOPS_PIPELINE_VERSION: ${_BASE_BRANCH}-${_PR_NUMBER}
+  _MLOPS_REGION_ENV : 'us-central1'
+  _ARTIFACT_REPOSITORY_NAME : 'vertex-ai-accelerator'
+  _MLOPS_BUCKET : 'vertex-ai-accelerator'
+  _PROJECT_ID : 'vertex-ai-accelerator'
+  _VERTEX_AI_SERVICE_ACCOUNT : 'vertex-ai-sa@vertex-ai-accelerator.iam.gserviceaccount.com'
+  _TRAINING_CONTAINER_IMAGE : '${_MLOPS_REGION_ENV}-docker.pkg.dev/${PROJECT_ID}/${_ARTIFACT_REPOSITORY_NAME}/training'
+  _PREDICTION_CONTAINER_IMAGE : '${_MLOPS_REGION_ENV}-docker.pkg.dev/${PROJECT_ID}/${_ARTIFACT_REPOSITORY_NAME}/prediction'
+  _CLOUD_RUN_CONTAINE_IMAGE: '${_MLOPS_REGION_ENV}-docker.pkg.dev/${PROJECT_ID}/${_ARTIFACT_REPOSITORY_NAME}/online_prediction_cloud_run'
+  _HYPER_PARAMETER_TUNNING_CONTAINER_IMAGE : '${_MLOPS_REGION_ENV}-docker.pkg.dev/${PROJECT_ID}/${_ARTIFACT_REPOSITORY_NAME}/hyperparameter_tunning'
+  _IS_PREPROCESSING : 'TRUE'
+  _TRAINING_BQ_SOURCE : 'vertex-ai-accelerator.vertex-ai-accelerator.training_dataset'
+  _VERTEX_AI_TRAINING_DATASET_BQ : 'bq://vertex-ai-accelerator'
+  _TRAINING_BQ_TEMP_DESTINATION : 'vertex-ai-accelerator.training_temp_dataset'
+  _READ_INSTANCE_URL : 'gs://vertex-ai-accelerator/feature_store/read_instances_uri.csv'
+  _FEATURE_STORE_ID : 'mlops_experiment_feature_store'
+  _E2E_TEST : 'FALSE'
+  _ML_MODEL_NAME : '${_MLOPS_PIPELINE_VERSION}-model.joblib'
+  _F1_SCORE_THRESHOLD: "0.4"
+  _VERTEX_AI_END_POINT: "online-prediction-v1"
+  _MLOPS_METADATA_TABLE: "vertex-ai-accelerator.mlops_metadata.vertex-ai-accelerator_metadata"
+  _EXPERIMENT_NAME : "vertex-ai-accelerator"
+  _BQ_DESTINATION_PREDICTION_URI : "vertex-ai-accelerator.training_temp_dataset"
+  _SCHEDULED_BATCH_PREDICTION_TRIGGER : "scheduled-batch-prediction-trigger"
+  _PUB_SUB_TRAINING_PIPELINE_TRIGGER : "pub-sub-training-pipeline-trigger"
+  _PREDICTION_CLOUD_RUN : 'online-prediction-cloud-run'
+  _PUB_SUB_TRAINING_PIPELINE_TOPIC : 'pub-sub-training-pipeline-topic'
+  _BUILD_SERVICE_ACCOUNT : 'build-sa@vertex-ai-accelerator.iam.gserviceaccount.com'
+# Cloud build steps
+steps:
+# Step 2 : Pull docker base images for cache
+- name: 'gcr.io/cloud-builders/docker'
+  entrypoint: 'bash'
+  args: ['-c', 'docker pull ${_TRAINING_CONTAINER_IMAGE}:base || exit 0']
+- name: 'gcr.io/cloud-builders/docker'
+  entrypoint: 'bash'
+  args: ['-c', 'docker pull ${_PREDICTION_CONTAINER_IMAGE}:base || exit 0']
+- name: 'gcr.io/cloud-builders/docker'
+  entrypoint: 'bash'
+  args: ['-c', 'docker pull ${_HYPER_PARAMETER_TUNNING_CONTAINER_IMAGE}:base || exit 0']
+
+
+# Step 3 : Build and push training container image.
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['build', '-f','./TRAIN/Dockerfile','-t', '${_TRAINING_CONTAINER_IMAGE}:${_MLOPS_PIPELINE_VERSION}',
+                  '-t', '${_TRAINING_CONTAINER_IMAGE}:base','--cache-from','${_TRAINING_CONTAINER_IMAGE}:base','./TRAIN']
+
+# Push Training Container Image
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['push', '${_TRAINING_CONTAINER_IMAGE}:${_MLOPS_PIPELINE_VERSION}']
+
+# Push Training Container Base Image for cache
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['push', '${_TRAINING_CONTAINER_IMAGE}:base']
+
+# Step 4 : Build and push training container image.
+- name: 'gcr.io/cloud-builders/docker'
+  args: [
+    'build', '-f','./PREDICT/Dockerfile','-t', '${_PREDICTION_CONTAINER_IMAGE}:${_MLOPS_PIPELINE_VERSION}',
+             '-t', '${_PREDICTION_CONTAINER_IMAGE}:base','--cache-from','${_PREDICTION_CONTAINER_IMAGE}:base','./PREDICT']
+# Push Prediction Container Image
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['push', '${_PREDICTION_CONTAINER_IMAGE}:${_MLOPS_PIPELINE_VERSION}']
+
+# Push Prediction Container Base Image
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['push','${_PREDICTION_CONTAINER_IMAGE}:base']
+
+# Step 5 : Build and push hyper parameter tunning container image.
+- name: 'gcr.io/cloud-builders/docker'
+  args: [
+    'build', '-f','./HYPER_PARAMETER_TRAIN/Dockerfile','-t', '${_HYPER_PARAMETER_TUNNING_CONTAINER_IMAGE}:${_MLOPS_PIPELINE_VERSION}',
+             '-t', '${_HYPER_PARAMETER_TUNNING_CONTAINER_IMAGE}:base','--cache-from','${_HYPER_PARAMETER_TUNNING_CONTAINER_IMAGE}:base','./HYPER_PARAMETER_TRAIN']
+# Push Prediction Container Image
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['push', '${_HYPER_PARAMETER_TUNNING_CONTAINER_IMAGE}:${_MLOPS_PIPELINE_VERSION}']
+
+# Push Prediction Container Base Image
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['push','${_HYPER_PARAMETER_TUNNING_CONTAINER_IMAGE}:base']
+
+# 6. Upload Data Flow Artifacts to GCS
+- name: 'gcr.io/cloud-builders/gsutil'
+  args: ['cp','./DATAFLOW/requirements.txt', 'gs://${_MLOPS_BUCKET}/dataflow/requirements.txt' ]
+
+- name: 'gcr.io/cloud-builders/gsutil'
+  args: ['cp','./DATAFLOW/pre_processing.py', 'gs://${_MLOPS_BUCKET}/dataflow/pre_processing.py' ]
+
+# 7. Trigger Vertex AI Pipeline
+- name: 'python:3.9.2-buster'
+  args: ["python","-m","pip","--trusted-host=pypi.python.org","--trusted-host=pypi.org","--trusted-host=files.pythonhosted.org","install",
+        "apache-beam==2.41.0","wheel","kfp==1.8.16","google-cloud-aiplatform==1.19.0","google-cloud-pipeline-components==1.0.32","google-cloud-bigquery==2.34.4",
+        "db-dtypes==1.0.5","google-cloud-storage==2.6.0","--user"]
+
+
+# Step 8 : Compile Batch Prediction Pipeline and upload JSON file to GCS
+- name: 'python:3.9.2-buster'
+  args: ["python","./VERTEX_AI/PREDICTION_PIPELINE/vertex_ai_batch_prediction_pipeline.py",
+                "--mlops_bucket_name=${_MLOPS_BUCKET}","--mlops_pipeline_version=${_MLOPS_PIPELINE_VERSION}",]
+
+Step 9 : Trigger Training Pipeline
+- name: 'python:3.9.2-buster'
+  args: ["python","./VERTEX_AI/TRAINING_PIPELINE/vertex_ai_training_pipeline.py",
+                "--mlops_pipeline_version=${_MLOPS_PIPELINE_VERSION}","--project_id=${_PROJECT_ID}","--location=${_MLOPS_REGION_ENV}",
+                "--mlops_bucket_name=${_MLOPS_BUCKET}","--service_account=${_VERTEX_AI_SERVICE_ACCOUNT}",
+                "--training_container_uri=${_TRAINING_CONTAINER_IMAGE}:${_MLOPS_PIPELINE_VERSION}","--prediction_container_uri=${_PREDICTION_CONTAINER_IMAGE}:${_MLOPS_PIPELINE_VERSION}",
+                "--training_bq_source=${_TRAINING_BQ_SOURCE}","--training_bq_temp_destination=${_TRAINING_BQ_TEMP_DESTINATION}",
+                "--is_preprocessing=${_IS_PREPROCESSING}","--read_instances_csv=${_READ_INSTANCE_URL}","--feature_store_id=${_FEATURE_STORE_ID}",
+                "--vertex_ai_training_dataset_bq=${_VERTEX_AI_TRAINING_DATASET_BQ}","--hyper_parameter_container_uri=${_HYPER_PARAMETER_TUNNING_CONTAINER_IMAGE}:${_MLOPS_PIPELINE_VERSION}",
+                "--e2e_test=FALSE","--model_name=${_ML_MODEL_NAME}","--f1_score_threshold=${_F1_SCORE_THRESHOLD}","--vertex_ai_end_point=${_VERTEX_AI_END_POINT}",
+                "--mlops_metadata_table=${_MLOPS_METADATA_TABLE}","--experiment_name=${_EXPERIMENT_NAME}","--bq_destination_prediction_uri=${_BQ_DESTINATION_PREDICTION_URI}"]
+
+# # Step 10 : Build and deploy Cloud Scheduler and Function
+- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  entrypoint: gcloud
+  args: ["functions", "deploy" , "${_SCHEDULED_BATCH_PREDICTION_TRIGGER}","--gen2",
+                  "--runtime=python310","--region=${_MLOPS_REGION_ENV}","--source=./CLOUD_FUNCTION/SCHEDULED_BATCH_PREDICTION_TRIGGER",
+                  "--entry-point=trigger_batch_prediction_pipeline","--trigger-http",
+                  "--set-env-vars=project_id=${_PROJECT_ID},location=${_MLOPS_REGION_ENV},mlops_pipeline_version=${_MLOPS_PIPELINE_VERSION},mlops_bucket_name=${_MLOPS_BUCKET},read_instances_csv_test_set=${_READ_INSTANCE_URL},feature_store_id=${_FEATURE_STORE_ID},bq_destination_prediction_uri=${_BQ_DESTINATION_PREDICTION_URI},service_account=${_VERTEX_AI_SERVICE_ACCOUNT}"]
+
+# Step 11 : call Cloud Scheduler
+# To create new job use 'create' command
+- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  entrypoint: gcloud
+  args: ["scheduler","jobs","update","http","${_SCHEDULED_BATCH_PREDICTION_TRIGGER}-job","--location=${_MLOPS_REGION_ENV}",
+        "--schedule=0 * * * *","--time-zone=Australia/Sydney",
+        "--uri=https://scheduled-batch-prediction-trigger-ubpi2omhja-uc.a.run.app","--http-method=POST",
+        "--oidc-service-account-email=${_BUILD_SERVICE_ACCOUNT}"]
+
+#it should be infra strcuture code base. 
+#Step 12 : Create Pub/Sub topic
+- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  entrypoint: gcloud
+  args: ["pubsub","topics","create","${_PUB_SUB_TRAINING_PIPELINE_TOPIC}"]
+
+#Step 12 : Build and deploy cloud function for continuos data update monitoring base on pub sub message
+- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  entrypoint: gcloud
+  args: ["functions", "deploy" , "${_PUB_SUB_TRAINING_PIPELINE_TRIGGER}","--gen2",
+                  "--runtime=python310","--region=${_MLOPS_REGION_ENV}","--source=./CLOUD_FUNCTION/PUB_SUB_VERTEX_AI_TRIGGER","--entry-point=trigger_training_pipeline","--trigger-topic=${_PUB_SUB_TRAINING_PIPELINE_TOPIC}",
+                  "--set-env-vars=mlops_pipeline_version=${_MLOPS_PIPELINE_VERSION},project_id=${_PROJECT_ID},location=${_MLOPS_REGION_ENV},mlops_bucket_name=${_MLOPS_BUCKET},service_account=${_VERTEX_AI_SERVICE_ACCOUNT},training_container_uri=${_TRAINING_CONTAINER_IMAGE}:${_MLOPS_PIPELINE_VERSION},prediction_container_uri=${_PREDICTION_CONTAINER_IMAGE}:${_MLOPS_PIPELINE_VERSION},training_bq_source=${_TRAINING_BQ_SOURCE},training_bq_temp_destination=${_TRAINING_BQ_TEMP_DESTINATION},is_preprocessing=${_IS_PREPROCESSING},read_instances_csv=${_READ_INSTANCE_URL},feature_store_id=${_FEATURE_STORE_ID},vertex_ai_training_dataset_bq=${_VERTEX_AI_TRAINING_DATASET_BQ},hyper_parameter_container_uri=${_HYPER_PARAMETER_TUNNING_CONTAINER_IMAGE}:${_MLOPS_PIPELINE_VERSION},e2e_test=FALSE,model_name=${_ML_MODEL_NAME},f1_score_threshold=${_F1_SCORE_THRESHOLD},vertex_ai_end_point=${_VERTEX_AI_END_POINT},mlops_metadata_table=${_MLOPS_METADATA_TABLE},experiment_name=${_EXPERIMENT_NAME},bq_destination_prediction_uri=${_BQ_DESTINATION_PREDICTION_URI}"]
+
+
+# Step 13: Build and deploy Cloud Run
+# Pull Base Image
+- name: 'gcr.io/cloud-builders/docker'
+  entrypoint: 'bash'
+  args: ['-c', 'docker pull ${_CLOUD_RUN_CONTAINE_IMAGE}:base || exit 0']
+
+# Build Trigger Image
+- name: 'gcr.io/cloud-builders/docker'
+  args: [
+    'build', '-f','./CLOUD_RUN/PREDICTION_CLOUD_RUN/Dockerfile','-t', '${_CLOUD_RUN_CONTAINE_IMAGE}:${_MLOPS_PIPELINE_VERSION}',
+             '-t', '${_CLOUD_RUN_CONTAINE_IMAGE}:base','--cache-from','${_CLOUD_RUN_CONTAINE_IMAGE}:base','./CLOUD_RUN/PREDICTION_CLOUD_RUN']
+
+# Push Cloud Run Image
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['push','${_CLOUD_RUN_CONTAINE_IMAGE}:base']
+
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['push','${_CLOUD_RUN_CONTAINE_IMAGE}:${_MLOPS_PIPELINE_VERSION}']
+
+# Deploy Cloud Run Trigger Image
+- name : 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  entrypoint: 'gcloud'
+  args: [
+    'run','deploy','${_PREDICTION_CLOUD_RUN}','--image',
+    '${_CLOUD_RUN_CONTAINE_IMAGE}:${_MLOPS_PIPELINE_VERSION}',
+    '--platform','managed','--region','${_MLOPS_REGION_ENV}','--vpc-connector','vertex-ai-accelerator-vpc']
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+
