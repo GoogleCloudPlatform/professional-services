@@ -79,7 +79,6 @@ object ExtractOptionParser
       }
       c.copy(delimiter = delimiter)
     }
-    .action((x,c) => c.copy(delimiter = x))
 
   opt[Int]("timeOutMinutes")
     .action{(x,c) => c.copy(timeoutMinutes = x)}

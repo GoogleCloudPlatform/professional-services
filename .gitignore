@@ -17,6 +17,7 @@ __pycache__/
 *$py.class
 dist/
 lib/
+!examples/terraform-resource-change-policy-library/lib
 *.egg-info/
 .cache
 pytestdebug.log
