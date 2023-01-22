@@ -17,8 +17,7 @@
 # tfdoc:file:description Vertex MLOps
 
 module "mlops" {
-  source = "../../../../../cloud-foundation-fabric/blueprints/data-solutions/vertex-mlops"
-  #source               = "github.com/GoogleCloudPlatform/cloud-foundation-fabric//blueprints/data-solutions/vertex-mlops?ref=f33456abf4f48d37e37050d1040e5c25986ce07d"
+  source               = "github.com/GoogleCloudPlatform/cloud-foundation-fabric//blueprints/data-solutions/vertex-mlops?ref=f33456abf4f48d37e37050d1040e5c25986ce07d"
   project_id           = var.project_id
   project_create       = var.project_create
   prefix               = var.prefix
