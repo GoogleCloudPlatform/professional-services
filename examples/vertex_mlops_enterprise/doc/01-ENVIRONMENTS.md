@@ -1,0 +1,71 @@
+# MLOps with Vertex AI - Infra setup
+
+## Introduction
+This example implements the infrastructure required to deploy an end-to-end [MLOps process](https://services.google.com/fh/files/misc/practitioners_guide_to_mlops_whitepaper.pdf) using [Vertex AI](https://cloud.google.com/vertex-ai) platform.
+
+
+##  GCP resources
+A terraform script is provided to setup all the required resources:
+
+- GCP Project  to host all the resources
+- Isolated VPC network and a subnet to be used by Vertex and Dataflow (using a Shared VPC is also possible). 
+- Firewall rule to allow the internal subnet communication required by Dataflow
+- Cloud NAT required to reach the internet from the different computing resources (Vertex and Dataflow)
+- GCS buckets to host Vertex AI and Cloud Build Artifacts.
+- BigQuery Dataset where the training data will be stored
+- Service account `mlops-[env]@` with the minimum permissions required by Vertex and Dataflow
+- Service account `github` to be used by Workload Identity Federation, to federate Github identity.
+- Secret to store the Github SSH key to get access the CICD code repo.
+
+![MLOps project description](./images/mlops_projects.png "MLOps project description")
+
+## Pre-requirements
+
+### User groups
+
+User groups provide a stable frame of reference that allows decoupling the final set of permissions from the stage where entities and resources are created, and their IAM bindings defined. These groups should be created before launching Terraform.
+
+We use the following groups to control access to resources:
+
+- *Data Scientits* (gcp-ml-ds@<company.org>). They create ML pipelines in the experimentation environment.
+- *ML Engineers* (gcp-ml-eng@<company.org>). They handle and run the different environments, with access to all resources in order to troubleshoot possible issues with pipelines. 
+
+These groups are not suitable for production grade environments. You can configure the group names through the `groups`variable. 
+
+### Git environment for the ML Pipelines
+
+Make sure you have ready a Github repo with the ML pipeline code. 
+You can clone the following example for setting up the repo: https://github.com/pbalm/professional-services/tree/vertex-mlops/examples/vertex_mlops_enterprise
+This repo should have at least one of the following branches: `dev`, `staging`, `prod`
+
+You will need to configure the Github organization and repo name in the `identity_pool_claims` variable.
+
+##  Instructions
+###  Deploy the different environments
+
+You will need to repeat this process for each one of the different environments (01-development, 02-staging, 03-prod):
+
+- Go to the environment folder: I.e. `cd ../terraform/01-development`
+
+- Create a `terraform.tfvars` file and specify the required variables. You can use the `terraform.tfvars.sample` an an starting point
+
+```tfm
+project_create = {
+    billing_account_id = "000000-123456-123456"
+    parent             = "folders/111111111111"
+}
+project_id          = "creditcards-dev"
+```
+- Make sure you fill in the following parameters:
+  - `project_create.billing_account_id`: Billing account
+  - `project_create.parent `: Parent folder where the project will be created.
+  - `project_id`:  Project id, references existing project if `project_create` is null.
+- Make sure you have the right authentication setup (application default credentials, or a service account key)
+- Run `terraform init` and `terraform apply`
+- It is possible that some errors like `googleapi: Error 400: Service account xxxx does not exist.` appears. This is due to some dependencies with the Project IAM authoritative bindings of the service accounts. In this case, re-run again the process with `terraform apply`
+
+##  What's next?
+Continue [setting up the GIT repo](./02-GIT_SETUP.md) and [launching the MLOps pipeline](./03-MLOPS.md).
+
+<!-- BEGIN TFDOC -->
+<!-- END TFDOC -->
