@@ -251,6 +251,8 @@ them to fit your particular use case.
     [Signed URL](https://cloud.google.com/storage/docs/access-control/signed-urls).
 *   [Terraform NetApp CVS](examples/tf-netapp-cvs) - This example shows how to
     deploy NetApp CVS volumes using terraform.
+*   [TSOP object transfer Log prosessor](examples/tsop-log-processor/) - This example shows
+    how to log object transfer logs by TSOP to Cloud Logging.
 *   [Vertex AI MLOps Pipeline](examples/vertex_pipeline) - Demonstrates
     end-to-end MLOps process using Vertex AI platform and Smart Analytics
     technology capabilities.
