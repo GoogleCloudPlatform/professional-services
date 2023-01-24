@@ -1,0 +1,57 @@
+bucket_name  = "creditcards-dev"
+dataset_name = "creditcards"
+group_iam = {
+  "gcp-ml-ds@example.com" = [
+    "roles/aiplatform.admin",
+    "roles/artifactregistry.admin",
+    "roles/bigquery.dataEditor",
+    "roles/bigquery.jobUser",
+    "roles/bigquery.user",
+    "roles/cloudbuild.builds.editor",
+    "roles/cloudfunctions.developer",
+    "roles/dataflow.developer",
+    "roles/dataflow.worker",
+    "roles/iam.serviceAccountUser",
+    "roles/logging.logWriter",
+    "roles/logging.viewer",
+    "roles/notebooks.admin",
+    "roles/pubsub.editor",
+    "roles/serviceusage.serviceUsageConsumer",
+    "roles/storage.admin"
+  ],
+  "gcp-ml-eng@example.com" = [
+    "roles/aiplatform.admin",
+    "roles/artifactregistry.admin",
+    "roles/bigquery.dataEditor",
+    "roles/bigquery.jobUser",
+    "roles/bigquery.user",
+    "roles/dataflow.developer",
+    "roles/dataflow.worker",
+    "roles/iam.serviceAccountUser",
+    "roles/logging.logWriter",
+    "roles/logging.viewer",
+    "roles/serviceusage.serviceUsageConsumer",
+    "roles/storage.admin"
+  ]
+}
+identity_pool_claims = "attribute.repository/GITHUB_ORG/GITHUB_REPO"
+labels = {
+  "env" : "dev",
+  "team" : "ml"
+}
+notebooks = {
+  "notebook1" : {
+    "owner" : "user@example.com",
+    "region" : "europe-west4",
+    "subnet" : "default",
+    "internal_ip_only" : false,
+  }
+}
+prefix     = "myprefix"
+project_id = "creditcards-dev"
+project_create = {
+  billing_account_id = "000000-111111-222222"
+  parent             = "folders/123456789012"
+}
+sa_mlops_name = "sa-mlops-dev"
+
