@@ -430,6 +430,9 @@ Platform usage.
     or GCS objects.
 *   [Quota Manager](tools/quota-manager) - A python module to programmatically
     update GCP service quotas such as bigquery.googleapis.com.
+*   [Ranger Hive Assessment for BigQuery/BigLake IAM migration](tools/ranger-to-bigquery-biglake-assessment) - 
+    A tool that assesses which Ranger authorization rules can be migrated 
+    or not to BigQuery/BigLake IAM.
 *   [Secret Manager Helper](tools/secret-manager-helper) - A Java library to
     make it easy to replace placeholder strings with Secret Manager secret
     payloads.
