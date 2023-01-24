@@ -1,0 +1,49 @@
+bucket_name  = "creditcards-prd"
+dataset_name = "creditcards"
+group_iam = {
+  "gcp-ml-ds@example.com" = [
+    "roles/aiplatform.admin",
+    "roles/artifactregistry.admin",
+    "roles/bigquery.dataEditor",
+    "roles/bigquery.jobUser",
+    "roles/bigquery.user",
+    "roles/cloudbuild.builds.editor",
+    "roles/cloudfunctions.developer",
+    "roles/dataflow.developer",
+    "roles/dataflow.worker",
+    "roles/iam.serviceAccountUser",
+    "roles/logging.logWriter",
+    "roles/logging.viewer",
+    "roles/notebooks.admin",
+    "roles/pubsub.editor",
+    "roles/serviceusage.serviceUsageConsumer",
+    "roles/storage.admin"
+  ],
+  "gcp-ml-eng@example.com" = [
+    "roles/aiplatform.admin",
+    "roles/artifactregistry.admin",
+    "roles/bigquery.dataEditor",
+    "roles/bigquery.jobUser",
+    "roles/bigquery.user",
+    "roles/dataflow.developer",
+    "roles/dataflow.worker",
+    "roles/iam.serviceAccountUser",
+    "roles/logging.logWriter",
+    "roles/logging.viewer",
+    "roles/serviceusage.serviceUsageConsumer",
+    "roles/storage.admin"
+  ]
+}
+identity_pool_claims = "attribute.repository/GITHUB_ORG/GITHUB_REPO"
+labels = {
+  "env" : "prd",
+  "team" : "ml"
+}
+prefix     = "myprefix"
+project_id = "creditcards-prd"
+project_create = {
+  billing_account_id = "000000-111111-222222"
+  parent             = "folders/123456789012"
+}
+sa_mlops_name = "sa-mlops-prd"
+

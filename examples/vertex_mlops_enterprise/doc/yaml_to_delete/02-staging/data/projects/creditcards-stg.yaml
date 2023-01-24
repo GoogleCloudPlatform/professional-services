@@ -1,0 +1,130 @@
+# skip boilerplate check
+
+# [opt] Billing account id - overrides default if set
+#billing_account_id: 012345-67890A-BCDEF0
+
+# [opt] Contacts for billing alerts and important notifications
+#essential_contacts:
+#  - user@company.org
+
+# Folder: 
+folder_id: folders/448951750066
+
+# [opt] Authoritative IAM bindings in group => [roles] format
+group_iam:
+  gcp-ml-eng@cxb.pugacorp.com:
+    - roles/aiplatform.admin
+    - roles/artifactregistry.admin
+    - roles/bigquery.dataEditor
+    - roles/bigquery.jobUser
+    - roles/bigquery.user
+    - roles/dataflow.developer
+    - roles/dataflow.worker
+    - roles/iam.serviceAccountUser
+    - roles/logging.logWriter
+    - roles/logging.viewer
+    - roles/serviceusage.serviceUsageConsumer
+    - roles/storage.admin
+
+# [opt] Service account to create for the project and their roles on the project
+# in name => [roles] format
+# serviceUsageConsumer required for Cloud Build
+# https://cloud.google.com/build/docs/securing-builds/configure-access-to-resources#granting_permissions_to_run_gcloud_commands
+
+service_accounts:                      
+  sa-mlops-stg:
+     - roles/aiplatform.user
+     - roles/artifactregistry.reader
+     - roles/bigquery.dataEditor
+     - roles/bigquery.jobUser
+     - roles/bigquery.user
+     - roles/cloudbuild.builds.editor
+     - roles/dataflow.developer
+     - roles/dataflow.worker
+     - roles/iam.serviceAccountUser
+     - roles/monitoring.metricWriter
+     - roles/secretmanager.secretAccessor
+     - roles/serviceusage.serviceUsageConsumer
+     - roles/storage.admin
+  sa-github:
+     - roles/artifactregistry.writer
+     - roles/cloudbuild.builds.editor
+     # TODO: better at the sa-mlops SA level
+     - roles/iam.serviceAccountUser
+     - roles/serviceusage.serviceUsageConsumer
+     - roles/storage.admin
+
+# [opt] IAM bindings on the service account resources.
+# in name => {role => [members]} format
+#service_accounts_iam:
+
+# [opt] Authoritative IAM bindings in role => [principals] format
+# Generally used to grant roles to service accounts external to the project
+# iam:
+
+
+# [opt] Labels for the project - merged with the ones defined in defaults
+labels:
+
+# [opt] Map of secrets to manage and their locations. If locations is null, automatic management will be set.
+secrets:
+  github-key:
+
+# [opt] IAM bindings in {SECRET => {ROLE => [MEMBERS]}} format.
+#secrets_iam:
+   
+         
+# [opt] APIs to enable on the project.
+services:
+    - aiplatform.googleapis.com
+    - artifactregistry.googleapis.com
+    - bigquery.googleapis.com
+    - cloudbuild.googleapis.com
+    - compute.googleapis.com
+    - datacatalog.googleapis.com
+    - dataflow.googleapis.com
+    - iam.googleapis.com
+    - monitoring.googleapis.com
+    - secretmanager.googleapis.com
+    - servicenetworking.googleapis.com
+    - serviceusage.googleapis.com
+
+# [opt] Roles to assign to the robots service accounts in robot => [roles] format
+services_iam:
+  cloudbuild:
+    - roles/iam.serviceAccountUser
+
+
+buckets:
+  creditcards-stg:
+    region: EU
+  # Default bucket for Cloud Build to prevent error: "'us' violates constraint ‘constraints/gcp.resourceLocations’"
+  # https://stackoverflow.com/questions/53206667/cloud-build-fails-with-resource-location-constraint
+  creditcards-stg_cloudbuild:
+    region: EU
+
+datasets:
+  creditcards:
+    region: EU
+
+vpc_local:
+  name: default
+  subnets:
+    - name: default
+      region: europe-west1
+      ip_cidr_range: 10.1.0.0/24
+      secondary_ip_range: 
+    - name: default
+      region: europe-west4
+      ip_cidr_range: 10.4.0.0/24
+      secondary_ip_range:
+  psa_config_ranges:
+    vertex: 10.13.0.0/18  #Used for Vertex Training peering 
+  
+artifact_registry:
+  docker-repo:
+    format: DOCKER
+    region: europe-west4
+
+workload_identity:
+  identity_pool_claims: attribute.repository/javiergp/mlops-cc-t1
