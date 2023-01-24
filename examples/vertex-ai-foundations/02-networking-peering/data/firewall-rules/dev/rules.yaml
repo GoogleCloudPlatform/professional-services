@@ -1,0 +1,21 @@
+# skip boilerplate check
+
+ingress:
+  ingress-allow-composer-nodes:
+    description: "Allow traffic to Composer nodes."
+    sources:
+      - composer-worker
+    targets:
+      - composer-worker
+    rules:
+      - protocol: tcp
+        ports: [80, 443, 3306, 3307]
+  ingress-allow-dataflow-load:
+    description: "Allow traffic to Dataflow nodes."
+    sources:
+      - dataflow
+    targets:
+      - dataflow
+    rules:
+      - protocol: tcp
+        ports: [12345, 12346]

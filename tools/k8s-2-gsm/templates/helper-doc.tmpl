@@ -1,0 +1,92 @@
+{{- /* map secrets and range over them to create a SecretProviderClass */ -}}
+{{- $secrets := .K8sSecretsMap }}
+{{- range $secretName, $secretObjectSlice := $secrets }}
+----------------------------------------------
+----------------------------------------------
+----------------------------------------------
+## How-To: Update Workloads Using ['{{ $secretName }}'] Secret
+
+The following guide walks through the steps to move from using Kubernetes secrets to Google Secret Manager secrets. 
+
+The biggest difference is, Kubernetes secrets can represent multiple key/value pairs and Google secrets are 1:1. However, multiple Google secrets may be combined in a `SecretProviderClass` to recreate default Kubernetes secret behavior.
+
+### Important Values
+
+```yaml
+k8sSecretName: {{ $secretName }}
+{{- /* take the namespace from the first object or break */ -}}
+{{- range $i, $secret := index $secrets $secretName }}
+namespace: {{ $secret.K8sNamespace }}
+gcpProject: {{ $secret.GCPProject }}
+{{- if lt $i 1 }}
+{{- break }}
+{{- end }}
+{{- end }}
+{{- range $i, $secret := index $secrets $secretName }}
+objectName[{{- $i }}]: {{ $secret.K8sObjectName }}
+  - googleSecretName: {{ $secret.GSMName }}
+{{- end }}
+```
+
+### Prerequisites
+
+This guide assumes secrets in Google have been migrated using [`k8s-2-gsm`](ttps://github.com/GoogleCloudPlatform/professional-services/tree/main/tools/k8s-2-gsm).
+
+- [CSI Secrets Driver](https://secrets-store-csi-driver.sigs.k8s.io/getting-started/installation.html) installed
+- [Workload Identity](loud.google.com/kubernetes-engine/docs/how-to/workload-identity) configured
+- A `SecretProviderClass` already exists in your `namespace` (1:1 for each Kubernetes secret)
+- A known Kubernetes service account and Google service account to use with Workload Identity
+
+We'll use `${k8sServiceAccount}` & `${gcpServiceAccount}` in the following samples.
+
+### Step 1
+
+Grant the `${gcpServiceAccount}` the IAM roles required to access your Secret Manager secrets.
+
+```
+# REPLACE `${gcpServiceAccount}`
+{{ range $i, $secret := index $secrets $secretName }}
+gcloud secrets add-iam-policy-binding {{ $secret.GSMName }} \
+--member=serviceAccount:${gcpServiceAccount}@{{ $secret.GCPProject }}.iam.gserviceaccount.com \
+--role=roles/secretmanager.secretAccessor
+{{ end }}
+```
+
+### Step 2
+
+Replace your `volumeMounts` and `volumes` to use the new Google secrets.
+
+You may have something that looks like:
+
+```yaml
+    volumeMounts:
+    - name: secret-data           # must match a volume.name
+      mountPath: "/etc/secrets"
+      readOnly: true
+  volumes:
+  - name: secret-data             # must match a volumeMounts.name
+    secret:
+      secretName: {{ $secretName }}
+```
+
+Modify it to look like:
+
+```yaml
+    volumeMounts:
+    - name: secret-data          # must match a volume.name
+      mountPath: "/etc/secrets/"
+      readOnly: true
+  volumes:
+  - name: secret-data             # must match a volumeMounts.name
+    csi:
+      driver: secrets-store.csi.k8s.io
+      readOnly: true
+      volumeAttributes:
+        secretProviderClass: "{{ $secretName }}"
+```
+
+### Step 3
+
+Redeploy or `apply` the application to begin consuming secrets from Google's Secret Manager CSI Driver.
+
+{{- end }}

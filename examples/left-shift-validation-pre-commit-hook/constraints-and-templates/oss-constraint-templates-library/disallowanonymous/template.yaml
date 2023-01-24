@@ -1,0 +1,44 @@
+apiVersion: templates.gatekeeper.sh/v1
+kind: ConstraintTemplate
+metadata: # kpt-merge: /k8sdisallowanonymous
+  name: k8sdisallowanonymous
+  annotations:
+    description: Disallows associating ClusterRole and Role resources to the system:anonymous user and system:unauthenticated group.
+spec:
+  crd:
+    spec:
+      names:
+        kind: K8sDisallowAnonymous
+      validation:
+        # Schema for the `parameters` field
+        openAPIV3Schema:
+          type: object
+          properties:
+            allowedRoles:
+              description: >-
+                The list of ClusterRoles and Roles that may be associated with the `system:unauthenticated` group and `system:anonymous` user.
+              type: array
+              items:
+                type: string
+  targets:
+    - target: admission.k8s.gatekeeper.sh
+      rego: |
+        package k8sdisallowanonymous
+
+        violation[{"msg": msg}] {
+          not is_allowed(input.review.object.roleRef, input.parameters.allowedRoles)
+          review(input.review.object.subjects[_])
+          msg := sprintf("Unauthenticated user reference is not allowed in %v %v ", [input.review.object.kind, input.review.object.metadata.name])
+        }
+
+        is_allowed(role, allowedRoles) {
+          role.name == allowedRoles[_]
+        }
+
+        review(subject) = true {
+          subject.name == "system:unauthenticated"
+        }
+
+        review(subject) = true {
+          subject.name == "system:anonymous"
+        }

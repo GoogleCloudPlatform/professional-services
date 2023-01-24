@@ -1,0 +1,34 @@
+{
+  "BigQuery Schema": [
+    {
+      "mode": "REQUIRED",
+      "name": "id",
+      "type": "INTEGER",
+      "description": "ID"
+    },
+    {
+      "mode": "REQUIRED",
+      "name": "customer_id",
+      "type": "INTEGER",
+      "description": "ID"
+    },
+    {
+      "mode": "REQUIRED",
+      "name": "item",
+      "type": "STRING",
+      "description": "Item Name"
+    },
+    {
+      "mode": "REQUIRED",
+      "name": "price",
+      "type": "FLOAT",
+      "description": "Item Price"
+    },
+    {
+      "mode": "REQUIRED",
+      "name": "timestamp",
+      "type": "TIMESTAMP",
+      "description": "Timestamp"
+    }
+  ]
+}

@@ -1,0 +1,58 @@
+# Copyright 2022 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+- name: Read files
+  set_fact:
+    ad_users: "{{ lookup('file','users.json') | from_json }}"
+    ad_groups: "{{ lookup('file','groups.json') | from_json }}"
+    ad_memberships: "{{ lookup('file','memberships.json') | from_json }}"
+
+- name: Create organizational units
+  community.windows.win_domain_ou:
+    name: "{{ item }}"
+    path: "{{ cloud_path }}"
+    state: present
+    protected: true
+  with_items:
+    - "Users"
+    - "Groups"
+
+- name: Create users
+  community.windows.win_domain_user:
+    name: "{{ item.username }}"
+    firstname: "{{ item.first_name }}"
+    surname: "{{ item.last_name }}"
+    email: "{{ item.username }}@{{ ad_dns_domain_name }}"
+    sam_account_name: "{{ item.username }}"
+    upn: "{{ item.username }}@{{ ad_dns_domain_name }}"
+    password: "{{ item.password }}"
+    path: "OU=Users,{{ cloud_path }}"
+    state: present
+  with_items: "{{ ad_users }}"
+
+- name: Create groups
+  community.windows.win_domain_group:
+    name: "{{ item }}"
+    path: "OU=Groups,{{ cloud_path }}"
+    scope: global
+    state: present
+  with_items: "{{ ad_groups }}"
+
+- name: Create memberships
+  community.windows.win_domain_group_membership:
+    name: "{{ item.group }}"
+    members:
+      - "{{ item.member }}"
+    state: present
+  with_items: "{{ ad_memberships }}"

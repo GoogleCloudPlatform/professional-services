@@ -1,0 +1,101 @@
+# Copyright 2022 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+node:
+  # The id must be in the following format: projects/<project number>/networks/<network name>/nodes/<node id>
+  id: "projects/CONFIG_PROJECT_NUMBER/networks/VPC_NETWORK_NAME/nodes/ENVOY_NODE_ID"
+  cluster: cluster # unused
+  locality:
+    zone: "ENVOY_ZONE"
+  metadata:
+    TRAFFICDIRECTOR_INTERCEPTION_PORT: "15001"
+    TRAFFICDIRECTOR_ENABLE_TRACING: "false"
+    TRAFFICDIRECTOR_ACCESS_LOG_PATH: ""
+    TRAFFICDIRECTOR_INBOUND_BACKEND_PORTS: ""
+
+dynamic_resources:
+  lds_config:
+    ads: {}
+    resource_api_version: V3
+  cds_config:
+    ads: {}
+    resource_api_version: V3
+  ads_config:
+    api_type: GRPC
+    transport_api_version: V3
+    grpc_services:
+    - google_grpc:
+        target_uri: trafficdirector.googleapis.com:443
+        stat_prefix: trafficdirector
+        channel_credentials:
+          ssl_credentials:
+            root_certs:
+              filename: /etc/ssl/certs/ca-certificates.crt
+        call_credentials:
+          google_compute_engine: {}
+        channel_args:
+          args:
+            grpc.http2.max_pings_without_data:
+              int_value: 0
+            grpc.keepalive_time_ms:
+              int_value: 10000
+            grpc.keepalive_timeout_ms:
+              int_value: 20000
+
+cluster_manager:
+  load_stats_config:
+    api_type: GRPC
+    transport_api_version: V3
+    grpc_services:
+    - google_grpc:
+        target_uri: trafficdirector.googleapis.com:443
+        stat_prefix: trafficdirector
+        channel_credentials:
+          ssl_credentials:
+            root_certs:
+              filename: /etc/ssl/certs/ca-certificates.crt
+        call_credentials:
+          google_compute_engine: {}
+        channel_args:
+          args:
+            grpc.http2.max_pings_without_data:
+              int_value: 0
+            grpc.keepalive_time_ms:
+              int_value: 10000
+            grpc.keepalive_timeout_ms:
+              int_value: 20000
+
+admin:
+  access_log_path: /dev/stdout
+  address:
+    socket_address:
+      address: 127.0.0.1 # Admin page is only accessible locally.
+      port_value: 15000
+
+tracing:
+  http:
+    name: envoy.tracers.opencensus
+    typed_config:
+      "@type": type.googleapis.com/envoy.config.trace.v3.OpenCensusConfig
+      stackdriver_exporter_enabled: "false"
+      stackdriver_project_id: ""
+
+layered_runtime:
+  layers:
+  - name: rtds_layer
+    rtds_layer:
+      name: traffic_director_runtime
+      rtds_config:
+        ads: {}
+        resource_api_version: V3

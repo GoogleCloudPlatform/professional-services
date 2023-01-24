@@ -24,30 +24,46 @@ object ScpOptionParser extends OptionParser[ScpConfig]("scp") with ArgParser[Scp
 
   help("help").text("prints this usage text")
 
-  opt[Long]("count")
-    .optional
+  arg[String]("input")
+    .optional()
+    .text("DD or DSN to be uploaded")
+    .action {(x, c) =>
+      if (x.contains(".")) c.copy(inDsn = x)
+      else c.copy(inDD = x)
+    }
+
+  arg[String]("output")
+    .optional()
+    .text("URI of output in form gs://[BUCKET]/[PREFIX]")
+    .action((x, c) => c.copy(gcsOutUri = x))
+
+  opt[Long]('n', "count")
     .text("(optional) number of records to copy (default: unlimited)")
     .action((x,c) => c.copy(limit = x))
 
-  opt[Unit]("noCompress")
-    .optional
-    .text("(optional) compress output with gzip (default: true)")
-    .action((_,c) => c.copy(compress = false))
+  opt[Unit]("compress")
+    .text("(optional) compress output with gzip (default: disabled)")
+    .action((_,c) => c.copy(compress = true))
 
   opt[String]("inDD")
-    .optional
     .text("DD to be uploaded (INFILE will be used if not provided)")
     .action((x,c) => c.copy(inDD = x))
 
   opt[String]("inDsn")
-    .optional
     .text("DSN to be uploaded")
     .action((x,c) => c.copy(inDsn = x))
 
   opt[String]("gcsOutUri")
-    .optional
     .text("GCS URI of dataset copy")
     .action((x,c) => c.copy(gcsOutUri = x))
+
+  opt[String]("encoding")
+    .text("(optional) input character encoding. default: CP1037")
+    .action((x,c) => c.copy(encoding = x, convert = true))
+
+  opt[Unit]("noConvert")
+    .text("(optional) disable conversion of character input to ASCII. default: enabled")
+    .action((x,c) => c.copy(convert = false))
 
   checkConfig{x =>
     if (x.inDD.nonEmpty && x.inDsn.nonEmpty) {
