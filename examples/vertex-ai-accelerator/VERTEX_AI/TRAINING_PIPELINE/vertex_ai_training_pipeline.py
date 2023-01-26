@@ -1,11 +1,10 @@
 from kfp.v2 import compiler, dsl
 import kfp
 import configparser
-import argparse, sys
+import argparse
 from google_cloud_pipeline_components import aiplatform as gcc_aip
 import json
 
-import google.cloud.aiplatform as aip
 from fetch_feature_values_to_gcs import load_features_batch_to_gcs
 from tfdv_validation import generate_statistics
 from data_pre_processing import data_pre_processing
@@ -224,7 +223,7 @@ def pipeline(project_id: str,location: str,training_container_uri: str,predictio
                                     location=location 
                                     )
             
-            model_deploy_op = gcc_aip.ModelDeployOp(
+            gcc_aip.ModelDeployOp(
                                     model=training_op.outputs["model"],
                                     endpoint=create_endpoint_op.outputs['endpoint'],
                                     dedicated_resources_machine_type="e2-highmem-2",
@@ -245,7 +244,7 @@ def pipeline(project_id: str,location: str,training_container_uri: str,predictio
                                         bq_destination_prediction_uri=bq_destination_prediction_uri
                                         )
     
-    update_mlops_metadata_to_BQ_op=update_mlops_metadata_to_BQ(
+    update_mlops_metadata_to_BQ(
                                 mlops_metadata_table=mlops_metadata_table, 
                                 mlops_pipeline_version=mlops_pipeline_version,
                                 is_model_valid=model_validation_op.outputs['is_model_valid'],

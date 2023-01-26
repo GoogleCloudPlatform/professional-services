@@ -1,4 +1,4 @@
-from kfp.v2 import compiler, dsl
+from kfp.v2 import  dsl
 from typing import NamedTuple
 
 @dsl.component(
@@ -7,7 +7,6 @@ from typing import NamedTuple
 def load_features_batch_to_gcs(read_instances_csv:str,feature_store_id:str,mlops_pipeline_version:str) ->  NamedTuple('Outputs', [('gcs_destination_output_uri_paths', str),('gcs_destination_dataset_list_of_csv_files', str)]):
     
     from google.cloud import aiplatform  
-    from collections import namedtuple
     import json
     
     # Load Values

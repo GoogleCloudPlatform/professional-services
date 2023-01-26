@@ -2,12 +2,8 @@ import argparse
 import hypertune
 import logging
 import os
-import numpy as np
 
-from google.cloud import bigquery
-from google.cloud import storage
 from interpret.glassbox import ExplainableBoostingClassifier
-from sklearn.metrics import classification_report, confusion_matrix
 
 SEED=100
 

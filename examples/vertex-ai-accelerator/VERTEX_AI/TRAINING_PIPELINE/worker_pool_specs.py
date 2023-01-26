@@ -1,5 +1,4 @@
-import logging
-from kfp.v2 import compiler, dsl
+from kfp.v2 import  dsl
 from typing import NamedTuple
 
 
@@ -8,7 +7,6 @@ from typing import NamedTuple
 def worker_pool_specs_op(gcs_destination_output_uri_paths:str)-> NamedTuple('Outputs', [('worker_pool_specs', list)]):
     
     from collections import namedtuple
-    import json
     
     worker_pool_specs = [{
             "machine_spec": {

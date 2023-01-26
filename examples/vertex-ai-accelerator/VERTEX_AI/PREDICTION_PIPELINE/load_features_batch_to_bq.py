@@ -1,4 +1,4 @@
-from kfp.v2 import compiler, dsl
+from kfp.v2 import  dsl
 
 @dsl.component(
     base_image='python:3.9',
@@ -6,8 +6,6 @@ from kfp.v2 import compiler, dsl
 def load_features_batch_to_bq(read_instances_csv:str,feature_store_id:str,mlops_pipeline_version:str,bq_destination_prediction_uri:str):
     
     from google.cloud import aiplatform  
-    from collections import namedtuple
-    import json
     
     # Load Values
     fs = aiplatform.featurestore.Featurestore(featurestore_name=feature_store_id)

@@ -1,5 +1,5 @@
 import logging
-from kfp.v2 import compiler, dsl
+from kfp.v2 import  dsl
 from typing import NamedTuple
 
 # TFDV Custom componets
@@ -9,8 +9,6 @@ def generate_statistics(output_gcs_path:str,project:str,gcs_source:str)-> NamedT
     import tensorflow_data_validation as tfdv
     from tensorflow_data_validation.utils import display_util, schema_util, stats_util, anomalies_util
     from collections import namedtuple
-    from google.cloud import bigquery
-    import json
     import pandas
     
     is_valid="TRUE"
@@ -46,21 +44,11 @@ def generate_statistics(output_gcs_path:str,project:str,gcs_source:str)-> NamedT
             anomalies_util.write_anomalies_text(anomalies, output_path=anomalies_output_path)
             is_valid="FALSE"
     except Exception as e:
+        logging.error(str(e))
         # Generate Schema if not exists. 
         schema_util.write_schema_text(schema, output_path=schema_output_path)
         # As there is not valid schema present.
         valid_schema=schema
 
-
-    # display the statistics report in KFP UI
-    html = display_util.get_statistics_html(stats)
-    # Return Stats HTML to visualise
-    metadata = {
-        'outputs': [{
-            'type': 'web-app',
-            'storage': 'inline',
-            'source': html
-        }]
-    }
     stats_output = namedtuple('Outputs', ['is_valid'])
     return stats_output(is_valid)

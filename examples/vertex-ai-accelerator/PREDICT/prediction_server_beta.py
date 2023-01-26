@@ -1,15 +1,12 @@
-from statistics import mode
-from flask import Flask, request, Response, jsonify
+from flask import Flask, request, jsonify
 from flask_cors import CORS
 import joblib
-from interpret.glassbox import ExplainableBoostingClassifier
 from google.cloud import storage
 import os
 import pandas
 import configparser
 
 print("Prediction Server is starting...")
-import numpy as np
 
 app = Flask(__name__)
 CORS(app)

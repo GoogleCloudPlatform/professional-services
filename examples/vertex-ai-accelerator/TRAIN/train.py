@@ -1,11 +1,10 @@
-from google.cloud import bigquery
 from google.cloud import storage
 from interpret.glassbox import ExplainableBoostingClassifier
 import os
 import numpy as np
 from joblib import dump
 import pandas as pd
-import logging
+
 import configparser
 SEED=100
 print("1 : Getting Config ")
@@ -17,7 +16,6 @@ model_name = config.get('ML','MODEL_NAME')
 bucket_name = config.get('ML','BUCKET_NAME')
 
 from sklearn.metrics import classification_report, confusion_matrix
-import sys
 
 print("1 : Started Training ")
 storage_client = storage.Client(project="mlops-experiment-v2")

@@ -1,5 +1,4 @@
-import logging
-from kfp.v2 import compiler, dsl
+from kfp.v2 import  dsl
 from typing import NamedTuple
 
 
@@ -20,7 +19,7 @@ def data_pre_processing(is_preprocessing:str,project_id:str,location:str,dataflo
                                 requirements_file_path = dataflow_requirements_file
         )
         
-    dataflow_wait_op =  WaitGcpResourcesOp(
+    WaitGcpResourcesOp(
                                 gcp_resources = dataflow_python_op.outputs["gcp_resources"]
         )
     

@@ -1,5 +1,4 @@
-import logging
-from kfp.v2 import compiler, dsl
+from kfp.v2 import dsl
 from typing import NamedTuple
 
 
@@ -8,13 +7,11 @@ from typing import NamedTuple
 def model_validation(bucket_name:str,model_validation_root_path_temp:str,f1_score_threshold:str,project_id:str,location:str,mlops_version:str,experiment_name:str,gcs_source:str)-> NamedTuple('Outputs', [('is_model_valid', str),('f1_score_value',str)]):
                                     
     from collections import namedtuple
-    import json
     from google.cloud import storage
     import os
     import pandas
     import joblib
     from sklearn.metrics import f1_score
-    from google.cloud import bigquery
     from google.cloud import aiplatform  
     import configparser
     

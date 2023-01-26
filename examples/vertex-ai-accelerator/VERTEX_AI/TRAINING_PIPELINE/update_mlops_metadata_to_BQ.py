@@ -1,5 +1,4 @@
-import logging
-from kfp.v2 import compiler, dsl
+from kfp.v2 import  dsl
 from typing import NamedTuple
 
 

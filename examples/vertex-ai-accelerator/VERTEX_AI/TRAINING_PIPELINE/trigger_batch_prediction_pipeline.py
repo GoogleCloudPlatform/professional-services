@@ -1,5 +1,4 @@
-from kfp.v2 import compiler, dsl
-import kfp
+from kfp.v2 import  dsl
 
 @dsl.component(base_image='python:3.9', packages_to_install=["google-cloud-aiplatform"])
 def trigger_batch_prediction_pipeline(project_id:str,location:str,mlops_pipeline_version:str,batch_prediction_pipeline_root:str,read_instances_csv_test_set:str,feature_store_id:str,bq_destination_prediction_uri:str):

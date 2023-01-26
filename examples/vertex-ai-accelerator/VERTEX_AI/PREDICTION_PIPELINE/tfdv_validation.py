@@ -1,4 +1,4 @@
-from kfp.v2 import compiler, dsl
+from kfp.v2 import  dsl
 import logging
 from typing import NamedTuple
 
@@ -7,11 +7,9 @@ from typing import NamedTuple
     base_image='python:3.9', packages_to_install=["google-cloud-bigquery","db-dtypes","tensorflow_data_validation","pandas","gcsfs","fsspec"])
 def generate_statistics(output_gcs_path:str,project:str,mlops_pipeline_version:str,bq_destination_prediction_uri:str)-> NamedTuple('Outputs', [('is_valid', str)]):
     import tensorflow_data_validation as tfdv
-    from tensorflow_data_validation.utils import display_util, schema_util, stats_util, anomalies_util
+    from tensorflow_data_validation.utils import  schema_util, stats_util, anomalies_util
     from collections import namedtuple
     from google.cloud import bigquery
-    import json
-    import pandas
     
     is_valid="TRUE"
     # define path
@@ -21,7 +19,6 @@ def generate_statistics(output_gcs_path:str,project:str,mlops_pipeline_version:s
     anomalies_output_path=f'{output_gcs_path}/anomalies.pbtxt'
     
     # BQ
-    from google.cloud import bigquery
     client = bigquery.Client(project="mlops-experiment-v2")
 
     sql = """
@@ -49,6 +46,7 @@ def generate_statistics(output_gcs_path:str,project:str,mlops_pipeline_version:s
             anomalies_util.write_anomalies_text(anomalies, output_path=anomalies_output_path)
             is_valid="FALSE"
     except Exception as e:
+        logging.error(str(e))
         # Generate Schema if not exists. 
         schema_util.write_schema_text(schema, output_path=schema_output_path)
         # As there is not valid schema present.

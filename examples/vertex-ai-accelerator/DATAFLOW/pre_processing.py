@@ -2,7 +2,6 @@ import logging
 import argparse
 from apache_beam.options.pipeline_options import PipelineOptions
 from apache_beam.options.pipeline_options import SetupOptions
-from apache_beam.dataframe.convert import to_pcollection,to_dataframe
 import apache_beam as beam
 
 from collections import defaultdict
@@ -40,8 +39,8 @@ def update_features_store(df):
     df['link_predict']=df['link_predict'].replace(['NO'], False)
     
     logging.info("Pandas df length {0}".format(len(df)))
-    from datetime import datetime, timedelta
-    from google.cloud.aiplatform import Feature, Featurestore 
+    from datetime import datetime
+    from google.cloud.aiplatform import  Featurestore 
     fs = Featurestore(
             featurestore_name=FEATURESTORE_ID,
             project=PROJECT_ID,
@@ -51,7 +50,6 @@ def update_features_store(df):
     current_time_stamp=datetime.now()
     current_time_stamp_feature_store=current_time_stamp.isoformat(sep=" ", timespec="milliseconds")
     
-    feature_time_str =current_time_stamp.isoformat(sep=" ", timespec="milliseconds")
     graph_entity_type.ingest_from_df(
             feature_ids=["location_source","location_destination","feature_1_score", "feature_2_score", "feature_3_score","feature_4_score", "feature_5_score", "feature_6_score","feature_7_score", "feature_8_score", "feature_9_score", "feature_10_score","link_predict"],
             feature_time= datetime.strptime(current_time_stamp_feature_store, "%Y-%m-%d %H:%M:%S.%f"),
@@ -89,7 +87,6 @@ def update_features_store(df):
     
     #upload file to GCS
     from google.cloud import storage
-    import os
     storage_client = storage.Client(project="mlops-experiment-v2")
     blob = storage.blob.Blob.from_string("gs://mlops-experiment-v2-bucket/feature_store/read_instances_uri.csv", client=storage_client)
     blob.upload_from_filename("read_instances_uri.csv")
@@ -101,7 +98,7 @@ def update_features_store(df):
 
 def validate_graph_entity_tfdv(df):
     import tensorflow_data_validation as tfdv
-    from tensorflow_data_validation.utils import display_util, schema_util, stats_util, anomalies_util
+    from tensorflow_data_validation.utils import  schema_util
     
     validate_schema_path=f'gs://mlops-experiment-v2-bucket/tfdv/dataflow_raw_data_schema.pbtxt'
     
@@ -115,13 +112,13 @@ def validate_graph_entity_tfdv(df):
         if anomalies.anomaly_info:
             logging.info('ANOMALY DETECTED IN ENTITY DATA SAMPLES.')
     except Exception as e:
+        logging.error(str(e))
         schema_util.write_schema_text(schema, output_path=validate_schema_path)
         valid_schema=schema
 
     yield df
 
 def print_2_dataframe(df):
-    from apache_beam.dataframe.convert import to_pcollection,to_dataframe
     logging.info('dataframe in print_2_dataframe head - {}'.format(df.to_string()))
     yield str(len(df))
 
@@ -145,7 +142,6 @@ class CreateDataFrame(beam.DoFn):
         logging.info("directory content : {0}".format(str(os.listdir())))
         logging.info("directory path : {0}".format(str(os.getcwd())))
         import pandas
-        from apache_beam.dataframe.convert import to_pcollection
         import apache_beam as beam
         self.dataframe=pandas.DataFrame(data=self.data)
         logging.info('dataframe head - {}'.format(self.dataframe.to_string()))

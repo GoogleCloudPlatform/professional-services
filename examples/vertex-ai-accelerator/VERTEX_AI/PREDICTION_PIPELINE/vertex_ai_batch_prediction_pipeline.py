@@ -1,13 +1,11 @@
-from kfp.v2 import compiler, dsl
+from kfp.v2 import compiler
 import kfp
-import google.cloud.aiplatform as aip
 from google.cloud import storage
-import os
 from load_features_batch_to_bq import load_features_batch_to_bq
 from tfdv_validation import generate_statistics
 from batch_prediction import batch_prediction_op
 import configparser
-import argparse, sys
+import argparse
 
 # Read configurations
 config = configparser.ConfigParser()
@@ -37,7 +35,7 @@ def pipeline(read_instances_csv_test_set:str,feature_store_id:str,mlops_pipeline
                                                  project=project,
                                                  mlops_pipeline_version=mlops_pipeline_version,
                                                  bq_destination_prediction_uri=bq_destination_prediction_uri).after(load_features_batch_to_bq_task)
-    batch_prediction_op_task=batch_prediction_op(mlops_pipeline_version=mlops_pipeline_version,bq_destination_prediction_uri=bq_destination_prediction_uri).after(generate_statistics_task)
+    batch_prediction_op(mlops_pipeline_version=mlops_pipeline_version,bq_destination_prediction_uri=bq_destination_prediction_uri).after(generate_statistics_task)
     
 
 

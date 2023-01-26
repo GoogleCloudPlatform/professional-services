@@ -1,5 +1,4 @@
-from google.cloud.aiplatform import Feature, Featurestore
-import apache_beam as beam
+from google.cloud.aiplatform import  Featurestore
 import logging      
     
 
@@ -84,4 +83,5 @@ try:
                 feature_configs=graph_feature_configs,
             )
 except Exception as e:
+    logging.error(str(e))
     logging.info('FEATURE STORE is exists.')
