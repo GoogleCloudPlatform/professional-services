@@ -168,17 +168,18 @@ gcloud run services add-iam-policy-binding scheduled-batch-prediction-trigger --
 ```
 gcloud run services add-iam-policy-binding pub-sub-training-pipeline-trigger --region='us-central1' --member="serviceAccount:26813697028-compute@developer.gserviceaccount.com" --role="roles/run.invoker"
 ```
+**Step 20 Create Pub/Sub topic**
+```
+gcloud pubsub topics publish pub-sub-training-pipeline-topic --message="trigger training pipeline"
+```
 
-**Step 20 : Create Serverless VPC access**
+**Step 21 : Create Serverless VPC access**
 
-**Step 21 : Enable invoker access for cloud run**
+**Step 22 : Enable invoker access for cloud run**
 ```
 gcloud run services add-iam-policy-binding online-prediction-cloud-run --region='us-central1' --member="user:26813697028-compute@developer.gserviceaccount.com" --role="roles/run.invoker"
 ```
 
-**Step 22 : MemoryStore Redi Instance**
+**Step 23 : MemoryStore Redis Instance**
 1. Select Basic
 2. Select Private Service Access
-
-
-**Step 23 : Create Pub/Sub topic with the name "pub-sub-training-pipeline-topic"**

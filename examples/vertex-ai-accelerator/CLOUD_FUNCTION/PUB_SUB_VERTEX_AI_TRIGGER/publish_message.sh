@@ -1,2 +1,0 @@
-gcloud functions add-iam-policy-binding pub-sub-training-pipeline-trigger --member="allUsers" --role="roles/cloudfunctions.invoker" --region=us-central1
-gcloud pubsub topics publish pub-sub-training-pipeline-topic --message="trigger training pipeline"
