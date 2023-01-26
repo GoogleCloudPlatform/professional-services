@@ -1,22 +1,28 @@
-## MLOPS - End To End Workflow using :
+## Vertex AI MLOps Accelerator
 
-**Dataset: Random Dataset**
+**Dataset: Sample Dataset**
 
-1. Vertex AI
-    - Train Custom ML Model
-    - Hyper Prameter Tunning for Custom Model
-    - Custom Model Validation
-    - Vertex AI datasets
-    - Vertex AI Batch Prediction
-2. Dataflow - For Data Preprocessing
-3. Big Query - For Data Storage
-4. Cloud Buils - For CI/CD
-5. Alert based on Cloud Monitoring 
-6. Looker Dashboard - MLOps Visualisation
-7. TFDV - For Data Validation
-8. Pubsub and Cloud Function - for continuous dataupdate monitoring
-9. Scheduled Batch Prediction
-10. Online Serving for Websites / UI Integration
+This is a generic accelerator for Machine Learning Operationalization using Vertex AI. Accelerator includes following modules.
+
+**1. Vertex AI**
+    **- Custom Training Container:** This is a generic container , where user can plug training code base and use Vertex AI Pipelines to perform training. 
+    **- Custom Prediction Container:** This is a generic container , where user can plug prediction code base and use Vertex AI Endpoint , Batch Predictions to perform predictions. 
+    **- Custom Hyper Parameter Tunning Container:** This is a generic container , where user can plug training code base and use Vertex AI Pipelines to perform Hyper Parameter Tunning.
+    **- Custom Model Validation Component:** This component can be used to validate model performance and register experiment results to Vertex AI Experiments. 
+    **- Custom Model Training using Vertex AI Dataset:** Vertex AI Datasets can be used to perform custom training. 
+    **- Vertex AI Batch Prediction:** A batch prediction request is an asynchronous request (as opposed to online prediction, which is a synchronous request). You request batch predictions directly from the model resource without needing to deploy the model to an endpoint. For tabular data, use batch predictions when you don't require an immediate response and want to process accumulated data by using a single request.
+    **- Vertex AI Endpoint:** Using private endpoints to serve online predictions with Vertex AI provides a low-latency, secure connection to the Vertex AI online prediction service.
+    **- Vertex AI Feature Store:** Vertex AI Feature Store provides a centralized repository for organizing, storing, and serving ML features.
+    **- Vertex AI Model Monitoring:** Maintain a model's performance, Model Monitoring monitors the model's prediction input data for feature skew and drift.
+**2. Dataflow:** Unified stream and batch data processing that's serverless, fast, and cost-effective.
+**3. Big Query:** BigQuery is a completely serverless and cost-effective enterprise data warehouse. It has built-in machine learning and BI that works across clouds, and scales with your data.
+**4. Cloud Build:** Cloud Build scales up and down with no infrastructure to set up, upgrade, or scale. Run builds in a fully managed environment in Google Cloud with connectivity to your own private network. 
+**5. Alert based on Cloud Monitoring:** Alerting gives timely awareness to problems in your cloud applications so you can resolve the problems quickly.
+**6. Looker Dashboard for MLOps Visualisation:** Bring the power to connect, analyze, and visualize data across multicloud environments. 
+**7. Tensor Flow Data Validation:** - TFDV can compute descriptive statistics that provide a quick overview of the data in terms of the features that are present and the shapes of their value distributions
+**8. Pub/Sub and Cloud Function for Continuos Data Update Monitoring:** - Pub/Sub is an asynchronous and scalable messaging service that decouples services producing messages from services processing those messages.
+**9. Scheduled Batch Prediction with Cloud Scheduler:** Cloud Scheduler is a fully managed enterprise-grade cron job scheduler. It allows you to schedule virtually any job, including batch, big data jobs, cloud infrastructure operations.
+**10. Online Serving for Websites / UI Integration:**
 
 **Step 1: Create New Google Cloud Project**
 ```
