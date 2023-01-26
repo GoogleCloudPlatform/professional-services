@@ -7,7 +7,6 @@ import json
 
 from fetch_feature_values_to_gcs import load_features_batch_to_gcs
 from tfdv_validation import generate_statistics
-from data_pre_processing import data_pre_processing
 from parse_hyper_parameter_param import parse_hyper_parameter_param
 from model_validation import model_validation
 from update_mlops_metadata_to_BQ import update_mlops_metadata_to_BQ
