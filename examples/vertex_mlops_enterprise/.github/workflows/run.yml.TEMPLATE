@@ -22,12 +22,12 @@ permissions:
   id-token: 'write'
 
 env:
-  PROJECT_ID: PROJECT_ID-dev
+  PROJECT_ID: ${project_id}
   #SA used to authenticate in GCP through Workload Identity Federation 
-  SERVICE_ACCOUNT: sa-github@PROJECT_ID-dev.iam.gserviceaccount.com
+  SERVICE_ACCOUNT: sa-github@${project_id}.iam.gserviceaccount.com
   REGION: europe-west4
-  DOCKER_REPO: europe-west4-docker.pkg.dev/PROJECT_ID-dev/docker-repo
-  WORKLOAD_ID_PROVIDER: projects/PROJECT_NUMBER/locations/global/workloadIdentityPools/gh-pool/providers/gh-provider
+  DOCKER_REPO: europe-west4-docker.pkg.dev/${project_id}/docker-repo
+  WORKLOAD_ID_PROVIDER: '${wip}'
 jobs:
   run-pipeline:
     name: 'Run Vertex AI pipeline'
@@ -35,17 +35,17 @@ jobs:
     steps:
     - uses: 'actions/checkout@v3'
       with:
-        token: ${{ github.token }}
+        token: $${{ github.token }}
          
     - id: 'auth'
       name: 'Authenticate to Google Cloud'
       uses: 'google-github-actions/auth@v1'
       with:
         create_credentials_file: 'true'
-        workload_identity_provider: ${{ env.WORKLOAD_ID_PROVIDER }}
-        service_account: ${{ env.SERVICE_ACCOUNT }}
+        workload_identity_provider: $${{ env.WORKLOAD_ID_PROVIDER }}
+        service_account: $${{ env.SERVICE_ACCOUNT }}
         access_token_lifetime: 3600s
 
     - name: 'Run Vertex Pipeline'
-      run: gcloud builds submit build/known_hosts.github.zip --config build/pipeline-run.yaml --project ${{ env.PROJECT_ID }} --region ${{ env.REGION }} --machine-type=e2-highcpu-8 --suppress-logs
+      run: gcloud builds submit build/known_hosts.github.zip --config build/pipeline-run.yaml --project $${{ env.PROJECT_ID }} --region $${{ env.REGION }} --machine-type=e2-highcpu-8 --suppress-logs
       

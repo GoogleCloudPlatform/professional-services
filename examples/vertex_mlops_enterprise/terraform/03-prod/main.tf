@@ -17,15 +17,16 @@
 # tfdoc:file:description Vertex MLOps
 
 module "mlops" {
-  source               = "github.com/GoogleCloudPlatform/cloud-foundation-fabric//blueprints/data-solutions/vertex-mlops?ref=f33456abf4f48d37e37050d1040e5c25986ce07d"
-  project_id           = var.project_id
-  project_create       = var.project_create
-  prefix               = var.prefix
-  bucket_name          = var.bucket_name
-  dataset_name         = var.dataset_name
-  group_iam            = var.group_iam
-  identity_pool_claims = var.identity_pool_claims
-  labels               = var.labels
-  notebooks            = var.notebooks
-  sa_mlops_name        = var.sa_mlops_name
+  source                  = "github.com/GoogleCloudPlatform/cloud-foundation-fabric//blueprints/data-solutions/vertex-mlops?ref=0aa792fb88dda19cc0d1e7b8fbb092309d0f2d0d"
+  project_id              = var.project_id
+  project_create          = var.project_create
+  prefix                  = var.prefix
+  bucket_name             = var.bucket_name
+  dataset_name            = var.dataset_name
+  group_iam               = var.group_iam
+  identity_pool_claims    = try("attribute.repository/${var.github.organization}/${var.github.repo}", null)
+  labels                  = var.labels
+  notebooks               = var.notebooks
+  sa_mlops_name           = var.sa_mlops_name
+  service_encryption_keys = var.service_encryption_keys
 }

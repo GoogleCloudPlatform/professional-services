@@ -102,20 +102,20 @@ timeout: 1800s
 logsBucket: '$_GCS_BUCKET'
 
 substitutions:
-  _REPO_URL: git@github.com:GITHUB_ORG/GITHUB_REPO
-  _BRANCH: main
-  _REGION: europe-west4
-  _PROJECT: PROJECT_ID-dev
-  _GCS_BUCKET: PROJECT_ID-dev_cloudbuild/logs
-  _CICD_IMAGE_URI: 'europe-west4-docker.pkg.dev/PROJECT_ID-dev/docker-repo/cicd:latest'
+  _REPO_URL: git@github.com:${github_org}/${github_repo}
+  _BRANCH: ${github_branch}
+  _REGION: ${region}
+  _PROJECT: ${project_id}
+  _GCS_BUCKET: ${project_id}_cloudbuild/logs
+  _CICD_IMAGE_URI: '${docker_repo}/cicd:latest'
   _MODEL_DISPLAY_NAME: creditcards-classifier-v02
   _ENDPOINT_DISPLAY_NAME: creditcards-classifier
-  _SERVICE_ACCOUNT: sa-mlops-dev@PROJECT_ID-dev.iam.gserviceaccount.com
-  _WORKDIR: GITHUB_REPO
+  _SERVICE_ACCOUNT: ${sa_mlops}
+  _WORKDIR: ${github_repo}
 options:
   machineType: 'E2_HIGHCPU_8'
 
 availableSecrets:
   secretManager:
-  - versionName: projects/PROJECT_ID-dev/secrets/github-key/versions/latest
+  - versionName: projects/${project_id}/secrets/github-key/versions/latest
     env: 'SSH_KEY'

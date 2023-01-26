@@ -34,8 +34,13 @@ variable "group_iam" {
   nullable    = false
 }
 
-variable "identity_pool_claims" {
-  type    = string
+variable "github" {
+  description = "Github organization and repo, i.e: https://github.com/ORGANIZATION/REPO "
+  type = object({
+    organization = string
+    repo         = string
+    branch       = string
+  })
   default = null
 }
 
@@ -81,4 +86,14 @@ variable "sa_mlops_name" {
   description = "Name for the MLOPs Service Account."
   type        = string
   default     = "sa-mlops"
+}
+
+variable "service_encryption_keys" { # service encription key
+  description = "Cloud KMS to use to encrypt different services. Key location should match service region."
+  type = object({
+    bq      = string
+    compute = string
+    storage = string
+  })
+  default = null
 }

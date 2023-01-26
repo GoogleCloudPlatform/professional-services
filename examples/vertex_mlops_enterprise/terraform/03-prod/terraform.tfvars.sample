@@ -34,7 +34,13 @@ group_iam = {
     "roles/storage.admin"
   ]
 }
-identity_pool_claims = "attribute.repository/GITHUB_ORG/GITHUB_REPO"
+
+github = {
+  organization = "ORGANIZATION"
+  repo         = "REPO"
+  branch       = "prd"
+}
+
 labels = {
   "env" : "prd",
   "team" : "ml"

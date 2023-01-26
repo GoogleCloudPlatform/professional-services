@@ -38,14 +38,14 @@ Make sure you have ready a Github repo with the ML pipeline code.
 You can clone the following example for setting up the repo: https://github.com/pbalm/professional-services/tree/vertex-mlops/examples/vertex_mlops_enterprise
 This repo should have at least one of the following branches: `dev`, `staging`, `prod`
 
-You will need to configure the Github organization and repo name in the `identity_pool_claims` variable.
+You will need to configure the Github organization and repo name in the `github` variable.
 
 ##  Instructions
 ###  Deploy the different environments
 
-You will need to repeat this process for each one of the different environments (01-development, 02-staging, 03-prod):
+You will need to repeat this process for each one of the different environments (01-development, 02-staging, 03-production):
 
-- Go to the environment folder: I.e. `cd ../terraform/01-development`
+- Go to the environment folder: I.e. `cd ../terraform/01-dev`
 
 - Create a `terraform.tfvars` file and specify the required variables. You can use the `terraform.tfvars.sample` an an starting point
 

@@ -2,11 +2,10 @@
 
 ## Introduction
 
-Clone the Google Cloud Professional services [repo](https://github.com/pbalm/professional-services/tree/vertex-mlops/examples/vertex_mlops_enterprise) to a temp directory and select the `jgpuga/mlops` branch: 
+Clone the Google Cloud Professional services [repo](https://github.com/GoogleCloudPlatform/professional-services) to a temp directory: 
 ```
-git clone https://github.com/pbalm/professional-services.git`
+git clone https://github.com/GoogleCloudPlatform/professional-services.git`
 cd professional-services/
-git checkout jgpuga/mlops
 ```
 
 Setup your new Github repo.
@@ -16,7 +15,7 @@ Copy the `vertex_mlops_enterprise` folder to your local folder
 cp -R ./examples/vertex_mlops_enterprise/* ./<YOUR LOCAL FOLDER>
 ```
 
-Commit the files in the dev branch (`main`):
+Commit the files in the main branch (`main`):
 ```
 git init
 git add *
@@ -33,9 +32,10 @@ Pull the remote repo with `git pull`.
 
 Checkout the staging branch with `git checkout dev`.
 
-Rename the `*.yml.TEMPLATE` files in the `.github/workflows` to `*.yml` and edit the files (env section) to set up correctly the references to the related project in GCP (PROJECT_ID and PROJECT_NUMBER).
 
-Edit the yaml files in the `build` folder to set up correctly the references to the related project in GCP and Github repo, updating the following parameters: `PROJECT_ID`, `GITHUB_ORG` and `GITHUB_REPO`.
+Review the files `*.yml` files in the `.github/workflows` and modify them if needed. These files should be automatically updated when launched terraform.
+
+Review the files `*.yaml` files in the `build` folder and modify them if needed. These files should be automatically updated when launched terraform.
 
 ## Accessing GitHub from Cloud Build via SSH keys
 Follow this procedure to create a private SSH key to be used for Github access from Cloud Build:
