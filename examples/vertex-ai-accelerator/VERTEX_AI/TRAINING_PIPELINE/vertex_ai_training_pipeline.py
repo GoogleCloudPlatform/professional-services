@@ -117,19 +117,13 @@ def pipeline(project_id: str,location: str,training_container_uri: str,predictio
                                 gcp_resources = dataflow_python_op.outputs["gcp_resources"]
         )
     
-    
-    data_pre_processing_task=data_pre_processing(is_preprocessing=is_preprocessing,
-                            project_id=project_id,
-                            location=location,
-                            dataflow_python_file=dataflow_python_file,
-                            dataflow_root_path_temp=dataflow_root_path_temp,
-                            dataflow_requirements_file=dataflow_requirements_file)
+
                
     load_features_batch_to_bq_op=load_features_batch_to_gcs(
                                     read_instances_csv=read_instances_csv,
                                     feature_store_id=feature_store_id,
                                     mlops_pipeline_version=mlops_pipeline_version
-                                    ).after(data_pre_processing_task)
+                                    ).after(dataflow_wait_op)
             
     generate_statistics_task=generate_statistics(
                                     output_gcs_path=tfdv_root_path_temp,

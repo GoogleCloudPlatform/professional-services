@@ -179,7 +179,7 @@ def run(argv=None, save_main_session=True):
         raw_validate_data=(dataframe
                             | '3.1 Validate Raw Data' >> beam.FlatMap(call_tensor_flow_data_validation)
                           )
-        raw_data=(dataframe
+        (dataframe
                       | '3.2 Print Dataframe' >> beam.FlatMap(print_2_dataframe)
                  )
         graph=(raw_validate_data
@@ -191,7 +191,7 @@ def run(argv=None, save_main_session=True):
         validated_graph_features=(graph_features
                       | '6. Validate Entity Data Frames using TFDV' >> beam.FlatMap(validate_graph_entity_tfdv)
                  )
-        feature_store_updated=(validated_graph_features
+        (validated_graph_features
                       | '7. Store Values to Feature Store' >> beam.FlatMap(update_features_store)
                  )
         

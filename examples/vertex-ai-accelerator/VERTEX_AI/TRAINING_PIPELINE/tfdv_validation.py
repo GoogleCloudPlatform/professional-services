@@ -7,7 +7,7 @@ from typing import NamedTuple
     base_image='python:3.9', packages_to_install=["google-cloud-bigquery","db-dtypes","tensorflow_data_validation","pandas","gcsfs","fsspec"])
 def generate_statistics(output_gcs_path:str,project:str,gcs_source:str)-> NamedTuple('Outputs', [('is_valid', str)]):
     import tensorflow_data_validation as tfdv
-    from tensorflow_data_validation.utils import display_util, schema_util, stats_util, anomalies_util
+    from tensorflow_data_validation.utils import  schema_util, stats_util, anomalies_util
     from collections import namedtuple
     import pandas
     

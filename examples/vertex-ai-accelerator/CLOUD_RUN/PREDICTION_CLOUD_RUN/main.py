@@ -1,17 +1,9 @@
-import os
-
 from flask import Flask, request
 import json
-from google.cloud import bigquery
-import os
-from google.cloud import storage
-from typing import Dict, List, Union
 import logging
 from google.cloud import aiplatform
 from google.protobuf import json_format
 from google.protobuf.struct_pb2 import Value
-import redis
-import pandas
 
 app = Flask(__name__)
 

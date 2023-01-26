@@ -1,6 +1,5 @@
 import functions_framework
 import os
-import time
 import datetime
 import google.cloud.aiplatform as aip
 
@@ -20,7 +19,6 @@ def trigger_training_pipeline(request):
     feature_store_id=os.environ['feature_store_id']
     vertex_ai_training_dataset_bq=os.environ['vertex_ai_training_dataset_bq']
     hyper_parameter_container_uri=os.environ['hyper_parameter_container_uri']
-    e2e_test=os.environ['e2e_test']
     model_name=os.environ['model_name']
     f1_score_threshold=os.environ['f1_score_threshold']
     vertex_ai_end_point=os.environ['vertex_ai_end_point']

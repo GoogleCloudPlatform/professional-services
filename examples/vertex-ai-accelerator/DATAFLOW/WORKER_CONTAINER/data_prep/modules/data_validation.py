@@ -3,7 +3,7 @@ import logging
 def tensor_flow_data_validation(df):
     logging.info('inside tensor_flow_data_validation')
     import tensorflow_data_validation as tfdv
-    from tensorflow_data_validation.utils import display_util, schema_util, stats_util, anomalies_util
+    from tensorflow_data_validation.utils import  schema_util
     
     validate_schema_path=f'gs://mlops-experiment-v2-bucket/tfdv/dataflow_raw_data_schema.pbtxt'
     
@@ -17,6 +17,7 @@ def tensor_flow_data_validation(df):
         if anomalies.anomaly_info:
             logging.info('ANOMALY DETECTED IN RAW DATA SAMPLES.')
     except Exception as e:
+        logging.error(str(e))
         schema_util.write_schema_text(schema, output_path=validate_schema_path)
         valid_schema=schema
 

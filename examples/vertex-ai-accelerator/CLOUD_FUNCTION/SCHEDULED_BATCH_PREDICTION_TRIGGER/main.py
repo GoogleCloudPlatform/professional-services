@@ -1,6 +1,5 @@
 import functions_framework
 import os
-import time
 import datetime
 
 @functions_framework.http
