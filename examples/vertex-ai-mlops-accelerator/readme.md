@@ -1,6 +1,4 @@
-## Vertex AI MLOps Accelerator
-
-**Dataset: Sample Dataset**
+# Vertex AI MLOps Accelerator
 
 This is a generic accelerator for Machine Learning Operationalization using Vertex AI. Accelerator includes following modules.
 
