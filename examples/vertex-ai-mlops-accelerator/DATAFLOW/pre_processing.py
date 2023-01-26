@@ -68,7 +68,7 @@ def update_features_store(df):
     import redis
     import json
 
-    redis_host = '10.151.238.11'
+    redis_host = ''# NOTE : UPDATED REDIS SERVER IP
     redis_port = 6379
     redis_client = redis.Redis(host=redis_host, port=redis_port)
     redis_client = redis.StrictRedis(host=redis_host, port=redis_port)
