@@ -1,34 +1,51 @@
 # Capacity Planner Sheets Extension
 
-This tool is a sheets extension to be used for capacity planning on Google Cloud. It fetches metrics data from the Google Cloud Monitoring API and finds the peak usage value and timestamp.
+This tool is a Google Sheets extension for capacity planning on Google Cloud. 
+This tool extracts peak resource usage values and corresponding timestamps for a given Google Cloud project, time range and timezone.
 
-[insert image here]
 
 ## Setup
 
-1. Create a new Google Sheet.
-2. Go to Extensions > Apps Script
-3. Copy all the `.gs` files in this directory to the Apps Script editor. There should be 3 file  total: `main.gs`, `queries.gs`, and `sheets.gs`.
-5. In Apps Script Settings, change the Google Cloud Project to a project you have permissions to use the Monitoring API in. This project will be used to back requests to the Monitoring API. It is only used for quota/and billing purposes and does not need to be the same project you want to collect metrics in.
-   1. [Enable the Monitoring API](https://console.cloud.google.com/apis/api/monitoring.googleapis.com/metrics), if it is not already enabled. 
-   2. [Collect the project number](https://console.cloud.google.com/welcome).
-   3. Paste the project number into Apps Script Settings.
-6. In Apps Script settings, select the 'Show "appsscript.json" manifest file in editor' checkbox.
-7. Edit the `appsscript.json` file to have the `oauthScopes` shown below. Do not edit the other fields.
-```json
-{
-  "timeZone": "Asia/Seoul",
-  "dependencies": {},
-  "exceptionLogging": "STACKDRIVER",
-  "runtimeVersion": "V8",
-  "oauthScopes": [
-    "https://www.googleapis.com/auth/script.external_request",
-    "https://www.googleapis.com/auth/monitoring.read",
-    "https://www.googleapis.com/auth/spreadsheets"
-  ]
-}
-```
+1. Upload `capacity_planner_sheet.xlsx` to Google Drive.
+2. Open `capacity_planner_sheet`, which will be in XLSX mode.
+3. `File > Save as Google Sheets` to convert to a Google Sheets file.
+4. `Extensions > Apps Script`. Copy all the `.gs` files in this directory to the Apps Script editor. There should be 3 files: `main.gs`, `queries.gs`, and `sheets.gs`.
+5. In Apps Script Settings, change the Google Cloud Project to a project you have permissions to use the Monitoring API in. ([`roles/monitoring.viewer`](https://cloud.google.com/monitoring/access-control#mon_roles_desc) is sufficient)
+This project is only used for Monitoring API quota and billing purposes. It does 
+not need to be the same project you want to collect metrics in.
+   1. [Enable the Monitoring API](https://console.cloud.google.com/apis/api/monitoring.googleapis.com/metrics) in your Google Cloud project, if it is not already enabled. 
+   2. [Collect the project number](https://console.cloud.google.com/welcome) and paste the project number into Apps Script Settings.
+1. In Apps Script settings, select the `Show "appsscript.json" manifest file in editor` checkbox.
+2. Go back to the editor and edit `appsscript.json` to have the `oauthScopes` shown below. Do not edit the other fields.
+    ```json
+    {
+      "timeZone": "Asia/Seoul",
+      "dependencies": {},
+      "exceptionLogging": "STACKDRIVER",
+      "runtimeVersion": "V8",
+      "oauthScopes": [
+        "https://www.googleapis.com/auth/script.external_request",
+        "https://www.googleapis.com/auth/monitoring.read",
+        "https://www.googleapis.com/auth/spreadsheets"
+      ]
+    }
+    ```
+8. Check that all Apps Script files have been saved, then refresh the Google Sheets tab. You should see a new menu item "Capacity Planner".
+
+    ![Capacity Planner menu in Google Sheets](images/capacity_planner_menu.png)
 
 ## Using the Capacity Planner
 
-1. 
+1. Fill out the project id, end time, total duration in minutes, and the timezone.	
+2. `Capacity Planner > Get Project Metrics`. A sheet named `{project_id}_raw` is created for the specified project.	
+3. Repeat 1. and 2. for any additional projects of interest.
+4. `Capacity Planner > Create Planning Sheet` to create a combined sheet.
+5. Fill in column F in the Combined Planning Sheet with the CCU value (pre-filled to 400,000) and the estimates for each metric. The rest of the sheet will update with the gap between the estimated and actual values.
+
+
+
+## Troubleshooting
+
+Google Sheets will show a small popup if any errors occur during script execution. Click on "Details" to see more information.
+
+![Image showing 'details' link and full error details box](images/error_details.png)
