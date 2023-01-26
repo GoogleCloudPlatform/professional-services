@@ -9,13 +9,20 @@ This is a generic accelerator for Machine Learning Operationalization using Vert
 **1. Vertex AI**
 
 - **Custom Training Container:** This is a generic container, where the user can plug the training code base and use Vertex AI Pipelines to perform training.
+
 - **Custom Prediction Container:** This is a generic container, where the user can plug the prediction code base and use Vertex AI Endpoint, Batch Predictions to perform predictions.
+
 - **Custom Hyper Parameter Tunning Container:** This is a generic container, where the user can plug the training code base and use Vertex AI Pipelines to perform Hyper Parameter Tuning.
+
 - **Custom Model Validation Component:** This component can be used to validate model performance and register experiment results to Vertex AI Experiments.
+
 - **Custom Model Training using Vertex AI Dataset:** Vertex AI Datasets can be used to perform custom training.
-Vertex AI Batch Prediction: A batch prediction request is an asynchronous request (as opposed to an online prediction, which is a synchronous request). You request batch predictions directly from the model resource without needing to deploy the model to an endpoint. For tabular data, use batch predictions when you don't require an immediate response and want to process accumulated data by using a single request.
+
+- **Vertex AI Batch Prediction:** A batch prediction request is an asynchronous request (as opposed to an online prediction, which is a synchronous request). You request batch predictions directly from the model resource without needing to deploy the model to an endpoint. For tabular data, use batch predictions when you don't require an immediate response and want to process accumulated data by using a single request.
+
 - **Vertex AI Endpoint:** Using private endpoints to serve online predictions with Vertex AI provides a low-latency, secure connection to the Vertex AI online prediction service.
 Vertex AI Feature Store: Vertex AI Feature Store provides a centralized repository for organizing, storing, and serving ML features.
+
 - **Vertex AI Model Monitoring:** Maintain a model's performance, Model Monitoring monitors the model's prediction input data for feature skew and drift.
 
 **2. Dataflow:** Unified stream and batch data processing that's serverless, fast, and cost-effective.
