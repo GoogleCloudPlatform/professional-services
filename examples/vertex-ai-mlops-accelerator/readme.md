@@ -1,16 +1,16 @@
 # Vertex AI MLOps Accelerator
 
-This is a generic accelerator for Machine Learning Operationalization using Vertex AI. Accelerator includes following modules.
+Generic accelerator for Machine Learning Operationalization using Vertex AI. Accelerator includes following modules.
 
 ### **Google Cloud Components**
 
 **1. Vertex AI**
 
-- **Custom Training Container:** This is a generic container, where the user can plug the training code base and use Vertex AI Pipelines to perform training.
+- **Custom Training Container:** Generic container, where the user can plug the training code base and use Vertex AI Pipelines to perform training.
 
-- **Custom Prediction Container:** This is a generic container, where the user can plug the prediction code base and use Vertex AI Endpoint, Batch Predictions to perform predictions.
+- **Custom Prediction Container:** Generic container, where the user can plug the prediction code base and use Vertex AI Endpoint, Batch Predictions to perform predictions.
 
-- **Custom Hyper Parameter Tunning Container:** This is a generic container, where the user can plug the training code base and use Vertex AI Pipelines to perform Hyper Parameter Tuning.
+- **Custom Hyper Parameter Tunning Container:** Generic container, where the user can plug the training code base and use Vertex AI Pipelines to perform Hyper Parameter Tuning.
 
 - **Custom Model Validation Component:** This component can be used to validate model performance and register experiment results to Vertex AI Experiments.
 
