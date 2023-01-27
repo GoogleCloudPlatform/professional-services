@@ -208,3 +208,12 @@ gcloud run services add-iam-policy-binding online-prediction-cloud-run --region=
 **Step 23 : MemoryStore Redis Instance**
 1. Select Basic
 2. Select Private Service Access
+
+**Step 24 : Update MemoryStore Redis Instance IP in pre_processing.py file**
+```
+file path : vertex-ai-mlops-accelerator/DATAFLOW/pre_processing.py
+
+redis_host = ''# NOTE : UPDATED REDIS SERVER IP
+redis_port = 6379
+
+```
