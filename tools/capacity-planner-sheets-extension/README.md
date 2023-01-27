@@ -9,7 +9,7 @@ This tool extracts peak resource usage values and corresponding timestamps for a
 1. Upload `capacity_planner_sheet.xlsx` to Google Drive.
 2. Open `capacity_planner_sheet`, which will be in XLSX mode.
 3. `File > Save as Google Sheets` to convert to a Google Sheets file.
-4. `Extensions > Apps Script`. Copy all the `.gs` files in this directory to the Apps Script editor. There should be 3 files: `main.gs`, `queries.gs`, and `sheets.gs`.
+4. `Extensions > Apps Script`. Copy all the `.js` files in this directory to the Apps Script editor. There should be 3 files: `main.gs`, `queries.gs`, and `sheets.gs`. (They're saved as `.js` files in GitHub for nice syntax highlighting, but you should save them as `.gs` files in AppsScript.)
 5. In Apps Script Settings, change the Google Cloud Project to a project you have permissions to use the Monitoring API in. ([`roles/monitoring.viewer`](https://cloud.google.com/monitoring/access-control#mon_roles_desc) is sufficient)
 This project is only used for Monitoring API quota and billing purposes. It does 
 not need to be the same project you want to collect metrics in.

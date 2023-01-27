@@ -1,7 +1,24 @@
-/* 
-  NOTE: Apps Script only allows HTML or .gs files so there is no simple way to include a TOML or JSON file here.
+/**
+ * Copyright 2023 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * 
+ * This file stores the queries for the Google Cloud Monitoring API.
+ * 
+ * NOTE: Apps Script only allows HTML or .gs files so there is no simple way to include a TOML or JSON file here.
   Queries are originally from the queries.toml file below.
-  https://team.git.corp.google.com/spring-dev-team/snowgoggles-cp/+/refs/heads/master/queries.toml
+
+  [TODO: link to Capacity Planner CLI TOML file]
 */
 
 const QUERIES = {
