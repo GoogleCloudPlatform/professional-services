@@ -26,57 +26,23 @@ import toml
 from typing import Any, Generator, List, Tuple
 
 import datetime
+import logging
+
+logging.basicConfig(level=logging.INFO)
 
 
 class CapacityPlanner(object):
+    """Capacity Planner class.
+
+    Attributes:
+        _qsc: A `monitoring_v3.QueryServiceClient` object.
+        _project_id: A string of Project ID which hosts Cloud Monitoring.
+
+    """
+
     def __init__(self, project_id: str) -> None:
-        # Cloud Monitoring client
         self._qsc = monitoring_v3.QueryServiceClient()
         self._project_id = project_id
-
-    def _clean_query(self, query: str) -> str:
-        """Remove newlines and multiple whitespaces."""
-        q = ''.join(query.splitlines())
-        q = ' '.join(q.split())
-
-        return q
-
-    def _extract_index_names(self, time_series_pager) -> List[str]:
-        descriptors = time_series_pager._response.time_series_descriptor
-        index_names = [label_descriptor.key for label_descriptor in descriptors.label_descriptors]  # noqa: E501
-
-        return index_names
-
-    def _extract_unit(self, time_series_pager) -> str:
-        descriptors = time_series_pager._response.time_series_descriptor
-        unit = descriptors.point_descriptors[0].unit
-
-        return unit
-
-    def _extract_value(self, typed_value) -> Any:
-        value_type = monitoring_v3.TypedValue.pb(typed_value).WhichOneof("value")  # noqa: E501
-
-        return getattr(typed_value, value_type)
-
-    def _extract_header(self, time_series) -> List[str]:
-        return time_series.label_values
-
-    def _extract_label(self, label_value) -> Any:
-        value_type = monitoring_v3.LabelValue.pb(label_value).WhichOneof("value")  # noqa: E501
-
-        return getattr(label_value, value_type)
-
-    def _build_within_filter(self, end_time: datetime.datetime,
-                             duration_minutes: int) -> str:
-        """
-
-        Reference:
-        - https://cloud.google.com/monitoring/mql/reference#within-tabop
-        """
-        time_str = end_time.strftime("%Y/%m/%d %H:%M:%S%z")
-        filter_str = f"| within {duration_minutes}m, d'{time_str}'"
-
-        return filter_str
 
     def _build_dataframe(self, time_series_pager, tz: datetime.timezone,
                          label=None, labels=None) -> pd.DataFrame:
@@ -90,8 +56,12 @@ class CapacityPlanner(object):
 
         for time_series in time_series_pager:
             pandas_series = pd.Series(
-                data=[self._extract_value(point.values[0]) for point in time_series.point_data],  # noqa: E501
-                index=[point.time_interval.end_time.timestamp_pb().ToNanoseconds() for point in time_series.point_data],  # noqa: E501
+                data=[
+                    self._extract_value(point.values[0])
+                    for point in time_series.point_data],
+                index=[
+                    point.time_interval.end_time.timestamp_pb().ToNanoseconds()
+                    for point in time_series.point_data],
             )
             columns.append(pandas_series)
             headers.append(self._extract_header(time_series))
@@ -124,17 +94,53 @@ class CapacityPlanner(object):
         # ordering), and sort the columns lexicographically.
         return df.sort_index(axis=0).sort_index(axis=1)
 
-    def load_queries(self) -> Generator[Tuple[str, str, str], None, None]:
-        with open('queries.toml', 'r') as f:
-            whole_queries = toml.load(f)
+    def _build_within_filter(self, end_time: datetime.datetime,
+                             duration_minutes: int) -> str:
+        """
 
-        queries_by_product = whole_queries.values()
-        for item in queries_by_product:
-            product_name = item.pop('product_name')
-            for query_data in item.values():
-                metric_name = query_data['metric_name']
-                query = query_data['query']
-                yield (product_name, metric_name, query)
+        Reference:
+        - https://cloud.google.com/monitoring/mql/reference#within-tabop
+        """
+        time_str = end_time.strftime("%Y/%m/%d %H:%M:%S%z")
+        filter_str = f"| within {duration_minutes}m, d'{time_str}'"
+
+        return filter_str
+
+    def _clean_query(self, query: str) -> str:
+        """Remove newlines and multiple whitespaces."""
+        q = ''.join(query.splitlines())
+        q = ' '.join(q.split())
+
+        return q
+
+    def _extract_header(self, time_series) -> List[str]:
+        return time_series.label_values
+
+    def _extract_index_names(self, time_series_pager) -> List[str]:
+        descriptors = time_series_pager._response.time_series_descriptor
+        index_names = [
+            label_descriptor.key
+            for label_descriptor in descriptors.label_descriptors]
+
+        return index_names
+
+    def _extract_label(self, label_value) -> Any:
+        value_type = \
+            monitoring_v3.LabelValue.pb(label_value).WhichOneof("value")
+
+        return getattr(label_value, value_type)
+
+    def _extract_unit(self, time_series_pager) -> str:
+        descriptors = time_series_pager._response.time_series_descriptor
+        unit = descriptors.point_descriptors[0].unit
+
+        return unit
+
+    def _extract_value(self, typed_value) -> Any:
+        value_type = \
+            monitoring_v3.TypedValue.pb(typed_value).WhichOneof("value")
+
+        return getattr(typed_value, value_type)
 
     def _sort_columns(self, columns: List[Tuple[str, str]]) -> List:
         sorted_columns = []
@@ -153,6 +159,46 @@ class CapacityPlanner(object):
                 sorted_columns.append(item)
 
         return leading_columns + sorted_columns + following_columns
+
+    def find_peak(self, df: pd.DataFrame, product_name: str, metric_name: str
+                  ) -> pd.DataFrame:
+        """Find peak and its timestamp from the given dataframe.
+
+        Aiming to produce the final dataframe as shown below.
+
+        | product_name | region | country | ... | metric_name | value | time  |
+        | ------------ | ------ | ------- | --- | ----------- | ----- | ----- |
+        | L7XLB        | global | Japan   | ... | QPS         | 58.7  | 17:17 |
+        | L7XLB        | global | UK      | ... | QPS         | 23.5  | 17:18 |
+        | ...
+
+        """
+        column_names = [("product_name",)] \
+            + [('metrics', name) for name in df.columns.names] \
+            + [("metric_name",), ("value",), ("time",)]
+        columns = pd.MultiIndex.from_tuples(column_names)
+        rows = []
+        for column_name, column_data in df.items():
+            row = [product_name] \
+                + list(column_name) \
+                + [metric_name, column_data.max(), column_data.idxmax()]
+            rows.append(row)
+
+        df = pd.DataFrame(np.array(rows), columns=columns)
+
+        return df
+
+    def load_queries(self) -> Generator[Tuple[str, str, str], None, None]:
+        with open('queries.toml', 'r') as f:
+            whole_queries = toml.load(f)
+
+        queries_by_product = whole_queries.values()
+        for item in queries_by_product:
+            product_name = item.pop('product_name')
+            for query_data in item.values():
+                metric_name = query_data['metric_name']
+                query = query_data['query']
+                yield (product_name, metric_name, query)
 
     def query_as_dataframe(self,
                            tz: datetime.timezone,
@@ -195,6 +241,7 @@ class CapacityPlanner(object):
         | ...
 
         """
+
         name = f"projects/{self._project_id}"
         query = self._clean_query(query)
         query += self._build_within_filter(end_time, duration_minutes)
@@ -209,40 +256,14 @@ class CapacityPlanner(object):
             raise QueryParsingError("Failed to parsing the query.")
         except ServiceUnavailable:
             raise ServiceUnavailable(
-                "Service unavailable error occured. Reauthentication may be needed. Please run `gcloud auth application-default login` to reauthenticate.")  # noqa: E501
+                "Service unavailable error occured. Reauthentication may be \
+                needed. Please run `gcloud auth application-default login` to \
+                reauthenticate.")
 
         if len(page_result._response.time_series_data) > 0:
             df = self._build_dataframe(page_result, tz=tz)
         else:
             df = None
-
-        return df
-
-    def find_peak(self, df: pd.DataFrame, product_name: str, metric_name: str
-                  ) -> pd.DataFrame:
-        """Find peak and its timestamp from the given dataframe.
-
-        Aiming to produce the final dataframe as shown below.
-
-        | product_name | region | country | ... | metric_name | value | time  |
-        | ------------ | ------ | ------- | --- | ----------- | ----- | ----- |
-        | L7XLB        | global | Japan   | ... | QPS         | 58.7  | 17:17 |
-        | L7XLB        | global | UK      | ... | QPS         | 23.5  | 17:18 |
-        | ...
-
-        """
-        column_names = [("product_name",)] \
-            + [('metrics', name) for name in df.columns.names] \
-            + [("metric_name",), ("value",), ("time",)]
-        columns = pd.MultiIndex.from_tuples(column_names)
-        rows = []
-        for column_name, column_data in df.items():
-            row = [product_name] \
-                + list(column_name) \
-                + [metric_name, column_data.max(), column_data.idxmax()]
-            rows.append(row)
-
-        df = pd.DataFrame(np.array(rows), columns=columns)
 
         return df
 
@@ -261,20 +282,30 @@ class QueryParsingError(InvalidArgument):
     help='GCP project ID where the Cloud Monitoring API is called against.')
 @click.option(
     '--end_time', required=False, type=click.DateTime(['%Y-%m-%dT%H:%M:%S%z']),
-    help='The end time in ISO 8601 format of the time interval for which \
-          results should be returned. Default is now. \
-          e.g. 2022-10-03T05:23:02+09:00')
+    help='The end time in ISO 8601 format of the time interval for which ' +
+         'results should be returned. Default is now. ' +
+         'e.g. 2022-10-03T05:23:02+09:00')
 @click.option(
     '--duration_minutes', required=False, type=int, default=360,
-    help='The number of minutes in the time interval ending at the time \
-          specified with --end_time. Default is 360 minutes (6 hours).')
+    help='The number of minutes in the time interval ending at the time ' +
+         'specified with --end_time. Default is 360 minutes (6 hours). ' +
+         'Maximum depends on the period for aligned table specified by ' +
+         '`every` in your queries, and duration_minutes / aligned_period ' +
+         'in every query must be less than or equal to 100000.')
 @click.option(
     '--output', required=False, type=click.Path(dir_okay=False, writable=True),
     default='logs/result.csv',
-    help='The CSV file path for writing the results out. \
-          Default is logs/result.csv')
+    help='The CSV file path for writing the results out. Default is ' +
+         'logs/result.csv')
 def main(project_id: str, end_time: datetime.datetime, duration_minutes: int,
          output: str):
+    """Capacity Planner CLI.
+
+    Capacity Planner CLI is a stand-alone tool to extract peak resource usage
+    values and corresponding timestamps for a given GCP project, time range and
+    timezone.
+    """
+
     client = CapacityPlanner(project_id)
 
     # Set `end_time` as now() if not specified
@@ -287,9 +318,9 @@ def main(project_id: str, end_time: datetime.datetime, duration_minutes: int,
     df = client.query_as_dataframe(
         tz=tz, end_time=end_time, duration_minutes=duration_minutes)
 
-    print(df)
+    logging.info("%s", df)
 
-    df.to_csv(output)
+    df.to_csv(output, index=False)
 
 
 if __name__ == '__main__':
