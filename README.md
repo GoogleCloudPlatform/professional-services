@@ -234,6 +234,8 @@ them to fit your particular use case.
     Terraform code to deploy Spanner change stream and publish changes to BigQuery using Dataflow Streaming Job.
 *   [Spinnaker](examples/spinnaker) - Example pipelines for a Canary /
     Production deployment process.
+*   [STS Metrics from STS Notification](examples/sts-metrics) - Example code to 
+    generate custom metrics from STS notification.
 *   [TensorFlow Serving on GKE and Load Testing](examples/tf-load-testing) -
     Examples how to implement Tensorflow model inference on GKE and to perform a
     load testing of such solution.
@@ -306,6 +308,9 @@ Platform usage.
     A tool to find the projects that do not set a boolean organization policy to
     its expected state, subsequently, set the organization policy to its
     expected set.
+*   [Capacity Planner CLI](tools/capacity-planner-cli) - A stand-alone tool to
+    extract peak resource usage values and corresponding timestamps for a given
+    GCP project, time range and timezone.
 *   [CloudConnect](tools/cloudconnect) - A package that automates the setup of
     dual VPN tunnels between AWS and GCP.
 *   [Cloudera Parcel GCS Connector](tools/cloudera-parcel-gcsconnector) - This
