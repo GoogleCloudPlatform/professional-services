@@ -308,6 +308,9 @@ Platform usage.
     A tool to find the projects that do not set a boolean organization policy to
     its expected state, subsequently, set the organization policy to its
     expected set.
+*   [Capacity Planner CLI](tools/capacity-planner-cli) - A stand-alone tool to
+    extract peak resource usage values and corresponding timestamps for a given
+    GCP project, time range and timezone.
 *   [CloudConnect](tools/cloudconnect) - A package that automates the setup of
     dual VPN tunnels between AWS and GCP.
 *   [Cloudera Parcel GCS Connector](tools/cloudera-parcel-gcsconnector) - This
