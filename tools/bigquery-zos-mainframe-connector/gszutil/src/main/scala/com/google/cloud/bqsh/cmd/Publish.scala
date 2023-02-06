@@ -30,7 +30,7 @@ object Publish extends Command[PublishConfig] with Logging {
   override val parser: ArgParser[PublishConfig] = PublishOptionParser
 
   override def run(config: PublishConfig, zos: MVS, env: Map[String, String]): Result = {
-    val pubsub = Services.pubsub(Services.pubsubCredentials())
+    val pubsub = Services.pubsub(zos.getCredentialProvider().getCredentials)
 
     val messageBytes: Array[Byte] =
       if (config.messageDsn.nonEmpty)

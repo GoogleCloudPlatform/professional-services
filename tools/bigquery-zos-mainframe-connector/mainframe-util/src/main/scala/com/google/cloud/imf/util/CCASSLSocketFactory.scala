@@ -2,18 +2,20 @@ package com.google.cloud.imf.util
 
 import java.net.{InetAddress, Socket}
 import java.security.SecureRandom
-
 import com.google.api.client.googleapis.GoogleUtils
 import com.google.api.client.util.SslUtils
-import javax.net.ssl.{SSLContext, SSLSocket, SSLSocketFactory}
-import org.apache.http.conn.ssl.SSLConnectionSocketFactory
 
-/** Disables ciphers not supported by IBM Crypto Cards */
+import javax.net.ssl.{SSLContext, SSLSocket, SSLSocketFactory}
+import org.apache.http.conn.ssl.{DefaultHostnameVerifier, SSLConnectionSocketFactory}
+
+/** Disables ciphers not supported by IBM Crypto Cards
+ *  trust store is loaded from google.p12 in google-api-client
+ */
 object CCASSLSocketFactory extends SSLSocketFactory {
 
   def create: SSLConnectionSocketFactory = {
      new SSLConnectionSocketFactory(this,
-      Protocols, Ciphers, Option[javax.net.ssl.HostnameVerifier](null).orNull)
+      Protocols, Ciphers, new DefaultHostnameVerifier)
   }
 
   final val TLS_1_2 = "TLSv1.2"
