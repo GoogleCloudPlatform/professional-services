@@ -49,23 +49,10 @@ For more details - [Public Documentation](https://cloud.google.com/carbon-footpr
 
 ## 3. Create Looker Studio Dashboard from Template
 1. Create a copy of [this template](https://datastudio.google.com/c/u/0/reporting/692bfa14-986c-4b8e-9610-62dc7fa2c479) by selecting File -> Make a copy.
-![1_Make_Copy](images/1_make_copy.png)
 2. Select the data source pointing to the `carbon_footprint` table in your project.
-![2_select_datasource](images/2_select_datasource.png)
 3. If you don't have the data source, select "Create data source"
-![3_create_datasource](images/3_create_datasource.png)
 4. Select the BigQuery Connector
-![4_connect_bq](images/4_connect_bq.png)
 5. Select the GCP Project, BigQuery Dataset and the `carbon_footprint` table. Click on Connect.
-![5_select_bq_table](images/5_select_bq_table.png)
 6. This will display all the fields from the table. Now click on “Add to Report”.
-![6_add_to_report](images/6_add_to_report.png)
 7. Now that the datasource is selected, select "Copy Report" to create a copy of the existing template with the new data source that was selected. This will open the report in a new tab.
-![7_copy_report](images/7_copy_report.png)
 8. Your report is now ready. You can publish this report or make changes for further customization.
-
-
-
-
-
-
