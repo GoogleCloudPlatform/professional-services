@@ -56,3 +56,7 @@ For more details - [Public Documentation](https://cloud.google.com/carbon-footpr
 6. This will display all the fields from the table. Now click on “Add to Report”.
 7. Now that the datasource is selected, select "Copy Report" to create a copy of the existing template with the new data source that was selected. This will open the report in a new tab.
 8. Your report is now ready. You can publish this report or make changes for further customization.
+
+# Carbon Footprint Dashboard using Looker Reporting
+
+You can also use the available [Carbon footprint dashboard](https://marketplace.looker.com/marketplace/detail/carbon) by installing the block from Looker Marketplace.
