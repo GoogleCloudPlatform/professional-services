@@ -78,6 +78,8 @@ them to fit your particular use case.
     BigQuery Snowflake Table Migration Tool helps to migrate the table DDL's from Snowflake to BigQuery.
     The utility leverages BigQuery Translation API and offers additional features
     such as adding partitioning, clustering, metadata columns and prefixes to table names.
+*   [Carbon Footprint Reporting](examples/carbon-foortprint-dashboard) - Example of 
+    using the prebuilt data studio template for analysing GCP Carbon Footprint Estimates.
 *   [Cloud Build with Proxy Running in Background](examples/cloudbuild-with-tcp-proxy) -
     Examples of cloudbuild with docker-compose running tcp proxy in the
     background for all build steps.
