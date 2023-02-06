@@ -1,6 +1,9 @@
-# Carbon Footprint Dashboard using Looker Studio
+# Carbon Footprint Dashboard
+This example shows how to use the prebuilt templates for Carbon Footprint Estimates and create your own Carbon Footprint Dashboard by connecting to carbon reporting exports from BigQuery.
 
-This example shows how to use the prebuild data studio template for Carbon Footprint Estimates and create your own Carbon Footprint Dashboard by connecting to carbon reporting exports from BigQuery. Users can use this dashboard as-is, or use them as a starting point for more complex  visualizations.
+# Using Looker Studio
+
+Users can use this Data Studio dashboard as-is, or use them as a starting point for more complex  visualizations.
 
 [This dashboard template](https://datastudio.google.com/c/u/0/reporting/692bfa14-986c-4b8e-9610-62dc7fa2c479) has the following information:
 Carbon Footprint Estimates in tCO₂e
@@ -57,6 +60,6 @@ For more details - [Public Documentation](https://cloud.google.com/carbon-footpr
 7. Now that the datasource is selected, select "Copy Report" to create a copy of the existing template with the new data source that was selected. This will open the report in a new tab.
 8. Your report is now ready. You can publish this report or make changes for further customization.
 
-# Carbon Footprint Dashboard using Looker Reporting
+# Using Looker Reporting
 
 You can also use the available [Carbon footprint dashboard](https://marketplace.looker.com/marketplace/detail/carbon) by installing the block from Looker Marketplace.
