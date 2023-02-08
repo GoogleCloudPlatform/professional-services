@@ -1,6 +1,6 @@
 # gcp-dataproc-running-notebooks
 ## Objective
-Orchestrating the workflow of running Jupyter Notebooks on a Dataproc cluser via PySpark job 
+Orchestrating the workflow of running Jupyter Notebooks on a Dataproc cluster via PySpark job 
 
 ## File Directory Structure
     ├── composer_input                   
