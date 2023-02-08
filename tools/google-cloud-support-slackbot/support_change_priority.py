@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Copyright 2022 Google LLC
+# Copyright 2023 Google LLC
 
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -27,66 +27,66 @@ logger = logging.getLogger(__name__)
 
 
 def support_change_priority(channel_id, case, priority, user_id):
-    """
+  """
     Changes the priority of a Google Cloud Support case.
 
     Parameters
     ----------
     channel_id : str
-        unique string used to idenify a Slack channel. Used to send messages to the channel
+      unique string used to idenify a Slack channel. Used to send messages to
+      the channel
     case : str
-        unique id of the case
+      unique id of the case
     priority : str
-        the current priority of the case, represented as S0, S1, S2, S3, or S4
+      the current priority of the case, represented as S0, S1, S2, S3, or S4
     user_id : str
-        the Slack user_id of the user who submitted the request. Used to send ephemeral
-        messages to the user
+      the Slack user_id of the user who submitted the request. Used to send
+      ephemeral messages to the user
     """
-    API_KEY = os.environ.get('API_KEY')
-    MAX_RETRIES = 3
+  API_KEY = os.environ.get("API_KEY")
+  MAX_RETRIES = 3
 
-    # Get our discovery doc and build our service
-    r = requests.get('https://cloudsupport.googleapis.com/$discovery/rest'
-                     '?key={}&labels=V2_TRUSTED_TESTER&version=v2beta'.format(API_KEY))
-    r.raise_for_status()
-    support_service = build_from_document(r.json())
+  # Get our discovery doc and build our service
+  r = requests.get(
+      f"https://cloudsupport.googleapis.com/$discovery/rest?key={API_KEY}&labels=V2_TRUSTED_TESTER&version=v2beta",
+      timeout=5)
+  r.raise_for_status()
+  support_service = build_from_document(r.json())
 
-    client = slack.WebClient(token=os.environ.get('SLACK_TOKEN'))
-    client.chat_postEphemeral(
-        channel=channel_id,
-        user=user_id,
-        text="Your request is processing ...")
-    parent = get_parent(case)
-    if parent == 'Case not found':
-        case_not_found(channel_id, user_id, case)
+  client = slack.WebClient(token=os.environ.get("SLACK_TOKEN"))
+  client.chat_postEphemeral(channel=channel_id,
+                            user=user_id,
+                            text="Your request is processing ...")
+  parent = get_parent(case)
+  if parent == "Case not found":
+    case_not_found(channel_id, user_id, case)
+  else:
+    body = {"severity": priority.replace("P", "S")}
+    update_mask = "case.severity"
+    req = support_service.cases().patch(name=parent,
+                                        updateMask=update_mask,
+                                        body=body)
+    try:
+      req.execute(num_retries=MAX_RETRIES)
+    except BrokenPipeError as e:
+      error_message = f"{e} : {datetime.now()}"
+      logger.error(error_message)
+      client.chat_postEphemeral(
+          channel=channel_id,
+          user=user_id,
+          text="Your attempt to change the case priority has failed."
+          " Please try again later.")
     else:
-        body = {
-                "severity": priority.replace("P", "S")
-                }
-        update_mask = "case.severity"
-        req = support_service.cases().patch(name=parent, updateMask=update_mask, body=body)
-        try:
-            req.execute(num_retries=MAX_RETRIES)
-        except BrokenPipeError as e:
-            error_message = str(e) + ' : {}'.format(datetime.now())
-            logger.error(error_message)
-            client.chat_postEphemeral(
-                channel=channel_id,
-                user=user_id,
-                text="Your attempt to change the case priority has failed."
-                     " Please try again later.")
-        else:
-            client.chat_postEphemeral(
-                channel=channel_id,
-                user=user_id,
-                text=f"You have changed the priority of case {case} to {priority}")
+      client.chat_postEphemeral(
+          channel=channel_id,
+          user=user_id,
+          text=f"You have changed the priority of case {case} to {priority}")
 
 
 if __name__ == "__main__":
-    channel_id = os.environ.get('TEST_CHANNEL_ID')
-    case = 'xxxxxxxx'
-    priority = "S3"
-    user_id = os.environ.get('TEST_USER_ID')
-    support_change_priority(channel_id, case, priority, user_id)
-    case = os.environ.get('TEST_CASE')
-    support_change_priority(channel_id, case, priority, user_id)
+  test_channel_id = os.environ.get("TEST_CHANNEL_ID")
+  test_case = os.environ.get("TEST_CASE")
+  test_priority = "S3"
+  test_user_id = os.environ.get("TEST_USER_ID")
+  support_change_priority(test_channel_id, test_case, test_priority,
+                          test_user_id)

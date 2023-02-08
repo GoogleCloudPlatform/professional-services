@@ -16,6 +16,10 @@ The app currently supports the following commands:
 * /google-cloud-support list-tracked-cases-all -- lists all cases being tracked in the workspace
 * /google-cloud-support case-details [case_number] -- pull all of the case data as json
 * /google-cloud-support sitrep -- report of all active cases in the org
+* /google-cloud-support auto-subscribe [asset type] [asset name] [email 1] ... [email n] -- creates a subscription to a specific asset that will automatically add the provided emails as CC on any new cases under the asset. Asset type must one of the following values: organizations, folders, projects
+* /google-cloud-support edit-auto-subscribe [asset type] [asset name] [email 1] ... [email n] -- edits an existing asset subscription with the provided emails. Warning: this will overwrite the existing emails in the subscription. Asset type must one of the following values: organizations, folders, projects
+* /google-cloud-support stop-auto-subscribe [asset type] [asset name] -- deletes an existing asset subscription. Asset type must one of the following values: organizations, folders, projects
+* /google-cloud-support list-auto-subscriptions-all -- lists all the subscriptions being in the current channel
 
 **If you encounter any issues with this application's operations or setup, please file your issue here on GitHub or ping a member of your account team for assistance. This application is not supported by the Google Cloud Support team.**
 
@@ -100,7 +104,7 @@ gcloud artifacts repositories create google-cloud-support-slackbot \
     --location=us-central1 \
     --description="Docker images for the Google Cloud Support Slackbot";
 gcloud app create --region=us-central;
-gcloud alpha firestore databases create --region=us-central;
+gcloud firestore databases create --region=us-central;
 docker pull thelancelord/google-cloud-support-slackbot:2.0;
 docker tag thelancelord/google-cloud-support-slackbot:2.0 us-central1-docker.pkg.dev/$DEVSHELL_PROJECT_ID/google-cloud-support-slackbot/google-cloud-support-slackbot:2.0;
 docker push us-central1-docker.pkg.dev/$DEVSHELL_PROJECT_ID/google-cloud-support-slackbot/google-cloud-support-slackbot:2.0;
