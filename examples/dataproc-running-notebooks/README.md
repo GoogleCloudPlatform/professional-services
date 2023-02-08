@@ -69,9 +69,12 @@ e. Open Airflow UI to monitor DAG executions, Runs and logs
 ![image](https://user-images.githubusercontent.com/123537947/215648916-811a8331-b61a-45a5-8f5a-b61f3fd4fdd0.png)
 
 ## II) Running a Jupyter notebook on a Dataproc cluster
+(Notes: utilize [initialization script](composer_input/initialization_scripts) from this repository for python packages installation and GCS bucket mount)
+
 Refer to this [GCP tutorial](https://cloud.google.com/dataproc/docs/tutorials/jupyter-notebook) to 
-* install the Dataproc Jupyter and Anaconda components on a new cluster (utilize initialization script from this repository)
+* install the Dataproc Jupyter component on a new cluster 
 * connect to the Jupyter notebook UI running on the cluster from your local browser using the [Dataproc Component Gateway](https://cloud.google.com/dataproc/docs/concepts/accessing/dataproc-gateways)
+
 
 ## Closing Note
 If you're adapting this example for your own use consider the following:
