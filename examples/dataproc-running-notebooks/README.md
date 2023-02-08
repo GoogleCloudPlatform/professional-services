@@ -1,4 +1,4 @@
-# gcp-dataproc-running-notebooks
+# Dataproc Running Notebooks
 ## Objective
 Orchestrating the workflow of running Jupyter Notebooks on a Dataproc cluster via PySpark job 
 
