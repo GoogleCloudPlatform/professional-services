@@ -74,6 +74,10 @@ them to fit your particular use case.
     Oracle DDL Migration Utility to migrate the tables schema (DDL) from Oracle DB to BigQuery.
     The utility leverages BigQuery Translation API and offers additional features
     such as adding partitioning, clustering, metadata columns and prefixes to table names.
+*   [BigQuery Snowflake Table Migration Tool](examples/bigquery-snowflake-tables-migration-utility) - 
+    BigQuery Snowflake Table Migration Tool helps to migrate the table DDL's from Snowflake to BigQuery.
+    The utility leverages BigQuery Translation API and offers additional features
+    such as adding partitioning, clustering, metadata columns and prefixes to table names.
 *   [Cloud Build with Proxy Running in Background](examples/cloudbuild-with-tcp-proxy) -
     Examples of cloudbuild with docker-compose running tcp proxy in the
     background for all build steps.
@@ -211,6 +215,10 @@ them to fit your particular use case.
     three notebooks to demonstrate the usage of Kubeflow Faring to train machine
     learning jobs (Scikit-Learn, XGBoost, Tensorflow) locally or in the Cloud
     (AI platform training or Kubeflow cluster).
+*   [Left-Shift Validation Pre-Commit Hook](examples/left-shift-validation-pre-commit-hook/) -
+    An example that uses a set of Bash scripts to set up a pre-commit hook that
+    validates Kubernetes resources with Gatekeeper constraints and constraint
+    templates from your choice of sources.
 *   [Python CI/CD with Cloud Builder and CSR](examples/python-cicd-with-cloudbuilder) -
     Example that uses Cloud Builder and Cloud Source Repositories to automate
     testing and linting.
@@ -222,8 +230,12 @@ them to fit your particular use case.
     cluster on GKE.
 *   [Spanner Interleave Subquery](examples/spanner-interleave-subquery) -
     Example code to benchmark Cloud Spanner's subqueries for interleaved tables.
+* [Spanner Change Stream to BigQuery using Dataflow](examples/spanner-changestreams-bigquery) - 
+    Terraform code to deploy Spanner change stream and publish changes to BigQuery using Dataflow Streaming Job.
 *   [Spinnaker](examples/spinnaker) - Example pipelines for a Canary /
     Production deployment process.
+*   [STS Metrics from STS Notification](examples/sts-metrics) - Example code to 
+    generate custom metrics from STS notification.
 *   [TensorFlow Serving on GKE and Load Testing](examples/tf-load-testing) -
     Examples how to implement Tensorflow model inference on GKE and to perform a
     load testing of such solution.
@@ -231,11 +243,18 @@ them to fit your particular use case.
     to write unit tests for TensorFlow ML models.
 *   [Terraform Internal HTTP Load Balancer](examples/terraform-ilb) - Terraform
     example showing how to deploy an internal HTTP load balancer.
+*   [Terraform Resource Change Policy Library](examples/terraform-resource-change-policy-library) -
+    Contains a library of policies written in the
+    [OPA Constraint Framework](https://github.com/open-policy-agent/frameworks/blob/master/constraint/README.md)
+    format to be used by `gcloud beta terraform vet` to validate Terraform resource
+    changes in a CI/CD pipeline.
 *   [Uploading files directly to Google Cloud Storage by using Signed URL](examples/direct-upload-to-gcs) -
     Example architecture to enable uploading files directly to GCS by using
     [Signed URL](https://cloud.google.com/storage/docs/access-control/signed-urls).
 *   [Terraform NetApp CVS](examples/tf-netapp-cvs) - This example shows how to
     deploy NetApp CVS volumes using terraform.
+*   [TSOP object transfer Log prosessor](examples/tsop-log-processor/) - This example shows
+    how to log object transfer logs by TSOP to Cloud Logging.
 *   [Vertex AI MLOps Pipeline](examples/vertex_pipeline) - Demonstrates
     end-to-end MLOps process using Vertex AI platform and Smart Analytics
     technology capabilities.
@@ -289,6 +308,9 @@ Platform usage.
     A tool to find the projects that do not set a boolean organization policy to
     its expected state, subsequently, set the organization policy to its
     expected set.
+*   [Capacity Planner CLI](tools/capacity-planner-cli) - A stand-alone tool to
+    extract peak resource usage values and corresponding timestamps for a given
+    GCP project, time range and timezone.
 *   [CloudConnect](tools/cloudconnect) - A package that automates the setup of
     dual VPN tunnels between AWS and GCP.
 *   [Cloudera Parcel GCS Connector](tools/cloudera-parcel-gcsconnector) - This
@@ -413,6 +435,9 @@ Platform usage.
     or GCS objects.
 *   [Quota Manager](tools/quota-manager) - A python module to programmatically
     update GCP service quotas such as bigquery.googleapis.com.
+*   [Ranger Hive Assessment for BigQuery/BigLake IAM migration](tools/ranger-to-bigquery-biglake-assessment) - 
+    A tool that assesses which Ranger authorization rules can be migrated 
+    or not to BigQuery/BigLake IAM.
 *   [Secret Manager Helper](tools/secret-manager-helper) - A Java library to
     make it easy to replace placeholder strings with Secret Manager secret
     payloads.
@@ -463,6 +488,7 @@ Platform usage.
     line tool for converting an XSD schema representing deeply nested and
     repeated XML content into a BigQuery compatible table schema represented in
     JSON.
+*   [Numeric Family Recommender - Oracle](tools/numeric-family-recommender-oracle) - The Numeric Family Recommender is a database script that recommends the best numeric data type for the NUMBER data type when migrating from legacy databases like Oracle to Google Cloud platforms like BigQuery, AlloyDB, Cloud SQL for PostgreSQL, and Google Cloud Storage.
 
 ## Contributing
 

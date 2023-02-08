@@ -1,0 +1,580 @@
+[
+  {
+    "mode": "NULLABLE",
+    "name": "isEnabled",
+    "type": "BOOLEAN"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "guid",
+    "type": "STRING"
+  },
+  {
+    "fields": [
+      {
+        "mode": "REPEATED",
+        "name": "recurrences",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "timeZone",
+        "type": "STRING"
+      },
+      {
+        "description": "bq-datetime",
+        "mode": "NULLABLE",
+        "name": "endTime",
+        "type": "TIMESTAMP"
+      },
+      {
+        "description": "bq-datetime",
+        "mode": "NULLABLE",
+        "name": "startTime",
+        "type": "TIMESTAMP"
+      }
+    ],
+    "mode": "REPEATED",
+    "name": "validitySchedules",
+    "type": "RECORD"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "id",
+    "type": "INTEGER"
+  },
+  {
+    "fields": [
+      {
+        "fields": [
+          {
+            "mode": "NULLABLE",
+            "name": "isAllowed",
+            "type": "BOOLEAN"
+          },
+          {
+            "mode": "NULLABLE",
+            "name": "type",
+            "type": "STRING"
+          }
+        ],
+        "mode": "REPEATED",
+        "name": "accesses",
+        "type": "RECORD"
+      },
+      {
+        "mode": "REPEATED",
+        "name": "conditions",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "delegateAdmin",
+        "type": "BOOLEAN"
+      },
+      {
+        "mode": "REPEATED",
+        "name": "groups",
+        "type": "STRING"
+      },
+      {
+        "mode": "REPEATED",
+        "name": "users",
+        "type": "STRING"
+      },
+      {
+        "mode": "REPEATED",
+        "name": "roles",
+        "type": "STRING"
+      },
+      {
+        "fields": [
+          {
+            "mode": "NULLABLE",
+            "name": "conditionExpr",
+            "type": "STRING"
+          },
+          {
+            "mode": "NULLABLE",
+            "name": "valueExpr",
+            "type": "STRING"
+          },
+          {
+            "mode": "NULLABLE",
+            "name": "dataMaskType",
+            "type": "STRING"
+          }
+        ],
+        "mode": "NULLABLE",
+        "name": "dataMaskInfo",
+        "type": "RECORD"
+      }
+    ],
+    "mode": "REPEATED",
+    "name": "dataMaskPolicyItems",
+    "type": "RECORD"
+  },
+  {
+    "fields": [
+      {
+        "mode": "REPEATED",
+        "name": "roles",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "delegateAdmin",
+        "type": "BOOLEAN"
+      },
+      {
+        "mode": "REPEATED",
+        "name": "groups",
+        "type": "STRING"
+      },
+      {
+        "mode": "REPEATED",
+        "name": "users",
+        "type": "STRING"
+      },
+      {
+        "mode": "REPEATED",
+        "name": "conditions",
+        "type": "STRING"
+      },
+      {
+        "fields": [
+          {
+            "mode": "NULLABLE",
+            "name": "isAllowed",
+            "type": "BOOLEAN"
+          },
+          {
+            "mode": "NULLABLE",
+            "name": "type",
+            "type": "STRING"
+          }
+        ],
+        "mode": "REPEATED",
+        "name": "accesses",
+        "type": "RECORD"
+      },
+      {
+        "fields": [
+          {
+            "mode": "NULLABLE",
+            "name": "filterExpr",
+            "type": "STRING"
+          }
+        ],
+        "mode": "NULLABLE",
+        "name": "rowFilterInfo",
+        "type": "RECORD"
+      }
+    ],
+    "mode": "REPEATED",
+    "name": "rowFilterPolicyItems",
+    "type": "RECORD"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "name",
+    "type": "STRING"
+  },
+  {
+    "fields": [
+      {
+        "mode": "NULLABLE",
+        "name": "delegateAdmin",
+        "type": "BOOLEAN"
+      },
+      {
+        "mode": "REPEATED",
+        "name": "groups",
+        "type": "STRING"
+      },
+      {
+        "mode": "REPEATED",
+        "name": "users",
+        "type": "STRING"
+      },
+      {
+        "mode": "REPEATED",
+        "name": "conditions",
+        "type": "STRING"
+      },
+      {
+        "mode": "REPEATED",
+        "name": "roles",
+        "type": "STRING"
+      },
+      {
+        "fields": [
+          {
+            "mode": "NULLABLE",
+            "name": "isAllowed",
+            "type": "BOOLEAN"
+          },
+          {
+            "mode": "NULLABLE",
+            "name": "type",
+            "type": "STRING"
+          }
+        ],
+        "mode": "REPEATED",
+        "name": "accesses",
+        "type": "RECORD"
+      }
+    ],
+    "mode": "REPEATED",
+    "name": "allowExceptions",
+    "type": "RECORD"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "isAuditEnabled",
+    "type": "BOOLEAN"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "isDenyAllElse",
+    "type": "BOOLEAN"
+  },
+  {
+    "fields": [
+      {
+        "mode": "NULLABLE",
+        "name": "delegateAdmin",
+        "type": "BOOLEAN"
+      },
+      {
+        "mode": "REPEATED",
+        "name": "conditions",
+        "type": "STRING"
+      },
+      {
+        "mode": "REPEATED",
+        "name": "groups",
+        "type": "STRING"
+      },
+      {
+        "mode": "REPEATED",
+        "name": "users",
+        "type": "STRING"
+      },
+      {
+        "mode": "REPEATED",
+        "name": "roles",
+        "type": "STRING"
+      },
+      {
+        "fields": [
+          {
+            "mode": "NULLABLE",
+            "name": "isAllowed",
+            "type": "BOOLEAN"
+          },
+          {
+            "mode": "NULLABLE",
+            "name": "type",
+            "type": "STRING"
+          }
+        ],
+        "mode": "REPEATED",
+        "name": "accesses",
+        "type": "RECORD"
+      }
+    ],
+    "mode": "REPEATED",
+    "name": "denyPolicyItems",
+    "type": "RECORD"
+  },
+  {
+    "fields": [
+      {
+        "mode": "NULLABLE",
+        "name": "a",
+        "type": "STRING"
+      }
+    ],
+    "mode": "NULLABLE",
+    "name": "options",
+    "type": "RECORD"
+  },
+  {
+    "fields": [
+      {
+        "mode": "NULLABLE",
+        "name": "delegateAdmin",
+        "type": "BOOLEAN"
+      },
+      {
+        "mode": "REPEATED",
+        "name": "conditions",
+        "type": "STRING"
+      },
+      {
+        "mode": "REPEATED",
+        "name": "groups",
+        "type": "STRING"
+      },
+      {
+        "mode": "REPEATED",
+        "name": "users",
+        "type": "STRING"
+      },
+      {
+        "mode": "REPEATED",
+        "name": "roles",
+        "type": "STRING"
+      },
+      {
+        "fields": [
+          {
+            "mode": "NULLABLE",
+            "name": "isAllowed",
+            "type": "BOOLEAN"
+          },
+          {
+            "mode": "NULLABLE",
+            "name": "type",
+            "type": "STRING"
+          }
+        ],
+        "mode": "REPEATED",
+        "name": "accesses",
+        "type": "RECORD"
+      }
+    ],
+    "mode": "REPEATED",
+    "name": "policyItems",
+    "type": "RECORD"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "description",
+    "type": "STRING"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "policyType",
+    "type": "INTEGER"
+  },
+  {
+    "mode": "REPEATED",
+    "name": "policyLabels",
+    "type": "STRING"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "policyPriority",
+    "type": "INTEGER"
+  },
+  {
+    "fields": [
+      {
+        "fields": [
+          {
+            "mode": "NULLABLE",
+            "name": "isRecursive",
+            "type": "BOOLEAN"
+          },
+          {
+            "mode": "NULLABLE",
+            "name": "isExcludes",
+            "type": "BOOLEAN"
+          },
+          {
+            "mode": "REPEATED",
+            "name": "values",
+            "type": "STRING"
+          }
+        ],
+        "mode": "NULLABLE",
+        "name": "column",
+        "type": "RECORD"
+      },
+      {
+        "fields": [
+          {
+            "mode": "NULLABLE",
+            "name": "isRecursive",
+            "type": "BOOLEAN"
+          },
+          {
+            "mode": "NULLABLE",
+            "name": "isExcludes",
+            "type": "BOOLEAN"
+          },
+          {
+            "mode": "REPEATED",
+            "name": "values",
+            "type": "STRING"
+          }
+        ],
+        "mode": "NULLABLE",
+        "name": "hiveservice",
+        "type": "RECORD"
+      },
+      {
+        "fields": [
+          {
+            "mode": "NULLABLE",
+            "name": "isRecursive",
+            "type": "BOOLEAN"
+          },
+          {
+            "mode": "NULLABLE",
+            "name": "isExcludes",
+            "type": "BOOLEAN"
+          },
+          {
+            "mode": "REPEATED",
+            "name": "values",
+            "type": "STRING"
+          }
+        ],
+        "mode": "NULLABLE",
+        "name": "udf",
+        "type": "RECORD"
+      },
+      {
+        "fields": [
+          {
+            "mode": "NULLABLE",
+            "name": "isRecursive",
+            "type": "BOOLEAN"
+          },
+          {
+            "mode": "NULLABLE",
+            "name": "isExcludes",
+            "type": "BOOLEAN"
+          },
+          {
+            "mode": "REPEATED",
+            "name": "values",
+            "type": "STRING"
+          }
+        ],
+        "mode": "NULLABLE",
+        "name": "database",
+        "type": "RECORD"
+      },
+      {
+        "fields": [
+          {
+            "mode": "NULLABLE",
+            "name": "isRecursive",
+            "type": "BOOLEAN"
+          },
+          {
+            "mode": "NULLABLE",
+            "name": "isExcludes",
+            "type": "BOOLEAN"
+          },
+          {
+            "mode": "REPEATED",
+            "name": "values",
+            "type": "STRING"
+          }
+        ],
+        "mode": "NULLABLE",
+        "name": "table",
+        "type": "RECORD"
+      },
+      {
+        "fields": [
+          {
+            "mode": "NULLABLE",
+            "name": "isRecursive",
+            "type": "BOOLEAN"
+          },
+          {
+            "mode": "NULLABLE",
+            "name": "isExcludes",
+            "type": "BOOLEAN"
+          },
+          {
+            "mode": "REPEATED",
+            "name": "values",
+            "type": "STRING"
+          }
+        ],
+        "mode": "NULLABLE",
+        "name": "url",
+        "type": "RECORD"
+      }
+    ],
+    "mode": "NULLABLE",
+    "name": "resources",
+    "type": "RECORD"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "version",
+    "type": "INTEGER"
+  },
+  {
+    "fields": [
+      {
+        "mode": "NULLABLE",
+        "name": "delegateAdmin",
+        "type": "BOOLEAN"
+      },
+      {
+        "mode": "REPEATED",
+        "name": "groups",
+        "type": "STRING"
+      },
+      {
+        "mode": "REPEATED",
+        "name": "users",
+        "type": "STRING"
+      },
+      {
+        "mode": "REPEATED",
+        "name": "conditions",
+        "type": "STRING"
+      },
+      {
+        "mode": "REPEATED",
+        "name": "roles",
+        "type": "STRING"
+      },
+      {
+        "fields": [
+          {
+            "mode": "NULLABLE",
+            "name": "isAllowed",
+            "type": "BOOLEAN"
+          },
+          {
+            "mode": "NULLABLE",
+            "name": "type",
+            "type": "STRING"
+          }
+        ],
+        "mode": "REPEATED",
+        "name": "accesses",
+        "type": "RECORD"
+      }
+    ],
+    "mode": "REPEATED",
+    "name": "denyExceptions",
+    "type": "RECORD"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "service",
+    "type": "STRING"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "serviceType",
+    "type": "STRING"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "zoneName",
+    "type": "STRING"
+  }
+]
