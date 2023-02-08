@@ -237,6 +237,8 @@ them to fit your particular use case.
     Terraform code to deploy Spanner change stream and publish changes to BigQuery using Dataflow Streaming Job.
 *   [Spinnaker](examples/spinnaker) - Example pipelines for a Canary /
     Production deployment process.
+*   [STS Metrics from STS Notification](examples/sts-metrics) - Example code to 
+    generate custom metrics from STS notification.
 *   [TensorFlow Serving on GKE and Load Testing](examples/tf-load-testing) -
     Examples how to implement Tensorflow model inference on GKE and to perform a
     load testing of such solution.
@@ -254,6 +256,8 @@ them to fit your particular use case.
     [Signed URL](https://cloud.google.com/storage/docs/access-control/signed-urls).
 *   [Terraform NetApp CVS](examples/tf-netapp-cvs) - This example shows how to
     deploy NetApp CVS volumes using terraform.
+*   [TSOP object transfer Log prosessor](examples/tsop-log-processor/) - This example shows
+    how to log object transfer logs by TSOP to Cloud Logging.
 *   [Vertex AI MLOps Pipeline](examples/vertex_pipeline) - Demonstrates
     end-to-end MLOps process using Vertex AI platform and Smart Analytics
     technology capabilities.
@@ -307,6 +311,9 @@ Platform usage.
     A tool to find the projects that do not set a boolean organization policy to
     its expected state, subsequently, set the organization policy to its
     expected set.
+*   [Capacity Planner CLI](tools/capacity-planner-cli) - A stand-alone tool to
+    extract peak resource usage values and corresponding timestamps for a given
+    GCP project, time range and timezone.
 *   [CloudConnect](tools/cloudconnect) - A package that automates the setup of
     dual VPN tunnels between AWS and GCP.
 *   [Cloudera Parcel GCS Connector](tools/cloudera-parcel-gcsconnector) - This
@@ -431,6 +438,9 @@ Platform usage.
     or GCS objects.
 *   [Quota Manager](tools/quota-manager) - A python module to programmatically
     update GCP service quotas such as bigquery.googleapis.com.
+*   [Ranger Hive Assessment for BigQuery/BigLake IAM migration](tools/ranger-to-bigquery-biglake-assessment) - 
+    A tool that assesses which Ranger authorization rules can be migrated 
+    or not to BigQuery/BigLake IAM.
 *   [Secret Manager Helper](tools/secret-manager-helper) - A Java library to
     make it easy to replace placeholder strings with Secret Manager secret
     payloads.
@@ -481,6 +491,7 @@ Platform usage.
     line tool for converting an XSD schema representing deeply nested and
     repeated XML content into a BigQuery compatible table schema represented in
     JSON.
+*   [Numeric Family Recommender - Oracle](tools/numeric-family-recommender-oracle) - The Numeric Family Recommender is a database script that recommends the best numeric data type for the NUMBER data type when migrating from legacy databases like Oracle to Google Cloud platforms like BigQuery, AlloyDB, Cloud SQL for PostgreSQL, and Google Cloud Storage.
 
 ## Contributing
 
