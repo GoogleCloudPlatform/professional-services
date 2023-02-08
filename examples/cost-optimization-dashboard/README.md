@@ -181,4 +181,4 @@ For each of the above data sources
 
 
 ## References and support
-* For feedback and support reach out to your TAM or gcp-co-dashboard@google.com
+* For feedback and support reach out to your TAM

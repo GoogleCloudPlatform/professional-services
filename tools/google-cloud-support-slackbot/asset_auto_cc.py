@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 
+<<<<<<< HEAD
 # Copyright 2023 Google LLC
+=======
+# Copyright 2022 Google LLC
+>>>>>>> 3f8e941d9faa2a643d8a4888f160192fe4f0ff0b
 
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -77,12 +81,17 @@ def asset_auto_cc(channel_id, channel_name, asset_type, asset_id, user_id,
     client.chat_postEphemeral(
         channel=channel_id,
         user=user_id,
+<<<<<<< HEAD
         text=(f"The {asset_type[:-1]} {asset_id} is already being tracked in"
               f" {channel_name}. Consider updating the pre-existing CC list"
               " using the following command: \n"
               f"/google-cloud-support edit-auto-subscribe {asset_type}"
               f" {asset_id}"
               " [email 1] ... [email n]"))
+=======
+        text=(f"The {asset_id[:-1]} {asset_id} is already being tracked in"
+              f" {channel_name}. Consider updating the pre-existing CC list."))
+>>>>>>> 3f8e941d9faa2a643d8a4888f160192fe4f0ff0b
   else:
     collection = f"tracked_assets/{channel_id}/{asset_type}"
 
@@ -98,7 +107,11 @@ def asset_auto_cc(channel_id, channel_name, asset_type, asset_id, user_id,
 
     client.chat_postMessage(
         channel=channel_id,
+<<<<<<< HEAD
         text=(f"{channel_name} is now tracking the {asset_type[:-1]} {asset_id}"
+=======
+        text=(f"{channel_name} is now tracking the {asset_type} {asset_id[:-1]}"
+>>>>>>> 3f8e941d9faa2a643d8a4888f160192fe4f0ff0b
               f" to auto CC {cc_list}."))
 
 

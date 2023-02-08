@@ -71,10 +71,17 @@ tracked_cases = get_firestore_tracked_cases()
 
 
 # Handle all calls to the support bot
+<<<<<<< HEAD
 @app.route("/", methods=["POST"])
 def gcp_support() -> Response:
   """
     Takes a user's slash command from Slack and executes it. Multiprocessing
+=======
+@app.route("/google-cloud-support", methods=["POST"])
+def gcp_support() -> Response:
+  """
+    Takes a user"s slash command from Slack and executes it. Multiprocessing
+>>>>>>> 3f8e941d9faa2a643d8a4888f160192fe4f0ff0b
     is used on commands that modify the case to prevent Slack timeouts.
 
     Parameters
@@ -207,12 +214,21 @@ def gcp_support() -> Response:
           channel=channel_id,
           user=user_id,
           text=
+<<<<<<< HEAD
           ("The escalate command expects arguments"
            "[reason, must be either RESOLUTION_TIME|TECHNICAL_EXPERTISE"
            "|BUSINESS_IMPACT] [justification]. The justification does not need"
            " to be encapsulated in quotes. Either your case number did not"
            " match with any cases in your org, the reason did not match one of"
            " the expected values, or the justification was missing"))
+=======
+          ("The escalate command expects arguments "
+           "[reason, must be either RESOLUTION_TIME|TECHNICAL_EXPERTISE"
+           "|BUSINESS_IMPACT] [justification]. The justification does not need \
+          to be encapsulated in quotes. Either your case number did not match \
+          with any cases in your org, the reason did not match one of the \
+          expected values, or the justification was missing"))
+>>>>>>> 3f8e941d9faa2a643d8a4888f160192fe4f0ff0b
     else:
       p = mp.Process(target=support_escalate,
                      args=(channel_id, case, user_id, reason, justification,
@@ -273,8 +289,13 @@ def gcp_support() -> Response:
           text=(
               "The auto-subscribe command expects arguments "
               "[asset_type] [asset_id] [email_1] ... [email_n]. "
+<<<<<<< HEAD
               "asset_type must be one of the following: organizations, folders,"
               " projects "
+=======
+              "asset_type must be one of the following: organizations, folders, \
+              projects "
+>>>>>>> 3f8e941d9faa2a643d8a4888f160192fe4f0ff0b
               "Your command did not match the expected input format."))
     else:
       p = mp.Process(target=asset_auto_cc,
@@ -329,8 +350,13 @@ def gcp_support() -> Response:
           text=(
               "The stop-auto-subscribe command expects arguments [asset_type]"
               " [asset_id]."
+<<<<<<< HEAD
               " asset_type must be one of the following: organizations, folders"
               ", projects"))
+=======
+              " asset_type must be one of the following: organizations, folders,"
+              " projects"))
+>>>>>>> 3f8e941d9faa2a643d8a4888f160192fe4f0ff0b
     else:
       stop_asset_auto_cc(channel_id, channel_name, asset_type, asset_id,
                          user_id)

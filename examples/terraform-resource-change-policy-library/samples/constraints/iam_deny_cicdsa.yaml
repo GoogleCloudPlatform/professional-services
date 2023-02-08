@@ -1,0 +1,38 @@
+# Copyright 2022 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+apiVersion: constraints.gatekeeper.sh/v1beta1
+kind: TFGCPIAMAllowedBindingsConstraintV3
+metadata:
+  name: deny-cicdsa
+  annotations:
+    description: Prevent additional role grants to cicd service accounts
+spec:
+  severity: high
+  match:
+    ancestries: # {"$ref":"#/definitions/io.k8s.cli.setters.target"}
+      - "organizations/**"
+    exclude: [] # optional, default is no exclusions
+  parameters:
+    mode: denylist
+    role: roles/*
+    members:
+      - "serviceAccount:sample-dev-cicd-sa@w-secteam-target-prod.iam.gserviceaccount.com"
+      - "serviceAccount:sample-prod-cicd-sa@w-secteam-target-prod.iam.gserviceaccount.com"
+#
+# NOTE:
+# This policy uses allowed bindings constraint, which is designed to filter
+# roles first. If there's a member in your list not being provisioned a listed
+# role, it will pass. Use allow_ban_roles to allowlist/denylist roles for all
+# members.

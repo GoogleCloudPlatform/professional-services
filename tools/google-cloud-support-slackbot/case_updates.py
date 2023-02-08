@@ -53,8 +53,12 @@ def case_updates(is_test):
     """
   ORG_ID = os.environ.get("ORG_ID")
   API_KEY = os.environ.get("API_KEY")
+<<<<<<< HEAD
   # Must be double quotes for the query
   query_string = f'organization="organizations/{ORG_ID}" AND state=OPEN'
+=======
+  query_string = f"organization='organizations/{ORG_ID}' AND state=OPEN"
+>>>>>>> 3f8e941d9faa2a643d8a4888f160192fe4f0ff0b
 
   # Get our discovery doc and build our service
   r = requests.get(
@@ -176,6 +180,7 @@ def auto_cc(case):
 
   with build("cloudresourcemanager", "v3") as service:
     projects = service.projects()
+<<<<<<< HEAD
     folders = service.folders()
     try:
       project_req = projects.get(name=project_id)
@@ -189,16 +194,32 @@ def auto_cc(case):
         folder_resp = folder_req.execute(num_retries=MAX_RETRIES)
         parent = folder_resp["parent"]
         parent_type, parent_id = parent.split('/')
+=======
+    try:
+      req = projects.get(name=project_id)
+      case_project = req.execute(num_retries=MAX_RETRIES)
+>>>>>>> 3f8e941d9faa2a643d8a4888f160192fe4f0ff0b
 
     except BrokenPipeError as e:
       error_message = f"{e} : {datetime.now()}"
       logger.error(error_message)
+<<<<<<< HEAD
       return
 
     project_id = project_id.split("/")[1]
     # 'parent' is either org due to no folders in between project & org
     # or we've reached the top level folder in hierarchy after folder traversal
     org_id = parent_id
+=======
+
+      return
+
+    project_parent = case_project["parent"]
+    project_id = project_id.split("/")[1]
+    org_id = re.search("organizations\/\d+", project_parent)
+    org_id = org_id.group().split("/")[1] if org_id else org_id
+    folders = re.findall("folders\/[^\/]+", project_parent)
+>>>>>>> 3f8e941d9faa2a643d8a4888f160192fe4f0ff0b
 
   for channel in tracked_assets:
     channel_doc = db.document(f"{collection}/{channel.id}")
@@ -208,6 +229,7 @@ def auto_cc(case):
                                     case_num)
     # Folder check
     folder_new_emails = []
+<<<<<<< HEAD
     for folder in folder_ids:
       folder_new_emails.extend(
           tracking_check(channel_doc, "folders", folder, case_num))
@@ -219,6 +241,19 @@ def auto_cc(case):
       joined = ", ".join(emails)
       if joined:
         combined_new_emails.append(joined)
+=======
+    for folder in folders:
+      folder_new_emails.extend(
+          tracking_check(channel_doc, "folders", folder, case_num)[0])
+    # Project check
+    project_new_emails = tracking_check(channel_doc, "projects", project_id,
+                                        case_num)
+
+    combined_new_emails = [
+        ", ".join(org_new_emails), ", ".join(folder_new_emails),
+        ", ".join(project_new_emails)
+    ]
+>>>>>>> 3f8e941d9faa2a643d8a4888f160192fe4f0ff0b
 
     if combined_new_emails:
       response = ("The following emails have been added automatically through"
@@ -235,7 +270,10 @@ def tracking_check(channel, asset_type, asset_id, case_num):
   asset = channel.collection(asset_type).get()
   for item in asset:
     item_dict = item.to_dict()
+<<<<<<< HEAD
 
+=======
+>>>>>>> 3f8e941d9faa2a643d8a4888f160192fe4f0ff0b
     if item_dict["asset_id"] == asset_id:
       # print(item_dict)
       new_emails = support_subscribe_email(item_dict["channel_id"], case_num,

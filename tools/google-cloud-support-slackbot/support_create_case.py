@@ -133,7 +133,14 @@ if __name__ == "__main__":
   test_time_zone = "-7:00"
   test_project_number = os.environ.get("TEST_PROJECT_NUMBER")
   print(
+<<<<<<< HEAD
       support_create_case("C04C63CT0QH", "U04BQFE8893", "auelsayed",
                           test_display_name, test_description, test_severity,
                           test_class_id, test_classification_display_name,
                           test_time_zone, 283757432980, True))
+=======
+      support_create_case(test_channel_id, test_user_id, test_user_name,
+                          test_display_name, test_description, test_severity,
+                          test_class_id, test_classification_display_name,
+                          test_time_zone, test_project_number, True))
+>>>>>>> 3f8e941d9faa2a643d8a4888f160192fe4f0ff0b

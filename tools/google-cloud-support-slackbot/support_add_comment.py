@@ -65,7 +65,13 @@ def support_add_comment(channel_id,
   support_service = build_from_document(r.json())
 
   client = slack.WebClient(token=os.environ.get("SLACK_TOKEN"))
+<<<<<<< HEAD
 
+=======
+  client.chat_postEphemeral(channel=channel_id,
+                            user=user_id,
+                            text="Your request is processing ...")
+>>>>>>> 3f8e941d9faa2a643d8a4888f160192fe4f0ff0b
   parent = get_parent(case)
 
   if parent == "Case not found":

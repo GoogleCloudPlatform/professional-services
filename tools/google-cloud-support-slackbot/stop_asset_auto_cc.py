@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 
+<<<<<<< HEAD
 # Copyright 2023 Google LLC
+=======
+# Copyright 2022 Google LLC
+>>>>>>> 3f8e941d9faa2a643d8a4888f160192fe4f0ff0b
 
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -78,5 +82,10 @@ if __name__ == "__main__":
   test_channel_id = os.environ.get("TEST_CHANNEL_ID")
   test_channel_name = os.environ.get("TEST_CHANNEL_NAME")
   test_user_id = os.environ.get("TEST_USER_ID")
+<<<<<<< HEAD
   stop_asset_auto_cc(test_channel_id, test_channel_name, "projects", "testing",
                      test_user_id)
+=======
+  stop_asset_auto_cc(test_channel_id, test_channel_name, "projects",
+                     "slackbot-testing", test_user_id)
+>>>>>>> 3f8e941d9faa2a643d8a4888f160192fe4f0ff0b

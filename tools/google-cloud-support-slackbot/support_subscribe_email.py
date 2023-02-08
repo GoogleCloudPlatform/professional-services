@@ -132,7 +132,11 @@ def support_subscribe_email(channel_id, case, emails, user_id):
 
 if __name__ == "__main__":
   test_channel_id = os.environ.get("TEST_CHANNEL_ID")
+<<<<<<< HEAD
   test_case = "xxxxxxxx"
+=======
+  test_case = "42610245"
+>>>>>>> 3f8e941d9faa2a643d8a4888f160192fe4f0ff0b
   test_emails = ["testaccount1@example.com", "testaccount5@example.com"]
   test_user_id = os.environ.get("TEST_USER_ID")
   support_subscribe_email(test_channel_id, test_case, test_emails, test_user_id)

@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 
+<<<<<<< HEAD
 # Copyright 2023 Google LLC
+=======
+# Copyright 2022 Google LLC
+>>>>>>> 3f8e941d9faa2a643d8a4888f160192fe4f0ff0b
 
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.

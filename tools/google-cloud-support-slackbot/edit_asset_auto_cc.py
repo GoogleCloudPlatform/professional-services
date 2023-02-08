@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 
+<<<<<<< HEAD
 # Copyright 2023 Google LLC
+=======
+# Copyright 2022 Google LLC
+>>>>>>> 3f8e941d9faa2a643d8a4888f160192fe4f0ff0b
 
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -76,8 +80,13 @@ def edit_asset_auto_cc(channel_id, channel_name, asset_type, asset_id, user_id,
       client.chat_postMessage(
           channel=channel_id,
           text=
+<<<<<<< HEAD
           (f"{channel_name} is now tracking the {asset_type[:-1]} {asset_id} to"
            f" auto CC {cc_list}."))
+=======
+          (f"{channel_name} is now tracking the {asset_type} {asset_id} to auto"
+           f" CC {cc_list}."))
+>>>>>>> 3f8e941d9faa2a643d8a4888f160192fe4f0ff0b
       return
     except NotFound as e:
       error_message = f"{e} : {datetime.now()}"
@@ -90,9 +99,13 @@ def edit_asset_auto_cc(channel_id, channel_name, asset_type, asset_id, user_id,
         channel=channel_id,
         user=user_id,
         text=(f"The {asset_type} {asset_id} is not currently being tracked in"
+<<<<<<< HEAD
               f" {channel_name}. Use the following command to create a"
               f" tracking: \n /google-cloud-support auto-subscribe {asset_type}"
               f" {asset_id} [email 1] ... [email n]"))
+=======
+              f" {channel_name}. User auto-subscribe to create a tracking."))
+>>>>>>> 3f8e941d9faa2a643d8a4888f160192fe4f0ff0b
 
 
 if __name__ == "__main__":
