@@ -32,7 +32,7 @@ def support_add_comment(channel_id,
                         user_id,
                         user_name,
                         allow_alerts=True):
-  """
+    """
     Add a comment to a Google Cloud support case.
 
     Parameters
@@ -54,62 +54,56 @@ def support_add_comment(channel_id,
     allow_alerts : bool
       flag to determine whether to silent Slack ephemeral message
     """
-  API_KEY = os.environ.get("API_KEY")
-  MAX_RETRIES = 3
+    API_KEY = os.environ.get("API_KEY")
+    MAX_RETRIES = 3
 
-  # Get our discovery doc and build our service
-  r = requests.get(
-      f"https://cloudsupport.googleapis.com/$discovery/rest?key={API_KEY}&labels=V2_TRUSTED_TESTER&version=v2beta",
-      timeout=5)
-  r.raise_for_status()
-  support_service = build_from_document(r.json())
+    # Get our discovery doc and build our service
+    r = requests.get(
+        f"https://cloudsupport.googleapis.com/$discovery/rest?key={API_KEY}&labels=V2_TRUSTED_TESTER&version=v2beta",
+        timeout=5)
+    r.raise_for_status()
+    support_service = build_from_document(r.json())
 
-  client = slack.WebClient(token=os.environ.get("SLACK_TOKEN"))
-<<<<<<< HEAD
+    client = slack.WebClient(token=os.environ.get("SLACK_TOKEN"))
 
-=======
-  client.chat_postEphemeral(channel=channel_id,
-                            user=user_id,
-                            text="Your request is processing ...")
->>>>>>> 3f8e941d9faa2a643d8a4888f160192fe4f0ff0b
-  parent = get_parent(case)
+    parent = get_parent(case)
 
-  if parent == "Case not found":
-    case_not_found(channel_id, user_id, case)
-  else:
-    req_body = {
-        "body":
-            (comment + (f"\n*Comment submitted by {user_name} via Google Cloud"
-                        "Support Slack bot*"))
-    }
-    req = support_service.cases().comments().create(parent=parent,
-                                                    body=req_body)
-    slack_response = ""
-    try:
-      req.execute(num_retries=MAX_RETRIES)
-    except BrokenPipeError as e:
-      error_message = f"{e} : {datetime.now()}"
-      logger.error(error_message)
-      slack_response = ("Your comment may not have posted."
-                        " Please try again later.")
-
+    if parent == "Case not found":
+        case_not_found(channel_id, user_id, case)
     else:
-      slack_response = f"You added a new comment on case {case}: {comment}"
+        req_body = {
+            "body": (comment +
+                     (f"\n*Comment submitted by {user_name} via Google Cloud"
+                      "Support Slack bot*"))
+        }
+        req = support_service.cases().comments().create(parent=parent,
+                                                        body=req_body)
+        slack_response = ""
+        try:
+            req.execute(num_retries=MAX_RETRIES)
+        except BrokenPipeError as e:
+            error_message = f"{e} : {datetime.now()}"
+            logger.error(error_message)
+            slack_response = ("Your comment may not have posted."
+                              " Please try again later.")
 
-    finally:
-      if allow_alerts:
-        client.chat_postEphemeral(channel=channel_id,
-                                  user=user_id,
-                                  text=slack_response)
+        else:
+            slack_response = f"You added a new comment on case {case}: {comment}"
+
+        finally:
+            if allow_alerts:
+                client.chat_postEphemeral(channel=channel_id,
+                                          user=user_id,
+                                          text=slack_response)
 
 
 if __name__ == "__main__":
-  test_channel_id = os.environ.get("TEST_CHANNEL_ID")
-  test_case = os.environ.get("TEST_CASE")
-  test_comment = ("This is a test comment created by the Google Cloud Support"
-                  " Slackbot")
+    test_channel_id = os.environ.get("TEST_CHANNEL_ID")
+    test_case = os.environ.get("TEST_CASE")
+    test_comment = ("This is a test comment created by the Google Cloud Support"
+                    " Slackbot")
 
-  test_user_id = os.environ.get("TEST_USER_ID")
-  test_user_name = os.environ.get("TEST_USER_NAME")
-  support_add_comment(test_channel_id, test_case, test_comment, test_user_id,
-                      test_user_name)
+    test_user_id = os.environ.get("TEST_USER_ID")
+    test_user_name = os.environ.get("TEST_USER_NAME")
+    support_add_comment(test_channel_id, test_case, test_comment, test_user_id,
+                        test_user_name)

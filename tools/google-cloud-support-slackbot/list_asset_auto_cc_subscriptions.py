@@ -1,10 +1,6 @@
 #!/usr/bin/env python3
 
-<<<<<<< HEAD
 # Copyright 2023 Google LLC
-=======
-# Copyright 2022 Google LLC
->>>>>>> 3f8e941d9faa2a643d8a4888f160192fe4f0ff0b
 
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -29,7 +25,7 @@ logger = logging.getLogger(__name__)
 
 
 def list_asset_auto_cc_subscriptions(channel_id, channel_name):
-  """
+    """
     Display all the Google Cloud assets that are being tracked along with the
     email list attached to that tracking in the Slack channel to the user that
     submitted the command.
@@ -43,32 +39,33 @@ def list_asset_auto_cc_subscriptions(channel_id, channel_name):
         designated channel name of the channel. For users to understand where
         their cases are being tracked in Slack
     """
-  client = slack.WebClient(token=os.environ.get("SLACK_TOKEN"))
+    client = slack.WebClient(token=os.environ.get("SLACK_TOKEN"))
 
-  if not firebase_admin._apps:
-    PROJECT_ID = os.environ.get("PROJECT_ID")
-    cred = credentials.ApplicationDefault()
-    firebase_admin.initialize_app(cred, {
-        "projectId": PROJECT_ID,
-    })
+    if not firebase_admin._apps:
+        PROJECT_ID = os.environ.get("PROJECT_ID")
+        cred = credentials.ApplicationDefault()
+        firebase_admin.initialize_app(cred, {
+            "projectId": PROJECT_ID,
+        })
 
-  db = firestore.client()
-  doc = f"tracked_assets/{channel_id}"
-  channel_tracking = db.document(doc).get()
-  asset_types = channel_tracking.reference.collections()
-  response = []
+    db = firestore.client()
+    doc = f"tracked_assets/{channel_id}"
+    channel_tracking = db.document(doc).get()
+    asset_types = channel_tracking.reference.collections()
+    response = []
 
-  for asset_type in asset_types:
-    tracked_assets = asset_type.get()
-    response.append(
-        f"The following {asset_type.id} are being tracked in {channel_name}:")
-    for asset in tracked_assets:
-      response.append(f"{asset.get('asset_id')}: {asset.get('cc_list')}")
+    for asset_type in asset_types:
+        tracked_assets = asset_type.get()
+        response.append(
+            f"The following {asset_type.id} are being tracked in {channel_name}:"
+        )
+        for asset in tracked_assets:
+            response.append(f"{asset.get('asset_id')}: {asset.get('cc_list')}")
 
-  client.chat_postMessage(channel=channel_id, text="\n".join(response))
+    client.chat_postMessage(channel=channel_id, text="\n".join(response))
 
 
 if __name__ == "__main__":
-  test_channel_id = os.environ.get("TEST_CHANNEL_ID")
-  test_channel_name = os.environ.get("TEST_CHANNEL_NAME")
-  list_asset_auto_cc_subscriptions(test_channel_id, test_channel_name)
+    test_channel_id = os.environ.get("TEST_CHANNEL_ID")
+    test_channel_name = os.environ.get("TEST_CHANNEL_NAME")
+    list_asset_auto_cc_subscriptions(test_channel_id, test_channel_name)

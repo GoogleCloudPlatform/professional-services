@@ -20,7 +20,7 @@ from get_firestore_tracked_cases import get_firestore_tracked_cases
 
 
 def list_tracked_cases(channel_id, channel_name, user_id):
-  """
+    """
     Display all of the tracked Google Cloud support cases for the current
     channel to the user that submitted the command.
 
@@ -36,28 +36,28 @@ def list_tracked_cases(channel_id, channel_name, user_id):
       the Slack user_id of the user who submitted the request. Used to send
       ephemeral messages to the user
     """
-  client = slack.WebClient(token=os.environ.get("SLACK_TOKEN"))
-  tracked_cases = get_firestore_tracked_cases()
+    client = slack.WebClient(token=os.environ.get("SLACK_TOKEN"))
+    tracked_cases = get_firestore_tracked_cases()
 
-  local_tracked_cases = []
-  for tc in tracked_cases:
-    if tc["channel_id"] == channel_id:
-      local_tracked_cases.append(tc["case"])
-  if len(local_tracked_cases) > 0:
-    client.chat_postEphemeral(
-        channel=channel_id,
-        user=user_id,
-        text=f"Currently tracking cases {local_tracked_cases} in {channel_name}"
-    )
-  else:
-    client.chat_postEphemeral(
-        channel=channel_id,
-        user=user_id,
-        text="There are no cases currently being tracked in this channel")
+    local_tracked_cases = []
+    for tc in tracked_cases:
+        if tc["channel_id"] == channel_id:
+            local_tracked_cases.append(tc["case"])
+    if len(local_tracked_cases) > 0:
+        client.chat_postEphemeral(
+            channel=channel_id,
+            user=user_id,
+            text=
+            f"Currently tracking cases {local_tracked_cases} in {channel_name}")
+    else:
+        client.chat_postEphemeral(
+            channel=channel_id,
+            user=user_id,
+            text="There are no cases currently being tracked in this channel")
 
 
 if __name__ == "__main__":
-  test_channel_id = os.environ.get("TEST_CHANNEL_ID")
-  test_channel_name = os.environ.get("TEST_CHANNEL_NAME")
-  test_user_id = os.environ.get("TEST_USER_ID")
-  list_tracked_cases(test_channel_id, test_channel_name, test_user_id)
+    test_channel_id = os.environ.get("TEST_CHANNEL_ID")
+    test_channel_name = os.environ.get("TEST_CHANNEL_NAME")
+    test_user_id = os.environ.get("TEST_USER_ID")
+    list_tracked_cases(test_channel_id, test_channel_name, test_user_id)

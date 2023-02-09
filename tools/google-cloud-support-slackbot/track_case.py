@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 
 
 def track_case(channel_id, channel_name, case, user_id):
-  """
+    """
     Add a Google Cloud support case to the tracked_cases collection in
     Firestore. If the case can"t be found in the list of active support cases,
     notify the user.
@@ -45,43 +45,43 @@ def track_case(channel_id, channel_name, case, user_id):
       the Slack user_id of the user who submitted the request. Used to send
       ephemeral messages to the user
     """
-  client = slack.WebClient(token=os.environ.get("SLACK_TOKEN"))
-  collection = "tracked_cases"
-  parent = get_parent(case)
-  tracked_cases = get_firestore_tracked_cases()
+    client = slack.WebClient(token=os.environ.get("SLACK_TOKEN"))
+    collection = "tracked_cases"
+    parent = get_parent(case)
+    tracked_cases = get_firestore_tracked_cases()
 
-  if parent == "Case not found":
-    case_not_found(channel_id, user_id, case)
-  else:
-    tracker = {
-        "channel_id": channel_id,
-        "case": case,
-        "channel_name": channel_name
-    }
-
-    exists = False
-
-    for tracked_case in tracked_cases:
-      tc = tracked_case
-      if tc["channel_id"] == channel_id and tc["case"] == case:
-        exists = True
-        break
-
-    if exists is False:
-      firestore_write(collection, tracker)
-      client.chat_postMessage(
-          channel=channel_id,
-          text=f"{channel_name} is now tracking case {case}")
+    if parent == "Case not found":
+        case_not_found(channel_id, user_id, case)
     else:
-      client.chat_postEphemeral(
-          channel=channel_id,
-          user=user_id,
-          text=f"Case {case} is already being tracked in {channel_name}")
+        tracker = {
+            "channel_id": channel_id,
+            "case": case,
+            "channel_name": channel_name
+        }
+
+        exists = False
+
+        for tracked_case in tracked_cases:
+            tc = tracked_case
+            if tc["channel_id"] == channel_id and tc["case"] == case:
+                exists = True
+                break
+
+        if exists is False:
+            firestore_write(collection, tracker)
+            client.chat_postMessage(
+                channel=channel_id,
+                text=f"{channel_name} is now tracking case {case}")
+        else:
+            client.chat_postEphemeral(
+                channel=channel_id,
+                user=user_id,
+                text=f"Case {case} is already being tracked in {channel_name}")
 
 
 if __name__ == "__main__":
-  test_channel_id = os.environ.get("TEST_CHANNEL_ID")
-  test_channel_name = os.environ.get("TEST_CHANNEL_NAME")
-  test_case = os.environ.get("TEST_CASE")
-  test_user_id = os.environ.get("TEST_USER_ID")
-  track_case(test_channel_id, test_channel_name, test_case, test_user_id)
+    test_channel_id = os.environ.get("TEST_CHANNEL_ID")
+    test_channel_name = os.environ.get("TEST_CHANNEL_NAME")
+    test_case = os.environ.get("TEST_CASE")
+    test_user_id = os.environ.get("TEST_USER_ID")
+    track_case(test_channel_id, test_channel_name, test_case, test_user_id)

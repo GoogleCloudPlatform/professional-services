@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 
 
 def get_firestore_cases() -> list:
-  """
+    """
     Fetches the cases in Firestore and returns the copy for each case id with
     the greatest timestamp value.
 
@@ -33,41 +33,42 @@ def get_firestore_cases() -> list:
     support_cases
         list of dicts containing the case information for all of our cases
     """
-  # Initialize the Firebase app if it hasn"t already been done
-  if not firebase_admin._apps:
-    PROJECT_ID = os.environ.get("PROJECT_ID")
-    cred = credentials.ApplicationDefault()
-    firebase_admin.initialize_app(cred, {
-        "projectId": PROJECT_ID,
-    })
+    # Initialize the Firebase app if it hasn"t already been done
+    if not firebase_admin._apps:
+        PROJECT_ID = os.environ.get("PROJECT_ID")
+        cred = credentials.ApplicationDefault()
+        firebase_admin.initialize_app(cred, {
+            "projectId": PROJECT_ID,
+        })
 
-  db = firestore.client()
-  collection = "cases"
-  firestore_cases = db.collection(collection).get()
-  support_cases = []
+    db = firestore.client()
+    collection = "cases"
+    firestore_cases = db.collection(collection).get()
+    support_cases = []
 
-  for firestore_case in firestore_cases:
-    fs_case = firestore_case.to_dict()
-    fs_timestamp = float(fs_case["firestore_timestamp"])
-    if len(support_cases) == 0:
-      support_cases.append(fs_case)
-    else:
-      i = 0
-      case_number = fs_case["case_number"]
-      temp_cases = support_cases
-      case_exists = False
-      for support_case in temp_cases:
-        if support_case["case_number"] == case_number:
-          case_exists = True
-          if fs_timestamp > float(support_case["firestore_timestamp"]):
-            support_cases[i] = fs_case
-            break
-        i += 1
-      if case_exists is False:
-        support_cases.append(fs_case)
+    for firestore_case in firestore_cases:
+        fs_case = firestore_case.to_dict()
+        fs_timestamp = float(fs_case["firestore_timestamp"])
+        if len(support_cases) == 0:
+            support_cases.append(fs_case)
+        else:
+            i = 0
+            case_number = fs_case["case_number"]
+            temp_cases = support_cases
+            case_exists = False
+            for support_case in temp_cases:
+                if support_case["case_number"] == case_number:
+                    case_exists = True
+                    if fs_timestamp > float(
+                            support_case["firestore_timestamp"]):
+                        support_cases[i] = fs_case
+                        break
+                i += 1
+            if case_exists is False:
+                support_cases.append(fs_case)
 
-  return support_cases
+    return support_cases
 
 
 if __name__ == "__main__":
-  print(str(get_firestore_cases()))
+    print(str(get_firestore_cases()))

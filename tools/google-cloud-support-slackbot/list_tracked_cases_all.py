@@ -20,7 +20,7 @@ from get_firestore_tracked_cases import get_firestore_tracked_cases
 
 
 def list_tracked_cases_all(channel_id, user_id):
-  """
+    """
     Display all the Google Cloud support cases being tracked in the Slack
     worskpace to the user that submitted the command.
 
@@ -33,27 +33,27 @@ def list_tracked_cases_all(channel_id, user_id):
       the Slack user_id of the user who submitted the request. Used to send
       ephemeral messages to the user
     """
-  client = slack.WebClient(token=os.environ.get("SLACK_TOKEN"))
-  tracked_cases = get_firestore_tracked_cases()
+    client = slack.WebClient(token=os.environ.get("SLACK_TOKEN"))
+    tracked_cases = get_firestore_tracked_cases()
 
-  all_tracked_cases = []
-  for tc in tracked_cases:
-    temp = {"channel": tc["channel_name"], "case": tc["case"]}
-    all_tracked_cases.append(temp)
+    all_tracked_cases = []
+    for tc in tracked_cases:
+        temp = {"channel": tc["channel_name"], "case": tc["case"]}
+        all_tracked_cases.append(temp)
 
-  if len(all_tracked_cases) > 0:
-    client.chat_postEphemeral(
-        channel=channel_id,
-        user=user_id,
-        text=f"Currently tracking cases {all_tracked_cases}")
-  else:
-    client.chat_postEphemeral(
-        channel=channel_id,
-        user=user_id,
-        text="There are no cases currently being tracked in Slack")
+    if len(all_tracked_cases) > 0:
+        client.chat_postEphemeral(
+            channel=channel_id,
+            user=user_id,
+            text=f"Currently tracking cases {all_tracked_cases}")
+    else:
+        client.chat_postEphemeral(
+            channel=channel_id,
+            user=user_id,
+            text="There are no cases currently being tracked in Slack")
 
 
 if __name__ == "__main__":
-  test_channel_id = os.environ.get("TEST_CHANNEL_ID")
-  test_user_id = os.environ.get("TEST_USER_ID")
-  list_tracked_cases_all(test_channel_id, test_user_id)
+    test_channel_id = os.environ.get("TEST_CHANNEL_ID")
+    test_user_id = os.environ.get("TEST_USER_ID")
+    list_tracked_cases_all(test_channel_id, test_user_id)

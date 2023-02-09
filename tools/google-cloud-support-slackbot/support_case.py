@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 
 
 class SupportCase:
-  """
+    """
     Represent a Google Cloud Support Case.
 
     Attributes
@@ -61,50 +61,52 @@ class SupportCase:
       with newest comments at the top
     """
 
-  def __init__(self, caseobj):
-    """
+    def __init__(self, caseobj):
+        """
         Parameters
         ----------
         caseobj : json
             json for an individual case
         """
-    MAX_RETRIES = 3
-    API_KEY = os.environ.get("API_KEY")
+        MAX_RETRIES = 3
+        API_KEY = os.environ.get("API_KEY")
 
-    # Get our discovery doc and build our service
-    r = requests.get(
-        f"https://cloudsupport.googleapis.com/$discovery/rest?key={API_KEY}&labels=V2_TRUSTED_TESTER&version=v2beta",
-        timeout=5)
-    r.raise_for_status()
-    support_service = build_from_document(r.json())
+        # Get our discovery doc and build our service
+        r = requests.get(
+            f"https://cloudsupport.googleapis.com/$discovery/rest?key={API_KEY}&labels=V2_TRUSTED_TESTER&version=v2beta",
+            timeout=5)
+        r.raise_for_status()
+        support_service = build_from_document(r.json())
 
-    self.case_number = re.search("(?:cases/)([0-9]+)", caseobj["name"])[1]
-    self.resource_name = caseobj["name"]
-    self.case_title = caseobj["displayName"]
-    self.description = caseobj["description"]
-    if "escalated" in caseobj:
-      self.escalated = caseobj["escalated"]
-    else:
-      self.escalated = False
-    self.case_creator = caseobj["creator"]["displayName"]
-    self.create_time = str(
-        datetime.fromisoformat(caseobj["createTime"].replace("Z", "+00:00")))
-    self.update_time = str(
-        datetime.fromisoformat(caseobj["updateTime"].replace("Z", "+00:00")))
-    self.priority = caseobj["severity"].replace("S", "P")
-    self.state = caseobj["state"]
-    self.comment_list = []
-    case_comments = support_service.cases().comments()
-    request = case_comments.list(parent=self.resource_name)
-    while request is not None:
-      try:
-        comments = request.execute(num_retries=MAX_RETRIES)
-      except BrokenPipeError as e:
-        error_message = f"{e} : {datetime.now()}"
-        logger.error(error_message)
-        time.sleep(1)
-      else:
-        if "comments" in comments:
-          for comment in comments["comments"]:
-            self.comment_list.append(comment)
-        request = case_comments.list_next(request, comments)
+        self.case_number = re.search("(?:cases/)([0-9]+)", caseobj["name"])[1]
+        self.resource_name = caseobj["name"]
+        self.case_title = caseobj["displayName"]
+        self.description = caseobj["description"]
+        if "escalated" in caseobj:
+            self.escalated = caseobj["escalated"]
+        else:
+            self.escalated = False
+        self.case_creator = caseobj["creator"]["displayName"]
+        self.create_time = str(
+            datetime.fromisoformat(caseobj["createTime"].replace("Z",
+                                                                 "+00:00")))
+        self.update_time = str(
+            datetime.fromisoformat(caseobj["updateTime"].replace("Z",
+                                                                 "+00:00")))
+        self.priority = caseobj["severity"].replace("S", "P")
+        self.state = caseobj["state"]
+        self.comment_list = []
+        case_comments = support_service.cases().comments()
+        request = case_comments.list(parent=self.resource_name)
+        while request is not None:
+            try:
+                comments = request.execute(num_retries=MAX_RETRIES)
+            except BrokenPipeError as e:
+                error_message = f"{e} : {datetime.now()}"
+                logger.error(error_message)
+                time.sleep(1)
+            else:
+                if "comments" in comments:
+                    for comment in comments["comments"]:
+                        self.comment_list.append(comment)
+                request = case_comments.list_next(request, comments)

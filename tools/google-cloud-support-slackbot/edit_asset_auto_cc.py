@@ -1,10 +1,6 @@
 #!/usr/bin/env python3
 
-<<<<<<< HEAD
 # Copyright 2023 Google LLC
-=======
-# Copyright 2022 Google LLC
->>>>>>> 3f8e941d9faa2a643d8a4888f160192fe4f0ff0b
 
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -32,7 +28,7 @@ logger = logging.getLogger(__name__)
 
 def edit_asset_auto_cc(channel_id, channel_name, asset_type, asset_id, user_id,
                        cc_list):
-  """
+    """
     Add a Google Cloud support case to the tracked_cases collection in
     Firestore. If the case can"t be found in the list of active support cases,
     notify the user.
@@ -57,61 +53,53 @@ def edit_asset_auto_cc(channel_id, channel_name, asset_type, asset_id, user_id,
         emails to be subscribed to a new case within the given resource
         automatically
     """
-  client = slack.WebClient(token=os.environ.get("SLACK_TOKEN"))
+    client = slack.WebClient(token=os.environ.get("SLACK_TOKEN"))
 
-  if not firebase_admin._apps:
-    PROJECT_ID = os.environ.get("PROJECT_ID")
-    cred = credentials.ApplicationDefault()
-    firebase_admin.initialize_app(cred, {
-        "projectId": PROJECT_ID,
-    })
+    if not firebase_admin._apps:
+        PROJECT_ID = os.environ.get("PROJECT_ID")
+        cred = credentials.ApplicationDefault()
+        firebase_admin.initialize_app(cred, {
+            "projectId": PROJECT_ID,
+        })
 
-  db = firestore.client()
-  collection = f"tracked_assets/{channel_id}/{asset_type}"
-  db_collection = db.collection(collection)
-  tracked_asset = (db_collection.where("asset_id", "==", asset_id).get())
+    db = firestore.client()
+    collection = f"tracked_assets/{channel_id}/{asset_type}"
+    db_collection = db.collection(collection)
+    tracked_asset = (db_collection.where("asset_id", "==", asset_id).get())
 
-  # There should only ever be 1 doc per asset_id
-  if tracked_asset and tracked_asset[0].exists:
-    asset_snapshot = tracked_asset[0]
-    try:
-      asset = asset_snapshot.reference
-      asset.update({"cc_list": cc_list})
-      client.chat_postMessage(
-          channel=channel_id,
-          text=
-<<<<<<< HEAD
-          (f"{channel_name} is now tracking the {asset_type[:-1]} {asset_id} to"
-           f" auto CC {cc_list}."))
-=======
-          (f"{channel_name} is now tracking the {asset_type} {asset_id} to auto"
-           f" CC {cc_list}."))
->>>>>>> 3f8e941d9faa2a643d8a4888f160192fe4f0ff0b
-      return
-    except NotFound as e:
-      error_message = f"{e} : {datetime.now()}"
-      logger.error(error_message)
-      client.chat_postEphemeral(channel=channel_id,
-                                user=user_id,
-                                text="Please try again later.")
-  else:
-    client.chat_postEphemeral(
-        channel=channel_id,
-        user=user_id,
-        text=(f"The {asset_type} {asset_id} is not currently being tracked in"
-<<<<<<< HEAD
-              f" {channel_name}. Use the following command to create a"
-              f" tracking: \n /google-cloud-support auto-subscribe {asset_type}"
-              f" {asset_id} [email 1] ... [email n]"))
-=======
-              f" {channel_name}. User auto-subscribe to create a tracking."))
->>>>>>> 3f8e941d9faa2a643d8a4888f160192fe4f0ff0b
+    # There should only ever be 1 doc per asset_id
+    if tracked_asset and tracked_asset[0].exists:
+        asset_snapshot = tracked_asset[0]
+        try:
+            asset = asset_snapshot.reference
+            asset.update({"cc_list": cc_list})
+            client.chat_postMessage(
+                channel=channel_id,
+                text=
+                (f"{channel_name} is now tracking the {asset_type[:-1]} {asset_id} to"
+                 f" auto CC {cc_list}."))
+            return
+        except NotFound as e:
+            error_message = f"{e} : {datetime.now()}"
+            logger.error(error_message)
+            client.chat_postEphemeral(channel=channel_id,
+                                      user=user_id,
+                                      text="Please try again later.")
+    else:
+        client.chat_postEphemeral(
+            channel=channel_id,
+            user=user_id,
+            text=
+            (f"The {asset_type} {asset_id} is not currently being tracked in"
+             f" {channel_name}. Use the following command to create a"
+             f" tracking: \n /google-cloud-support auto-subscribe {asset_type}"
+             f" {asset_id} [email 1] ... [email n]"))
 
 
 if __name__ == "__main__":
-  test_channel_id = os.environ.get("TEST_CHANNEL_ID")
-  test_channel_name = os.environ.get("TEST_CHANNEL_NAME")
-  test_user_id = os.environ.get("TEST_USER_ID")
-  test_cc_list = ["test124@g.com"]
-  edit_asset_auto_cc(test_channel_id, test_channel_name, "projects",
-                     "slackbot-testing", test_user_id, test_cc_list)
+    test_channel_id = os.environ.get("TEST_CHANNEL_ID")
+    test_channel_name = os.environ.get("TEST_CHANNEL_NAME")
+    test_user_id = os.environ.get("TEST_USER_ID")
+    test_cc_list = ["test124@g.com"]
+    edit_asset_auto_cc(test_channel_id, test_channel_name, "projects",
+                       "slackbot-testing", test_user_id, test_cc_list)

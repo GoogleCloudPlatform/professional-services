@@ -32,7 +32,7 @@ logger = logging.getLogger(__name__)
 
 def support_escalate(channel_id, case, user_id, reason, justification,
                      user_name):
-  """
+    """
     Escalates a Google Cloud support case, setting the escalated boolean to
     True. This code is currently disabled and we will look to include a
     working version of it in the v1 release of the bot.
@@ -57,61 +57,62 @@ def support_escalate(channel_id, case, user_id, reason, justification,
       the justification to identify who submitted the escalation, otherwise
       all escalations will show as coming from the case creator
     """
-  client = slack.WebClient(token=os.environ.get("SLACK_TOKEN"))
-  MAX_RETRIES = 3
-  API_KEY = os.environ.get("API_KEY")
+    client = slack.WebClient(token=os.environ.get("SLACK_TOKEN"))
+    MAX_RETRIES = 3
+    API_KEY = os.environ.get("API_KEY")
 
-  # Get our discovery doc and build our service
-  r = requests.get(
-      f"https://cloudsupport.googleapis.com/$discovery/rest?key={API_KEY}&labels=V2_TRUSTED_TESTER&version=v2beta",
-      timeout=5)
-  r.raise_for_status()
-  support_service = build_from_document(r.json())
+    # Get our discovery doc and build our service
+    r = requests.get(
+        f"https://cloudsupport.googleapis.com/$discovery/rest?key={API_KEY}&labels=V2_TRUSTED_TESTER&version=v2beta",
+        timeout=5)
+    r.raise_for_status()
+    support_service = build_from_document(r.json())
 
-  client.chat_postEphemeral(channel=channel_id,
-                            user=user_id,
-                            text="Your request is processing ... ")
-  parent = get_parent(case)
-  if parent == "Case not found":
-    case_not_found(channel_id, user_id, case)
-  else:
-    signed_justification = (justification +
-                            (f"\n *Sent by {user_name} via Google Cloud Support"
-                             "Slack bot"))
-    body = {
-        "escalation": {
-            "reason": reason,
-            "justification": signed_justification
-        }
-    }
-    req = support_service.cases().escalate(name=parent, body=body)
-    try:
-      req.execute(num_retries=MAX_RETRIES)
-    except BrokenPipeError as e:
-      error_message = f"{e} : {datetime.now()}"
-      logger.error(error_message)
-      client.chat_postEphemeral(
-          channel=channel_id,
-          user=user_id,
-          text=("Your attempt to escalate may have failed. Please contact your"
-                " account team or try again later."))
+    client.chat_postEphemeral(channel=channel_id,
+                              user=user_id,
+                              text="Your request is processing ... ")
+    parent = get_parent(case)
+    if parent == "Case not found":
+        case_not_found(channel_id, user_id, case)
     else:
-      client.chat_postEphemeral(channel=channel_id,
-                                user=user_id,
-                                text=f"You have escalated case {case}")
+        signed_justification = (
+            justification + (f"\n *Sent by {user_name} via Google Cloud Support"
+                             "Slack bot"))
+        body = {
+            "escalation": {
+                "reason": reason,
+                "justification": signed_justification
+            }
+        }
+        req = support_service.cases().escalate(name=parent, body=body)
+        try:
+            req.execute(num_retries=MAX_RETRIES)
+        except BrokenPipeError as e:
+            error_message = f"{e} : {datetime.now()}"
+            logger.error(error_message)
+            client.chat_postEphemeral(
+                channel=channel_id,
+                user=user_id,
+                text=
+                ("Your attempt to escalate may have failed. Please contact your"
+                 " account team or try again later."))
+        else:
+            client.chat_postEphemeral(channel=channel_id,
+                                      user=user_id,
+                                      text=f"You have escalated case {case}")
 
 
 if __name__ == "__main__":
-  # Please only test this functionality if the command is failing in production
-  are_you_sure_about_that = False
-  if are_you_sure_about_that:
-    test_channel_id = os.environ.get("TEST_CHANNEL_ID")
-    test_case = os.environ.get("TEST_CASE")
-    test_user_id = os.environ.get("TEST_USER_ID")
-    test_reason = "BUSINESS_IMPACT"
-    test_justification = (
-        "Please ignore this escalation! This escalation was made for "
-        "testing of the Google Cloud Support Slackbot functionalities.")
-    test_user_name = "Slackbot Admin"
-    support_escalate(test_channel_id, test_case, test_user_id, test_reason,
-                     test_justification, test_user_name)
+    # Please only test this functionality if the command is failing in production
+    are_you_sure_about_that = False
+    if are_you_sure_about_that:
+        test_channel_id = os.environ.get("TEST_CHANNEL_ID")
+        test_case = os.environ.get("TEST_CASE")
+        test_user_id = os.environ.get("TEST_USER_ID")
+        test_reason = "BUSINESS_IMPACT"
+        test_justification = (
+            "Please ignore this escalation! This escalation was made for "
+            "testing of the Google Cloud Support Slackbot functionalities.")
+        test_user_name = "Slackbot Admin"
+        support_escalate(test_channel_id, test_case, test_user_id, test_reason,
+                         test_justification, test_user_name)

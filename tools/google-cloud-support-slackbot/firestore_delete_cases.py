@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 
 
 def firestore_delete_cases(case):
-  """
+    """
     Delete all cases from Firestore with a matching case number.
 
     Parameters
@@ -32,24 +32,24 @@ def firestore_delete_cases(case):
     case : str
       unique id of the case
     """
-  # Initialize the Firebase app if it hasn"t already been done
-  if not firebase_admin._apps:
-    PROJECT_ID = os.environ.get("PROJECT_ID")
-    cred = credentials.ApplicationDefault()
-    firebase_admin.initialize_app(cred, {
-        "projectId": PROJECT_ID,
-    })
+    # Initialize the Firebase app if it hasn"t already been done
+    if not firebase_admin._apps:
+        PROJECT_ID = os.environ.get("PROJECT_ID")
+        cred = credentials.ApplicationDefault()
+        firebase_admin.initialize_app(cred, {
+            "projectId": PROJECT_ID,
+        })
 
-  collection = "cases"
-  db = firestore.client()
-  firestore_cases = db.collection(collection).where("case_number", "==",
-                                                    case).get()
+    collection = "cases"
+    db = firestore.client()
+    firestore_cases = db.collection(collection).where("case_number", "==",
+                                                      case).get()
 
-  for firestore_case in firestore_cases:
-    fs_case = firestore_case.to_dict()
-    db.collection(collection).document(fs_case["guid"]).delete()
+    for firestore_case in firestore_cases:
+        fs_case = firestore_case.to_dict()
+        db.collection(collection).document(fs_case["guid"]).delete()
 
 
 if __name__ == "__main__":
-  test_case = os.environ.get("TEST_CASE")
-  firestore_delete_cases(test_case)
+    test_case = os.environ.get("TEST_CASE")
+    firestore_delete_cases(test_case)

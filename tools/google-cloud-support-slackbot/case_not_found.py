@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 
 
 def case_not_found(channel_id, user_id, case):
-  """
+    """
     Informs the user of their case could not be found.
 
     Parameters
@@ -37,23 +37,23 @@ def case_not_found(channel_id, user_id, case):
     case : str
       unique id of the case
     """
-  client = slack.WebClient(token=os.environ.get("SLACK_TOKEN"))
-  try:
-    client.chat_postEphemeral(
-        channel=channel_id,
-        user=user_id,
-        text=
-        f"Case {case} could not be found in your org. If this case was recently"
-        " created, please give the system 60 seconds to fetch it. Otherwise,"
-        " double check your case number or confirm the org being tracked"
-        " with your Slack admin.")
-  except slack.errors.SlackApiError as e:
-    error_message = f"{e} : {datetime.now()}"
-    logger.error(error_message)
+    client = slack.WebClient(token=os.environ.get("SLACK_TOKEN"))
+    try:
+        client.chat_postEphemeral(
+            channel=channel_id,
+            user=user_id,
+            text=
+            f"Case {case} could not be found in your org. If this case was recently"
+            " created, please give the system 60 seconds to fetch it. Otherwise,"
+            " double check your case number or confirm the org being tracked"
+            " with your Slack admin.")
+    except slack.errors.SlackApiError as e:
+        error_message = f"{e} : {datetime.now()}"
+        logger.error(error_message)
 
 
 if __name__ == "__main__":
-  test_channel_id = os.environ.get("TEST_CHANNEL_ID")
-  test_user_id = os.environ.get("TEST_USER_ID")
-  test_case = "xxxxxxxx"
-  case_not_found(test_channel_id, test_user_id, test_case)
+    test_channel_id = os.environ.get("TEST_CHANNEL_ID")
+    test_user_id = os.environ.get("TEST_USER_ID")
+    test_case = "xxxxxxxx"
+    case_not_found(test_channel_id, test_user_id, test_case)
