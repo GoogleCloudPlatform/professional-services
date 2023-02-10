@@ -98,6 +98,9 @@ gcloud organizations add-iam-policy-binding $ORG_ID \
 gcloud organizations add-iam-policy-binding $ORG_ID \
     --member="serviceAccount:support-slackbot@$DEVSHELL_PROJECT_ID.iam.gserviceaccount.com" \
     --role="roles/resourcemanager.organizationViewer";
+gcloud organizations add-iam-policy-binding $ORG_ID \
+    --member="serviceAccount:support-slackbot@$DEVSHELL_PROJECT_ID.iam.gserviceaccount.com" \
+    --role="roles/resourcemanager.folderEditor";
 gcloud auth configure-docker us-central1-docker.pkg.dev
 gcloud artifacts repositories create google-cloud-support-slackbot \
     --repository-format=Docker \
