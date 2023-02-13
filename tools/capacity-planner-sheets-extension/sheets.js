@@ -13,11 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  * 
- * 
  * Convenience functions for creating, writing to, and formatting sheets.
  */
-
-BACKGROUND_COLORS = ["#ead1dc", "#cfe2f3", "#d0e0e3", "#fff2cc", "#f4cccc"];
 
 /**
  * Creates a new sheet with the given name.
@@ -26,9 +23,9 @@ BACKGROUND_COLORS = ["#ead1dc", "#cfe2f3", "#d0e0e3", "#fff2cc", "#f4cccc"];
  * @param {string} The name of the new sheet
  */
 function createSheet_(sheetName){
-  let ss = SpreadsheetApp.getActive();
+  const ss = SpreadsheetApp.getActive();
 
-  let sheet = ss.getSheetByName(sheetName);
+  const sheet = ss.getSheetByName(sheetName);
   if (sheet != null){
     // If a sheet with the same name exists, delete it first
     ss.deleteSheet(sheet);
@@ -46,7 +43,7 @@ function createSheet_(sheetName){
  * @param {Array} An array of arrays where each inner array is a row for the new sheet.
  */
 function writeToSheet_(sheetName, values){
-  let sheet = createSheet_(sheetName);
+  const sheet = createSheet_(sheetName);
   for (row of values){
     sheet.appendRow(row);
   }
@@ -61,11 +58,11 @@ function writeToSheet_(sheetName, values){
  * @param {Number} The first column to format.
  */
 function addBorder_(sheet, firstRow, firstColumn, borderColor=null, borderStyle=null) {
-  let lastRowIndex = sheet.getLastRow();
-  let lastColumnIndex = sheet.getLastColumn();
-  let numColumns = lastColumnIndex - firstColumn + 1;
+  const lastRowIndex = sheet.getLastRow();
+  const lastColumnIndex = sheet.getLastColumn();
+  const numColumns = lastColumnIndex - firstColumn + 1;
 
-  var contentRowIndex = firstRow;
+  let contentRowIndex = firstRow;
 
   for (let i = firstRow + 1; i <= lastRowIndex + 1; i++){
     let cellValue = sheet.getRange(i, firstColumn).getValues()[0][0]
@@ -82,12 +79,12 @@ function addBorder_(sheet, firstRow, firstColumn, borderColor=null, borderStyle=
 
 /**
  * Adds formulas to the sheeet to replicate the template.
- * This is hard to understand as code, reference the template sheet for the intended output.
- * https://docs.google.com/spreadsheets/d/1OpcMZnuPgV2InHlxybv6DaOmzvUMRx5eC-KzL1UM_Ok/edit?resourcekey=0-Wr1Pi9GbOmnwaJVckGXE0w#gid=623747450
+ * This is hard to understand as code, reference "[SAMPLE] Combined Planning Sheet" 
+ * for the intended output.
  * @param {Sheet}
  */
 function addFormulasToSheet_(sheet) {
-    let lastRowIndex = sheet.getLastRow();
+    const lastRowIndex = sheet.getLastRow();
 
     // Estimate / CCU section
     sheet.getRange(`E4:E${lastRowIndex}`).setFormula("F4/F$3");
@@ -106,30 +103,45 @@ function addFormulasToSheet_(sheet) {
 
 /**
  * Formats the sheet to look like the template.
- * This is hard to understand as code, reference the template sheet for the intended output.
- * https://docs.google.com/spreadsheets/d/1OpcMZnuPgV2InHlxybv6DaOmzvUMRx5eC-KzL1UM_Ok/edit?resourcekey=0-Wr1Pi9GbOmnwaJVckGXE0w#gid=623747450
+ * This is hard to understand as code, reference "[SAMPLE] Combined Planning Sheet" 
+ * for the intended output.
  * This function handles the bulk of the formatting (font styles, merging cells, colors, etc.).
  * @param {Sheet}
  */
 function formatSheet_(sheet) {
-    let lastRowIndex = sheet.getLastRow();
+    const lastRowIndex = sheet.getLastRow();
 
     // Merge some header cells
     ["A1:D3", "E2:E3", "K2:O3"].forEach(range => sheet.getRange(range).mergeVertically());
     ["E1:I1", "J1:O1"].forEach(range => sheet.getRange(range).mergeAcross());
 
+    const colors = {
+      "blue": "#4285F4",
+      "darkBlue": "#1C4587",
+      "darkGrey": "#666666",
+      "darkRed": "#990000",
+      "green": "#38761D",
+      "grey": "#B7B7B7",
+      "lightBlue": "#CFE2F3",
+      "lightGreen": "#D9EAD3",
+      "lightGrey": "#F3F3F3",
+      "lightYellow": "#FFF2CC",
+      "olive": "#7F6000",
+      "pink": "#F4CCCC"
+    }
+
     // Font colors and styles
-    sheet.getRange("J2:O3").setFontColor("#cfe2f3");
-    sheet.getRange("E4:I").setFontColor("#666666");
+    sheet.getRange("J2:O3").setFontColor(colors["lightBlue"]);
+    sheet.getRange("E4:I").setFontColor(colors["darkGrey"]);
     sheet.getRangeList(["A1:D3", "E1:I1", "E2:I3", "J1:O1", "J3"]).setFontColor("white");
     sheet.getRangeList(["A1:I3", "J1:O1", "J3", "A4:D"]).setFontWeight("bold");
 
     // Background colors
     sheet.getRangeList(["A1:D3", "E1:I1"]).setBackground("black");
-    sheet.getRange("E2:I3").setBackground("#666666"); // gray
-    sheet.getRange("J1:O1").setBackground("#1c4587"); // dark blue
-    sheet.getRange("J2:O3").setBackground("#4285f4"); // blue
-    sheet.getRange(`E4:I${lastRowIndex}`).setBackground("#f3f3f3")
+    sheet.getRange("E2:I3").setBackground(colors["darkGrey"]);
+    sheet.getRange("J1:O1").setBackground(colors["darkBlue"]);
+    sheet.getRange("J2:O3").setBackground(colors["blue"]);
+    sheet.getRange(`E4:I${lastRowIndex}`).setBackground(colors["lightGrey"])
 
     // Align header rows to center
     sheet.getRange("A1:O3").setHorizontalAlignment("center");
@@ -150,36 +162,36 @@ function formatSheet_(sheet) {
 
     // Conditional Format rules for Gap, Gap %
     // NOTE: Rules added first are higher priority
-    let emptyCellRule = SpreadsheetApp.newConditionalFormatRule()
+    const emptyCellRule = SpreadsheetApp.newConditionalFormatRule()
         .whenTextEqualTo("NA")
-        .setBackground("#f3f3f3")
-        .setFontColor("#b7b7b7")
+        .setBackground(colors["lightGrey"])
+        .setFontColor(colors["grey"])
         .setRanges([sheet.getRange(`M4:N${lastRowIndex}`)])
         .build();
 
-    let gapIsGTFivePercent = SpreadsheetApp.newConditionalFormatRule()
+    const gapIsGTFivePercent = SpreadsheetApp.newConditionalFormatRule()
         .whenCellNotEmpty()
         .whenNumberNotBetween(0.05, -0.05)
-        .setBackground("#f4cccc")
-        .setFontColor("#990000")
+        .setBackground(colors["pink"])
+        .setFontColor(colors["darkRed"])
         .setRanges([sheet.getRange(`N4:N${lastRowIndex}`)])
         .build();
 
-    let gapIsNotZeroRule = SpreadsheetApp.newConditionalFormatRule()
+    const gapIsNotZeroRule = SpreadsheetApp.newConditionalFormatRule()
         .whenNumberNotEqualTo(0)
-        .setBackground("#fff2cc")
-        .setFontColor("#7f6000")
+        .setBackground(colors["lightYellow"])
+        .setFontColor(colors["olive"])
         .setRanges([sheet.getRange(`M4:N${lastRowIndex}`)])
         .build();
 
-    let gapIsZeroRule = SpreadsheetApp.newConditionalFormatRule()
+    const gapIsZeroRule = SpreadsheetApp.newConditionalFormatRule()
         .whenNumberEqualTo(0)
-        .setBackground("#d9ead3")
-        .setFontColor("#38761d")
+        .setBackground(colors["lightGreen"])
+        .setFontColor(colors["green"])
         .setRanges([sheet.getRange(`M4:N${lastRowIndex}`)])
         .build();
 
-    var rules = sheet.getConditionalFormatRules();
+    let rules = sheet.getConditionalFormatRules();
     [emptyCellRule, gapIsGTFivePercent, gapIsNotZeroRule, gapIsZeroRule].forEach(rule => rules.push(rule));
     sheet.setConditionalFormatRules(rules);
 }
