@@ -1,6 +1,6 @@
 # Dataproc Running Notebooks
 ## Objective
-Orchestrating the workflow of running Jupyter Notebooks on a Dataproc cluster via PySpark job 
+Orchestrator to run Notebooks on an Ephemeral Dataproc cluster via Cloud Composer
 
 ## File Directory Structure
     ├── composer_input                   
@@ -15,7 +15,7 @@ Orchestrating the workflow of running Jupyter Notebooks on a Dataproc cluster vi
 ## File Details    
 ### composer_input
 * **init_pip_gscfuse.sh**: this script completes following two tasks
-  * Installs desired python packages 
+  * Installs desired python packages
   * Installs [gcsfuse](https://github.com/GoogleCloudPlatform/gcsfuse/blob/master/docs/installing.md) and mounts the desired bucket to the path
 * **wrapper_papermill.py**: runs a papermill execution of input notebook and writes the output file into the assgined location
 * **composer_pyspark_notebook.py**: orchestrates the workflow 
@@ -72,15 +72,15 @@ e. Open Airflow UI to monitor DAG executions, Runs and logs
 (Notes: utilize [initialization script](composer_input/initialization_scripts) from this repository for python packages installation and GCS bucket mount)
 
 Refer to this [GCP tutorial](https://cloud.google.com/dataproc/docs/tutorials/jupyter-notebook) to 
-* install the Dataproc Jupyter component on a new cluster 
-* connect to the Jupyter notebook UI running on the cluster from your local browser using the [Dataproc Component Gateway](https://cloud.google.com/dataproc/docs/concepts/accessing/dataproc-gateways)
+* Install the Dataproc Jupyter component on a new cluster 
+* Connect to the Jupyter notebook UI running on the cluster from your local browser using the [Dataproc Component Gateway](https://cloud.google.com/dataproc/docs/concepts/accessing/dataproc-gateways)
 
 
 ## Closing Note
 If you're adapting this example for your own use consider the following:
 
 * Setting an appropriate input path within your environment (gcs, mounting point for gcsfuse, DAGs folder, etc)
-* Setting more appropriate configurations (DAGs, Dataproc cluster, init_script, etc)
+* Setting more appropriate configurations (DAGs, Dataproc cluster, init_script for additional python packages, etc)
 
 ## Contributors
 * Kristin Kim (Google)
