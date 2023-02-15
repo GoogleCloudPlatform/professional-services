@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-# Use this script to update 'queries.js' after updates to the TOML source
+# Use this script to update "queries.js" after updates to the TOML source
 # https://github.com/GoogleCloudPlatform/professional-services/blob/main/tools/capacity-planner-cli/queries.toml
 #
 # Usage:
@@ -59,7 +59,6 @@ with open(TOML_FILE_PATH, "rb") as f:
 
 # Modify the structure so all metrics are nested under a key "metrics"
 # instead of at the same level as "product_name"
-# Instead of modifying 'queries' in place, 'queries_js' holds the map to be dumped into 'queries.js'
 queries_js = OrderedDict()
 for product, product_data in sorted(queries.items()):
     queries_js[product] = {"product_name": product_data["product_name"]}
