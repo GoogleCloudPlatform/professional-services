@@ -35,6 +35,6 @@ ab_permission, ab_permission_view, ab_permission_view_role, ab_register_user, ab
 
 2. `WRITE_DISPOSITON` is set to `WRITE_TRUNCATE` the BigQuery location by default. This means that any data removed from Airflow metadata DB via UI or cleanup processes will also be removed from BigQuery location. If you change to `WRITE_APPEND` you'll need to manage duplicate data in another process.
    
-3. Modify the SOURCE_TABLES list to fit your airflow version and your desired tables to export. Currently set to tables for Airflow 2.4.0
+3. Modify the `SOURCE_TABLES` list to fit your airflow version and your desired tables to export. Currently set to tables for Airflow 2.4.0
 
 4. Put the file in your Google Cloud Storage bucket and allow Cloud Composer to parse the DAGs.
