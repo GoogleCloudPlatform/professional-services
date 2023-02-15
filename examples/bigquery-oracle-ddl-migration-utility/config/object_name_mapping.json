@@ -1,0 +1,15 @@
+{
+        "name_map": [
+        {
+        "source": {
+            "type_": "SCHEMA",
+            "database": "POC",
+            "schema": "ACCOUNT",
+        },
+        "target": {
+            "database": "POC",
+            "schema": "ACCOUNT_TGT",
+        }
+        }                       
+        ]
+    }
