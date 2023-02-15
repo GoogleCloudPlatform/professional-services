@@ -1,0 +1,82 @@
+[
+  {
+    "group": "gcp-devops",
+    "member": "pamela.reed"
+  },
+  {
+    "group": "gcp-devops",
+    "member": "joshua.banks"
+  },
+  {
+    "group": "gcp-devops",
+    "member": "clayton.espinoza"
+  },
+  {
+    "group": "gcp-devops",
+    "member": "maureen.morgan"
+  },
+  {
+    "group": "gcp-network-admins",
+    "member": "pamela.reed"
+  },
+  {
+    "group": "gcp-network-admins",
+    "member": "william.bowen"
+  },
+  {
+    "group": "gcp-network-admins",
+    "member": "clayton.espinoza"
+  },
+  {
+    "group": "gcp-network-admins",
+    "member": "stacy.holland"
+  },
+  {
+    "group": "gcp-network-admins",
+    "member": "joshua.banks"
+  },
+  {
+    "group": "gcp-network-admins",
+    "member": "charlene.mckenzie"
+  },
+  {
+    "group": "gcp-network-admins",
+    "member": "lisa.harris"
+  },
+  {
+    "group": "gcp-organization-admins",
+    "member": "maureen.morgan"
+  },
+  {
+    "group": "gcp-organization-admins",
+    "member": "pamela.reed"
+  },
+  {
+    "group": "gcp-support",
+    "member": "maureen.morgan"
+  },
+  {
+    "group": "gcp-support",
+    "member": "pamela.reed"
+  },
+  {
+    "group": "gcp-support",
+    "member": "lisa.harris"
+  },
+  {
+    "group": "gcp-support",
+    "member": "tina.ferguson"
+  },
+  {
+    "group": "gcp-support",
+    "member": "stacy.holland"
+  },
+  {
+    "group": "gcp-support",
+    "member": "william.bowen"
+  },
+  {
+    "group": "gcp-support",
+    "member": "clayton.espinoza"
+  }
+]

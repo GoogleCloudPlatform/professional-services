@@ -45,7 +45,7 @@ BigQuery Visualiser displays a Bigquery Queryplan document. It has two displays:
 
 
 ## Hosting BqVisualiser
-BqVisualiser is a single page web app  written in angular. 
+BqVisualiser is a single page web app written in angular. 
 Simply copy the compiled output to a webserver and you are good to go.
 
 ### Authentication
@@ -77,7 +77,7 @@ Enter a job id in the field. The format of the job id must be:
 ![GetById](src/assets/images/GetById.png)
 
 
-Assuming you have previously downloaded the query plan using the `bq show -j <jobid>i --format prettyjson` command to a local file,
+Assuming you have previously downloaded the query plan using the `bq show -j --format=prettyjson <job-id>` command to a local file,
 click on this card the 'Select File to upload' button, navigate to the file and select it. To start uploading click the
 Upload button.
 
@@ -90,7 +90,7 @@ The Tree tab shows the query plan as a directed graph.
 
 ![Tree](src/assets/images/tree.png)
 
-* DB icons represent BQ tabkes
+* DB icons represent BQ tables
 * all other icons represent actual query stages (input, compute, aggregate, etc.)
 * clicking on a node displays the stage and step details on the right
 
@@ -120,7 +120,7 @@ At the bottom a number of tabs show overall plan information:
 ![Settings](src/assets/images/Settings.png)
 
 ## The Timing Tab
-The timing Tab displaus a Gantt style view to quickly show how long the indivudal stages take.
+The timing Tab displays a Gantt style view to quickly show how long the individual stages take.
 
 ![Timing](src/assets/images/Timing.png)
 
@@ -134,17 +134,17 @@ Shows the progress of work over time with details of
 
 ![Progress](src/assets/images/progress.png)
 
-This useful to see when the query stalls for any reason, i.e. when stages do not progress 
+This is useful to see when the query stalls for any reason, i.e. when stages do not progress 
 
 ---
 # Known Limits
 
 The application will only display graphs for queries. Load jobs etc do not result in query stages being output.
 
-The Timing Page will not load if the execution times of jobs are less than 1 second. Thisi s a limitation of the graphing 
+The Timing Page will not load if the execution times of jobs are less than 1 second. This is a limitation of the graphing 
 package.
 
-Clicking the get projects when not yet logged in will result in a login process being started instead. Users need to
+Clicking the get projects when you are not yet logged in will result in a login process being started instead. Users need to
 click on get projects button again after login was successful.
 
 The Number of records transferred displayed for reads from tables can be incorrect if the stage reads from more than one table.
@@ -153,7 +153,7 @@ This is a limitation in the Job Details providewd by BQ.
 ---
 
 # Building and Deploying
-The applicagtion is a Single Page Application without a backend. It can be built and deployed to any webserver that c capable of serving static pages,
+The application is a Single Page Application without a backend. It can be built and deployed to any webserver that is capable of serving static pages,
 such as:
 
 * Apache
@@ -164,10 +164,10 @@ such as:
 
 To be able to access the BigQuery REST API you need to have create an OAuth client. Create this in the Google Cloud
 Console under APIs & Services > Credentials.
-When setting up the Client ID the #Authorized JavaScript origins# 
+When setting up the Client ID the Authorized JavaScript origins
 needs to be set to the URL from where the app is downloaded.
 
-And #Authorized redirect URIs# need to be set to:
+And Authorized redirect URIs need to be set to:
 
 *  [download URL] 
 *  [download URL]/ 
@@ -181,14 +181,14 @@ The Angular UI needs to be installed.
 The compile with
   *ng build --prod*
 
-THe output will e in the dist package. Deploy its contents to the web server  
+The output will be in the dist package. Deploy its contents to the web server  
 
 
 # Known Bugs
 
 On clicking the Login button, the login dialog appears. After completing 
 the dialog successfully, the login button is still highlighted.
-The user needs to click the button again so that hte logout button is highlighted,
+The user needs to click the button again so that the logout button is highlighted,
 before being able to download query plans.
 
 Download from Google Cloud => Get Projects function is very slow.
