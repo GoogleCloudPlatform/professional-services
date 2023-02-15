@@ -15,7 +15,7 @@
 FROM	python:3.7-slim AS compile-image
 LABEL   author="Damian Lance"
 LABEL   created="2022-01-19"
-LABEL   last_updated="2022-01-19"
+LABEL   last_updated="2023-02-08"
 
 RUN	python -m venv /opt/venv
 ENV	PATH="/opt/venv/bin:$PATH"
