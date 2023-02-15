@@ -12,8 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# role adminws default values
-sshprivkeypath: "/home/user/.ssh/x_id_ed25519"
+# ssh pubic/private key on the jump host to use for the admin workstation creation
+ssh_auth_key_priv: ""
+ssh_auth_key_priv_path: "/home/user/.ssh/x_id_ed25519"
+ssh_auth_key: ""
+ssh_auth_key_path: "{{ ssh_auth_key_priv_path }}.pub"
 
 # admin workstation specific below until end of file
 adminws_install: true
@@ -22,7 +25,6 @@ component_access_gcpsa_path: "component-access.json"
 
 # vSphere/vCenter
 adminws_vc_fqdn: '{{ lookup("env", "VMWARE_HOST") }}'
-adminws_vc_validate_cert: true
 adminws_vc_credfile: "credential.yaml"
 adminws_vc_credentry: "vCenter"
 adminws_vc_datacenter: ""
@@ -33,6 +35,8 @@ adminws_vc_folder: "" # optional
 adminws_vc_respool: "" # if default resourcePool use <adminws_vc_cluster>/Resources
 adminws_vc_cacertpath: "{{ yamldestpath }}/vcenter.pem" # Location for automatically downloaded CA cert
 adminws_datadiskname: "" # <name>-gke-on-prem-admin-workstation-data-disk/<name>-gke-admin-ws-data-disk.vmdk
+adminws_rootdisk_gb: "100"
+adminws_homedisk_mb: "512"
 
 # Networking
 adminws_nw_ipallocmode: "" # dhcp or static

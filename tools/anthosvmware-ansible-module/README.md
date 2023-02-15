@@ -180,17 +180,33 @@ Estimates for the admin workstation:
 ansible-playbook -i inventory/site-a/admin.yml playbooks/adminws_install.yml -v
 
 # example summary
-Thursday 26 August 2021  16:58:40 -0400 (0:00:00.029)       0:03:32.864 *******
+PLAY RECAP *********************************************************************************************************
+172.16.10.1                : ok=38   changed=12   unreachable=0    failed=0    skipped=17   rescued=0    ignored=1   
+
+Thursday 27 October 2022  20:50:58 -0400 (0:00:00.021)       0:09:37.614 ******
 ===============================================================================
-adminws : [adminws] Create admin workstation -- 199.44s
-adminws : [adminws] Templating YAML files -- 6.89s
-adminws : [adminws] Templating YAML files -- 6.24s
-adminws : [adminws] Sanity Checks -- 0.10s
-adminws : include_tasks -- 0.03s
-adminws : include_tasks -- 0.03s
-adminws : include_tasks -- 0.02s
-adminws : [adminws] Note on optional values -- 0.02s
-Playbook run took 0 days, 0 hours, 3 minutes, 32 seconds
+[adminws] Create admin workstation ------------------------------------------------------------------------- 562.07s
+[adminws] Download gkeadm binary ----------------------------------------------------------------------------- 2.97s
+[adminws] Download gkeadm signature -------------------------------------------------------------------------- 2.97s
+[copy_creds] Copy local GCP SA JSON key files ---------------------------------------------------------------- 1.68s
+[copy_creds] Templating YAML files - vCenter credentials ----------------------------------------------------- 0.42s
+[adminws] Download gkeadm signature -------------------------------------------------------------------------- 1.98s
+[adminws] Switch to Component Access Service Account --------------------------------------------------------- 1.48s
+[adminws] Copy to generic gkeadm path ------------------------------------------------------------------------ 0.78s
+[adminws] Copy gkeadm signature key -------------------------------------------------------------------------- 0.61s
+[adminws] check if file admws exists ------------------------------------------------------------------------- 0.42s
+[adminws] Verify gkeadm binary ------------------------------------------------------------------------------- 0.40s
+[adminws] Templating YAML files - config --------------------------------------------------------------------- 0.39s
+[adminws] Get vCenter CA cert file names --------------------------------------------------------------------- 0.32s
+[adminws] Select the root vCenter CA cert -------------------------------------------------------------------- 0.28s
+[adminws] Create folder -------------------------------------------------------------------------------------- 0.25s
+[adminws] Sanity Checks -------------------------------------------------------------------------------------- 0.22s
+[adminws] Get vCenter CA cert details ------------------------------------------------------------------------ 0.17s
+[cleanup] Include role to delete sensitive files ------------------------------------------------------------- 0.21s
+[cleanup] Clean up GCP SA JSON files on jumphost ------------------------------------------------------------- 0.34s
+[cleanup] Find GCP SA JSON files on jumphost ----------------------------------------------------------------- 0.34s
+
+Playbook run took 0 days, 0 hours, 9 minutes, 37 seconds
 ```
 
 ### Admin Workstation - Playbook for Uninstallation
@@ -202,13 +218,31 @@ Run the playbook (takes around 5 seconds to complete).
 ansible-playbook -i inventory/site-a/admin.yml playbooks/adminws_uninstall.yml -v 
 
 # example summary
-Thursday 26 August 2021  19:41:31 -0400 (0:00:04.887)       0:00:05.051 *******
+PLAY RECAP *********************************************************************************************************
+172.16.10.1                : ok=24   changed=7    unreachable=0    failed=0    skipped=14   rescued=0    ignored=0   
+
+Friday 28 October 2022  13:07:23 -0400 (0:00:00.022)       0:00:07.169 ********
 ===============================================================================
-adminws : [adminws] Delete admin workstation -- 4.89s
-adminws : [adminws] Include tasks - uninstall -- 0.04s
-adminws : [adminws] Include tasks - asserts -- 0.03s
-adminws : [adminws] Include tasks - install -- 0.03s
-Playbook run took 0 days, 0 hours, 0 minutes, 5 seconds
+[adminws] Delete admin workstation --------------------------------------------------------------------------- 2.20s
+copy_credentials : [copy_creds] Ensure credentials directory exists ------------------------------------------ 0.14s
+copy_credentials : [copy_creds] Create folder for GCP SA JSON key files -------------------------------------- 0.14s
+copy_credentials : [copy_creds] Copy local GCP SA JSON key files --------------------------------------------- 1.52s
+copy_credentials : [copy_creds] GCA SA Component Access Account Key ------------------------------------------ 0.03s
+copy_credentials : [copy_creds] Templating YAML files - vCenter credentials ---------------------------------- 0.40s
+[adminws] Check if file admws exists ------------------------------------------------------------------------- 0.42s
+[adminws] Clean up old SSH host keys from incomplete runs ---------------------------------------------------- 0.22s
+[adminws] Delete admin workstation status file --------------------------------------------------------------- 0.14s
+[adminws] Sanity Checks -------------------------------------------------------------------------------------- 0.14s
+[adminws] Note on optional values ---------------------------------------------------------------------------- 0.08s
+[adminws] Include tasks - uninstall.yml ---------------------------------------------------------------------- 0.03s
+[cleanup] Find *credential*.yaml files on jumphost ----------------------------------------------------------- 0.13s
+[cleanup] Clean up *credential*.yaml on jumphost ------------------------------------------------------------- 0.15s
+[cleanup] Clean up sensitive files on jumphost --------------------------------------------------------------- 0.03s
+[cleanup] Check if file admws exists ------------------------------------------------------------------------- 0.16s
+[cleanup] Find GCP SA JSON files on jumphost ----------------------------------------------------------------- 0.30s
+[cleanup] Clean up GCP SA JSON files on jumphost ------------------------------------------------------------- 0.30s
+
+Playbook run took 0 days, 0 hours, 0 minutes, 7 seconds
 ```
 
 ### Admin Workstation - Playbook for Upgrade
@@ -219,8 +253,34 @@ Run the playbook (takes about 20 minutes to complete) after updating the `glb_an
 # at least one -v is required to see output from gkeadmin/gkectl 
 ansible-playbook -i inventory/site-a/admin.yml playbooks/adminws_upgrade.yml -v
 
-# example 
-# TODO: add summary output 
+# example summary
+PLAY RECAP *********************************************************************************************************
+172.16.10.1                : ok=38   changed=18   unreachable=0    failed=0    skipped=17   rescued=0    ignored=0   
+
+Monday 31 October 2022  14:21:39 -0400 (0:00:00.030)       0:11:26.178 ********
+===============================================================================
+[adminws] Upgrade AdminWS ---------------------------------------------------------------------------------- 673.28s
+[adminws] Update gkeadm binary from public location ---------------------------------------------------------- 1.67s
+copy_credentials : [copy_creds] Copy local GCP SA JSON key files --------------------------------------------- 1.57s
+copy_credentials : [copy_creds] Templating YAML files - vCenter credentials ---------------------------------- 0.39s
+[adminws] Switch to Component Access Service Account --------------------------------------------------------- 1.18s
+[adminws] Copy to generic gkeadm path ------------------------------------------------------------------------ 1.08s
+[adminws] Create versioned gkeadm binary --------------------------------------------------------------------- 1.08s
+[adminws] Templating YAML files - config --------------------------------------------------------------------- 0.53s
+[adminws] adminws upgrade results ---------------------------------------------------------------------------- 0.49s
+[adminws] Get status file from server if it exists (ignore errors) ------------------------------------------- 0.46s
+[adminws] Cleanup known_hosts -------------------------------------------------------------------------------- 0.36s
+[adminws] Send updated status file to server ----------------------------------------------------------------- 0.31s
+[adminws] check if file admws exists ------------------------------------------------------------------------- 0.23s
+[adminws] Include role to delete sensitive files ------------------------------------------------------------- 0.16s
+[cleanup] Find GCP SA JSON files on jumphost ----------------------------------------------------------------- 0.30s
+[cleanup] Clean up GCP SA JSON files on jumphost ------------------------------------------------------------- 0.19s
+[cleanup] Find *credential*.yaml files on jumphost ----------------------------------------------------------- 0.17s
+[cleanup] Clean up *credential*.yaml on jumphost ------------------------------------------------------------- 0.23s
+[cleanup] Check if file admws exists ------------------------------------------------------------------------- 0.24s
+[cleanup] Clean up credential.yaml and GCP SA files on newly created AdminwWS -------------------------------- 0.40s
+
+Playbook run took 0 days, 0 hours, 11 minutes, 26 seconds
 ```
 
 ### Admin Cluster - Playbook for Installation
@@ -231,17 +291,33 @@ Run the playbook (takes about 39 minutes to complete, potentially more with the 
 ansible-playbook -i inventory/site-a/admin.yml playbooks/admincluster_install.yml -v
 
 # example summary
-Monday 04 October 2021  11:36:04 -0400 (0:28:03.499)       0:29:50.318 ********
+PLAY RECAP *********************************************************************************************************
+172.16.10.5                : ok=39   changed=13   unreachable=0    failed=0    skipped=38   rescued=0    ignored=0   
+
+Friday 28 October 2022  10:28:53 -0400 (0:00:00.027)       0:33:33.192 ********
 ===============================================================================
-admincluster : [ac] Create cluster  1683.50s
-admincluster : [ac] Templating YAML files -- 42.81s
-admincluster : [ac] Templating YAML files -- 35.62s
-admincluster : [ac] Templating YAML files -- 28.12s
-admincluster : [ac] Sanity Checks - 0.10s
-admincluster : [ac] Include tasks - install.yml -- 0.04s
-admincluster : [ac] Include tasks - asserts.yml -- 0.04s
-admincluster : [ac] Note on optional values -- 0.03s
-Playbook run took 0 days, 0 hours, 29 minutes, 50 seconds
+admincluster : [ac] Create cluster ------------------------------------------------------------------------ 1440.08s
+admincluster : [ac] Preflight check ------------------------------------------------------------------------ 332.29s
+copy_credentials : [copy_creds] Ensure credentials directory exists ------------------------------------------ 0.24s
+copy_credentials : [copy_creds] Copy local GCP SA JSON key files --------------------------------------------- 2.16s
+copy_credentials : [copy_creds] Templating YAML files - vCenter credentials ---------------------------------- 0.54s
+admincluster : [ac] Upload OVAs to vSphere and optionally upload system images to private registry --------- 229.71s
+admincluster : [ac] Clean up old SSH host keys from incomplete runs ------------------------------------------ 0.69s
+admincluster : [ac] Templating YAML files - IP block --------------------------------------------------------- 0.65s
+admincluster : [ac] Templating YAML files -------------------------------------------------------------------- 0.57s
+admincluster : [ac] Check existence of datastore folder for admin cluster ------------------------------------ 0.45s
+admincluster : [ac] Prepare results -------------------------------------------------------------------------- 0.29s
+admincluster : [ac] preflight check status file -------------------------------------------------------------- 0.27s
+admincluster : [ac] Detect if Admin Cluster kubeconfig exists ------------------------------------------------ 0.27s
+admincluster : [ac] Check existence of kubevols folder ------------------------------------------------------- 0.27s
+admincluster : [ac] Preflight results ------------------------------------------------------------------------ 0.26s
+[cleanup] Find *credential*.yaml files on admin workstation in admin cluster subfolder ----------------------- 0.25s
+[cleanup] Find *credential*.yaml files on admin workstation -------------------------------------------------- 0.24s
+[cleanup] Clean up *credential*.yaml on admin workstation in admin cluster subfolder ------------------------- 0.27s
+[cleanup] Find GCP SA JSON files on admin workstation -------------------------------------------------------- 0.46s
+[cleanup] Clean up GCP SA JSON files on jumphost ------------------------------------------------------------- 0.24s
+
+Playbook run took 0 days, 0 hours, 33 minutes, 33 seconds
 ```
 
 Optionally, you can skip some Ansible tasks, if desired.
@@ -260,29 +336,32 @@ Run the playbook (takes less than 10 minutes to complete).
 ansible-playbook -i inventory/site-a/admin.yml playbooks/admincluster_uninstall.yml -v
 
 # example summary
-Monday 02 May 2022  01:52:21 +0000 (0:00:00.016)       0:00:28.701 ************
+PLAY RECAP *********************************************************************************************************
+172.16.10.5                : ok=48   changed=24   unreachable=0    failed=0    skipped=22   rescued=0    ignored=2   
+
+Friday 28 October 2022  12:58:58 -0400 (0:00:00.037)       0:00:30.223 ********
 ===============================================================================
-admincluster : [ac] Delete Monitoring System Pods -- 14.05s
-admincluster : [ac] Unregister Admin Cluster from GKE Hub -- 4.96s
-copy_gcp_sa : [copy-gcp-sa] Copy GCP SA JSON key files to admin workstation -- 2.94s
-admincluster : [ac] Get Register Service Account Name -- 1.14s
-admincluster : [ac] Delete VMs from vCenter -- 1.13s
-admincluster : [ac] Switch to Register Service Account Name -- 1.04s
-admincluster : [ac] Clean up old SSH host keys from incomplete runs -- 0.60s
-admincluster : [ac] Get vSphere VM Names -- 0.47s
-cleanup : Find GCP SA JSON files on admin workstation -- 0.46s
-admincluster : [ac] Delete Logging System Pods -- 0.43s
-cleanup : Clean up GCP SA JSON files on admin workstation -- 0.37s
-cleanup : Find *credential*.yaml files on admin workstation -- 0.33s
-copy_gcp_sa : [copy-gcp-sa] Create folder for GCP SA JSON key files on admin workstation -- 0.30s
-cleanup : Clean up GCP SA JSON files on admin workstation -- 0.04s
-cleanup : Clean up GCP SA JSON files on jumphost -- 0.04s
-Include role for GCP SA JSON key files -- 0.04s
-copy_gcp_sa : [copy-gcp-sa] Copy GCP SA JSON key files to jump host -- 0.03s
-admincluster : [ac] Include tasks - uninstall.yml -- 0.03s
-Include role to delete sensitive files -- 0.03s
-cleanup : Clean up *credential*.yaml on admin workstation -- 0.03s
-Playbook run took 0 days, 0 hours, 0 minutes, 28 seconds
+admincluster : [ac] Delete VMs from vCenter ----------------------------------------------------------------- 10.27s
+copy_credentials : [copy_creds] Copy local GCP SA JSON key files --------------------------------------------- 2.52s
+copy_credentials : [copy_creds] Templating YAML files - vCenter credentials ---------------------------------- 0.60s
+admincluster : [ac] Unregister Admin Cluster from GKE Hub ---------------------------------------------------- 2.53s
+admincluster : [ac] Delete Monitoring System Pods ------------------------------------------------------------ 1.84s
+admincluster : [ac] Switch to Register Service Account Name -------------------------------------------------- 1.05s
+admincluster : [ac] Get Register Service Account Name -------------------------------------------------------- 0.92s
+admincluster : [ac] Clean up old SSH host keys from incomplete runs ------------------------------------------ 0.70s
+admincluster : [ac] Delete Admin Cluster Master Template ----------------------------------------------------- 0.46s
+admincluster : [ac] Delete Logging System Pods --------------------------------------------------------------- 0.45s
+admincluster : [ac] Detect if Admin Cluster already exists --------------------------------------------------- 0.43s
+admincluster : [ac] Detect if Admin Cluster kubeconfig exists ------------------------------------------------ 0.41s
+admincluster : [ac] Get vSphere VM Names --------------------------------------------------------------------- 0.37s
+admincluster : [ac] Get Admin Cluster Master VM Name --------------------------------------------------------- 0.33s
+admincluster : [ac] Check for Admin Cluster Data Disk vmdk --------------------------------------------------- 0.33s
+admincluster : [ac] admin cluster debug kubeconfig file status ----------------------------------------------- 0.31s
+admincluster : [ac] admin cluster kubeconfig file status ----------------------------------------------------- 0.31s
+[cleanup] Find GCP SA JSON files on admin workstation -------------------------------------------------------- 0.35s
+[cleanup] Clean up GCP SA JSON files on jumphost ------------------------------------------------------------- 0.31s
+
+Playbook run took 0 days, 0 hours, 0 minutes, 30 seconds
 ```
 
 ### Admin Cluster - Playbook for Upgrade
@@ -295,30 +374,30 @@ Run the playbook (takes about 30 minutes to complete) after updating the `glb_an
 ansible-playbook -i inventory/site-a/admin.yml playbooks/admincluster_upgrade.yml -v
 
 # example summary
-Friday 23 September 2022  17:10:56 -0400 (0:00:00.046)                                             1:37:25.400 ****** 
+Friday 23 September 2022  17:10:56 -0400 (0:00:00.046)       1:37:25.400 ******
 ===============================================================================
-admincluster : [ac] Upgrade admin cluster -- 5712.50s
-admincluster : [ac] Upload new bundle to vSphere -- 120.96s
-[copy_gcp_sa] Copy GCP SA JSON key files to admin workstation -- 2.96s
-admincluster : [ac] Detect if Admin Cluster already exists -- 1.21s
-admincluster : [ac] Clean up old SSH host keys from incomplete runs -- 1.20s
-[copy_gcp_sa] Templating YAML files - vCenter credentials -- 1.00s
-admincluster : [ac] Get target version from Admin Workstation -- 0.87s
-[cleanup] Find GCP SA JSON files on admin workstation -- 0.49s
-admincluster : [ac] Replace bundlePath in admin cluster config YAML -- 0.45s
-[cleanup] Clean up GCP SA JSON file folder on admin workstation -- 0.40s
-admincluster : [ac] Detect if Admin Cluster kubeconfig exists -- 0.38s
-[cleanup] Clean up *credential*.yaml on admin workstation in admin cluster subfolder -- 0.30s
-[cleanup] Find *credential*.yaml files on admin workstation in admin cluster subfolder -- 0.25s
-[cleanup] Find *credential*.yaml files on admin workstation -- 0.24s
-[copy_gcp_sa] Ensure credentials directory exists -- 0.23s
-[copy_gcp_sa] Create folder for GCP SA JSON key files on admin workstation -- 0.22s
-[cleanup] Clean up sensitive file on admin workstation -- 0.20s
-admincluster : [ac] Sanity Checks -- 0.12s
-admincluster : [ac] Include tasks - upgrade.yml -- 0.11s
-[cleanup] Clean up sensitive files on jumphost -- 0.10s
+admincluster : [ac] Upgrade admin cluster ----------------------------------------------------------------- 1712.50s
+admincluster : [ac] Upload new bundle to vSphere ----------------------------------------------------------- 120.96s
+copy_credentials : [copy_creds] Copy GCP SA JSON key files to admin workstation ------------------------------ 2.96s
+admincluster : [ac] Detect if Admin Cluster already exists --------------------------------------------------- 1.21s
+admincluster : [ac] Clean up old SSH host keys from incomplete runs ------------------------------------------ 1.20s
+copy_credentials : [copy_creds] Templating YAML files - vCenter credentials ---------------------------------- 1.00s
+admincluster : [ac] Get target version from Admin Workstation ------------------------------------------------ 0.87s
+[cleanup] Find GCP SA JSON files on admin workstation -------------------------------------------------------- 0.49s
+admincluster : [ac] Replace bundlePath in admin cluster config YAML ------------------------------------------ 0.45s
+[cleanup] Clean up GCP SA JSON file folder on admin workstation ---------------------------------------------- 0.40s
+admincluster : [ac] Detect if Admin Cluster kubeconfig exists ------------------------------------------------ 0.38s
+[cleanup] Clean up *credential*.yaml on admin workstation in admin cluster subfolder ------------------------- 0.30s
+[cleanup] Find *credential*.yaml files on admin workstation in admin cluster subfolder ----------------------- 0.25s
+[cleanup] Find *credential*.yaml files on admin workstation -------------------------------------------------- 0.24s
+copy_credentials : [copy_creds] Ensure credentials directory exists ------------------------------------------ 0.23s
+copy_credentials : [copy_creds] Create folder for GCP SA JSON key files on admin workstation ----------------- 0.22s
+[cleanup] Clean up sensitive file on admin workstation ------------------------------------------------------- 0.20s
+admincluster : [ac] Sanity Checks ---------------------------------------------------------------------------- 0.12s
+admincluster : [ac] Include tasks - upgrade.yml -------------------------------------------------------------- 0.11s
+[cleanup] Clean up sensitive files on jumphost --------------------------------------------------------------- 0.10s
 
-Playbook run took 0 days, 1 hours, 37 minutes, 25 seconds
+Playbook run took 0 days, 0 hours, 37 minutes, 25 seconds
 ```
 
 ### User Cluster - Playbook for Installation
@@ -329,19 +408,32 @@ Run the playbook (takes about 40 minutes to complete).
 ansible-playbook -i inventory/site-a/usercluster01.yml playbooks/usercluster_install.yml -v
 
 # example summary
-Monday 04 October 2021  17:17:38 -0400 (0:00:00.045)       0:28:36.093 ********
+PLAY RECAP *********************************************************************************************************
+172.16.10.5                : ok=33   changed=8    unreachable=0    failed=0    skipped=31   rescued=0    ignored=0   
+
+Friday 28 October 2022  11:51:18 -0400 (0:00:00.053)       0:34:13.585 ********
 ===============================================================================
-usercluster : [uc] Create user cluster -- 1485.98s
-usercluster : [uc] Create load balancer -- 138.95s
-usercluster : [uc] Templating YAML files -- 34.05s
-usercluster : [uc] Templating YAML files -- 28.60s
-usercluster : [uc] Templating YAML files -- 28.22s
-usercluster : [uc] Sanity Checks -- 0.07s
-usercluster : [uc] Include tasks - uninstall.yml - 0.05s
-usercluster : [uc] Include tasks - install.yml  0.04s
-usercluster : [uc] Include tasks - asserts.yml  0.04s
-usercluster : [uc] Note on optional values - 0.03s
-Playbook run took 0 days, 0 hours, 28 minutes, 36 seconds
+usercluster : [uc] Create user cluster -------------------------------------------------------------------- 1696.75s
+usercluster : [uc] Preflight check ------------------------------------------------------------------------- 343.77s
+copy_credentials : [copy_creds] Ensure credentials directory exists ------------------------------------------ 0.22s
+copy_credentials : [copy_creds] Create folder for GCP SA JSON key files -------------------------------------- 0.22s
+copy_credentials : [copy_creds] Copy local GCP SA JSON key files --------------------------------------------- 2.39s
+copy_credentials : [copy_creds] Templating YAML files - vCenter credentials ---------------------------------- 0.59s
+usercluster : [uc] Check for existing cluster kubeconfig ----------------------------------------------------- 0.31s
+usercluster : [uc] Preflight results ------------------------------------------------------------------------- 0.28s
+usercluster : [uc] Create folder on Admin Workstation for YAML files ----------------------------------------- 0.23s
+usercluster : [uc] Template patch for stackdriver configuration ---------------------------------------------- 0.22s
+usercluster : [uc] Preflight check status file --------------------------------------------------------------- 0.22s
+usercluster : [uc] Templating YAML files --------------------------------------------------------------------- 0.73s
+usercluster : [uc] Clean up old SSH host keys from incomplete runs ------------------------------------------- 0.70s
+usercluster : [uc] Templating YAML files - IP block ---------------------------------------------------------- 0.55s
+[cleanup] Find GCP SA JSON files on admin workstation -------------------------------------------------------- 0.60s
+[cleanup] Clean up GCP SA JSON files on jumphost ------------------------------------------------------------- 1.16s
+[cleanup] Find *credential*.yaml files on admin workstation -------------------------------------------------- 0.52s
+[cleanup] Find *credential*.yaml files on admin workstation in user cluster subfolder ------------------------ 0.42s
+[cleanup] Clean up *credential*.yaml on admin workstation in user cluster subfolder -------------------------- 0.45s
+
+Playbook run took 0 days, 0 hours, 34 minutes, 13 seconds
 ```
 
 ### User Cluster - Playbook for Uninstallation
@@ -352,15 +444,32 @@ Run the playbook (takes less than 10 minutes to complete).
 ansible-playbook -i inventory/site-a/usercluster01.yml playbooks/usercluster_uninstall.yml -v
 
 # example summary
-Monday 02 May 2022  00:19:09 +0000 (0:00:00.039)       0:08:03.354 ************
+PLAY RECAP *********************************************************************************************************
+172.16.10.5                : ok=26   changed=8    unreachable=0    failed=0    skipped=21   rescued=0    ignored=0   
+
+Friday 28 October 2022  12:32:24 -0400 (0:00:00.044)       0:11:16.077 ********
 ===============================================================================
-usercluster : [uc] Delete user cluster -- 482.59s
-usercluster : [uc] Clean up old SSH host keys from incomplete runs -- 0.62s
-usercluster : [uc] Delete load balancer -- 0.04s
-usercluster : [uc] Include tasks - uninstall.yml -- 0.03s
-usercluster : [uc] Include tasks - install.yml -- 0.02s
-usercluster : [uc] Include tasks - asserts.yml -- 0.02s
-Playbook run took 0 days, 0 hours, 8 minutes, 3 seconds
+usercluster : [uc] Delete user cluster --------------------------------------------------------------------- 663.85s
+copy_credentials : [copy_creds] Create folder for GCP SA JSON key files -------------------------------------- 0.34s
+copy_credentials : [copy_creds] Ensure credentials directory exists ------------------------------------------ 0.30s
+copy_credentials : [copy_creds] Copy local GCP SA JSON key files --------------------------------------------- 3.57s
+copy_credentials : [copy_creds] Copy GCP SA JSON Key file from Tower Vault ----------------------------------- 0.10s
+copy_credentials : [copy_creds] GCA SA Component Access Account Key ------------------------------------------ 0.10s
+copy_credentials : [copy_creds] Templating YAML files - vCenter credentials ---------------------------------- 0.83s
+usercluster : [uc] Clean up old SSH host keys from incomplete runs ------------------------------------------- 1.54s
+usercluster : [uc] Check for existing cluster kubeconfig ----------------------------------------------------- 0.66s
+usercluster : [uc] Delete User Cluster Kubeconfig ------------------------------------------------------------ 0.57s
+usercluster : [uc] Include tasks - upgrade.yml --------------------------------------------------------------- 0.38s
+usercluster : [uc] Sanity Checks ----------------------------------------------------------------------------- 0.16s
+usercluster : [uc] Include tasks - asserts.yml --------------------------------------------------------------- 0.13s
+usercluster : [uc] Include tasks - update.yml ---------------------------------------------------------------- 0.09s
+[cleanup] Find GCP SA JSON files on admin workstation -------------------------------------------------------- 0.41s
+[cleanup] Clean up GCP SA JSON files on jumphost ------------------------------------------------------------- 0.48s
+[cleanup] Find *credential*.yaml files on admin workstation in user cluster subfolder ------------------------ 0.27s
+[cleanup] Clean up *credential*.yaml on admin workstation in user cluster subfolder -------------------------- 0.26s
+[cleanup] Find *credential*.yaml files on admin workstation -------------------------------------------------- 0.24s
+
+Playbook run took 0 days, 0 hours, 11 minutes, 16 seconds
 ```
 
 ### User Cluster - Playbook for Upgrade
@@ -373,28 +482,28 @@ Run the playbook (takes about 30 minutes to complete) after updating the `glb_an
 ansible-playbook -i inventory/site-a/usercluster01.yml playbooks/usercluster_upgrade.yml -v
 
 # example summary
-Friday 23 September 2022  15:24:56 -0400 (0:00:00.186)                                              1:14:18.537 ****** 
+Friday 23 September 2022  15:24:56 -0400 (0:00:00.186)       1:14:18.537 ******
 ===============================================================================
-usercluster : [uc] Upgrade user cluster -- 3937.77s
-usercluster : [uc] Upload new bundle to vSphere -- 505.80s
-[copy_gcp_sa] Copy GCP SA JSON key files to admin workstation -- 2.89s
-usercluster : [uc] Check if existing api server is up -- 1.42s
-[cleanup] Find GCP SA JSON files on admin workstation -- 1.13s
-usercluster : [uc] Templating YAML files -- 0.86s
-[copy_gcp_sa] Templating YAML files - vCenter credentials -- 0.76s
-usercluster : [uc] Get current user cluster version -- 0.74s
-usercluster : [uc] Get gkectl version from Admin workstation -- 0.72s
-usercluster : [uc] Clean up old SSH host keys from incomplete runs -- 0.68s
-usercluster : [uc] Templating YAML files - IP block -- 0.50s
-[cleanup] Clean up sensitive file on admin workstation -- 0.48s
-usercluster : [uc] Check for existing cluster kubeconfig -- 0.36s
-usercluster : [uc] Replace cluster version in its config YAML file -- 0.35s
-[cleanup] Clean up GCP SA JSON file folder on admin workstation -- 0.31s
-[cleanup] Find *credential*.yaml files on admin workstation -- 0.27s
-[cleanup] Find *credential*.yaml files on admin workstation in user cluster subfolder -- 0.25s
-[cleanup] Clean up *credential*.yaml on admin workstation in user cluster subfolder -- 0.25s
-[cleanup] Clean up sensitive files on jumphost -- 0.24s
-[copy_gcp_sa] Ensure credentials directory exists -- 0.22s
+usercluster : [uc] Upgrade user cluster ------------------------------------------------------------------- 3937.77s
+usercluster : [uc] Upload new bundle to vSphere ------------------------------------------------------------ 505.80s
+copy_credentials : [copy_creds] Copy GCP SA JSON key files to admin workstation ------------------------------ 2.89s
+usercluster : [uc] Check if existing api server is up -------------------------------------------------------- 1.42s
+[cleanup] Find GCP SA JSON files on admin workstation -------------------------------------------------------- 1.13s
+usercluster : [uc] Templating YAML files --------------------------------------------------------------------- 0.86s
+copy_credentials : [copy_creds] Templating YAML files - vCenter credentials ---------------------------------- 0.76s
+usercluster : [uc] Get current user cluster version ---------------------------------------------------------- 0.74s
+usercluster : [uc] Get gkectl version from Admin workstation ------------------------------------------------- 0.72s
+usercluster : [uc] Clean up old SSH host keys from incomplete runs ------------------------------------------- 0.68s
+usercluster : [uc] Templating YAML files - IP block ---------------------------------------------------------- 0.50s
+[cleanup] Clean up sensitive file on admin workstation ------------------------------------------------------- 0.48s
+usercluster : [uc] Check for existing cluster kubeconfig ----------------------------------------------------- 0.36s
+usercluster : [uc] Replace cluster version in its config YAML file ------------------------------------------- 0.35s
+[cleanup] Clean up GCP SA JSON file folder on admin workstation ---------------------------------------------- 0.31s
+[cleanup] Find *credential*.yaml files on admin workstation -------------------------------------------------- 0.27s
+[cleanup] Find *credential*.yaml files on admin workstation in user cluster subfolder ------------------------ 0.25s
+[cleanup] Clean up *credential*.yaml on admin workstation in user cluster subfolder -------------------------- 0.25s
+[cleanup] Clean up sensitive files on jumphost --------------------------------------------------------------- 0.24s
+copy_credentials : [copy_creds] Ensure credentials directory exists ------------------------------------------ 0.22s
 
 Playbook run took 0 days, 1 hours, 14 minutes, 18 seconds
 ```
@@ -409,28 +518,29 @@ Run the playbook (takes about 5 minutes to complete).
 ansible-playbook -i inventory/site-a/usercluster01.yml playbooks/asm_install.yml -v
 
 # example summary
-Monday 26 September 2022  14:16:22 -0400 (0:00:00.021)       0:02:44.482 ****** 
+Monday 26 September 2022  14:16:22 -0400 (0:00:00.021)       0:02:44.482 ******
 ===============================================================================
-[asm] Install Anthos Service Mesh -- 116.65s
-[asm] Create ASM offline package bundle -- 17.65s
-[asm] Add mesh_id label to cluster -- 4.27s
-[copy_gcp_sa] Copy GCP SA JSON key files to admin workstation -- 3.96s
-[asm] Create asm-ingress namespace -- 2.92s
-[asm] Switch to Connect Register Service Account Name -- 1.49s
-asm : [ASM] Detect if ASM already installed and get current revision -- 1.46s
-[asm] Switch to asm Service Account Name -- 1.16s
-[asm] Create RBAC rule required for asm -- 1.09s
-[asm] Copy istioctl to istioctl_dest_path -- 1.03s
-[asm] Download asmcli -- 1.01s
-[copy_gcp_sa] Templating YAML files - vCenter credentials -- 0.79s
-[asm] Create the Ingress Gateway -- 0.77s
-[asm] Create istio-system namespace -- 0.73s
-[asm] Template asm-ingress namespace -- 0.71s
-[asm] Delete RBAC rule created above -- 0.68s
-[asm] Template the ASM control plane config file -- 0.65s
-[cleanup] Find GCP SA JSON files on admin workstation -- 0.64s
-[asm] Template RBAC rule required for asm -- 0.60s
-[asm] Template Istio system namespace -- 0.60s
+[asm] Install Anthos Service Mesh -------------------------------------------------------------------------- 116.65s
+[asm] Create ASM offline package bundle --------------------------------------------------------------------- 17.65s
+[asm] Add mesh_id label to cluster --------------------------------------------------------------------------- 4.27s
+copy_credentials : [copy_creds] Copy GCP SA JSON key files to admin workstation ------------------------------ 3.96s
+[asm] Create asm-ingress namespace --------------------------------------------------------------------------- 2.92s
+[asm] Switch to Connect Register Service Account Name -------------------------------------------------------- 1.49s
+asm : [ASM] Detect if ASM already installed and get current revision ----------------------------------------- 1.46s
+[asm] Switch to asm Service Account Name --------------------------------------------------------------------- 1.16s
+[asm] Create RBAC rule required for asm ---------------------------------------------------------------------- 1.09s
+[asm] Copy istioctl to istioctl_dest_path -------------------------------------------------------------------- 1.03s
+[asm] Download asmcli ---------------------------------------------------------------------------------------- 1.01s
+copy_credentials : [copy_creds] Templating YAML files - vCenter credentials ---------------------------------- 0.79s
+[asm] Create the Ingress Gateway ----------------------------------------------------------------------------- 0.77s
+[asm] Create istio-system namespace -------------------------------------------------------------------------- 0.73s
+[asm] Template asm-ingress namespace ------------------------------------------------------------------------- 0.71s
+[asm] Delete RBAC rule created above ------------------------------------------------------------------------- 0.68s
+[asm] Template the ASM control plane config file ------------------------------------------------------------- 0.65s
+[cleanup] Find GCP SA JSON files on admin workstation -------------------------------------------------------- 0.64s
+[asm] Template RBAC rule required for asm -------------------------------------------------------------------- 0.60s
+[asm] Template Istio system namespace ------------------------------------------------------------------------ 0.60s
+
 Playbook run took 0 days, 0 hours, 2 minutes, 44 seconds
 ```
 
@@ -442,28 +552,29 @@ Run the playbook (takes less than 5 minutes to complete).
 ansible-playbook -i inventory/site-a/usercluster01.yml playbooks/asm_uninstall.yml -v
 
 # example summary
-Monday 26 September 2022  14:53:22 -0400 (0:00:00.023)       0:00:42.965 ****** ------- 0.38s
-=============================================================================== 
-[asm] Create ASM offline package bundle -- 18.25s
-[asm] Delete istio-system, asm-ingress and asm-system namespaces -- 13.94s
-[asm] Remove the in-cluster control plane -- 4.89s
-asm : [ASM] Detect if ASM already installed and get current revision -- 1.44s
-[asm] Download asmcli -- 0.89s
-[asm] Delete webhooks -- 0.48s
-[cleanup] Find GCP SA JSON files on admin workstation -- 0.47s
-[cleanup] Delete temp directory created for ASM files -- 0.47s
-[asm] Create folder for ASM files on admin workstation -- 0.29s
-[cleanup] Find *credential*.yaml files on admin workstation in user cluster subfolder -- 0.21s
-[asm] Make asmcli executable -- 0.21s
-[cleanup] Find *credential*.yaml files on admin workstation -- 0.19s
-[cleanup] Clean up sensitive file on admin workstation -- 0.13s
-asm : [mesh] Setup cluster config -- 0.08s
-asm : [ASM] Sanity Checks -- 0.07s
-[asm] Copy istioctl to istioctl_dest_path -- 0.05s
-asm : [ASM] Include tasks - uninstall.yml -- 0.04s
-asm : [mesh] Sanity Checks -- 0.04s
-Include role to delete sensitive files -- 0.04s
-[cleanup] Include tasks - asserts.yml -- 0.03s
+Monday 26 September 2022  14:53:22 -0400 (0:00:00.023)       0:00:42.965 ******
+===============================================================================
+[asm] Create ASM offline package bundle --------------------------------------------------------------------- 18.25s
+[asm] Delete istio-system, asm-ingress and asm-system namespaces -------------------------------------------- 13.94s
+[asm] Remove the in-cluster control plane -------------------------------------------------------------------- 4.89s
+asm : [ASM] Detect if ASM already installed and get current revision ----------------------------------------- 1.44s
+[asm] Download asmcli ---------------------------------------------------------------------------------------- 0.89s
+[asm] Delete webhooks ---------------------------------------------------------------------------------------- 0.48s
+[cleanup] Find GCP SA JSON files on admin workstation -------------------------------------------------------- 0.47s
+[cleanup] Delete temp directory created for ASM files -------------------------------------------------------- 0.47s
+[asm] Create folder for ASM files on admin workstation ------------------------------------------------------- 0.29s
+[cleanup] Find *credential*.yaml files on admin workstation in user cluster subfolder ------------------------ 0.21s
+[asm] Make asmcli executable --------------------------------------------------------------------------------- 0.21s
+[cleanup] Find *credential*.yaml files on admin workstation -------------------------------------------------- 0.19s
+[cleanup] Clean up sensitive file on admin workstation ------------------------------------------------------- 0.13s
+asm : [mesh] Setup cluster config ---------------------------------------------------------------------------- 0.08s
+asm : [ASM] Sanity Checks ------------------------------------------------------------------------------------ 0.07s
+[asm] Copy istioctl to istioctl_dest_path -------------------------------------------------------------------- 0.05s
+asm : [ASM] Include tasks - uninstall.yml -------------------------------------------------------------------- 0.04s
+asm : [mesh] Sanity Checks ----------------------------------------------------------------------------------- 0.04s
+Include role to delete sensitive files ----------------------------------------------------------------------- 0.04s
+[cleanup] Include tasks - asserts.yml ------------------------------------------------------------------------ 0.03s
+
 Playbook run took 0 days, 0 hours, 0 minutes, 42 seconds
 ```
 
@@ -477,28 +588,29 @@ For more information, refer to the `role/asm/README.md`.
 ansible-playbook -i inventory/site-a/usercluster01.yml playbooks/asm_upgrade.yml -v
 
 # example summary
-Monday 26 September 2022  14:37:58 -0400 (0:00:16.585)       0:02:43.074 ****** 
-=============================================================================== 
-[asm] Install Anthos Service Mesh -- 101.68s
-[asm] Create ASM offline package bundle -- 17.00s
-[asm] Wait until the ingress gateway pods are ready -- 16.59s
-[copy_gcp_sa] Copy GCP SA JSON key files to admin workstation -- 4.18s
-[asm] Add mesh_id label to cluster -- 3.23s
-[asm] Restart the Pods to trigger re-injection -- 2.57s
-[asm] Create asm-ingress namespace -- 2.27s
-asm : [ASM] Detect if ASM already installed and get current revision -- 1.77s
-[asm] Switch to Connect Register Service Account Name -- 1.34s
-[asm] Switch to asm Service Account Name -- 1.08s
-[asm] Copy istioctl to istioctl_dest_path -- 1.08s
-[asm] Download asmcli -- 0.94s
-[copy_gcp_sa] Templating YAML files - vCenter credentials -- 0.80s
-[asm] Create RBAC rule required for asm -- 0.74s
-[asm] Template asm-ingress namespace -- 0.73s
-[asm] Template the ASM control plane config file -- 0.68s
-[asm] Template RBAC rule required for asm -- 0.63s
-[cleanup] Find GCP SA JSON files on admin workstation -- 0.47s
-[copy_gcp_sa] Ensure credentials directory exists -- 0.42s
-[asm] Delete old RBAC rule required for asm (if exists) -- 0.38s
+Monday 26 September 2022  14:37:58 -0400 (0:00:16.585)       0:02:43.074 ******
+===============================================================================
+[asm] Install Anthos Service Mesh -------------------------------------------------------------------------- 101.68s
+[asm] Create ASM offline package bundle --------------------------------------------------------------------- 17.00s
+[asm] Wait until the ingress gateway pods are ready --------------------------------------------------------- 16.59s
+copy_credentials : [copy_creds] Copy GCP SA JSON key files to admin workstation ------------------------------ 4.18s
+[asm] Add mesh_id label to cluster --------------------------------------------------------------------------- 3.23s
+[asm] Restart the Pods to trigger re-injection --------------------------------------------------------------- 2.57s
+[asm] Create asm-ingress namespace --------------------------------------------------------------------------- 2.27s
+asm : [ASM] Detect if ASM already installed and get current revision ----------------------------------------- 1.77s
+[asm] Switch to Connect Register Service Account Name -------------------------------------------------------- 1.34s
+[asm] Switch to asm Service Account Name --------------------------------------------------------------------- 1.08s
+[asm] Copy istioctl to istioctl_dest_path -------------------------------------------------------------------- 1.08s
+[asm] Download asmcli ---------------------------------------------------------------------------------------- 0.94s
+copy_credentials : [copy_creds] Templating YAML files - vCenter credentials ---------------------------------- 0.80s
+[asm] Create RBAC rule required for asm ---------------------------------------------------------------------- 0.74s
+[asm] Template asm-ingress namespace ------------------------------------------------------------------------- 0.73s
+[asm] Template the ASM control plane config file ------------------------------------------------------------- 0.68s
+[asm] Template RBAC rule required for asm -------------------------------------------------------------------- 0.63s
+[cleanup] Find GCP SA JSON files on admin workstation -------------------------------------------------------- 0.47s
+copy_credentials : [copy_creds] Ensure credentials directory exists ------------------------------------------ 0.42s
+[asm] Delete old RBAC rule required for asm (if exists) ------------------------------------------------------ 0.38s
+
 Playbook run took 0 days, 0 hours, 2 minutes, 43 seconds
 ```
 
@@ -512,28 +624,29 @@ Run the playbook (takes about 15 minutes to complete).
 ansible-playbook -i inventory/site-a/usercluster01.yml playbooks/acm_install.yml -v
 
 # example summary
-Monday 19 September 2022  08:58:27 -0400 (0:00:00.020)       0:07:09.933 ****** 
-=============================================================================== 
-[acm] Wait for Config Sync to be synced -- 411.97s
-[copy_gcp_sa] Copy GCP SA JSON key files to admin workstation -- 3.22s
-[acm] Enable ACM -- 3.19s
-[acm] Switch to ACM Service Account Name -- 1.38s
-[acm] Get current ACM version -- 1.32s
-[acm] Create ACM namespace -- 1.25s
-[acm] Check ACM Feature Status -- 1.18s
-[acm] Clean up old SSH host keys from incomplete runs -- 0.99s
-[acm] Copy ACM namespace file -- 0.86s
-[copy_gcp_sa] Templating YAML files - vCenter credentials -- 0.78s
-[acm] Templating YAML files -- 0.56s
-[cleanup] Find GCP SA JSON files on admin workstation -- 0.50s
-[copy_gcp_sa] Create folder for GCP SA JSON key files on admin workstation -- 0.26s
-[acm] Clean up root repository ssh key file -- 0.24s
-[cleanup] Clean up *credential*.yaml on admin workstation in user cluster subfolder -- 0.21s
-[cleanup] Clean up GCP SA JSON file folder on admin workstation -- 0.21s
-[cleanup] Find *credential*.yaml files on admin workstation in user cluster subfolder -- 0.20s
-[copy_gcp_sa] Ensure credentials directory exists -- 0.20s
-[cleanup] Find *credential*.yaml files on admin workstation -- 0.19s
-[cleanup] Clean up sensitive file on admin workstation -- 0.13s
+Monday 19 September 2022  08:58:27 -0400 (0:00:00.020)       0:07:09.933 ******
+===============================================================================
+[acm] Wait for Config Sync to be synced -------------------------------------------------------------------- 411.97s
+copy_credentials : [copy_creds] Copy GCP SA JSON key files to admin workstation ------------------------------ 3.22s
+[acm] Enable ACM --------------------------------------------------------------------------------------------- 3.19s
+[acm] Switch to ACM Service Account Name --------------------------------------------------------------------- 1.38s
+[acm] Get current ACM version -------------------------------------------------------------------------------- 1.32s
+[acm] Create ACM namespace ----------------------------------------------------------------------------------- 1.25s
+[acm] Check ACM Feature Status ------------------------------------------------------------------------------- 1.18s
+[acm] Clean up old SSH host keys from incomplete runs -------------------------------------------------------- 0.99s
+[acm] Copy ACM namespace file -------------------------------------------------------------------------------- 0.86s
+copy_credentials : [copy_creds] Templating YAML files - vCenter credentials ---------------------------------- 0.78s
+[acm] Templating YAML files ---------------------------------------------------------------------------------- 0.56s
+[cleanup] Find GCP SA JSON files on admin workstation -------------------------------------------------------- 0.50s
+copy_credentials : [copy_creds] Create folder for GCP SA JSON key files on admin workstation ----------------- 0.26s
+[acm] Clean up root repository ssh key file ------------------------------------------------------------------ 0.24s
+[cleanup] Clean up *credential*.yaml on admin workstation in user cluster subfolder -------------------------- 0.21s
+[cleanup] Clean up GCP SA JSON file folder on admin workstation ---------------------------------------------- 0.21s
+[cleanup] Find *credential*.yaml files on admin workstation in user cluster subfolder ------------------------ 0.20s
+copy_credentials : [copy_creds] Ensure credentials directory exists ------------------------------------------ 0.20s
+[cleanup] Find *credential*.yaml files on admin workstation -------------------------------------------------- 0.19s
+[cleanup] Clean up sensitive file on admin workstation ------------------------------------------------------- 0.13s
+
 Playbook run took 0 days, 0 hours, 5 minutes, 9 seconds
 ```
 
@@ -545,18 +658,20 @@ Run the playbook (takes less than 10 minutes to complete).
 ansible-playbook -i inventory/site-a/usercluster01.yml playbooks/acm_uninstall.yml -v
 
 # example summary
-Tuesday 20 September 2022  09:40:18 -0400 (0:00:00.020)       0:01:05.454 ****** 
+Tuesday 20 September 2022  09:40:18 -0400 (0:00:00.020)      0:01:05.454 ****** 
 ===============================================================================
-[acm] Remove ACM namespaces -- 47.00s
-[acm] Remove ACM operator configuration -- 3.79s
-[copy_gcp_sa] Copy GCP SA JSON key files to admin workstation -- 3.52s
-[acm] Disable ACM -- 3.21s
-[acm] Switch to ACM Service Account Name -- 1.52s
-[acm] Get current ACM version -- 1.40s
-[copy_gcp_sa] Templating YAML files - vCenter credentials -- 0.81s
-[acm] Remove ACM operator CRD -- 0.62s
-[acm] Clean up old SSH host keys from incomplete runs -- 0.51s
-[cleanup] Find GCP SA JSON files on admin workstation -- 0.48s
+[acm] Remove ACM namespaces --------------------------------------------------------------------------------- 47.00s
+[acm] Remove ACM operator configuration ---------------------------------------------------------------------- 3.79s
+copy_credentials : [copy_creds] Copy GCP SA JSON key files to admin workstation ------------------------------ 3.52s
+[acm] Disable ACM -------------------------------------------------------------------------------------------- 3.21s
+[acm] Switch to ACM Service Account Name --------------------------------------------------------------------- 1.52s
+[acm] Get current ACM version -------------------------------------------------------------------------------- 1.40s
+copy_credentials : [copy_creds] Templating YAML files - vCenter credentials ---------------------------------- 0.81s
+[acm] Remove ACM operator CRD -------------------------------------------------------------------------------- 0.62s
+[acm] Clean up old SSH host keys from incomplete runs -------------------------------------------------------- 0.51s
+[cleanup] Find GCP SA JSON files on admin workstation -------------------------------------------------------- 0.48s
+
+Playbook run took 0 days, 0 hours, 1 minutes, 2 seconds
 ```
 
 ### ACM - Playbook for Upgrade
@@ -567,17 +682,18 @@ Run the playbook (takes about 15 minutes to complete) after updating the `acm_ve
 ansible-playbook -i inventory/site-a/usercluster01.yml playbooks/acm_upgrade.yml -v
 
 # example summary
-Wednesday 21 September 2022  10:30:18 -0400 (0:00:00.028)       0:02:12.284 ****** 
+Wednesday 21 September 2022  10:30:18 -0400 (0:00:00.028)    0:02:12.284 ****** 
 =============================================================================== 
-[acm] Wait for Config Sync -- 88.43s
-[acm] Wait for upgrade to start -- 30.07s
-[acm] Upgrade ACM -- 3.36s
-[acm] Switch to ACM Service Account Name -- 1.49s
-[acm] Get current ACM version -- 1.40s
-[acm] Clean up old SSH host keys from incomplete runs -- 0.48s
-[acm] Wait for Policy Controller -- 0.05s
-[acm] Sanity Checks -- 0.04s
-[acm] Compare current version with requested -- 0.04s
+[acm] Wait for Config Sync ---------------------------------------------------------------------------------- 88.43s
+[acm] Wait for upgrade to start ----------------------------------------------------------------------------- 30.07s
+[acm] Upgrade ACM -------------------------------------------------------------------------------------------- 3.36s
+[acm] Switch to ACM Service Account Name --------------------------------------------------------------------- 1.49s
+[acm] Get current ACM version -------------------------------------------------------------------------------- 1.40s
+[acm] Clean up old SSH host keys from incomplete runs -------------------------------------------------------- 0.48s
+[acm] Wait for Policy Controller ----------------------------------------------------------------------------- 0.05s
+[acm] Sanity Checks ------------------------------------------------------------------------------------------ 0.04s
+[acm] Compare current version with requested ----------------------------------------------------------------- 0.04s
+
 Playbook run took 0 days, 0 hours, 2 minutes, 12 seconds
 ```
 

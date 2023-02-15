@@ -1,0 +1,6 @@
+# skip boilerplate check
+#
+# sample subset of useful organization policies, edit to suit requirements
+
+storage.uniformBucketLevelAccess:
+  enforce: true

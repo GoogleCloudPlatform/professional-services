@@ -1,0 +1,11 @@
+apiVersion: constraints.gatekeeper.sh/v1beta1
+kind: TFGCPIAMAllowedPolicyMemberDomainsConstraintV2
+metadata:
+  name: allow-everything
+spec:
+  severity: high
+  parameters:
+    domains:
+      - gserviceaccount.com
+      - google.com
+      - notgoogle.com

@@ -1,0 +1,32 @@
+apiVersion: templates.gatekeeper.sh/v1
+kind: ConstraintTemplate
+metadata: # kpt-merge: /k8sblockwildcardingress
+  name: k8sblockwildcardingress
+  annotations:
+    description: >-
+      Users should not be able to create Ingresses with a blank or wildcard (*) hostname since that would enable them to intercept traffic for other services in the cluster, even if they don't have access to those services.
+spec:
+  crd:
+    spec:
+      names:
+        kind: K8sBlockWildcardIngress
+  targets:
+    - target: admission.k8s.gatekeeper.sh
+      rego: |
+        package K8sBlockWildcardIngress
+
+        contains_wildcard(hostname) = true {
+          hostname == ""
+        }
+
+        contains_wildcard(hostname) = true {
+          contains(hostname, "*")
+        }
+
+        violation[{"msg": msg}] {
+          input.review.kind.kind == "Ingress"
+          # object.get is required to detect omitted host fields
+          hostname := object.get(input.review.object.spec.rules[_], "host", "")
+          contains_wildcard(hostname)
+          msg := sprintf("Hostname '%v' is not allowed since it counts as a wildcard, which can be used to intercept traffic from other applications.", [hostname])
+        }
