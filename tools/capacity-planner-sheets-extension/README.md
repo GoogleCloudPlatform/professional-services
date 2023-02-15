@@ -3,6 +3,7 @@
 This tool is a Google Sheets extension for capacity planning on Google Cloud. 
 This tool extracts peak resource usage values and corresponding timestamps for a given Google Cloud project, time range and timezone.
 
+![Image showing sample capacity planner sheet](images/capacity_planner_planning_sheet.png)
 
 ## Setup
 
@@ -55,7 +56,7 @@ Google Sheets will show a small popup if any errors occur during script executio
 
 ## For Developers
 
-During development it can be helpful to execute "Get Project Metrics" and "Create Planning Sheet" from the Apps Script UI instead of the Sheets UI. This allows you to add debug logs and get stack traces with specific lines where the error occurred.
+During development it can be helpful to execute "Get Project Metrics" and "Create Planning Sheet" from the Apps Script UI instead of the Sheets UI. This allows you to view logs, use the debugger, and get stack traces with specific lines where the error occurred.
 
 From `main.gs`, select the appropriate function:
 * `createCapacityPlannerSheet` for "Create Planning Sheet"
