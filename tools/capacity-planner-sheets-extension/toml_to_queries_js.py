@@ -27,7 +27,6 @@ import json
 import re
 import tomllib
 
-
 TOML_FILE_PATH = Path("../capacity-planner-cli/queries.toml")
 QUERIES_JS_PATH = Path("queries.js")
 
@@ -69,10 +68,8 @@ for product, product_data in sorted(queries.items()):
             metrics[metric_name] = product_data[metric_name]
             # Remove extra whitespace in the query
             metrics[metric_name]["query"] = re.sub(
-                "\s{2,}", " ", metrics[metric_name]["query"]
-            )
+                "\s{2,}", " ", metrics[metric_name]["query"])
     queries_js[product]["metrics"] = metrics
-
 
 with open(QUERIES_JS_PATH, "w") as f:
     f.write(FILE_HEADER)
