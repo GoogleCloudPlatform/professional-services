@@ -17,6 +17,9 @@
 # Please refer to MQL document and make sure the query works in the Metrics
 # Explorer without any errors. For units conversion (`scale()`), see below.
 # https://cloud.google.com/monitoring/mql/reference#unit-code-def
+#
+# If you change the structure of this file, make sure to also update 
+# https://github.com/GoogleCloudPlatform/professional-services/blob/main/tools/capacity-planner-sheets-extension/toml_to_queries_js.py
 
 [l7xlb]
     product_name = "HTTP(S) Load Balancing"

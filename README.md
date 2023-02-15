@@ -313,6 +313,9 @@ Platform usage.
 *   [Capacity Planner CLI](tools/capacity-planner-cli) - A stand-alone tool to
     extract peak resource usage values and corresponding timestamps for a given
     GCP project, time range and timezone.
+*   [Capacity Planner Sheets Extension](tools/capacity-planner-sheets-extension) - 
+    A Google Sheets extension to extract peak resource usage values and corresponding
+    timestamps for a given GCP project, time range and timezone.
 *   [CloudConnect](tools/cloudconnect) - A package that automates the setup of
     dual VPN tunnels between AWS and GCP.
 *   [Cloudera Parcel GCS Connector](tools/cloudera-parcel-gcsconnector) - This
