@@ -1,0 +1,5 @@
+# skip boilerplate check
+
+region: us-east1
+ip_cidr_range: 10.128.8.0/22
+description: Subnet for common network

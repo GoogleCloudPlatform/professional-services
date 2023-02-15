@@ -111,4 +111,8 @@ class BigQueryWithRetries(bq: BigQuery, override val retriesCount: Int, override
   override def testIamPermissions(table: TableId, permissions: java.util.List[String], options: BigQuery.IAMOption*): java.util.List[String] = bq.testIamPermissions(table, permissions, options: _*)
 
   override def getOptions: BigQueryOptions = bq.getOptions
+
+  override def createConnection(connectionSettings: ConnectionSettings): Connection = bq.createConnection(connectionSettings)
+
+  override def createConnection(): Connection = bq.createConnection()
 }

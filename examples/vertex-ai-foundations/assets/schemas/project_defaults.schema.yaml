@@ -1,0 +1,28 @@
+# Copyright 2022 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+billing_account_id: str(matches='[A-F0-9]{6}-[A-F0-9]{6}-[A-F0-9]{6}', required=False)
+billing_alert: any(include('billing_alert'), null(), required=False)
+essential_contacts: list(str(), required=False)
+labels: map(str(), key=str(), required=False)
+notification_channels: list(str(), required=False)
+---
+billing_alert:
+  amount: int()
+  thresholds: include('billing_alert_thresholds')
+  credit_treatment: enum('INCLUDE_ALL_CREDITS', 'EXCLUDE_ALL_CREDITS')
+---
+billing_alert_thresholds:
+  current: list(num(min=0, max=1))
+  forecasted: list(num(min=0, max=1))
