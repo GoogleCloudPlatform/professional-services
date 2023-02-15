@@ -1,0 +1,58 @@
+# Copyright 2022 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+billing_account_id: str(matches='[A-F0-9]{6}-[A-F0-9]{6}-[A-F0-9]{6}', required=False)
+billing_alert: any(include('billing_alert'), null(), required=False) # If set to null, use defaults
+dns_zones: list(str(), required=False)
+essential_contacts: list(str(), required=False) # Also used for billing alerts
+folder_id: str(matches='(organizations/|folders/)[0-9]*$')
+group_iam: map(list(str()), key=str(), required=False)
+iam: map(list(str()), key=str(), required=False)
+kms_service_agents: map(list(str()), key=str(), required=False)
+labels: map(str(), key=str(), required=False)
+org_policies: include('org_policies', required=False)
+secrets: map(list(str()), key=str(), required=False)
+service_accounts: map(list(str()), required=False)
+service_accounts_iam: map(map(list(str())), required=False)
+services: list(str(matches='^[a-z-]*\.googleapis\.com$'), required=False)
+service_identities_iam: map(list(str()), key=str(), required=False)
+vpc: include('vpc', required=False)
+---
+billing_alert:
+  amount: int()
+  thresholds: include('billing_alert_thresholds')
+  credit_treatment: enum("INCLUDE_ALL_CREDITS", "EXCLUDE_ALL_CREDITS")
+---
+billing_alert_thresholds:
+  current: list(num(min=0, max=1))
+  forecasted: list(num(min=0, max=1))
+---
+gke_setup:
+  enable_security_admin: bool(required=False)
+  enable_host_service_agent: bool(required=False)
+---
+org_policies:
+  policy_boolean: map(bool(), key=str(matches='^constraints/[A-z\.]*$'), required=False)
+  policy_list: map(include('policy_list'), key=str(matches='^constraints/[A-z\.]*$'), required=False)
+---
+policy_list:
+  inherit_from_parent: any(bool(), null())
+  suggested_value: any(str(), null())
+  status: any(bool(), null())
+  values: list(str())
+---
+vpc:
+  host_project: str(matches='[a-z]([-a-z0-9]*[a-z0-9])?', min=6, max=30)
+  gke_setup: include('gke_setup', required=False)
+  subnets_iam: map(list(str()), key=str(matches='^[a-z0-9-]*/[a-z0-9-]*$'), required=False)

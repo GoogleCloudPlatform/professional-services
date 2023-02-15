@@ -1,0 +1,6 @@
+. {
+    forward . /etc/resolv.conf
+    reload
+    log
+    errors
+}
