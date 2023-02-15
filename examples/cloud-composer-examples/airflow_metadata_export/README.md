@@ -6,10 +6,6 @@ The goal of this example is to provide a common pattern to export data to BigQue
 
 ## DAG Factory Overview
 
-A DAG factory to create DAGs that you can deploy into Airflow to periodically export metadata to a specified BigQuery location.
-
-Note: DAG start_times are staggered to reduce composer environment load. By default it will execute all table export between 00:00 and 00:30 UTC.
-
 At a high-level the factory will create Cloud Composer DAGs that perform the following steps for each table:
 
 1. Query the PostgreSQL DB containing the Airflow metadata table.
@@ -19,6 +15,7 @@ At a high-level the factory will create Cloud Composer DAGs that perform the fol
 5. Confirm that the BigQuery table is non-empty.
 6. Clean up the CSV files in the Google Cloud Storage location.
 
+Note: DAG start_times are staggered to reduce composer environment load. By default it will execute all table export between 00:00 and 00:30 UTC.
 
 ## Tables Exported
 
