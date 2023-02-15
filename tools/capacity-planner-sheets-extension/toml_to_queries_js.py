@@ -11,16 +11,21 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-# Generate 'queries.json' from a valid TOML file
-# Use this to update queries.js after updates to
+#
+# Use this script to update 'queries.js' after updates to the TOML source
 # https://github.com/GoogleCloudPlatform/professional-services/blob/main/tools/capacity-planner-cli/queries.toml
-# NOTE: This code requires Python version >= 3.11 for the use of tomllib (https://docs.python.org/3/library/tomllib.html).
+#
+# Usage:
+#   python3 toml_to_queries_js.py
+#
+# NOTE: This code requires Python version >= 3.11 for tomllib
+# https://docs.python.org/3/library/tomllib.html).
 
 from pathlib import Path
-import tomllib
 import json
 import re
+import tomllib
+
 
 TOML_FILE_PATH = Path("../capacity-planner-cli/queries.toml")
 QUERIES_JS_PATH = Path("queries.js")
@@ -51,9 +56,9 @@ FILE_HEADER = """/**
 with open(TOML_FILE_PATH, "rb") as f:
     queries = tomllib.load(f)
 
-
-# Slightly modify the structure so all metrics are nested under a key "metrics"
+# Modify the structure so all metrics are nested under a key "metrics"
 # instead of at the same level as "product_name"
+# Instead of modifying 'queries' in place, 'queries_js' holds the map to be dumped into 'queries.js'
 queries_js = {}
 for product, product_data in queries.items():
     queries_js[product] = {"product_name": product_data["product_name"]}
@@ -62,7 +67,7 @@ for product, product_data in queries.items():
     for metric_name in product_data.keys():
         if metric_name != "product_name":
             metrics[metric_name] = product_data[metric_name]
-            # Remove extra whitespace in query
+            # Remove extra whitespace in the query
             metrics[metric_name]["query"] = re.sub(
                 "\s{2,}", " ", metrics[metric_name]["query"]
             )
@@ -71,5 +76,4 @@ for product, product_data in queries.items():
 
 with open(QUERIES_JS_PATH, "w") as f:
     f.write(FILE_HEADER)
-    f.write("\n\n")
-    f.write(f"const queries = {json.dumps(queries_js, indent=2)}")
+    f.write(f"\n\nconst QUERIES = {json.dumps(queries_js, indent=2)}")

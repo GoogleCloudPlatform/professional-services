@@ -25,7 +25,7 @@
 function createSheet_(sheetName){
   const ss = SpreadsheetApp.getActive();
 
-  const sheet = ss.getSheetByName(sheetName);
+  let sheet = ss.getSheetByName(sheetName);
   if (sheet != null){
     // If a sheet with the same name exists, delete it first
     ss.deleteSheet(sheet);
@@ -43,7 +43,7 @@ function createSheet_(sheetName){
  * @param {Array} An array of arrays where each inner array is a row for the new sheet.
  */
 function writeToSheet_(sheetName, values){
-  const sheet = createSheet_(sheetName);
+  let sheet = createSheet_(sheetName);
   for (row of values){
     sheet.appendRow(row);
   }

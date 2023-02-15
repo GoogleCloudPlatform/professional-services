@@ -21,7 +21,7 @@
  * https://github.com/GoogleCloudPlatform/professional-services/blob/main/tools/capacity-planner-cli/queries.toml
 */
 
-const queries = {
+const QUERIES = {
   "l7xlb": {
     "product_name": "HTTP(S) Load Balancing",
     "metrics": {
