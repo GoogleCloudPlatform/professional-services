@@ -35,7 +35,7 @@ object CCATransportFactory extends HttpTransportFactory with Logging {
     logger.info(s"Http client was created. (MaxConnTotal=$maxConnectionTotal)")
 
     HttpClientBuilder.create
-      .useSystemProperties
+      .useSystemProperties()
       .setSSLSocketFactory(CCASSLSocketFactory.create)
       .setDefaultSocketConfig(socketConfig)
       .setMaxConnTotal(maxConnectionTotal)

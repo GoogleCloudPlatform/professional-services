@@ -1,0 +1,18 @@
+gcloud \
+  --impersonate-service-account=${sa_orch_email} \
+  dataflow jobs run test_batch_01 \
+  --gcs-location gs://dataflow-templates/latest/GCS_Text_to_BigQuery \
+  --project ${project_id} \
+  --region ${region} \
+  --disable-public-ips \
+  --subnetwork ${subnet} \
+  --staging-location ${gcs_df_stg} \
+  --service-account-email ${sa_df_email} \
+  %{ if cmek_encryption }--dataflow-kms-key=${kms_key_df} %{ endif } \
+  --parameters \
+javascriptTextTransformFunctionName=transform,\
+JSONPath=${data_schema_file},\
+javascriptTextTransformGcsPath=${data_udf_file},\
+inputFilePattern=${data_file},\
+outputTable=${project_id}:${bigquery_dataset}.${bigquery_table},\
+bigQueryLoadingTemporaryDirectory=${gcs_df_tmp}

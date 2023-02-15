@@ -1,0 +1,15 @@
+apiVersion: constraints.gatekeeper.sh/v1alpha1
+kind: GCPIAMAllowBanRolesConstraintV1
+metadata:
+  name: iam_ban_one_roles
+  annotations:
+    description: Ban one role.
+spec:
+  severity: high
+  match:
+    target: ["organizations/**"]
+    exclude: [] # optional, default is no exclusions
+  parameters:
+    mode: "ban"
+    roles:
+      - "roles/owner"

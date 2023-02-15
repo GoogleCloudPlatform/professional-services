@@ -1,0 +1,95 @@
+# Copyright 2022 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+
+- name: "[ac] Include role for GCP SA JSON key files"
+  ansible.builtin.include_role:
+    name: copy_credentials
+  vars:
+    is_admin_cluster: true
+
+- name: "[ac] Create folder on Admin Workstation for YAML files"
+  ansible.builtin.file:
+    path: "{{ yamldestpath }}/{{ ac_name }}"
+    state: directory
+    mode: 0700
+
+- name: "[ac] Templating YAML files"
+  ansible.builtin.template:
+    src: admin-cluster-{{ glb_major_version }}.yaml.j2
+    dest: "{{ yamldestpath }}/{{ ac_name }}/{{ ac_name }}-cluster.yaml"
+    mode: 0600
+  register: ac_template
+
+- name: "[ac] Templating YAML files - if using static IPs"
+  include_tasks: static-ips.yml
+  when: ac_nw_ipallocmode == "static"
+
+- name: "[ac] Copy Private Registry CA to admin workstation from URL"
+  ansible.builtin.command:
+    argv:
+      - curl
+      - -k
+      - -L
+      - "{{ glb_privatereg_cacerturl }}"
+      - -o
+      - "{{ glb_privatereg_cacertpath }}"
+    creates: "{{ glb_privatereg_cacertpath }}"
+  when:
+    - (glb_privatereg_cacertpath is defined) and (glb_privatereg_cacertpath|length > 0)
+    - (glb_privatereg_cacerturl is defined) and (glb_privatereg_cacerturl|length > 0)
+
+- name: "[ac] Copy Private Registry CA to admin workstation from Tower Vault"
+  ansible.builtin.copy:
+    src: '{{ glb_privatereg_cacertfile }}'
+    dest: "{{ glb_privatereg_cacertpath }}"
+    mode: 0644
+  when:
+    - (glb_privatereg_cacertfile is defined) and (glb_privatereg_cacertfile|length > 0)
+    - (glb_privatereg_cacertpath is defined) and (glb_privatereg_cacertpath|length > 0)
+
+- name: "[ac] Copy Private Registry CA to admin workstation from Inventory"
+  ansible.builtin.template:
+    src: private-reg-ca.crt.j2
+    dest: "{{ glb_privatereg_cacertpath }}"
+    mode: 0644
+  when:
+    - (glb_privatereg_cacontent is defined) and (glb_privatereg_cacontent|length > 0)
+    - (glb_privatereg_cacertpath is defined) and (glb_privatereg_cacertpath|length > 0)
+
+- name: "[ac] Create private registry host directory under certs.d"
+  ansible.builtin.command:
+    argv:
+      - sudo
+      - mkdir
+      - -p
+      - /etc/docker/certs.d/{{ glb_privatereg_url.split("/")[0] }}
+  ignore_errors: true
+  when:
+    - (glb_privatereg_url is defined) and (glb_privatereg_url|length > 0)
+    - (glb_privatereg_cacertfile is defined) and (glb_privatereg_cacertfile|length > 0)
+    - (glb_privatereg_cacertpath is defined) and (glb_privatereg_cacertpath|length > 0)
+
+- name: "[ac] Add permission to private registry cert directory"
+  ansible.builtin.command:
+    argv:
+      - sudo
+      - chmod
+      - 755
+      - /etc/docker/certs.d/{{ glb_privatereg_url.split("/")[0] }}
+  ignore_errors: true
+  when:
+    - (glb_privatereg_url is defined) and (glb_privatereg_url|length > 0)
+    - (glb_privatereg_cacertfile is defined) and (glb_privatereg_cacertfile|length > 0)
+    - (glb_privatereg_cacertpath is defined) and (glb_privatereg_cacertpath|length > 0)

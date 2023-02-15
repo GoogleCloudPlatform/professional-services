@@ -1,0 +1,16 @@
+{
+  "BigQuery Schema": [
+    {
+      "name": "name",
+      "type": "STRING"
+    },
+    {
+      "name": "surname",
+      "type": "STRING"
+    },
+    {
+      "name": "timestamp",
+      "type": "TIMESTAMP"
+    }
+  ]
+}

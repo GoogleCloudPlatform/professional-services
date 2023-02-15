@@ -1,0 +1,9 @@
+. {
+    hosts /etc/coredns/example.hosts example.org {
+        127.0.0.1   localhost.example.org localhost
+    }
+    forward . /etc/resolv.conf
+    reload
+    log
+    errors
+}
