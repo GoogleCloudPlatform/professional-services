@@ -38,6 +38,7 @@ not need to be the same project you want to collect metrics in.
 
 1. Fill out the project id, end time, total duration in minutes, and the timezone.	
 2. `Capacity Planner > Get Project Metrics`. A sheet named `{project_id}_raw` is created for the specified project.	
+   - The first time you run the script, A pop up will ask you grant some permissions to your Google Account. Review the permissions and check "allow".
 3. Repeat 1. and 2. for any additional projects of interest.
 4. `Capacity Planner > Create Planning Sheet` to create a combined sheet.
 5. Fill in column F in the Combined Planning Sheet with the CCU value (pre-filled to 400,000) and the estimates for each metric. The rest of the sheet will update with the gap between the estimated and actual values.
@@ -49,3 +50,15 @@ not need to be the same project you want to collect metrics in.
 Google Sheets will show a small popup if any errors occur during script execution. Click on "Details" to see more information.
 
 ![Image showing 'details' link and full error details box](images/error_details.png)
+
+
+
+## For Developers
+
+During development it can be helpful to execute "Get Project Metrics" and "Create Planning Sheet" from the Apps Script UI instead of the Sheets UI. This allows you to add debug logs and get stack traces with specific lines where the error occurred.
+
+From `main.gs`, select the appropriate function:
+* `createCapacityPlannerSheet` for "Create Planning Sheet"
+* `getProjectMetrics` for "Get Project Metrics"
+
+The script will still fetch inputs from the sheet.

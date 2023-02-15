@@ -21,6 +21,7 @@
 # NOTE: This code requires Python version >= 3.11 for tomllib
 # https://docs.python.org/3/library/tomllib.html).
 
+from collections import OrderedDict
 from pathlib import Path
 import json
 import re
@@ -59,12 +60,12 @@ with open(TOML_FILE_PATH, "rb") as f:
 # Modify the structure so all metrics are nested under a key "metrics"
 # instead of at the same level as "product_name"
 # Instead of modifying 'queries' in place, 'queries_js' holds the map to be dumped into 'queries.js'
-queries_js = {}
-for product, product_data in queries.items():
+queries_js = OrderedDict()
+for product, product_data in sorted(queries.items()):
     queries_js[product] = {"product_name": product_data["product_name"]}
 
-    metrics = {}
-    for metric_name in product_data.keys():
+    metrics = OrderedDict()
+    for metric_name in sorted(product_data.keys()):
         if metric_name != "product_name":
             metrics[metric_name] = product_data[metric_name]
             # Remove extra whitespace in the query
