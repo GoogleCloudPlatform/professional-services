@@ -353,6 +353,9 @@ Platform usage.
     Use Google Cloud Functions to analyze Cloud Dataproc clusters and recommend
     best practices for Apache Spark jobs.  Also logs cluster configurations for
     future reference.
+*   [Dataproc Scheduled Cluster Sizing](tools/dataproc-scheduled-cluster-sizing/) -
+    Use Google Cloud Scheduler an Google Cloud Functions to schedule the resizing
+    of a Dataproc cluster.  Changes the primary and secondary worker count.
 *   [DataStream Deployment Automation](tools/datastream-deployment-python-automation) -
     Python script to automate the deployment of Google Cloud DataStream. This
     script will create connection profiles, create stream and start stream.
