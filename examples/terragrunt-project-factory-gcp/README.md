@@ -12,7 +12,7 @@ This pattern scales the 'factory' oriented approach of IaC implementation, facil
 
 ## Expalanation
 
-![Diagram](/docs/images/image2.png)
+![Diagram](docs/images/image2.png)
 
 Implementing a factory oriented pattern for deploying resource groups is a common practice in IaC (Infrastructure as Code). This is typically done by having a configurable blueprint of data to describe the infrastructure to avoid repetition of code. [Project-factory](https://registry.terraform.io/modules/terraform-google-modules/project-factory/google/latest) is a common manifestation of this requirement since in GCP, projects need to be created ubiquitously.
 
