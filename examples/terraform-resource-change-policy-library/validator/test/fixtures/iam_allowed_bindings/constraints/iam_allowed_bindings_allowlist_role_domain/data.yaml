@@ -1,0 +1,14 @@
+apiVersion: constraints.gatekeeper.sh/v1alpha1
+kind: GCPIAMAllowedBindingsConstraintV3
+metadata:
+  name: allowlist_owner_role
+  annotations:
+    description: All projects must have owner from my domain
+spec:
+  severity: high
+  parameters:
+    mode: allowlist
+    role: roles/owner
+    members:
+    - "user:*@google.com"
+    - "group:*@google.com"

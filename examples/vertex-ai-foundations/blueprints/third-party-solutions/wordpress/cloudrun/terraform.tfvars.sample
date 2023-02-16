@@ -1,0 +1,3 @@
+prefix     = "wp"
+project_id = "my-wordpress-project"
+wordpress_image = "gcr.io/my-wordpress-project/wordpress"

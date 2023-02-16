@@ -1,0 +1,32 @@
+# Copyright 2022 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+map(include('rule'), key=str(min=3, max=30))
+---
+rule:
+  disabled: bool(required=False)
+  deny: list(include('trafficSpec'), required=False)
+  allow: list(include('trafficSpec'), required=False)
+  direction: enum('ingress', 'INGRESS', 'egress', 'EGRESS')
+  priority: int(min=1, max=65535, required=False)
+  destination_ranges: list(netmask(type='destination'), max=256, required=False)
+  source_ranges: list(netmask(type='source'), max=256, required=False)
+  source_tags: list(networktag(), max=30, required=False)
+  target_tags: list(networktag(), max=70, required=False)
+  source_service_accounts: list(serviceaccount(), max=10, required=False)
+  target_service_account: list(serviceaccount(), max=10, required=False)
+---
+trafficSpec:
+  ports: list(networkports())
+  protocol: enum('all', 'tcp', 'udp', 'icmp', 'esp', 'ah', 'ipip', 'sctp')

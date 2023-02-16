@@ -1,0 +1,58 @@
+# Copyright 2021 Google LLC
+# 
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+# 
+#     http://www.apache.org/licenses/LICENSE-2.0
+# 
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+login_user: anthos
+login_user_group: anthos
+login_user_home: /home/anthos
+
+# Possible values: ubuntu | rhel 
+# Use rhel for CentOS as well
+os_type: "ubuntu"
+# if the GCP service accounts have already been created, copy the keys files to gcp_sa_key_dir directory
+bmctl_download_url: gs://anthos-baremetal-release/bmctl/1.9.2/linux-amd64/bmctl
+bmctl_workspace_dir: bmctl-workspace
+gcp_sa_key_dir: "{{ login_user_home }}/gcp_keys"
+gcloud_preq_sa_name: anthos-preq-svc-account
+
+## Dont need the service account name.Its being taken care by bmctl
+# local_gcr_sa_name: anthos-gcr-svc-account
+# local_connect_agent_sa_name: connect-agent-svc-account
+# local_connect_register_sa_name: register-svc-account
+# local_cloud_operations_sa_name: cloud-ops-svc-account
+
+node_login_user: anthos
+
+# pod and service CIDRs used by the bootstrap (kind) cluster
+kind_pod_cidr: 192.168.0.0/16
+kind_service_cidr: 10.96.0.0/12
+
+# ssh key path to access control plane and worker nodes
+ssh_private_key_path: "{{ login_user_home }}/.ssh/id_rsa"
+# the GCP project ID
+project_id: PROJECT
+# GCP region e.g. us-central1
+location: LOCATION
+
+# container runtime, possible values: docker | contianerd
+container_runtime: containerd
+# enable/disable application logging for cluster workloads. use 'true' to enable
+app_logs: false
+# change pod and service cidr if the default ones overlap with cluster nodes subnets
+
+# kubelet config file on each node
+kubelet_config_file: /var/lib/kubelet/config.yaml
+# configuration values to be set in the kubelet config
+serialize_image_pulls:
+registry_pull_qps:
+registry_burst:

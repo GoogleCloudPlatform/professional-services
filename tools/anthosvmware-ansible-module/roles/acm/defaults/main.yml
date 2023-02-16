@@ -1,0 +1,97 @@
+# Copyright 2022 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+
+# Role default values
+acm_install: true
+acm_membership: "" # user cluster name
+acm_config: "/home/ubuntu/{{ acm_membership }}-apply-spec.yaml"
+acm_version: "" # version in format #.#.#
+acm_gcpproject: ""
+acm_gcpsa: '{{ lookup("env", "GCPSA_ASMCFG_FILE") }}'
+acm_gcpsa_path: "acm-gcpsa.json"
+acm_root_repo_sshkey: ""
+
+# Config Sync details
+acm_configsync:
+  # Set to true to install and enable Config Sync
+  enabled: false
+  # If you don't have a Git repository, omit the following fields. You
+  # can configure them later.
+  # FORMAT - unstructured, hierarchy
+  sourceFormat: FORMAT
+  # REPO - git repository URL
+  syncRepo: REPO
+  syncBranch: BRANCH
+  # TYPE - none, ssh, cookiefile, token, gcpserviceaccount, gcenode
+  secretType: TYPE
+  # If TYPE == gcpserviceaccount, then add its email below
+  gcpServiceAccountEmail: EMAIL
+  # DIRECTORY - folder in git repository for ACM
+  policyDir: DIRECTORY
+  # the `preventDrift` field is supported in Anthos Config Management version 1.10.0 and later.
+  # PREVENT_DRIFT - true, false
+  preventDrift: PREVENT_DRIFT
+
+# Policy controller configuration
+acm_policycontroller:
+  # Set to true to install and enable Policy Controller
+  enabled: false
+  # Uncomment to prevent the template library from being installed
+  # templateLibraryInstalled: false
+  # Uncomment to enable support for referential constraints
+  # referentialRulesEnabled: true
+  # Uncomment to disable audit, adjust value to set audit interval
+  # auditIntervalSeconds: 0
+  # Uncomment to log all denies and dryrun failures
+  # logDeniesEnabled: true
+  # Uncomment to exempt namespaces
+  # exemptableNamespaces: ["namespace-name"]
+  # Uncomment to enable mutation
+  # mutation:
+  #   # enabled: true
+  ## private registry
+
+# Source: https://cloud.google.com/anthos-config-management/docs/how-to/updating-private-registry 
+acm_container_images:
+  "1.12.1":
+    - gcr.io/config-management-release/config-management-operator:20220707000119-op
+    - gcr.io/config-management-release/admission-webhook:v1.12.1-rc.3
+    - gcr.io/config-management-release/gatekeeper:anthos1.12.1-c370036.g0
+    - gcr.io/config-management-release/git-sync:v3.5.1-gke.0__linux_amd64
+    - gcr.io/config-management-release/gke-hc-manager:v0.11.0-hc.2
+    - gcr.io/config-management-release/hnc-manager:hnc-v0.8.0-hc.3
+    - gcr.io/config-management-release/hydration-controller:v1.12.1-rc.3
+    - gcr.io/config-management-release/kube-rbac-proxy:v0.5.0
+    - gcr.io/config-management-release/nomos:v1.12.1-rc.3
+    - gcr.io/config-management-release/oci-sync:v1.12.1-rc.3
+    - gcr.io/config-management-release/otelcontribcol:v0.38.0
+    - gcr.io/config-management-release/reconciler-manager:v1.12.1-rc.3
+    - gcr.io/config-management-release/reconciler:v1.12.1-rc.3
+    - gcr.io/config-management-release/resource-group-controller:v1.0.5
+  "1.13.0":
+    - gcr.io/config-management-release/config-management-operator:20220831042821-op
+    - gcr.io/config-management-release/admission-webhook:v1.13.0-rc.7
+    - gcr.io/config-management-release/gatekeeper:anthos1.13.0-368961a.g0
+    - gcr.io/config-management-release/git-sync:v3.6.1-gke.0__linux_amd64
+    - gcr.io/config-management-release/gke-hc-manager:v0.11.0-hc.2
+    - gcr.io/config-management-release/hnc-manager:hnc-v0.8.0-hc.3
+    - gcr.io/config-management-release/hydration-controller:v1.13.0-rc.7
+    - gcr.io/config-management-release/kube-rbac-proxy:v0.5.0
+    - gcr.io/config-management-release/nomos:v1.13.0-rc.7
+    - gcr.io/config-management-release/oci-sync:v1.13.0-rc.7
+    - gcr.io/config-management-release/otelcontribcol:v0.54.0
+    - gcr.io/config-management-release/reconciler-manager:v1.13.0-rc.7
+    - gcr.io/config-management-release/reconciler:v1.13.0-rc.7
+    - gcr.io/config-management-release/resource-group-controller:v1.0.8

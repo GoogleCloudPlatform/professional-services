@@ -15,32 +15,34 @@
  */
 organization := "com.google.cloud.imf"
 name := "mainframe-util"
-version := "2.2.0"
+version := "2.2.4"
 
-scalaVersion := "2.13.8"
+scalaVersion := "2.13.10"
 
 val exGapiClient = ExclusionRule(organization = "com.google.api-client", name = "google-api-client")
 val exGuava = ExclusionRule(organization = "com.google.guava")
 val exGrpcCore = ExclusionRule(organization = "io.grpc", name = "grpc-core")
 
 libraryDependencies ++= Seq(
-  "com.google.cloud" % "google-cloud-bigquery" % "2.5.1",
-  "com.google.cloud" % "google-cloud-bigquerystorage" % "2.7.0",
-  "com.google.cloud" % "google-cloud-storage" % "2.2.2",
-  ("com.google.apis" % "google-api-services-logging" % "v2-rev656-1.25.0").excludeAll(exGapiClient),
+  "com.google.cloud" % "google-cloud-bigquery" % "2.20.0",
+  "com.google.cloud" % "google-cloud-bigquerystorage" % "2.27.0",
+  "com.google.cloud" % "google-cloud-storage" % "2.16.0",
+  "com.google.apis" % "google-api-services-pubsub" % "v1-rev20221020-2.0.0",
+  "com.google.apis" % "google-api-services-dataflow" % "v1b3-rev20221025-2.0.0",
+  ("com.google.apis" % "google-api-services-logging" % "v2-rev20220922-2.0.0").excludeAll(exGapiClient),
   "org.apache.avro" % "avro" % "1.7.7",
 
   //TCP TransportChannelProvider for BigQuery Storage API
-  ("io.grpc" % "grpc-okhttp" % "1.42.1").excludeAll(exGuava, exGrpcCore),
+  ("io.grpc" % "grpc-okhttp" % "1.51.1").excludeAll(exGuava, exGrpcCore),
 
   //Grecv server
-  ("io.grpc" % "grpc-netty" % "1.42.1").excludeAll(exGuava, exGrpcCore),
+  ("io.grpc" % "grpc-netty" % "1.51.1").excludeAll(exGuava, exGrpcCore),
 
   //logging
-  "org.apache.logging.log4j" % "log4j-api" % "2.17.1",
-  "org.apache.logging.log4j" % "log4j-core" % "2.17.1",
-  "org.apache.logging.log4j" % "log4j-slf4j-impl" % "2.17.1", //is used by netty and hadoop libs
-  "org.apache.logging.log4j" % "log4j-jul" % "2.17.1", //is used by grpc-okhttp lib
+  "org.apache.logging.log4j" % "log4j-api" % "2.19.0",
+  "org.apache.logging.log4j" % "log4j-core" % "2.19.0",
+  "org.apache.logging.log4j" % "log4j-slf4j-impl" % "2.19.0", //is used by netty and hadoop libs
+  "org.apache.logging.log4j" % "log4j-jul" % "2.19.0", //is used by grpc-okhttp lib
 
   //tests
   "org.scalatest" %% "scalatest" % "3.2.9" % Test,

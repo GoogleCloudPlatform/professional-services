@@ -1,0 +1,50 @@
+elements {
+  gcp {
+
+	group project_host {
+      name "Host project"
+
+      group host_services {
+        name "Shared Services"
+        background_color "#f6f6f6"
+      	card dns {
+         name "Private zone"
+        }
+        card nat {
+         name "NAT"
+        }
+      }
+
+      group vpc_host {
+        name "Shared VPC"
+        background_color "#fff3e0"
+        card vpc as gce_subnet {
+          name "GCE subnet"
+        }
+        card vpc as gke_subnet {
+          name "GKE subnet"
+        }
+      }
+    }
+
+    group project_gce {
+      name "GCE service project"
+      card gce as gce_instances {
+       name "Bastion VM"
+      }
+    }
+
+    group project_gke {
+      name "GKE service project"
+      card gke as gke_clusters {
+       name "GKE cluster"
+      }
+    }
+
+  }
+}
+
+paths {
+  gce_subnet ..> gce_instances
+  gke_subnet ..> gke_clusters
+}

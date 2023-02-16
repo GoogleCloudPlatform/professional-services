@@ -1,0 +1,26 @@
+[
+  {
+    "mode": "REQUIRED",
+    "name": "id",
+    "type": "INTEGER",
+    "description": "ID"
+  },
+  {
+    "mode": "REQUIRED",
+    "name": "name",
+    "type": "STRING",
+    "description": "Name"
+  },
+  {
+    "mode": "REQUIRED",
+    "name": "surname",
+    "type": "STRING",
+    "description": "Surname"
+  },
+  {
+    "mode": "REQUIRED",
+    "name": "timestamp",
+    "type": "TIMESTAMP",
+    "description": "Timestamp"
+  }
+]

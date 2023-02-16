@@ -1,0 +1,128 @@
+{#
+# Copyright 2022 Google LLC
+# 
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+# 
+#     http://www.apache.org/licenses/LICENSE-2.0
+# 
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#}
+apiVersion: v1
+kind: AdminCluster
+# (Optional) A unique name for this admin cluster. This will default to a random name
+# prefixed with 'gke-admin-'
+name: "{{ ac_name }}"
+# (Required) Absolute path to a GKE bundle on disk
+#bundlePath: /var/lib/gke/bundles/gke-onprem-vsphere-{{ glb_anthos_version }}-full.tgz
+bundlePath: /var/lib/gke/bundles/gke-onprem-vsphere-{{ glb_anthos_version }}.tgz
+# (Required) vCenter configuration
+vCenter:
+  address: {{ ac_vc_fqdn }}
+  datacenter: {{ ac_vc_datacenter }}
+  folder: {{ ac_vc_folder }}
+  cluster: {{ ac_vc_cluster }}
+  resourcePool: {{ ac_vc_respool }}
+  datastore: {{ ac_vc_datastore }}
+  caCertPath: {{ ac_vc_cacertpath }}
+  credentials:
+    fileRef:
+      path: {{ ac_vc_credfile }}
+      entry: {{ ac_vc_credentry }}
+  dataDisk: "{{ ac_vc_datadisk }}"
+network:
+  hostConfig:
+    dnsServers:
+{% for ip in ac_nw_dns %}
+    - "{{ ip }}"
+{% endfor %}
+    ntpServers:
+{% for ntp in ac_nw_ntp %}
+    - "{{ ntp }}"
+{% endfor %}
+    searchDomainsForDNS:
+{% for domain in ac_nw_searchdomains %}
+    - "{{ domain }}"
+{% endfor %}
+  ipMode:
+    type: {{ ac_nw_ipallocmode }}
+{% if (ac_nw_ipallocmode is defined) and ('static' == ac_nw_ipallocmode) %}
+    ipBlockFilePath: "{{ ac_nw_ipfile }}"
+{% endif %}
+  serviceCIDR: {{ ac_nw_servicecidr }}
+  podCIDR: {{ ac_nw_podcidr }}
+  vCenter:
+    networkName: {{ ac_nw_vc_net }}
+loadBalancer:
+  vips:
+    controlPlaneVIP: "{{ ac_lb_vips_cp }}"
+    addonsVIP: "{{ ac_lb_vips_addons }}"
+  kind: {{ ac_lb_kind }}
+antiAffinityGroups:
+  enabled: {{ ac_antiaffinitygroups }}
+connectivity: connected
+# (Optional) Specify the proxy configuration
+proxy:
+  url: "{{ glb_proxyurl }}"
+  noProxy: "{{ glb_noproxy }}"
+{% if (glb_privatereg_url is defined) and (glb_privatereg_url|length > 0) %}
+# # (Optional) Use a private Docker registry to host GKE images
+privateRegistry:
+  address: "{{ glb_privatereg_url }}"
+  credentials:
+    fileRef:
+      path: credential.yaml
+      entry: privateRegistry
+{% if (glb_privatereg_cacertpath is defined) and (glb_privatereg_cacertpath|length > 0) %}
+  caCertPath: "{{ glb_privatereg_cacertpath }}"
+{% endif %}
+{% endif %}
+# (Required): The absolute or relative path to the GCP service account key for pulling
+# GKE images
+componentAccessServiceAccountKeyPath: "{{ job_sakeyfolder }}/{{ component_access_gcpsa_path }}"
+# (Optional) Specify which GCP project to connect your GKE clusters to
+gkeConnect:
+  projectID: "{{ ac_stackdriver_projectid }}"
+  registerServiceAccountKeyPath: "{{ job_sakeyfolder }}/{{ connect_register_gcpsa_path }}"
+  #registerServiceAccountKeyPath: "{{ job_sakeyfolder }}/connect-register.json"
+stackdriver:
+  projectID: "{{ ac_stackdriver_projectid }}"
+  clusterLocation: "{{ ac_stackdriver_clusterlocation }}"
+  enableVPC: {{ ac_stackdriver_enablevpc }}
+  serviceAccountKeyPath: "{{ job_sakeyfolder }}/{{ logging_monitoring_gcpsa_path }}"
+  # serviceAccountKeyPath: "{{ job_sakeyfolder }}/logging-monitoring.json"
+  disableVsphereResourceMetrics: false
+# # (Optional) Configure kubernetes apiserver audit logging
+{% if (ac_cloudauditlogging_projectid is defined) and (ac_cloudauditlogging_projectid|length > 0) %}
+cloudAuditLogging:
+  projectID: "{{ ac_cloudauditlogging_projectid }}"
+  # A GCP region where you would like to store audit logs for this cluster.
+  clusterLocation: "{{ ac_cloudauditlogging_clusterlocation }}"
+  # The absolute or relative path to the key file for a GCP service account used to
+  # send audit logs from the cluster
+  serviceAccountKeyPath: "{{ job_sakeyfolder }}/{{ audit_logging_gcpsa_path }}"
+  # serviceAccountKeyPath: "{{ job_sakeyfolder }}/audit-logging.json"
+{% endif %}
+# # (Optional/Preview) Configure backups for admin cluster. Backups will be stored under
+# # <datastore>/anthos-backups/
+clusterBackup:
+  datastore: "{{ ac_vc_datastore }}"
+autoRepair:
+  enabled: {{ ac_autorepair }}
+{% if (ac_secretsencryption_mode is defined) and ('GeneratedKey' == ac_secretsencryption_mode) %}
+secretsEncryption:
+  # Secrets Encryption Mode. Possible values are: None GeneratedKey
+  mode: "{{ ac_secretsencryption_mode }}"
+  # GeneratedKey Secrets Encryption config
+  generatedKey:
+    # # key version
+    keyVersion: {{ ac_secretsencryption_keyversion }}
+{% endif %}
+# (Optional) Specify the type of OS image; available options can be set to "ubuntu_containerd"
+# or "cos". Default is "ubuntu_containerd".
+osImageType: "ubuntu_containerd"

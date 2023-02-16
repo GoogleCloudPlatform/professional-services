@@ -1,0 +1,73 @@
+# Copyright 2022 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+
+- name: "[ac] Sanity Checks"
+  ansible.builtin.assert:
+    that:
+      - yamldestpath | length >= 6
+      - sakeyfolder_base is defined
+      - component_access_gcpsa_path | length >= 6
+      - ac_vc_fqdn | length >= 4
+      - ac_vc_credentry | length >= 2
+      - ac_vc_username | length >= 4
+      - ac_vc_password | length >= 8
+      - ac_vc_datacenter | length >= 2
+      - ac_vc_datastore | length >= 2
+      - ac_vc_cluster | length >= 2
+      - ac_vc_respool | length >= 4
+      - ac_vc_cacertpath is defined
+      - ac_nw_ipallocmode is search("dhcp") or ac_nw_ipallocmode is search("static")
+      - ac_nw_gw | length >= 7
+      - ac_nw_nm | length >= 7
+      - ac_nw_dns is defined and ac_nw_dns | type_debug == "list"
+      - ac_nw_servicecidr | length >= 7
+      - ac_nw_podcidr | length >= 7
+      - ac_nw_vc_net | length >= 2
+      - ac_nw_ntp is defined and ac_nw_ntp | type_debug == "list"
+      - ac_nw_searchdomains is defined and ac_nw_searchdomains | type_debug == "list"
+      - ac_ipblock_netmask | length >= 7
+      - ac_ipblock_gateway | length >= 7
+      - ac_lb_kind is search("MetalLB")
+      - ac_ipblock_ips is defined and ac_ipblock_ips | type_debug == "list"
+      - ac_lb_vips_cp | length >= 7
+      # - ac_lb_vips_addons | length >= 7
+      - ac_masternode_cpus | int
+      - ac_masternode_mem | int
+      - ac_antiaffinitygroups == ac_antiaffinitygroups|bool
+      - ac_stackdriver_projectid | length >= 6
+      - ac_stackdriver_clusterlocation | length >= 6
+      - ac_stackdriver_enablevpc == ac_stackdriver_enablevpc|bool
+      - logging_monitoring_gcpsa_path | length >= 6
+      - ac_stackdriver_disablevsphereresourcemetrics == ac_stackdriver_disablevsphereresourcemetrics|bool
+      - ac_gkeconnect_projectid | length >= 6
+      - connect_register_gcpsa_path | length >= 6
+      # - ac_cloudauditlogging_projectid | length >= 6
+      # - ac_cloudauditlogging_clusterlocation | length >= 6
+      # - audit_logging_gcpsa_path | length >= 6
+      - ac_autorepair == ac_autorepair|bool
+    fail_msg: "Undefined variables."
+    success_msg: "All required variables are defined."
+
+- name: "[ac] Sanity Checks"
+  ansible.builtin.assert:
+    that:
+      - ac_ipblock_ips is defined and ac_ipblock_ips | type_debug == "list"
+    fail_msg: "Undefined variables."
+    success_msg: "All required variables are defined."
+  when: ac_nw_ipallocmode is search("dhcp")
+
+- name: "[ac] Note on optional values"
+  ansible.builtin.debug:
+    msg: "Optional values ac_name, ac_vc_folder are not checked. Please double check if required."

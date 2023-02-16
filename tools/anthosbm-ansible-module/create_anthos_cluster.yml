@@ -14,45 +14,27 @@
 
 ---
 # Playbook to create Anthos Cluster
-- hosts: all
+- hosts:
+    - cp_nodes
+    - worker_nodes
   remote_user: "{{ login_user }}"
   gather_facts: "no"
-  vars_files:
-    - vars/anthos_vars.yml
   roles:
     - role: ubuntu-prereq
       become: yes
       become_method: sudo
       when: os_type == "ubuntu"
+      tags: [ubuntu-prereq]
     - role: rhel-prereq
       become: yes
       become_method: sudo
       when: os_type == "rhel"
-
 - hosts: workstation
   remote_user: "{{ login_user }}"
   gather_facts: "no"
-  vars_files:
-    - vars/anthos_vars.yml
   roles:
-    - role: ws-docker
-      become: yes
-      become_method: sudo
-      when: ws_docker == "yes"
-    - role: gcloud-sdk
-      become: yes
-      become_method: sudo
-      when: gcloud_sdk == "yes"
-    - role: kubectl-tool
-      become: yes
-      become_method: sudo
-      when: kubectl_tool == "yes"
-    - role: bmctl-tool
-      become: yes
-      become_method: sudo
-      when: bmctl_tool == "yes"
-    - role: service-accounts
-      when: service_accounts == "yes"
     - role: anthos
+      tags: [anthos]
     - role: connect-gateway
       when: (cgw_members is defined) and (cgw_members != None)
+      tags: [connect,gke-connect]

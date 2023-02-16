@@ -1,0 +1,236 @@
+#cloud-config
+
+# Copyright 2022 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+package_update: true
+package_upgrade: true
+package_reboot_if_required: true
+
+packages:
+  - apt-transport-https
+  - ca-certificates
+  - curl
+  - gnupg-agent
+  - software-properties-common
+
+write_files:
+  # Docker daemon configuration
+  - path: /etc/docker/daemon.json
+    owner: root:root
+    permissions: "0644"
+    content: |
+      {
+        "log-driver": "json-file",
+        "log-opts": {
+          "max-size": "10m"
+        }
+      }
+
+  # Docker compose systemd unit for onprem
+  - path: /etc/systemd/system/docker-onprem.service
+    permissions: 0644
+    owner: root
+    content: |
+      [Install]
+      WantedBy=multi-user.target
+      [Unit]
+      Description=Start Docker Compose onprem infrastructure
+      After=network-online.target docker.socket
+      Wants=network-online.target docker.socket
+      [Service]
+      ExecStart=/bin/sh -c "cd /var/lib/docker-compose/onprem && /usr/local/bin/docker-compose up"
+      ExecStop=/bin/sh -c "cd /var/lib/docker-compose/onprem && /usr/local/bin/docker-compose down"
+
+  # Docker compose configuration file for onprem
+  - path: /var/lib/docker-compose/onprem/docker-compose.yaml
+    permissions: 0644
+    owner: root
+    content: |
+      version: "3"
+      services:
+        vpn:
+          image: gcr.io/pso-cft-fabric/strongswan:latest
+          networks:
+            onprem:
+              ipv4_address: ${vpn_ip_address}
+          ports:
+            - "500:500/udp"
+            - "4500:4500/udp"
+          privileged: true
+          cap_add:
+            - NET_ADMIN
+          volumes:
+            - "/lib/modules:/lib/modules:ro"
+            - "/etc/localtime:/etc/localtime:ro"
+            - "/var/lib/docker-compose/onprem/ipsec/ipsec.conf:/etc/ipsec.conf:ro"
+            - "/var/lib/docker-compose/onprem/ipsec/ipsec.secrets:/etc/ipsec.secrets:ro"
+          environment:
+            - LAN_NETWORKS=${local_ip_cidr_range}
+        dns:
+          image: coredns/coredns
+          command: "-conf /etc/coredns/Corefile"
+          depends_on:
+            - "vpn"
+          networks:
+            onprem:
+              ipv4_address: ${dns_ip_address}
+          volumes:
+            - "/var/lib/docker-compose/onprem/coredns:/etc/coredns:ro"
+        routing_sidecar_dns:
+          image: alpine
+          network_mode: service:dns
+          command: |
+            /bin/sh -c "\
+               ip route del default &&\
+               ip route add default via ${vpn_ip_address}"
+          privileged: true
+        web:
+          image: nginx:stable-alpine
+          depends_on:
+            - "vpn"
+            - "dns"
+          dns:
+            - ${dns_ip_address}
+          networks:
+            onprem:
+              ipv4_address: ${web_ip_address}
+          volumes:
+            - "/var/lib/docker-compose/onprem/nginx:/usr/share/nginx/html:ro"
+        routing_sidecar_web:
+          image: alpine
+          network_mode: service:web
+          command: |
+            /bin/sh -c "\
+               ip route del default &&\
+               ip route add default via ${vpn_ip_address}"
+          privileged: true
+        toolbox:
+          image: gcr.io/pso-cft-fabric/toolbox:latest
+          networks:
+            onprem:
+              ipv4_address: ${toolbox_ip_address}
+          depends_on:
+            - "vpn"
+            - "dns"
+            - "web"
+          dns:
+            - ${dns_ip_address}
+        routing_sidecar_toolbox:
+          image: alpine
+          network_mode: service:toolbox
+          command: |
+            /bin/sh -c "\
+               ip route del default &&\
+               ip route add default via ${vpn_ip_address}"
+          privileged: true
+      networks:
+        onprem:
+          ipam:
+            driver: default
+            config:
+              - subnet: ${local_ip_cidr_range}
+
+  # IPSEC tunnel secret
+  - path: /var/lib/docker-compose/onprem/ipsec/ipsec.secrets
+    owner: root:root
+    permissions: "0600"
+    content: |
+      : PSK "${shared_secret}"
+
+  # IPSEC tunnel configuration
+  - path: /var/lib/docker-compose/onprem/ipsec/ipsec.conf
+    owner: root:root
+    permissions: "0644"
+    content: |
+      conn %default
+        ikelifetime=600m
+        keylife=180m
+        rekeymargin=3m
+        keyingtries=3
+        keyexchange=ikev2
+        mobike=no
+        ike=aes256gcm16-sha512-modp2048
+        esp=aes256gcm16-sha512-modp8192
+        authby=psk
+
+      conn gcp
+        left=%any
+        leftid=%any
+        leftsubnet=${local_ip_cidr_range}
+        leftauth=psk
+        right=${peer_ip_wildcard}
+        rightid=${peer_ip}
+        rightsubnet=199.36.153.4/30,35.199.192.0/19,${remote_ip_cidr_ranges}
+        rightauth=psk
+        type=tunnel
+        auto=start
+        dpdaction=restart
+        closeaction=restart
+
+  # CoreDNS configuration
+  - path: /var/lib/docker-compose/onprem/coredns/Corefile
+    owner: root:root
+    permissions: "0644"
+    content: |
+      ${coredns_config}
+
+  # CoreDNS onprem hosts file
+  - path: /var/lib/docker-compose/onprem/coredns/onprem.hosts
+    owner: root:root
+    permissions: "0644"
+    content: |
+      ${vpn_ip_address} gw.${dns_domain}
+      ${dns_ip_address} ns.${dns_domain}
+      ${web_ip_address} www.${dns_domain}
+      ${toolbox_ip_address} toolbox.${dns_domain}
+
+  # Minimal nginx index page
+  - path: /var/lib/docker-compose/onprem/nginx/index.html
+    owner: root:root
+    permissions: "0644"
+    content: |
+      <!DOCTYPE html>
+      <html>
+      <head><meta charset="utf-8"></head>
+      <body>
+      <h1>On Prem in a Box</h1>
+      <p>${instance_name}</p>
+      </body>
+      </html>
+
+runcmd:
+  - [systemctl, daemon-reload]
+  - [
+      sh,
+      -c,
+      "curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -",
+    ]
+  - [
+      sh,
+      -c,
+      'add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"',
+    ]
+  - [sh, -c, "apt update"]
+  - [sh, -c, "apt install -y docker-ce docker-ce-cli containerd.io"]
+  - [
+      sh,
+      -c,
+      'curl -L https://github.com/docker/compose/releases/download/$(curl -s https://api.github.com/repos/docker/compose/releases/latest | grep "tag_name" | cut -d \" -f4)/docker-compose-$(uname -s)-$(uname -m) -o /usr/local/bin/docker-compose',
+    ]
+  - [sh, -c, "chmod 755 /usr/local/bin/docker-compose"]
+  - [systemctl, enable, docker.service]
+  - [systemctl, start, docker.service]
+  - [systemctl, enable, docker-onprem.service]
+  - [systemctl, start, docker-onprem.service]

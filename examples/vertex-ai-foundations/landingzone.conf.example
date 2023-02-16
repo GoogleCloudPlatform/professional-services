@@ -1,0 +1,8 @@
+# Update values and then rename this file to landingzone.conf
+
+# Full domain of the GCP Organization being used
+GCP_ORG_DOMAIN="mycompany.com"
+# Billing ID from GCP console or gcloud command
+GCP_BILLING_ID="0012AB-ABCD12-FEDCBA"
+# 9 characters max
+GCP_PROJ_PREFIX="mycomp"
