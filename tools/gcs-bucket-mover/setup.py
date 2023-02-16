@@ -24,35 +24,35 @@ gcs_bucket_mover is a Python application that helps you move storage buckets bet
 """
 
 requires = [
-    'attrs', 'configargparse', 'google-api-python-client',
-    'google-cloud-logging', 'google-cloud-pubsub', 'google-cloud-storage',
-    'mock', 'retrying', 'oauth2client', 'yaspin', 'Faker', 'PyYAML'
+    "attrs", "configargparse", "google-api-python-client",
+    "google-cloud-logging", "google-cloud-pubsub", "google-cloud-storage",
+    "mock", "retrying", "oauth2client", "yaspin", "Faker", "PyYAML"
 ]
 
 setup(
-    name='gcs_bucket_mover',
-    version='1.2.0',
-    license='Apache 2.0',
-    author='Google Inc.',
-    author_email='mgeneau@google.com',
+    name="gcs_bucket_mover",
+    version="1.2.0",
+    license="Apache 2.0",
+    author="Google Inc.",
+    author_email="mgeneau@google.com",
     description=
-    'A command line tool for moving storage buckets between projects in Google Cloud.',
+    "A command line tool for moving storage buckets between projects in Google Cloud.",
     long_description=long_desc,
     zip_safe=True,
     classifiers=[
-        'Development Status :: 1 - Planning',
-        'Environment :: Console',
-        'Intended Audience :: Developers',
-        'Intended Audience :: System Administrators',
-        'License :: OSI Approved :: Apache Software License',
-        'Natural Language :: English',
-        'Programming Language :: Python',
-        'Programming Language :: Python :: 3',
-        'Topic :: System :: Filesystems',
-        'Topic :: Utilities',
+        "Development Status :: 1 - Planning",
+        "Environment :: Console",
+        "Intended Audience :: Developers",
+        "Intended Audience :: System Administrators",
+        "License :: OSI Approved :: Apache Software License",
+        "Natural Language :: English",
+        "Programming Language :: Python",
+        "Programming Language :: Python :: 3",
+        "Topic :: System :: Filesystems",
+        "Topic :: Utilities",
     ],
-    platforms='any',
-    packages=find_packages(exclude=['third_party']),
+    platforms="any",
+    packages=find_packages(exclude=["third_party"]),
     include_package_data=True,
     install_requires=requires,
-    scripts=['bin/bucket_mover'])
+    scripts=["bin/bucket_mover"])
