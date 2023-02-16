@@ -226,6 +226,8 @@ them to fit your particular use case.
     An example that uses a set of Bash scripts to set up a pre-commit hook that
     validates Kubernetes resources with Gatekeeper constraints and constraint
     templates from your choice of sources.
+*   [Project factory with Terragrunt](examples/terragrunt-project-factory-gcp/)
+    This implements a `State-Scalable` project factory pattern for creating Google Cloud Platform projects using Terragrunt and public Terraform modules
 *   [Python CI/CD with Cloud Builder and CSR](examples/python-cicd-with-cloudbuilder) -
     Example that uses Cloud Builder and Cloud Source Repositories to automate
     testing and linting.
