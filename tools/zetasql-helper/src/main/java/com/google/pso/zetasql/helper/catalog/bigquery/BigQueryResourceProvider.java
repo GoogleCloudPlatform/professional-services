@@ -25,4 +25,8 @@ public interface BigQueryResourceProvider {
 
   List<Function> getFunctions(String projectId, List<String> functionReferences);
 
+  List<Function> getAllFunctionsInDataset(String projectId, String datasetName);
+
+  List<Function> getAllFunctionsInProject(String projectId);
+
 }

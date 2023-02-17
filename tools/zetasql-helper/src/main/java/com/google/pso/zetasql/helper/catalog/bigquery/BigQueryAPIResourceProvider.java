@@ -3,6 +3,7 @@ package com.google.pso.zetasql.helper.catalog.bigquery;
 import com.google.api.gax.paging.Page;
 import com.google.cloud.bigquery.BigQuery;
 import com.google.cloud.bigquery.BigQuery.DatasetListOption;
+import com.google.cloud.bigquery.BigQuery.RoutineListOption;
 import com.google.cloud.bigquery.BigQuery.TableListOption;
 import com.google.cloud.bigquery.BigQueryOptions;
 import com.google.cloud.bigquery.Dataset;
@@ -19,6 +20,7 @@ import com.google.zetasql.FunctionProtos.FunctionOptionsProto;
 import com.google.zetasql.FunctionSignature;
 import com.google.zetasql.SimpleColumn;
 import com.google.zetasql.SimpleTable;
+import com.google.zetasql.TableValuedFunction;
 import com.google.zetasql.ZetaSQLFunctions.FunctionEnums.Mode;
 import java.util.ArrayList;
 import java.util.List;
@@ -140,4 +142,47 @@ public class BigQueryAPIResourceProvider implements BigQueryResourceProvider {
         .map(this::buildFunction)
         .collect(Collectors.toList());
   }
+
+  @Override
+  public List<Function> getAllFunctionsInDataset(String projectId, String datasetName) {
+    List<Function> resultFunctions = new ArrayList<>();
+
+    DatasetId datasetId = DatasetId.of(projectId, datasetName);
+    Page<Routine> routines = this.client.listRoutines(
+        datasetId, RoutineListOption.pageSize(100)
+    );
+
+    for(Routine routine : routines.iterateAll()) {
+      RoutineId routineId = routine.getRoutineId();
+      String fullyQualifiedRoutine = String.format(
+          "%s.%s.%s",
+          routineId.getProject(),
+          routineId.getDataset(),
+          routineId.getRoutine()
+      );
+      this.getFunction(projectId, fullyQualifiedRoutine)
+          .ifPresent(resultFunctions::add);
+    }
+
+    return resultFunctions;
+  }
+
+  @Override
+  public List<Function> getAllFunctionsInProject(String projectId) {
+    List<Function> resultFunctions = new ArrayList<>();
+
+    Page<Dataset> datasets = this.client.listDatasets(
+        projectId, DatasetListOption.pageSize(100)
+    );
+
+    for(Dataset dataset : datasets.iterateAll()) {
+      List<Function> datasetFunctions = this.getAllFunctionsInDataset(
+          projectId, dataset.getDatasetId().getDataset()
+      );
+      resultFunctions.addAll(datasetFunctions);
+    }
+
+    return resultFunctions;
+  }
+
 }

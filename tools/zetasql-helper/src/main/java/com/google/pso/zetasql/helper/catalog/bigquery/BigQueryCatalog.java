@@ -154,19 +154,19 @@ public class BigQueryCatalog implements CatalogWrapper {
 
     this.bigQueryResourceProvider
         .getTables(this.defaultProjectId, tableReferences)
-        .forEach(simpleTable -> this.registerTable(simpleTable, false));
+        .forEach(this::registerQualifiedTable);
   }
 
   public void addAllTablesInDataset(String projectId, String datasetName) {
     this.bigQueryResourceProvider
         .getAllTablesInDataset(projectId, datasetName)
-        .forEach(simpleTable -> this.registerTable(simpleTable, false));
+        .forEach(this::registerQualifiedTable);
   }
 
   public void addAllTablesInProject(String projectId) {
     this.bigQueryResourceProvider
         .getAllTablesInProject(projectId)
-        .forEach(simpleTable -> this.registerTable(simpleTable, false));
+        .forEach(this::registerQualifiedTable);
   }
 
   @Override
@@ -178,7 +178,19 @@ public class BigQueryCatalog implements CatalogWrapper {
 
     this.bigQueryResourceProvider
         .getFunctions(this.defaultProjectId, functionReferences)
-        .forEach(function -> this.registerFunction(function, false));
+        .forEach(this::registerQualifiedFunction);
+  }
+
+  public void addAllFunctionsInDataset(String projectId, String datasetName) {
+    this.bigQueryResourceProvider
+        .getAllFunctionsInDataset(projectId, datasetName)
+        .forEach(this::registerQualifiedFunction);
+  }
+
+  public void addAllFunctionsInProject(String projectId) {
+    this.bigQueryResourceProvider
+        .getAllFunctionsInProject(projectId)
+        .forEach(this::registerQualifiedFunction);
   }
 
   @Override
