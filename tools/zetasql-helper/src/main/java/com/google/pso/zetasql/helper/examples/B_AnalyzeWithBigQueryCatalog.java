@@ -30,7 +30,7 @@ public class B_AnalyzeWithBigQueryCatalog {
         "bigquery-public-data"
     );
 
-    catalog.addAllTablesFromDataset(
+    catalog.addAllTablesInDataset(
         "bigquery-public-data", "samples"
     );
 

@@ -16,7 +16,6 @@
 package com.google.pso.zetasql.helper.catalog.bigquery;
 
 import com.google.cloud.bigquery.BigQuery;
-import com.google.cloud.bigquery.BigQueryOptions;
 import com.google.cloud.bigquery.Routine;
 import com.google.cloud.bigquery.Table;
 import java.util.HashMap;
@@ -34,17 +33,6 @@ class BigQueryService {
 
   public BigQueryService(BigQuery client) {
     this.client = client;
-  }
-
-  public static BigQueryService buildDefault() {
-    BigQuery bigquery =
-        BigQueryOptions.newBuilder().build().getService();
-
-    return new BigQueryService(bigquery);
-  }
-
-  public BigQuery getClient() {
-    return client;
   }
 
   private <T> Optional<T> fetchResource(

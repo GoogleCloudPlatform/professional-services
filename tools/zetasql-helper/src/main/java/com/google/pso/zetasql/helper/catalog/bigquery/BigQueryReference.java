@@ -2,14 +2,12 @@ package com.google.pso.zetasql.helper.catalog.bigquery;
 
 import com.google.cloud.bigquery.RoutineId;
 import com.google.cloud.bigquery.TableId;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Deque;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Pattern;
 
-public class BigQueryReference {
+class BigQueryReference {
 
   private final String projectId;
   private final String datasetId;

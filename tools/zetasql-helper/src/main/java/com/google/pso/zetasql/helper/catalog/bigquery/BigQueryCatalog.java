@@ -1,59 +1,46 @@
 package com.google.pso.zetasql.helper.catalog.bigquery;
 
-import com.google.api.gax.paging.Page;
 import com.google.cloud.bigquery.BigQuery;
-import com.google.cloud.bigquery.BigQuery.DatasetListOption;
-import com.google.cloud.bigquery.BigQuery.TableListOption;
-import com.google.cloud.bigquery.Dataset;
-import com.google.cloud.bigquery.DatasetId;
-import com.google.cloud.bigquery.Routine;
-import com.google.cloud.bigquery.RoutineArgument;
-import com.google.cloud.bigquery.RoutineId;
-import com.google.cloud.bigquery.Table;
-import com.google.cloud.bigquery.TableId;
 import com.google.pso.zetasql.helper.catalog.CatalogOperations;
 import com.google.pso.zetasql.helper.catalog.CatalogWrapper;
 import com.google.zetasql.Function;
-import com.google.zetasql.FunctionArgumentType;
-import com.google.zetasql.FunctionProtos.FunctionOptionsProto;
-import com.google.zetasql.FunctionSignature;
 import com.google.zetasql.SimpleCatalog;
-import com.google.zetasql.SimpleColumn;
 import com.google.zetasql.SimpleTable;
 import com.google.zetasql.Type;
 import com.google.zetasql.TypeFactory;
 import com.google.zetasql.ZetaSQLBuiltinFunctionOptions;
-import com.google.zetasql.ZetaSQLFunctions.FunctionEnums.Mode;
 import com.google.zetasql.ZetaSQLType;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class BigQueryCatalog implements CatalogWrapper {
 
   private final String defaultProjectId;
-  private final BigQueryService service;
+  private final BigQueryResourceProvider bigQueryResourceProvider;
   private final SimpleCatalog catalog;
 
   public BigQueryCatalog(String defaultProjectId) {
     this(
         defaultProjectId,
-        BigQueryService.buildDefault()
+        new BigQueryAPIResourceProvider()
     );
   }
 
   public BigQueryCatalog(String defaultProjectId, BigQuery bigQueryClient) {
     this(
         defaultProjectId,
-        new BigQueryService(bigQueryClient)
+        new BigQueryAPIResourceProvider(bigQueryClient)
     );
   }
 
-  private BigQueryCatalog(String defaultProjectId, BigQueryService service) {
+  private BigQueryCatalog(
+      String defaultProjectId,
+      BigQueryResourceProvider bigQueryResourceProvider
+  ) {
     this.defaultProjectId = defaultProjectId;
-    this.service = service;
+    this.bigQueryResourceProvider = bigQueryResourceProvider;
     this.catalog = new SimpleCatalog("catalog");
     this.catalog.addZetaSQLFunctions(new ZetaSQLBuiltinFunctionOptions());
     this.addBigQueryTypeAliases(this.catalog);
@@ -61,11 +48,11 @@ public class BigQueryCatalog implements CatalogWrapper {
 
   private BigQueryCatalog(
       String defaultProjectId,
-      BigQueryService service,
+      BigQueryResourceProvider bigQueryResourceProvider,
       SimpleCatalog internalCatalog
   ) {
     this.defaultProjectId = defaultProjectId;
-    this.service = service;
+    this.bigQueryResourceProvider = bigQueryResourceProvider;
     this.catalog = internalCatalog;
   }
 
@@ -158,68 +145,39 @@ public class BigQueryCatalog implements CatalogWrapper {
     }
   }
 
-  private Optional<Table> fetchTable(String tableReference) {
-    return this.service.fetchTable(this.defaultProjectId, tableReference);
-  }
-
-  private Optional<Routine> fetchRoutine(String routineReference) {
-    return this.service.fetchRoutine(this.defaultProjectId, routineReference);
-  }
-
-  private SimpleTable buildSimpleTable(Table table) {
-    TableId tableId = table.getTableId();
-    String fullTableName = BigQueryReference.from(tableId).getFullName();
-    List<SimpleColumn> columns = BigQuerySchemaConverter.extractTableColumns(table);
-    return CatalogOperations.buildSimpleTable(fullTableName, columns);
-  }
-
   @Override
   public void addTables(List<List<String>> tablePaths) {
-    tablePaths
+    List<String> tableReferences = tablePaths
         .stream()
         .map(tablePath -> String.join(".", tablePath))
-        .map(this::fetchTable)
-        .filter(Optional::isPresent)
-        .map(Optional::get)
-        .map(this::buildSimpleTable)
+        .collect(Collectors.toList());
+
+    this.bigQueryResourceProvider
+        .getTables(this.defaultProjectId, tableReferences)
         .forEach(simpleTable -> this.registerTable(simpleTable, false));
   }
 
-  private Function buildFunction(Routine routine) {
-    // TODO: Complete
-    RoutineId routineId = routine.getRoutineId();
-    List<String> functionNamePath = BigQueryReference.from(routineId).getNamePath();
-    List<FunctionArgumentType> arguments = routine
-        .getArguments()
-        .stream()
-        .map(RoutineArgument::getDataType)
-        .map(BigQuerySchemaConverter::convertStandardSQLType)
-        .map(FunctionArgumentType::new)
-        .collect(Collectors.toList());
-    FunctionArgumentType returnType = new FunctionArgumentType(
-        BigQuerySchemaConverter.convertStandardSQLType(
-          routine.getReturnType()
-        )
-    );
-    FunctionSignature signature = new FunctionSignature(returnType, arguments, -1);
-    return new Function(
-        functionNamePath,
-        "UDF", // TODO: should there be different groups?
-        Mode.SCALAR, // TODO: do we need to allow for different modes here?
-        List.of(signature),
-        FunctionOptionsProto.newBuilder().build() // TODO: do we need to lead options here?
-    );
+  public void addAllTablesInDataset(String projectId, String datasetName) {
+    this.bigQueryResourceProvider
+        .getAllTablesInDataset(projectId, datasetName)
+        .forEach(simpleTable -> this.registerTable(simpleTable, false));
+  }
+
+  public void addAllTablesInProject(String projectId) {
+    this.bigQueryResourceProvider
+        .getAllTablesInProject(projectId)
+        .forEach(simpleTable -> this.registerTable(simpleTable, false));
   }
 
   @Override
   public void addFunctions(List<List<String>> functionPaths) {
-    functionPaths
+    List<String> functionReferences = functionPaths
         .stream()
-        .map(tablePath -> String.join(".", tablePath))
-        .map(this::fetchRoutine)
-        .filter(Optional::isPresent)
-        .map(Optional::get)
-        .map(this::buildFunction)
+        .map(functionPath -> String.join(".", functionPath))
+        .collect(Collectors.toList());
+
+    this.bigQueryResourceProvider
+        .getFunctions(this.defaultProjectId, functionReferences)
         .forEach(function -> this.registerFunction(function, false));
   }
 
@@ -227,7 +185,7 @@ public class BigQueryCatalog implements CatalogWrapper {
   public BigQueryCatalog copy(boolean deepCopy) {
     return new BigQueryCatalog(
         this.defaultProjectId,
-        this.service,
+        this.bigQueryResourceProvider,
         CatalogOperations.copyCatalog(this.getZetaSQLCatalog(), deepCopy)
     );
   }
@@ -235,30 +193,6 @@ public class BigQueryCatalog implements CatalogWrapper {
   @Override
   public SimpleCatalog getZetaSQLCatalog() {
     return this.catalog;
-  }
-
-  public void addAllTablesFromDataset(String projectId, String datasetName) {
-    DatasetId datasetId = DatasetId.of(projectId, datasetName);
-    Page<Table> tables = this.service.getClient().listTables(
-        datasetId, TableListOption.pageSize(100)
-    );
-
-    for(Table table : tables.iterateAll()) {
-      this.addTable(
-          List.of(projectId, datasetName, table.getTableId().getTable())
-      );
-    }
-
-  }
-
-  public void addAllTablesFromProject(String projectId) {
-    Page<Dataset> datasets = this.service.getClient().listDatasets(
-        projectId, DatasetListOption.pageSize(100)
-    );
-
-    for(Dataset dataset : datasets.iterateAll()) {
-      this.addAllTablesFromDataset(projectId, dataset.getDatasetId().getDataset());
-    }
   }
 
 }

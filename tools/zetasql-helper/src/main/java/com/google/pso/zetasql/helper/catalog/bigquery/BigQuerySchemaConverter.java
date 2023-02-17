@@ -17,7 +17,6 @@ package com.google.pso.zetasql.helper.catalog.bigquery;
 
 import com.google.cloud.bigquery.Field;
 import com.google.cloud.bigquery.StandardSQLDataType;
-import com.google.cloud.bigquery.StandardSQLField;
 import com.google.cloud.bigquery.StandardSQLStructType;
 import com.google.cloud.bigquery.StandardSQLTypeName;
 import com.google.cloud.bigquery.Table;
@@ -34,7 +33,7 @@ import java.util.stream.Collectors;
 
 // Utility class for converting BigQuery API
 // schemas into ZetaSQL-compatible schemas
-public class BigQuerySchemaConverter {
+class BigQuerySchemaConverter {
   // TODO: Review this class. Rename? Refactor?
 
   public static Type convertStandardSQLType(StandardSQLDataType type) {
