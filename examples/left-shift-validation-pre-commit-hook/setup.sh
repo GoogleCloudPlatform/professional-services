@@ -70,7 +70,7 @@ esac
 ########### STEP 1 - DEPENDENCY INSTALLATION ###########
 ########################################################
 
-printf "\nInstalling Dependencies\n"
+printf "\\nInstalling Dependencies\\n"
 
 # Create install directory and create a file to track versions/defaults
 mkdir -p "$PWD/$INSTALL_DIR/"
@@ -134,7 +134,7 @@ function install_dependency {
 
     # Need this exact command to work with directory names with spaces.
     # shellcheck disable=SC2046
-    where="$(readlink_f $(printf "%q\\n" "$(PWD)"))/"
+    where="$(readlink_f $(printf "%q\\\n" "$(PWD)"))/"
 
     # Verify the script can rationalize the current directory into an absolute path
     if ! test -d "$where"; then
@@ -163,7 +163,7 @@ function install_dependency {
     #  Find Latest Release and pull down from repo history
     releases=$(curl -s "$1")
     if [[ $releases == *"API rate limit exceeded"* ]]; then
-        err $'\\nGithub rate-limiter failed the request. Either authenticate or wait a couple of minutes.'
+        err $'\\\nGithub rate-limiter failed the request. Either authenticate or wait a couple of minutes.'
         exit 1
     fi
 
@@ -191,7 +191,7 @@ function install_dependency {
             # Bring function into depency folder
             cp ./"$2" "$where"
             chmod 775 "${where}$2"
-            printf "\n"
+            printf "\\n"
             echo "$2 installed to $where/$2"
             # Figure out which var to update in dependency_info.txt
             case $2 in
@@ -220,7 +220,7 @@ function install_dependency {
         # Bring function into depency folder
         cp ./"$2" "$where"
         chmod +x "${where}$2"
-        printf "\n"
+        printf "\\n"
         echo "$2 installed to $where/$2"
         # Figure out which var to update in dependency_info.txt
         case $2 in
@@ -266,7 +266,7 @@ install_dependency \
     browser_download.*${opsys}_${arch} \
     "$last_kpt_version"
 
-printf "\nDependencies installed/updated."
+printf "\\nDependencies installed/updated."
 
 ######################################################
 ######### STEP 3 - Update Configuration File #########
@@ -287,8 +287,8 @@ KUSTOMIZE_VERSION=${last_kustomize_version}
 GATOR_VERSION=${last_gator_version}
 EOL
 
-printf "\nConfiguration updated."
-printf "\n-----\n"
+printf "\\nConfiguration updated."
+printf "\\n-----\\n"
 
 # Leave dependency folder
 cd ..
@@ -304,7 +304,7 @@ if [[ ! "$response" =~ ^([yY][eE][sS]|[yY])$ ]]; then
 fi
 
 # Move validate.sh script to pre-commit hook folder
-printf "\nUpdating pre-commit hook..."
+printf "\\nUpdating pre-commit hook..."
 cp validate.sh .git/hooks/
 cd .git/hooks/ || exit 1
 mv validate.sh pre-commit
@@ -316,7 +316,7 @@ chmod +x pre-commit
 # Return to project root directory
 cd ../../ || exit 1
 echo $'Done!'
-printf "\n-----\n"
+printf "\\n-----\\n"
 
 #########################################################
 ################# STEP 4 - Validation Prep ##############
@@ -332,7 +332,7 @@ read -r -p "This script will overwrite your current pre-validate configuration. 
 if [[ ! "$response" =~ ^([yY][eE][sS]|[yY])$ ]]; then
     exit 0
 fi
-printf "\n-----\n"
+printf "\\n-----\\n"
 
 ########################################################
 ################### Obtain Policies ###################
@@ -346,14 +346,14 @@ printf "\n-----\n"
 echo $'Gator works with both public repositories and local files. You can provide either in this configuration.'
 
 # Formatting for locations
-printf "\nFormatting"
+printf "\\nFormatting"
 echo "* For ${bold}remote repositories${normal}, use URL format: https://github.com/[USER]/[REPO].git/[SUBDIRECTORY]/[CONSTRAINTS_SUBDIRECTORY]"
 echo "* For ${bold}local directories${normal}, input ABSOLUTE directory path"
-printf "* Ensure that the repositories/directories contain ONLY constraint and/or constraint template manifests.\n"
-printf "* Link DIRECTLY to folder where constraints and/or templates are located\n"
+printf "* Ensure that the repositories/directories contain ONLY constraint and/or constraint template manifests.\\n"
+printf "* Link DIRECTLY to folder where constraints and/or templates are located\\n"
 
 # Obtain CONSTRAINT TEMPLATES location
-printf "\n"
+printf "\\n"
 echo "${bold}CONSTRAINT TEMPLATES${normal} location:"
 echo "* If you are using the open-source constraint templates, ${bold}leave BLANK and press ENTER${normal}"
 echo "* Open-source constraint templates are located in /constraints-and-templates/oss-constraint-templates-library."
@@ -364,11 +364,11 @@ if [[ -z $templates_location ]]; then
 fi
 
 # Obtain CONSTRAINT TEMPLATES location
-printf "\n"
+printf "\\n"
 read -r -p "${bold}CONSTRAINTS${normal} location:" constraints_location
 
 # See if user is going to be using Kustomize or not
-printf "\n"
+printf "\\n"
 echo "${bold}USING KUSTOMIZE${normal}:"
 read -r -p "Are you using Kustomize? If so, you will need to specify which environment you would like to build every time you commit changes. [y/N] " kustomize_yes_no
 if [[ "$kustomize_yes_no" =~ ^([yY][eE][sS]|[yY])$ ]]; then
@@ -377,14 +377,14 @@ fi
 
 # Obtain KUBERNETES MANIFESTS location if user IS using Kustomize:
 if [[ $kustomize_yes_no_answer == "YES" ]]; then
-    printf "\n"
+    printf "\\n"
     echo "${bold}KUBERNETES MANIFESTS${normal} location (should be a local directory):"
     echo "* If you are running this script in that directory, please press ENTER."
     read -r -p "> " kubernetes_filepath
     if [[ -z $kubernetes_filepath ]]; then
         kubernetes_filepath=$PWD
     fi
-    printf " \n-----\n"
+    printf " \\n-----\\n"
 fi
 
 ########################################################
@@ -402,4 +402,4 @@ KUBERNETES_DIR=$kubernetes_filepath
 KUSTOMIZED_FILES=$kustomize_yes_no_answer
 EOL
 
-printf "\nConfiguration Updated"
+printf "\\nConfiguration Updated"
