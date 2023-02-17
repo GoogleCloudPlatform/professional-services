@@ -134,7 +134,7 @@ function install_dependency {
 
     # Need this exact command to work with directory names with spaces.
     # shellcheck disable=SC2046
-    where="$(readlink_f $(printf "%q\\\n" "$(PWD)"))/"
+    where="$(readlink_f $(printf "%q\\n" "$(PWD)"))/"
 
     # Verify the script can rationalize the current directory into an absolute path
     if ! test -d "$where"; then
