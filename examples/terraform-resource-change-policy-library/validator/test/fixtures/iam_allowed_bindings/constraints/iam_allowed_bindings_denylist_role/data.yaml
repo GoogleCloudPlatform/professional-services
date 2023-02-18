@@ -1,0 +1,14 @@
+apiVersion: constraints.gatekeeper.sh/v1alpha1
+kind: GCPIAMAllowedBindingsConstraintV3
+metadata:
+  name: denylist_serviceaccount_user
+  annotations:
+    description: Ban any users from being granted Service Account User access
+    benchmark: CIS11_1.05
+spec:
+  severity: high
+  parameters:
+    mode: denylist
+    role: roles/iam.serviceAccountUser
+    members:
+      - "*"

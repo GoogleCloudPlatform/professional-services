@@ -29,7 +29,7 @@ object DataflowFlexTemplateRun extends Command[DataflowFlexTemplateRunConfig] wi
   override val parser: ArgParser[DataflowFlexTemplateRunConfig] = DataflowFlexTemplateRunOptionParser
 
   override def run(config: DataflowFlexTemplateRunConfig, zos: MVS, env: Map[String, String]): Result = {
-    val dataflow: Dataflow = Services.dataflow(Services.dataflowCredentials())
+    val dataflow: Dataflow = Services.dataflow(zos.getCredentialProvider().getCredentials)
 
     val environment = new FlexTemplateRuntimeEnvironment()
 

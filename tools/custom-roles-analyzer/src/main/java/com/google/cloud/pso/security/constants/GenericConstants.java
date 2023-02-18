@@ -24,7 +24,6 @@ public class GenericConstants {
   public static final String DEFAULT_FORMAT = "csv";
   public static final String JSON_FORMAT = "json";
   public static final String RESULT_FILENAME = "CustomRoleAnalysisResult";
-  public static final String RESULT_FILENAME_ROLE_BINDING = "RoleBindingResult";
   public static final String COLUMN_CUSTOM_ROLE = "Custom Role";
   public static final String COLUMN_PARENT = "Parent";
   public static final String COLUMN_PREDEFINED_ROLES = "List of predefined roles";
@@ -32,9 +31,6 @@ public class GenericConstants {
   public static final String COLUMN_EXACT_MATCH = "Is Exact Match";
   public static final String COLUMN_NO_OF_ADDITIONAL_PERMISSIONS = "No of additional permissions";
   public static final String COLUMN_NO_OF_ORIGINAL_PERMISSIONS = "No of original permissions";
-  public static final String COLUMN_ROLE = "Role";
-  public static final String COLUMN_RESOURCE = "Resource";
-  public static final String COLUMN_BINDINGS = "Bindings";
 
   public static final String OPTIONS_HELP =
       "Please provide the commandline options. \n"
