@@ -34,6 +34,8 @@ them to fit your particular use case.
     scheduled interval. The email will contain a link to a signed or unsigned
     URL, allowing the recipient to view query results as a JSON, CSV, or Avro
     file.
+*   [BigQuery Automated Schema Management](tools/bqman) - Command-line utility
+    for automated provisioning and management of BigQuery datasets and tables.
 *   [BigQuery Billing Dashboard](examples/bigquery-billing-dashboard) - Solution
     to help displaying billing info using Data Studio for visualization and a
     sample SQL script to query the back-end billing export table in BigQuery.
@@ -43,8 +45,16 @@ them to fit your particular use case.
 *   [BigQuery Group Sync For Row Level Access](examples/bigquery-row-access-groups) -
     Sample code to synchronize group membership from G Suite/Cloud Identity into
     BigQuery and join that with your data to control access at row level.
+*   [BigQuery Oracle DDL Migration Utility](examples/bigquery-oracle-ddl-migration-utility) - 
+    Oracle DDL Migration Utility to migrate the tables schema (DDL) from Oracle DB to BigQuery.
+    The utility leverages BigQuery Translation API and offers additional features
+    such as adding partitioning, clustering, metadata columns and prefixes to table names.
 *   [BigQuery Pipeline Utility](tools/bqpipeline) - Python utility class for
     defining data pipelines in BigQuery.
+*   [BigQuery Snowflake Table Migration Tool](examples/bigquery-snowflake-tables-migration-utility) - 
+    BigQuery Snowflake Table Migration Tool helps to migrate the table DDL's from Snowflake to BigQuery.
+    The utility leverages BigQuery Translation API and offers additional features
+    such as adding partitioning, clustering, metadata columns and prefixes to table names.
 *   [BigQuery Table Access Pattern Analysis](examples/bigquery-table-access-pattern-analysis) -
     Sample code to analyse data pipeline optimisation points, by pinpointing
     suboptimal pipeline scheduling between tables in a data warehouse ELT job.
@@ -65,16 +75,6 @@ them to fit your particular use case.
     table. It works with any table, regardless the schema. It shows how to
     update your key for a table with existing data, to try out different
     alternatives to improve performance.
-*   [BigQuery Automated Schema Management](tools/bqman) - Command-line utility
-    for automated provisioning and management of BigQuery datasets and tables.
-*   [BigQuery Oracle DDL Migration Utility](examples/bigquery-oracle-ddl-migration-utility) - 
-    Oracle DDL Migration Utility to migrate the tables schema (DDL) from Oracle DB to BigQuery.
-    The utility leverages BigQuery Translation API and offers additional features
-    such as adding partitioning, clustering, metadata columns and prefixes to table names.
-*   [BigQuery Snowflake Table Migration Tool](examples/bigquery-snowflake-tables-migration-utility) - 
-    BigQuery Snowflake Table Migration Tool helps to migrate the table DDL's from Snowflake to BigQuery.
-    The utility leverages BigQuery Translation API and offers additional features
-    such as adding partitioning, clustering, metadata columns and prefixes to table names.
 *   [Carbon Footprint Reporting](examples/carbon-foortprint-dashboard) - Example of 
     using the prebuilt Data studio & Looker template for analysing GCP Carbon Footprint Estimates.
 *   [Cloud Audit Log Samples](examples/audit-log-examples/) - A sample
@@ -130,8 +130,6 @@ them to fit your particular use case.
     Sentiment analysis for movie reviews using TensorFlow `RNNEstimator`.
 *   [CloudML TensorFlow Profiling](examples/tensorflow-profiling-examples) -
     TensorFlow profiling examples for training models with CloudML
-*   [Cost Optimization DataStudio Dashboard](examples/cost-optimization-dashboard) -
-    SQL scripts to help build Cost Optimization DataStudio Dashboard.
 *   [Data Generator](examples/dataflow-data-generator) - Generate random data
     with a custom schema at scale for integration tests or demos.
 *   [Dataflow BigQuery Transpose Example](examples/dataflow-bigquery-transpose) -
@@ -226,6 +224,8 @@ them to fit your particular use case.
     An example that uses a set of Bash scripts to set up a pre-commit hook that
     validates Kubernetes resources with Gatekeeper constraints and constraint
     templates from your choice of sources.
+*   [LookerStudio Cost Optimization Dashboard](examples/cost-optimization-dashboard) -
+    SQL scripts to help build Cost Optimization LookerStudio Dashboard.
 *   [Python CI/CD with Cloud Builder and CSR](examples/python-cicd-with-cloudbuilder) -
     Example that uses Cloud Builder and Cloud Source Repositories to automate
     testing and linting.
@@ -237,7 +237,7 @@ them to fit your particular use case.
     cluster on GKE.
 *   [Spanner Interleave Subquery](examples/spanner-interleave-subquery) -
     Example code to benchmark Cloud Spanner's subqueries for interleaved tables.
-* [Spanner Change Stream to BigQuery using Dataflow](examples/spanner-changestreams-bigquery) - 
+*   [Spanner Change Stream to BigQuery using Dataflow](examples/spanner-changestreams-bigquery) - 
     Terraform code to deploy Spanner change stream and publish changes to BigQuery using Dataflow Streaming Job.
 *   [Spinnaker](examples/spinnaker) - Example pipelines for a Canary /
     Production deployment process.
@@ -250,16 +250,16 @@ them to fit your particular use case.
     to write unit tests for TensorFlow ML models.
 *   [Terraform Internal HTTP Load Balancer](examples/terraform-ilb) - Terraform
     example showing how to deploy an internal HTTP load balancer.
+*   [Terraform NetApp CVS](examples/tf-netapp-cvs) - This example shows how to deploy NetApp CVS volumes using
+    terraform.
 *   [Terraform Resource Change Policy Library](examples/terraform-resource-change-policy-library) -
     Contains a library of policies written in the
     [OPA Constraint Framework](https://github.com/open-policy-agent/frameworks/blob/master/constraint/README.md)
     format to be used by `gcloud beta terraform vet` to validate Terraform resource
     changes in a CI/CD pipeline.
-*   [Terraform NetApp CVS](examples/tf-netapp-cvs) - This example shows how to
 *   [Uploading files directly to Google Cloud Storage by using Signed URL](examples/direct-upload-to-gcs) -
     Example architecture to enable uploading files directly to GCS by using
     [Signed URL](https://cloud.google.com/storage/docs/access-control/signed-urls).
-    deploy NetApp CVS volumes using terraform.
 *   [TSOP object transfer Log prosessor](examples/tsop-log-processor/) - This example shows
     how to log object transfer logs by TSOP to Cloud Logging.
 *   [Vertex AI MLOps Pipeline](examples/vertex_pipeline) - Demonstrates
@@ -278,6 +278,8 @@ Platform usage.
 *   [Airpiler](tools/airpiler) - A python script to convert Autosys JIL files to
     dag-factory format to be executed in Cloud Composer (managed airflow
     environment).
+*   [Ansible Module for Anthos on Bare Metal](tools/anthosbm-ansible-module) -
+    Ansible module for installation of Anthos on Bare Metal
 *   [Anthos Bare Metal Installer](tools/anthosbm-ansible-module) - An
     [ansible](https://www.ansible.com/resources/get-started) playbook that can
     be used to install
@@ -293,12 +295,14 @@ Platform usage.
     recommended best practice.
 *   [AssetInventory](tools/asset-inventory) - Import Cloud Asset Inventory
     resourcs into BigQuery.
-*   [Ansible Module for Anthos on Bare Metal](tools/anthosbm-ansible-module) -
-    Ansible module for installation of Anthos on Bare Metal
 *   [BigQuery Discount Per-Project Attribution](tools/kunskap) - A tool that
     automates the generation of a BigQuery table that uses existing exported
     billing data, by attributing both CUD and SUD charges on a per-project
     basis.
+*   [BigQuery Policy Tag Utility](tools/bqtag) - Utility class for tagging BQ
+    Table Schemas with Data Catalog Taxonomy Policy Tags. Create BQ Authorized
+    Views using Policy Tags. Helper utility to provision BigQuery Dataset, Data
+    Catalog Taxonomy and Policy Tags.
 *   [BigQuery Query Plan Exporter](tools/bigquery-query-plan-exporter) - Command
     line utility for exporting BigQuery query plans in a given date range.
 *   [BigQuery Query Plan Visualizer](tools/bq-visualizer) - A web application
@@ -307,10 +311,6 @@ Platform usage.
 *   [BigQuery z/OS Mainframe Connector](tools/bigquery-zos-mainframe-connector) -
     A utility used to load COBOL MVS data sets into BigQuery and execute query
     and load jobs from the IBM z/OS Mainframe.
-*   [BigQuery Policy Tag Utility](tools/bqtag) - Utility class for tagging BQ
-    Table Schemas with Data Catalog Taxonomy Policy Tags. Create BQ Authorized
-    Views using Policy Tags. Helper utility to provision BigQuery Dataset, Data
-    Catalog Taxonomy and Policy Tags.
 *   [Boolean Organization Policy Enforcer](tools/boolean-org-policy-enforcer) -
     A tool to find the projects that do not set a boolean organization policy to
     its expected state, subsequently, set the organization policy to its
@@ -333,6 +333,9 @@ Platform usage.
     Currently there are a few scripts for generating an AutoML Vision dataset
     CSV file from either raw images or image annotation files in PASCAL VOC
     format.
+*   [Cloud Composer Backup and Recovery](tools/cloud-composer-backup-restore) - A
+    command line tool for applying backup and recovery operations on Cloud
+    Composer Airflow environments.
 *   [CUD Prioritized Attribution](tools/cuds-prioritized-attribution) - A tool
     that allows GCP customers who purchased Committed Use Discounts (CUDs) to
     prioritize a specific scope (e.g. project or folder) to attribute CUDs first
@@ -346,9 +349,6 @@ Platform usage.
     project-level custom roles by combining predefined roles and including and
     removing permissions with wildcards. Can run as Cloud Function or output
     Terraform resources.
-*   [Composer Backup and Recovery](tools/cloud-composer-backup-restore) - A
-    command line tool for applying backup and recovery operations on Cloud
-    Composer Airflow environments.
 *   [Dataproc Event Driven Spark Recommendations](tools/dataproc-event-driven-spark-recommendations/) - 
     Use Google Cloud Functions to analyze Cloud Dataproc clusters and recommend
     best practices for Apache Spark jobs.  Also logs cluster configurations for
@@ -378,12 +378,12 @@ Platform usage.
 *   [GCE Usage Log](tools/gce-usage-log) - Collect GCE instance events into a
     BigQuery dataset, surfacing your vCPUs, RAM, and Persistent Disk, sliced by
     project, zone, and labels.
-*   [GCP AWS HA VPN Connection terraform ](tools/gcp-aws-ha-vpn) - Terraform
-    script to setup HA VPN between GCP and AWS.
 *   [GCP Architecture Visualizer](https://github.com/forseti-security/forseti-visualizer) -
     A tool that takes CSV output from a Forseti Inventory scan and draws out a
     dynamic hierarchical tree diagram of org -> folders -> projects ->
     gcp_resources using the D3.js javascript library.
+*   [GCP AWS HA VPN Connection terraform ](tools/gcp-aws-ha-vpn) - Terraform
+    script to setup HA VPN between GCP and AWS.
 *   [GCP Organization Hierarchy Viewer](tools/gcp-org-hierarchy-viewer) - A CLI
     utility for visualizing your organization hierarchy in the terminal.
 *   [GCPViz](tools/gcpviz) - a visualization tool that takes input from
@@ -392,12 +392,12 @@ Platform usage.
     [graphviz](http://graphviz.gitlab.io/).
 *   [GCS Bucket Mover](tools/gcs-bucket-mover) - A tool to move user's bucket,
     including objects, metadata, and ACL, from one project to another.
-*   [GCS Usage Recommender](tools/gcs-usage-recommender) - A tool that generates
-    bucket-level intelligence and access patterns across all projects for a GCP
-    project to generate recommended object lifecycle management.
 *   [GCS to BigQuery](tools/gcs2bq) - A tool fetches object metadata from all
     Google Cloud Storage buckets and exports it in a format that can be imported
     into BigQuery for further analysis.
+*   [GCS Usage Recommender](tools/gcs-usage-recommender) - A tool that generates
+    bucket-level intelligence and access patterns across all projects for a GCP
+    project to generate recommended object lifecycle management.
 *   [GKE Billing Export](tools/gke-billing-export) - Google Kubernetes Engine
     fine grained billing export.
 *   [gmon](tools/gmon/) - A command-line interface (CLI) for Cloud Monitoring
@@ -453,12 +453,12 @@ Platform usage.
     or GCS objects.
 *   [Quota Manager](tools/quota-manager) - A python module to programmatically
     update GCP service quotas such as bigquery.googleapis.com.
-*   [Ranger Hive Assessment for BigQuery/BigLake IAM migration](tools/ranger-to-bigquery-biglake-assessment) - 
-    A tool that assesses which Ranger authorization rules can be migrated 
-    or not to BigQuery/BigLake IAM.
 *   [Quota Monitoring and Alerting](tools/quota-monitoring-alerting) - An
     easy-to-deploy Data Studio Dashboard with alerting capabilities, showing
     usage and quota limits in an organization or folder.
+*   [Ranger Hive Assessment for BigQuery/BigLake IAM migration](tools/ranger-to-bigquery-biglake-assessment) - 
+    A tool that assesses which Ranger authorization rules can be migrated 
+    or not to BigQuery/BigLake IAM.
 *   [Reddit Comment Streaming](tools/reddit-comment-streaming/) - 
     Use PRAW, TextBlob, and Google Python API to collect and analyze 
     reddit comments. Pushes comments to a Google Pub/sub Topic.
@@ -504,7 +504,10 @@ Platform usage.
     line tool for converting an XSD schema representing deeply nested and
     repeated XML content into a BigQuery compatible table schema represented in
     JSON.
-*   [Numeric Family Recommender - Oracle](tools/numeric-family-recommender-oracle) - The Numeric Family Recommender is a database script that recommends the best numeric data type for the NUMBER data type when migrating from legacy databases like Oracle to Google Cloud platforms like BigQuery, AlloyDB, Cloud SQL for PostgreSQL, and Google Cloud Storage.
+*   [Numeric Family Recommender - Oracle](tools/numeric-family-recommender-oracle) - The Numeric Family
+    Recommender is a database script that recommends the best numeric data type for the NUMBER data type
+    when migrating from legacy databases like Oracle to Google Cloud platforms like BigQuery, AlloyDB,
+    Cloud SQL for PostgreSQL, and Google Cloud Storage.
 
 ## Contributing
 
