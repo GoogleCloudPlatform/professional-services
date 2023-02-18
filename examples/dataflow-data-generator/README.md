@@ -241,10 +241,10 @@ python data_generator_pipeline.py \
 For isolating your Dataflow workers on a private network you can additionally specify:
 ```
 ...
---use_public_ips=false \
 --region=us-east1 \
 --subnetwork=<FULL PATH TO SUBNET> \
---network=<NETWORK ID>
+--network=<NETWORK ID> \
+--no_use_public_ips
 ```
 
 ### Modifying FakeRowGen
