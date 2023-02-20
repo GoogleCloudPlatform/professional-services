@@ -18,9 +18,9 @@ package com.google.pso.zetasql.helper.catalog.bigquery;
 import com.google.cloud.bigquery.BigQuery;
 import com.google.cloud.bigquery.Routine;
 import com.google.cloud.bigquery.Table;
+import com.google.pso.zetasql.helper.utils.Try;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 import java.util.function.Function;
 
 // Service for getting entities from the BigQuery API
@@ -35,23 +35,26 @@ class BigQueryService {
     this.client = client;
   }
 
-  private <T> Optional<T> fetchResource(
+  private <T> Try<T> fetchResource(
       String projectId,
       String reference,
       Function<BigQueryReference, T> getter,
       Map<String, T> cache
   ) {
+
     try {
       BigQueryReference parsedReference = BigQueryReference.from(projectId, reference);
-      return Optional.ofNullable(
-          cache.computeIfAbsent(
-              parsedReference.getFullName(),
-              key -> getter.apply(parsedReference)
-          )
+      T fetchedResource = cache.computeIfAbsent(
+          parsedReference.getFullName(),
+          key -> getter.apply(parsedReference)
       );
+      return fetchedResource == null
+          ? new Try.Failure<>(new BigQueryResourceNotFound(parsedReference.getFullName()))
+          : new Try.Success<>(fetchedResource);
     } catch (InvalidBigQueryReference err) {
-      return Optional.empty();
+      return new Try.Failure<>(err);
     }
+
   }
 
   // Fetches a BigQuery table from the API
@@ -63,7 +66,7 @@ class BigQueryService {
   // Gets a BQ table given its project ID and table reference.
   // It caches tables so that consequent requests for the same table
   // will not hit the API.
-  public Optional<Table> fetchTable(String projectId, String tableReference) {
+  public Try<Table> fetchTable(String projectId, String tableReference) {
     return this.fetchResource(
         projectId,
         tableReference,
@@ -77,7 +80,7 @@ class BigQueryService {
     return this.client.getRoutine(reference.toRoutineId());
   }
 
-  public Optional<Routine> fetchRoutine(String projectId, String routineReference) {
+  public Try<Routine> fetchRoutine(String projectId, String routineReference) {
     return this.fetchResource(
         projectId,
         routineReference,

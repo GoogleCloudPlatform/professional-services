@@ -14,17 +14,16 @@ import com.google.cloud.bigquery.RoutineId;
 import com.google.cloud.bigquery.Table;
 import com.google.cloud.bigquery.TableId;
 import com.google.pso.zetasql.helper.catalog.CatalogOperations;
+import com.google.pso.zetasql.helper.utils.Try;
 import com.google.zetasql.Function;
 import com.google.zetasql.FunctionArgumentType;
 import com.google.zetasql.FunctionProtos.FunctionOptionsProto;
 import com.google.zetasql.FunctionSignature;
 import com.google.zetasql.SimpleColumn;
 import com.google.zetasql.SimpleTable;
-import com.google.zetasql.TableValuedFunction;
 import com.google.zetasql.ZetaSQLFunctions.FunctionEnums.Mode;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class BigQueryAPIResourceProvider implements BigQueryResourceProvider {
@@ -52,11 +51,22 @@ public class BigQueryAPIResourceProvider implements BigQueryResourceProvider {
 
   @Override
   public List<SimpleTable> getTables(String projectId, List<String> tableReferences) {
-    return tableReferences
+    List<Try<Table>> tableTries = tableReferences
         .stream()
         .map(tableReference -> this.service.fetchTable(projectId, tableReference))
-        .filter(Optional::isPresent)
-        .map(Optional::get)
+        .collect(Collectors.toList());
+
+    tableTries
+        .stream()
+        .filter(Try::isFailure)
+        .map(Try::getCause)
+        .findFirst()
+        .ifPresent(error -> { throw error; });
+
+    return tableTries
+        .stream()
+        .filter(Try::isSuccess)
+        .map(Try::get)
         .map(this::buildSimpleTable)
         .collect(Collectors.toList());
   }
@@ -130,15 +140,24 @@ public class BigQueryAPIResourceProvider implements BigQueryResourceProvider {
   }
 
   @Override
-  public List<Function> getFunctions(
-      String projectId,
-      List<String> functionReferences
-  ) {
-    return functionReferences
+  public List<Function> getFunctions(String projectId, List<String> functionReferences) {
+    List<Try<Routine>> routineTries = functionReferences
         .stream()
-        .map(functionReference -> this.service.fetchRoutine(projectId, functionReference))
-        .filter(Optional::isPresent)
-        .map(Optional::get)
+        .map(tableReference -> this.service.fetchRoutine(projectId, tableReference))
+        .collect(Collectors.toList());
+
+    routineTries
+        .stream()
+        .filter(Try::isFailure)
+        .map(Try::getCause)
+        .findFirst()
+        .ifPresent(error -> { throw error; });
+
+    return routineTries
+        .stream()
+        .filter(Try::isSuccess)
+        .map(Try::get)
+        .filter(routine -> routine.getRoutineType().equals("SCALAR_FUNCTION"))
         .map(this::buildFunction)
         .collect(Collectors.toList());
   }
