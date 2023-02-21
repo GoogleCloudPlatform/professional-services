@@ -15,13 +15,29 @@
  */
 package com.google.pso.zetasql.helper.catalog.bigquery;
 
+import com.google.api.gax.paging.Page;
 import com.google.cloud.bigquery.BigQuery;
+import com.google.cloud.bigquery.BigQuery.DatasetListOption;
+import com.google.cloud.bigquery.BigQuery.RoutineField;
+import com.google.cloud.bigquery.BigQuery.RoutineListOption;
+import com.google.cloud.bigquery.BigQuery.RoutineOption;
+import com.google.cloud.bigquery.BigQuery.TableField;
+import com.google.cloud.bigquery.BigQuery.TableListOption;
+import com.google.cloud.bigquery.BigQuery.TableOption;
+import com.google.cloud.bigquery.Dataset;
+import com.google.cloud.bigquery.DatasetId;
 import com.google.cloud.bigquery.Routine;
+import com.google.cloud.bigquery.RoutineId;
 import com.google.cloud.bigquery.Table;
+import com.google.cloud.bigquery.TableId;
 import com.google.pso.zetasql.helper.utils.Try;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 // Service for getting entities from the BigQuery API
 // It caches entities internally, so subsequent requests for the same resource don't hit the API
@@ -33,6 +49,10 @@ class BigQueryService {
 
   public BigQueryService(BigQuery client) {
     this.client = client;
+  }
+  
+  private <T> Stream<T> pageToStream(Page<T> page) {
+    return StreamSupport.stream(page.iterateAll().spliterator(), false);
   }
 
   private <T> Try<T> fetchResource(
@@ -57,10 +77,28 @@ class BigQueryService {
 
   }
 
+  public List<DatasetId> listDatasets(String projectId) {
+    Page<Dataset> datasets = this.client.listDatasets(
+        projectId, DatasetListOption.pageSize(100)
+    );
+
+    return this.pageToStream(datasets)
+        .map(Dataset::getDatasetId)
+        .collect(Collectors.toList());
+  }
+
   // Fetches a BigQuery table from the API
   private Table fetchTableFromAPI(BigQueryReference reference) {
     // TODO: This can fail/return null. Probably use Optional<T>.
-    return this.client.getTable(reference.toTableId());
+    return this.client.getTable(
+        reference.toTableId(),
+        TableOption.fields(
+            TableField.ID,
+            TableField.ETAG,
+            TableField.TABLE_REFERENCE,
+            TableField.SCHEMA
+        )
+    );
   }
 
   // Gets a BQ table given its project ID and table reference.
@@ -74,10 +112,31 @@ class BigQueryService {
         this.cachedTables
     );
   }
+  
+  public List<TableId> listTables(String projectId, String datasetName) {
+    DatasetId datasetId = DatasetId.of(projectId, datasetName);
+    
+    Page<Table> tables = this.client.listTables(
+        datasetId, TableListOption.pageSize(100)
+    );
+
+    return this.pageToStream(tables)
+        .map(Table::getTableId)
+        .collect(Collectors.toList());
+  }
 
   private Routine fetchRoutineFromAPI(BigQueryReference reference) {
     // TODO: This can fail/return null. Probably use Optional<T>.
-    return this.client.getRoutine(reference.toRoutineId());
+    return this.client.getRoutine(
+        reference.toRoutineId(),
+        RoutineOption.fields(
+            RoutineField.ETAG,
+            RoutineField.ROUTINE_REFERENCE,
+            RoutineField.ROUTINE_TYPE,
+            RoutineField.ARGUMENTS,
+            RoutineField.RETURN_TYPE
+        )
+    );
   }
 
   public Try<Routine> fetchRoutine(String projectId, String routineReference) {
@@ -87,6 +146,18 @@ class BigQueryService {
         this::fetchRoutineFromAPI,
         this.cachedRoutines
     );
+  }
+
+  public List<RoutineId> listRoutines(String projectId, String datasetName) {
+    DatasetId datasetId = DatasetId.of(projectId, datasetName);
+
+    Page<Routine> tables = this.client.listRoutines(
+        datasetId, RoutineListOption.pageSize(100)
+    );
+
+    return this.pageToStream(tables)
+        .map(Routine::getRoutineId)
+        .collect(Collectors.toList());
   }
 
 }

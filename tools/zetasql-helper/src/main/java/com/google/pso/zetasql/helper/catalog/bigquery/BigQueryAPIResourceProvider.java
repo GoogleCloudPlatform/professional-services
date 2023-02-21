@@ -1,13 +1,7 @@
 package com.google.pso.zetasql.helper.catalog.bigquery;
 
-import com.google.api.gax.paging.Page;
 import com.google.cloud.bigquery.BigQuery;
-import com.google.cloud.bigquery.BigQuery.DatasetListOption;
-import com.google.cloud.bigquery.BigQuery.RoutineListOption;
-import com.google.cloud.bigquery.BigQuery.TableListOption;
 import com.google.cloud.bigquery.BigQueryOptions;
-import com.google.cloud.bigquery.Dataset;
-import com.google.cloud.bigquery.DatasetId;
 import com.google.cloud.bigquery.Routine;
 import com.google.cloud.bigquery.RoutineArgument;
 import com.google.cloud.bigquery.RoutineId;
@@ -22,13 +16,11 @@ import com.google.zetasql.FunctionSignature;
 import com.google.zetasql.SimpleColumn;
 import com.google.zetasql.SimpleTable;
 import com.google.zetasql.ZetaSQLFunctions.FunctionEnums.Mode;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
 public class BigQueryAPIResourceProvider implements BigQueryResourceProvider {
 
-  private final BigQuery client;
   private final BigQueryService service;
 
   public BigQueryAPIResourceProvider() {
@@ -38,7 +30,6 @@ public class BigQueryAPIResourceProvider implements BigQueryResourceProvider {
   }
 
   public BigQueryAPIResourceProvider(BigQuery client) {
-    this.client = client;
     this.service = new BigQueryService(client);
   }
 
@@ -73,44 +64,46 @@ public class BigQueryAPIResourceProvider implements BigQueryResourceProvider {
 
   @Override
   public List<SimpleTable> getAllTablesInDataset(String projectId, String datasetName) {
-    List<SimpleTable> resultTables = new ArrayList<>();
+    List<String> tableReferences = this.service
+        .listTables(projectId, datasetName)
+        .stream()
+        .map(tableId -> String.format(
+              "%s.%s.%s",
+              tableId.getProject(),
+              tableId.getDataset(),
+              tableId.getTable()
+          )
+        )
+        .collect(Collectors.toList());
 
-    DatasetId datasetId = DatasetId.of(projectId, datasetName);
-    Page<Table> tables = this.client.listTables(
-        datasetId, TableListOption.pageSize(100)
-    );
-
-    for(Table table : tables.iterateAll()) {
-      TableId tableId = table.getTableId();
-      String fullyQualifiedTable = String.format(
-          "%s.%s.%s",
-          tableId.getProject(),
-          tableId.getDataset(),
-          tableId.getTable()
-      );
-      this.getTable(projectId, fullyQualifiedTable)
-          .ifPresent(resultTables::add);
-    }
-
-    return resultTables;
+    return this.getTables(projectId, tableReferences);
   }
 
   @Override
   public List<SimpleTable> getAllTablesInProject(String projectId) {
-    List<SimpleTable> resultTables = new ArrayList<>();
+    return this.service
+        .listDatasets(projectId)
+        .stream()
+        .flatMap(datasetId ->
+            this.getAllTablesInDataset(projectId, datasetId.getDataset()).stream())
+        .collect(Collectors.toList());
+  }
 
-    Page<Dataset> datasets = this.client.listDatasets(
-        projectId, DatasetListOption.pageSize(100)
-    );
+  private enum BigQueryAPIRoutineType {
+    UDF("SCALAR_FUNCTION"),
+    TVF("TABLE_VALUED_FUNCTION"),
+    PROCEDURE("PROCEDURE");
 
-    for(Dataset dataset : datasets.iterateAll()) {
-      List<SimpleTable> datasetTables = this.getAllTablesInDataset(
-          projectId, dataset.getDatasetId().getDataset()
-      );
-      resultTables.addAll(datasetTables);
+    public final String label;
+
+    BigQueryAPIRoutineType(String label) {
+      this.label = label;
     }
 
-    return resultTables;
+    public String getLabel() {
+      return this.label;
+    }
+
   }
 
   private Function buildFunction(Routine routine) {
@@ -139,9 +132,12 @@ public class BigQueryAPIResourceProvider implements BigQueryResourceProvider {
     );
   }
 
-  @Override
-  public List<Function> getFunctions(String projectId, List<String> functionReferences) {
-    List<Try<Routine>> routineTries = functionReferences
+  private List<Routine> getRoutinesOfType(
+      String projectId,
+      List<String> routineReferences,
+      BigQueryAPIRoutineType routineType
+  ) {
+    List<Try<Routine>> routineTries = routineReferences
         .stream()
         .map(tableReference -> this.service.fetchRoutine(projectId, tableReference))
         .collect(Collectors.toList());
@@ -157,51 +153,43 @@ public class BigQueryAPIResourceProvider implements BigQueryResourceProvider {
         .stream()
         .filter(Try::isSuccess)
         .map(Try::get)
-        .filter(routine -> routine.getRoutineType().equals("SCALAR_FUNCTION"))
+        .filter(routine -> routine.getRoutineType().equals(routineType.getLabel()))
+        .collect(Collectors.toList());
+  }
+
+  @Override
+  public List<Function> getFunctions(String projectId, List<String> functionReferences) {
+    return this.getRoutinesOfType(projectId, functionReferences, BigQueryAPIRoutineType.UDF)
+        .stream()
         .map(this::buildFunction)
         .collect(Collectors.toList());
   }
 
   @Override
   public List<Function> getAllFunctionsInDataset(String projectId, String datasetName) {
-    List<Function> resultFunctions = new ArrayList<>();
+    List<String> functionReferences = this.service
+        .listRoutines(projectId, datasetName)
+        .stream()
+        .map(routineId -> String.format(
+                "%s.%s.%s",
+                routineId.getProject(),
+                routineId.getDataset(),
+                routineId.getRoutine()
+            )
+        )
+        .collect(Collectors.toList());
 
-    DatasetId datasetId = DatasetId.of(projectId, datasetName);
-    Page<Routine> routines = this.client.listRoutines(
-        datasetId, RoutineListOption.pageSize(100)
-    );
-
-    for(Routine routine : routines.iterateAll()) {
-      RoutineId routineId = routine.getRoutineId();
-      String fullyQualifiedRoutine = String.format(
-          "%s.%s.%s",
-          routineId.getProject(),
-          routineId.getDataset(),
-          routineId.getRoutine()
-      );
-      this.getFunction(projectId, fullyQualifiedRoutine)
-          .ifPresent(resultFunctions::add);
+      return this.getFunctions(projectId, functionReferences);
     }
-
-    return resultFunctions;
-  }
 
   @Override
   public List<Function> getAllFunctionsInProject(String projectId) {
-    List<Function> resultFunctions = new ArrayList<>();
-
-    Page<Dataset> datasets = this.client.listDatasets(
-        projectId, DatasetListOption.pageSize(100)
-    );
-
-    for(Dataset dataset : datasets.iterateAll()) {
-      List<Function> datasetFunctions = this.getAllFunctionsInDataset(
-          projectId, dataset.getDatasetId().getDataset()
-      );
-      resultFunctions.addAll(datasetFunctions);
-    }
-
-    return resultFunctions;
+    return this.service
+        .listDatasets(projectId)
+        .stream()
+        .flatMap(datasetId ->
+            this.getAllFunctionsInDataset(projectId, datasetId.getDataset()).stream())
+        .collect(Collectors.toList());
   }
 
 }

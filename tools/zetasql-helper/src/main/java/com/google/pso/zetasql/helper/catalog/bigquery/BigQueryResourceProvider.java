@@ -7,9 +7,8 @@ import java.util.Optional;
 
 public interface BigQueryResourceProvider {
 
-  default Optional<SimpleTable> getTable(String projectId, String tableReference) {
-    List<SimpleTable> tableList = this.getTables(projectId, List.of(tableReference));
-    return tableList.isEmpty() ? Optional.empty() : Optional.of(tableList.get(0));
+  default SimpleTable getTable(String projectId, String tableReference) {
+    return this.getTables(projectId, List.of(tableReference)).get(0);
   }
 
   List<SimpleTable> getTables(String projectId, List<String> tableReferences);
@@ -18,9 +17,8 @@ public interface BigQueryResourceProvider {
 
   List<SimpleTable> getAllTablesInProject(String projectId);
 
-  default Optional<Function> getFunction(String projectId, String functionReference) {
-    List<Function> functionList = this.getFunctions(projectId, List.of(functionReference));
-    return functionList.isEmpty() ? Optional.empty() : Optional.of(functionList.get(0));
+  default Function getFunction(String projectId, String functionReference) {
+    return this.getFunctions(projectId, List.of(functionReference)).get(0);
   }
 
   List<Function> getFunctions(String projectId, List<String> functionReferences);
