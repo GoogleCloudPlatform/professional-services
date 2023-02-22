@@ -87,6 +87,7 @@ public class SpannerCatalog implements CatalogWrapper {
     CatalogOperations.createTableInCatalog(
         this.catalog,
         List.of(List.of(table.getName())),
+        table.getName(),
         table.getColumnList()
     );
   }

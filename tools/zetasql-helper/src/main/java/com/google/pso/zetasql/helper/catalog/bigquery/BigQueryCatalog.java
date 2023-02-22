@@ -75,6 +75,7 @@ public class BigQueryCatalog implements CatalogWrapper {
     CatalogOperations.createTableInCatalog(
         this.catalog,
         List.of(List.of(table.getName())),
+        table.getName(),
         table.getColumnList()
     );
   }
@@ -109,7 +110,12 @@ public class BigQueryCatalog implements CatalogWrapper {
 
   private void registerQualifiedTable(SimpleTable table) {
     List<List<String>> tablePaths = this.buildCatalogPathsForResource(table.getFullName());
-    CatalogOperations.createTableInCatalog(this.catalog, tablePaths, table.getColumnList());
+    CatalogOperations.createTableInCatalog(
+        this.catalog,
+        tablePaths,
+        table.getFullName(),
+        table.getColumnList()
+    );
   }
 
   @Override

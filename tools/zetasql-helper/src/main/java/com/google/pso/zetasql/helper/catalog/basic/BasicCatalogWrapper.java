@@ -26,6 +26,7 @@ public class BasicCatalogWrapper implements CatalogWrapper {
     CatalogOperations.createTableInCatalog(
         this.catalog,
         List.of(List.of(table.getFullName())),
+        table.getFullName(),
         table.getColumnList()
     );
   }

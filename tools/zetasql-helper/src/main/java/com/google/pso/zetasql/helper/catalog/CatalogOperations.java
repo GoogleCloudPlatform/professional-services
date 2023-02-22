@@ -19,21 +19,16 @@ import com.google.common.collect.ImmutableList;
 import com.google.pso.zetasql.helper.catalog.bigquery.ProcedureInfo;
 import com.google.pso.zetasql.helper.catalog.bigquery.TVFInfo;
 import com.google.zetasql.Function;
-import com.google.zetasql.FunctionArgumentType;
-import com.google.zetasql.FunctionProtos.TableValuedFunctionOptionsProto;
-import com.google.zetasql.FunctionSignature;
 import com.google.zetasql.Procedure;
 import com.google.zetasql.SimpleCatalog;
 import com.google.zetasql.SimpleColumn;
 import com.google.zetasql.SimpleTable;
 import com.google.zetasql.TableValuedFunction;
 import com.google.zetasql.TableValuedFunction.FixedOutputSchemaTVF;
-import com.google.zetasql.Type;
-import com.google.zetasql.ZetaSQLFunctions;
-import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedCreateFunctionStmt;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.BiConsumer;
 
 public class CatalogOperations {
   // TODO: All catalog operations respect ZetaSQL's case-insensitivity for now
@@ -63,125 +58,104 @@ public class CatalogOperations {
     });
   }
 
-  private static void createTableInCatalogImpl(
+  private static void createResourceInCatalog(
       SimpleCatalog catalog,
-      List<String> tablePath,
-      String fullTableName,
-      List<SimpleColumn> columns
+      List<String> resourcePath,
+      BiConsumer<SimpleCatalog, String> creator
   ) {
-    if (tablePath.size() > 1) {
-      String nestedCatalogName = tablePath.get(0);
-      List<String> pathSuffix = tablePath.subList(1, tablePath.size());
+    if (resourcePath.size() > 1) {
+      String nestedCatalogName = resourcePath.get(0);
+      List<String> pathSuffix = resourcePath.subList(1, resourcePath.size());
       SimpleCatalog nestedCatalog = getOrCreateNestedCatalog(catalog, nestedCatalogName);
-      createTableInCatalogImpl(nestedCatalog, pathSuffix, fullTableName, columns);
+      createResourceInCatalog(nestedCatalog, pathSuffix, creator);
     } else {
-      String tableName = tablePath.get(0);
-      SimpleTable table = new SimpleTable(tableName, columns);
-      table.setFullName(fullTableName);
-      catalog.addSimpleTable(table);
+      String resourceName = resourcePath.get(0);
+      creator.accept(catalog, resourceName);
+    }
+  }
+
+  private static void createResourceInCatalogWithMultiplePaths(
+      SimpleCatalog catalog,
+      List<List<String>> resourcePaths,
+      BiConsumer<SimpleCatalog, String> creator
+  ) {
+    for (List<String> resourcePath : resourcePaths) {
+      createResourceInCatalog(catalog, resourcePath, creator);
     }
   }
 
   public static void createTableInCatalog(
-      SimpleCatalog catalog,
+      SimpleCatalog rootCatalog,
       List<List<String>> tablePaths,
+      String fullTableName,
       List<SimpleColumn> columns
   ) {
-    tablePaths.forEach(tablePath -> {
-          String fullTableName = String.join(".", tablePath);
-          createTableInCatalogImpl(catalog, tablePath, fullTableName, columns);
+    createResourceInCatalogWithMultiplePaths(
+        rootCatalog,
+        tablePaths,
+        (finalCatalog, tableName) -> {
+          SimpleTable table = new SimpleTable(tableName, columns);
+          table.setFullName(fullTableName);
+          finalCatalog.addSimpleTable(tableName, table);
         }
     );
   }
 
-  private static void createFunctionInCatalogImpl(
-      SimpleCatalog catalog,
-      List<String> functionPath,
-      Function function
-  ) {
-    if (functionPath.size() > 1) {
-      String nestedCatalogName = functionPath.get(0);
-      List<String> pathSuffix = functionPath.subList(1, functionPath.size());
-      SimpleCatalog nestedCatalog = getOrCreateNestedCatalog(catalog, nestedCatalogName);
-      createFunctionInCatalogImpl(nestedCatalog, pathSuffix, function);
-    } else {
-      Function fixedPathFunction = new Function(
-          functionPath,
-          function.getGroup(),
-          function.getMode(),
-          function.getSignatureList(),
-          function.getOptions()
-      );
-      catalog.addFunction(fixedPathFunction);
-    }
-  }
-
   public static void createFunctionInCatalog(
-      SimpleCatalog catalog,
+      SimpleCatalog rootCatalog,
       List<List<String>> functionPaths,
       Function function
   ) {
-    functionPaths.forEach(
-        functionPath -> createFunctionInCatalogImpl(catalog, functionPath, function)
+    createResourceInCatalogWithMultiplePaths(
+        rootCatalog,
+        functionPaths,
+        (finalCatalog, functionName) -> {
+          Function finalFunction = new Function(
+              List.of(functionName),
+              function.getGroup(),
+              function.getMode(),
+              function.getSignatureList(),
+              function.getOptions()
+          );
+          finalCatalog.addFunction(finalFunction);
+        }
     );
-  }
-
-  private static void createTVFInCatalogImpl(
-      SimpleCatalog catalog,
-      List<String> functionPath,
-      TVFInfo tvfInfo
-  ) {
-    if (functionPath.size() > 1) {
-      String nestedCatalogName = functionPath.get(0);
-      List<String> pathSuffix = functionPath.subList(1, functionPath.size());
-      SimpleCatalog nestedCatalog = getOrCreateNestedCatalog(catalog, nestedCatalogName);
-      createTVFInCatalogImpl(nestedCatalog, pathSuffix, tvfInfo);
-    } else {
-      TableValuedFunction tvf = new FixedOutputSchemaTVF(
-          ImmutableList.copyOf(functionPath),
-          tvfInfo.getSignature(),
-          tvfInfo.getOutputSchema()
-      );
-      catalog.addTableValuedFunction(tvf);
-    }
   }
 
   public static void createTVFInCatalog(
-      SimpleCatalog catalog,
+      SimpleCatalog rootCatalog,
       List<List<String>> functionPaths,
       TVFInfo tvfInfo
   ) {
-    functionPaths.forEach(
-        functionPath -> createTVFInCatalogImpl(catalog, functionPath, tvfInfo)
+    createResourceInCatalogWithMultiplePaths(
+        rootCatalog,
+        functionPaths,
+        (finalCatalog, functionName) -> {
+          TableValuedFunction tvf = new FixedOutputSchemaTVF(
+              ImmutableList.of(functionName),
+              tvfInfo.getSignature(),
+              tvfInfo.getOutputSchema()
+          );
+          finalCatalog.addTableValuedFunction(tvf);
+        }
     );
   }
 
-  private static void createProcedureInCatalogImpl(
-      SimpleCatalog catalog,
-      List<String> procedurePath,
-      ProcedureInfo procedureInfo
-  ) {
-    if (procedurePath.size() > 1) {
-      String nestedCatalogName = procedurePath.get(0);
-      List<String> pathSuffix = procedurePath.subList(1, procedurePath.size());
-      SimpleCatalog nestedCatalog = getOrCreateNestedCatalog(catalog, nestedCatalogName);
-      createProcedureInCatalogImpl(nestedCatalog, pathSuffix, procedureInfo);
-    } else {
-      Procedure procedure = new Procedure(
-          ImmutableList.copyOf(procedurePath),
-          procedureInfo.getSignature()
-      );
-      catalog.addProcedure(procedure);
-    }
-  }
-
   public static void createProcedureInCatalog(
-      SimpleCatalog catalog,
+      SimpleCatalog rootCatalog,
       List<List<String>> procedurePaths,
       ProcedureInfo procedureInfo
   ) {
-    procedurePaths.forEach(
-        functionPath -> createProcedureInCatalogImpl(catalog, functionPath, procedureInfo)
+    createResourceInCatalogWithMultiplePaths(
+        rootCatalog,
+        procedurePaths,
+        (finalCatalog, procedureName) -> {
+          Procedure procedure = new Procedure(
+              ImmutableList.of(procedureName),
+              procedureInfo.getSignature()
+          );
+          finalCatalog.addProcedure(procedure);
+        }
     );
   }
 
