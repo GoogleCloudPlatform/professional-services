@@ -1,6 +1,6 @@
 package com.google.pso.zetasql.helper.catalog.bigquery;
 
-public class InvalidBigQueryReference extends RuntimeException {
+public class InvalidBigQueryReference extends BigQueryCatalogException {
 
   private final String reference;
 

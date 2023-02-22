@@ -1,6 +1,6 @@
 package com.google.pso.zetasql.helper.catalog.bigquery;
 
-public class BigQueryResourceNotFound extends RuntimeException {
+public class BigQueryResourceNotFound extends BigQueryCatalogException {
 
   private final String reference;
 
