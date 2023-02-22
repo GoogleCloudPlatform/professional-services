@@ -26,6 +26,7 @@ import com.google.zetasql.ZetaSQLFunctions.SignatureArgumentKind;
 import com.google.zetasql.ZetaSQLType.TypeKind;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
 public class BigQueryAPIResourceProvider implements BigQueryResourceProvider {
@@ -49,11 +50,14 @@ public class BigQueryAPIResourceProvider implements BigQueryResourceProvider {
     return CatalogOperations.buildSimpleTable(fullTableName, columns);
   }
 
-  @Override
-  public List<SimpleTable> getTables(String projectId, List<String> tableReferences) {
-    List<FetchResult<Table>> tableTries = tableReferences
+  private <T> List<T> fetchResourcesFromBigQueryService(
+      String projectId,
+      List<String> resourceReferences,
+      BiFunction<String, String, FetchResult<T>> fetcher
+  ) {
+    List<FetchResult<T>> tableTries = resourceReferences
         .stream()
-        .map(tableReference -> this.service.fetchTable(projectId, tableReference))
+        .map(resourceReference -> fetcher.apply(projectId, resourceReference))
         .collect(Collectors.toList());
 
     tableTries
@@ -69,6 +73,14 @@ public class BigQueryAPIResourceProvider implements BigQueryResourceProvider {
         .map(FetchResult::get)
         .filter(Optional::isPresent)
         .map(Optional::get)
+        .collect(Collectors.toList());
+  }
+
+  @Override
+  public List<SimpleTable> getTables(String projectId, List<String> tableReferences) {
+    return this
+        .fetchResourcesFromBigQueryService(projectId, tableReferences, this.service::fetchTable)
+        .stream()
         .map(this::buildSimpleTable)
         .collect(Collectors.toList());
   }
@@ -231,26 +243,14 @@ public class BigQueryAPIResourceProvider implements BigQueryResourceProvider {
       List<String> routineReferences,
       BigQueryAPIRoutineType routineType
   ) {
-    List<FetchResult<Routine>> routineTries = routineReferences
+    return this
+        .fetchResourcesFromBigQueryService(
+            projectId, routineReferences, this.service::fetchRoutine
+        )
         .stream()
-        .map(tableReference -> this.service.fetchRoutine(projectId, tableReference))
-        .collect(Collectors.toList());
-
-    routineTries
-        .stream()
-        .map(FetchResult::getError)
-        .filter(Optional::isPresent)
-        .map(Optional::get)
-        .findFirst()
-        .ifPresent(error -> { throw error; });
-
-    return routineTries
-        .stream()
-        .map(FetchResult::get)
-        .filter(Optional::isPresent)
-        .map(Optional::get)
         .filter(routine -> routine.getRoutineType().equals(routineType.getLabel()))
         .collect(Collectors.toList());
+
   }
 
   private List<Function> getFunctionsImpl(
