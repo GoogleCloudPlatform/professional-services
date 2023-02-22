@@ -18,9 +18,7 @@ package com.google.pso.zetasql.helper.catalog.bigquery;
 import com.google.api.gax.paging.Page;
 import com.google.cloud.bigquery.BigQuery;
 import com.google.cloud.bigquery.BigQuery.DatasetListOption;
-import com.google.cloud.bigquery.BigQuery.RoutineField;
 import com.google.cloud.bigquery.BigQuery.RoutineListOption;
-import com.google.cloud.bigquery.BigQuery.RoutineOption;
 import com.google.cloud.bigquery.BigQuery.TableField;
 import com.google.cloud.bigquery.BigQuery.TableListOption;
 import com.google.cloud.bigquery.BigQuery.TableOption;
@@ -30,10 +28,10 @@ import com.google.cloud.bigquery.Routine;
 import com.google.cloud.bigquery.RoutineId;
 import com.google.cloud.bigquery.Table;
 import com.google.cloud.bigquery.TableId;
-import com.google.pso.zetasql.helper.utils.Try;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -42,6 +40,42 @@ import java.util.stream.StreamSupport;
 // Service for getting entities from the BigQuery API
 // It caches entities internally, so subsequent requests for the same resource don't hit the API
 class BigQueryService {
+
+  public static class FetchResult<T> {
+
+    private final Optional<T> result;
+    private final Optional<BigQueryCatalogException> error;
+
+    private FetchResult(Optional<T> result, Optional<BigQueryCatalogException> error) {
+      this.result = result;
+      this.error = error;
+    }
+
+    public static <T> FetchResult<T> success(T result) {
+      return new FetchResult<>(Optional.of(result), Optional.empty());
+    }
+
+    public static <T> FetchResult<T> failure(BigQueryCatalogException error) {
+      return new FetchResult<>(Optional.empty(), Optional.of(error));
+    }
+
+    public boolean succeeded() {
+      return this.result.isPresent();
+    }
+
+    public boolean failed() {
+      return this.error.isPresent();
+    }
+
+    public Optional<T> get() {
+      return this.result;
+    }
+
+    public Optional<BigQueryCatalogException> getError() {
+      return this.error;
+    }
+
+  }
 
   private final BigQuery client;
   private final Map<String, Table> cachedTables = new HashMap<>();
@@ -55,7 +89,7 @@ class BigQueryService {
     return StreamSupport.stream(page.iterateAll().spliterator(), false);
   }
 
-  private <T> Try<T> fetchResource(
+  private <T> FetchResult<T> fetchResource(
       String projectId,
       String reference,
       Function<BigQueryReference, T> getter,
@@ -69,10 +103,10 @@ class BigQueryService {
           key -> getter.apply(parsedReference)
       );
       return fetchedResource == null
-          ? new Try.Failure<>(new BigQueryResourceNotFound(parsedReference.getFullName()))
-          : new Try.Success<>(fetchedResource);
+          ? FetchResult.failure(new BigQueryResourceNotFound(parsedReference.getFullName()))
+          : FetchResult.success(fetchedResource);
     } catch (InvalidBigQueryReference err) {
-      return new Try.Failure<>(err);
+      return FetchResult.failure(err);
     }
 
   }
@@ -104,7 +138,7 @@ class BigQueryService {
   // Gets a BQ table given its project ID and table reference.
   // It caches tables so that consequent requests for the same table
   // will not hit the API.
-  public Try<Table> fetchTable(String projectId, String tableReference) {
+  public FetchResult<Table> fetchTable(String projectId, String tableReference) {
     return this.fetchResource(
         projectId,
         tableReference,
@@ -127,19 +161,10 @@ class BigQueryService {
 
   private Routine fetchRoutineFromAPI(BigQueryReference reference) {
     // TODO: This can fail/return null. Probably use Optional<T>.
-    return this.client.getRoutine(
-        reference.toRoutineId(),
-        RoutineOption.fields(
-            RoutineField.ETAG,
-            RoutineField.ROUTINE_REFERENCE,
-            RoutineField.ROUTINE_TYPE,
-            RoutineField.ARGUMENTS,
-            RoutineField.RETURN_TYPE
-        )
-    );
+    return this.client.getRoutine(reference.toRoutineId());
   }
 
-  public Try<Routine> fetchRoutine(String projectId, String routineReference) {
+  public FetchResult<Routine> fetchRoutine(String projectId, String routineReference) {
     return this.fetchResource(
         projectId,
         routineReference,

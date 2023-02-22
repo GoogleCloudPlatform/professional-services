@@ -2,6 +2,7 @@ package com.google.pso.zetasql.helper.catalog.bigquery;
 
 import com.google.cloud.bigquery.RoutineId;
 import com.google.cloud.bigquery.TableId;
+import com.google.common.collect.ImmutableList;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
@@ -51,8 +52,8 @@ class BigQueryReference {
     );
   }
 
-  public List<String> getNamePath() {
-    return List.of(
+  public ImmutableList<String> getNamePath() {
+    return ImmutableList.of(
         this.getProjectId(),
         this.getDatasetId(),
         this.getResourceName()
