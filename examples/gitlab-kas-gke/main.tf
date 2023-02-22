@@ -1,19 +1,3 @@
-/**
- * Copyright 2023 Google LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 locals {
   namespace_name       = var.gitlab_agent
   service_account_name = var.gitlab_agent
@@ -319,9 +303,9 @@ locals {
     # HTTP Proxy settings, if there is proxy between the cluster hosting the agent and accessing the Gitlab server
     # https://docs.gitlab.com/ee/user/clusters/agent/install/#use-the-agent-behind-an-http-proxy
     # "extraEnv[0].name" = "HTTPS_PROXY"
-    # "extraEnv[0].value" = var.proxy_address
+    # "extraEnv[0].value" = http://<IP of Proxy>:<Port>
     # "extraEnv[1].name" = "NO_PROXY"
-    # "extraEnv[1].value" = var.no_proxy_values
+    # "extraEnv[1].value" = "<cluster non_masq_cidr1>\\,<cluster non_masq_cidr2>\\,.cluster.local\\,.svc"
   }
 }
 
