@@ -124,6 +124,16 @@ public class SpannerCatalog implements CatalogWrapper {
   }
 
   @Override
+  public void addTVFs(List<List<String>> functionPaths) {
+    throw new UnsupportedOperationException("Unimplemented");
+  }
+
+  @Override
+  public void addProcedures(List<List<String>> procedurePaths) {
+    throw new UnsupportedOperationException("Unimplemented");
+  }
+
+  @Override
   public CatalogWrapper copy(boolean deepCopy) {
     return new SpannerCatalog(
         this.projectId,

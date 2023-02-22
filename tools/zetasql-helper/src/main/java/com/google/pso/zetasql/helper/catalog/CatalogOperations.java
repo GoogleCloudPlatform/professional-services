@@ -15,14 +15,19 @@
  */
 package com.google.pso.zetasql.helper.catalog;
 
+import com.google.common.collect.ImmutableList;
+import com.google.pso.zetasql.helper.catalog.bigquery.ProcedureInfo;
+import com.google.pso.zetasql.helper.catalog.bigquery.TVFInfo;
 import com.google.zetasql.Function;
 import com.google.zetasql.FunctionArgumentType;
+import com.google.zetasql.FunctionProtos.TableValuedFunctionOptionsProto;
 import com.google.zetasql.FunctionSignature;
 import com.google.zetasql.Procedure;
 import com.google.zetasql.SimpleCatalog;
 import com.google.zetasql.SimpleColumn;
 import com.google.zetasql.SimpleTable;
 import com.google.zetasql.TableValuedFunction;
+import com.google.zetasql.TableValuedFunction.FixedOutputSchemaTVF;
 import com.google.zetasql.Type;
 import com.google.zetasql.ZetaSQLFunctions;
 import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedCreateFunctionStmt;
@@ -121,20 +126,63 @@ public class CatalogOperations {
     );
   }
 
-  public static void createFunctionInCatalog(
+  private static void createTVFInCatalogImpl(
       SimpleCatalog catalog,
-      ResolvedCreateFunctionStmt createFunctionStmt
+      List<String> functionPath,
+      TVFInfo tvfInfo
   ) {
-    Function function = new Function(
-        createFunctionStmt.getNamePath(),
-        "UDF",
-        ZetaSQLFunctions.FunctionEnums.Mode.SCALAR,
-        List.of(
-            createFunctionStmt.getSignature()
-        )
-    );
+    if (functionPath.size() > 1) {
+      String nestedCatalogName = functionPath.get(0);
+      List<String> pathSuffix = functionPath.subList(1, functionPath.size());
+      SimpleCatalog nestedCatalog = getOrCreateNestedCatalog(catalog, nestedCatalogName);
+      createTVFInCatalogImpl(nestedCatalog, pathSuffix, tvfInfo);
+    } else {
+      TableValuedFunction tvf = new FixedOutputSchemaTVF(
+          ImmutableList.copyOf(functionPath),
+          tvfInfo.getSignature(),
+          tvfInfo.getOutputSchema()
+      );
+      catalog.addTableValuedFunction(tvf);
+    }
+  }
 
-    createFunctionInCatalogImpl(catalog, createFunctionStmt.getNamePath(), function);
+  public static void createTVFInCatalog(
+      SimpleCatalog catalog,
+      List<List<String>> functionPaths,
+      TVFInfo tvfInfo
+  ) {
+    functionPaths.forEach(
+        functionPath -> createTVFInCatalogImpl(catalog, functionPath, tvfInfo)
+    );
+  }
+
+  private static void createProcedureInCatalogImpl(
+      SimpleCatalog catalog,
+      List<String> procedurePath,
+      ProcedureInfo procedureInfo
+  ) {
+    if (procedurePath.size() > 1) {
+      String nestedCatalogName = procedurePath.get(0);
+      List<String> pathSuffix = procedurePath.subList(1, procedurePath.size());
+      SimpleCatalog nestedCatalog = getOrCreateNestedCatalog(catalog, nestedCatalogName);
+      createProcedureInCatalogImpl(nestedCatalog, pathSuffix, procedureInfo);
+    } else {
+      Procedure procedure = new Procedure(
+          ImmutableList.copyOf(procedurePath),
+          procedureInfo.getSignature()
+      );
+      catalog.addProcedure(procedure);
+    }
+  }
+
+  public static void createProcedureInCatalog(
+      SimpleCatalog catalog,
+      List<List<String>> procedurePaths,
+      ProcedureInfo procedureInfo
+  ) {
+    procedurePaths.forEach(
+        functionPath -> createProcedureInCatalogImpl(catalog, functionPath, procedureInfo)
+    );
   }
 
   private static SimpleTable copyTable(SimpleTable table) {

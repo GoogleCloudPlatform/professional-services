@@ -17,12 +17,24 @@ public interface CatalogWrapper {
 
   void addFunctions(List<List<String>> functionPaths);
 
+  void addTVFs(List<List<String>> functionPaths);
+
+  void addProcedures(List<List<String>> procedurePaths);
+
   default void addTable(List<String> tablePath) {
     this.addTables(List.of(tablePath));
   }
 
   default void addFunction(List<String> functionPath) {
     this.addFunctions(List.of(functionPath));
+  }
+
+  default void addTVF(List<String> functionPath) {
+    this.addTVFs(List.of(functionPath));
+  }
+
+  default void addProcedure(List<String> procedurePath) {
+    this.addProcedures(List.of(procedurePath));
   }
 
   default void addAllTablesUsedInQuery(String query, AnalyzerOptions options) {

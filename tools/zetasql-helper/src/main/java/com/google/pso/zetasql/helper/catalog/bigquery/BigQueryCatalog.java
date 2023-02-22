@@ -145,6 +145,25 @@ public class BigQueryCatalog implements CatalogWrapper {
     }
   }
 
+  public void registerTVF(TVFInfo tvfInfo) {
+    List<List<String>> functionPaths = List.of(
+        List.of(String.join(".", tvfInfo.getNamePath()))
+    );
+    CatalogOperations.createTVFInCatalog(this.catalog, functionPaths, tvfInfo);
+  }
+
+  public void registerProcedure(ProcedureInfo procedureInfo) {
+    BigQueryReference reference = BigQueryReference.from(
+        this.defaultProjectId,
+        String.join(".", procedureInfo.getNamePath())
+    );
+    List<List<String>> procedurePaths = List.of(
+        List.of(reference.getFullName()),
+        reference.getNamePath()
+    );
+    CatalogOperations.createProcedureInCatalog(this.catalog, procedurePaths, procedureInfo);
+  }
+
   @Override
   public void addTables(List<List<String>> tablePaths) {
     List<String> tableReferences = tablePaths
@@ -191,6 +210,54 @@ public class BigQueryCatalog implements CatalogWrapper {
     this.bigQueryResourceProvider
         .getAllFunctionsInProject(projectId)
         .forEach(this::registerQualifiedFunction);
+  }
+
+  @Override
+  public void addTVFs(List<List<String>> functionPaths) {
+    List<String> functionReferences = functionPaths
+        .stream()
+        .map(functionPath -> String.join(".", functionPath))
+        .collect(Collectors.toList());
+
+    this.bigQueryResourceProvider
+        .getTVFs(this.defaultProjectId, functionReferences)
+        .forEach(this::registerTVF);
+  }
+
+  public void addAllTVFsInDataset(String projectId, String datasetName) {
+    this.bigQueryResourceProvider
+        .getAllTVFsInDataset(projectId, datasetName)
+        .forEach(this::registerTVF);
+  }
+
+  public void addAllTVFsInProject(String projectId) {
+    this.bigQueryResourceProvider
+        .getAllTVFsInProject(projectId)
+        .forEach(this::registerTVF);
+  }
+
+  @Override
+  public void addProcedures(List<List<String>> procedurePaths) {
+    List<String> procedureReferences = procedurePaths
+        .stream()
+        .map(functionPath -> String.join(".", functionPath))
+        .collect(Collectors.toList());
+
+    this.bigQueryResourceProvider
+        .getProcedures(this.defaultProjectId, procedureReferences)
+        .forEach(this::registerProcedure);
+  }
+
+  public void addAllProceduresInDataset(String projectId, String datasetName) {
+    this.bigQueryResourceProvider
+        .getAllProceduresInDataset(projectId, datasetName)
+        .forEach(this::registerProcedure);
+  }
+
+  public void addAllProceduresInProject(String projectId) {
+    this.bigQueryResourceProvider
+        .getAllProceduresInProject(projectId)
+        .forEach(this::registerProcedure);
   }
 
   @Override

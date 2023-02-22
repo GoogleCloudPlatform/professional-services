@@ -50,6 +50,18 @@ public class BasicCatalogWrapper implements CatalogWrapper {
   }
 
   @Override
+  public void addTVFs(List<List<String>> functionPaths) {
+    throw new UnsupportedOperationException("The BasicCatalogWrapper cannot add TVFs by name");
+  }
+
+  @Override
+  public void addProcedures(List<List<String>> procedurePaths) {
+    throw new UnsupportedOperationException(
+        "The BasicCatalogWrapper cannot add procedures by name"
+    );
+  }
+
+  @Override
   public SimpleCatalog getZetaSQLCatalog() {
     return this.catalog;
   }
