@@ -2,10 +2,14 @@ package com.google.pso.zetasql.helper.catalog.basic;
 
 import com.google.pso.zetasql.helper.catalog.CatalogOperations;
 import com.google.pso.zetasql.helper.catalog.CatalogWrapper;
+import com.google.pso.zetasql.helper.catalog.bigquery.ProcedureInfo;
+import com.google.pso.zetasql.helper.catalog.bigquery.TVFInfo;
 import com.google.zetasql.Function;
 import com.google.zetasql.SimpleCatalog;
 import com.google.zetasql.SimpleTable;
 import com.google.zetasql.ZetaSQLBuiltinFunctionOptions;
+import com.google.zetasql.resolvedast.ResolvedCreateStatementEnums.CreateMode;
+import com.google.zetasql.resolvedast.ResolvedCreateStatementEnums.CreateScope;
 import java.util.List;
 
 public class BasicCatalogWrapper implements CatalogWrapper {
@@ -22,21 +26,43 @@ public class BasicCatalogWrapper implements CatalogWrapper {
   }
 
   @Override
-  public void registerTable(SimpleTable table, boolean isTemp) {
+  public void register(SimpleTable table, CreateMode createMode, CreateScope createScope) {
     CatalogOperations.createTableInCatalog(
         this.catalog,
         List.of(List.of(table.getFullName())),
         table.getFullName(),
-        table.getColumnList()
+        table.getColumnList(),
+        createMode
     );
   }
 
   @Override
-  public void registerFunction(Function function, boolean isTemp) {
+  public void register(Function function, CreateMode createMode, CreateScope createScope) {
     CatalogOperations.createFunctionInCatalog(
         this.catalog,
         List.of(function.getNamePath()),
-        function
+        function,
+        createMode
+    );
+  }
+
+  @Override
+  public void register(TVFInfo tvfInfo, CreateMode createMode, CreateScope createScope) {
+    CatalogOperations.createTVFInCatalog(
+        this.catalog,
+        List.of(tvfInfo.getNamePath()),
+        tvfInfo,
+        createMode
+    );
+  }
+
+  @Override
+  public void register(ProcedureInfo procedureInfo, CreateMode createMode, CreateScope createScope) {
+    CatalogOperations.createProcedureInCatalog(
+        this.catalog,
+        List.of(procedureInfo.getNamePath()),
+        procedureInfo,
+        createMode
     );
   }
 

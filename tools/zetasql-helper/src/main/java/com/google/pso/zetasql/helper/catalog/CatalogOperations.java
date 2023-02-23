@@ -19,12 +19,14 @@ import com.google.common.collect.ImmutableList;
 import com.google.pso.zetasql.helper.catalog.bigquery.ProcedureInfo;
 import com.google.pso.zetasql.helper.catalog.bigquery.TVFInfo;
 import com.google.zetasql.Function;
+import com.google.zetasql.NotFoundException;
 import com.google.zetasql.Procedure;
 import com.google.zetasql.SimpleCatalog;
 import com.google.zetasql.SimpleColumn;
 import com.google.zetasql.SimpleTable;
 import com.google.zetasql.TableValuedFunction;
 import com.google.zetasql.TableValuedFunction.FixedOutputSchemaTVF;
+import com.google.zetasql.resolvedast.ResolvedCreateStatementEnums.CreateMode;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -58,6 +60,37 @@ public class CatalogOperations {
     });
   }
 
+  private static boolean tableExists(
+      SimpleCatalog catalog,
+      String tableName
+  ) {
+    try {
+      catalog.findTable(List.of(tableName));
+      return true;
+    } catch(NotFoundException err) {
+      return false;
+    }
+  }
+
+  private static boolean functionExists(SimpleCatalog catalog, Function function) {
+    // TODO: switch to using Catalog.findFunction once available
+    String fullName = function.getFullName();
+    return catalog.getFunctionNameList().contains(fullName);
+  }
+
+  private static boolean tvfExists(SimpleCatalog catalog, TableValuedFunction tvf) {
+    String name = tvf.getName();
+    return catalog.getTVFNameList().contains(name);
+  }
+
+  private static boolean procedureExists(SimpleCatalog catalog, Procedure procedure) {
+    return catalog
+        .getProcedureList()
+        .stream()
+        .map(Procedure::getName)
+        .anyMatch(name -> name.equalsIgnoreCase(procedure.getName()));
+  }
+
   private static void createResourceInCatalog(
       SimpleCatalog catalog,
       List<String> resourcePath,
@@ -88,13 +121,25 @@ public class CatalogOperations {
       SimpleCatalog rootCatalog,
       List<List<String>> tablePaths,
       String fullTableName,
-      List<SimpleColumn> columns
+      List<SimpleColumn> columns,
+      CreateMode createMode
   ) {
     createResourceInCatalogWithMultiplePaths(
         rootCatalog,
         tablePaths,
         (finalCatalog, tableName) -> {
-          SimpleTable table = new SimpleTable(tableName, columns);
+          boolean exists = tableExists(finalCatalog, tableName);
+          boolean replace = createMode.equals(CreateMode.CREATE_OR_REPLACE);
+
+          if(exists && replace) {
+            finalCatalog.removeSimpleTable(tableName);
+          }
+
+          if(exists && !replace) {
+            throw new CatalogResourceAlreadyExists(fullTableName);
+          }
+
+          SimpleTable table = new SimpleTable(fullTableName, columns);
           table.setFullName(fullTableName);
           finalCatalog.addSimpleTable(tableName, table);
         }
@@ -104,7 +149,8 @@ public class CatalogOperations {
   public static void createFunctionInCatalog(
       SimpleCatalog rootCatalog,
       List<List<String>> functionPaths,
-      Function function
+      Function function,
+      CreateMode createMode
   ) {
     createResourceInCatalogWithMultiplePaths(
         rootCatalog,
@@ -117,6 +163,18 @@ public class CatalogOperations {
               function.getSignatureList(),
               function.getOptions()
           );
+
+          boolean exists = functionExists(finalCatalog, finalFunction);
+          boolean replace = createMode.equals(CreateMode.CREATE_OR_REPLACE);
+
+          if(exists && replace) {
+            finalCatalog.removeFunction(finalFunction.getFullName());
+          }
+
+          if(exists && !replace) {
+            throw new CatalogResourceAlreadyExists(finalFunction.getFullName());
+          }
+
           finalCatalog.addFunction(finalFunction);
         }
     );
@@ -125,7 +183,8 @@ public class CatalogOperations {
   public static void createTVFInCatalog(
       SimpleCatalog rootCatalog,
       List<List<String>> functionPaths,
-      TVFInfo tvfInfo
+      TVFInfo tvfInfo,
+      CreateMode createMode
   ) {
     createResourceInCatalogWithMultiplePaths(
         rootCatalog,
@@ -136,6 +195,18 @@ public class CatalogOperations {
               tvfInfo.getSignature(),
               tvfInfo.getOutputSchema()
           );
+
+          boolean exists = tvfExists(finalCatalog, tvf);
+          boolean replace = createMode.equals(CreateMode.CREATE_OR_REPLACE);
+
+          if(exists && replace) {
+            finalCatalog.removeTableValuedFunction(tvf.getName());
+          }
+
+          if(exists && !replace) {
+            throw new CatalogResourceAlreadyExists(finalCatalog.getFullName());
+          }
+
           finalCatalog.addTableValuedFunction(tvf);
         }
     );
@@ -144,7 +215,8 @@ public class CatalogOperations {
   public static void createProcedureInCatalog(
       SimpleCatalog rootCatalog,
       List<List<String>> procedurePaths,
-      ProcedureInfo procedureInfo
+      ProcedureInfo procedureInfo,
+      CreateMode createMode
   ) {
     createResourceInCatalogWithMultiplePaths(
         rootCatalog,
@@ -154,6 +226,18 @@ public class CatalogOperations {
               ImmutableList.of(procedureName),
               procedureInfo.getSignature()
           );
+
+          boolean exists = procedureExists(finalCatalog, procedure);
+          boolean replace = createMode.equals(CreateMode.CREATE_OR_REPLACE);
+
+          if(exists && replace) {
+            finalCatalog.removeProcedure(procedure.getName());
+          }
+
+          if(exists && !replace) {
+            throw new CatalogResourceAlreadyExists(procedure.getName());
+          }
+
           finalCatalog.addProcedure(procedure);
         }
     );

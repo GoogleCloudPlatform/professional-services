@@ -1,17 +1,25 @@
 package com.google.pso.zetasql.helper.catalog;
 
+import com.google.pso.zetasql.helper.catalog.bigquery.ProcedureInfo;
+import com.google.pso.zetasql.helper.catalog.bigquery.TVFInfo;
 import com.google.zetasql.Analyzer;
 import com.google.zetasql.AnalyzerOptions;
 import com.google.zetasql.Function;
 import com.google.zetasql.SimpleCatalog;
 import com.google.zetasql.SimpleTable;
+import com.google.zetasql.resolvedast.ResolvedCreateStatementEnums.CreateMode;
+import com.google.zetasql.resolvedast.ResolvedCreateStatementEnums.CreateScope;
 import java.util.List;
 
 public interface CatalogWrapper {
 
-  void registerTable(SimpleTable table, boolean isTemp);
+  void register(SimpleTable table, CreateMode createMode, CreateScope createScope);
 
-  void registerFunction(Function function, boolean isTemp);
+  void register(Function function, CreateMode createMode, CreateScope createScope);
+
+  void register(TVFInfo tvfInfo, CreateMode createMode, CreateScope createScope);
+
+  void register(ProcedureInfo procedureInfo, CreateMode createMode, CreateScope createScope);
 
   void addTables(List<List<String>> tablePaths);
 

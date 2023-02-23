@@ -10,6 +10,8 @@ import com.google.zetasql.Type;
 import com.google.zetasql.TypeFactory;
 import com.google.zetasql.ZetaSQLBuiltinFunctionOptions;
 import com.google.zetasql.ZetaSQLType;
+import com.google.zetasql.resolvedast.ResolvedCreateStatementEnums.CreateMode;
+import com.google.zetasql.resolvedast.ResolvedCreateStatementEnums.CreateScope;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -71,15 +73,6 @@ public class BigQueryCatalog implements CatalogWrapper {
     bigQueryTypeAliases.forEach(catalog::addType);
   }
 
-  private void registerTempTable(SimpleTable table) {
-    CatalogOperations.createTableInCatalog(
-        this.catalog,
-        List.of(List.of(table.getName())),
-        table.getName(),
-        table.getColumnList()
-    );
-  }
-
   private List<List<String>> buildCatalogPathsForResource(String referenceStr) {
     BigQueryReference reference = BigQueryReference.from(
         this.defaultProjectId, referenceStr
@@ -108,57 +101,46 @@ public class BigQueryCatalog implements CatalogWrapper {
         .collect(Collectors.toList());
   }
 
-  private void registerQualifiedTable(SimpleTable table) {
-    List<List<String>> tablePaths = this.buildCatalogPathsForResource(table.getFullName());
+  private List<List<String>> buildCatalogPathsForResource(List<String> resourcePath) {
+    return this.buildCatalogPathsForResource(String.join(".", resourcePath));
+  }
+
+  @Override
+  public void register(SimpleTable table, CreateMode createMode, CreateScope createScope) {
+    List<List<String>> tablePaths = createScope.equals(CreateScope.CREATE_TEMP)
+        ? List.of(List.of(table.getName()))
+        : this.buildCatalogPathsForResource(table.getFullName());
+
     CatalogOperations.createTableInCatalog(
-        this.catalog,
-        tablePaths,
-        table.getFullName(),
-        table.getColumnList()
+        this.catalog, tablePaths, table.getFullName(), table.getColumnList(), createMode
     );
   }
 
   @Override
-  public void registerTable(SimpleTable table, boolean isTemp) {
-    if(isTemp) {
-      this.registerTempTable(table);
-    } else {
-      this.registerQualifiedTable(table);
-    }
-  }
+  public void register(Function function, CreateMode createMode, CreateScope createScope) {
+    List<String> functionNamePath = function.getNamePath();
 
-  public void registerTempFunction(Function function) {
-    CatalogOperations.createFunctionInCatalog(
-        this.catalog,
-        List.of(function.getNamePath()),
-        function
-    );
-  }
+    List<List<String>> functionPaths = createScope.equals(CreateScope.CREATE_TEMP)
+        ? List.of(functionNamePath)
+        : this.buildCatalogPathsForResource(functionNamePath);
 
-  private void registerQualifiedFunction(Function function) {
-    List<List<String>> functionPaths = this.buildCatalogPathsForResource(
-        String.join(".", function.getNamePath())
-    );
-    CatalogOperations.createFunctionInCatalog(this.catalog, functionPaths, function);
+    CatalogOperations.createFunctionInCatalog(this.catalog, functionPaths, function, createMode);
   }
 
   @Override
-  public void registerFunction(Function function, boolean isTemp) {
-    if(isTemp) {
-      this.registerTempFunction(function);
-    } else {
-      this.registerQualifiedFunction(function);
-    }
-  }
-
-  public void registerTVF(TVFInfo tvfInfo) {
+  public void register(TVFInfo tvfInfo, CreateMode createMode, CreateScope createScope) {
     List<List<String>> functionPaths = List.of(
         List.of(String.join(".", tvfInfo.getNamePath()))
     );
-    CatalogOperations.createTVFInCatalog(this.catalog, functionPaths, tvfInfo);
+    CatalogOperations.createTVFInCatalog(this.catalog, functionPaths, tvfInfo, createMode);
   }
 
-  public void registerProcedure(ProcedureInfo procedureInfo) {
+  @Override
+  public void register(
+      ProcedureInfo procedureInfo,
+      CreateMode createMode,
+      CreateScope createScope
+  ) {
     BigQueryReference reference = BigQueryReference.from(
         this.defaultProjectId,
         String.join(".", procedureInfo.getNamePath())
@@ -167,7 +149,9 @@ public class BigQueryCatalog implements CatalogWrapper {
         List.of(reference.getFullName()),
         reference.getNamePath()
     );
-    CatalogOperations.createProcedureInCatalog(this.catalog, procedurePaths, procedureInfo);
+    CatalogOperations.createProcedureInCatalog(
+        this.catalog, procedurePaths, procedureInfo, createMode
+    );
   }
 
   @Override
@@ -179,19 +163,25 @@ public class BigQueryCatalog implements CatalogWrapper {
 
     this.bigQueryResourceProvider
         .getTables(this.defaultProjectId, tableReferences)
-        .forEach(this::registerQualifiedTable);
+        .forEach(table -> this.register(
+            table, CreateMode.CREATE_OR_REPLACE, CreateScope.CREATE_DEFAULT_SCOPE)
+        );
   }
 
   public void addAllTablesInDataset(String projectId, String datasetName) {
     this.bigQueryResourceProvider
         .getAllTablesInDataset(projectId, datasetName)
-        .forEach(this::registerQualifiedTable);
+        .forEach(table -> this.register(
+            table, CreateMode.CREATE_OR_REPLACE, CreateScope.CREATE_DEFAULT_SCOPE)
+        );
   }
 
   public void addAllTablesInProject(String projectId) {
     this.bigQueryResourceProvider
         .getAllTablesInProject(projectId)
-        .forEach(this::registerQualifiedTable);
+        .forEach(table -> this.register(
+            table, CreateMode.CREATE_OR_REPLACE, CreateScope.CREATE_DEFAULT_SCOPE)
+        );
   }
 
   @Override
@@ -203,19 +193,25 @@ public class BigQueryCatalog implements CatalogWrapper {
 
     this.bigQueryResourceProvider
         .getFunctions(this.defaultProjectId, functionReferences)
-        .forEach(this::registerQualifiedFunction);
+        .forEach(function -> this.register(
+            function, CreateMode.CREATE_OR_REPLACE, CreateScope.CREATE_DEFAULT_SCOPE
+        ));
   }
 
   public void addAllFunctionsInDataset(String projectId, String datasetName) {
     this.bigQueryResourceProvider
         .getAllFunctionsInDataset(projectId, datasetName)
-        .forEach(this::registerQualifiedFunction);
+        .forEach(function -> this.register(
+            function, CreateMode.CREATE_OR_REPLACE, CreateScope.CREATE_DEFAULT_SCOPE
+        ));
   }
 
   public void addAllFunctionsInProject(String projectId) {
     this.bigQueryResourceProvider
         .getAllFunctionsInProject(projectId)
-        .forEach(this::registerQualifiedFunction);
+        .forEach(function -> this.register(
+            function, CreateMode.CREATE_OR_REPLACE, CreateScope.CREATE_DEFAULT_SCOPE
+        ));
   }
 
   @Override
@@ -227,19 +223,25 @@ public class BigQueryCatalog implements CatalogWrapper {
 
     this.bigQueryResourceProvider
         .getTVFs(this.defaultProjectId, functionReferences)
-        .forEach(this::registerTVF);
+        .forEach(tvfInfo -> this.register(
+            tvfInfo, CreateMode.CREATE_OR_REPLACE, CreateScope.CREATE_DEFAULT_SCOPE
+        ));
   }
 
   public void addAllTVFsInDataset(String projectId, String datasetName) {
     this.bigQueryResourceProvider
         .getAllTVFsInDataset(projectId, datasetName)
-        .forEach(this::registerTVF);
+        .forEach(tvfInfo -> this.register(
+            tvfInfo, CreateMode.CREATE_OR_REPLACE, CreateScope.CREATE_DEFAULT_SCOPE
+        ));
   }
 
   public void addAllTVFsInProject(String projectId) {
     this.bigQueryResourceProvider
         .getAllTVFsInProject(projectId)
-        .forEach(this::registerTVF);
+        .forEach(tvfInfo -> this.register(
+            tvfInfo, CreateMode.CREATE_OR_REPLACE, CreateScope.CREATE_DEFAULT_SCOPE
+        ));
   }
 
   @Override
@@ -251,19 +253,25 @@ public class BigQueryCatalog implements CatalogWrapper {
 
     this.bigQueryResourceProvider
         .getProcedures(this.defaultProjectId, procedureReferences)
-        .forEach(this::registerProcedure);
+        .forEach(procedureInfo -> this.register(
+            procedureInfo, CreateMode.CREATE_OR_REPLACE, CreateScope.CREATE_DEFAULT_SCOPE
+        ));
   }
 
   public void addAllProceduresInDataset(String projectId, String datasetName) {
     this.bigQueryResourceProvider
         .getAllProceduresInDataset(projectId, datasetName)
-        .forEach(this::registerProcedure);
+        .forEach(procedureInfo -> this.register(
+            procedureInfo, CreateMode.CREATE_OR_REPLACE, CreateScope.CREATE_DEFAULT_SCOPE
+        ));
   }
 
   public void addAllProceduresInProject(String projectId) {
     this.bigQueryResourceProvider
         .getAllProceduresInProject(projectId)
-        .forEach(this::registerProcedure);
+        .forEach(procedureInfo -> this.register(
+            procedureInfo, CreateMode.CREATE_OR_REPLACE, CreateScope.CREATE_DEFAULT_SCOPE
+        ));
   }
 
   @Override
