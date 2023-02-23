@@ -152,7 +152,7 @@ func (hc *HealthChecker) getInstances() ([]compute.Instance, error) {
 	return result, nil
 }
 
-// HealthCheck is an HTTP Cloud function handler to to execute compute instances TCP healthcheck.
+//HealthCheck is an HTTP Cloud function handler to to execute compute instances TCP healthcheck.
 func HealthCheck(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
