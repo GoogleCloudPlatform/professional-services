@@ -12,8 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from googleapiclient import discovery
 from google.cloud import bigquery
 from google.cloud import billing
+from google.api_core import client_info as http_client_info
 from google.api_core.exceptions import PermissionDenied
 from google.cloud.exceptions import NotFound
 import argparse
@@ -21,14 +23,12 @@ import sys
 from colorama import Back
 from colorama import Style
 
-bq_client = bigquery.Client()
-
 base_url = "https://datastudio.google.com/reporting/create?"
-report_part_url = base_url + "c.reportId=2e2ea000-8f68-40e2-8847-b80f05069b6e"
-report_base_url = report_part_url + "&r.reportName=MyBillboard"
+report_part_url = base_url + "c.reportId=64387229-05e0-4951-aa3f-e7349bbafc07"
+report_base_url = report_part_url + "&r.reportName=MyBillboard" + "&ds.ds8.refreshFields=false"
 
-std_proj_url = "&ds.ds39.connector=bigQuery&ds.ds39.projectId={}"
-std_table_url = "&ds.ds39.type=TABLE&ds.ds39.datasetId={}&ds.ds39.tableId={}"
+std_proj_url = "&ds.ds8.connector=bigQuery&ds.ds8.projectId={}"
+std_table_url = "&ds.ds8.type=TABLE&ds.ds8.datasetId={}&ds.ds8.tableId={}"
 standard_view_url = std_proj_url + std_table_url
 
 dtl_proj_url = "&ds.ds93.connector=bigQuery&ds.ds93.projectId={}"
@@ -39,7 +39,18 @@ output_url = ""
 isDetailedExportDifferentLocation = False
 detailedBBDataset = ""
 
-app_version = "2.0"
+app_version = "3.0"
+
+APPLICATION_NAME = "professional-services/billboard"
+USER_AGENT = "{}/{}".format(APPLICATION_NAME, app_version)
+
+
+# This is find code usage
+def get_http_client_info():
+    return http_client_info.ClientInfo(user_agent=USER_AGENT)
+
+
+bq_client = bigquery.Client(client_info=get_http_client_info())
 
 
 # This function checks if billboard dataset already exists or not
@@ -165,8 +176,14 @@ def create_billboard_view(args, isStandard):
         return
 
     sql = """
-    CREATE VIEW if not exists `{}`
-    AS select *, COALESCE((SELECT SUM(x.amount) FROM UNNEST(s.credits) x),0) AS credits_sum_amount, COALESCE((SELECT SUM(x.amount) FROM UNNEST(s.credits) x),0) + cost as net_cost, EXTRACT(DATE FROM _PARTITIONTIME) AS date from `{}` s WHERE _PARTITIONTIME >'2020-08-01'
+    CREATE OR REPLACE VIEW  `{}`
+    AS select *, 
+    COALESCE((SELECT SUM(x.amount) FROM UNNEST(s.credits) x),0) AS credits_sum_amount, 
+    COALESCE((SELECT SUM(x.amount) FROM UNNEST(s.credits) x),0) + cost as net_cost, 
+    PARSE_DATE("%Y%m", invoice.month) AS Invoice_Month,
+    _PARTITIONDATE AS date 
+    from `{}` s 
+    WHERE _PARTITIONDATE > DATE_SUB(CURRENT_DATE(), INTERVAL 13 MONTH)
     """.format(view_id, source_id)
 
     # Not sure why this need project_id
@@ -260,6 +277,19 @@ def main(argv):
     detailedBBDataset = '{}'.format(args.BILLBOARD_DATASET_NAME_TO_BE_CREATED)
 
     project_id_temp = "projects/{}".format(args.PROJECT_ID)
+
+    #Check if billing api is enabled.
+    service = discovery.build('serviceusage', 'v1')
+    request = service.services().get(
+        name=f"{project_id_temp}/services/cloudbilling.googleapis.com"
+    )
+    response = request.execute()
+    if response.get('state') == 'DISABLED':
+        print(
+            "Cloud Billing API is not enabled, please make sure the prerequisites are completed."
+        )
+        return sys.exit(1)
+
     try:
         project_billing_info = billing.CloudBillingClient(
         ).get_project_billing_info(name=project_id_temp)
@@ -284,7 +314,7 @@ def main(argv):
         create_dataset(args)  # to create dataset
         create_billboard_view(args, True)  # to create standard view
         # if args.DETAILED_BILLING_EXPORT_DATASET_NAME is not None:
-        create_billboard_view(args, False)  # to create detailed view
+        #create_billboard_view(args, False)  # to create detailed view
         generate_datastudio_url(args)  # to create urls
     else:
         remove_billboard_dataset(args)  # to cleanup
