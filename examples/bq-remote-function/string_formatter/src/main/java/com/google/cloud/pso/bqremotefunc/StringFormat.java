@@ -65,11 +65,4 @@ public class StringFormat implements HttpFunction  {
         }
 
     }
-
-    public static void main(String[] args){
-        String sample = "this_is_a_string";
-//        String encoded = generateString(sample);
-        System.out.println(sample);
-
-    }
 }
