@@ -13,16 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.google;
+package com.google.cloud.pso.bqremotefunc;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.util.FunctionResponseObj;
+import com.google.cloud.pso.bqremotefunc.util.FunctionResponseObj;
 import com.google.cloud.functions.HttpFunction;
 import com.google.cloud.functions.HttpRequest;
 import com.google.cloud.functions.HttpResponse;
 import com.google.gson.*;
-import com.google.util.remoteFunctionObject;
+import com.google.cloud.pso.bqremotefunc.util.remoteFunctionObject;
 
 import java.io.BufferedWriter;
 import java.util.logging.Logger;

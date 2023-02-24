@@ -79,7 +79,7 @@
                 <artifactId>function-maven-plugin</artifactId>
                 <version>0.10.0</version>
                 <configuration>
-                    <functionTarget>com.google.StringFormat</functionTarget>
+                    <functionTarget>com.google.cloud.pso.bqremotefunc.StringFormat</functionTarget>
                 </configuration>
             </plugin>
             <plugin>
