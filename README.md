@@ -11,264 +11,265 @@ The examples folder contains example solutions across a variety of Google Cloud
 Platform products. Use these solutions as a reference for your own or extend
 them to fit your particular use case.
 
-* [Anthos Service Mesh Multi-Cluster](examples/anthos-service-mesh-multicluster) -
+*   [Anthos Service Mesh Multi-Cluster](examples/anthos-service-mesh-multicluster) -
     Solution to federate two private GKE clusters using Anthos Service Mesh.
-* [Anthos CICD with Gitlab](examples/anthos-cicd-with-gitlab) - A step-by-step
+*   [Anthos CICD with Gitlab](examples/anthos-cicd-with-gitlab) - A step-by-step
     guide to create an example CI/CD solution using Anthos and Gitlab.
-* [Audio Content Profiling](examples/ml-audio-content-profiling) - A tool that
+*   [Audio Content Profiling](examples/ml-audio-content-profiling) - A tool that
     builds a pipeline to scale the process of moderating audio files for
     inappropriate content using machine learning APIs.
-* [BigQuery Analyze Realtime Reddit Data](examples/bigquery-analyze-realtime-reddit-data/) - 
+*   [BigQuery Analyze Realtime Reddit Data](examples/bigquery-analyze-realtime-reddit-data/) - 
     Solution to deploy a ([reddit](https://www.reddit.com)) social media data collection
     architecture on Google Cloud Platform.  Analyzes reddit comments in realtime and
     provides free natural-language processing / sentiment.
-* [BigQuery Audit Log Dashboard](examples/bigquery-audit-log) - Solution to
+*   [BigQuery Audit Log Dashboard](examples/bigquery-audit-log) - Solution to
     help audit BigQuery usage using Data Studio for visualization and a sample
     SQL script to query the back-end data source consisting of audit logs.
-* [BigQuery Audit Log Anomaly Detection](examples/bigquery-auditlog-anomaly-detection) -
+*   [BigQuery Audit Log Anomaly Detection](examples/bigquery-auditlog-anomaly-detection) -
     Sample of using BigQuery audit logs for automated anomaly detection and
     outlier analysis. Generates user friendly graphs for quick bq environment
     analysis.
-* [BigQuery Automated Email Exports](examples/bq-email-exports) - Serverless
+*   [BigQuery Automated Email Exports](examples/bq-email-exports) - Serverless
     solution to automate the sending of BigQuery export results via email on a
     scheduled interval. The email will contain a link to a signed or unsigned
     URL, allowing the recipient to view query results as a JSON, CSV, or Avro
     file.
-* [BigQuery Automated Schema Management](tools/bqman) - Command-line utility
+*   [BigQuery Automated Schema Management](tools/bqman) - Command-line utility
     for automated provisioning and management of BigQuery datasets and tables.
-* [BigQuery Billing Dashboard](examples/bigquery-billing-dashboard) - Solution
+*   [BigQuery Billing Dashboard](examples/bigquery-billing-dashboard) - Solution
     to help displaying billing info using Data Studio for visualization and a
     sample SQL script to query the back-end billing export table in BigQuery.
-* [BigQuery Cross Project Slot Monitoring](examples/bigquery-cross-project-slot-monitoring) -
+*   [BigQuery Cross Project Slot Monitoring](examples/bigquery-cross-project-slot-monitoring) -
     Solution to help monitoring slot utilization across multiple projects, while
     breaking down allocation per project.
-* [BigQuery Group Sync For Row Level Access](examples/bigquery-row-access-groups) -
+*   [BigQuery Group Sync For Row Level Access](examples/bigquery-row-access-groups) -
     Sample code to synchronize group membership from G Suite/Cloud Identity into
     BigQuery and join that with your data to control access at row level.
-* [BigQuery Oracle DDL Migration Utility](examples/bigquery-oracle-ddl-migration-utility) - 
+*   [BigQuery Oracle DDL Migration Utility](examples/bigquery-oracle-ddl-migration-utility) - 
     Oracle DDL Migration Utility to migrate the tables schema (DDL) from Oracle DB to BigQuery.
     The utility leverages BigQuery Translation API and offers additional features
     such as adding partitioning, clustering, metadata columns and prefixes to table names.
-* [BigQuery Pipeline Utility](tools/bqpipeline) - Python utility class for
+*   [BigQuery Pipeline Utility](tools/bqpipeline) - Python utility class for
     defining data pipelines in BigQuery.
-* [Bigquery Remote Function](examples/bq-remote-function) -
-   BigQuery allows to use their custom libraries and services written in language other than SQL or javascript.
-* [BigQuery Snowflake Table Migration Tool](examples/bigquery-snowflake-tables-migration-utility) - 
+*   [BigQuery Remote Function](examples/bq-remote-function) - It allows user to implement custom
+    services or libraries in languages other than SQL or Javascript which are not part of UDFs.
+    The utility contains sample string format Java code to deploy cloud run gen2 instance and invoke 
+    the service from BigQuery using remote function.
+*   [BigQuery Snowflake Table Migration Tool](examples/bigquery-snowflake-tables-migration-utility) - 
     BigQuery Snowflake Table Migration Tool helps to migrate the table DDL's from Snowflake to BigQuery.
     The utility leverages BigQuery Translation API and offers additional features
     such as adding partitioning, clustering, metadata columns and prefixes to table names.
-* [BigQuery Table Access Pattern Analysis](examples/bigquery-table-access-pattern-analysis) -
+*   [BigQuery Table Access Pattern Analysis](examples/bigquery-table-access-pattern-analysis) -
     Sample code to analyse data pipeline optimisation points, by pinpointing
     suboptimal pipeline scheduling between tables in a data warehouse ELT job.
-* [BigQuery Tink Toolkit](tools/bigquery-tink-toolkit) - Python utility class
+*   [BigQuery Tink Toolkit](tools/bigquery-tink-toolkit) - Python utility class
     for working with Tink-based cryptography in on-prem or GCP systems in a way
     that is interoperable with BigQuery's field-level encryption. Includes a
     sample PySpark job and a script for generating and uploading KMS-encrypted
     Tink keysets to BigQuery.
-* [BigQuery to XML Export](tools/bigquery-to-xml) - Python tool that takes a
+*   [BigQuery to XML Export](tools/bigquery-to-xml) - Python tool that takes a
     BigQuery query and returns the output as an XML string.
-
-* [Bigtable Dataflow Cryptocurrencies Exchange RealTime Example](examples/cryptorealtime) -
+*   [Bigtable Dataflow Cryptocurrencies Exchange RealTime Example](examples/cryptorealtime) -
     Apache Beam example that reads from the Crypto Exchanges WebSocket API as
     Google Cloud Dataflow pipeline and saves the feed in Google Cloud Bigtable.
     Real time visualization and query examples from GCP Bigtable running on
     Flask server are included.
-* [Bigtable Dataflow Update Table Key Pipeline](examples/bigtable-change-key) -
+*   [Bigtable Dataflow Update Table Key Pipeline](examples/bigtable-change-key) -
     Dataflow pipeline with an example of how to update the key of an existing
     table. It works with any table, regardless the schema. It shows how to
     update your key for a table with existing data, to try out different
     alternatives to improve performance.
-* [Carbon Footprint Reporting](examples/carbon-foortprint-dashboard) - Example of 
+*   [Carbon Footprint Reporting](examples/carbon-foortprint-dashboard) - Example of 
     using the prebuilt Data studio & Looker template for analysing GCP Carbon Footprint Estimates.
-* [Cloud Audit Log Samples](examples/audit-log-examples/) - A sample
-* collection of Audit Logs for Users and Customers to better the structure,
+*   [Cloud Audit Log Samples](examples/audit-log-examples/) - A sample
+*   collection of Audit Logs for Users and Customers to better the structure,
     contents, and values contained in various log events.
-* [Cloud Build with Proxy Running in Background](examples/cloudbuild-with-tcp-proxy) -
+*   [Cloud Build with Proxy Running in Background](examples/cloudbuild-with-tcp-proxy) -
     Examples of cloudbuild with docker-compose running tcp proxy in the
     background for all build steps.
-* [Cloud Composer CI/CD](examples/cloud-composer-cicd) - Examples of using
+*   [Cloud Composer CI/CD](examples/cloud-composer-cicd) - Examples of using
     Cloud Build to deploy airflow DAGs to Cloud Composer.
-* [Cloud Composer Deployment in Shared VPC](examples/composer-shared-vpc) -
+*   [Cloud Composer Deployment in Shared VPC](examples/composer-shared-vpc) -
     Terraform code to deploy cloud composer in shared VPC environment.
-* [Cloud Composer Examples](examples/cloud-composer-examples) - Examples of
+*   [Cloud Composer Examples](examples/cloud-composer-examples) - Examples of
     using Cloud Composer, GCP's managed Apache Airflow service.
-* [Cloud Data Fusion Functions and Plugins](examples/cloud-datafusion-functions-plugins) -
+*   [Cloud Data Fusion Functions and Plugins](examples/cloud-datafusion-functions-plugins) -
     Examples of Cloud Data Fusion Functions and Plugins.
-* [Cloud Function Act As](examples/cloud-function-act-as) - Example of
+*   [Cloud Function Act As](examples/cloud-function-act-as) - Example of
     executing a Cloud Function on behalf and with IAM permissions of the GitHub
     Workload Identity caller.
-* [Cloud Function VM Delete Event Handler Example](examples/gcf-pubsub-vm-delete-event-handler) -
+*   [Cloud Function VM Delete Event Handler Example](examples/gcf-pubsub-vm-delete-event-handler) -
     Solution to automatically delete A records in Cloud DNS when a VM is
     deleted. This solution implements a [Google Cloud Function][gcf]
     [Background Function][gcf-bg] triggered on `compute.instances.delete` events
     published through [Stackdriver Logs Export][logs-export].
-* [Cloud Run to BQ](examples/cloudrun-to-bq) - Solution to accept events/data
+*   [Cloud Run to BQ](examples/cloudrun-to-bq) - Solution to accept events/data
     on HTTP REST Endpoint and insert into BQ.
-* [Cloud SQL Custom Metric](examples/cloud-sql-custom-metric) - An example of
+*   [Cloud SQL Custom Metric](examples/cloud-sql-custom-metric) - An example of
     creating a Stackdriver custom metric monitoring Cloud SQL Private Services
     IP consumption.
-* [Cloud Support API](examples/cloud-support) - Sample code using Cloud
+*   [Cloud Support API](examples/cloud-support) - Sample code using Cloud
     Support API
-* [CloudML Bank Marketing](examples/cloudml-bank-marketing) - Notebook for
+*   [CloudML Bank Marketing](examples/cloudml-bank-marketing) - Notebook for
     creating a classification model for marketing using CloudML.
-* [CloudML Bee Health Detection](examples/cloudml-bee-health-detection) -
+*   [CloudML Bee Health Detection](examples/cloudml-bee-health-detection) -
     Detect if a bee is unhealthy based on an image of it and its subspecies.
-* [CloudML Churn Prediction](examples/cloudml-churn-prediction) - Predict
+*   [CloudML Churn Prediction](examples/cloudml-churn-prediction) - Predict
     users' propensity to churn using Survival Analysis.
-* [CloudML Customer Support and Complaint Handling](examples/cloudml-support-routing) -
+*   [CloudML Customer Support and Complaint Handling](examples/cloudml-support-routing) -
     BigQuery + AutoML pipeline classifying customer complaints based on expected
     resolution; adaptable to other support communications use cases.
-* [CloudML Deep Collaborative Filtering](examples/cloudml-collaborative-filtering) -
+*   [CloudML Deep Collaborative Filtering](examples/cloudml-collaborative-filtering) -
     Recommend songs given either a user or song.
-* [CloudML Energy Price Forecasting](examples/cloudml-energy-price-forecasting) -
+*   [CloudML Energy Price Forecasting](examples/cloudml-energy-price-forecasting) -
     Predicting the future energy price based on historical price and weather.
-* [CloudML Fraud Detection](examples/cloudml-fraud-detection) - Fraud
+*   [CloudML Fraud Detection](examples/cloudml-fraud-detection) - Fraud
     detection model for credit-cards transactions.
-* [CloudML Scikit-learn Pipeline](examples/cloudml-sklearn-pipeline) - This is
+*   [CloudML Scikit-learn Pipeline](examples/cloudml-sklearn-pipeline) - This is
     a example for building a scikit-learn-based machine learning pipeline
     trainer that can be run on AI Platform. The pipeline can be trained locally
     or remotely on AI platform. The trained model can be further deployed on AI
     platform to serve online traffic.
-* [CloudML Sentiment Analysis](examples/cloudml-sentiment-analysis) -
+*   [CloudML Sentiment Analysis](examples/cloudml-sentiment-analysis) -
     Sentiment analysis for movie reviews using TensorFlow `RNNEstimator`.
-* [CloudML TensorFlow Profiling](examples/tensorflow-profiling-examples) -
+*   [CloudML TensorFlow Profiling](examples/tensorflow-profiling-examples) -
     TensorFlow profiling examples for training models with CloudML
-* [Data Generator](examples/dataflow-data-generator) - Generate random data
+*   [Data Generator](examples/dataflow-data-generator) - Generate random data
     with a custom schema at scale for integration tests or demos.
-* [Dataflow BigQuery Transpose Example](examples/dataflow-bigquery-transpose) -
+*   [Dataflow BigQuery Transpose Example](examples/dataflow-bigquery-transpose) -
     An example pipeline to transpose/pivot/rotate a BigQuery table.
-* [Dataflow Custom Templates Example](examples/dataflow-custom-templates) - An
+*   [Dataflow Custom Templates Example](examples/dataflow-custom-templates) - An
     example that demonstrates how to build custom Dataflow templates.
-* [Dataflow Elasticsearch Indexer](examples/dataflow-elasticsearch-indexer) -
+*   [Dataflow Elasticsearch Indexer](examples/dataflow-elasticsearch-indexer) -
     An example pipeline that demonstrates the process of reading JSON documents
     from Cloud Pub/Sub, enhancing the document using metadata stored in Cloud
     Bigtable and indexing those documents into
     [Elasticsearch](https://www.elastic.co/).
-* [Dataflow Python Examples](examples/dataflow-python-examples) - Various ETL
+*   [Dataflow Python Examples](examples/dataflow-python-examples) - Various ETL
     examples using the Dataflow Python SDK.
-* [Dataflow Scala Example: Kafka2Avro](examples/dataflow-scala-kafka2avro) -
+*   [Dataflow Scala Example: Kafka2Avro](examples/dataflow-scala-kafka2avro) -
     Example to read objects from Kafka, and persist them encoded in Avro in
     Google Cloud Storage, using Dataflow with SCIO.
-* [Dataflow Streaming Benchmark](examples/dataflow-streaming-benchmark) -
+*   [Dataflow Streaming Benchmark](examples/dataflow-streaming-benchmark) -
     Utility to publish randomized fake JSON messages to a Cloud Pub/Sub topic at
     a configured QPS.
-* [Dataflow Streaming Schema Changes Handler](examples/dataflow-streaming-schema-handler) -
+*   [Dataflow Streaming Schema Changes Handler](examples/dataflow-streaming-schema-handler) -
     Dataflow example to handle schema changes using schema enforcement and DLT
     approach
-* [Dataflow DLP Hashpipeline](examples/dataflow-dlp-hash-pipeline) - Match DLP
+*   [Dataflow DLP Hashpipeline](examples/dataflow-dlp-hash-pipeline) - Match DLP
     Social Security Number findings against a hashed dictionary in Firestore.
     Use Secret Manager for the hash key.
-* [Dataflow Template Pipelines](https://github.com/GoogleCloudPlatform/DataflowTemplates) -
+*   [Dataflow Template Pipelines](https://github.com/GoogleCloudPlatform/DataflowTemplates) -
     Pre-implemented Dataflow template pipelines for solving common data tasks on
     Google Cloud Platform.
-* [Dataflow Production Ready](examples/dataflow-production-ready) - Reference
+*   [Dataflow Production Ready](examples/dataflow-production-ready) - Reference
     implementation for best practices around Beam, pipeline structuring, testing
     and continuous deployment.
-* [Dataflow XML to BigQuery](examples/dataflow-xmlio-to-bq) - Example of
+*   [Dataflow XML to BigQuery](examples/dataflow-xmlio-to-bq) - Example of
     loading XML data into BigQuery with DataFlow via XMLIO.
-* [Dataproc GCS Connector](examples/dataproc-gcs-connector) - Install and test
+*   [Dataproc GCS Connector](examples/dataproc-gcs-connector) - Install and test
     unreleased features on the GCS Connector for Dataproc.
-* [Dataproc Job Optimization Guide](examples/dataproc-job-optimization-guide) - Step-by-step
+*   [Dataproc Job Optimization Guide](examples/dataproc-job-optimization-guide) - Step-by-step
     guide for optimizing a sample Dataproc Job.
-* [Dataproc Persistent History Server for Ephemeral Clusters](examples/dataproc-persistent-history-server) -
+*   [Dataproc Persistent History Server for Ephemeral Clusters](examples/dataproc-persistent-history-server) -
     Example of writing logs from an ephemeral cluster to GCS and using a
     separate single node cluster to look at Spark and YARN History UIs.
-* [dbt-on-cloud-composer](examples/dbt-on-cloud-composer) - Example of using
+*   [dbt-on-cloud-composer](examples/dbt-on-cloud-composer) - Example of using
     dbt to manage BigQuery data pipelines, utilizing Cloud Composer to run and
     schedule the dbt runs.
-* [Data Format Description Language (DFDL) Processesor with Firestore and
+*   [Data Format Description Language (DFDL) Processesor with Firestore and
     Pubsub](examples/dfdl-firestore-pubsub-example) - Example to process a
     binary using DFDL definition and Daffodil libraries. The DFDL definition is
     stored in firestore, the request to process is done through a pubsub
     subcription and the output is published is a JSON format in a Pubsub topic.
-* [Data Format Description Language (DFDL) Processesor with Bigtable and
+*   [Data Format Description Language (DFDL) Processesor with Bigtable and
     Pubsub](examples/dfdl-bigtable-pubsub-example) - Example to process a binary
     using DFDL definition and Daffodil libraries. The DFDL definition is stored
     in bigtable, the request to process is done through a pubsub subcription and
     the output is published is a JSON format in a Pubsub topic.
-* [Dialogflow Webhook Example](examples/dialogflow-webhook-example) - Webhook
+*   [Dialogflow Webhook Example](examples/dialogflow-webhook-example) - Webhook
     example for dialogflow in Python.
-* [Dialogflow CX Private Webhook Example](examples/dialogflowcx-private-webhook-example) -
+*   [Dialogflow CX Private Webhook Example](examples/dialogflowcx-private-webhook-example) -
     Webhook example for Dialogflow CX in Python.
-* [Dialogflow Entities Creation and Update](examples/dialogflow-entities-example) -
+*   [Dialogflow Entities Creation and Update](examples/dialogflow-entities-example) -
     Creation and update of entities for Dialogflow in Python.
-* [DLP API Examples](examples/dlp) - Examples of the DLP API usage.
-* [GCE Access to Google AdminSDK](examples/gce-to-adminsdk) - Example to help
+*   [DLP API Examples](examples/dlp) - Examples of the DLP API usage.
+*   [GCE Access to Google AdminSDK](examples/gce-to-adminsdk) - Example to help
     manage access to Google's AdminSDK using GCE's service account identity
-* [GCS Hive External Table File Optimization](examples/gcs-hive-external-table-file-optimization) - 
+*   [GCS Hive External Table File Optimization](examples/gcs-hive-external-table-file-optimization) - 
     Example solution to showcase impact of file count, file size, and file
     type on Hive external tables and query speeds.
-* [GCS to BQ using serverless services](examples/gcs-to-bq-serverless-services) -
+*   [GCS to BQ using serverless services](examples/gcs-to-bq-serverless-services) -
     Example to ingest GCS to BigQuery using serverless services such as Cloud
     Function, Pub/Sub and Serverless Spark.
-* [GKE HA setup using spot VMs](examples/gke-ha-setup-using-spot-vms/) -
+*   [GKE HA setup using spot VMs](examples/gke-ha-setup-using-spot-vms/) -
     Example for running an application with high availability requirements on
     GKE spot nodes using on-demand nodes as fallback
-* [Grpc Server connected to Spanner Database](examples/grpc_spanner_example) -
+*   [Grpc Server connected to Spanner Database](examples/grpc_spanner_example) -
     Basic example of a Grpc server that is connected to a Spanner database.
-* [Grpc Server connected to Redis](examples/grpc_redis_example) - Basic
+*   [Grpc Server connected to Redis](examples/grpc_redis_example) - Basic
     example of a Grpc server that is connected to Redis.
-* [Gitlab KAS agent for GKE](examples/gitlab-kas-gke) - Terraform solution for          deploying a Gitlab KAS agent for synchronizing container deployments from Gitlab repos into a GKE cluster
-* [Home Appliance Status Monitoring from Smart Power Readings](examples/e2e-home-appliance-status-monitoring) -
+*   [Gitlab KAS agent for GKE](examples/gitlab-kas-gke) - Terraform solution for          deploying a Gitlab KAS agent for synchronizing container deployments from Gitlab repos into a GKE cluster
+*   [Home Appliance Status Monitoring from Smart Power Readings](examples/e2e-home-appliance-status-monitoring) -
     An end-to-end demo system featuring a suite of Google Cloud Platform
     products such as IoT Core, ML Engine, BigQuery, etc.
-* [IAP User Profile](examples/iap-user-profile) - An example to retrieve user
+*   [IAP User Profile](examples/iap-user-profile) - An example to retrieve user
     profile from an IAP-enabled GAE application.
-* [IoT Nirvana](examples/iot-nirvana) - An end-to-end Internet of Things
+*   [IoT Nirvana](examples/iot-nirvana) - An end-to-end Internet of Things
     architecture running on Google Cloud Platform.
-* [Kubeflow Pipelines Sentiment Analysis](examples/kubeflow-pipelines-sentiment-analysis) -
+*   [Kubeflow Pipelines Sentiment Analysis](examples/kubeflow-pipelines-sentiment-analysis) -
     Create a Kubeflow Pipelines component and pipelines to analyze sentiment for
     New York Times front page headlines using Cloud Dataflow (Apache Beam Java)
     and Cloud Natural Language API.
-* [Kubeflow Fairing Example](examples/kubeflow-fairing-example) - Provided
+*   [Kubeflow Fairing Example](examples/kubeflow-fairing-example) - Provided
     three notebooks to demonstrate the usage of Kubeflow Faring to train machine
     learning jobs (Scikit-Learn, XGBoost, Tensorflow) locally or in the Cloud
     (AI platform training or Kubeflow cluster).
-* [Left-Shift Validation Pre-Commit Hook](examples/left-shift-validation-pre-commit-hook/) -
+*   [Left-Shift Validation Pre-Commit Hook](examples/left-shift-validation-pre-commit-hook/) -
     An example that uses a set of Bash scripts to set up a pre-commit hook that
     validates Kubernetes resources with Gatekeeper constraints and constraint
     templates from your choice of sources.
-* [LookerStudio Cost Optimization Dashboard](examples/cost-optimization-dashboard) -
+*   [LookerStudio Cost Optimization Dashboard](examples/cost-optimization-dashboard) -
     SQL scripts to help build Cost Optimization LookerStudio Dashboard.
-* [Project factory with Terragrunt](examples/terragrunt-project-factory-gcp/) -
+*   [Project factory with Terragrunt](examples/terragrunt-project-factory-gcp/) -
     This implements a `State-Scalable` project factory pattern for creating Google Cloud Platform projects using Terragrunt and public Terraform modules
-* [Python CI/CD with Cloud Builder and CSR](examples/python-cicd-with-cloudbuilder) -
+*   [Python CI/CD with Cloud Builder and CSR](examples/python-cicd-with-cloudbuilder) -
     Example that uses Cloud Builder and Cloud Source Repositories to automate
     testing and linting.
-* [Pub/Sub Client Batching Example](examples/pubsub-publish-avro-example) -
+*   [Pub/Sub Client Batching Example](examples/pubsub-publish-avro-example) -
     Batching in Pub/Sub's Java client API.
-* [QAOA](examples/qaoa) - Examples of parsing a max-SAT problem in a
+*   [QAOA](examples/qaoa) - Examples of parsing a max-SAT problem in a
     proprietary format, for Quantum Approximate Optimization Algorithm (QAOA)
-* [Redis Cluster on GKE Example](examples/redis-cluster-gke) - Deploying Redis
+*   [Redis Cluster on GKE Example](examples/redis-cluster-gke) - Deploying Redis
     cluster on GKE.
-* [Spanner Interleave Subquery](examples/spanner-interleave-subquery) -
+*   [Spanner Interleave Subquery](examples/spanner-interleave-subquery) -
     Example code to benchmark Cloud Spanner's subqueries for interleaved tables.
-* [Spanner Change Stream to BigQuery using Dataflow](examples/spanner-changestreams-bigquery) - 
+*   [Spanner Change Stream to BigQuery using Dataflow](examples/spanner-changestreams-bigquery) - 
     Terraform code to deploy Spanner change stream and publish changes to BigQuery using Dataflow Streaming Job.
-* [Spinnaker](examples/spinnaker) - Example pipelines for a Canary /
+*   [Spinnaker](examples/spinnaker) - Example pipelines for a Canary /
     Production deployment process.
-* [STS Metrics from STS Notification](examples/sts-metrics) - Example code to 
+*   [STS Metrics from STS Notification](examples/sts-metrics) - Example code to 
     generate custom metrics from STS notification.
-* [TensorFlow Serving on GKE and Load Testing](examples/tf-load-testing) -
+*   [TensorFlow Serving on GKE and Load Testing](examples/tf-load-testing) -
     Examples how to implement Tensorflow model inference on GKE and to perform a
     load testing of such solution.
-* [TensorFlow Unit Testing](examples/tensorflow-unit-testing) - Examples how
+*   [TensorFlow Unit Testing](examples/tensorflow-unit-testing) - Examples how
     to write unit tests for TensorFlow ML models.
-* [Terraform Internal HTTP Load Balancer](examples/terraform-ilb) - Terraform
+*   [Terraform Internal HTTP Load Balancer](examples/terraform-ilb) - Terraform
     example showing how to deploy an internal HTTP load balancer.
-* [Terraform NetApp CVS](examples/tf-netapp-cvs) - This example shows how to deploy NetApp CVS volumes using
+*   [Terraform NetApp CVS](examples/tf-netapp-cvs) - This example shows how to deploy NetApp CVS volumes using
     terraform.
-* [Terraform Resource Change Policy Library](examples/terraform-resource-change-policy-library) -
+*   [Terraform Resource Change Policy Library](examples/terraform-resource-change-policy-library) -
     Contains a library of policies written in the
     [OPA Constraint Framework](https://github.com/open-policy-agent/frameworks/blob/master/constraint/README.md)
     format to be used by `gcloud beta terraform vet` to validate Terraform resource
     changes in a CI/CD pipeline.
-* [Uploading files directly to Google Cloud Storage by using Signed URL](examples/direct-upload-to-gcs) -
+*   [Uploading files directly to Google Cloud Storage by using Signed URL](examples/direct-upload-to-gcs) -
     Example architecture to enable uploading files directly to GCS by using
     [Signed URL](https://cloud.google.com/storage/docs/access-control/signed-urls).
-* [TSOP object transfer Log prosessor](examples/tsop-log-processor/) - This example shows
+*   [TSOP object transfer Log prosessor](examples/tsop-log-processor/) - This example shows
     how to log object transfer logs by TSOP to Cloud Logging.
-* [Vertex AI MLOps Pipeline](examples/vertex_pipeline) - Demonstrates
+*   [Vertex AI MLOps Pipeline](examples/vertex_pipeline) - Demonstrates
     end-to-end MLOps process using Vertex AI platform and Smart Analytics
     technology capabilities.
 
