@@ -314,7 +314,7 @@ def main(argv):
         create_dataset(args)  # to create dataset
         create_billboard_view(args, True)  # to create standard view
         # if args.DETAILED_BILLING_EXPORT_DATASET_NAME is not None:
-        #create_billboard_view(args, False)  # to create detailed view
+        create_billboard_view(args, False)  # to create detailed view
         generate_datastudio_url(args)  # to create urls
     else:
         remove_billboard_dataset(args)  # to cleanup
