@@ -1,93 +1,91 @@
 package com.google.cloud.pso.bqremotefunc.util;
+
 import com.fasterxml.jackson.annotation.*;
 
 import java.util.HashMap;
 import java.util.Map;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@JsonPropertyOrder({
-        "requestId",
-        "caller",
-        "sessionUser",
-        "userDefinedContext",
-        "calls"
-})
-
+@JsonPropertyOrder({"requestId", "caller", "sessionUser", "userDefinedContext", "calls"})
 public class remoteFunctionObject {
-    @JsonProperty("requestId")
-    private String requestId;
-    @JsonProperty("caller")
-    private String caller;
-    @JsonProperty("sessionUser")
-    private String sessionUser;
-    @JsonProperty("userDefinedContext")
-    private UserDefinedContext userDefinedContext;
-    @JsonProperty("calls")
-    private String[][] calls = null;
-    @JsonIgnore
-    private Map<String, Object> additionalProperties = new HashMap<String, Object>();
+  @JsonProperty("requestId")
+  private String requestId;
 
-    @JsonProperty("requestId")
-    public String getRequestId() {
-        return requestId;
-    }
+  @JsonProperty("caller")
+  private String caller;
 
-    @JsonProperty("requestId")
-    public void setRequestId(String requestId) {
-        this.requestId = requestId;
-    }
+  @JsonProperty("sessionUser")
+  private String sessionUser;
 
-    @JsonProperty("caller")
-    public String getCaller() {
-        return caller;
-    }
+  @JsonProperty("userDefinedContext")
+  private UserDefinedContext userDefinedContext;
 
-    @JsonProperty("caller")
-    public void setCaller(String caller) {
-        this.caller = caller;
-    }
+  @JsonProperty("calls")
+  private String[][] calls = null;
 
-    @JsonProperty("sessionUser")
-    public String getSessionUser() {
-        return sessionUser;
-    }
+  @JsonIgnore private Map<String, Object> additionalProperties = new HashMap<String, Object>();
 
-    @JsonProperty("sessionUser")
-    public void setSessionUser(String sessionUser) {
-        this.sessionUser = sessionUser;
-    }
+  @JsonProperty("requestId")
+  public String getRequestId() {
+    return requestId;
+  }
 
-    @JsonProperty("userDefinedContext")
-    public UserDefinedContext getUserDefinedContext() {
-        return userDefinedContext;
-    }
+  @JsonProperty("requestId")
+  public void setRequestId(String requestId) {
+    this.requestId = requestId;
+  }
 
-    @JsonProperty("userDefinedContext")
-    public void setUserDefinedContext(UserDefinedContext userDefinedContext) {
-        this.userDefinedContext = userDefinedContext;
-    }
+  @JsonProperty("caller")
+  public String getCaller() {
+    return caller;
+  }
 
-    @JsonProperty("calls")
-    public String[][] getCalls() {
-        return calls;
-    }
+  @JsonProperty("caller")
+  public void setCaller(String caller) {
+    this.caller = caller;
+  }
 
-    @JsonProperty("calls")
-    public void setCalls(String[][] calls) {
-        this.calls = calls;
-    }
+  @JsonProperty("sessionUser")
+  public String getSessionUser() {
+    return sessionUser;
+  }
 
-    @JsonAnyGetter
-    public Map<String, Object> getAdditionalProperties() {
-        return this.additionalProperties;
-    }
+  @JsonProperty("sessionUser")
+  public void setSessionUser(String sessionUser) {
+    this.sessionUser = sessionUser;
+  }
 
-    @JsonAnySetter
-    public void setAdditionalProperty(String name, Object value) {
-        this.additionalProperties.put(name, value);
-    }
+  @JsonProperty("userDefinedContext")
+  public UserDefinedContext getUserDefinedContext() {
+    return userDefinedContext;
+  }
 
-    public remoteFunctionObject() {
-        super();
-    }
+  @JsonProperty("userDefinedContext")
+  public void setUserDefinedContext(UserDefinedContext userDefinedContext) {
+    this.userDefinedContext = userDefinedContext;
+  }
+
+  @JsonProperty("calls")
+  public String[][] getCalls() {
+    return calls;
+  }
+
+  @JsonProperty("calls")
+  public void setCalls(String[][] calls) {
+    this.calls = calls;
+  }
+
+  @JsonAnyGetter
+  public Map<String, Object> getAdditionalProperties() {
+    return this.additionalProperties;
+  }
+
+  @JsonAnySetter
+  public void setAdditionalProperty(String name, Object value) {
+    this.additionalProperties.put(name, value);
+  }
+
+  public remoteFunctionObject() {
+    super();
+  }
 }

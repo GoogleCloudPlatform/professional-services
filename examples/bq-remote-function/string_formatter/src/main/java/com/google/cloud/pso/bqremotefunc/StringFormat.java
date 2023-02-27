@@ -26,43 +26,42 @@ import com.google.cloud.pso.bqremotefunc.util.remoteFunctionObject;
 
 import java.io.BufferedWriter;
 import java.util.logging.Logger;
-public class StringFormat implements HttpFunction  {
-    private static final Gson gson = new Gson();
-    private static final Logger logger = Logger.getLogger(StringFormat.class.getName());
 
-    @Override
-    public void  service( HttpRequest request, HttpResponse response) throws Exception  {
+public class StringFormat implements HttpFunction {
+  private static final Gson gson = new Gson();
+  private static final Logger logger = Logger.getLogger(StringFormat.class.getName());
 
-        JsonElement requestParsed = gson.fromJson(request.getReader(), JsonElement.class);
-        JsonObject requestJson = requestParsed.getAsJsonObject();
-        ObjectMapper objectMapper = new ObjectMapper();
-        FunctionResponseObj functionResponseObj = new FunctionResponseObj();
-        String[][] calls = null;
+  @Override
+  public void service(HttpRequest request, HttpResponse response) throws Exception {
 
-        if (requestJson != null) {
-            logger.info(">> Request Json: " + requestJson);
-            JsonNode jsonNode = objectMapper.readTree(String.valueOf(requestJson));
-            remoteFunctionObject remotefnObject = objectMapper.treeToValue(jsonNode,
-                    remoteFunctionObject.class);
+    JsonElement requestParsed = gson.fromJson(request.getReader(), JsonElement.class);
+    JsonObject requestJson = requestParsed.getAsJsonObject();
+    ObjectMapper objectMapper = new ObjectMapper();
+    FunctionResponseObj functionResponseObj = new FunctionResponseObj();
+    String[][] calls = null;
 
-            calls = remotefnObject.getCalls();
+    if (requestJson != null) {
+      logger.info(">> Request Json: " + requestJson);
+      JsonNode jsonNode = objectMapper.readTree(String.valueOf(requestJson));
+      remoteFunctionObject remotefnObject =
+          objectMapper.treeToValue(jsonNode, remoteFunctionObject.class);
 
-            logger.info(">> printing calls: " + calls);
-            String[] responseArr = new String[calls.length];
-            for (int index = 0; index < calls.length; index++) {
+      calls = remotefnObject.getCalls();
 
-                for (String str : calls[index]) {
-                    logger.info(">> " + index + ": " + str);
-                    responseArr[index] =str.toString() + "_test";
-                }
-            }
-            logger.info(">> response: " + responseArr);
-            functionResponseObj.setReplies(responseArr);
-            BufferedWriter writer = response.getWriter();
-            Gson gson = new GsonBuilder().disableHtmlEscaping().create();
-            writer.write(gson.toJson(functionResponseObj));
+      logger.info(">> printing calls: " + calls);
+      String[] responseArr = new String[calls.length];
+      for (int index = 0; index < calls.length; index++) {
 
+        for (String str : calls[index]) {
+          logger.info(">> " + index + ": " + str);
+          responseArr[index] = str.toString() + "_test";
         }
-
+      }
+      logger.info(">> response: " + responseArr);
+      functionResponseObj.setReplies(responseArr);
+      BufferedWriter writer = response.getWriter();
+      Gson gson = new GsonBuilder().disableHtmlEscaping().create();
+      writer.write(gson.toJson(functionResponseObj));
     }
+  }
 }
