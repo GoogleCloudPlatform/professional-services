@@ -113,8 +113,8 @@ def create_dataset(args):
             dataset_id = "{}.{}".format(args.PROJECT_ID, detailedBBDataset)
             print("Creating another dataset {} in detailed export loc".format(
                 dataset_id))
-            create_dataset_by_location(
-                dataset_id, detailed_table_info.location)
+            create_dataset_by_location(dataset_id,
+                                       detailed_table_info.location)
 
     except NotFound:
         print("Table {} is not found check the export.".format(
@@ -149,21 +149,17 @@ def create_billboard_view(args, isStandard):
 
     if isStandard is True:
         source_id = "{}.{}.{}".format(
-            args.PROJECT_ID,
-            args.STANDARD_BILLING_EXPORT_DATASET_NAME,
+            args.PROJECT_ID, args.STANDARD_BILLING_EXPORT_DATASET_NAME,
             args.standard_table)
-        view_id = "{}.{}.{}".format(
-            args.PROJECT_ID,
-            args.BILLBOARD_DATASET_NAME_TO_BE_CREATED,
-            args.bb_standard)
+        view_id = "{}.{}.{}".format(args.PROJECT_ID,
+                                    args.BILLBOARD_DATASET_NAME_TO_BE_CREATED,
+                                    args.bb_standard)
     else:
         source_id = "{}.{}.{}".format(
-            args.PROJECT_ID,
-            args.DETAILED_BILLING_EXPORT_DATASET_NAME,
+            args.PROJECT_ID, args.DETAILED_BILLING_EXPORT_DATASET_NAME,
             args.detailed_table)
-        view_id = "{}.{}.{}".format(
-            args.PROJECT_ID, detailedBBDataset,
-            args.bb_detailed)
+        view_id = "{}.{}.{}".format(args.PROJECT_ID, detailedBBDataset,
+                                    args.bb_detailed)
 
     print('source_id={} and view_id={}'.format(source_id, view_id))
 
@@ -291,22 +287,17 @@ def main(argv):
     # Check if billing api is enabled.
     service = discovery.build('serviceusage', 'v1')
     request = service.services().get(
-        name=f"{project_id_temp}/services/cloudbilling.googleapis.com"
-    )
+        name=f"{project_id_temp}/services/cloudbilling.googleapis.com")
     response = request.execute()
     if response.get('state') == 'DISABLED':
-        print(
-            "Cloud Billing API is not enabled."
-        )
+        print("Cloud Billing API is not enabled.")
         return sys.exit(1)
 
     try:
         project_billing_info = billing.CloudBillingClient(
         ).get_project_billing_info(name=project_id_temp)
     except PermissionDenied:
-        print(
-            "Permission Denied, check project level permission."
-        )
+        print("Permission Denied, check project level permission.")
         return sys.exit(1)
 
     billing_account_name = project_billing_info.billing_account_name.split(
