@@ -90,7 +90,7 @@ def create_dataset(args):
         # Create dataset for BB for standard export.
         dataset_id = "{}.{}".format(args.PROJECT_ID,
                                     args.BILLBOARD_DATASET_NAME_TO_BE_CREATED)
-        create_dataset_by_location(dataset_id, standard_table_info.location)
+        create_dataset_by_loc(dataset_id, standard_table_info.location)
     except NotFound:
         print("Table {} is not found check the export and proceed.".format(
             standard_source_id))
@@ -113,8 +113,7 @@ def create_dataset(args):
             dataset_id = "{}.{}".format(args.PROJECT_ID, detailedBBDataset)
             print("Creating another dataset {} in detailed export loc".format(
                 dataset_id))
-            create_dataset_by_location(dataset_id,
-                                       detailed_table_info.location)
+            create_dataset_by_loc(dataset_id, detailed_table_info.location)
 
     except NotFound:
         print("Table {} is not found check the export.".format(
@@ -125,7 +124,7 @@ def create_dataset(args):
 
 # Creates billboard dataset based on billing exported location
 # Location is taken from the billing export table provided by the user.
-def create_dataset_by_location(dataset_id, location):
+def create_dataset_by_loc(dataset_id, location):
     # Check if billboard dataset exists
     if check_billboard_dataset_exists(dataset_id) is True:
         return
@@ -148,16 +147,16 @@ def create_billboard_view(args, isStandard):
     global detailedBBDataset
 
     if isStandard is True:
-        source_id = "{}.{}.{}".format(
-            args.PROJECT_ID, args.STANDARD_BILLING_EXPORT_DATASET_NAME,
-            args.standard_table)
+        source_id = "{}.{}.{}".format(args.PROJECT_ID,
+                                      args.STANDARD_BILLING_EXPORT_DATASET_NAME,
+                                      args.standard_table)
         view_id = "{}.{}.{}".format(args.PROJECT_ID,
                                     args.BILLBOARD_DATASET_NAME_TO_BE_CREATED,
                                     args.bb_standard)
     else:
-        source_id = "{}.{}.{}".format(
-            args.PROJECT_ID, args.DETAILED_BILLING_EXPORT_DATASET_NAME,
-            args.detailed_table)
+        source_id = "{}.{}.{}".format(args.PROJECT_ID,
+                                      args.DETAILED_BILLING_EXPORT_DATASET_NAME,
+                                      args.detailed_table)
         view_id = "{}.{}.{}".format(args.PROJECT_ID, detailedBBDataset,
                                     args.bb_detailed)
 
