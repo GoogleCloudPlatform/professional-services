@@ -13,7 +13,7 @@
 # limitations under the License.
 
 module "cluster" {
- source = "../modules/google_gdce_cluster"
+ source = "./modules/google_gdce_cluster"
 
   cluster-name = "test-cluster"
   project-id = var.project-id
@@ -23,7 +23,7 @@ module "cluster" {
 }
 
 module "node-pool" {
-  source = "../modules/google_gdce_node_pool"
+  source = "./modules/google_gdce_node_pool"
 
   pool-name = "np-1"
   project-id = var.project-id
@@ -36,13 +36,13 @@ module "node-pool" {
 }
 
 module "vpn-connection" {
-  source = "../modules/google_gdce_vpn_connection"
+  source = "./modules/google_gdce_vpn_connection"
 
   vpn-connection-name = "vpn-1"
   project-id = var.project-id
   location = var.location
   cluster-name = module.cluster.cluster-name
-  vpc-network-name = "default"
+  vpc-network-name = var.vpc-network-name
 
   depends_on = [module.node-pool]
 }
