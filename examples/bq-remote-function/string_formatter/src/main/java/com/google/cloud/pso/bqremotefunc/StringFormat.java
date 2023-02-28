@@ -28,9 +28,11 @@ import java.io.BufferedWriter;
 import java.util.logging.Logger;
 
 public class StringFormat implements HttpFunction {
+  // Use GSON (https://github.com/google/gson) to parse JSON content.
   private static final Gson gson = new Gson();
   private static final Logger logger = Logger.getLogger(StringFormat.class.getName());
-
+  // Responds to an HTTP request using data from the request body parsed according to the
+  // "content-type" header.
   @Override
   public void service(HttpRequest request, HttpResponse response) throws Exception {
 
@@ -59,6 +61,7 @@ public class StringFormat implements HttpFunction {
       }
       logger.info(">> response: " + responseArr);
       functionResponseObj.setReplies(responseArr);
+      // Respond with a formatted string
       BufferedWriter writer = response.getWriter();
       Gson gson = new GsonBuilder().disableHtmlEscaping().create();
       writer.write(gson.toJson(functionResponseObj));
