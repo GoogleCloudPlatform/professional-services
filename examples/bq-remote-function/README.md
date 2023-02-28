@@ -18,8 +18,7 @@ Bigquery sends HTTP request POST request to cloud run
 as [input json format](https://cloud.google.com/bigquery/docs/reference/standard-sql/remote-functions#input_format)
 and expects endpoint to return code
 in [output json format](https://cloud.google.com/bigquery/docs/reference/standard-sql/remote-functions#output_format)
-and error message is
-also sent as [json]()
+and in case of failure, sends back error messages.
 
 ### Deployment Steps on Cloud Run:
 
