@@ -17,13 +17,12 @@ package com.google.cloud.pso.bqremotefunc;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.cloud.pso.bqremotefunc.util.FunctionResponseObj;
 import com.google.cloud.functions.HttpFunction;
 import com.google.cloud.functions.HttpRequest;
 import com.google.cloud.functions.HttpResponse;
-import com.google.gson.*;
+import com.google.cloud.pso.bqremotefunc.util.FunctionResponseObj;
 import com.google.cloud.pso.bqremotefunc.util.remoteFunctionObject;
-
+import com.google.gson.*;
 import java.io.BufferedWriter;
 import java.util.logging.Logger;
 

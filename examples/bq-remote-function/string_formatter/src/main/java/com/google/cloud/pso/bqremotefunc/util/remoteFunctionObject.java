@@ -1,7 +1,6 @@
 package com.google.cloud.pso.bqremotefunc.util;
 
 import com.fasterxml.jackson.annotation.*;
-
 import java.util.HashMap;
 import java.util.Map;
 

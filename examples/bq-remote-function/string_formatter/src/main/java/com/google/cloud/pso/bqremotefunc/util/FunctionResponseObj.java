@@ -3,7 +3,6 @@ package com.google.cloud.pso.bqremotefunc.util;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-
 import java.util.Arrays;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
