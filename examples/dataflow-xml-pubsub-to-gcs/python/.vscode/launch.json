@@ -1,0 +1,23 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug pipeline locally",
+            "type": "python",
+            "request": "launch",
+            "program": "./beamPubSubXml2Gcs.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": ["--project=my-test-project",
+                "--input_topic=xml_messages",
+                "--runner=DirectRunner",
+                "--gcs_path=gs://test-pubsub-xml-bucket/",
+                "--window_size=1.0",
+                "--num_shards=2"
+            ],
+        }
+    ]
+}
