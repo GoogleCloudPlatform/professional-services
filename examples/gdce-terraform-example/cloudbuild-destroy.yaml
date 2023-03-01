@@ -27,8 +27,6 @@ steps:
         unzip terraform_linux_amd64.zip -d build
         mv build/terraform /usr/local/bin/terraform
 
-        terraform -version
-
         cd terraform
         terraform init
         terraform plan -destroy
