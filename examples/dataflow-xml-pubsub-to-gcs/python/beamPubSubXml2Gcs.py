@@ -81,7 +81,7 @@ class ParseXML(DoFn):
             for element in parsedXml:
                 allTags.append(element.tag)
                 allTagsText.append(element.text)
-                yield {"tags": allTags, "text": allTagsText}
+            yield {"tags": allTags, "text": allTagsText}
         except Exception as e:
             yield {"error": str(e), "raw_contents": message_body}
 
