@@ -13,11 +13,15 @@
 # limitations under the License.
 
 from google.cloud import pubsub_v1
-import time, signal, logging, argparse
+import time
+import signal
+import logging
+import argparse
 
 publisher = pubsub_v1.PublisherClient()
 
-DEFAULT_XML_STRING = "<note><to>PubSub</to><from>Test</from><heading>Test</heading><body>Sample body</body></note>"
+DEFAULT_XML_STRING = """<note><to>PubSub</to><from>Test</from><heading>Test
+</heading><body>Sample body</body></note>"""
 DEFAULT_SEND_PERIOD = 1
 
 
@@ -25,13 +29,13 @@ def user_abort_handler(signum, frame):
     confirm = input("\nCtrl-C was pressed. Do you really want to abort? Y/N ")
     if confirm.lower() == 'y':
         exit(1)
- 
+
+
 signal.signal(signal.SIGINT, user_abort_handler)
+
 
 def run(project_id, pub_sub_topic_id, xml_string, message_send_interval):
     topic_path = publisher.topic_path(project_id, pub_sub_topic_id)
-
-    id = 0
 
     while True:
         data = xml_string
@@ -41,6 +45,7 @@ def run(project_id, pub_sub_topic_id, xml_string, message_send_interval):
         future = publisher.publish(topic_path, data=data)
         print(future.result())
         time.sleep(message_send_interval)
+
 
 if __name__ == "__main__":
     logging.getLogger().setLevel(logging.INFO)
@@ -54,18 +59,21 @@ if __name__ == "__main__":
         "--pub_sub_topic_id",
         default="pub_sub_to_xml",
         help="""The Cloud Pub/Sub topic to post to.
-        The resulting full PubSub topic will be: "projects/<PROJECT_ID>/topics/<PUB_SUB_TOPIC_ID>".""",
+        The resulting full PubSub topic will be: 'projects/<PROJECT_ID>/topics/
+        <PUB_SUB_TOPIC_ID>'.""",
     )
     parser.add_argument(
         "--xml_string",
         default=DEFAULT_XML_STRING,
-        help="An XML encoded string to post to PubSub. [Defaults to '"+DEFAULT_XML_STRING+"']",
+        help="An XML encoded string to post to PubSub. [Defaults to '"
+        + DEFAULT_XML_STRING + "']",
     )
     parser.add_argument(
         "--message_send_interval",
         type=int,
         default=DEFAULT_SEND_PERIOD,
-        help="Number of seconds to wait in between sending messages to PubSub. [Defaults to "+str(DEFAULT_SEND_PERIOD)+" seconds.]",
+        help="""Number of seconds to wait in between sending messages to
+        PubSub. [Defaults to """ + str(DEFAULT_SEND_PERIOD) + " seconds.]",
     )
     known_args, other_args = parser.parse_known_args()
 
