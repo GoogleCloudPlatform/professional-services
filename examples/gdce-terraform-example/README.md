@@ -1,4 +1,4 @@
-# Google Distributed Cloud Edge (GDCE) examples
+# Google Distributed Cloud Edge (GDCE) Terraform Example
 
 This example demonstrates how to provision Google Distributed Cloud Edge (GDCE) resources using terraform with Cloud Build. The resources provisioned are listed below:
 

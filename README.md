@@ -198,7 +198,7 @@ them to fit your particular use case.
 *   [GCS to BQ using serverless services](examples/gcs-to-bq-serverless-services) -
     Example to ingest GCS to BigQuery using serverless services such as Cloud
     Function, Pub/Sub and Serverless Spark.
-*   [GDCE Example](examples/gdce-examples) - Example for provisioning GDCE
+*   [GDCE Terraform Example](examples/gdce-terraform-example) - Example for provisioning GDCE
     resources using terraform.
 *   [GKE HA setup using spot VMs](examples/gke-ha-setup-using-spot-vms/) -
     Example for running an application with high availability requirements on
