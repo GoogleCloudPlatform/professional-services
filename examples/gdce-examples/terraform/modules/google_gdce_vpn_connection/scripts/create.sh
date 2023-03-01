@@ -14,8 +14,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-gcloud edge-cloud container vpn-connections create $VPN_CONNECTION_NAME \
-    --project=$PROJECT_ID \
-    --location=$LOCATION \
-    --cluster=$CLUSTER_NAME \
-    --vpc-network=$VPC_NETWORK_NAME
+gcloud edge-cloud container vpn-connections create "$VPN_CONNECTION_NAME" \
+    --project="$PROJECT_ID" \
+    --location="$LOCATION" \
+    --cluster="$CLUSTER_NAME" \
+    --vpc-network="$VPC_NETWORK_NAME"

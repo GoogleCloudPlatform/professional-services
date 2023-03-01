@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-gcloud edge-cloud container vpn-connections describe $VPN_CONNECTION_NAME \
-    --location=$LOCATION \
-    --project=$PROJECT_ID \
+gcloud edge-cloud container vpn-connections describe "$VPN_CONNECTION_NAME" \
+    --location="$LOCATION" \
+    --project="$PROJECT_ID" \
     --format="json(name)"

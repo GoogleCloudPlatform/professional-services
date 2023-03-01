@@ -14,4 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-gcloud edge-cloud container clusters delete $CLUSTER_NAME --project=$PROJECT_ID --location=$LOCATION --quiet
+gcloud edge-cloud container clusters delete "$CLUSTER_NAME" \
+ --project="$PROJECT_ID" \
+ --location="$LOCATION" \
+ --quiet

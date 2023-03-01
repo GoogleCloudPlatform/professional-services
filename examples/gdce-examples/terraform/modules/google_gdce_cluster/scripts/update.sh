@@ -14,5 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-echo "Updates on google_gdce_cluster resource not supported. Delete the resource and recreate to apply changes."
+echo "Updates on google_gdce_cluster resource not supported."
+echo "Delete the resource and recreate to apply changes."
 exit 1

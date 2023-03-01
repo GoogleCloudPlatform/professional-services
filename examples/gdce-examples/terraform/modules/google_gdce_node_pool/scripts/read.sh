@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-gcloud edge-cloud container clusters describe $CLUSTER_NAME \
-  --project=$PROJECT_ID \
-  --location=$LOCATION \
+gcloud edge-cloud container clusters describe "$CLUSTER_NAME" \
+  --project="$PROJECT_ID" \
+  --location="$LOCATION" \
   --format="json(name)"

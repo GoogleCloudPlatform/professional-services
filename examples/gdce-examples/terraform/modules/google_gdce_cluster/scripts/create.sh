@@ -14,8 +14,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-gcloud edge-cloud container clusters create $CLUSTER_NAME \
-    --project=$PROJECT_ID \
-    --location=$LOCATION \
+gcloud edge-cloud container clusters create "$CLUSTER_NAME" \
+    --project="$PROJECT_ID" \
+    --location="$LOCATION" \
     --cluster-ipv4-cidr="$CLUSTER_IPV4_CIDR" \
     --services-ipv4-cidr="$SERVICE_IPV4_CIDR"

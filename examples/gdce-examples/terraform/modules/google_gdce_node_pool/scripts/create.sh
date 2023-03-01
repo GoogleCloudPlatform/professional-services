@@ -14,9 +14,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-gcloud edge-cloud container clusters node-pools create $POOL_NAME \
-    --project=$PROJECT_ID \
-    --location=$LOCATION \
-    --cluster=$CLUSTER_NAME \
-    --node-location=$NODE_LOCATION \
-    --node-count=$NODE_COUNT
+gcloud edge-cloud container clusters node-pools create "$POOL_NAME" \
+    --project="$PROJECT_ID" \
+    --location="$LOCATION" \
+    --cluster="$CLUSTER_NAME" \
+    --node-location="$NODE_LOCATION" \
+    --node-count="$NODE_COUNT"

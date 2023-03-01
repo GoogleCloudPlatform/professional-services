@@ -14,8 +14,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-gcloud edge-cloud container clusters node-pools delete $POOL_NAME \
-    --project=$PROJECT_ID \
-    --location=$LOCATION \
-    --cluster=$CLUSTER_NAME \
+gcloud edge-cloud container clusters node-pools delete "$POOL_NAME" \
+    --project="$PROJECT_ID" \
+    --location="$LOCATION" \
+    --cluster="$CLUSTER_NAME" \
     --quiet
