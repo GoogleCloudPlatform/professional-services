@@ -47,12 +47,10 @@ default_dag_args = {
 }
 
 # Arguments to pass to Cloud Dataproc job.
-# ex. 
-# input_notebook = "gs://notebooks-staging-bucket-kk/notebooks/jupyter/sample_notebook.ipynb"
-# output_notebook = "gs://notebooks-staging-bucket-kk/notebooks/jupyter/output/composer_sample_output.ipynb"
-input_notebook = EDIT:<path to your input_notebook> 
-output_notebook = EDIT:<path to your notebook execution> 
-notebook_args= [input_notebook, output_notebook]
+# EDIT: input_notebook, output_notebook, pyspark_job
+input_notebook = "gs://notebooks-staging-bucket-kk/notebooks/jupyter/sample_notebook.ipynb"
+output_notebook = "gs://notebooks-staging-bucket-kk/notebooks/jupyter/output/composer_sample_output.ipynb"
+notebook_args= [input_notebook, output_notebook] 
 
 PYSPARK_JOB = {
     "reference": {"project_id": models.Variable.get('gcp_project')},
