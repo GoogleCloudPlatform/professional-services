@@ -23,7 +23,6 @@ https://airflow.apache.org/concepts.html#variables
 """
 
 import datetime
-import os
 from airflow import models
 from airflow.contrib.operators import dataproc_operator
 from airflow.utils import trigger_rule
@@ -56,7 +55,7 @@ PYSPARK_JOB = {
     "reference": {"project_id": models.Variable.get('gcp_project')},
     "placement": {"cluster_name": 'composer-notebook-{{ ds_nodash }}'},
     "pyspark_job": {
-        "main_python_file_uri": f"gs://notebooks-staging-bucket-kk/composer_input/jobs/wrapper_papermill.py",
+        "main_python_file_uri": "gs://notebooks-staging-bucket-kk/composer_input/jobs/wrapper_papermill.py",
         "args": notebook_args }
 }
 # [START composer_hadoop_schedule]
@@ -78,7 +77,7 @@ with models.DAG(
         worker_machine_type='n1-standard-2',
         
         #Initialization script - specify the gcs path
-        init_actions_uris=[f"gs://notebooks-staging-bucket-kk/composer_input/initialization_scripts/init_pip_gcsfuse.sh"]
+        init_actions_uris=["gs://notebooks-staging-bucket-kk/composer_input/initialization_scripts/init_pip_gcsfuse.sh"]
         )
 
     # Submit a pyspark job
