@@ -24,6 +24,10 @@ The purpose of this walkthrough is to create a [Dataflow](https://cloud.google.c
 This pipeline is developed with the [Beam Python SDK](https://beam.apache.org/documentation/sdks/python/)
 - Please refer to the [Python](./python/) codebase
 
+# A compatible qwiklabs environment
+
+If you wish to execute this code within a Qwiklabs environment, you can use this [Stream messages from Pub/Sub by using Dataflow](https://cloud.google.com/pubsub/docs/stream-messages-dataflow)
+
 # Recommendations and next steps
 
 ## Best practices

@@ -17,21 +17,20 @@ limitations under the License.
 
 # 1. Getting started
 
-## 1.a. Create a new Google Cloud project
+## Create a new Google Cloud project
 
 **It is recommended to go through this walkthrough using a new temporary Google
 Cloud project, unrelated to any of your existing Google Cloud projects.**
 
 See https://cloud.google.com/resource-manager/docs/creating-managing-projects
-for more details.
+for more details. For a quick reference, please follow these steps:
 
-## 1.a. Configure default project
-
-To simplify the following commands, set the default GCP project.
-
+1. Open the [Cloud Platform Console][cloud-console].
+2. In the drop-down menu at the top, select **Create a project**.
+3. Give your project a name = <CHANGE_ME>
+4. Save your project's name to an environment variable for ease of use:
 ```
-PROJECT=<CHANGE ME>
-gcloud config set project $PROJECT
+export PROJECT=<CHANGE_ME>
 ```
 
 # 2. Configure a local environment
@@ -51,58 +50,133 @@ export GRPC_PYTHON_LDFLAGS=" -framework CoreFoundation"
 pip install grpcio --no-binary :all:
 ```
 
-# Configure the cloud environment
-## Configure a PubSub topic
-pub_sub_to_xml
+# 3. Configure the cloud environment
 
-## Run the test
-### Start sending messages to PubSub
+## Setting Google Application Default Credentials
+
+Set your [Google Application Default
+Credentials][application-default-credentials] by [initializing the Google Cloud
+SDK][cloud-sdk-init] with the command:
+
+```
+gcloud init
+```
+Generate a credentials file by running the
+[application-default login](https://cloud.google.com/sdk/gcloud/reference/auth/application-default/login) command:
+
+```
+gcloud auth application-default login
+```
+Make sure to enable necessary APIs:
+```
+gcloud services enable dataflow.googleapis.com  compute.googleapis.com  logging.googleapis.com  storage-component.googleapis.com  storage-api.googleapis.com  pubsub.googleapis.com  cloudresourcemanager.googleapis.com  cloudscheduler.googleapis.com
+```
+
+[cloud-sdk-init]: https://cloud.google.com/sdk/docs/initializing
+[application-default-credentials]: https://developers.google.com/identity/protocols/application-default-credentials
+
+## Configure a PubSub topic
+### Pubsub Setup
+The following [doc](https://cloud.google.com/pubsub/docs/quickstart-console) can be used to set up the topic and optional subscription needed to run this example.
+
+#### Topics
+To run this example one topic needs to be created:
+1. A topic to publish the XML formatted data
+```
+export TOPIC_ID=<CHANGE_ME>
+gcloud pubsub topics create $TOPIC_ID
+```
+
+#### Subscription
+**Optionally** You can set up a custom subscription. However, this is not mandatory since the Dataflow PubSub source automatically creates one if a topic is provided.
+
+## Create a GCS bucket
+
+The output will write to a GCS bucket:
+```
+export BUCKET_NAME=<CHANGE_ME>
+gsutil mb gs://$BUCKET_NAME
+```
+
+# 4. Run the test
+## Start sending messages to PubSub
+Execute the message sending script as follows:
 ```
 python publish2PubSub.py \
---project_id PROJECT-ID \
---pub_sub_topic_id TOPIC-ID \
+--project_id $PROJECT \
+--pub_sub_topic_id $TOPIC_ID \
 --xml_string XML_STRING \
 --message_send_interval MESSAGE_SEND_INTERVAL
 ```
 For example:
 ```
 python publish2PubSub.py \
---project_id my-test-project \
---pub_sub_topic_id xml_messages \
+--project_id $PROJECT \
+--pub_sub_topic_id $TOPIC_ID \
 --xml_string "<note><to>PubSub</to><from>Test</from><heading>Test</heading><body>Sample body</body></note>" \
 --message_send_interval 1
 ```
 
-### Execute the Pipeline
-Open up a new terminal and ...
+## Start the Pipeline
+Open up a new terminal and execute the following command:
 ```
 python beamPubSubXml2Gcs.py \
---project_id PROJECT-ID \
---input_topic_id TOPIC-ID \
+--project_id $PROJECT \
+--input_topic_id $TOPIC_ID \
 --runner RUNNER \
 --window_size WINDOW_SIZE \
---output_path OUTPUT_PATH \
+--output_path "gs://$BUCKET_NAME/output_location/" \
 --num_shards NUM_SHARDS
 ```
 For example:
 ```
 python beamPubSubXml2Gcs.py \
---project_id my-test-project \
---input_topic_id xml_messages \
+--project_id $PROJECT \
+--input_topic_id $TOPIC_ID \
 --runner DataflowRunner \
 --window_size 1.0 \
---gcs_path "gs://test-pubsub-xml-bucket/" \
+--gcs_path "gs://$BUCKET_NAME/output_location/" \
 --num_shards 2
 ```
 
-## 5. Monitor the Dataflow Job
-
+## Monitor the Dataflow Job
 Navigate to https://console.cloud.google.com/dataflow/jobs to locate the job
 you just created.  Clicking on the job will let you navigate to the job
 monitoring screen.
 
-### Debug the Pipeline
-This sample contains the necessary bidings to debug this code in Vs Code. To do so, please install the VsCode Google Cloud [extension](https://cloud.google.com/code/docs/vscode/install)
+## Debug the Pipeline
+**Optionally** This sample contains the necessary bindings to debug step by step and/or breakpoint this code in Vs Code. To do so, please install the VsCode Google Cloud [extension](https://cloud.google.com/code/docs/vscode/install)
 
-### Terminate the PubSub streaming
+## View the output in CGS
+
+List the generated files in the GCS bucket and inspect their contents
+```
+gsutil ls gs://${BUCKET_NAME}/output_location/
+gsutil cat gs://${BUCKET_NAME}/output_location/*
+```
+
+# 5. Clean up
+
+## Remove cloud resources
+1. Delete the PubSub topic
+```
+gcloud pubsub topics delete $TOPIC_ID
+```
+2. Delete the GCS files
+```
+gsutil -m rm -rf "gs://${BUCKET_NAME}/output_location/*"
+```
+3. Remove the GCS bucket
+```
+gsutil rb gs://${BUCKET_NAME}
+```
+4. **Optionally** Revoke the authentication credentials that you created, and delete the local credential file.
+```
+gcloud auth application-default revoke
+```
+5. **Optionally** Revoke credentials from the gcloud CLI.
+```
+gcloud auth revoke
+```
+## Terminate the PubSub streaming
 On the terminal where you ran the _publish2PubSub_ script, press _Ctrl+C_ and _Y_ to confirm.
