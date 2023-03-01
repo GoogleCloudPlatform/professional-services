@@ -55,7 +55,8 @@ function install_pip() {
 
 function gcsfuse_install(){
   echo "Installing gcsfuse..."
-  export GCSFUSE_REPO=gcsfuse-$(lsb_release -c -s)
+  GCSFUSE_REPO=gcsfuse-$(lsb_release -c -s)
+  export GCSFUSE_REPO
   echo "deb https://packages.cloud.google.com/apt $GCSFUSE_REPO main" | sudo tee /etc/apt/sources.list.d/gcsfuse.list
   curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
 
@@ -68,6 +69,7 @@ function gcsfuse_install(){
 
 function gcsfuse_mount(){  
   # Mount a bucket by “gcsfuse <your-bucket-name> <your-path/to/mount>”
+  # EDIT: bucket to mount, path 
   mkdir path-1
   gcsfuse kristin-0105 path-1
   echo "GCS bucket succesfully mounted at the specificed path"
