@@ -2,12 +2,12 @@ package com.google.pso.zetasql.helper.catalog.bigquery;
 
 import com.google.zetasql.resolvedast.ResolvedCreateStatementEnums.CreateScope;
 
-public class InvalidBigQueryCreateScope extends BigQueryCatalogException {
+public class BigQueryCreateError extends BigQueryCatalogException {
 
   private final CreateScope createScope;
   private final String resource;
 
-  public InvalidBigQueryCreateScope(String message, CreateScope createScope, String resource) {
+  public BigQueryCreateError(String message, CreateScope createScope, String resource) {
     super(message);
     this.createScope = createScope;
     this.resource = resource;

@@ -9,6 +9,11 @@ public class InvalidBigQueryReference extends BigQueryCatalogException {
     this.reference = reference;
   }
 
+  public InvalidBigQueryReference(String reference, String reason) {
+    super(String.format("Invalid BigQuery reference: %s: %s", reference, reason));
+    this.reference = reference;
+  }
+
   public String getReference() {
     return reference;
   }

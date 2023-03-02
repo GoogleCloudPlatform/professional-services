@@ -12,6 +12,7 @@ import com.google.zetasql.ZetaSQLBuiltinFunctionOptions;
 import com.google.zetasql.ZetaSQLType;
 import com.google.zetasql.resolvedast.ResolvedCreateStatementEnums.CreateMode;
 import com.google.zetasql.resolvedast.ResolvedCreateStatementEnums.CreateScope;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -84,14 +85,30 @@ public class BigQueryCatalog implements CatalogWrapper {
           "Invalid create scope %s for BigQuery %s %s",
           scope, resourceType, resourceFullName
       );
-      throw new InvalidBigQueryCreateScope(message, scope, resourceFullName);
+      throw new BigQueryCreateError(message, scope, resourceFullName);
     }
   }
 
-  private List<List<String>> buildCatalogPathsForResource(String referenceStr) {
-    BigQueryReference reference = BigQueryReference.from(
-        this.defaultProjectId, referenceStr
-    );
+  private void validateNamePathForCreation(
+      List<String> namePath,
+      CreateScope createScope,
+      String resourceType
+  ) {
+    String fullName = String.join(".", namePath);
+    List<String> flattenedNamePath = namePath.stream()
+        .flatMap(pathElement -> Arrays.stream(pathElement.split("\\.")))
+        .collect(Collectors.toList());
+
+    if(createScope.equals(CreateScope.CREATE_TEMP) && flattenedNamePath.size() > 1) {
+      String message = String.format(
+          "Cannot create BigQuery TEMP %s %s, TEMP resources should not be qualified",
+          resourceType, fullName
+      );
+      throw new BigQueryCreateError(message, createScope, fullName);
+    }
+  }
+
+  private List<List<String>> buildCatalogPathsForResource(BigQueryReference reference) {
     String projectId = reference.getProjectId();
     String datasetName = reference.getDatasetId();
     String resourceName = reference.getResourceName();
@@ -116,6 +133,13 @@ public class BigQueryCatalog implements CatalogWrapper {
         .collect(Collectors.toList());
   }
 
+  private List<List<String>> buildCatalogPathsForResource(String referenceStr) {
+    BigQueryReference reference = BigQueryReference.from(
+        this.defaultProjectId, referenceStr
+    );
+    return this.buildCatalogPathsForResource(reference);
+  }
+
   private List<List<String>> buildCatalogPathsForResource(List<String> resourcePath) {
     return this.buildCatalogPathsForResource(String.join(".", resourcePath));
   }
@@ -128,6 +152,7 @@ public class BigQueryCatalog implements CatalogWrapper {
         table.getFullName(),
         "table"
     );
+    this.validateNamePathForCreation(List.of(table.getFullName()), createScope, "table");
 
     List<List<String>> tablePaths = createScope.equals(CreateScope.CREATE_TEMP)
         ? List.of(List.of(table.getName()))
@@ -149,6 +174,7 @@ public class BigQueryCatalog implements CatalogWrapper {
         fullName,
         "function"
     );
+    this.validateNamePathForCreation(functionNamePath, createScope, "function");
 
     List<List<String>> functionPaths = createScope.equals(CreateScope.CREATE_TEMP)
         ? List.of(functionNamePath)
@@ -167,8 +193,9 @@ public class BigQueryCatalog implements CatalogWrapper {
         fullName,
         "TVF"
     );
+    this.validateNamePathForCreation(tvfInfo.getNamePath(), createScope, "TVF");
 
-    List<List<String>> functionPaths = List.of(List.of(fullName));
+    List<List<String>> functionPaths = this.buildCatalogPathsForResource(fullName);
     CatalogOperations.createTVFInCatalog(this.catalog, functionPaths, tvfInfo, createMode);
   }
 
@@ -186,12 +213,9 @@ public class BigQueryCatalog implements CatalogWrapper {
         fullName,
         "procedure"
     );
+    this.validateNamePathForCreation(List.of(fullName), createScope, "procedure");
 
-    BigQueryReference reference = BigQueryReference.from(this.defaultProjectId, fullName);
-    List<List<String>> procedurePaths = List.of(
-        List.of(reference.getFullName()),
-        reference.getNamePath()
-    );
+    List<List<String>> procedurePaths = this.buildCatalogPathsForResource(fullName);
 
     CatalogOperations.createProcedureInCatalog(
         this.catalog, procedurePaths, procedureInfo, createMode

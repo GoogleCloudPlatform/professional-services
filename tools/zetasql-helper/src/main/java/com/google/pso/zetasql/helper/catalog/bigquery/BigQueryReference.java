@@ -15,7 +15,7 @@ class BigQueryReference {
   private final String resourceName;
 
   private static final Pattern PROJECT_PATTERN = Pattern.compile("[a-zA-Z0-9\\.\\-\\:]+");
-  private static final Pattern DATASET_PATTERN = Pattern.compile("[a-zA-Z_][a-zA-Z0-9\\_]+");
+  private static final Pattern DATASET_PATTERN = Pattern.compile("[a-zA-Z_][a-zA-Z0-9\\_]*");
   private static final Pattern RESOURCE_PATTERN = Pattern.compile("[a-zA-Z0-9\\_]+");
 
   public BigQueryReference(String projectId, String datasetId, String resourceName) {
