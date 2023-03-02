@@ -16,10 +16,12 @@
 import argparse
 from datetime import datetime
 import logging
+import json
 import random
 
 from apache_beam import DoFn, GroupByKey, io, ParDo, Pipeline, \
-    PTransform, WindowInto, WithKeys
+    PTransform, WindowInto, WithKeys, Map
+from apache_beam.io import fileio
 from apache_beam.options.pipeline_options import PipelineOptions
 from apache_beam.transforms.window import FixedWindows
 
@@ -54,6 +56,7 @@ class GroupMessagesByFixedWindows(PTransform):
             # window must fit memory for this. If not, you need to use \
             # `beam.util.BatchElements`.
             | "Group by key" >> GroupByKey()
+            | "Drop shard key after grouping" >> Map(lambda element: element[1])
         )
 
 
@@ -85,26 +88,6 @@ class ParseXML(DoFn):
             yield {"tags": allTags, "text": allTagsText}
         except Exception as e:
             yield {"error": str(e), "raw_contents": message_body}
-
-
-class WriteToGCS(DoFn):
-    def __init__(self, output_path):
-        self.output_path = output_path
-
-    def process(self, key_value, window=DoFn.WindowParam):
-        """Write messages in a batch to Google Cloud Storage."""
-
-        ts_format = "%H:%M"
-        window_start = window.start.to_utc_datetime().strftime(ts_format)
-        window_end = window.end.to_utc_datetime().strftime(ts_format)
-        shard_id, parsed_payload = key_value
-        filename = "{0}streaming_data-{1}-{2}-{3}.txt".format(self.output_path,
-                                                              window_start,
-                                                              window_end,
-                                                              str(shard_id))
-
-        with io.gcsio.GcsIO().open(filename=filename, mode="w") as f:
-            f.write(f"{parsed_payload}\n".encode("utf-8"))
 
 
 def run(project_id,
@@ -148,7 +131,8 @@ def run(project_id,
             | "Parse XML tags and attributes" >> ParDo(ParseXML())
             | "Window into" >> GroupMessagesByFixedWindows(window_size,
                                                            num_shards)
-            | "Write to GCS" >> ParDo(WriteToGCS(output_path))
+            | "Serialize" >> Map(json.dumps, indent = 2)
+            | "Write to GCS" >> fileio.WriteToFiles(path=output_path, shards=0)
         )
 
 
