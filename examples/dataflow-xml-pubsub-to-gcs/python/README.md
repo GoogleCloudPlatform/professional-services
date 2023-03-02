@@ -125,7 +125,7 @@ python beamPubSubXml2Gcs.py \
 --input_topic_id $TOPIC_ID \
 --runner RUNNER \
 --window_size WINDOW_SIZE \
---output_path "gs://$BUCKET_NAME/output_location/" \
+--output_path "gs://$BUCKET_NAME/" \
 --num_shards NUM_SHARDS
 ```
 For example:
@@ -135,7 +135,7 @@ python beamPubSubXml2Gcs.py \
 --input_topic_id $TOPIC_ID \
 --runner DataflowRunner \
 --window_size 1.0 \
---gcs_path "gs://$BUCKET_NAME/output_location/" \
+--gcs_path gs://$BUCKET_NAME/ \
 --num_shards 2
 ```
 
