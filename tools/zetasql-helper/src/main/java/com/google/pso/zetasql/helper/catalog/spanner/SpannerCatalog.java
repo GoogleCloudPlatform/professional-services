@@ -89,6 +89,12 @@ public class SpannerCatalog implements CatalogWrapper {
 
   @Override
   public void register(SimpleTable table, CreateMode createMode, CreateScope createScope) {
+    String tableName = table.getName();
+
+    if(tableName.contains(".")) {
+      throw new InvalidSpannerTableName(tableName);
+    }
+
     CatalogOperations.createTableInCatalog(
         this.catalog,
         List.of(List.of(table.getName())),
@@ -122,18 +128,14 @@ public class SpannerCatalog implements CatalogWrapper {
   }
 
   @Override
-  public void addTables(List<List<String>> tablePaths) {
-    List<String> tableNames = tablePaths
+  public void addTables(List<String> tableNames) {
+    tableNames
         .stream()
-        .map(tablePath -> {
-          // Spanner tables paths should only have table name
-          if(tablePath.size() > 1) {
-            throw new InvalidSpannerTableName(String.join(".", tablePath));
-          }
-
-          return tablePath.get(0);
-        })
-        .collect(Collectors.toList());
+        .filter(tableName -> tableName.contains("."))
+        .findAny()
+        .ifPresent(invalidTableName -> {
+          throw new InvalidSpannerTableName(invalidTableName);
+        });
 
     this.spannerResourceProvider
         .getTables(tableNames)
@@ -151,18 +153,18 @@ public class SpannerCatalog implements CatalogWrapper {
   }
 
   @Override
-  public void addFunctions(List<List<String>> functionPaths) {
-    throw new UnsupportedOperationException("Unimplemented");
+  public void addFunctions(List<String> functions) {
+    throw new UnsupportedOperationException("Cloud Spanner does not support UDFs");
   }
 
   @Override
-  public void addTVFs(List<List<String>> functionPaths) {
-    throw new UnsupportedOperationException("Unimplemented");
+  public void addTVFs(List<String> functions) {
+    throw new UnsupportedOperationException("Cloud Spanner does not support TVFs");
   }
 
   @Override
-  public void addProcedures(List<List<String>> procedurePaths) {
-    throw new UnsupportedOperationException("Unimplemented");
+  public void addProcedures(List<String> procedures) {
+    throw new UnsupportedOperationException("Cloud Spanner does not support procedures");
   }
 
   @Override

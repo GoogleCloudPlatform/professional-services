@@ -87,22 +87,22 @@ public class BasicCatalogWrapper implements CatalogWrapper {
   }
 
   @Override
-  public void addTables(List<List<String>> tablePaths) {
+  public void addTables(List<String> tables) {
     throw new UnsupportedOperationException("The BasicCatalogWrapper cannot add tables by name");
   }
 
   @Override
-  public void addFunctions(List<List<String>> functionPaths) {
+  public void addFunctions(List<String> functions) {
     throw new UnsupportedOperationException("The BasicCatalogWrapper cannot add functions by name");
   }
 
   @Override
-  public void addTVFs(List<List<String>> functionPaths) {
+  public void addTVFs(List<String> functions) {
     throw new UnsupportedOperationException("The BasicCatalogWrapper cannot add TVFs by name");
   }
 
   @Override
-  public void addProcedures(List<List<String>> procedurePaths) {
+  public void addProcedures(List<String> procedures) {
     throw new UnsupportedOperationException(
         "The BasicCatalogWrapper cannot add procedures by name"
     );

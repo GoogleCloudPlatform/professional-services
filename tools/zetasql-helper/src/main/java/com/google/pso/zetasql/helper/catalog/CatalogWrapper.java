@@ -10,6 +10,8 @@ import com.google.zetasql.SimpleTable;
 import com.google.zetasql.resolvedast.ResolvedCreateStatementEnums.CreateMode;
 import com.google.zetasql.resolvedast.ResolvedCreateStatementEnums.CreateScope;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public interface CatalogWrapper {
 
@@ -21,33 +23,36 @@ public interface CatalogWrapper {
 
   void register(ProcedureInfo procedureInfo, CreateMode createMode, CreateScope createScope);
 
-  void addTables(List<List<String>> tablePaths);
+  void addTables(List<String> tables);
 
-  void addFunctions(List<List<String>> functionPaths);
+  void addFunctions(List<String> functions);
 
-  void addTVFs(List<List<String>> functionPaths);
+  void addTVFs(List<String> functions);
 
-  void addProcedures(List<List<String>> procedurePaths);
+  void addProcedures(List<String> procedures);
 
-  default void addTable(List<String> tablePath) {
-    this.addTables(List.of(tablePath));
+  default void addTable(String table) {
+    this.addTables(List.of(table));
   }
 
-  default void addFunction(List<String> functionPath) {
-    this.addFunctions(List.of(functionPath));
+  default void addFunction(String function) {
+    this.addFunctions(List.of(function));
   }
 
-  default void addTVF(List<String> functionPath) {
-    this.addTVFs(List.of(functionPath));
+  default void addTVF(String function) {
+    this.addTVFs(List.of(function));
   }
 
-  default void addProcedure(List<String> procedurePath) {
-    this.addProcedures(List.of(procedurePath));
+  default void addProcedure(String procedure) {
+    this.addProcedures(List.of(procedure));
   }
 
   default void addAllTablesUsedInQuery(String query, AnalyzerOptions options) {
-    List<List<String>> tablePaths = Analyzer.extractTableNamesFromScript(query, options);
-    this.addTables(tablePaths);
+    Set<String> tables = Analyzer.extractTableNamesFromScript(query, options)
+        .stream()
+        .map(tablePath -> String.join(".", tablePath))
+        .collect(Collectors.toSet());
+    this.addTables(List.copyOf(tables));
   }
 
   CatalogWrapper copy(boolean deepCopy);

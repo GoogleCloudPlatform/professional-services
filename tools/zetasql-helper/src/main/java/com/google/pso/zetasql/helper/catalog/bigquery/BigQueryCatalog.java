@@ -224,12 +224,7 @@ public class BigQueryCatalog implements CatalogWrapper {
   }
 
   @Override
-  public void addTables(List<List<String>> tablePaths) {
-    List<String> tableReferences = tablePaths
-        .stream()
-        .map(tablePath -> String.join(".", tablePath))
-        .collect(Collectors.toList());
-
+  public void addTables(List<String> tableReferences) {
     this.bigQueryResourceProvider
         .getTables(this.defaultProjectId, tableReferences)
         .forEach(table -> this.register(
@@ -254,12 +249,7 @@ public class BigQueryCatalog implements CatalogWrapper {
   }
 
   @Override
-  public void addFunctions(List<List<String>> functionPaths) {
-    List<String> functionReferences = functionPaths
-        .stream()
-        .map(functionPath -> String.join(".", functionPath))
-        .collect(Collectors.toList());
-
+  public void addFunctions(List<String> functionReferences) {
     this.bigQueryResourceProvider
         .getFunctions(this.defaultProjectId, functionReferences)
         .forEach(function -> this.register(
@@ -284,12 +274,7 @@ public class BigQueryCatalog implements CatalogWrapper {
   }
 
   @Override
-  public void addTVFs(List<List<String>> functionPaths) {
-    List<String> functionReferences = functionPaths
-        .stream()
-        .map(functionPath -> String.join(".", functionPath))
-        .collect(Collectors.toList());
-
+  public void addTVFs(List<String> functionReferences) {
     this.bigQueryResourceProvider
         .getTVFs(this.defaultProjectId, functionReferences)
         .forEach(tvfInfo -> this.register(
@@ -314,12 +299,7 @@ public class BigQueryCatalog implements CatalogWrapper {
   }
 
   @Override
-  public void addProcedures(List<List<String>> procedurePaths) {
-    List<String> procedureReferences = procedurePaths
-        .stream()
-        .map(functionPath -> String.join(".", functionPath))
-        .collect(Collectors.toList());
-
+  public void addProcedures(List<String> procedureReferences) {
     this.bigQueryResourceProvider
         .getProcedures(this.defaultProjectId, procedureReferences)
         .forEach(procedureInfo -> this.register(
