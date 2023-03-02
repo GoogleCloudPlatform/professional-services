@@ -73,6 +73,21 @@ public class BigQueryCatalog implements CatalogWrapper {
     bigQueryTypeAliases.forEach(catalog::addType);
   }
 
+  private void validateCreateScope(
+      CreateScope scope,
+      List<CreateScope> allowedScopes,
+      String resourceFullName,
+      String resourceType
+  ) {
+    if(!allowedScopes.contains(scope)) {
+      String message = String.format(
+          "Invalid create scope %s for BigQuery %s %s",
+          scope, resourceType, resourceFullName
+      );
+      throw new InvalidBigQueryCreateScope(message, scope, resourceFullName);
+    }
+  }
+
   private List<List<String>> buildCatalogPathsForResource(String referenceStr) {
     BigQueryReference reference = BigQueryReference.from(
         this.defaultProjectId, referenceStr
@@ -107,6 +122,13 @@ public class BigQueryCatalog implements CatalogWrapper {
 
   @Override
   public void register(SimpleTable table, CreateMode createMode, CreateScope createScope) {
+    this.validateCreateScope(
+        createScope,
+        List.of(CreateScope.CREATE_DEFAULT_SCOPE, CreateScope.CREATE_TEMP),
+        table.getFullName(),
+        "table"
+    );
+
     List<List<String>> tablePaths = createScope.equals(CreateScope.CREATE_TEMP)
         ? List.of(List.of(table.getName()))
         : this.buildCatalogPathsForResource(table.getFullName());
@@ -119,6 +141,14 @@ public class BigQueryCatalog implements CatalogWrapper {
   @Override
   public void register(Function function, CreateMode createMode, CreateScope createScope) {
     List<String> functionNamePath = function.getNamePath();
+    String fullName = String.join(".", functionNamePath);
+
+    this.validateCreateScope(
+        createScope,
+        List.of(CreateScope.CREATE_DEFAULT_SCOPE, CreateScope.CREATE_TEMP),
+        fullName,
+        "function"
+    );
 
     List<List<String>> functionPaths = createScope.equals(CreateScope.CREATE_TEMP)
         ? List.of(functionNamePath)
@@ -129,9 +159,16 @@ public class BigQueryCatalog implements CatalogWrapper {
 
   @Override
   public void register(TVFInfo tvfInfo, CreateMode createMode, CreateScope createScope) {
-    List<List<String>> functionPaths = List.of(
-        List.of(String.join(".", tvfInfo.getNamePath()))
+    String fullName = String.join(".", tvfInfo.getNamePath());
+
+    this.validateCreateScope(
+        createScope,
+        List.of(CreateScope.CREATE_DEFAULT_SCOPE),
+        fullName,
+        "TVF"
     );
+
+    List<List<String>> functionPaths = List.of(List.of(fullName));
     CatalogOperations.createTVFInCatalog(this.catalog, functionPaths, tvfInfo, createMode);
   }
 
@@ -141,14 +178,21 @@ public class BigQueryCatalog implements CatalogWrapper {
       CreateMode createMode,
       CreateScope createScope
   ) {
-    BigQueryReference reference = BigQueryReference.from(
-        this.defaultProjectId,
-        String.join(".", procedureInfo.getNamePath())
+    String fullName = String.join(".", procedureInfo.getNamePath());
+
+    this.validateCreateScope(
+        createScope,
+        List.of(CreateScope.CREATE_DEFAULT_SCOPE),
+        fullName,
+        "procedure"
     );
+
+    BigQueryReference reference = BigQueryReference.from(this.defaultProjectId, fullName);
     List<List<String>> procedurePaths = List.of(
         List.of(reference.getFullName()),
         reference.getNamePath()
     );
+
     CatalogOperations.createProcedureInCatalog(
         this.catalog, procedurePaths, procedureInfo, createMode
     );

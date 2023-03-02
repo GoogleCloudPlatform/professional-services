@@ -1,6 +1,5 @@
 package com.google.pso.zetasql.helper.catalog.basic;
 
-import com.google.common.collect.Streams;
 import com.google.pso.zetasql.helper.catalog.CatalogOperations;
 import com.google.pso.zetasql.helper.catalog.CatalogWrapper;
 import com.google.pso.zetasql.helper.catalog.bigquery.ProcedureInfo;
