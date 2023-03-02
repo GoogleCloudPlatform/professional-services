@@ -1,6 +1,8 @@
-package com.google.pso.zetasql.helper.catalog.spanner;
+package com.google.pso.zetasql.helper.catalog.spanner.exceptions;
 
-public class InvalidSpannerTableName extends RuntimeException {
+import com.google.pso.zetasql.helper.catalog.spanner.exceptions.SpannerCatalogException;
+
+public class InvalidSpannerTableName extends SpannerCatalogException {
 
   private final String tableName;
 

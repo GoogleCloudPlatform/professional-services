@@ -5,6 +5,7 @@ import com.google.pso.zetasql.helper.catalog.CatalogOperations;
 import com.google.pso.zetasql.helper.catalog.CatalogWrapper;
 import com.google.pso.zetasql.helper.catalog.bigquery.ProcedureInfo;
 import com.google.pso.zetasql.helper.catalog.bigquery.TVFInfo;
+import com.google.pso.zetasql.helper.catalog.spanner.exceptions.InvalidSpannerTableName;
 import com.google.zetasql.Function;
 import com.google.zetasql.SimpleCatalog;
 import com.google.zetasql.SimpleTable;

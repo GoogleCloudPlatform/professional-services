@@ -1,6 +1,6 @@
-package com.google.pso.zetasql.helper.catalog;
+package com.google.pso.zetasql.helper.catalog.exceptions;
 
-public class CatalogResourceAlreadyExists extends RuntimeException {
+public class CatalogResourceAlreadyExists extends CatalogException {
 
   private final String resourceName;
 

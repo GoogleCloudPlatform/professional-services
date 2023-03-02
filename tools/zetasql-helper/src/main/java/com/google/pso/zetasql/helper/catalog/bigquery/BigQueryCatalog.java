@@ -3,6 +3,7 @@ package com.google.pso.zetasql.helper.catalog.bigquery;
 import com.google.cloud.bigquery.BigQuery;
 import com.google.pso.zetasql.helper.catalog.CatalogOperations;
 import com.google.pso.zetasql.helper.catalog.CatalogWrapper;
+import com.google.pso.zetasql.helper.catalog.bigquery.exceptions.BigQueryCreateError;
 import com.google.zetasql.Function;
 import com.google.zetasql.SimpleCatalog;
 import com.google.zetasql.SimpleTable;

@@ -3,6 +3,7 @@ package com.google.pso.zetasql.helper.catalog.bigquery;
 import com.google.cloud.bigquery.RoutineId;
 import com.google.cloud.bigquery.TableId;
 import com.google.common.collect.ImmutableList;
+import com.google.pso.zetasql.helper.catalog.bigquery.exceptions.InvalidBigQueryReference;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;

@@ -1,4 +1,6 @@
-package com.google.pso.zetasql.helper.catalog.bigquery;
+package com.google.pso.zetasql.helper.catalog.bigquery.exceptions;
+
+import com.google.pso.zetasql.helper.catalog.bigquery.exceptions.BigQueryCatalogException;
 
 public class MissingRoutineReturnType extends BigQueryCatalogException {
 

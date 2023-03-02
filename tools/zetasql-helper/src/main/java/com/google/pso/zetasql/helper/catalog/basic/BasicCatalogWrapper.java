@@ -4,6 +4,7 @@ import com.google.pso.zetasql.helper.catalog.CatalogOperations;
 import com.google.pso.zetasql.helper.catalog.CatalogWrapper;
 import com.google.pso.zetasql.helper.catalog.bigquery.ProcedureInfo;
 import com.google.pso.zetasql.helper.catalog.bigquery.TVFInfo;
+import com.google.pso.zetasql.helper.catalog.exceptions.CatalogException;
 import com.google.zetasql.Function;
 import com.google.zetasql.SimpleCatalog;
 import com.google.zetasql.SimpleTable;
@@ -62,8 +63,7 @@ public class BasicCatalogWrapper implements CatalogWrapper {
   @Override
   public void register(ProcedureInfo procedureInfo, CreateMode createMode, CreateScope createScope) {
     if(procedureInfo.getNamePath().size() > 1) {
-      // TODO: throw a more descriptive exception
-      throw new RuntimeException("Procedure name paths should have a single item");
+      throw new CatalogException("Procedure name paths should have a single item");
     }
 
     List<String> namePath = procedureInfo.getNamePath()

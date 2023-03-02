@@ -1,5 +1,6 @@
-package com.google.pso.zetasql.helper.catalog.bigquery;
+package com.google.pso.zetasql.helper.catalog.bigquery.exceptions;
 
+import com.google.pso.zetasql.helper.catalog.bigquery.exceptions.BigQueryCatalogException;
 import com.google.zetasql.resolvedast.ResolvedCreateStatementEnums.CreateScope;
 
 public class BigQueryCreateError extends BigQueryCatalogException {

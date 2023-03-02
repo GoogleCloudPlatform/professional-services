@@ -11,6 +11,7 @@ import com.google.cloud.bigquery.TableId;
 import com.google.common.collect.ImmutableList;
 import com.google.pso.zetasql.helper.catalog.CatalogOperations;
 import com.google.pso.zetasql.helper.catalog.bigquery.BigQueryService.FetchResult;
+import com.google.pso.zetasql.helper.catalog.bigquery.exceptions.MissingRoutineReturnType;
 import com.google.zetasql.Function;
 import com.google.zetasql.FunctionArgumentType;
 import com.google.zetasql.FunctionArgumentType.FunctionArgumentTypeOptions;

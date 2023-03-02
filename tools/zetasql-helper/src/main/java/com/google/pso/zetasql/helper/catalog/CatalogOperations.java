@@ -18,6 +18,7 @@ package com.google.pso.zetasql.helper.catalog;
 import com.google.common.collect.ImmutableList;
 import com.google.pso.zetasql.helper.catalog.bigquery.ProcedureInfo;
 import com.google.pso.zetasql.helper.catalog.bigquery.TVFInfo;
+import com.google.pso.zetasql.helper.catalog.exceptions.CatalogResourceAlreadyExists;
 import com.google.zetasql.Function;
 import com.google.zetasql.NotFoundException;
 import com.google.zetasql.Procedure;
