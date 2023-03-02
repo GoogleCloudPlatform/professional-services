@@ -20,7 +20,19 @@ import java.nio.charset.Charset
 
 import com.google.cloud.gszutil.Transcoder
 
+/** Default Transcoder
+  * Uses EBCDIC US charset by default.
+  * Obtains charset name from ENCODING environment variable.
+  */
 case object Ebcdic extends Transcoder {
-  override final val charset: Charset = new EBCDIC1()
+  override final val charset: Charset = {
+    sys.env.get("ENCODING") match {
+      case Some(charset) =>
+        System.out.println(s"Using Charset '$charset'")
+        Charset.forName(charset)
+      case None =>
+        new EBCDIC1()
+    }
+  }
   override val SP: Byte = 0x40
 }

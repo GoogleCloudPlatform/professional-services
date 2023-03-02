@@ -27,6 +27,7 @@ case class GsZUtilConfig(
                           projectId: String = "",
                           datasetId: String = "",
                           location: String = "US",
+                          encoding: Option[String] = None,
                           picTCharset: Option[String] = None,
                           timeOutMinutes: Option[Int] = None,
                           keepAliveTimeInSeconds: Option[Int] = None)

@@ -2,9 +2,9 @@ package com.google.cloud.imf.util
 
 import com.google.api.gax.paging.Page
 import com.google.cloud.{Policy, ReadChannel, WriteChannel}
-import com.google.cloud.storage.{Acl, Blob, BlobId, BlobInfo, Bucket, BucketInfo, CopyWriter, HmacKey, PostPolicyV4, ServiceAccount, Storage, StorageBatch, StorageOptions}
+import com.google.cloud.storage.{Acl, Blob, BlobId, BlobInfo, Bucket, BucketInfo, CopyWriter, HmacKey, Notification, NotificationInfo, PostPolicyV4, ServiceAccount, Storage, StorageBatch, StorageOptions}
 
-import java.io.InputStream
+import java.io.{InputStream, OutputStream}
 import java.net.URL
 import java.nio.file.Path
 import java.{lang, util}
@@ -159,4 +159,22 @@ class StorageWithRetries(storage: Storage, override val retriesCount: Int, overr
   override def getServiceAccount(projectId: String): ServiceAccount = storage.getServiceAccount(projectId)
 
   override def getOptions: StorageOptions = storage.getOptions
+
+  override def downloadTo(blob: BlobId, path: Path, options: Storage.BlobSourceOption*): Unit =
+    storage.downloadTo(blob,path,options:_*)
+
+  override def downloadTo(blob: BlobId, outputStream: OutputStream, options: Storage.BlobSourceOption*): Unit =
+    storage.downloadTo(blob, outputStream, options:_*)
+
+  override def createNotification(bucket: String, notificationInfo: NotificationInfo): Notification =
+    storage.createNotification(bucket, notificationInfo)
+
+  override def getNotification(bucket: String, notificationId: String): Notification =
+    storage.getNotification(bucket, notificationId)
+
+  override def listNotifications(bucket: String): util.List[Notification] =
+    storage.listNotifications(bucket)
+
+  override def deleteNotification(bucket: String, notificationId: String): Boolean =
+    storage.deleteNotification(bucket, notificationId)
 }

@@ -15,7 +15,7 @@ The Terraform code included in this example creates the following resources:
 * A Pub/Sub topic where the subnet change events will be published by the log sink or the inventory feed.
 * A Cloud Function that listens to subnet change notifications and makes sure VPC flow logs are activated.
 * If configured to do so, it will create the log sinks that will send notifications each time a subnet is modified.
-* If configured to do so, it will create two shell scripts for creating and deleting the asset inventory feeds (not yet supported by terraform).
+* If configured to do so, it will create the asset inventory feeds that will send notifications each time a subnet is modified.
 * Creates all the necessary permissions:
   * For the Cloud Function to be able to modify the subnets under the folders being monitored.
   * For the log sink service accounts to publish notifications in the Pub Sub topic.

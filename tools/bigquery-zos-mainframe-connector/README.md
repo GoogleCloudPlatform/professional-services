@@ -105,7 +105,7 @@ Check the [Using with BigQuery](./USING_WITH_BQ.md) guide.
 ## Installation
 
 ### JCL Procedure Installation
-The BQSH file found in the root of the repository is deployed to a PROCLIB dataset. Administrators should modify the Java classpath if they intend to use a path other than the default.
+[BQSH](./gszutil/proclib/BQSH) is a JCL procedure that launches the mainframe connector java process within a z/OS batch job. Check the Java classpath within the file and ensure it's correct for your site, then copy BQSH into a proclib on z/OS. BQSH can now be used from a JCL step using `EXEC BQSH`.
 
 ### TCPIP.DATA Configuration for VPC-SC
 
@@ -114,12 +114,13 @@ Either userid.ETC.IPNODES or userid.HOSTS.LOCAL may be installed as hosts file t
 The sample file userid.TCPIP.DATA is deployed to configure DNS to use the hosts file entries.
 
 
+### Building from Source
+There are four proprietary IBM java libraries that cannot be distributed with this repository. These libraries are provided by IBM with the JVM that comes installed on z/OS. For convenience, a `jzos-shim` package has been added to this repository so that users can compile without needing the IBM jars to compile against. To build with the IBM jars, ftp `ibmjzos.jar`, `ibmjcecca.jar`, `isfjcall.jar` and `dataaccess.jar` from `/usr/lpp/java/J8.0/lib/ext` (or the JVM install location at your site) to a new folder `gszutil/lib` and edit `gszutil/build.sbt` to comment out library dependency line for `jzos-shim` (`"com.google.cloud.imf" %% "jzos-shim" % "0.1" % Provided,`).
+
+
 ### Application Jar Deployment
 
-The application is deployed as two jar files.
-gszutil.jar contains the application code.
-gszutil.dep.jar contains dependencies.
-These two jar files must be copied to the path specified in the Java Classpath section of the BQSH Procedure.
+`sbt assembly` is used to create a single jar for simplified deployment of the mainframe connector. Simply copy the assembly jar (roughly 80 MB) to the z/OS unix filesystem. Edit the the `BQSH` jcl procedure to add the deployment path to the java classpath environment variable.
 
 ## Running on GCE
 
@@ -130,27 +131,26 @@ The gszutil provides a gRPC server and client in order to delegate execution to 
 For more detail see [this section](./gszutil/grecv/README.md).
 
 
-
 ## Test connector locally
 
-Build jar:
+After downloading the repo, build the two libraries followed by the assembly jar:
 ```
-(cd  mainframe-util ; sbt "clean;publishLocal")
-(cd  gszutil ; sbt "clean;assemblyPackageDependency" )
-(cd  gszutil ; export appjar=true ; sbt "assembly" )
+cd professional-services/tools/bigquery-zos-mainframe-connector
+(cd  jzos-shim; sbt publishLocal)
+(cd  mainframe-util; sbt publishLocal)
+(cd  gszutil; sbt assembly)
 ```
 
 Set env variables and run BQSH main class:
 ```
 cd ./gszutil/target/scala-2.13
-export COPYBOOK="./gszutil/src/test/resources/exportCopybook.txt"
-export INFILE_DSN="./gszutil/src/test/resources/mload1.dat"
+export COPYBOOK="../../src/test/resources/exportCopybook.txt"
+export INFILE_DSN="../../src/test/resources/mload1.dat"
 export INFILE_LRECL=111
 export INFILE_BLKSIZE=1110
 
 java -cp './*' com.google.cloud.bqsh.Bqsh 
 ```
-
 
 Input the following command through stdin
 ```
@@ -159,11 +159,12 @@ gsutil cp --replace --pic_t_charset="UTF-8" --remote=false gs://<my-bucket>/tabl
 
 ## Test server - client locally
 
-Build jar:
+After downloading the repo, build jar:
 ```
-(cd  mainframe-util ; sbt "clean;publishLocal")
-(cd  gszutil ; sbt "clean;assemblyPackageDependency" )
-(cd  gszutil ; export appjar=true ; sbt "assembly" )
+cd professional-services/tools/bigquery-zos-mainframe-connector
+(cd  jzos-shim; sbt publishLocal)
+(cd  mainframe-util; sbt publishLocal)
+(cd  gszutil; sbt assemblyPackageDependency; sbt package)
 ```
 
 Start server locally:

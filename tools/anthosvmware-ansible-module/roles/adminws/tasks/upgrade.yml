@@ -1,0 +1,158 @@
+# Copyright 2022 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+- name: "[adminws] Block - Copy/delete GCP SA JSON key files, download gkeadm, upgrade workstation"
+  block:
+
+    - name: "[adminws] Include role for GCP SA JSON key files"
+      ansible.builtin.include_role:
+        name: copy_credentials
+      vars:
+        is_admin_workstation: true
+
+    - name: "[adminws] Templating YAML files - config"
+      ansible.builtin.template:
+        src: admin-ws-config.yaml.j2
+        dest: "{{ yamldestpath }}/admin-ws-config-{{ adminws_name }}.yaml"
+        mode: 0600
+
+    - name: "[adminws] Switch to Component Access Service Account"
+      ansible.builtin.command: # noqa 305 301 no-changed-when
+        argv:
+          - gcloud
+          - auth
+          - activate-service-account
+          - --key-file
+          - "{{ job_sakeyfolder }}/{{ component_access_gcpsa_path }}"
+
+    - name: "[adminws] gkeadm upgrade check status file"
+      ansible.builtin.stat:
+        path: "{{ yamldestpath }}/gkeadm-{{ glb_anthos_version }}-download-status"
+      register: download_gkeadm_check_file
+
+    - name: "[adminws] Download new gkeadm binary from private location"
+      ansible.builtin.get_url:
+        url: "{{ private_download_base }}/anthos/{{ glb_anthos_version }}/gkeadm-{{ glb_anthos_version }}"
+        headers:
+          Authorization: "{{ private_download_auth_header }}"
+        dest: "{{ yamldestpath }}/gkeadm-{{ glb_anthos_version }}"
+        mode: 0600
+      when: is_private_download|bool
+
+    - name: "[adminws] Create versioned gkeadm binary"
+      ansible.builtin.copy:
+        src: "{{ yamldestpath }}/gkeadm"
+        dest: "{{ yamldestpath }}/gkeadm-{{ glb_anthos_version }}"
+        remote_src: true
+        mode: 0775
+      when:
+        - not (is_private_download|bool)
+        - not download_gkeadm_check_file.stat.exists
+
+    - name: "[adminws] Update gkeadm binary from public location"
+      ansible.builtin.command: # noqa 204
+        chdir: "{{ yamldestpath }}"
+        argv: "{{ _argv }}"
+      vars:
+        _req_args:
+          - "{{ yamldestpath }}/gkeadm-{{ glb_anthos_version }}"
+          - upgrade
+          - gkeadm
+          - --target-version
+          - "{{ glb_anthos_version }}"
+          - --config
+          - "admin-ws-config-{{ adminws_name }}.yaml"
+        _skips: "{{ adminws_skipvalidations if adminws_skipvalidations | type_debug == 'list' else (adminws_skipvalidations.split(' ')) }}" # noqa 204
+        _argv: "{{ _req_args + _skips }}"
+      register: gkeadm_upgrade_result
+      when:
+        - not (is_private_download|bool)
+        - not download_gkeadm_check_file.stat.exists
+
+    - name: "[adminws] Copy to generic gkeadm path"
+      ansible.builtin.copy:
+        src: "{{ yamldestpath }}/gkeadm-{{ glb_anthos_version }}"
+        dest: "{{ yamldestpath }}/gkeadm"
+        remote_src: true
+        mode: 0775
+      when: not download_gkeadm_check_file.stat.exists
+
+    - name: "[adminws] gkeadm upgrade results"
+      ansible.builtin.file:
+        path: "{{ yamldestpath }}/gkeadm-{{ glb_anthos_version }}-download-status"
+        state: touch
+        mode: 0600
+      when: gkeadm_upgrade_result.rc | default('') == 0
+
+    - name: "[adminws] adminws upgrade check status file"
+      ansible.builtin.stat:
+        path: "{{ yamldestpath }}/{{ adminws_name }}-{{ glb_anthos_version }}-upgrade-status"
+      register: upgrade_adminws_check_file
+
+    - name: "[adminws] Pre-download admin workstation OVA from private location"
+      ansible.builtin.get_url:
+        url: "{{ private_download_base }}/anthos/{{ glb_anthos_version }}/gke-on-prem-admin-appliance-vsphere-{{ glb_anthos_version }}.ova"
+        headers:
+          Authorization: "{{ private_download_auth_header }}"
+        dest: "{{ yamldestpath }}/gke-on-prem-admin-appliance-vsphere-{{ glb_anthos_version }}.ova"
+        mode: 0600
+      when:
+        - is_private_download|bool
+        - not upgrade_adminws_check_file.stat.exists
+
+    - name: "[adminws] Upgrade AdminWS"
+      ansible.builtin.command: # noqa 204
+        chdir: "{{ yamldestpath }}"
+        argv: "{{ _argv }}"
+      vars:
+        _req_args:
+          - "{{ yamldestpath }}/gkeadm-{{ glb_anthos_version }}"
+          - upgrade
+          - admin-workstation
+          - --config
+          - "admin-ws-config-{{ adminws_name }}.yaml"
+          - --info-file
+          - "{{ adminws_name }}"
+        _skips: "{{ adminws_skipvalidations if adminws_skipvalidations | type_debug == 'list' else (adminws_skipvalidations.split(' ')) }}" # noqa 204
+        _argv: "{{ _req_args + _skips }}"
+      register: adminws_upgrade_result
+      when: not upgrade_adminws_check_file.stat.exists
+
+    - name: "[adminws] adminws upgrade results"
+      ansible.builtin.file:
+        path: "{{ yamldestpath }}/{{ adminws_name }}-{{ glb_anthos_version }}-upgrade-status"
+        state: touch
+        mode: 0600
+      when: adminws_upgrade_result.rc | default('') == 0
+  
+    - name: "[adminws] Send updated status file to server"
+      ansible.builtin.command: # noqa 204
+        argv:
+          - scp
+          - -i
+          - "{{ ssh_auth_key_priv_path }}"
+          - -oStrictHostKeyChecking=no
+          - "{{ yamldestpath }}/{{ adminws_name }}"
+          - ubuntu@{{ adminws_nw_ip }}:{{ adminws_name }}
+
+  environment: # noqa 204
+    PATH: "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:{{ yamldestpath }}/google-cloud-sdk/bin/" # noqa 204
+    http_proxy: "{{ glb_proxyurl }}"
+    https_proxy: "{{ glb_proxyurl }}"
+    no_proxy: "{{ glb_noproxy }}"
+  
+  always:
+    - name: "[adminws] Include role to delete sensitive files"
+      ansible.builtin.include_role:
+        name: cleanup

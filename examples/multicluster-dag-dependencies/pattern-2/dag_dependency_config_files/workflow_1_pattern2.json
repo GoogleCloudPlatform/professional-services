@@ -1,0 +1,17 @@
+{
+    "source_workflow_id": "workflow_1_pattern2",
+	"target": {
+        "on_success" : [
+            {
+              "environment_name": "composer-env-1",
+              "dag_id": "workflow_2_pattern2"
+            }
+            ],
+         "on_failure": [
+            {
+                "environment_name": "composer-env-1",
+                "dag_id": "workflow_on_failure"
+            }
+         ]
+        }
+}

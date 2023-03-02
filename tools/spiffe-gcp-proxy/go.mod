@@ -1,4 +1,4 @@
-module github.com/GoogleCloudPlatform/professional-services/spiffe-gcp-proxy
+module github.com/GoogleCloudPlatform/professional-services/tools/spiffe-gcp-proxy
 
 go 1.17
 

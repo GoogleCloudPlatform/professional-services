@@ -1,0 +1,66 @@
+# Copyright 2022 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+- name: "[labels] End play if gcp_labels is not defined"
+  ansible.builtin.meta: end_play
+  when: not (gcp_labels is defined and (gcp_labels|length > 0))
+
+- name: "Include role for GCP SA JSON key files"
+  ansible.builtin.include_role:
+    name: copy_credentials
+  vars:
+    is_label: true
+
+- name: "[labels] Block - Manage GCP labels" # noqa var-spacing
+  block:
+    - name: "[labels] Set membership details"
+      ansible.builtin.set_fact:
+        target_membership: "{{ ac_name if ac_name is defined else uc_name }}"
+        target_project: "{{ ac_gkeconnect_projectid if ac_gkeconnect_projectid is defined else uc_gkeconnect_projectid }}"
+
+    - name: "[labels] Activate Connect Register SA"
+      ansible.builtin.command: # noqa 305 301 no-changed-when
+        argv:
+          - gcloud
+          - auth
+          - activate-service-account
+          - --key-file
+          - "{{ job_sakeyfolder }}/{{ connect_register_gcpsa_path }}"
+
+    - name: "[labels] Update labels on membership"
+      ansible.builtin.command: # noqa 305 301 no-changed-when
+        argv:
+          - gcloud
+          - container
+          - hub
+          - memberships
+          - update
+          - --location=global
+          - --project={{ target_project }}
+          - "{{ target_membership }}"
+          - --update-labels
+          - "{{ gcp_labels.items() | map('join', '=') | join(',')}}"
+      retries: 5
+      delay: 10
+
+  environment:
+    PATH: "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin"
+    http_proxy: "{{ glb_proxyurl | default('') }}"
+    https_proxy: "{{ glb_proxyurl | default('') }}"
+    no_proxy: "{{ glb_noproxy | default('') }}"
+
+  always:
+    - name: "Include role to delete sensitive files"
+      ansible.builtin.include_role:
+        name: cleanup
