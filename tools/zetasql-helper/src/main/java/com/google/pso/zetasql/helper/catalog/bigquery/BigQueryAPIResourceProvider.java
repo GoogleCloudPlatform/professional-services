@@ -18,10 +18,14 @@ package com.google.pso.zetasql.helper.catalog.bigquery;
 
 import com.google.cloud.bigquery.BigQuery;
 import com.google.cloud.bigquery.BigQueryOptions;
+import com.google.cloud.bigquery.Field;
 import com.google.cloud.bigquery.Routine;
 import com.google.cloud.bigquery.RoutineArgument;
 import com.google.cloud.bigquery.RoutineId;
+import com.google.cloud.bigquery.StandardSQLDataType;
+import com.google.cloud.bigquery.StandardSQLStructType;
 import com.google.cloud.bigquery.StandardSQLTableType;
+import com.google.cloud.bigquery.StandardSQLTypeName;
 import com.google.cloud.bigquery.Table;
 import com.google.cloud.bigquery.TableId;
 import com.google.common.collect.ImmutableList;
@@ -34,6 +38,7 @@ import com.google.zetasql.FunctionArgumentType.FunctionArgumentTypeOptions;
 import com.google.zetasql.FunctionSignature;
 import com.google.zetasql.SimpleColumn;
 import com.google.zetasql.SimpleTable;
+import com.google.zetasql.StructType.StructField;
 import com.google.zetasql.TVFRelation;
 import com.google.zetasql.Type;
 import com.google.zetasql.TypeFactory;
@@ -60,10 +65,142 @@ public class BigQueryAPIResourceProvider implements BigQueryResourceProvider {
     this.service = new BigQueryService(client);
   }
 
+  /**
+   * Converts a StandardSQLTypeName from the BigQuery API to a ZetaSQL TypeKind.
+   *
+   * @param bigqueryTypeName The StandardSQLTypeName to convert
+   * @return The corresponding ZetaSQL TypeKind
+   */
+  private TypeKind convertBigqueryTypeNameToTypeKind(StandardSQLTypeName bigqueryTypeName) {
+    switch (bigqueryTypeName) {
+      case STRING:
+        return TypeKind.TYPE_STRING;
+      case BYTES:
+        return TypeKind.TYPE_BYTES;
+      case INT64:
+        return TypeKind.TYPE_INT64;
+      case FLOAT64:
+        return TypeKind.TYPE_FLOAT;
+      case NUMERIC:
+        return TypeKind.TYPE_NUMERIC;
+      case BIGNUMERIC:
+        return TypeKind.TYPE_BIGNUMERIC;
+      case INTERVAL:
+        return TypeKind.TYPE_INTERVAL;
+      case BOOL:
+        return TypeKind.TYPE_BOOL;
+      case TIMESTAMP:
+        return TypeKind.TYPE_TIMESTAMP;
+      case DATE:
+        return TypeKind.TYPE_DATE;
+      case TIME:
+        return TypeKind.TYPE_TIME;
+      case DATETIME:
+        return TypeKind.TYPE_DATETIME;
+      case GEOGRAPHY:
+        return TypeKind.TYPE_GEOGRAPHY;
+      default:
+        return TypeKind.TYPE_UNKNOWN;
+    }
+  }
+
+  /**
+   * Extract the ZetaSQL Type from a BigQuery API table field.
+   *
+   * @param field The field from which to extract the ZetaSQL type
+   * @return The extracted ZetaSQL type
+   */
+  private Type extractTypeFromBigQueryTableField(Field field) {
+    Type fieldType;
+    StandardSQLTypeName type = field.getType().getStandardType();
+    Field.Mode mode = Optional.ofNullable(field.getMode()).orElse(Field.Mode.NULLABLE);
+
+    if (type.equals(StandardSQLTypeName.STRUCT)) {
+      List<StructField> fields =
+          field.getSubFields().stream()
+              .map(
+                  subField -> {
+                    Type recordFieldType = this.extractTypeFromBigQueryTableField(subField);
+                    return new StructField(subField.getName(), recordFieldType);
+                  })
+              .collect(Collectors.toList());
+
+      fieldType = TypeFactory.createStructType(fields);
+    } else {
+      fieldType = TypeFactory.createSimpleType(this.convertBigqueryTypeNameToTypeKind(type));
+    }
+
+    if (mode.equals(Field.Mode.REPEATED)) {
+      return TypeFactory.createArrayType(fieldType);
+    }
+
+    return fieldType;
+  }
+
+  /**
+   * Extract the ZetaSQL columns from a BigQuery API table.
+   *
+   * @param table The table from which to extract the ZetaSQL columns
+   * @return The extracted ZetaSQL columns
+   */
+  private List<SimpleColumn> extractColumnsFromBigQueryTable(Table table) {
+    TableId tableId = table.getTableId();
+
+    return table.getDefinition()
+        .getSchema()
+        .getFields()
+        .stream()
+        .map(field -> new SimpleColumn(
+            tableId.getTable(),
+            field.getName(),
+            this.extractTypeFromBigQueryTableField(field)
+        ))
+        .collect(Collectors.toList());
+  }
+
+  /**
+   * Converts a StandardSQLDataType from the BigQuery API into a ZetaSQL Type.
+   *
+   * @param bigqueryDataType The StandardSQLDataType to convert
+   * @return The corresponding ZetaSQL type
+   */
+  private Type convertBigQueryDataTypeToZetaSQLType(StandardSQLDataType bigqueryDataType) {
+    if(bigqueryDataType == null) {
+      return TypeFactory.createSimpleType(TypeKind.TYPE_UNKNOWN);
+    }
+
+    String typeKind = bigqueryDataType.getTypeKind();
+
+    if(typeKind.equals("ARRAY")) {
+      StandardSQLDataType arrayElementType = bigqueryDataType.getArrayElementType();
+      Type zetaSQLArrayType = this.convertBigQueryDataTypeToZetaSQLType(arrayElementType);
+      return TypeFactory.createArrayType(zetaSQLArrayType);
+    }
+
+    if(typeKind.equals("STRUCT")) {
+      StandardSQLStructType structType = bigqueryDataType.getStructType();
+      List<StructField> structFields = structType
+          .getFields()
+          .stream()
+          .map(field ->
+              new StructField(
+                  field.getName(),
+                  this.convertBigQueryDataTypeToZetaSQLType(field.getDataType())
+              )
+          )
+          .collect(Collectors.toList());
+      return TypeFactory.createStructType(structFields);
+    }
+
+    StandardSQLTypeName typeName = StandardSQLTypeName.valueOf(typeKind);
+    TypeKind zetaSQLTypeKind = this.convertBigqueryTypeNameToTypeKind(typeName);
+    return TypeFactory.createSimpleType(zetaSQLTypeKind);
+  }
+
   private SimpleTable buildSimpleTable(Table table) {
     TableId tableId = table.getTableId();
     String fullTableName = BigQueryReference.from(tableId).getFullName();
-    List<SimpleColumn> columns = BigQuerySchemaConverter.extractTableColumns(table);
+    List<SimpleColumn> columns = this.extractColumnsFromBigQueryTable(table);
     return CatalogOperations.buildSimpleTable(fullTableName, columns);
   }
 
@@ -147,9 +284,7 @@ public class BigQueryAPIResourceProvider implements BigQueryResourceProvider {
   }
 
   private FunctionArgumentType parseRoutineArgument(RoutineArgument argument) {
-    Type zetaSqlDataType = BigQuerySchemaConverter.convertStandardSQLType(
-        argument.getDataType()
-    );
+    Type zetaSqlDataType = this.convertBigQueryDataTypeToZetaSQLType(argument.getDataType());
 
     ProcedureArgumentMode procedureArgumentMode = argument.getMode() == null
         ? ProcedureArgumentMode.NOT_SET
@@ -180,7 +315,7 @@ public class BigQueryAPIResourceProvider implements BigQueryResourceProvider {
         .getColumns()
         .stream()
         .map(field -> {
-          Type type = BigQuerySchemaConverter.convertStandardSQLType(field.getDataType());
+          Type type = this.convertBigQueryDataTypeToZetaSQLType(field.getDataType());
           return TVFRelation.Column.create(field.getName(), type);
         })
         .collect(Collectors.toList());
@@ -198,7 +333,7 @@ public class BigQueryAPIResourceProvider implements BigQueryResourceProvider {
 
     List<FunctionArgumentType> arguments = this.parseRoutineArguments(routine.getArguments());
     FunctionArgumentType returnType = new FunctionArgumentType(
-        BigQuerySchemaConverter.convertStandardSQLType(
+        this.convertBigQueryDataTypeToZetaSQLType(
             routine.getReturnType()
         )
     );
