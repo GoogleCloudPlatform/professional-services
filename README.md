@@ -51,6 +51,10 @@ them to fit your particular use case.
     such as adding partitioning, clustering, metadata columns and prefixes to table names.
 *   [BigQuery Pipeline Utility](tools/bqpipeline) - Python utility class for
     defining data pipelines in BigQuery.
+*   [BigQuery Remote Function](examples/bq-remote-function) - It allows user to implement custom
+    services or libraries in languages other than SQL or Javascript which are not part of UDFs.
+    The utility contains sample string format Java code to deploy cloud run gen2 instance and invoke 
+    the service from BigQuery using remote function.
 *   [BigQuery Snowflake Table Migration Tool](examples/bigquery-snowflake-tables-migration-utility) - 
     BigQuery Snowflake Table Migration Tool helps to migrate the table DDL's from Snowflake to BigQuery.
     The utility leverages BigQuery Translation API and offers additional features
@@ -152,6 +156,8 @@ them to fit your particular use case.
 *   [Dataflow Streaming Schema Changes Handler](examples/dataflow-streaming-schema-handler) -
     Dataflow example to handle schema changes using schema enforcement and DLT
     approach
+*   [Dataflow Streaming XML to GCS](examples/dataflow-xml-pubsub-to-gcs) -
+    Dataflow example to handle streaming of xml encoded messages and write them to Google Cloud Storage
 *   [Dataflow DLP Hashpipeline](examples/dataflow-dlp-hash-pipeline) - Match DLP
     Social Security Number findings against a hashed dictionary in Firestore.
     Use Secret Manager for the hash key.
