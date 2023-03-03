@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Copyright 2022 Google LLC
+# Copyright 2023 Google LLC
 
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -27,28 +27,30 @@ logger = logging.getLogger(__name__)
 
 def track_case(channel_id, channel_name, case, user_id):
     """
-    Add a Google Cloud support case to the tracked_cases collection in Firestore. If the
-    case can't be found in the list of active support cases, notify the user.
+    Add a Google Cloud support case to the tracked_cases collection in
+    Firestore. If the case can"t be found in the list of active support cases,
+    notify the user.
 
     Parameters
     ----------
     channel_id : str
-        unique string used to idenify a Slack channel. Used to send messages to the channel
+      unique string used to idenify a Slack channel. Used to send messages to
+      the channel
     channel_name : str
-        designated channel name of the channel. For users to understand where their
-        cases are being tracked in Slack
+      designated channel name of the channel. For users to understand where
+      their cases are being tracked in Slack
     case : str
-        unique id of the case
+      unique id of the case
     user_id : str
-        the Slack user_id of the user who submitted the request. Used to send ephemeral
-        messages to the user
+      the Slack user_id of the user who submitted the request. Used to send
+      ephemeral messages to the user
     """
-    client = slack.WebClient(token=os.environ.get('SLACK_TOKEN'))
-    collection = 'tracked_cases'
+    client = slack.WebClient(token=os.environ.get("SLACK_TOKEN"))
+    collection = "tracked_cases"
     parent = get_parent(case)
     tracked_cases = get_firestore_tracked_cases()
 
-    if parent == 'Case not found':
+    if parent == "Case not found":
         case_not_found(channel_id, user_id, case)
     else:
         tracker = {
@@ -61,7 +63,7 @@ def track_case(channel_id, channel_name, case, user_id):
 
         for tracked_case in tracked_cases:
             tc = tracked_case
-            if tc['channel_id'] == channel_id and tc['case'] == case:
+            if tc["channel_id"] == channel_id and tc["case"] == case:
                 exists = True
                 break
 
@@ -78,9 +80,8 @@ def track_case(channel_id, channel_name, case, user_id):
 
 
 if __name__ == "__main__":
-    channel_id = os.environ.get('TEST_CHANNEL_ID')
-    channel_name = os.environ.get('TEST_CHANNEL_NAME')
-    case = os.environ.get('TEST_CASE')
-    user_id = os.environ.get('TEST_USER_ID')
-    track_case(channel_id, channel_name, case, user_id)
-    track_case(channel_id, channel_name, case, user_id)
+    test_channel_id = os.environ.get("TEST_CHANNEL_ID")
+    test_channel_name = os.environ.get("TEST_CHANNEL_NAME")
+    test_case = os.environ.get("TEST_CASE")
+    test_user_id = os.environ.get("TEST_USER_ID")
+    track_case(test_channel_id, test_channel_name, test_case, test_user_id)

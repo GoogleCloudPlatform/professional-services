@@ -357,17 +357,17 @@ func GetRoutingDomainFromDB(id int64) (*RoutingDomain, error) {
 
 func UpdateRoutingDomainOnDb(id int64, name JSONString, vpcs JSONStringArray) error {
 	if name.Set && vpcs.Set {
-		_, err := db.Query("UPDATE routing_domains SET name = ?, vpcs = ? WHERE routing_domain_id = ?", id, name.Value, strings.Join(vpcs.Value, ","))
+		_, err := db.Query("UPDATE routing_domains SET name = ?, vpcs = ? WHERE routing_domain_id = ?", name.Value, strings.Join(vpcs.Value, ","), id)
 		if err != nil {
 			return err
 		}
 	} else if vpcs.Set {
-		_, err := db.Query("UPDATE routing_domains SET vpcs = ? WHERE routing_domain_id = ?", id, strings.Join(vpcs.Value, ","))
+		_, err := db.Query("UPDATE routing_domains SET vpcs = ? WHERE routing_domain_id = ?", strings.Join(vpcs.Value, ","), id)
 		if err != nil {
 			return err
 		}
 	} else if name.Set {
-		_, err := db.Query("UPDATE routing_domains SET name = ? WHERE routing_domain_id = ?", id, name.Value)
+		_, err := db.Query("UPDATE routing_domains SET name = ? WHERE routing_domain_id = ?", name.Value, id)
 		if err != nil {
 			return err
 		}
