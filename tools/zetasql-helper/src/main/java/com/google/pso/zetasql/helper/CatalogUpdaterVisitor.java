@@ -34,11 +34,15 @@ import com.google.zetasql.resolvedast.ResolvedCreateStatementEnums.CreateMode;
 import com.google.zetasql.resolvedast.ResolvedCreateStatementEnums.CreateScope;
 import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedCreateExternalTableStmt;
 import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedCreateFunctionStmt;
+import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedCreateMaterializedViewStmt;
 import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedCreateProcedureStmt;
 import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedCreateTableAsSelectStmt;
 import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedCreateTableFunctionStmt;
 import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedCreateTableStmt;
 import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedCreateTableStmtBase;
+import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedCreateViewBase;
+import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedCreateViewStmt;
+import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedOutputColumn;
 import com.google.zetasql.resolvedast.ResolvedNodes.Visitor;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -50,6 +54,8 @@ import java.util.stream.Collectors;
  *   <li> ResolvedCrateTableStmt
  *   <li> ResolvedCreateTableAsSelectStmt
  *   <li> ResolvedCreateExternalTableStmt
+ *   <li> ResolvedCreateViewStmt
+ *   <li> ResolvedCreateMaterializedViewStmt
  *   <li> ResolvedCreateFunctionStmt
  *   <li> ResolvedCreateTableFunctionStmt
  *   <li> ResolvedCreateProcedureStmt
@@ -68,13 +74,18 @@ class CatalogUpdaterVisitor extends Visitor {
     this.catalog = catalog;
   }
 
-  private List<SimpleColumn> extractColumnsFromCreateTableStmt(
-      ResolvedCreateTableStmtBase resolvedCreateTableStmtBase) {
+  /**
+   * Creates the ZetaSQL columns associated to a ResolvedCreateTableStmtBase
+   *
+   * @param createTableStmtBase The analyzed statement from which to get the columns
+   */
+  private List<SimpleColumn> getColumnsFromCreateTableStmt(
+      ResolvedCreateTableStmtBase createTableStmtBase) {
 
-    List<String> tableNamePath = resolvedCreateTableStmtBase.getNamePath();
+    List<String> tableNamePath = createTableStmtBase.getNamePath();
     String tableName = tableNamePath.get(tableNamePath.size() - 1);
 
-    return resolvedCreateTableStmtBase
+    return createTableStmtBase
         .getColumnDefinitionList()
         .stream()
         .map(definition -> new SimpleColumn(
@@ -83,8 +94,13 @@ class CatalogUpdaterVisitor extends Visitor {
         .collect(Collectors.toList());
   }
 
+  /**
+   * Creates the table associated with a ResolvedCreateTableStmtBase node in the catalog.
+   *
+   * @param createTableStmtBase The analyzed statement to create the table from
+   */
   private void visitCreateTableBase(ResolvedCreateTableStmtBase createTableStmtBase) {
-    List<SimpleColumn> columns = extractColumnsFromCreateTableStmt(createTableStmtBase);
+    List<SimpleColumn> columns = this.getColumnsFromCreateTableStmt(createTableStmtBase);
     SimpleTable table = CatalogOperations.buildSimpleTable(
         String.join(".", createTableStmtBase.getNamePath()),
         columns
@@ -124,6 +140,64 @@ class CatalogUpdaterVisitor extends Visitor {
   @Override
   public void visit(ResolvedCreateExternalTableStmt createExternalTableStmt) {
     this.visitCreateTableBase(createExternalTableStmt);
+  }
+
+  /**
+   * Creates the ZetaSQL columns associated to a ResolvedCreateViewBase statement
+   *
+   * @param createViewBase The analyzed statement from which to get the columns
+   */
+  private List<SimpleColumn> getColumnsFromCreateViewBase(ResolvedCreateViewBase createViewBase) {
+
+    List<String> tableNamePath = createViewBase.getNamePath();
+    String tableName = tableNamePath.get(tableNamePath.size() - 1);
+
+    return createViewBase
+        .getOutputColumnList()
+        .stream()
+        .map(ResolvedOutputColumn::getColumn)
+        .map(definition -> new SimpleColumn(
+            tableName, definition.getName(), definition.getType()
+        ))
+        .collect(Collectors.toList());
+  }
+
+  /**
+   * Creates the table associated with a ResolvedCreateViewBase node in the catalog.
+   *
+   * @param createViewBase The analyzed statement to create the table from
+   */
+  private void visitCreateViewBase(ResolvedCreateViewBase createViewBase) {
+    List<SimpleColumn> columns = this.getColumnsFromCreateViewBase(createViewBase);
+    SimpleTable table = CatalogOperations.buildSimpleTable(
+        String.join(".", createViewBase.getNamePath()),
+        columns
+    );
+
+    CreateMode createMode = createViewBase.getCreateMode();
+    CreateScope createScope = createViewBase.getCreateScope();
+
+    this.catalog.register(table, createMode, createScope);
+  }
+
+  /**
+   * Visits a ResolvedCreateViewStmt and creates the table in the catalog.
+   *
+   * @param createViewStmt The analyzed statement to create the table from
+   */
+  @Override
+  public void visit(ResolvedCreateViewStmt createViewStmt) {
+    this.visitCreateViewBase(createViewStmt);
+  }
+
+  /**
+   * Visits a ResolvedCreateMaterializedViewStmt and creates the table in the catalog.
+   *
+   * @param createMaterializedViewStmt The analyzed statement to create the table from
+   */
+  @Override
+  public void visit(ResolvedCreateMaterializedViewStmt createMaterializedViewStmt) {
+    this.visitCreateViewBase(createMaterializedViewStmt);
   }
 
   /**
