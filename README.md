@@ -156,6 +156,8 @@ them to fit your particular use case.
 *   [Dataflow Streaming Schema Changes Handler](examples/dataflow-streaming-schema-handler) -
     Dataflow example to handle schema changes using schema enforcement and DLT
     approach
+*   [Dataflow Streaming XML to GCS](examples/dataflow-xml-pubsub-to-gcs) -
+    Dataflow example to handle streaming of xml encoded messages and write them to Google Cloud Storage
 *   [Dataflow DLP Hashpipeline](examples/dataflow-dlp-hash-pipeline) - Match DLP
     Social Security Number findings against a hashed dictionary in Firestore.
     Use Secret Manager for the hash key.
