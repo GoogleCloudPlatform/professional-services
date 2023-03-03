@@ -22,11 +22,6 @@ and in case of failure, sends back error messages.
 
 ### Deployment Steps on Cloud Run:
 
-###
-
-[<img src="https://storage.googleapis.com/cloudrun/button.svg" alt="Run on Google Cloud" height="30">][run_button_helloworld]
-
-###
 
 1. Set Environment variables:
     ```
