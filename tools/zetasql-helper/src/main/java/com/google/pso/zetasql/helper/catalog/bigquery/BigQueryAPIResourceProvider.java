@@ -30,7 +30,7 @@ import com.google.cloud.bigquery.Table;
 import com.google.cloud.bigquery.TableId;
 import com.google.common.collect.ImmutableList;
 import com.google.pso.zetasql.helper.catalog.CatalogOperations;
-import com.google.pso.zetasql.helper.catalog.bigquery.BigQueryService.FetchResult;
+import com.google.pso.zetasql.helper.catalog.bigquery.BigQueryService.Result;
 import com.google.pso.zetasql.helper.catalog.bigquery.exceptions.MissingRoutineReturnType;
 import com.google.zetasql.Function;
 import com.google.zetasql.FunctionArgumentType;
@@ -207,16 +207,16 @@ public class BigQueryAPIResourceProvider implements BigQueryResourceProvider {
   private <T> List<T> fetchResourcesFromBigQueryService(
       String projectId,
       List<String> resourceReferences,
-      BiFunction<String, String, FetchResult<T>> fetcher
+      BiFunction<String, String, Result<T>> fetcher
   ) {
-    List<FetchResult<T>> tableTries = resourceReferences
+    List<Result<T>> tableTries = resourceReferences
         .stream()
         .map(resourceReference -> fetcher.apply(projectId, resourceReference))
         .collect(Collectors.toList());
 
     tableTries
         .stream()
-        .map(FetchResult::getError)
+        .map(Result::getError)
         .filter(Optional::isPresent)
         .map(Optional::get)
         .findFirst()
@@ -224,7 +224,7 @@ public class BigQueryAPIResourceProvider implements BigQueryResourceProvider {
 
     return tableTries
         .stream()
-        .map(FetchResult::get)
+        .map(Result::asOptional)
         .filter(Optional::isPresent)
         .map(Optional::get)
         .collect(Collectors.toList());
@@ -243,6 +243,7 @@ public class BigQueryAPIResourceProvider implements BigQueryResourceProvider {
   public List<SimpleTable> getAllTablesInDataset(String projectId, String datasetName) {
     List<String> tableReferences = this.service
         .listTables(projectId, datasetName)
+        .get()
         .stream()
         .map(tableId -> String.format(
               "%s.%s.%s",
@@ -260,6 +261,7 @@ public class BigQueryAPIResourceProvider implements BigQueryResourceProvider {
   public List<SimpleTable> getAllTablesInProject(String projectId) {
     return this.service
         .listDatasets(projectId)
+        .get()
         .stream()
         .flatMap(datasetId ->
             this.getAllTablesInDataset(projectId, datasetId.getDataset()).stream())
@@ -426,6 +428,7 @@ public class BigQueryAPIResourceProvider implements BigQueryResourceProvider {
   public List<Function> getAllFunctionsInDataset(String projectId, String datasetName) {
     List<String> functionReferences = this.service
         .listRoutines(projectId, datasetName)
+        .get()
         .stream()
         .map(routineId -> String.format(
                 "%s.%s.%s",
@@ -443,6 +446,7 @@ public class BigQueryAPIResourceProvider implements BigQueryResourceProvider {
   public List<Function> getAllFunctionsInProject(String projectId) {
     return this.service
         .listDatasets(projectId)
+        .get()
         .stream()
         .flatMap(datasetId ->
             this.getAllFunctionsInDataset(projectId, datasetId.getDataset()).stream())
@@ -470,6 +474,7 @@ public class BigQueryAPIResourceProvider implements BigQueryResourceProvider {
   public List<TVFInfo> getAllTVFsInDataset(String projectId, String datasetName) {
     List<String> functionReferences = this.service
         .listRoutines(projectId, datasetName)
+        .get()
         .stream()
         .map(routineId -> String.format(
                 "%s.%s.%s",
@@ -487,6 +492,7 @@ public class BigQueryAPIResourceProvider implements BigQueryResourceProvider {
   public List<TVFInfo> getAllTVFsInProject(String projectId) {
     return this.service
         .listDatasets(projectId)
+        .get()
         .stream()
         .flatMap(datasetId ->
             this.getAllTVFsInDataset(projectId, datasetId.getDataset()).stream())
@@ -505,6 +511,7 @@ public class BigQueryAPIResourceProvider implements BigQueryResourceProvider {
   public List<ProcedureInfo> getAllProceduresInDataset(String projectId, String datasetName) {
     List<String> functionReferences = this.service
         .listRoutines(projectId, datasetName)
+        .get()
         .stream()
         .map(routineId -> String.format(
                 "%s.%s.%s",
@@ -522,6 +529,7 @@ public class BigQueryAPIResourceProvider implements BigQueryResourceProvider {
   public List<ProcedureInfo> getAllProceduresInProject(String projectId) {
     return this.service
         .listDatasets(projectId)
+        .get()
         .stream()
         .flatMap(datasetId ->
             this.getAllProceduresInDataset(projectId, datasetId.getDataset()).stream())

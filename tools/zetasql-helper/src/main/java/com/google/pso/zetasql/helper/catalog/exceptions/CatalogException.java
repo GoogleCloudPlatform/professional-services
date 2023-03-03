@@ -22,4 +22,7 @@ public class CatalogException extends RuntimeException {
     super(message);
   }
 
+  public CatalogException(String message, Throwable cause) {
+    super(message, cause);
+  }
 }

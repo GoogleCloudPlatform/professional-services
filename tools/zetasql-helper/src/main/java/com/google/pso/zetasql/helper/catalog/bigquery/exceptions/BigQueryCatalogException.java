@@ -24,4 +24,7 @@ public class BigQueryCatalogException extends CatalogException {
     super(message);
   }
 
+  public BigQueryCatalogException(String message, Throwable cause) {
+    super(message, cause);
+  }
 }

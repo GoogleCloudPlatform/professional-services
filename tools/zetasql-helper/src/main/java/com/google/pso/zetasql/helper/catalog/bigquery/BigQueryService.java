@@ -23,12 +23,14 @@ import com.google.cloud.bigquery.BigQuery.RoutineListOption;
 import com.google.cloud.bigquery.BigQuery.TableField;
 import com.google.cloud.bigquery.BigQuery.TableListOption;
 import com.google.cloud.bigquery.BigQuery.TableOption;
+import com.google.cloud.bigquery.BigQueryException;
 import com.google.cloud.bigquery.Dataset;
 import com.google.cloud.bigquery.DatasetId;
 import com.google.cloud.bigquery.Routine;
 import com.google.cloud.bigquery.RoutineId;
 import com.google.cloud.bigquery.Table;
 import com.google.cloud.bigquery.TableId;
+import com.google.pso.zetasql.helper.catalog.bigquery.exceptions.BigQueryAPIError;
 import com.google.pso.zetasql.helper.catalog.bigquery.exceptions.BigQueryCatalogException;
 import com.google.pso.zetasql.helper.catalog.bigquery.exceptions.BigQueryResourceNotFound;
 import com.google.pso.zetasql.helper.catalog.bigquery.exceptions.InvalidBigQueryReference;
@@ -41,62 +43,149 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-// Service for getting entities from the BigQuery API
-// It caches entities internally, so subsequent requests for the same resource don't hit the API
+/**
+ * Wrapper service for accessing the BigQuery API. Wraps a BigQuery client and
+ * provides utility methods for listing and fetching resources. It caches fetched
+ * resources internally, so multiple requests for the same resource only hit the
+ * API once.
+ *
+ * <p> This service implement no cache invalidation and cached resources will stay
+ * cached through the lifetime of this object. It might not be suitable for
+ * long-running processes.
+ */
 class BigQueryService {
-
-  public static class FetchResult<T> {
-
-    private final Optional<T> result;
-    private final Optional<BigQueryCatalogException> error;
-
-    private FetchResult(Optional<T> result, Optional<BigQueryCatalogException> error) {
-      this.result = result;
-      this.error = error;
-    }
-
-    public static <T> FetchResult<T> success(T result) {
-      return new FetchResult<>(Optional.of(result), Optional.empty());
-    }
-
-    public static <T> FetchResult<T> failure(BigQueryCatalogException error) {
-      return new FetchResult<>(Optional.empty(), Optional.of(error));
-    }
-
-    public boolean succeeded() {
-      return this.result.isPresent();
-    }
-
-    public boolean failed() {
-      return this.error.isPresent();
-    }
-
-    public Optional<T> get() {
-      return this.result;
-    }
-
-    public Optional<BigQueryCatalogException> getError() {
-      return this.error;
-    }
-
-  }
 
   private final BigQuery client;
   private final Map<String, Table> cachedTables = new HashMap<>();
   private final Map<String, Routine> cachedRoutines = new HashMap<>();
 
+  /**
+   * Constructs a BigQueryService
+   *
+   * @param client The underlying BigQuery client for interacting with the API
+   */
   public BigQueryService(BigQuery client) {
     this.client = client;
   }
+
+  /**
+   * Result class return by the BigQueryService from API operations. A Result
+   * can be successful and contain an object of type T; or have failed and
+   * contain an exception.
+   *
+   * <p> This is a very limited implementation of a functional error handling
+   * resource similar to scala.util.Try[T] or kotlin.Result<T>.
+   *
+   * @param <T> The type of the result for the operation.
+   */
+  public static class Result<T> {
+
+    private final T result;
+    private final BigQueryCatalogException error;
+
+    private Result(T result, BigQueryCatalogException error) {
+      assert (result != null && error == null) || (result == null && error != null);
+      this.result = result;
+      this.error = error;
+    }
+
+    /**
+     * Builds a successful Result, containing an object of type T.
+     *
+     * @param result The resulting object
+     * @return A successful instance of Result<T>
+     * @param <T> The type of the resulting object
+     */
+    public static <T> Result<T> success(T result) {
+      return new Result<>(result, null);
+    }
+
+    /**
+     * Builds a failed Result, containing an error.
+     *
+     * @param error The error that caused the failure
+     * @return A failed instance of Result<T>
+     * @param <T> The originally expected type of the resulting object
+     */
+    public static <T> Result<T> failure(BigQueryCatalogException error) {
+      return new Result<>(null, error);
+    }
+
+    /** Returns true if this Result is successful */
+    public boolean succeeded() {
+      return this.result != null;
+    }
+
+    /** Returns true if this Result failed */
+    public boolean failed() {
+      return this.error != null;
+    }
+
+    /**
+     * Get the underlying result.
+     *
+     * @return The underlying result object
+     * @throws BigQueryCatalogException if this Result failed
+     */
+    public T get() {
+      if(this.failed()) {
+        throw this.error;
+      }
+
+      return this.result;
+    }
+
+    /**
+     * Get the underlying result as an Optional.
+     *
+     * @return an Optional containing the underlying result if successful,
+     * an empty optional otherwise
+     */
+    public Optional<T> asOptional() {
+      return Optional.ofNullable(this.result);
+    }
+
+    /**
+     * Get the underlying error.
+     *
+     * @return an Optional containing the underlying exception if failed,
+     * an empty optional otherwise
+     */
+    public Optional<BigQueryCatalogException> getError() {
+      return Optional.ofNullable(this.error);
+    }
+
+  }
   
   private <T> Stream<T> pageToStream(Page<T> page) {
+    // TODO: What does iterating pages raise in case of failure?
     return StreamSupport.stream(page.iterateAll().spliterator(), false);
   }
 
-  private <T> FetchResult<T> fetchResource(
+  /**
+   * Higher order method to a BigQuery resource of type T.
+   * See BigQueryService.fetchTable() and BigQueryService.fetchRoutine().
+   *
+   * <p> Receives the default BigQuery project id and the BigQuery reference string
+   * (e.g. "project.dataset.resource") for the resource to fetch. If the reference
+   * is in the for "dataset.resource", the resource is assumed to be in the default
+   * project provided.
+   *
+   * <p> Receives a Function<BigQueryReference, T> that performs the fetching operation,
+   * as well as the Map<String, T> to be used as the cache for fetching.
+   *
+   * @param projectId The default BigQuery project id
+   * @param reference The String referencing the resource, e.g. "project.dataset.resource"
+   * @param fetcher A Function<BigQueryReference, T> that fetches the resource and might
+   * throw a BigQueryException
+   * @param cache The Map<String, T> to use as the cache for this operation
+   * @return A Result<T> representing the fetch result
+   * @param <T> The type of resource being fetched
+   */
+  private <T> Result<T> fetchResource(
       String projectId,
       String reference,
-      Function<BigQueryReference, T> getter,
+      Function<BigQueryReference, T> fetcher,
       Map<String, T> cache
   ) {
 
@@ -104,30 +193,53 @@ class BigQueryService {
       BigQueryReference parsedReference = BigQueryReference.from(projectId, reference);
       T fetchedResource = cache.computeIfAbsent(
           parsedReference.getFullName(),
-          key -> getter.apply(parsedReference)
+          key -> fetcher.apply(parsedReference)
       );
       return fetchedResource == null
-          ? FetchResult.failure(new BigQueryResourceNotFound(parsedReference.getFullName()))
-          : FetchResult.success(fetchedResource);
+          ? Result.failure(new BigQueryResourceNotFound(parsedReference.getFullName()))
+          : Result.success(fetchedResource);
     } catch (InvalidBigQueryReference err) {
-      return FetchResult.failure(err);
+      return Result.failure(err);
+    } catch (BigQueryException err) {
+      String message = String.format("Failed to fetch BigQuery resource: %s", reference);
+      BigQueryAPIError wrapperError = new BigQueryAPIError(message, err);
+      return Result.failure(wrapperError);
     }
 
   }
 
-  public List<DatasetId> listDatasets(String projectId) {
-    Page<Dataset> datasets = this.client.listDatasets(
-        projectId, DatasetListOption.pageSize(100)
-    );
+  /**
+   * Lists datasets in a BigQuery project
+   *
+   * @param projectId The project id to list datasets from
+   * @return A Result<List<DatasetId>> containing the list DatasetId objects
+   */
+  public Result<List<DatasetId>> listDatasets(String projectId) {
+    try {
+      Page<Dataset> datasets = this.client.listDatasets(
+          projectId, DatasetListOption.pageSize(100)
+      );
 
-    return this.pageToStream(datasets)
-        .map(Dataset::getDatasetId)
-        .collect(Collectors.toList());
+      List<DatasetId> datasetIds = this.pageToStream(datasets)
+          .map(Dataset::getDatasetId)
+          .collect(Collectors.toList());
+
+      return Result.success(datasetIds);
+    } catch (BigQueryException err) {
+      String message = String.format("Failed to list datasets in %s", projectId);
+      BigQueryAPIError wrapperError = new BigQueryAPIError(message, err);
+      return Result.failure(wrapperError);
+    }
   }
 
-  // Fetches a BigQuery table from the API
+  /**
+   * Fetches a BigQuery Table from the API.
+   *
+   * @param reference The BigQueryReference referencing the table
+   * @return The fetched Table object, null if not found
+   * @throws BigQueryException if an API error occurs
+   */
   private Table fetchTableFromAPI(BigQueryReference reference) {
-    // TODO: This can fail/return null. Probably use Optional<T>.
     return this.client.getTable(
         reference.toTableId(),
         TableOption.fields(
@@ -139,10 +251,15 @@ class BigQueryService {
     );
   }
 
-  // Gets a BQ table given its project ID and table reference.
-  // It caches tables so that consequent requests for the same table
-  // will not hit the API.
-  public FetchResult<Table> fetchTable(String projectId, String tableReference) {
+  /**
+   * Fetches a BigQuery Table from the API. Results are cached indefinitely.
+   *
+   * @param projectId The default BigQuery project id
+   * @param tableReference The String referencing the table,
+   * e.g. "project.dataset.table"
+   * @return A Result<Table> containing the fetched Table
+   */
+  public Result<Table> fetchTable(String projectId, String tableReference) {
     return this.fetchResource(
         projectId,
         tableReference,
@@ -150,25 +267,56 @@ class BigQueryService {
         this.cachedTables
     );
   }
-  
-  public List<TableId> listTables(String projectId, String datasetName) {
-    DatasetId datasetId = DatasetId.of(projectId, datasetName);
-    
-    Page<Table> tables = this.client.listTables(
-        datasetId, TableListOption.pageSize(100)
-    );
 
-    return this.pageToStream(tables)
-        .map(Table::getTableId)
-        .collect(Collectors.toList());
+  /**
+   * Lists tables in a BigQuery dataset
+   *
+   * @param projectId The project id the dataset belongs to
+   * @param datasetName The name of the dataset to list tables from
+   * @return A Result<List<TableId>> containing the list TableId objects
+   */
+  public Result<List<TableId>> listTables(String projectId, String datasetName) {
+    DatasetId datasetId = DatasetId.of(projectId, datasetName);
+
+    try {
+      Page<Table> tables = this.client.listTables(
+          datasetId, TableListOption.pageSize(100)
+      );
+
+      List<TableId> tableIds = this.pageToStream(tables)
+          .map(Table::getTableId)
+          .collect(Collectors.toList());
+
+      return Result.success(tableIds);
+    } catch (BigQueryException err) {
+      String message = String.format(
+          "Failed to list tables in dataset %s.%s", datasetId.getProject(), datasetId.getDataset());
+      BigQueryAPIError wrapperError = new BigQueryAPIError(message, err);
+      return Result.failure(wrapperError);
+    }
   }
 
+  /**
+   * Fetches a BigQuery Routine from the API.
+   *
+   * @param reference The BigQueryReference referencing the routine
+   * @return The fetched Routine object, null if not found
+   * @throws BigQueryException if an API error occurs
+   */
   private Routine fetchRoutineFromAPI(BigQueryReference reference) {
-    // TODO: This can fail/return null. Probably use Optional<T>.
     return this.client.getRoutine(reference.toRoutineId());
   }
 
-  public FetchResult<Routine> fetchRoutine(String projectId, String routineReference) {
+  /**
+   * Fetches a BigQuery Routine from the API. Results are cached through
+   * the lifetime of this.
+   *
+   * @param projectId The default BigQuery project id
+   * @param routineReference The String referencing the routine,
+   * e.g. "project.dataset.routine"
+   * @return A Result<Routine> containing the fetched Routine
+   */
+  public Result<Routine> fetchRoutine(String projectId, String routineReference) {
     return this.fetchResource(
         projectId,
         routineReference,
@@ -177,16 +325,34 @@ class BigQueryService {
     );
   }
 
-  public List<RoutineId> listRoutines(String projectId, String datasetName) {
+  /**
+   * Lists routines in a BigQuery dataset
+   *
+   * @param projectId The project id the dataset belongs to
+   * @param datasetName The name of the dataset to list tables from
+   * @return A Result<List<RoutineId>> containing the list RoutineId objects
+   */
+  public Result<List<RoutineId>> listRoutines(String projectId, String datasetName) {
     DatasetId datasetId = DatasetId.of(projectId, datasetName);
 
-    Page<Routine> tables = this.client.listRoutines(
-        datasetId, RoutineListOption.pageSize(100)
-    );
+    try {
+      Page<Routine> tables = this.client.listRoutines(
+          datasetId, RoutineListOption.pageSize(100)
+      );
 
-    return this.pageToStream(tables)
-        .map(Routine::getRoutineId)
-        .collect(Collectors.toList());
+      List<RoutineId> routineIds = this.pageToStream(tables)
+          .map(Routine::getRoutineId)
+          .collect(Collectors.toList());
+
+      return Result.success(routineIds);
+    } catch (BigQueryException err) {
+      String message = String.format(
+          "Failed to list routines in dataset %s.%s",
+          datasetId.getProject(), datasetId.getDataset()
+      );
+      BigQueryAPIError wrapperError = new BigQueryAPIError(message, err);
+      return Result.failure(wrapperError);
+    }
   }
 
 }
