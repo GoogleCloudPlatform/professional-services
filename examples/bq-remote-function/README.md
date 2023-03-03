@@ -115,5 +115,3 @@ certain [data types](https://cloud.google.com/bigquery/docs/reference/standard-s
 For more Cloud Run samples beyond Java, see the main list in
 the [Cloud Run Samples repository](https://github.com/GoogleCloudPlatform/cloud-run-samples).
 
-
-[run_button_helloworld]: https://deploy.cloud.run/?git_repo=https://github.com/K4singh/professional-services&dir=examples/bq-remote-function/string_formatter/
