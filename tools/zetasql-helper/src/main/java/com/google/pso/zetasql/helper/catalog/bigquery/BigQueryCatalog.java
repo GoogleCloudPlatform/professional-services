@@ -21,6 +21,7 @@ import com.google.pso.zetasql.helper.catalog.CatalogOperations;
 import com.google.pso.zetasql.helper.catalog.CatalogWrapper;
 import com.google.pso.zetasql.helper.catalog.bigquery.exceptions.BigQueryCreateError;
 import com.google.zetasql.Function;
+import com.google.zetasql.Procedure;
 import com.google.zetasql.SimpleCatalog;
 import com.google.zetasql.SimpleTable;
 import com.google.zetasql.Type;
@@ -35,12 +36,27 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+/**
+ * {@link CatalogWrapper} implementation that follows BigQuery semantics. Facilitates
+ * building a ZetaSQL {@link SimpleCatalog} with BigQuery resources and following
+ * BigQuery semantics for types and name resolution.
+ */
 public class BigQueryCatalog implements CatalogWrapper {
 
   private final String defaultProjectId;
   private final BigQueryResourceProvider bigQueryResourceProvider;
   private final SimpleCatalog catalog;
 
+  /**
+   * Constructs a BigQueryCatalog that fetches resources from the BigQuery API
+   * using application default credentials.
+   *
+   * <p> A BigQueryCatalog constructed this way will use the default
+   * {@link BigQueryAPIResourceProvider} for accessing the API.
+   *
+   * @param defaultProjectId The BigQuery default project id, queries are assumed
+   * to be running on this project
+   */
   public BigQueryCatalog(String defaultProjectId) {
     this(
         defaultProjectId,
@@ -48,6 +64,18 @@ public class BigQueryCatalog implements CatalogWrapper {
     );
   }
 
+  /**
+   * Constructs a BigQueryCatalog that fetches resources from the BigQuery API
+   * using the provided BigQuery Client.
+   *
+   * <p> A BigQueryCatalog constructed this way will use the
+   * {@link BigQueryAPIResourceProvider} for accessing the API using
+   * the provided BigQuery client.
+   *
+   * @param defaultProjectId The BigQuery default project id, queries are assumed
+   * to be running on this project
+   * @param bigQueryClient The BigQuery client to use for accessing the API
+   */
   public BigQueryCatalog(String defaultProjectId, BigQuery bigQueryClient) {
     this(
         defaultProjectId,
@@ -55,7 +83,16 @@ public class BigQueryCatalog implements CatalogWrapper {
     );
   }
 
-  private BigQueryCatalog(
+  /**
+   * Constructs a BigQueryCatalog that uses the provided {@link BigQueryResourceProvider}
+   * for getting resources.
+   *
+   * @param defaultProjectId The BigQuery default project id, queries are assumed
+   * to be running on this project
+   * @param bigQueryResourceProvider The BigQueryResourceProvider this catalog will
+   * use to get resources
+   */
+  public BigQueryCatalog(
       String defaultProjectId,
       BigQueryResourceProvider bigQueryResourceProvider
   ) {
@@ -66,6 +103,7 @@ public class BigQueryCatalog implements CatalogWrapper {
     this.addBigQueryTypeAliases(this.catalog);
   }
 
+  /** Private constructor used for implementing {@link #copy(boolean)} */
   private BigQueryCatalog(
       String defaultProjectId,
       BigQueryResourceProvider bigQueryResourceProvider,
@@ -76,6 +114,7 @@ public class BigQueryCatalog implements CatalogWrapper {
     this.catalog = internalCatalog;
   }
 
+  /** Adds BigQuery-specific type aliases to a {@link SimpleCatalog} */
   private void addBigQueryTypeAliases(SimpleCatalog catalog) {
     Map<String, Type> bigQueryTypeAliases = Map.of(
         "INT", TypeFactory.createSimpleType(ZetaSQLType.TypeKind.TYPE_INT64),
@@ -91,6 +130,19 @@ public class BigQueryCatalog implements CatalogWrapper {
     bigQueryTypeAliases.forEach(catalog::addType);
   }
 
+  /**
+   * Validates that a {@link CreateScope} is in a list of allowed scopes,
+   * used before creation of resources. Throws {@link BigQueryCreateError}
+   * in case the scope is not allowed.
+   *
+   * @param scope The CreateScope to be validated
+   * @param allowedScopes The list of allowed CreateScopes
+   * @param resourceFullName The full name of the resource being created, used
+   * for error reporting
+   * @param resourceType The name of the type of resource being created, used
+   * for error reporting
+   * @throws BigQueryCreateError if the validation fails
+   */
   private void validateCreateScope(
       CreateScope scope,
       List<CreateScope> allowedScopes,
@@ -106,6 +158,16 @@ public class BigQueryCatalog implements CatalogWrapper {
     }
   }
 
+  /**
+   * Validates a resources name path before its creation. If the name path is
+   * invalid, throws {@link BigQueryCreateError}.
+   *
+   * @param namePath The name path to be validated
+   * @param createScope The CreateScope used to create this resource
+   * @param resourceType he name of the type of resource being created, used
+   * for error reporting
+   * @throws BigQueryCreateError if the validation fails
+   */
   private void validateNamePathForCreation(
       List<String> namePath,
       CreateScope createScope,
@@ -125,6 +187,30 @@ public class BigQueryCatalog implements CatalogWrapper {
     }
   }
 
+  /**
+   * Creates the list of resource paths that should be used for creating a resource
+   * to make sure it is always found when analyzing queries.
+   *
+   * <p> Given the way the ZetaSQL {@link SimpleCatalog} resolves names, different ways
+   * of referencing resources while querying results in different lookups. For example;
+   * "SELECT * FROM `A.B`" will look for a table named "A.B", while "SELECT * FROM `A`.`B`"
+   * will look for a table named "B" on a catalog named "A".
+   *
+   * <p> Because of the previous point, a table or function being created needs to be
+   * registered in multiple paths. This method creates all those distinct paths. Given
+   * the resource "project.dataset.resource", this method will create these paths:
+   * <ul>
+   *   <li> ["project.dataset.resource"]
+   *   <li> ["project", "dataset", "resource"]
+   *   <li> ["project", "dataset.resource"]
+   *   <li> ["project.dataset", "resource"]
+   *   <li> ["dataset.resource"] if the resource project is this catalog's default project id
+   *   <li> ["dataset", "resource"] if the resource project is this catalog's default project id
+   * </ul>
+   *
+   * @param reference The BigQueryReference for the resource that needs to be created
+   * @return All the distinct name paths at which the resource should be created
+   */
   private List<List<String>> buildCatalogPathsForResource(BigQueryReference reference) {
     String projectId = reference.getProjectId();
     String datasetName = reference.getDatasetId();
@@ -150,6 +236,7 @@ public class BigQueryCatalog implements CatalogWrapper {
         .collect(Collectors.toList());
   }
 
+  /** @see #buildCatalogPathsForResource(BigQueryReference) */
   private List<List<String>> buildCatalogPathsForResource(String referenceStr) {
     BigQueryReference reference = BigQueryReference.from(
         this.defaultProjectId, referenceStr
@@ -157,10 +244,20 @@ public class BigQueryCatalog implements CatalogWrapper {
     return this.buildCatalogPathsForResource(reference);
   }
 
+  /** @see #buildCatalogPathsForResource(BigQueryReference) */
   private List<List<String>> buildCatalogPathsForResource(List<String> resourcePath) {
     return this.buildCatalogPathsForResource(String.join(".", resourcePath));
   }
 
+  /**
+   * {@inheritDoc}
+   *
+   * <p> Multiple copies of the registered {@link SimpleTable} will be created in the Catalog
+   * to comply with BigQuery name resolution semantics.
+   * @see #buildCatalogPathsForResource(BigQueryReference)
+   *
+   * @throws BigQueryCreateError if a pre-create validation fails
+   */
   @Override
   public void register(SimpleTable table, CreateMode createMode, CreateScope createScope) {
     this.validateCreateScope(
@@ -180,6 +277,15 @@ public class BigQueryCatalog implements CatalogWrapper {
     );
   }
 
+  /**
+   * {@inheritDoc}
+   *
+   * <p> Multiple copies of the registered {@link Function} will be created in the Catalog
+   * to comply with BigQuery name resolution semantics.
+   * @see #buildCatalogPathsForResource(BigQueryReference)
+   *
+   * @throws BigQueryCreateError if a pre-create validation fails
+   */
   @Override
   public void register(Function function, CreateMode createMode, CreateScope createScope) {
     List<String> functionNamePath = function.getNamePath();
@@ -200,6 +306,11 @@ public class BigQueryCatalog implements CatalogWrapper {
     CatalogOperations.createFunctionInCatalog(this.catalog, functionPaths, function, createMode);
   }
 
+  /**
+   * {@inheritDoc}
+   *
+   * @throws BigQueryCreateError if a pre-create validation fails
+   */
   @Override
   public void register(TVFInfo tvfInfo, CreateMode createMode, CreateScope createScope) {
     String fullName = String.join(".", tvfInfo.getNamePath());
@@ -216,6 +327,15 @@ public class BigQueryCatalog implements CatalogWrapper {
     CatalogOperations.createTVFInCatalog(this.catalog, functionPaths, tvfInfo, createMode);
   }
 
+  /**
+   * {@inheritDoc}
+   *
+   * <p> Multiple copies of the registered {@link Procedure} will be created in the Catalog
+   * to comply with BigQuery name resolution semantics.
+   * @see #buildCatalogPathsForResource(BigQueryReference)
+   *
+   * @throws BigQueryCreateError if a pre-create validation fails
+   */
   @Override
   public void register(
       ProcedureInfo procedureInfo,
@@ -239,6 +359,12 @@ public class BigQueryCatalog implements CatalogWrapper {
     );
   }
 
+  /**
+   * {@inheritDoc}
+   *
+   * <p> Table references should be in the format "project.dataset.table" or
+   * "dataset.table"
+   */
   @Override
   public void addTables(List<String> tableReferences) {
     this.bigQueryResourceProvider
@@ -248,6 +374,12 @@ public class BigQueryCatalog implements CatalogWrapper {
         );
   }
 
+  /**
+   * Adds all tables in the provided dataset to this catalog
+   *
+   * @param projectId The project id the dataset belongs to
+   * @param datasetName The name of the dataset to get tables from
+   */
   public void addAllTablesInDataset(String projectId, String datasetName) {
     this.bigQueryResourceProvider
         .getAllTablesInDataset(projectId, datasetName)
@@ -256,6 +388,11 @@ public class BigQueryCatalog implements CatalogWrapper {
         );
   }
 
+  /**
+   * Adds all tables in the provided project to this catalog
+   *
+   * @param projectId The project id to get tables from
+   */
   public void addAllTablesInProject(String projectId) {
     this.bigQueryResourceProvider
         .getAllTablesInProject(projectId)
@@ -264,6 +401,12 @@ public class BigQueryCatalog implements CatalogWrapper {
         );
   }
 
+  /**
+   * {@inheritDoc}
+   *
+   * <p> Function references should be in the format "project.dataset.function" or
+   * "dataset.function"
+   */
   @Override
   public void addFunctions(List<String> functionReferences) {
     this.bigQueryResourceProvider
@@ -273,6 +416,12 @@ public class BigQueryCatalog implements CatalogWrapper {
         ));
   }
 
+  /**
+   * Adds all functions in the provided dataset to this catalog
+   *
+   * @param projectId The project id the dataset belongs to
+   * @param datasetName The name of the dataset to get functions from
+   */
   public void addAllFunctionsInDataset(String projectId, String datasetName) {
     this.bigQueryResourceProvider
         .getAllFunctionsInDataset(projectId, datasetName)
@@ -281,6 +430,12 @@ public class BigQueryCatalog implements CatalogWrapper {
         ));
   }
 
+  /**
+   * Adds all functions in the provided project to this catalog
+   *
+   *
+   * @param projectId The project id to get functions from
+   */
   public void addAllFunctionsInProject(String projectId) {
     this.bigQueryResourceProvider
         .getAllFunctionsInProject(projectId)
@@ -289,6 +444,12 @@ public class BigQueryCatalog implements CatalogWrapper {
         ));
   }
 
+  /**
+   * {@inheritDoc}
+   *
+   * <p> Function references should be in the format "project.dataset.function" or
+   * "dataset.function"
+   */
   @Override
   public void addTVFs(List<String> functionReferences) {
     this.bigQueryResourceProvider
@@ -298,6 +459,12 @@ public class BigQueryCatalog implements CatalogWrapper {
         ));
   }
 
+  /**
+   * Adds all TVFs in the provided dataset to this catalog
+   *
+   * @param projectId The project id the dataset belongs to
+   * @param datasetName The name of the dataset to get TVFs from
+   */
   public void addAllTVFsInDataset(String projectId, String datasetName) {
     this.bigQueryResourceProvider
         .getAllTVFsInDataset(projectId, datasetName)
@@ -306,6 +473,11 @@ public class BigQueryCatalog implements CatalogWrapper {
         ));
   }
 
+  /**
+   * Adds all TVFs in the provided project to this catalog
+   *
+   * @param projectId The project id to get TVFs from
+   */
   public void addAllTVFsInProject(String projectId) {
     this.bigQueryResourceProvider
         .getAllTVFsInProject(projectId)
@@ -314,6 +486,12 @@ public class BigQueryCatalog implements CatalogWrapper {
         ));
   }
 
+  /**
+   * {@inheritDoc}
+   *
+   * <p> Procedure references should be in the format "project.dataset.procedure" or
+   * "dataset.procedure"
+   */
   @Override
   public void addProcedures(List<String> procedureReferences) {
     this.bigQueryResourceProvider
@@ -323,6 +501,12 @@ public class BigQueryCatalog implements CatalogWrapper {
         ));
   }
 
+  /**
+   * Adds all procedures in the provided dataset to this catalog
+   *
+   * @param projectId The project id the dataset belongs to
+   * @param datasetName The name of the dataset to get procedures from
+   */
   public void addAllProceduresInDataset(String projectId, String datasetName) {
     this.bigQueryResourceProvider
         .getAllProceduresInDataset(projectId, datasetName)
@@ -331,6 +515,11 @@ public class BigQueryCatalog implements CatalogWrapper {
         ));
   }
 
+  /**
+   * Adds all procedures in the provided project to this catalog
+   *
+   * @param projectId The project id to get procedures from
+   */
   public void addAllProceduresInProject(String projectId) {
     this.bigQueryResourceProvider
         .getAllProceduresInProject(projectId)

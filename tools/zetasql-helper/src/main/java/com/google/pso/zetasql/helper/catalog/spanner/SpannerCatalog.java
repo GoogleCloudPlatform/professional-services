@@ -31,6 +31,9 @@ import com.google.zetasql.resolvedast.ResolvedCreateStatementEnums.CreateScope;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * {@link CatalogWrapper} implementation that follows Cloud Spanner semantics
+ */
 public class SpannerCatalog implements CatalogWrapper {
 
   private final String projectId;
@@ -39,6 +42,15 @@ public class SpannerCatalog implements CatalogWrapper {
   private final SpannerResourceProvider spannerResourceProvider;
   private final SimpleCatalog catalog;
 
+  /**
+   * Constructs a SpannerCatalog given a Spanner project,
+   * instance and database. It uses a {@link DatabaseClient} with
+   * application default credentials to access Spanner.
+   *
+   * @param projectId The Spanner project id
+   * @param instance The Spanner instance name
+   * @param database The Spanner database name
+   */
   public SpannerCatalog(String projectId, String instance, String database) {
     this(
         projectId,
@@ -48,6 +60,15 @@ public class SpannerCatalog implements CatalogWrapper {
     );
   }
 
+  /**
+   * Constructs a SpannerCatalog that uses the provided {@link DatabaseClient}
+   * for accessing Spanner.
+   *
+   * @param projectId The Spanner project id
+   * @param instance The Spanner instance name
+   * @param database The Spanner database name
+   * @param databaseClient The Spanner DatabaseClient to use
+   */
   public SpannerCatalog(
       String projectId,
       String instance,
@@ -62,6 +83,15 @@ public class SpannerCatalog implements CatalogWrapper {
     );
   }
 
+  /**
+   * Constructs a SpannerCatalog that uses the provided
+   * {@link SpannerResourceProvider} for fetching Spanner tables.
+   *
+   * @param projectId The Spanner project id
+   * @param instance The Spanner instance name
+   * @param database The Spanner database name
+   * @param spannerResourceProvider The SpannerResourceProvider to use
+   */
   public SpannerCatalog(
       String projectId,
       String instance,
@@ -77,6 +107,7 @@ public class SpannerCatalog implements CatalogWrapper {
     // TODO: Define and add Spanner-specific functions to the catalog
   }
 
+  /** Private constructor used for implementing {@link #copy(boolean)} */
   private SpannerCatalog(
       String projectId,
       String instance,
@@ -103,6 +134,11 @@ public class SpannerCatalog implements CatalogWrapper {
     return database;
   }
 
+  /**
+   * {@inheritDoc}
+   *
+   * @throws InvalidSpannerTableName if the table name is invalid for Spanner
+   */
   @Override
   public void register(SimpleTable table, CreateMode createMode, CreateScope createScope) {
     String tableName = table.getName();
@@ -143,6 +179,11 @@ public class SpannerCatalog implements CatalogWrapper {
     throw new UnsupportedOperationException("Cloud Spanner does not support procedures");
   }
 
+  /**
+   * {@inheritDoc}
+   *
+   * @throws InvalidSpannerTableName if any of the table names is invalid for Spanner
+   */
   @Override
   public void addTables(List<String> tableNames) {
     tableNames

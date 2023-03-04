@@ -31,6 +31,8 @@ import com.google.cloud.bigquery.TableId;
 import com.google.common.collect.ImmutableList;
 import com.google.pso.zetasql.helper.catalog.CatalogOperations;
 import com.google.pso.zetasql.helper.catalog.bigquery.BigQueryService.Result;
+import com.google.pso.zetasql.helper.catalog.bigquery.exceptions.BigQueryAPIError;
+import com.google.pso.zetasql.helper.catalog.bigquery.exceptions.InvalidBigQueryReference;
 import com.google.pso.zetasql.helper.catalog.bigquery.exceptions.MissingRoutineReturnType;
 import com.google.zetasql.Function;
 import com.google.zetasql.FunctionArgumentType;
@@ -48,25 +50,45 @@ import com.google.zetasql.ZetaSQLFunctions.SignatureArgumentKind;
 import com.google.zetasql.ZetaSQLType.TypeKind;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
+/**
+ * {@link BigQueryResourceProvider} implementation that uses the BigQuery API
+ * to get the BigQuery resources. Resources are cached internally, so
+ * multiple request to the same resource only hit the API once.
+ */
 public class BigQueryAPIResourceProvider implements BigQueryResourceProvider {
 
   private final BigQueryService service;
 
+  /** Constructs a BigQueryAPIResourceProvider that uses the default BigQuery client */
   public BigQueryAPIResourceProvider() {
     this(
         BigQueryOptions.newBuilder().build().getService()
     );
   }
 
+  /**
+   * Constructs a BigQueryAPIResourceProvider that uses the provided BigQuery client.
+   *
+   * @param client The BigQuery client this instance should use
+   */
   public BigQueryAPIResourceProvider(BigQuery client) {
-    this.service = new BigQueryService(client);
+    this(new BigQueryService(client));
   }
 
   /**
-   * Converts a StandardSQLTypeName from the BigQuery API to a ZetaSQL TypeKind.
+   * Constructs a BigQueryAPIResourceProvider that uses the provided {@link BigQueryService}.
+   * Package-private, used solely for dependency injection in testing.
+   *
+   * @param service The BigQueryService this instance should use
+   */
+  BigQueryAPIResourceProvider(BigQueryService service) {
+    this.service = service;
+  }
+
+  /**
+   * Converts a StandardSQLTypeName from the BigQuery API to a ZetaSQL {@link TypeKind}.
    *
    * @param bigqueryTypeName The StandardSQLTypeName to convert
    * @return The corresponding ZetaSQL TypeKind
@@ -105,7 +127,7 @@ public class BigQueryAPIResourceProvider implements BigQueryResourceProvider {
   }
 
   /**
-   * Extract the ZetaSQL Type from a BigQuery API table field.
+   * Extract the ZetaSQL {@link Type} from a BigQuery API table {@link Field}.
    *
    * @param field The field from which to extract the ZetaSQL type
    * @return The extracted ZetaSQL type
@@ -138,7 +160,7 @@ public class BigQueryAPIResourceProvider implements BigQueryResourceProvider {
   }
 
   /**
-   * Extract the ZetaSQL columns from a BigQuery API table.
+   * Extract the ZetaSQL {@link SimpleColumn}s from a BigQuery API {@link Table}.
    *
    * @param table The table from which to extract the ZetaSQL columns
    * @return The extracted ZetaSQL columns
@@ -159,7 +181,7 @@ public class BigQueryAPIResourceProvider implements BigQueryResourceProvider {
   }
 
   /**
-   * Converts a StandardSQLDataType from the BigQuery API into a ZetaSQL Type.
+   * Converts a {@link StandardSQLDataType} from the BigQuery API into a ZetaSQL {@link Type}.
    *
    * @param bigqueryDataType The StandardSQLDataType to convert
    * @return The corresponding ZetaSQL type
@@ -197,6 +219,12 @@ public class BigQueryAPIResourceProvider implements BigQueryResourceProvider {
     return TypeFactory.createSimpleType(zetaSQLTypeKind);
   }
 
+  /**
+   * Builds a {@link SimpleTable} given a BigQuery API {@link Table} object
+   *
+   * @param table The BigQuery Table for which to build a SimpleTable
+   * @return The resulting SimpleTable object
+   */
   private SimpleTable buildSimpleTable(Table table) {
     TableId tableId = table.getTableId();
     String fullTableName = BigQueryReference.from(tableId).getFullName();
@@ -204,41 +232,28 @@ public class BigQueryAPIResourceProvider implements BigQueryResourceProvider {
     return CatalogOperations.buildSimpleTable(fullTableName, columns);
   }
 
-  private <T> List<T> fetchResourcesFromBigQueryService(
-      String projectId,
-      List<String> resourceReferences,
-      BiFunction<String, String, Result<T>> fetcher
-  ) {
-    List<Result<T>> tableTries = resourceReferences
-        .stream()
-        .map(resourceReference -> fetcher.apply(projectId, resourceReference))
-        .collect(Collectors.toList());
-
-    tableTries
-        .stream()
-        .map(Result::getError)
-        .filter(Optional::isPresent)
-        .map(Optional::get)
-        .findFirst()
-        .ifPresent(error -> { throw error; });
-
-    return tableTries
-        .stream()
-        .map(Result::asOptional)
-        .filter(Optional::isPresent)
-        .map(Optional::get)
-        .collect(Collectors.toList());
-  }
-
+  /**
+   * {@inheritDoc}
+   *
+   * @throws BigQueryAPIError if an API error occurs
+   * @throws InvalidBigQueryReference if any provided table reference is invalid
+   */
   @Override
   public List<SimpleTable> getTables(String projectId, List<String> tableReferences) {
-    return this
-        .fetchResourcesFromBigQueryService(projectId, tableReferences, this.service::fetchTable)
+    return tableReferences
         .stream()
+        .map(reference -> this.service.fetchTable(projectId, reference))
+        .map(Result::get)
         .map(this::buildSimpleTable)
         .collect(Collectors.toList());
   }
 
+  /**
+   * {@inheritDoc}
+   *
+   * @throws BigQueryAPIError if an API error occurs
+   * @throws InvalidBigQueryReference if any provided table reference is invalid
+   */
   @Override
   public List<SimpleTable> getAllTablesInDataset(String projectId, String datasetName) {
     List<String> tableReferences = this.service
@@ -257,6 +272,12 @@ public class BigQueryAPIResourceProvider implements BigQueryResourceProvider {
     return this.getTables(projectId, tableReferences);
   }
 
+  /**
+   * {@inheritDoc}
+   *
+   * @throws BigQueryAPIError if an API error occurs
+   * @throws InvalidBigQueryReference if any provided table reference is invalid
+   */
   @Override
   public List<SimpleTable> getAllTablesInProject(String projectId) {
     return this.service
@@ -268,23 +289,12 @@ public class BigQueryAPIResourceProvider implements BigQueryResourceProvider {
         .collect(Collectors.toList());
   }
 
-  private enum BigQueryAPIRoutineType {
-    UDF("SCALAR_FUNCTION"),
-    TVF("TABLE_VALUED_FUNCTION"),
-    PROCEDURE("PROCEDURE");
-
-    public final String label;
-
-    BigQueryAPIRoutineType(String label) {
-      this.label = label;
-    }
-
-    public String getLabel() {
-      return this.label;
-    }
-
-  }
-
+  /**
+   * Parses a BigQuery API {@link RoutineArgument} into a ZetaSQL {@link FunctionArgumentType}
+   *
+   * @param argument The BigQuery RoutineArgument to parse
+   * @return The resulting ZetaSQL FunctionArgumentType
+   */
   private FunctionArgumentType parseRoutineArgument(RoutineArgument argument) {
     Type zetaSqlDataType = this.convertBigQueryDataTypeToZetaSQLType(argument.getDataType());
 
@@ -301,6 +311,13 @@ public class BigQueryAPIResourceProvider implements BigQueryResourceProvider {
     return new FunctionArgumentType(zetaSqlDataType, options, 1);
   }
 
+  /**
+   * Parses a list of BigQuery {@link RoutineArgument}s into its corresponding
+   * list of {@link FunctionArgumentType} using {@link #parseRoutineArgument(RoutineArgument)}
+   *
+   * @param arguments The list of RoutineArguments to parse
+   * @return The corresponding list of FunctionArgumentTypes
+   */
   private List<FunctionArgumentType> parseRoutineArguments(List<RoutineArgument> arguments) {
     if(arguments == null) {
       return List.of();
@@ -312,8 +329,15 @@ public class BigQueryAPIResourceProvider implements BigQueryResourceProvider {
         .collect(Collectors.toList());
   }
 
-  private TVFRelation parseTVFOutputSchema(StandardSQLTableType returnTableType) {
-    List<TVFRelation.Column> columns = returnTableType
+  /**
+   * Parse a BigQuery API {@link StandardSQLTableType} into a ZetaSQL {@link TVFRelation} to
+   * be used as the output schema of a TVF.
+   *
+   * @param sqlTableType The StandardSQLTableType to parse
+   * @return The resulting TVFRelation object
+   */
+  private TVFRelation parseTVFOutputSchema(StandardSQLTableType sqlTableType) {
+    List<TVFRelation.Column> columns = sqlTableType
         .getColumns()
         .stream()
         .map(field -> {
@@ -325,7 +349,18 @@ public class BigQueryAPIResourceProvider implements BigQueryResourceProvider {
     return TVFRelation.createColumnBased(columns);
   }
 
+  /**
+   * Builds a {@link Function} given a BigQuery API {@link Routine} object.
+   * The Routine must be a BigQuery user-defined function.
+   *
+   * @param routine The BigQuery Routine for which to build a Function
+   * @return The resulting Function object
+   * @throws MissingRoutineReturnType if the input Routine does not have its
+   * return type set
+   */
   private Function buildFunction(Routine routine) {
+    assert routine.getRoutineType().equals(BigQueryAPIRoutineType.UDF.getLabel());
+
     RoutineId routineId = routine.getRoutineId();
     BigQueryReference bigQueryReference = BigQueryReference.from(routineId);
 
@@ -350,7 +385,18 @@ public class BigQueryAPIResourceProvider implements BigQueryResourceProvider {
     );
   }
 
+  /**
+   * Builds a {@link TVFInfo} given a BigQuery API {@link Routine} object.
+   * The Routine must be a BigQuery table-valued function.
+   *
+   * @param routine The BigQuery Routine for which to build a TVFInfo
+   * @return The resulting TVFInfo object
+   * @throws MissingRoutineReturnType if the input Routine does not have its
+   * return type set
+   */
   private TVFInfo buildTVF(Routine routine) {
+    assert routine.getRoutineType().equals(BigQueryAPIRoutineType.TVF.getLabel());
+
     RoutineId routineId = routine.getRoutineId();
     BigQueryReference bigQueryReference = BigQueryReference.from(routineId);
 
@@ -378,7 +424,16 @@ public class BigQueryAPIResourceProvider implements BigQueryResourceProvider {
     );
   }
 
+  /**
+   * Builds a {@link ProcedureInfo} given a BigQuery API {@link Routine} object.
+   * The Routine must be a BigQuery procedure.
+   *
+   * @param routine The BigQuery Routine for which to build a ProcedureInfo
+   * @return The resulting ProcedureInfo object
+   */
   private ProcedureInfo buildProcedure(Routine routine) {
+    assert routine.getRoutineType().equals(BigQueryAPIRoutineType.PROCEDURE.getLabel());
+
     RoutineId routineId = routine.getRoutineId();
     String fullName = BigQueryReference.from(routineId).getFullName();
 
@@ -392,21 +447,43 @@ public class BigQueryAPIResourceProvider implements BigQueryResourceProvider {
     return new ProcedureInfo(ImmutableList.of(fullName), signature);
   }
 
+  /**
+   * Gets BigQuery {@link Routine}s of a particular type. Routines can be UDFs,
+   * TVF or Procedures.
+   *
+   * @param projectId The default BigQuery project id
+   * @param routineReferences The routine references. Each reference should
+   * be in the format "project.dataset.table" or "dataset.table".
+   * @param routineType The type of Routines that should be fetched
+   * @return The list of fetched Routine objects
+   * @throws BigQueryAPIError if an API error occurs
+   * @throws InvalidBigQueryReference if any provided table reference is invalid
+   */
   private List<Routine> getRoutinesOfType(
       String projectId,
       List<String> routineReferences,
       BigQueryAPIRoutineType routineType
   ) {
-    return this
-        .fetchResourcesFromBigQueryService(
-            projectId, routineReferences, this.service::fetchRoutine
-        )
+    return routineReferences
         .stream()
+        .map(reference -> this.service.fetchRoutine(projectId, reference))
+        .map(Result::get)
         .filter(routine -> routine.getRoutineType().equals(routineType.getLabel()))
         .collect(Collectors.toList());
-
   }
 
+  /**
+   * Gets a set of BigQuery functions and returns them as {@link Function}s
+   *
+   * @param projectId The default BigQuery project id.
+   * @param functionReferences The list of function references. Each reference should
+   * be in the format "project.dataset.function" or "dataset.function".
+   * @param ignoreFunctionsWithoutReturnType Whether to filter out functions with a
+   * missing return type.
+   * @return The list of {@link Function}s representing the requested BigQuery functions.
+   * @throws BigQueryAPIError if an API error occurs
+   * @throws InvalidBigQueryReference if any provided table reference is invalid
+   */
   private List<Function> getFunctionsImpl(
       String projectId,
       List<String> functionReferences,
@@ -419,11 +496,24 @@ public class BigQueryAPIResourceProvider implements BigQueryResourceProvider {
         .collect(Collectors.toList());
   }
 
+  /**
+   * {@inheritDoc}
+   *
+   * @throws BigQueryAPIError if an API error occurs
+   * @throws InvalidBigQueryReference if any provided table reference is invalid
+   * @throws MissingRoutineReturnType if any of the requested functions is missing its return type
+   */
   @Override
   public List<Function> getFunctions(String projectId, List<String> functionReferences) {
     return this.getFunctionsImpl(projectId, functionReferences, false);
   }
 
+  /**
+   * {@inheritDoc}
+   *
+   * @throws BigQueryAPIError if an API error occurs
+   * @throws InvalidBigQueryReference if any provided table reference is invalid
+   */
   @Override
   public List<Function> getAllFunctionsInDataset(String projectId, String datasetName) {
     List<String> functionReferences = this.service
@@ -442,6 +532,12 @@ public class BigQueryAPIResourceProvider implements BigQueryResourceProvider {
       return this.getFunctionsImpl(projectId, functionReferences, true);
     }
 
+  /**
+   * {@inheritDoc}
+   *
+   * @throws BigQueryAPIError if an API error occurs
+   * @throws InvalidBigQueryReference if any provided table reference is invalid
+   */
   @Override
   public List<Function> getAllFunctionsInProject(String projectId) {
     return this.service
@@ -453,6 +549,18 @@ public class BigQueryAPIResourceProvider implements BigQueryResourceProvider {
         .collect(Collectors.toList());
   }
 
+  /**
+   * Gets a set of BigQuery TVFs and returns them as {@link TVFInfo}s
+   *
+   * @param projectId The default BigQuery project id.
+   * @param functionReferences The list of function references. Each reference should
+   * be in the format "project.dataset.function" or "dataset.function".
+   * @param ignoreFunctionsWithoutReturnType Whether to filter out functions with a
+   * missing return type.
+   * @return The list of {@link TVFInfo}s representing the requested BigQuery TVFs.
+   * @throws BigQueryAPIError if an API error occurs
+   * @throws InvalidBigQueryReference if any provided table reference is invalid
+   */
   private List<TVFInfo> getTVFsImpl(
       String projectId,
       List<String> functionReferences,
@@ -465,11 +573,24 @@ public class BigQueryAPIResourceProvider implements BigQueryResourceProvider {
         .collect(Collectors.toList());
   }
 
+  /**
+   * {@inheritDoc}
+   *
+   * @throws BigQueryAPIError if an API error occurs
+   * @throws InvalidBigQueryReference if any provided table reference is invalid
+   * @throws MissingRoutineReturnType if any of the requested functions is missing its return type
+   */
   @Override
   public List<TVFInfo> getTVFs(String projectId, List<String> functionReferences) {
     return this.getTVFsImpl(projectId, functionReferences, false);
   }
 
+  /**
+   * {@inheritDoc}
+   *
+   * @throws BigQueryAPIError if an API error occurs
+   * @throws InvalidBigQueryReference if any provided table reference is invalid
+   */
   @Override
   public List<TVFInfo> getAllTVFsInDataset(String projectId, String datasetName) {
     List<String> functionReferences = this.service
@@ -488,6 +609,12 @@ public class BigQueryAPIResourceProvider implements BigQueryResourceProvider {
     return this.getTVFsImpl(projectId, functionReferences, true);
   }
 
+  /**
+   * {@inheritDoc}
+   *
+   * @throws BigQueryAPIError if an API error occurs
+   * @throws InvalidBigQueryReference if any provided table reference is invalid
+   */
   @Override
   public List<TVFInfo> getAllTVFsInProject(String projectId) {
     return this.service
@@ -499,6 +626,12 @@ public class BigQueryAPIResourceProvider implements BigQueryResourceProvider {
         .collect(Collectors.toList());
   }
 
+  /**
+   * {@inheritDoc}
+   *
+   * @throws BigQueryAPIError if an API error occurs
+   * @throws InvalidBigQueryReference if any provided table reference is invalid
+   */
   @Override
   public List<ProcedureInfo> getProcedures(String projectId, List<String> functionReferences) {
     return this.getRoutinesOfType(projectId, functionReferences, BigQueryAPIRoutineType.PROCEDURE)
@@ -507,6 +640,12 @@ public class BigQueryAPIResourceProvider implements BigQueryResourceProvider {
         .collect(Collectors.toList());
   }
 
+  /**
+   * {@inheritDoc}
+   *
+   * @throws BigQueryAPIError if an API error occurs
+   * @throws InvalidBigQueryReference if any provided table reference is invalid
+   */
   @Override
   public List<ProcedureInfo> getAllProceduresInDataset(String projectId, String datasetName) {
     List<String> functionReferences = this.service
@@ -525,6 +664,12 @@ public class BigQueryAPIResourceProvider implements BigQueryResourceProvider {
     return this.getProcedures(projectId, functionReferences);
   }
 
+  /**
+   * {@inheritDoc}
+   *
+   * @throws BigQueryAPIError if an API error occurs
+   * @throws InvalidBigQueryReference if any provided table reference is invalid
+   */
   @Override
   public List<ProcedureInfo> getAllProceduresInProject(String projectId) {
     return this.service

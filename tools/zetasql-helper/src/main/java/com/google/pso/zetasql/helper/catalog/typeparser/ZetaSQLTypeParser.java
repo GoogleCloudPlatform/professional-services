@@ -20,30 +20,65 @@ import com.google.pso.zetasql.helper.catalog.typeparser.ZetaSQLTypeGrammarParser
 import com.google.pso.zetasql.helper.catalog.typeparser.ZetaSQLTypeGrammarParser.BasicTypeContext;
 import com.google.pso.zetasql.helper.catalog.typeparser.ZetaSQLTypeGrammarParser.StructFieldContext;
 import com.google.pso.zetasql.helper.catalog.typeparser.ZetaSQLTypeGrammarParser.StructTypeContext;
+import com.google.pso.zetasql.helper.catalog.typeparser.ZetaSQLTypeGrammarParser.TypeContext;
 import com.google.zetasql.StructType.StructField;
 import com.google.zetasql.Type;
 import com.google.zetasql.TypeFactory;
 import com.google.zetasql.ZetaSQLType.TypeKind;
 import java.util.ArrayList;
+import java.util.EmptyStackException;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Stack;
+import org.antlr.v4.runtime.BaseErrorListener;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.ConsoleErrorListener;
 import org.antlr.v4.runtime.Lexer;
+import org.antlr.v4.runtime.RecognitionException;
+import org.antlr.v4.runtime.Recognizer;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 
+/**
+ * Parser for ZetaSQL types.
+ *
+ * <p> Allows parsing string representations of SQL types to their corresponding Type objects.
+ * For example; it can parse type strings such as "STRING", "ARRAY<INT64>" and "STRUCT<f DECIMAL>".
+ *
+ * <p> Uses an ANTLR4 based parser.
+ */
 public class ZetaSQLTypeParser {
 
+  /**
+   * Parses a SQL type string into its corresponding ZetaSQL Type.
+   *
+   * @param type The type string to parse
+   * @return The corresponding ZetaSQL Type
+   * @throws ZetaSQLTypeParseError if the provided type string is invalid
+   */
   public static Type parse(String type) {
     Lexer lexer = new ZetaSQLTypeGrammarLexer(CharStreams.fromString(type));
+    lexer.removeErrorListener(ConsoleErrorListener.INSTANCE);
     CommonTokenStream tokenStream = new CommonTokenStream(lexer);
     ZetaSQLTypeGrammarParser parser = new ZetaSQLTypeGrammarParser(tokenStream);
     ZetaSQLTypeParserListener listener = new ZetaSQLTypeParserListener();
-    ParseTreeWalker.DEFAULT.walk(listener, parser.type());
+    parser.removeErrorListener(ConsoleErrorListener.INSTANCE);
+    TypeContext typeRule = parser.type();
+    ParseTreeWalker.DEFAULT.walk(listener, typeRule);
+
+    if(typeRule.exception != null) {
+      throw new ZetaSQLTypeParseError(
+          String.format("Invalid SQL type: %s", type), typeRule.exception
+      );
+    }
+
     return listener.getResult();
   }
 
+  /**
+   * ANTLR4 listener that traverses the type parse tree and builds the corresponding ZetaSQL Type
+   */
   private static class ZetaSQLTypeParserListener extends ZetaSQLTypeGrammarBaseListener {
 
     private final Stack<Type> typeStack = new Stack<>();

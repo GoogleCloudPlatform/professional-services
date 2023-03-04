@@ -164,7 +164,7 @@ class BigQueryService {
 
   /**
    * Higher order method to a BigQuery resource of type T.
-   * See BigQueryService.fetchTable() and BigQueryService.fetchRoutine().
+   * See {@link #fetchTable(String, String)} and {@link #fetchRoutine(String, String)}.
    *
    * <p> Receives the default BigQuery project id and the BigQuery reference string
    * (e.g. "project.dataset.resource") for the resource to fetch. If the reference

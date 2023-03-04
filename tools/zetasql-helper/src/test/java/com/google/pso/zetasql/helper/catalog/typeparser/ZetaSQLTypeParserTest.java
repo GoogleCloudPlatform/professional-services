@@ -136,4 +136,15 @@ class ZetaSQLTypeParserTest {
     );
   }
 
+  @Test
+  void parseFailure() {
+    String typeStr = "NOT_A_TYPE";
+
+    assertThrows(
+        ZetaSQLTypeParseError.class,
+        () -> ZetaSQLTypeParser.parse(typeStr),
+        "Expected ZetaSQLTypeParser.parse(\"NO_A_TYPE\") to throw RuntimeException"
+    );
+  }
+
 }

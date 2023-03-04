@@ -32,6 +32,10 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * Basic implementation of CatalogWrapper which does not implement the semantics
+ * of any particular SQL engine. It does not support adding resources by name.
+ */
 public class BasicCatalogWrapper implements CatalogWrapper {
 
   private final SimpleCatalog catalog;
@@ -45,6 +49,11 @@ public class BasicCatalogWrapper implements CatalogWrapper {
     this.catalog = initialCatalog;
   }
 
+  /**
+   * {@inheritDoc}
+   *
+   * <p> Registers the table using its full name
+   */
   @Override
   public void register(SimpleTable table, CreateMode createMode, CreateScope createScope) {
     CatalogOperations.createTableInCatalog(
@@ -76,6 +85,11 @@ public class BasicCatalogWrapper implements CatalogWrapper {
     );
   }
 
+  /**
+   * {@inheritDoc}
+   *
+   * @throws CatalogException if the name path for the procedure has more than one item
+   */
   @Override
   public void register(ProcedureInfo procedureInfo, CreateMode createMode, CreateScope createScope) {
     if(procedureInfo.getNamePath().size() > 1) {

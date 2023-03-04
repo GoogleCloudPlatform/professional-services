@@ -19,10 +19,25 @@ package com.google.pso.zetasql.helper.catalog.spanner;
 import com.google.zetasql.SimpleTable;
 import java.util.List;
 
+/**
+ * Interface for an object that can find and provide Spanner resources
+ */
 public interface SpannerResourceProvider {
 
+  /**
+   * Gets a set of Spanner tables or views and returns them as {@link SimpleTable}s
+   *
+   * @param tableNames The names of the tables that should be retrieved.
+   * @return The list of SimpleTables representing the requested Spanner tables and views.
+   */
   List<SimpleTable> getTables(List<String> tableNames);
 
+  /**
+   * Gets a all Spanner tables and views in the Spanner database and returns
+   * them as {@link SimpleTable}s
+   *
+   * @return The list of SimpleTables representing the Spanner tables and views.
+   */
   List<SimpleTable> getAllTablesInDatabase();
 
 }

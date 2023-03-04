@@ -33,10 +33,24 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+/**
+ * {@link SpannerResourceProvider} implementation that uses a Spanner
+ * {@link DatabaseClient} and queries INFORMATION_SCHEMA to get table
+ * information.
+ */
 public class SpannerResourceProviderImpl implements SpannerResourceProvider {
 
   private final DatabaseClient client;
 
+  /**
+   * Constructs a SpannerResourceProviderImpl given a Spanner project,
+   * instance and database. It uses a {@link DatabaseClient} with
+   * application default credentials to access Spanner.
+   *
+   * @param project The Spanner project id
+   * @param instance The Spanner instance name
+   * @param database The Spanner database name
+   */
   public SpannerResourceProviderImpl(
       String project,
       String instance,
@@ -50,6 +64,7 @@ public class SpannerResourceProviderImpl implements SpannerResourceProvider {
     this.client = spannerClient.getDatabaseClient(databaseId);
   }
 
+  /** Constructs a SpannerResourceProviderImpl that uses the provided {@link DatabaseClient} */
   public SpannerResourceProviderImpl(DatabaseClient client) {
     this.client = client;
   }
@@ -68,7 +83,10 @@ public class SpannerResourceProviderImpl implements SpannerResourceProvider {
     );
   }
 
-
+  /**
+   * Creates the Spanner query that queries INFORMATION_SCHEMA for
+   * the schema of all tables and views in the Spanner database.
+   */
   private Statement schemaForAllTablesInDatabaseQuery() {
     String query = "SELECT table_name, column_name, spanner_type "
         + "FROM information_schema.columns";
@@ -76,6 +94,12 @@ public class SpannerResourceProviderImpl implements SpannerResourceProvider {
     return Statement.of(query);
   }
 
+  /**
+   * Creates the Spanner query that queries INFORMATION_SCHEMA for
+   * the schema of the provided tables and views in the Spanner database.
+   *
+   * @param tableNames The names of the tables to query from
+   */
   private Statement schemaForTablesQuery(List<String> tableNames) {
     String tableListSQL = tableNames
         .stream()
@@ -91,6 +115,14 @@ public class SpannerResourceProviderImpl implements SpannerResourceProvider {
     );
   }
 
+  /**
+   * Fetches tables from the Spanner database and returns them as
+   * {@link SimpleTable
+   * }
+   * @param query The INFORMATION_SCHEMA query that returns table_name,
+   * column_name and spanner_type for the tables and views to retrieve.
+   * @return The list of SimpleTables represented the retrieved tables.
+   */
   private List<SimpleTable> fetchTables(Statement query) {
     Map<String, List<SimpleColumn>> tableColumns = new HashMap<>();
 

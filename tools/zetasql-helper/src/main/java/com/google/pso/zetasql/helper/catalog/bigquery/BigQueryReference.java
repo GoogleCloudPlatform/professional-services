@@ -25,6 +25,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Pattern;
 
+/**
+ * Dataclass representing a reference to a BigQuery resource.
+ */
 class BigQueryReference {
 
   private final String projectId;
@@ -109,6 +112,16 @@ class BigQueryReference {
     );
   }
 
+  /**
+   * Creates a BigQueryReference given the BigQuery default project id and
+   * a reference string in the format of "project.dataset.resource" or
+   * "dataset.resource".
+   *
+   * @param projectId The BigQuery default project id
+   * @param referenceString The reference string for the resource
+   * @return A BigQueryReference instance representing the resource
+   * @throws InvalidBigQueryReference if the project or reference are invalid
+   */
   public static BigQueryReference from(String projectId, String referenceString) {
     LinkedList<String> elements = new LinkedList<>(
         Arrays.asList(referenceString.split("\\."))

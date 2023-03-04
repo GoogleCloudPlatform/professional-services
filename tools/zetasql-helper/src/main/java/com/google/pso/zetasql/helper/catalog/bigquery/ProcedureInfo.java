@@ -18,7 +18,16 @@ package com.google.pso.zetasql.helper.catalog.bigquery;
 
 import com.google.common.collect.ImmutableList;
 import com.google.zetasql.FunctionSignature;
+import com.google.zetasql.Procedure;
 
+/**
+ * Dataclass containing the fields of a ZetaSQL Procedure
+ *
+ * <p> This is necessary because the ZetaSQL Procedure class does not currently implement
+ * a getSignature() method.
+ *
+ * @see Procedure
+ */
 public class ProcedureInfo {
 
   private final ImmutableList<String> namePath;
