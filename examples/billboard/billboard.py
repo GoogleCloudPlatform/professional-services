@@ -23,8 +23,8 @@ from colorama import Style
 
 bq_client = bigquery.Client()
 
-base_url = "https://datastudio.google.com/reporting/create?"
-report_part_url = base_url + "c.reportId=2e2ea000-8f68-40e2-8847-b80f05069b6e"
+base_url = "https://lookerstudio.google.com/reporting/create?"
+report_part_url = base_url + "c.reportId=64387229-05e0-4951-aa3f-e7349bbafc07"
 report_base_url = report_part_url + "&r.reportName=MyBillboard"
 
 std_proj_url = "&ds.ds39.connector=bigQuery&ds.ds39.projectId={}"
