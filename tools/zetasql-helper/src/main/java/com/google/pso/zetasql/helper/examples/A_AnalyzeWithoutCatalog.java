@@ -22,6 +22,9 @@ import com.google.zetasql.LanguageOptions;
 import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedStatement;
 import java.util.Iterator;
 
+/**
+ * Example showcasing the basic example of how to use the ZetaSQL analyzer using this toolkit
+ */
 public class A_AnalyzeWithoutCatalog {
 
   private static AnalyzerOptions getAnalyzerOptions() {
@@ -36,14 +39,21 @@ public class A_AnalyzeWithoutCatalog {
   }
 
   public static void main(String[] args) {
+    // SQL script to be analyzed, notice that is has a CREATE TEMP TABLE statement,
+    // which this toolkit will make sure is persisted to the catalog.
     String query = "CREATE TEMP TABLE t AS (SELECT 1 AS column);\n"
         + "SELECT column from t;";
+
+    // Step 1: Define the AnalyzerOptions to configure the ZetaSQL analyzer
     AnalyzerOptions options = getAnalyzerOptions();
 
+    // Step 2: Use ZetaSQLHelper.analyzeStatements to get an iterator of the ResolvedStatements
+    // that result from running the analyzer
     Iterator<ResolvedStatement> statementIterator = ZetaSQLHelper.analyzeStatements(
         query, options
     );
 
+    // Step 3: Consume the previous iterator and use the ResolvedStatements however you need
     statementIterator.forEachRemaining(statement -> System.out.println(statement.debugString()));
   }
 

@@ -27,6 +27,9 @@ import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedStatement;
 import java.util.Iterator;
 import java.util.List;
 
+/**
+ * Showcases how to use validations
+ */
 public class D_AnalyzeAndValidate {
 
   private static AnalyzerOptions getAnalyzerOptions() {

@@ -23,6 +23,10 @@ import com.google.zetasql.LanguageOptions;
 import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedStatement;
 import java.util.Iterator;
 
+/**
+ * Example showcasing how we can add to the catalog only the tables that are used in a query,
+ * to have the minimum amount of tables necessary loaded in the catalog
+ */
 public class C_LoadTablesUsedInQuery {
 
   private static AnalyzerOptions getAnalyzerOptions() {
@@ -40,12 +44,12 @@ public class C_LoadTablesUsedInQuery {
     String query =
         "INSERT INTO `bigquery-public-data.samples.wikipedia` (title) VALUES ('random title');\n"
             + "SELECT * FROM `bigquery-public-data.samples.wikipedia` WHERE title = 'random title';";
+
     AnalyzerOptions options = getAnalyzerOptions();
 
-    BigQueryCatalog catalog = new BigQueryCatalog(
-        "bigquery-public-data"
-    );
+    BigQueryCatalog catalog = new BigQueryCatalog("bigquery-public-data");
 
+    // Will only add bigquery-public-data.samples.wikipedia to the catalog
     catalog.addAllTablesUsedInQuery(query, options);
 
     Iterator<ResolvedStatement> statementIterator = ZetaSQLHelper.analyzeStatements(
