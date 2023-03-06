@@ -18,6 +18,8 @@ them to fit your particular use case.
 *   [Audio Content Profiling](examples/ml-audio-content-profiling) - A tool that
     builds a pipeline to scale the process of moderating audio files for
     inappropriate content using machine learning APIs.
+*   [Bigdata generator](tools/bigdata-generator/) - 
+    Solution that generates large amounts of data for stress-testing big data solutions (e.g BigQuery). For each of the fields you want to generate, you can specify rules for generating their values. The generated data can stored in BigQuery or GCS (Avro, CSV).
 *   [BigQuery Analyze Realtime Reddit Data](examples/bigquery-analyze-realtime-reddit-data/) - 
     Solution to deploy a ([reddit](https://www.reddit.com)) social media data collection
     architecture on Google Cloud Platform.  Analyzes reddit comments in realtime and
