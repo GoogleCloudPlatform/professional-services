@@ -23,7 +23,9 @@ import sys
 from colorama import Back
 from colorama import Style
 
-base_url = "https://datastudio.google.com/reporting/create?"
+
+base_url = "https://lookerstudio.google.com/reporting/create?"
+
 report_part_url = base_url + "c.reportId=64387229-05e0-4951-aa3f-e7349bbafc07"
 report_base_url = report_part_url + "&r.reportName=MyBillboard"
 report_base_url = report_base_url + "&ds.ds8.refreshFields=false"

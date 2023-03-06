@@ -39,6 +39,10 @@ To get started contributing:
      --workdir=/workspace \
      gcr.io/$(gcloud config get-value project)/make fmt
    ```
+   If you face any issues while pulling the image, please run the following command:
+   ```
+   gcloud auth configure-docker
+   ```
 
 1. Run the linter locally.
 
