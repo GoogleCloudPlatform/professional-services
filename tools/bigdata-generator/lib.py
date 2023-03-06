@@ -55,7 +55,7 @@ class Config():
             bucket = client.get_bucket(bucket)
             blob = bucket.get_blob(object_name)
 
-            config_file_json_data = blob.download_as_string().decode('UTF-8')
+            config_file_json_data = blob.download_as_string().decode("UTF-8")
         else: #local file
             with open(config_file_path) as local_json_file:
                 config_file_json_data = local_json_file.read()
@@ -83,7 +83,7 @@ class ConfigFileValidator():
 
         if len(self.config.sinks) == 0:
             warnings.append(
-                f"no sinks have been defined! data will be not be persisted after generated"
+                "no sinks have been defined! data will be not be persisted after generated"
             )
 
         return errors, warnings
@@ -108,7 +108,7 @@ class RowGenerator(beam.DoFn):
             for field in self.config.fields:
                 if field["generation"]["type"] == "LOOKUP_VALUE":
                     continue
-                
+
                 # logging.debug(f"processing field:{field}")
                 field_name = field["name"]
 
@@ -132,8 +132,8 @@ class RowGenerator(beam.DoFn):
                 end_time = datetime.now()
 
                 metrics.append({
-                    'field': field_name,
-                    'runtime': (end_time - start_time).microseconds
+                    "field": field_name,
+                    "runtime": (end_time - start_time).microseconds
                 }.copy())
 
             #Now that we have generated the fields, we can generate the LOOKUP_VALUE ones
@@ -147,8 +147,8 @@ class RowGenerator(beam.DoFn):
                 end_time = datetime.now()
 
                 metrics.append({
-                    'field': field_name,
-                    'runtime': (end_time - start_time).microseconds
+                    "field": field_name,
+                    "runtime": (end_time - start_time).microseconds
                 }.copy())
 
             # logging.debug(f"metrics: {metrics}")
@@ -208,7 +208,7 @@ class RowGenerator(beam.DoFn):
     def _get_random_string(self, subtype, length):
         import random
         import string
-        return ''.join(random.choice(getattr(string, subtype)) for i in range(length))
+        return "".join(random.choice(getattr(string, subtype)) for i in range(length))
 
     """
     Returns a random int
@@ -231,8 +231,8 @@ class RowGenerator(beam.DoFn):
         from datetime import datetime, timedelta
         import random
 
-        min_date = datetime.strptime(min, '%Y-%m-%dT%H:%M:%SZ')
-        max_date = datetime.strptime(max, '%Y-%m-%dT%H:%M:%SZ')
+        min_date = datetime.strptime(min, "%Y-%m-%dT%H:%M:%SZ")
+        max_date = datetime.strptime(max, "%Y-%m-%dT%H:%M:%SZ")
 
         # logging.debug(f"generating random date between: '{min_date}' and '{max_date}'")
 
@@ -255,8 +255,8 @@ class RowGenerator(beam.DoFn):
         weights = field["generation"]["weights"] if field["generation"].get("weights") else None
 
         result = random.choices(
-                field["generation"]["values"], 
-                weights=weights, 
+                field["generation"]["values"],
+                weights=weights,
                 k=1
             )[0]
 

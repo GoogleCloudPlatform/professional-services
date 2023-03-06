@@ -3,6 +3,6 @@
 ## run
 
 ```
-python3 test.py \
-    --runner DirectRunner 
+source env/bin/activate
+python3 test/test.py
 ```

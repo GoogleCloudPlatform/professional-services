@@ -1,11 +1,7 @@
 import argparse
 import logging
-import re
-import json
 
 import apache_beam as beam
-from apache_beam.io import ReadFromText
-from apache_beam.io import WriteToText
 from apache_beam.io.avroio import WriteToAvro
 from apache_beam.options.pipeline_options import PipelineOptions
 from apache_beam.options.pipeline_options import SetupOptions
@@ -26,8 +22,8 @@ def run(argv=None, save_main_session=True):
     pipeline_helper = PipelineHelper(
         config_file_path=known_args.config_file_path
     )
-    
-    logging.info("Config data:")
+
+    logging.info('Config data:')
     logging.info(pipeline_helper.get_config())
 
     # Validate the config file
@@ -43,7 +39,7 @@ def run(argv=None, save_main_session=True):
         logging.error(error)
 
     if len(config_file_errors) > 0:
-        raise Exception(f"Errors in the config file were found, stopping execution.")
+        raise Exception('Errors in the config file were found, stopping execution.')
 
     with beam.Pipeline(options=pipeline_options) as p:
         #Generate the data
@@ -59,30 +55,30 @@ def run(argv=None, save_main_session=True):
 
         # write the generated data to the sinks defined in the config file
         for sink in pipeline_helper.get_config().sinks:
-            if sink["type"] == "BIGQUERY":
-                bigquery_table_id = sink["table_id"]
-                write_disposition = sink["write_disposition"]
+            if sink['type'] == 'BIGQUERY':
+                bigquery_table_id = sink['table_id']
+                write_disposition = sink['write_disposition']
 
                 elements | 'WriteBQ' >> beam.io.WriteToBigQuery(
                     table=bigquery_table_id,
                     write_disposition=write_disposition,
                     create_disposition=beam.io.BigQueryDisposition.CREATE_NEVER #table should already exist
                 )
-            elif sink["type"] == "GCS-AVRO":
-                location = sink["location"]
-                avro_schema = sink["schema"]
+            elif sink['type'] == 'GCS-AVRO':
+                location = sink['location']
+                avro_schema = sink['schema']
 
                 elements | 'WriteGCS-AVRO' >> WriteToAvro(
-                    location, 
+                    location,
                     avro_schema,
-                    file_name_suffix='.avro', 
+                    file_name_suffix='.avro',
                     use_fastavro = True
                 )
-            elif sink["type"] == "GCS-CSV":
-                location = sink["location"]
-                delimiter = sink["delimiter"]
+            elif sink['type'] == 'GCS-CSV':
+                location = sink['location']
+                delimiter = sink['delimiter']
 
-                header = delimiter.join([x["name"] for x in pipeline_helper.get_config().fields])
+                header = delimiter.join([x['name'] for x in pipeline_helper.get_config().fields])
 
                 elements | 'FormatCSV' >> beam.Map(
                         lambda row: delimiter.join([str(row[column]) for column in row])

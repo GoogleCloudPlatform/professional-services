@@ -7,11 +7,11 @@ import re
 import uuid
 import os, sys
 import unittest
-from datetime import datetime, timedelta
+from datetime import datetime
 #include the parent folder to load the lib module
 current = os.path.dirname(os.path.realpath(__file__))
 parent_directory = os.path.dirname(current)
-  
+
 sys.path.append(parent_directory)
 
 from lib import PipelineHelper, RowGenerator
@@ -21,7 +21,7 @@ expected_number_of_rows_per_batch = 100
 expected_batches = [100,100,100,100,100,100,100,100,100,100,2]
 
 class Test_RowGenerator(unittest.TestCase):
-    
+
     def test_generated_rows(self):
         config_file_path = "./config.json"
         pipeline_helper = PipelineHelper(
@@ -29,14 +29,14 @@ class Test_RowGenerator(unittest.TestCase):
         )
 
         with TestPipeline() as p:
-            
+    
             batches = p | 'CreateBatches' >> beam.Create(pipeline_helper.get_batches())
 
             #check the batches
             assert_that(batches, equal_to(expected_batches))
-            
+
             elements = (
-                batches 
+                batches
                 | 'GenerateRows' >> beam.ParDo(
                     RowGenerator(
                         config=pipeline_helper.get_config()
@@ -48,7 +48,7 @@ class Test_RowGenerator(unittest.TestCase):
             total_generated_rows = elements | 'Count' >> beam.combiners.Count.Globally()
             assert_that(total_generated_rows, equal_to([expected_number_of_rows]), label='CheckOutput')
 
-            
+
             # check the values of field 'id'
             def is_valid_uuid(val):
                 try:
@@ -88,7 +88,7 @@ class Test_RowGenerator(unittest.TestCase):
                 self.assertTrue(pattern.match(val))
 
             elements | "GetPhoneNumber" >> beam.Map(lambda x: x["phone_number"]) | "ValidatePhoneNumber" >> beam.Map(validate_phone_number)
-            
+
             # check the values of field 'product_id'
             def validate_product_id(val):
                 self.assertTrue(val in ["product1","product2","product3"])
@@ -132,7 +132,7 @@ class Test_PipelineHelper(unittest.TestCase):
         config_file_path = "./config.json"
         cls.pipeline_helper = PipelineHelper(
             config_file_path=config_file_path
-        )   
+        )
 
     def test_batches(self):
         self.assertEqual(
@@ -166,17 +166,5 @@ class Test_PipelineHelper(unittest.TestCase):
             9
         )
 
-        
-        # Create a test pipeline.
-        # with TestPipeline() as p:
-        #     self.test_pipeline_helper()
-            # Create an input PCollection.
-            # input = p | beam.Create(WORDS)
-
-            # # Apply the Count transform under test.
-            # output = input | beam.combiners.Count.PerElement()
-
 if __name__ == '__main__':
     unittest.main()
-
-        
