@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from googleapiclient import discovery
+# from googleapiclient import discovery
 from google.cloud import bigquery
 from google.cloud import billing
 from google.api_core import client_info as http_client_info
