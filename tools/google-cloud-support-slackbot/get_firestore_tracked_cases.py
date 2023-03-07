@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Copyright 2022 Google LLC
+# Copyright 2023 Google LLC
 
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -25,25 +25,25 @@ logger = logging.getLogger(__name__)
 
 def get_firestore_tracked_cases() -> list:
     """
-    Fetches the cases in Firestore and returns the copy for each case id with the
-    greatest timestamp value.
+    Fetches the cases in Firestore and returns the copy for each case id with
+    the greatest timestamp value.
 
     Returns
     -------
     tracked_cases
-        list of dicts containing the tracked case information
+      list of dicts containing the tracked case information
     """
-    # Initialize the Firebase app if it hasn't already been done
+    # Initialize the Firebase app if it hasn"t already been done
     if not firebase_admin._apps:
-        PROJECT_ID = os.environ.get('PROJECT_ID')
+        PROJECT_ID = os.environ.get("PROJECT_ID")
         cred = credentials.ApplicationDefault()
         firebase_admin.initialize_app(cred, {
-            'projectId': PROJECT_ID,
+            "projectId": PROJECT_ID,
         })
 
     db = firestore.client()
     tracked_cases = []
-    collection = 'tracked_cases'
+    collection = "tracked_cases"
     firestore_tracked_cases = db.collection(collection).get()
     for case in firestore_tracked_cases:
         tracked_cases.append(case.to_dict())

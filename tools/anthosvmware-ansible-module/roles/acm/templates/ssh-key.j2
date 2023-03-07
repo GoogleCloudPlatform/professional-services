@@ -1,0 +1,1 @@
+{{ acm_root_repo_sshkey_content if acm_root_repo_sshkey_content is defined else lookup('file', acm_root_repo_sshkey) }}

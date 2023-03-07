@@ -1,0 +1,119 @@
+#cloud-config
+
+# Copyright 2022 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+users:
+  - name: mysql
+    uid: 2000
+
+write_files:
+  - path: /var/lib/docker/daemon.json
+    permissions: 0644
+    owner: root
+    content: |
+      {
+        "live-restore": true,
+        "storage-driver": "overlay2",
+        "log-opts": {
+          "max-size": "1024m"
+        }
+      }
+  - path: /run/mysql/secrets/mysql-passwd${kms_config == null ? "" : "-cipher"}.txt
+    permissions: 0600
+    owner: root
+    content: |
+      ${password}
+  %{~ if kms_config != null ~}
+  - path: /run/mysql/passwd.sh
+    permissions: 0700
+    owner: root
+    content: |
+      #!/bin/bash
+      base64 -d /run/mysql/secrets/mysql-passwd-cipher.txt | docker run \
+        --rm -i -v /run/mysql/secrets:/data google/cloud-sdk:alpine \
+        gcloud kms decrypt --ciphertext-file -  \
+        --plaintext-file /data/mysql-passwd.txt \
+        --keyring ${kms_config.keyring} \
+        --key ${kms_config.key} \
+        --project ${kms_config.project_id} \
+        --location ${kms_config.location}
+  %{~ endif ~}
+  %{~ if mysql_config != null ~}
+  - path: /run/mysql/etc/my.cnf
+    permissions: 0644
+    owner: mysql
+    content: |
+      ${indent(6, mysql_config)}
+  %{~ endif ~}
+  %{~ if mysql_data_disk != null ~}
+  - path: /etc/systemd/system/mysql-data.service
+    permissions: 0644
+    owner: root
+    content: |
+      [Unit]
+      Description=MySQL data disk
+      ConditionPathExists=/dev/disk/by-id/${mysql_data_disk}
+      Before=mysql.service
+      [Service]
+      Type=oneshot
+      ExecStart=/bin/mkdir -p /run/mysql/data
+      ExecStart=/bin/bash -c \
+        "/bin/lsblk -fn -o FSTYPE \
+          /dev/disk/by-id/${mysql_data_disk} |grep ext4 \
+        || mkfs.ext4 -m 0 -F -E lazy_itable_init=0,lazy_journal_init=0,discard \
+          /dev/disk/by-id/${mysql_data_disk}"
+      ExecStart=/bin/bash -c \
+        "mount |grep /run/mysql/data \
+        || mount -t ext4 /dev/disk/by-id/${mysql_data_disk} /run/mysql/data"
+      ExecStart=/sbin/resize2fs /dev/disk/by-id/${mysql_data_disk}
+      RemainAfterExit=true
+  %{~ endif ~}
+  - path: /etc/systemd/system/mysql.service
+    permissions: 0644
+    owner: root
+    content: |
+      [Unit]
+      Description=MySQL service
+      After=%{~ if mysql_data_disk != null ~}mysql-data.service %{ endif ~}gcr-online.target docker.socket docker-events-collector.service
+      Wants=%{~ if mysql_data_disk != null ~}mysql-data.service %{ endif ~}gcr-online.target docker.socket
+      [Service]
+      %{~ if kms_config != null ~}
+      ExecStartPre=/run/mysql/passwd.sh
+      %{~ endif ~}
+      ExecStartPre=/bin/mkdir -p /run/mysql/data
+      ExecStartPre=/bin/chown -R 2000 /run/mysql/secrets /run/mysql/data
+      ExecStart=/usr/bin/docker run --rm --name=mysql \
+        --user 2000:2000 \
+        %{~ if docker_logging ~}
+        --log-driver=gcplogs \
+        %{~ endif ~}
+        --network host \
+        -e MYSQL_ROOT_PASSWORD_FILE=/etc/secrets/mysql-passwd.txt \
+        -v /run/mysql/secrets:/etc/secrets \
+        -v /run/mysql/data:/var/lib/mysql \
+        %{~ if mysql_config != null ~}
+        -v /run/mysql/etc:/etc/mysql \
+        %{~ endif ~}
+        ${image} \
+        --ignore-db-dir=lost+found
+      ExecStop=/usr/bin/docker stop mysql
+
+bootcmd:
+  - systemctl start node-problem-detector
+
+runcmd:
+  - iptables -I INPUT 1 -p tcp -m tcp --dport 3306 -m state --state NEW,ESTABLISHED -j ACCEPT
+  - systemctl daemon-reload
+  - systemctl start mysql

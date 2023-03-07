@@ -1,0 +1,3 @@
+data_eng_principals = ["user:data-eng@domain.com"]
+project_id          = "datalake-001"
+prefix              = "prefix"

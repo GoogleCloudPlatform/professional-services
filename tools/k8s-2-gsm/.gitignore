@@ -1,0 +1,8 @@
+# Ignore generated credentials from google-github-actions/auth
+gha-creds-*.json
+
+# NEVER bake in environment variables or credentials
+#.env # commenting for commit template
+#.env*
+google_credentials.json
+.DS_Store

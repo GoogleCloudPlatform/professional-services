@@ -21,9 +21,9 @@ The PodDisruptionBudget configured ensures that the application keeps running wh
 Before running this example, make sure to export your project ID as Terraform variable:
 `export TF_VAR_project_id=[YOUR_GCP_PROJECT_ID]`
 
-Authenticate against GCP, e.g. with `gcloud auth application-default-login --no-launch-browser` and make sure the account / service account used has the required roles.
+Authenticate against GCP, e.g. with `gcloud auth application-default login --no-launch-browser` and make sure the account / service account used has the required roles.
 
-Then preview and apply all changes with `terraform plan` and `terraform apply`.
+Then preview and apply all changes with `terraform init`, `terraform plan` and `terraform apply`.
 
 ## How to simulate spot instances being unavailable
 To simulate spot VMs being unavailable and forcing the application to run on the fallback pool, first disable autoscaling and then scale the spot node pool down to 0 instances.

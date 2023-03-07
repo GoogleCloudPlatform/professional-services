@@ -289,7 +289,7 @@ class QueryITSpec extends AnyFlatSpec with BeforeAndAfterAll with BeforeAndAfter
          |  (1, "STORE_1")
          |;""".stripMargin
     val jobConfiguration_create = configureQueryJob(createTableScript, cfg)
-    val jobId_create = BQ.genJobId(cfg.projectId, cfg.location, zos, "query")
+    val jobId_create = BQ.genJobId(cfg.projectId, cfg.location, zos.getInfo, "query")
     val job_create = BQ.runJob(bq, jobConfiguration_create, jobId_create, cfg.timeoutMinutes * 60, true)
 
     val status = BQ.getStatus(job_create)
@@ -320,7 +320,7 @@ class QueryITSpec extends AnyFlatSpec with BeforeAndAfterAll with BeforeAndAfter
          |;""".stripMargin
 
     val jobConfiguration_insert = configureQueryJob(insertScript, cfg)
-    val jobId_insert = BQ.genJobId(cfg.projectId, cfg.location, zos, "query")
+    val jobId_insert = BQ.genJobId(cfg.projectId, cfg.location, zos.getInfo, "query")
     BQ.runJob(bq, jobConfiguration_insert, jobId_insert, cfg.timeoutMinutes * 60, cfg.sync)
     val job_insert = BQ.apiGetJob(bqApi, jobId_insert)
     val insert_result = MergeStats.forJob(job_insert)
@@ -343,7 +343,7 @@ class QueryITSpec extends AnyFlatSpec with BeforeAndAfterAll with BeforeAndAfter
          |;""".stripMargin
 
     val jobConfiguration_update = configureQueryJob(updateScript, cfg)
-    val jobId_update = BQ.genJobId(cfg.projectId, cfg.location, zos, "query")
+    val jobId_update = BQ.genJobId(cfg.projectId, cfg.location, zos.getInfo, "query")
     BQ.runJob(bq, jobConfiguration_update, jobId_update, cfg.timeoutMinutes * 60, cfg.sync)
     val job_update = BQ.apiGetJob(bqApi, jobId_update)
     val update_result = MergeStats.forJob(job_update)
@@ -366,7 +366,7 @@ class QueryITSpec extends AnyFlatSpec with BeforeAndAfterAll with BeforeAndAfter
          |;""".stripMargin
 
     val jobConfiguration_delete = configureQueryJob(deleteScript, cfg)
-    val jobId_delete = BQ.genJobId(cfg.projectId, cfg.location, zos, "query")
+    val jobId_delete = BQ.genJobId(cfg.projectId, cfg.location, zos.getInfo, "query")
     BQ.runJob(bq, jobConfiguration_delete, jobId_delete, cfg.timeoutMinutes * 60, cfg.sync)
     val job_delete = BQ.apiGetJob(bqApi, jobId_delete)
     val delete_result = MergeStats.forJob(job_delete)

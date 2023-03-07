@@ -1,0 +1,148 @@
+# Copyright 2022 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+
+- name: "[mesh] Setup cluster config"
+  include_tasks: setup-config.yml
+
+- name: "[mesh] Block - East-West Gateway, Working Dir, Mesh Clusters"
+  block:
+
+    - name: "[mesh] Switch to asm Service Account Name"
+      ansible.builtin.command: # noqa 305 301 no-changed-when
+        argv:
+          - gcloud
+          - auth
+          - activate-service-account
+          - --key-file
+          - "{{ job_sakeyfolder }}/{{ asm_gcpsa_path }}"
+      run_once: true
+      delegate_to: "{{ play_hosts[0] }}"
+
+    - name: "[mesh] Get Project Number"
+      ansible.builtin.command:
+        argv:
+          - gcloud
+          - projects
+          - describe
+          - "{{ mesh_project_id }}"
+          - --format=value(projectNumber)
+      changed_when: false
+      register: mesh_proj_number
+      run_once: true
+      delegate_to: "{{ play_hosts[0] }}"
+
+    - name: "[mesh] Set Facts"
+      ansible.builtin.set_fact:
+        mesh_id: "proj-{{ mesh_proj_number.stdout | trim }}"
+        cluster_name: "cn-{{ mesh_project_id }}-global-{{ uc_name }}"
+
+    - name: "[mesh] Generate east-west gateway configuration"
+      ansible.builtin.command:
+        argv:
+          - "{{ asm_out_dir }}/asm/istio/expansion/gen-eastwest-gateway.sh"
+          - --mesh
+          - "{{ mesh_id }}"
+          - --cluster
+          - "{{ cluster_name }}"
+          - --network
+          - "{{ asm_network_id }}"
+          - --revision
+          - "{{ asm_revision }}"
+      register: mesh_gateway
+
+    - name: "[mesh] Create file for east-west gateway"
+      ansible.builtin.copy:
+        content: "{{ mesh_gateway.stdout }}"
+        dest: "{{ asm_temp }}/{{ uc_name }}-eastwest-gateway.yml"
+        mode: 0640
+
+    - name: "[mesh] Install east-west gateway to cluster"
+      ansible.builtin.command:
+        argv:
+          - "{{ asm_out_dir }}/istioctl"
+          - --kubeconfig
+          - "{{ yamldestpath }}/{{ uc_name }}-kubeconfig"
+          - install
+          - -y
+          - -f
+          - "{{ asm_temp }}/{{ uc_name }}-eastwest-gateway.yml"
+
+    - name: "[mesh] Expose services via the east-west gateway"
+      ansible.builtin.command:
+        argv:
+          - kubectl
+          - --kubeconfig
+          - "{{ yamldestpath }}/{{ uc_name }}-kubeconfig"
+          - apply
+          - -n
+          - istio-system
+          - -f
+          - "{{ asm_out_dir }}/asm/istio/expansion/expose-services.yaml"
+
+    - name: "[mesh] Create working directory"
+      ansible.builtin.file:
+        path: "/tmp/{{ mesh_unique_id }}"
+        mode: 0700
+        state: directory
+      run_once: true
+      delegate_to: "{{ play_hosts[0] }}"
+
+    - name: "[mesh] Get cluster kubeconfig files"
+      ansible.builtin.slurp:
+        src: "{{ yamldestpath }}/{{ uc_name }}-kubeconfig"
+      register: kubeconfig
+      changed_when: false
+
+    - name: "[mesh] Drop kubeconfigs into working directory"
+      ansible.builtin.copy:
+        content: "{{ kubeconfig.content | b64decode }}"
+        dest: "/tmp/{{ mesh_unique_id }}/{{ uc_name }}-kubeconfig"
+        mode: 0600
+      delegate_to: "{{ play_hosts[0] }}"
+
+    - name: "[mesh] Get list of all kubeconfigs"
+      ansible.builtin.find:
+        path: "/tmp/{{ mesh_unique_id }}/"
+        pattern: "*-kubeconfig"
+      register: cluster_kubeconfigs
+      run_once: true
+      delegate_to: "{{ play_hosts[0] }}"
+
+    - name: "[mesh] Create mesh between clusters"
+      ansible.builtin.command:
+        argv:
+          - "{{ asm_temp }}/asmcli"
+          - create-mesh
+          - "{{ mesh_project_id }}"
+          - --output_dir
+          - "{{ asm_out_dir }}"
+          - "{{ item[0].path }}"
+          - "{{ item[1].path }}"
+      loop: "{{ cluster_kubeconfigs.files | combinations(2) | list }}"
+      loop_control:
+        label: "{{ item[0].path }} with {{ item[1].path }}"
+      run_once: true
+      delegate_to: "{{ play_hosts[0] }}"
+
+  always:
+
+    - name: "[mesh] Remove kubeconfig working directory"
+      ansible.builtin.file:
+        path: "/tmp/{{ mesh_unique_id }}/"
+        state: absent
+
+    - name: "Include role to delete sensitive files"
+      ansible.builtin.include_role:
+        name: cleanup

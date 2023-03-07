@@ -1,0 +1,182 @@
+# Copyright 2022 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+
+- name: "[acm] Block - Create NS, git-creds secret, and configure ACM" # noqa var-spacing
+  block:
+    - name: "[acm] Copy ACM namespace file"
+      ansible.builtin.copy:
+        src: namespace.yaml
+        dest: "{{ yamldestpath }}/{{ uc_name }}"
+        mode: 0600
+
+    - name: "[acm] Create ACM namespace"
+      ansible.builtin.command:
+        argv:
+          - kubectl
+          - --kubeconfig
+          - "{{ yamldestpath }}/{{ uc_name }}-kubeconfig"
+          - apply
+          - -f
+          - "{{ yamldestpath }}/{{ uc_name }}/namespace.yaml"
+
+    - name: "[acm] Copy SSH key for authenticating to root repository"
+      ansible.builtin.template:
+        src: ssh-key.j2
+        dest: "{{ yamldestpath }}/{{ uc_name }}/acm-sshkey"
+        mode: 0600
+      when:
+        - acm_configsync.secretType is defined
+        - acm_configsync.secretType == "ssh"
+
+    - name: "[acm] Generate root repository SSH key secret"
+      ansible.builtin.command:
+        argv:
+          - kubectl
+          - --kubeconfig
+          - "{{ yamldestpath }}/{{ uc_name }}-kubeconfig"
+          - create
+          - secret
+          - generic
+          - git-creds
+          - --save-config
+          - --dry-run=client
+          - --from-file=ssh={{ yamldestpath }}/{{ uc_name }}/acm-sshkey
+          - -n
+          - config-management-system
+          - -o
+          - yaml
+      register: ssh_secret
+      no_log: true
+      when:
+        - acm_configsync.secretType is defined
+        - acm_configsync.secretType == "ssh"
+
+    - name: "[acm] Create file for SSH key secret"
+      ansible.builtin.copy:
+        content: "{{ ssh_secret.stdout }}"
+        dest: "{{ yamldestpath }}/{{ uc_name }}/ssh-secret.yaml"
+        mode: 0640
+      when:
+        - acm_configsync.secretType is defined
+        - acm_configsync.secretType == "ssh"
+
+    - name: "[acm] Apply SSH key secret"
+      ansible.builtin.command:
+        argv:
+          - kubectl
+          - --kubeconfig
+          - "{{ yamldestpath }}/{{ uc_name }}-kubeconfig"
+          - apply
+          - -f
+          - "{{ yamldestpath }}/{{ uc_name }}/ssh-secret.yaml"
+      when:
+        - acm_configsync.secretType is defined
+        - acm_configsync.secretType == "ssh"
+
+    - name: "[acm] Upload ACM Images to Private Registry"
+      include_tasks: private-upload.yml
+      when:
+        - glb_privatereg_url is defined
+        - glb_privatereg_url|length > 3
+        - glb_privatereg_username is defined
+        - glb_privatereg_username | length > 3
+        - glb_privatereg_password is defined
+        - glb_privatereg_password | length > 3
+
+    - name: "[acm] Templating YAML files"
+      ansible.builtin.template:
+        src: apply-spec.yaml.j2
+        dest: "{{ acm_config }}"
+        mode: 0600
+
+    - name: "[acm] Check ACM Feature Status"
+      ansible.builtin.command: # noqa 305 301 no-changed-when
+        argv:
+          - gcloud
+          - container
+          - hub
+          - features
+          - list
+          - --filter
+          - 'name:configmanagement'
+          - --format
+          - 'value(name)'
+          - "--project={{ acm_gcpproject }}"
+      register: acm_feature_status
+
+    - name: "[acm] Enable ACM Feature"
+      ansible.builtin.command: # noqa 305 301 no-changed-when
+        argv:
+          - gcloud
+          - beta
+          - container
+          - hub
+          - config-management
+          - enable
+          - "--project={{ acm_gcpproject }}"
+      when:
+        - acm_feature_status.rc | default('') == 0
+        - acm_feature_status.stdout | length == 0
+
+    - name: "[acm] Enable ACM"
+      ansible.builtin.command:
+        argv:
+          - gcloud
+          - beta
+          - container
+          - hub
+          - config-management
+          - apply
+          - "--membership={{ acm_membership }}"
+          - "--config={{ acm_config }}"
+          - "--version={{ acm_version }}"
+          - "--project={{ acm_gcpproject }}"
+      register: _results
+      retries: 5
+      delay: 10
+      until: _results.rc == 0
+
+    - name: "[acm] Wait for Policy Controller to be installed"
+      ansible.builtin.shell:
+        cmd: gcloud beta container hub config-management status --project={{ acm_gcpproject }} --format=json | jq -c '.acm_status[] | select(.name | contains("{{ acm_membership }}"))' # noqa yaml[line-length]
+      register: _acmpc_status
+      retries: 30
+      until: "'\"policy_controller_state\":\"INSTALLED\"' in _acmpc_status.stdout"
+      delay: 20
+      when:
+        - acm_policycontroller.enabled is defined
+        - acm_policycontroller.enabled | bool
+
+    - name: "[acm] Wait for Config Sync to be synced"
+      ansible.builtin.shell:
+        cmd: gcloud beta container hub config-management status --project={{ acm_gcpproject }} --format=json | jq -c '.acm_status[] | select(.name | contains("{{ acm_membership }}"))' # noqa yaml[line-length]
+      register: _acmcs_status
+      retries: 30
+      until: "'\"config_sync\":\"SYNCED\"' in _acmcs_status.stdout"
+      delay: 20
+      when:
+        - acm_configsync.enabled is defined
+        - acm_configsync.enabled | bool
+
+  always:
+    - name: "[acm] Clean up root repository ssh key file"
+      ansible.builtin.file:
+        path: "{{ yamldestpath }}/{{ uc_name }}/acm-sshkey"
+        state: absent
+
+    - name: "[acm] Clean up root repository ssh secret file"
+      ansible.builtin.file:
+        path: "{{ yamldestpath }}/{{ uc_name }}/ssh-secret.yaml"
+        state: absent
