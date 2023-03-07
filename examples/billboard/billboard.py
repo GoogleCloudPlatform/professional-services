@@ -23,7 +23,7 @@ import sys
 from colorama import Back
 from colorama import Style
 
-base_url = "https://datastudio.google.com/reporting/create?"
+base_url = "https://lookerstudio.google.com/reporting/create?"
 report_part_url = base_url + "c.reportId=64387229-05e0-4951-aa3f-e7349bbafc07"
 report_base_url = report_part_url + "&r.reportName=MyBillboard"
 report_base_url = report_base_url + "&ds.ds8.refreshFields=false"
@@ -199,9 +199,10 @@ def create_billboard_view(args, isStandard):
         output_url = report_base_url + standard_view_url.format(
             args.PROJECT_ID, args.BILLBOARD_DATASET_NAME_TO_BE_CREATED,
             args.bb_standard)
-    else:
-        output_url = output_url + detailed_view_url.format(
-            args.PROJECT_ID, detailedBBDataset, args.bb_detailed)
+    # not using detailed datasource yet so commenting
+    # else:
+    #     output_url = output_url + detailed_view_url.format(
+    #         args.PROJECT_ID, detailedBBDataset, args.bb_detailed)
 
     print('Created view {}{}.{}.{}'.format(Back.GREEN, job.destination.project,
                                            job.destination.dataset_id,
@@ -284,13 +285,13 @@ def main(argv):
     project_id_temp = "projects/{}".format(args.PROJECT_ID)
 
     # Check if billing api is enabled.
-    service = discovery.build('serviceusage', 'v1')
-    request = service.services().get(
-        name=f"{project_id_temp}/services/cloudbilling.googleapis.com")
-    response = request.execute()
-    if response.get('state') == 'DISABLED':
-        print("Cloud Billing API is not enabled.")
-        return sys.exit(1)
+    # service = discovery.build('serviceusage', 'v1')
+    # request = service.services().get(
+    #     name=f"{project_id_temp}/services/cloudbilling.googleapis.com")
+    # response = request.execute()
+    # if response.get('state') == 'DISABLED':
+    #     print("Cloud Billing API is not enabled.")
+    #     return sys.exit(1)
 
     try:
         project_billing_info = billing.CloudBillingClient(
