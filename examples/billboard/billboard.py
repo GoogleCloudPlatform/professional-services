@@ -147,16 +147,16 @@ def create_billboard_view(args, isStandard):
     global detailedBBDataset
 
     if isStandard is True:
-        source_id = "{}.{}.{}".format(
-            args.PROJECT_ID, args.STANDARD_BILLING_EXPORT_DATASET_NAME,
-            args.standard_table)
+        source_id = "{}.{}.{}".format(args.PROJECT_ID,
+                                      args.STANDARD_BILLING_EXPORT_DATASET_NAME,
+                                      args.standard_table)
         view_id = "{}.{}.{}".format(args.PROJECT_ID,
                                     args.BILLBOARD_DATASET_NAME_TO_BE_CREATED,
                                     args.bb_standard)
     else:
-        source_id = "{}.{}.{}".format(
-            args.PROJECT_ID, args.DETAILED_BILLING_EXPORT_DATASET_NAME,
-            args.detailed_table)
+        source_id = "{}.{}.{}".format(args.PROJECT_ID,
+                                      args.DETAILED_BILLING_EXPORT_DATASET_NAME,
+                                      args.detailed_table)
         view_id = "{}.{}.{}".format(args.PROJECT_ID, detailedBBDataset,
                                     args.bb_detailed)
 
