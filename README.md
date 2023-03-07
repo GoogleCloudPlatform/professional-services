@@ -176,6 +176,7 @@ them to fit your particular use case.
 *   [Dataproc Persistent History Server for Ephemeral Clusters](examples/dataproc-persistent-history-server) -
     Example of writing logs from an ephemeral cluster to GCS and using a
     separate single node cluster to look at Spark and YARN History UIs.
+*   [Dataproc Running Notebooks](examples/dataproc-running-notebooks) - Orchestrating the workflow of running Jupyter Notebooks on a Dataproc cluser via PySpark job
 *   [dbt-on-cloud-composer](examples/dbt-on-cloud-composer) - Example of using
     dbt to manage BigQuery data pipelines, utilizing Cloud Composer to run and
     schedule the dbt runs.
@@ -204,6 +205,8 @@ them to fit your particular use case.
 *   [GCS to BQ using serverless services](examples/gcs-to-bq-serverless-services) -
     Example to ingest GCS to BigQuery using serverless services such as Cloud
     Function, Pub/Sub and Serverless Spark.
+*   [GDCE Terraform Example](examples/gdce-terraform-example) - Example for provisioning GDCE
+    resources using terraform.
 *   [GKE HA setup using spot VMs](examples/gke-ha-setup-using-spot-vms/) -
     Example for running an application with high availability requirements on
     GKE spot nodes using on-demand nodes as fallback
