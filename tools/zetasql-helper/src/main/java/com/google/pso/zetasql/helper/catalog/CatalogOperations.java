@@ -28,6 +28,7 @@ import com.google.zetasql.SimpleColumn;
 import com.google.zetasql.SimpleTable;
 import com.google.zetasql.TableValuedFunction;
 import com.google.zetasql.TableValuedFunction.FixedOutputSchemaTVF;
+import com.google.zetasql.ZetaSQLBuiltinFunctionOptions;
 import com.google.zetasql.resolvedast.ResolvedCreateStatementEnums.CreateMode;
 import java.util.Arrays;
 import java.util.List;
@@ -335,11 +336,6 @@ public class CatalogOperations {
    * @return The copy of the provided SimpleCatalog.
    */
   public static SimpleCatalog copyCatalog(SimpleCatalog sourceCatalog, boolean deepCopy) {
-    // TODO: Constants are currently not copied over because SimpleCatalog.getConstant()
-    //  is protected and SimpleCatalog.getConstantList() isn't implemented.
-    //  To my knowledge, they should be available like any other getX() and getXList().
-    //  Do we need to submit a change to ZetaSQL to make these methods available?
-
     SimpleCatalog newCatalog = new SimpleCatalog(
         sourceCatalog.getFullName(), sourceCatalog.getTypeFactory()
     );
@@ -360,10 +356,25 @@ public class CatalogOperations {
 
     // Copy Functions and Types
     // Functions and Types are immutable, so we don't need to copy them when doing a deep copy
-    sourceCatalog.getFunctionList().forEach(newCatalog::addFunction);
+    // Built-in functions are added using SimpleCatalog.addZetaSQLFunctions(), not by
+    // copying them over
     sourceCatalog.getProcedureList().forEach(newCatalog::addProcedure);
     sourceCatalog.getTVFList().forEach(newCatalog::addTableValuedFunction);
     sourceCatalog.getTypeList().forEach(type -> newCatalog.addType(type.typeName(), type));
+    sourceCatalog.getFunctionList()
+        .stream()
+        .filter(function -> !function.getGroup().equals("ZetaSQL"))
+        .forEach(newCatalog::addFunction);
+
+    boolean sourceCatalogHasBuiltinFunctions = sourceCatalog.getFunctionList()
+        .stream()
+        .anyMatch(function -> function.getGroup().equals("ZetaSQL"));
+
+    if(sourceCatalogHasBuiltinFunctions) {
+      // TODO: Adding builtin functions should use the proper LanguageOptions, which we
+      //  do not currently have here
+      newCatalog.addZetaSQLFunctions(new ZetaSQLBuiltinFunctionOptions());
+    }
 
     return newCatalog;
   }
