@@ -21,6 +21,7 @@ import com.google.pso.zetasql.helper.catalog.CatalogOperations;
 import com.google.pso.zetasql.helper.catalog.CatalogWrapper;
 import com.google.pso.zetasql.helper.catalog.bigquery.ProcedureInfo;
 import com.google.pso.zetasql.helper.catalog.bigquery.TVFInfo;
+import com.google.pso.zetasql.helper.catalog.exceptions.CatalogResourceAlreadyExists;
 import com.google.pso.zetasql.helper.catalog.spanner.exceptions.InvalidSpannerTableName;
 import com.google.zetasql.Function;
 import com.google.zetasql.SimpleCatalog;
@@ -138,6 +139,8 @@ public class SpannerCatalog implements CatalogWrapper {
    * {@inheritDoc}
    *
    * @throws InvalidSpannerTableName if the table name is invalid for Spanner
+   * @throws CatalogResourceAlreadyExists if the table already exists and
+   * CreateMode != CREATE_OR_REPLACE
    */
   @Override
   public void register(SimpleTable table, CreateMode createMode, CreateScope createScope) {
@@ -225,7 +228,7 @@ public class SpannerCatalog implements CatalogWrapper {
   }
 
   @Override
-  public CatalogWrapper copy(boolean deepCopy) {
+  public SpannerCatalog copy(boolean deepCopy) {
     return new SpannerCatalog(
         this.projectId,
         this.instance,
