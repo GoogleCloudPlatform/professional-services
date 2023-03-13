@@ -14,7 +14,7 @@
 """ Module for identifying joins in input and output files """
 
 from sqlparse.sql import Token, Function
-from utils.utils import *
+from utils.utils import is_token_join_or_union,is_token_keyword,is_token_outer_join,is_token_inner_join, is_tokenlist_or_list, is_token_word
 
 # Global variables declaration
 # 1. check_in_from : Used for finding cross joins in form of a comma.

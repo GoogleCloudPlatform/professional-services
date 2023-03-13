@@ -14,7 +14,7 @@
 """ Module for identifying functions in input and output files """
 
 from sqlparse.sql import Function
-from utils.utils import *
+from utils.utils import is_tokenlist_or_list
 
 # Find the function count for the functions in the set.
 def get_fun_count(token,fun):

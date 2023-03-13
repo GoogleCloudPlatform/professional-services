@@ -15,7 +15,7 @@
 
 import re
 from sqlparse.sql import IdentifierList, Parenthesis, Identifier, Function
-from utils.utils import *
+from utils.utils import is_token_word, is_tokenlist_or_list
 
 # Global variables declaration
 # 1. check_first_select : Checks the first select encountered

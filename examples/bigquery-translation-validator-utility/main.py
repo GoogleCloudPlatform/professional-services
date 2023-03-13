@@ -20,7 +20,7 @@ from validations.join_validation.join_validation import *
 from validations.object_validation.object_validation import *
 from validations.functions_validation.functions_validation import *
 from validations.line_count.line_count import *
-from utils.utils import *
+from utils.utils import formatNewLines, remove_multiple_whitespaces, retrieve_view_create_statement, generate_count_and_name_output_string, log_list_to_string 
 import sqlparse
 import logging
 import pprint
