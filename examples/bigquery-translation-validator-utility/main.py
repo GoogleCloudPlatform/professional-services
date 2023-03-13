@@ -15,11 +15,11 @@
 
 import pandas as pd
 import os
-from validations.column_validation.column_validation import *
-from validations.join_validation.join_validation import *
-from validations.object_validation.object_validation import *
-from validations.functions_validation.functions_validation import *
-from validations.line_count.line_count import *
+from validations.column_validation.column_validation import get_column_lists
+from validations.join_validation.join_validation import get_join_lists
+from validations.object_validation.object_validation import get_object_names
+from validations.functions_validation.functions_validation import get_fun_lists
+from validations.line_count.line_count import get_line_count
 from utils.utils import formatNewLines, remove_multiple_whitespaces, retrieve_view_create_statement, generate_count_and_name_output_string, log_list_to_string 
 import sqlparse
 import logging
