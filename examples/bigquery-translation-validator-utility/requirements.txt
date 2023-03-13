@@ -1,0 +1,3 @@
+pandas
+sqlparse
+XlsxWriter
