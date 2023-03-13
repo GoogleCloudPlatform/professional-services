@@ -3,6 +3,16 @@
 Common solutions and tools developed by Google Cloud's Professional Services
 team.
 
+## Disclaimer
+
+This repository and its contents are not an official Google Product.
+
+## License
+
+All solutions within this repository are provided under the
+[Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0) license. Please see
+the [LICENSE](/LICENSE) file for more detailed terms and conditions.
+
 [![Open in Cloud Shell](http://gstatic.com/cloudssh/images/open-btn.svg)](https://console.cloud.google.com/cloudshell/editor?cloudshell_git_repo=https%3A%2F%2Fgithub.com%2FGoogleCloudPlatform%2Fprofessional-services.git)
 
 ## Examples
@@ -525,16 +535,6 @@ Platform usage.
 
 See the contributing [instructions](/CONTRIBUTING.md) to get started
 contributing.
-
-## License
-
-All solutions within this repository are provided under the
-[Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0) license. Please see
-the [LICENSE](/LICENSE) file for more detailed terms and conditions.
-
-## Disclaimer
-
-This repository and its contents are not an official Google Product.
 
 ## Contact
 
