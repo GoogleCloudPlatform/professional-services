@@ -40,8 +40,8 @@ class CatalogOperationsTest {
   }
 
   @Test
-  void shallowCopyCatalog() {
-    SimpleCatalog copiedCatalog = CatalogOperations.copyCatalog(this.testCatalog, false);
+  void testCopyCatalog() {
+    SimpleCatalog copiedCatalog = CatalogOperations.copyCatalog(this.testCatalog);
 
     List<String> sampleTablePath = List.of("sample");
     List<String> nestedTablePath = List.of("nested", "sample");
@@ -64,11 +64,6 @@ class CatalogOperationsTest {
             "column",
             copiedCatalog.findTable(sampleTablePath).getColumn(0).getName(),
             "Column name in copied catalog didn't match original"
-        ),
-        () -> assertSame(
-            copiedCatalog.findTable(sampleTablePath),
-            this.testCatalog.findTable(sampleTablePath),
-            "Identity of shallow-copied tables didn't match"
         )
     );
   }

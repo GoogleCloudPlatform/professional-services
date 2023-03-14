@@ -143,9 +143,10 @@ public class BasicCatalogWrapper implements CatalogWrapper {
     return this.catalog;
   }
 
-  public BasicCatalogWrapper copy(boolean deepCopy) {
+  @Override
+  public BasicCatalogWrapper copy() {
     return new BasicCatalogWrapper(
-        CatalogOperations.copyCatalog(this.getZetaSQLCatalog(), deepCopy)
+        CatalogOperations.copyCatalog(this.getZetaSQLCatalog())
     );
   }
 

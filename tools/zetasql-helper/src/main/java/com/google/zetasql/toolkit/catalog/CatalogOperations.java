@@ -17,6 +17,8 @@
 package com.google.zetasql.toolkit.catalog;
 
 import com.google.common.collect.ImmutableList;
+import com.google.zetasql.FileDescriptorSetsBuilder;
+import com.google.zetasql.SimpleCatalogProtos.SimpleCatalogProto;
 import com.google.zetasql.toolkit.catalog.bigquery.ProcedureInfo;
 import com.google.zetasql.toolkit.catalog.bigquery.TVFInfo;
 import com.google.zetasql.toolkit.catalog.exceptions.CatalogResourceAlreadyExists;
@@ -331,52 +333,15 @@ public class CatalogOperations {
    * Creates a copy of a SimpleCatalog.
    *
    * @param sourceCatalog The SimpleCatalog that should be copied.
-   * @param deepCopy Whether to perform a deep copy. If true, mutable catalog resources are
-   * copied themselves as well.
    * @return The copy of the provided SimpleCatalog.
    */
-  public static SimpleCatalog copyCatalog(SimpleCatalog sourceCatalog, boolean deepCopy) {
-    SimpleCatalog newCatalog = new SimpleCatalog(
-        sourceCatalog.getFullName(), sourceCatalog.getTypeFactory()
-    );
-
-    // Copy sub-catalogs recursively
-    sourceCatalog.getCatalogList()
-        .stream()
-        .map(catalog -> copyCatalog(catalog, deepCopy))
-        .forEach(newCatalog::addSimpleCatalog);
-
-    // Copy tables
-    // The table objects are copied themselves if we're doing a deep copy
-    // because SimpleTables are mutable
-    sourceCatalog.getTableList()
-        .stream()
-        .map(table -> deepCopy ? copyTable(table) : table)
-        .forEach(newCatalog::addSimpleTable);
-
-    // Copy Functions and Types
-    // Functions and Types are immutable, so we don't need to copy them when doing a deep copy
-    // Built-in functions are added using SimpleCatalog.addZetaSQLFunctions(), not by
-    // copying them over
-    sourceCatalog.getProcedureList().forEach(newCatalog::addProcedure);
-    sourceCatalog.getTVFList().forEach(newCatalog::addTableValuedFunction);
-    sourceCatalog.getTypeList().forEach(type -> newCatalog.addType(type.typeName(), type));
-    sourceCatalog.getFunctionList()
-        .stream()
-        .filter(function -> !function.getGroup().equals("ZetaSQL"))
-        .forEach(newCatalog::addFunction);
-
-    boolean sourceCatalogHasBuiltinFunctions = sourceCatalog.getFunctionList()
-        .stream()
-        .anyMatch(function -> function.getGroup().equals("ZetaSQL"));
-
-    if(sourceCatalogHasBuiltinFunctions) {
-      // TODO: Adding builtin functions should use the proper LanguageOptions, which we
-      //  do not currently have here
-      newCatalog.addZetaSQLFunctions(new ZetaSQLBuiltinFunctionOptions());
-    }
-
-    return newCatalog;
+  public static SimpleCatalog copyCatalog(SimpleCatalog sourceCatalog) {
+    // Simply serializes and deserializes the source catalog to create a copy.
+    // This is the most reliable way of creating a copy of a SimpleCatalog,
+    // as the SimpleCatalog's public interface does not expose enough of the internal
+    // structures to create an accurate copy.
+    SimpleCatalogProto serialized = sourceCatalog.serialize(new FileDescriptorSetsBuilder());
+    return SimpleCatalog.deserialize(serialized, ImmutableList.of());
   }
 
 }

@@ -227,13 +227,13 @@ public class SpannerCatalog implements CatalogWrapper {
   }
 
   @Override
-  public SpannerCatalog copy(boolean deepCopy) {
+  public SpannerCatalog copy() {
     return new SpannerCatalog(
         this.projectId,
         this.instance,
         this.database,
         this.spannerResourceProvider,
-        CatalogOperations.copyCatalog(this.catalog, deepCopy)
+        CatalogOperations.copyCatalog(this.catalog)
     );
   }
 

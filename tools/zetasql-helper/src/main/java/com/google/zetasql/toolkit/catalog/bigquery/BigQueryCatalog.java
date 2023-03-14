@@ -529,11 +529,11 @@ public class BigQueryCatalog implements CatalogWrapper {
   }
 
   @Override
-  public BigQueryCatalog copy(boolean deepCopy) {
+  public BigQueryCatalog copy() {
     return new BigQueryCatalog(
         this.defaultProjectId,
         this.bigQueryResourceProvider,
-        CatalogOperations.copyCatalog(this.getZetaSQLCatalog(), deepCopy)
+        CatalogOperations.copyCatalog(this.getZetaSQLCatalog())
     );
   }
 

@@ -3,7 +3,6 @@ package com.google.zetasql.toolkit.catalog.bigquery;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-
 import com.google.common.base.Preconditions;
 import com.google.zetasql.Column;
 import com.google.zetasql.NotFoundException;
@@ -17,6 +16,7 @@ import com.google.zetasql.ZetaSQLType.TypeKind;
 import com.google.zetasql.resolvedast.ResolvedCreateStatementEnums.CreateMode;
 import com.google.zetasql.resolvedast.ResolvedCreateStatementEnums.CreateScope;
 import com.google.zetasql.toolkit.catalog.bigquery.exceptions.InvalidBigQueryReference;
+import com.google.zetasql.toolkit.catalog.spanner.SpannerCatalog;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -241,6 +241,16 @@ public class BigQueryCatalogTest {
         NotFoundException.class,
         () -> this.bigQueryCatalog.getZetaSQLCatalog().findTable(pathWhereTableShouldNotBe),
         "Expected table not in default project to not be available at DATASET.TABLE path"
+    );
+  }
+
+  @Test
+  void testCopy() {
+    BigQueryCatalog copy = this.bigQueryCatalog.copy();
+
+    assertAll(
+        () -> assertNotSame(this.bigQueryCatalog, copy),
+        () -> assertNotSame(this.bigQueryCatalog.getZetaSQLCatalog(), copy.getZetaSQLCatalog())
     );
   }
 

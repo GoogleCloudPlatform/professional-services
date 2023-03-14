@@ -161,10 +161,9 @@ public interface CatalogWrapper {
    *
    * <p> Each implementation is responsible for determining how itself should be copied.
    *
-   * @param deepCopy Whether to perform a deep copy
    * @return The copy for this CatalogWrapper
    */
-  CatalogWrapper copy(boolean deepCopy);
+  CatalogWrapper copy();
 
   /**
    * Gets the underlying ZetaSQL SimpleCatalog.

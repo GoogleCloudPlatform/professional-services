@@ -223,7 +223,7 @@ public class SpannerCatalogTest {
 
   @Test
   void testCopy() {
-    SpannerCatalog copy = this.spannerCatalog.copy(false);
+    SpannerCatalog copy = this.spannerCatalog.copy();
 
     assertAll(
         () -> assertNotSame(this.spannerCatalog, copy),
