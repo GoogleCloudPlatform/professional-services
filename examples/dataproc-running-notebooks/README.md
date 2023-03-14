@@ -34,6 +34,8 @@ Orchestrator to run Notebooks on an Ephemeral Dataproc cluster via Cloud Compose
 ### notebooks 
 * **sample.py** : sample python in *GCS bucket* which will be directly invoked by the notebook (this is possible because of [gcsfuse](https://github.com/GoogleCloudPlatform/gcsfuse/blob/master/docs/installing.md) mounting GCS bucket as a file system)
 * **sample_notebook.ibynp** :
+  * run a sample Spark Session with a sample CSV file
+    <img width="808" alt="Screenshot 2023-03-14 at 2 14 38 PM" src="https://user-images.githubusercontent.com/123537947/225099657-ba6cff78-d733-4b62-9800-985cf265eff1.png">
   * verify if GCS buckets are mounted at pwd as a file system
   * verify Python files in mounted GCS buckets are executable via **!python** and **%run** command
     ```
