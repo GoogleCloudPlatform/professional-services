@@ -28,14 +28,14 @@ for filename in os.listdir(config_filepath):
 
         with fileinput.input(new_filename, inplace=True) as file:
             for line in file:
-                new_line = line.replace('dag_id_to_replace', "'" + config['DagId'] + "'") \
-                    .replace('cluster_name_to_replace', "'" + config['ClusterName'] + "'") \
-                    .replace('spark_job_name_to_replace', "'" + config['SparkJob'] + "'") \
-                    .replace('year_to_replace',  config['StartYear'] ) \
-                    .replace('month_to_replace',  config['StartMonth'] ) \
-                    .replace('day_to_replace', config['StartDay'] ) \
-                    .replace('machine_type_to_replace', "'" + config['ClusterMachineType'] + "'") \
-                    .replace('idle_delete_ttl_to_replace', config['ClusterIdleDeleteTtl']) \
-                    .replace('catchup_to_replace', config['Catchup']) \
-                    .replace('schedule_to_replace', config['Schedule'])
+                new_line = line.replace('\'dag_id_to_replace\'', "'" + config['DagId'] + "'") \
+                    .replace('\'cluster_name_to_replace\'', "'" + config['ClusterName'] + "'") \
+                    .replace('\'spark_job_name_to_replace\'', "'" + config['SparkJob'] + "'") \
+                    .replace('\'year_to_replace\'',  config['StartYear'] ) \
+                    .replace('\'month_to_replace\'',  config['StartMonth'] ) \
+                    .replace('\'day_to_replace\'', config['StartDay'] ) \
+                    .replace('\'machine_type_to_replace\'', "'" + config['ClusterMachineType'] + "'") \
+                    .replace('\'idle_delete_ttl_to_replace\'', config['ClusterIdleDeleteTtl']) \
+                    .replace('\'catchup_to_replace\'', config['Catchup']) \
+                    .replace('\'schedule_to_replace\'', config['Schedule'])
                 print(new_line, end='')

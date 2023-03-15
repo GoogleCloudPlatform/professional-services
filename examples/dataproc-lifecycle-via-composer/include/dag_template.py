@@ -30,7 +30,7 @@ from airflow.providers.google.cloud.operators.dataproc import (
 # -----------------------------------------------------------------
 
 def check_cluster_status():
-    cluster_name=cluster_name_to_replace
+    cluster_name='cluster_name_to_replace'
     print("cluster_name:"+ cluster_name +"  project:"+Variable.get('project')+"  region:"+Variable.get('region'))
     clusters = list_clusters()
     return (cluster_name in clusters and clusters[cluster_name]=="RUNNING")
@@ -66,25 +66,25 @@ def branch_task(**kwargs):
 # -----------------------------------------------------------------
 
 default_dag_args = {
-    'start_date': datetime.datetime(year_to_replace, month_to_replace, day_to_replace),
+    'start_date': datetime.datetime('year_to_replace', 'month_to_replace', 'day_to_replace'),
 }
 
 CLUSTER_GENERATOR_CONFIG = ClusterGenerator(
     project_id=Variable.get('project'),
-    master_machine_type=machine_type_to_replace,
-    worker_machine_type=machine_type_to_replace,
+    master_machine_type='machine_type_to_replace',
+    worker_machine_type='machine_type_to_replace',
     num_workers=2,
     subnetwork_uri=Variable.get('subnetwork'),
     internal_ip_only=True,
     autoscaling_policy='projects/' + Variable.get('project') + '/locations/' + Variable.get('region') + '/autoscalingPolicies/' + Variable.get('autoscaling_policy'),
-    idle_delete_ttl=idle_delete_ttl_to_replace,
+    idle_delete_ttl='idle_delete_ttl_to_replace',
     service_account=Variable.get('dataproc_service_account')
 ).make()
 
 PYSPARK_JOB = {
     "reference": {"project_id": Variable.get('project')},
-    "placement": {"cluster_name": cluster_name_to_replace},
-    "pyspark_job": {"main_python_file_uri": f"gs://{Variable.get('jobs_bucket')}/jobs/{spark_job_name_to_replace}"},
+    "placement": {"cluster_name": 'cluster_name_to_replace'},
+    "pyspark_job": {"main_python_file_uri": f"gs://{Variable.get('jobs_bucket')}/jobs/{'spark_job_name_to_replace'}"},
 }
 
 # -----------------------------------------------------------------
@@ -93,9 +93,9 @@ PYSPARK_JOB = {
 
 # Any task you create within the context manager is automatically added to the DAG object.
 with models.DAG(
-        dag_id_to_replace,
-        catchup=catchup_to_replace,
-        schedule_interval=schedule_to_replace,
+        'dag_id_to_replace',
+        catchup='catchup_to_replace',
+        schedule_interval='schedule_to_replace',
         default_args=default_dag_args) as dag:
 
     check_cluster_status = PythonOperator(
@@ -129,7 +129,7 @@ with models.DAG(
         project_id=Variable.get('project'),
         cluster_config=CLUSTER_GENERATOR_CONFIG,
         region=Variable.get('region'),
-        cluster_name=cluster_name_to_replace,
+        cluster_name='cluster_name_to_replace',
         retries=0
     )
 
