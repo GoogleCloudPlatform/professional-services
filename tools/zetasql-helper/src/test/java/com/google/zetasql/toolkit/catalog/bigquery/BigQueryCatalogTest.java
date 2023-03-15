@@ -4,23 +4,29 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import com.google.common.base.Preconditions;
-import com.google.zetasql.Column;
+import com.google.common.collect.ImmutableList;
+import com.google.zetasql.Function;
+import com.google.zetasql.FunctionArgumentType;
+import com.google.zetasql.FunctionSignature;
 import com.google.zetasql.NotFoundException;
 import com.google.zetasql.SimpleCatalog;
 import com.google.zetasql.SimpleColumn;
 import com.google.zetasql.SimpleTable;
+import com.google.zetasql.TVFRelation;
 import com.google.zetasql.Table;
 import com.google.zetasql.Type;
 import com.google.zetasql.TypeFactory;
+import com.google.zetasql.ZetaSQLFunctions.FunctionEnums.Mode;
+import com.google.zetasql.ZetaSQLFunctions.SignatureArgumentKind;
 import com.google.zetasql.ZetaSQLType.TypeKind;
 import com.google.zetasql.resolvedast.ResolvedCreateStatementEnums.CreateMode;
 import com.google.zetasql.resolvedast.ResolvedCreateStatementEnums.CreateScope;
 import com.google.zetasql.toolkit.catalog.bigquery.exceptions.InvalidBigQueryReference;
-import com.google.zetasql.toolkit.catalog.spanner.SpannerCatalog;
-import java.util.Comparator;
+import com.google.zetasql.toolkit.catalog.exceptions.CatalogResourceAlreadyExists;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -34,7 +40,7 @@ public class BigQueryCatalogTest {
   BigQueryCatalog bigQueryCatalog;
 
   @Mock
-  BigQueryResourceProvider bigQueryResourceProvider;
+  BigQueryResourceProvider bigQueryResourceProviderMock;
 
   final String testProjectId = "test-project-id";
 
@@ -42,12 +48,51 @@ public class BigQueryCatalogTest {
 
   SimpleTable exampleTableInNonDefaultProject;
 
+  SimpleTable replacementTableInDefaultProject;
+
+  Function exampleFunction = new Function(
+      List.of(testProjectId, "dataset", "examplefunction"),
+      "UDF",
+      Mode.SCALAR,
+      List.of(
+          new FunctionSignature(
+              new FunctionArgumentType(TypeFactory.createSimpleType(TypeKind.TYPE_STRING)),
+              List.of(),
+              -1
+          )
+      )
+  );
+
+  TVFInfo exampleTVF = new TVFInfo(
+      ImmutableList.of(testProjectId, "dataset", "exampletvf"),
+      new FunctionSignature(
+          new FunctionArgumentType(SignatureArgumentKind.ARG_TYPE_RELATION),
+          List.of(),
+          -1
+      ),
+      TVFRelation.createValueTableBased(
+          TypeFactory.createSimpleType(TypeKind.TYPE_STRING)
+      )
+  );
+
+  ProcedureInfo exampleProcedure = new ProcedureInfo(
+      ImmutableList.of(testProjectId, "dataset", "exampleprocedure"),
+      new FunctionSignature(
+          new FunctionArgumentType(TypeFactory.createSimpleType(TypeKind.TYPE_STRING)),
+          List.of(),
+          -1
+      )
+  );
+
   @BeforeEach
   void init() {
-    this.bigQueryCatalog = new BigQueryCatalog(this.testProjectId, this.bigQueryResourceProvider);
+    this.bigQueryCatalog = new BigQueryCatalog(this.testProjectId, this.bigQueryResourceProviderMock);
+    this.setupExampleTables();
+  }
 
+  private void setupExampleTables() {
     String exampleTableName = "BigQueryTable";
-    this.exampleTableInDefaultProject = new SimpleTable(
+    exampleTableInDefaultProject = new SimpleTable(
         exampleTableName,
         List.of(
             new SimpleColumn(
@@ -57,17 +102,60 @@ public class BigQueryCatalogTest {
             )
         )
     );
-    this.exampleTableInDefaultProject.setFullName(
+    exampleTableInDefaultProject.setFullName(
         String.format("%s.dataset.%s", this.testProjectId, exampleTableName)
     );
 
-    this.exampleTableInNonDefaultProject = new SimpleTable(
-        this.exampleTableInDefaultProject.getName(),
-        this.exampleTableInDefaultProject.getColumnList()
+    exampleTableInNonDefaultProject = new SimpleTable(
+        exampleTableInDefaultProject.getName(),
+        exampleTableInDefaultProject.getColumnList()
     );
-    this.exampleTableInNonDefaultProject.setFullName(
+    exampleTableInNonDefaultProject.setFullName(
         String.format("%s.dataset.%s", "another-project-id", exampleTableName)
     );
+
+    replacementTableInDefaultProject = new SimpleTable(
+       exampleTableName,
+        List.of(
+            new SimpleColumn(
+                exampleTableName,
+                "col1",
+                TypeFactory.createSimpleType(TypeKind.TYPE_STRING)
+            ),
+            new SimpleColumn(
+                exampleTableName,
+                "col2",
+                TypeFactory.createSimpleType(TypeKind.TYPE_STRING)
+            )
+        )
+    );
+    replacementTableInDefaultProject.setFullName(
+        String.format("%s.dataset.%s", this.testProjectId, exampleTableName)
+    );
+
+  }
+
+  private List<List<String>> buildPathsWhereResourceShouldBe(String resourceReference) {
+    BigQueryReference ref = BigQueryReference.from(this.testProjectId, resourceReference);
+
+    List<List<String>> fullyQualifiedPaths = List.of(
+        List.of(ref.getProjectId() + "." + ref.getDatasetId() + "." + ref.getResourceName()),
+        List.of(ref.getProjectId(), ref.getDatasetId() + "." + ref.getResourceName()),
+        List.of(ref.getProjectId() + "." + ref.getDatasetId(), ref.getResourceName()),
+        List.of(ref.getProjectId(), ref.getDatasetId(), ref.getResourceName())
+    );
+
+    List<List<String>> result = new ArrayList<>(fullyQualifiedPaths);
+
+    if(ref.getProjectId().equals(this.testProjectId)) {
+      List<List<String>> implicitProjectPaths = List.of(
+          List.of(ref.getDatasetId() + "." + ref.getResourceName()),
+          List.of(ref.getDatasetId(), ref.getResourceName())
+      );
+      result.addAll(implicitProjectPaths);
+    }
+
+    return result;
   }
 
   Table assertTableExistsAtPaths(BigQueryCatalog catalog, List<List<String>> tablePaths) {
@@ -94,36 +182,6 @@ public class BigQueryCatalogTest {
     } catch (NotFoundException e) {
       throw new AssertionError(e);
     }
-  }
-
-  boolean tableColumnsEqual(Table expected, Table actual) {
-    if(expected.getColumnCount() != actual.getColumnCount()) {
-      return false;
-    }
-
-    List<? extends Column> expectedColumns = expected.getColumnList()
-        .stream()
-        .sorted(Comparator.comparing(Column::getName))
-        .collect(Collectors.toList());
-    List<? extends Column> actualColumns = actual.getColumnList()
-        .stream()
-        .sorted(Comparator.comparing(Column::getName))
-        .collect(Collectors.toList());
-
-    for(int i = 0; i < expectedColumns.size(); i++) {
-      Column expectedColumn = expectedColumns.get(i);
-      Column actualColumn = actualColumns.get(i);
-
-      if(!expectedColumn.getName().equals(actualColumn.getName())) {
-        return false;
-      }
-
-      if(!expectedColumn.getType().equals(actualColumn.getType())) {
-        return false;
-      }
-    }
-
-    return true;
   }
 
   @Test
@@ -165,7 +223,7 @@ public class BigQueryCatalogTest {
     table.setFullName(invalidFullName);
 
     when(
-        this.bigQueryResourceProvider.getTables(anyString(), anyList()))
+        this.bigQueryResourceProviderMock.getTables(anyString(), anyList()))
         .thenReturn(List.of(table));
 
     assertThrows(
@@ -187,26 +245,20 @@ public class BigQueryCatalogTest {
   @Test
   void testRegisterTableFromDefaultProject() {
     this.bigQueryCatalog.register(
-        this.exampleTableInDefaultProject,
+        exampleTableInDefaultProject,
         CreateMode.CREATE_DEFAULT, CreateScope.CREATE_DEFAULT_SCOPE
     );
 
-    BigQueryReference ref = BigQueryReference.from(
-        this.testProjectId, this.exampleTableInDefaultProject.getFullName());
-
-    List<List<String>> pathsWhereTableShouldBe = List.of(
-        List.of(ref.getProjectId() + "." + ref.getDatasetId() + "." + ref.getResourceName()),
-        List.of(ref.getProjectId(), ref.getDatasetId() + "." + ref.getResourceName()),
-        List.of(ref.getProjectId() + "." + ref.getDatasetId(), ref.getResourceName()),
-        List.of(ref.getProjectId(), ref.getDatasetId(), ref.getResourceName()),
-        List.of(ref.getDatasetId() + "." + ref.getResourceName()),
-        List.of(ref.getDatasetId(), ref.getResourceName())
+    List<List<String>> pathsWhereTableShouldBe = this.buildPathsWhereResourceShouldBe(
+        exampleTableInDefaultProject.getFullName()
     );
 
-    Table foundTable = assertTableExistsAtPaths(this.bigQueryCatalog, pathsWhereTableShouldBe);
+    Table foundTable = assertTableExistsAtPaths(
+        this.bigQueryCatalog, pathsWhereTableShouldBe
+    );
 
     assertTrue(
-        tableColumnsEqual(this.exampleTableInDefaultProject, foundTable),
+        BigQueryTestUtils.tableColumnsEqual(exampleTableInDefaultProject, foundTable),
         "Expected table created in Catalog to be equal to the original"
     );
   }
@@ -214,33 +266,123 @@ public class BigQueryCatalogTest {
   @Test
   void testRegisterTableFromNonDefaultProject() {
     this.bigQueryCatalog.register(
-        this.exampleTableInNonDefaultProject,
+        exampleTableInNonDefaultProject,
         CreateMode.CREATE_DEFAULT, CreateScope.CREATE_DEFAULT_SCOPE
     );
 
+    List<List<String>> pathsWhereTableShouldBe = this.buildPathsWhereResourceShouldBe(
+        exampleTableInNonDefaultProject.getFullName()
+    );
+
+    assertTableExistsAtPaths(
+        this.bigQueryCatalog, pathsWhereTableShouldBe
+    );
+
     BigQueryReference ref = BigQueryReference.from(
-        this.testProjectId, this.exampleTableInNonDefaultProject.getFullName());
-
-    List<List<String>> pathsWhereTableShouldBe = List.of(
-        List.of(ref.getProjectId() + "." + ref.getDatasetId() + "." + ref.getResourceName()),
-        List.of(ref.getProjectId(), ref.getDatasetId() + "." + ref.getResourceName()),
-        List.of(ref.getProjectId() + "." + ref.getDatasetId(), ref.getResourceName()),
-        List.of(ref.getProjectId(), ref.getDatasetId(), ref.getResourceName())
-    );
-
+        this.testProjectId, exampleTableInNonDefaultProject.getFullName());
     List<String> pathWhereTableShouldNotBe = List.of(ref.getDatasetId(), ref.getResourceName());
-
-    Table foundTable = assertTableExistsAtPaths(this.bigQueryCatalog, pathsWhereTableShouldBe);
-
-    assertTrue(
-        tableColumnsEqual(this.exampleTableInNonDefaultProject, foundTable),
-        "Expected table created in Catalog to be equal to the original"
-    );
 
     assertThrows(
         NotFoundException.class,
         () -> this.bigQueryCatalog.getZetaSQLCatalog().findTable(pathWhereTableShouldNotBe),
         "Expected table not in default project to not be available at DATASET.TABLE path"
+    );
+  }
+
+  @Test
+  void testReplaceTable() {
+    this.bigQueryCatalog.register(
+        exampleTableInDefaultProject,
+        CreateMode.CREATE_DEFAULT, CreateScope.CREATE_DEFAULT_SCOPE
+    );
+
+    // Replace the table and validate it has been replaced
+    this.bigQueryCatalog.register(
+        replacementTableInDefaultProject,
+        CreateMode.CREATE_OR_REPLACE, CreateScope.CREATE_DEFAULT_SCOPE
+    );
+
+    List<List<String>> pathsWhereTableShouldBe = this.buildPathsWhereResourceShouldBe(
+        replacementTableInDefaultProject.getFullName()
+    );
+
+    Table foundTable = assertTableExistsAtPaths(this.bigQueryCatalog, pathsWhereTableShouldBe);
+
+    assertTrue(
+        BigQueryTestUtils.tableColumnsEqual(replacementTableInDefaultProject, foundTable),
+        "Expected table created in Catalog to be equal to the original"
+    );
+  }
+
+  @Test
+  void testTableAlreadyExists() {
+    this.bigQueryCatalog.register(
+        exampleTableInDefaultProject,
+        CreateMode.CREATE_DEFAULT, CreateScope.CREATE_DEFAULT_SCOPE
+    );
+
+    // Try to replace the table without using CreateMode.CREATE_OR_REPLACE
+    Assertions.assertThrows(
+        CatalogResourceAlreadyExists.class,
+        () -> this.bigQueryCatalog.register(
+            replacementTableInDefaultProject,
+            CreateMode.CREATE_DEFAULT, CreateScope.CREATE_DEFAULT_SCOPE
+        ),
+        "Expected fail creating table that already exists"
+    );
+  }
+
+  @Test
+  void testAddTablesByName() {
+    // When BigQueryResourceProvider.getTables() is called, return the test table
+    when(bigQueryResourceProviderMock.getTables(anyString(), anyList()))
+        .thenReturn(List.of(exampleTableInDefaultProject));
+
+    // Add the tables by name
+    bigQueryCatalog.addTables(List.of(exampleTableInDefaultProject.getFullName()));
+
+    // Verify the BigQueryCatalog got the tables from the BigQueryResourceProvider
+    verify(bigQueryResourceProviderMock, times(1))
+        .getTables(anyString(), anyList());
+
+    // Verify the test table was added to the catalog
+    List<List<String>> pathsWhereTableShouldBe = this.buildPathsWhereResourceShouldBe(
+        exampleTableInDefaultProject.getFullName()
+    );
+    assertTableExistsAtPaths(bigQueryCatalog, pathsWhereTableShouldBe);
+  }
+
+  @Test
+  void testAddAllTablesInDataset() {
+    when(bigQueryResourceProviderMock.getAllTablesInDataset(anyString(), anyString()))
+        .thenReturn(List.of(exampleTableInDefaultProject));
+
+    bigQueryCatalog.addAllTablesInDataset(testProjectId, "dataset");
+
+    verify(bigQueryResourceProviderMock, times(1))
+        .getAllTablesInDataset(anyString(), anyString());
+
+    List<List<String>> pathsWhereTableShouldBe = this.buildPathsWhereResourceShouldBe(
+        exampleTableInDefaultProject.getFullName()
+    );
+    assertTableExistsAtPaths(bigQueryCatalog, pathsWhereTableShouldBe);
+  }
+
+  @Test
+  void testAddAllTablesInProject() {
+    when(bigQueryResourceProviderMock.getAllTablesInProject(anyString()))
+        .thenReturn(List.of(exampleTableInDefaultProject));
+
+    bigQueryCatalog.addAllTablesInProject(testProjectId);
+
+    verify(bigQueryResourceProviderMock, times(1))
+        .getAllTablesInProject(anyString());
+
+    List<List<String>> pathsWhereTableShouldBe = this.buildPathsWhereResourceShouldBe(
+        exampleTableInDefaultProject.getFullName()
+    );
+    Table foundTable = assertTableExistsAtPaths(
+        bigQueryCatalog, pathsWhereTableShouldBe
     );
   }
 
@@ -251,6 +393,22 @@ public class BigQueryCatalogTest {
     assertAll(
         () -> assertNotSame(this.bigQueryCatalog, copy),
         () -> assertNotSame(this.bigQueryCatalog.getZetaSQLCatalog(), copy.getZetaSQLCatalog())
+    );
+  }
+
+  @Test
+  void testRegisterProcedure() {
+    this.bigQueryCatalog.register(
+        exampleProcedure, CreateMode.CREATE_DEFAULT, CreateScope.CREATE_DEFAULT_SCOPE
+    );
+
+    SimpleCatalog underlyingCatalog = this.bigQueryCatalog.getZetaSQLCatalog();
+    assertDoesNotThrow(
+        () -> underlyingCatalog.findProcedure(exampleProcedure.getNamePath()),
+        String.format(
+            "Expected procedure to exist at path %s",
+            String.join(".", exampleFunction.getNamePath())
+        )
     );
   }
 
