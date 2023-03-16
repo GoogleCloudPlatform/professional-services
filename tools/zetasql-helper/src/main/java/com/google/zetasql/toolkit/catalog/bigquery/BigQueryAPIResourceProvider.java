@@ -50,6 +50,7 @@ import com.google.zetasql.ZetaSQLFunctions.SignatureArgumentKind;
 import com.google.zetasql.ZetaSQLType.TypeKind;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
 /**
@@ -168,6 +169,12 @@ public class BigQueryAPIResourceProvider implements BigQueryResourceProvider {
   private List<SimpleColumn> extractColumnsFromBigQueryTable(Table table) {
     TableId tableId = table.getTableId();
 
+    if(table.getDefinition().getSchema() == null) {
+      // BigQuery tables can have no columns, in which case the schema is null
+      // One such table is bigquery-public-data.america_health_rankings.america_health_rankings
+      return List.of();
+    }
+
     return table.getDefinition()
         .getSchema()
         .getFields()
@@ -233,6 +240,28 @@ public class BigQueryAPIResourceProvider implements BigQueryResourceProvider {
   }
 
   /**
+   * Gets all resources in a project, using the provided function to get the resources from
+   * each dataset
+   *
+   * @param projectId The project from which to get resources from
+   * @param datasetResourceGetter A function that takes project id and dataset name, and return
+   * the list of resources in said dataset
+   * @return A list containing the resources in the project
+   * @param <T> The type of resource to get
+   */
+  private <T> List<T> getAllResourcesInProject(
+      String projectId,
+      BiFunction<String, String, List<T>> datasetResourceGetter) {
+    return this.service
+        .listDatasets(projectId)
+        .get()
+        .stream()
+        .flatMap(datasetId ->
+            datasetResourceGetter.apply(projectId, datasetId.getDataset()).stream())
+        .collect(Collectors.toList());
+  }
+
+  /**
    * {@inheritDoc}
    *
    * @throws BigQueryAPIError if an API error occurs
@@ -252,7 +281,6 @@ public class BigQueryAPIResourceProvider implements BigQueryResourceProvider {
    * {@inheritDoc}
    *
    * @throws BigQueryAPIError if an API error occurs
-   * @throws InvalidBigQueryReference if any provided table reference is invalid
    */
   @Override
   public List<SimpleTable> getAllTablesInDataset(String projectId, String datasetName) {
@@ -276,17 +304,10 @@ public class BigQueryAPIResourceProvider implements BigQueryResourceProvider {
    * {@inheritDoc}
    *
    * @throws BigQueryAPIError if an API error occurs
-   * @throws InvalidBigQueryReference if any provided table reference is invalid
    */
   @Override
   public List<SimpleTable> getAllTablesInProject(String projectId) {
-    return this.service
-        .listDatasets(projectId)
-        .get()
-        .stream()
-        .flatMap(datasetId ->
-            this.getAllTablesInDataset(projectId, datasetId.getDataset()).stream())
-        .collect(Collectors.toList());
+    return this.getAllResourcesInProject(projectId, this::getAllTablesInDataset);
   }
 
   /**
@@ -509,14 +530,15 @@ public class BigQueryAPIResourceProvider implements BigQueryResourceProvider {
   }
 
   /**
-   * {@inheritDoc}
+   * Lists routines in a dataset and returns reference strings to them
    *
+   * @param projectId The projectId the dataset belongs to
+   * @param datasetName The name of the dataset from which to list routines
+   * @return A list of routine reference strings with format "project.dataset.routine"
    * @throws BigQueryAPIError if an API error occurs
-   * @throws InvalidBigQueryReference if any provided table reference is invalid
    */
-  @Override
-  public List<Function> getAllFunctionsInDataset(String projectId, String datasetName) {
-    List<String> functionReferences = this.service
+  private List<String> listRoutineReferencesInDataset(String projectId, String datasetName) {
+    return this.service
         .listRoutines(projectId, datasetName)
         .get()
         .stream()
@@ -528,7 +550,16 @@ public class BigQueryAPIResourceProvider implements BigQueryResourceProvider {
             )
         )
         .collect(Collectors.toList());
+  }
 
+  /**
+   * {@inheritDoc}
+   *
+   * @throws BigQueryAPIError if an API error occurs
+   */
+  @Override
+  public List<Function> getAllFunctionsInDataset(String projectId, String datasetName) {
+      List<String> functionReferences = this.listRoutineReferencesInDataset(projectId, datasetName);
       return this.getFunctionsImpl(projectId, functionReferences, true);
     }
 
@@ -536,17 +567,10 @@ public class BigQueryAPIResourceProvider implements BigQueryResourceProvider {
    * {@inheritDoc}
    *
    * @throws BigQueryAPIError if an API error occurs
-   * @throws InvalidBigQueryReference if any provided table reference is invalid
    */
   @Override
   public List<Function> getAllFunctionsInProject(String projectId) {
-    return this.service
-        .listDatasets(projectId)
-        .get()
-        .stream()
-        .flatMap(datasetId ->
-            this.getAllFunctionsInDataset(projectId, datasetId.getDataset()).stream())
-        .collect(Collectors.toList());
+    return this.getAllResourcesInProject(projectId, this::getAllFunctionsInDataset);
   }
 
   /**
@@ -589,23 +613,10 @@ public class BigQueryAPIResourceProvider implements BigQueryResourceProvider {
    * {@inheritDoc}
    *
    * @throws BigQueryAPIError if an API error occurs
-   * @throws InvalidBigQueryReference if any provided table reference is invalid
    */
   @Override
   public List<TVFInfo> getAllTVFsInDataset(String projectId, String datasetName) {
-    List<String> functionReferences = this.service
-        .listRoutines(projectId, datasetName)
-        .get()
-        .stream()
-        .map(routineId -> String.format(
-                "%s.%s.%s",
-                routineId.getProject(),
-                routineId.getDataset(),
-                routineId.getRoutine()
-            )
-        )
-        .collect(Collectors.toList());
-
+    List<String> functionReferences = this.listRoutineReferencesInDataset(projectId, datasetName);
     return this.getTVFsImpl(projectId, functionReferences, true);
   }
 
@@ -613,17 +624,10 @@ public class BigQueryAPIResourceProvider implements BigQueryResourceProvider {
    * {@inheritDoc}
    *
    * @throws BigQueryAPIError if an API error occurs
-   * @throws InvalidBigQueryReference if any provided table reference is invalid
    */
   @Override
   public List<TVFInfo> getAllTVFsInProject(String projectId) {
-    return this.service
-        .listDatasets(projectId)
-        .get()
-        .stream()
-        .flatMap(datasetId ->
-            this.getAllTVFsInDataset(projectId, datasetId.getDataset()).stream())
-        .collect(Collectors.toList());
+    return this.getAllResourcesInProject(projectId, this::getAllTVFsInDataset);
   }
 
   /**
@@ -644,23 +648,10 @@ public class BigQueryAPIResourceProvider implements BigQueryResourceProvider {
    * {@inheritDoc}
    *
    * @throws BigQueryAPIError if an API error occurs
-   * @throws InvalidBigQueryReference if any provided table reference is invalid
    */
   @Override
   public List<ProcedureInfo> getAllProceduresInDataset(String projectId, String datasetName) {
-    List<String> functionReferences = this.service
-        .listRoutines(projectId, datasetName)
-        .get()
-        .stream()
-        .map(routineId -> String.format(
-                "%s.%s.%s",
-                routineId.getProject(),
-                routineId.getDataset(),
-                routineId.getRoutine()
-            )
-        )
-        .collect(Collectors.toList());
-
+    List<String> functionReferences = this.listRoutineReferencesInDataset(projectId, datasetName);
     return this.getProcedures(projectId, functionReferences);
   }
 
@@ -668,17 +659,10 @@ public class BigQueryAPIResourceProvider implements BigQueryResourceProvider {
    * {@inheritDoc}
    *
    * @throws BigQueryAPIError if an API error occurs
-   * @throws InvalidBigQueryReference if any provided table reference is invalid
    */
   @Override
   public List<ProcedureInfo> getAllProceduresInProject(String projectId) {
-    return this.service
-        .listDatasets(projectId)
-        .get()
-        .stream()
-        .flatMap(datasetId ->
-            this.getAllProceduresInDataset(projectId, datasetId.getDataset()).stream())
-        .collect(Collectors.toList());
+    return this.getAllResourcesInProject(projectId, this::getAllProceduresInDataset);
   }
 
 }

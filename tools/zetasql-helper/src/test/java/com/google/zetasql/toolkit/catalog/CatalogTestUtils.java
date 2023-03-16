@@ -1,9 +1,8 @@
-package com.google.zetasql.toolkit.catalog.bigquery;
+package com.google.zetasql.toolkit.catalog;
 
 import com.google.zetasql.Column;
 import com.google.zetasql.FunctionArgumentType;
 import com.google.zetasql.FunctionSignature;
-import com.google.zetasql.SimpleColumn;
 import com.google.zetasql.TVFRelation;
 import com.google.zetasql.Table;
 import com.google.zetasql.ZetaSQLFunctions.SignatureArgumentKind;
@@ -12,9 +11,9 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-public class BigQueryTestUtils {
+public class CatalogTestUtils {
 
-  private BigQueryTestUtils() { }
+  private CatalogTestUtils() { }
 
   public static boolean tableColumnsEqual(
       List<? extends Column> expected, List<? extends Column> actual) {
@@ -48,6 +47,40 @@ public class BigQueryTestUtils {
 
   public static boolean tableColumnsEqual(Table expected, Table actual) {
     return tableColumnsEqual(expected.getColumnList(), actual.getColumnList());
+  }
+
+  public static boolean tableEquals(Table expected, Table actual) {
+    if (!expected.getName().equals(actual.getName())) {
+      return false;
+    }
+
+    if (expected.getColumnCount() != actual.getColumnCount()) {
+      return false;
+    }
+
+    List<? extends Column> expectedColumns = expected.getColumnList()
+        .stream()
+        .sorted(Comparator.comparing(Column::getName))
+        .collect(Collectors.toList());
+    List<? extends Column> actualColumns = actual.getColumnList()
+        .stream()
+        .sorted(Comparator.comparing(Column::getName))
+        .collect(Collectors.toList());
+
+    for (int i = 0; i < expectedColumns.size(); i++) {
+      Column expectedColumn = expectedColumns.get(i);
+      Column actualColumn = actualColumns.get(i);
+
+      if (!expectedColumn.getName().equals(actualColumn.getName())) {
+        return false;
+      }
+
+      if (!expectedColumn.getType().equals(actualColumn.getType())) {
+        return false;
+      }
+    }
+
+    return true;
   }
 
   public static boolean functionArgumentEquals(

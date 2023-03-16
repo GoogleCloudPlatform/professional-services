@@ -1,0 +1,351 @@
+package com.google.zetasql.toolkit;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
+import com.google.common.collect.ImmutableList;
+import com.google.zetasql.Function;
+import com.google.zetasql.FunctionArgumentType;
+import com.google.zetasql.FunctionSignature;
+import com.google.zetasql.SimpleColumn;
+import com.google.zetasql.SimpleTable;
+import com.google.zetasql.TVFRelation;
+import com.google.zetasql.TVFRelation.Column;
+import com.google.zetasql.TypeFactory;
+import com.google.zetasql.ZetaSQLFunctions.FunctionEnums.Mode;
+import com.google.zetasql.ZetaSQLFunctions.SignatureArgumentKind;
+import com.google.zetasql.ZetaSQLType.TypeKind;
+import com.google.zetasql.resolvedast.ResolvedColumn;
+import com.google.zetasql.resolvedast.ResolvedCreateStatementEnums.CreateMode;
+import com.google.zetasql.resolvedast.ResolvedCreateStatementEnums.CreateScope;
+import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedColumnDefinition;
+import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedCreateExternalTableStmt;
+import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedCreateFunctionStmt;
+import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedCreateMaterializedViewStmt;
+import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedCreateTableAsSelectStmt;
+import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedCreateTableFunctionStmt;
+import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedCreateTableStmt;
+import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedCreateViewStmt;
+import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedOutputColumn;
+import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedSingleRowScan;
+import com.google.zetasql.toolkit.catalog.CatalogTestUtils;
+import com.google.zetasql.toolkit.catalog.CatalogWrapper;
+import com.google.zetasql.toolkit.catalog.bigquery.TVFInfo;
+import java.util.List;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+@ExtendWith(MockitoExtension.class)
+public class CatalogUpdaterVisitorTest {
+
+  CatalogUpdaterVisitor visitor;
+
+  @Mock
+  CatalogWrapper catalog;
+
+  SimpleTable exampleTable = new SimpleTable(
+      "table",
+      List.of(
+          new SimpleColumn(
+              "table",
+              "column",
+              TypeFactory.createSimpleType(TypeKind.TYPE_STRING)
+          )
+      )
+  );
+
+  @BeforeEach
+  void init() {
+    this.visitor = new CatalogUpdaterVisitor(catalog);
+  }
+
+  private void assertTableEqualsExample(SimpleTable table) {
+    assertEquals(exampleTable.getName(), table.getName());
+    assertEquals(exampleTable.getColumnCount(), table.getColumnCount());
+    assertAll(
+        () -> assertEquals(exampleTable.getColumn(0).getName(), table.getColumn(0).getName()),
+        () -> assertEquals(
+            exampleTable.getColumn(0).getType(),
+            table.getColumn(0).getType()
+        )
+    );
+  }
+
+  @Test
+  void testCreateTableStmt() {
+    ResolvedCreateTableStmt resolvedCreateTableStmt = ResolvedCreateTableStmt.builder()
+        .setNamePath(List.of("table"))
+        .setCreateScope(CreateScope.CREATE_DEFAULT_SCOPE)
+        .setCreateMode(CreateMode.CREATE_DEFAULT)
+        .setColumnDefinitionList(List.of(
+            ResolvedColumnDefinition.builder()
+                .setName("column")
+                .setType(TypeFactory.createSimpleType(TypeKind.TYPE_STRING))
+                .setIsHidden(false)
+                .build()
+        ))
+        .setIsValueTable(false)
+        .build();
+
+    resolvedCreateTableStmt.accept(visitor);
+
+    ArgumentCaptor<SimpleTable> createdTableCaptor = ArgumentCaptor.forClass(SimpleTable.class);
+    verify(catalog).register(createdTableCaptor.capture(), any(), any());
+
+    SimpleTable createdTable = createdTableCaptor.getValue();
+
+    assertTableEqualsExample(createdTable);
+
+  }
+
+  @Test
+  void testCreateTableAsSelectStmt() {
+    ResolvedColumn resolvedColumn = new ResolvedColumn(
+        1, "table", "column",
+        TypeFactory.createSimpleType(TypeKind.TYPE_STRING)
+    );
+    ResolvedOutputColumn resolvedOutputColumn = ResolvedOutputColumn.builder()
+        .setName("column")
+        .setColumn(resolvedColumn)
+        .build();
+
+    ResolvedCreateTableAsSelectStmt resolvedCreateTableAsSelectStmt =
+        ResolvedCreateTableAsSelectStmt.builder()
+            .setNamePath(List.of("table"))
+            .setCreateScope(CreateScope.CREATE_DEFAULT_SCOPE)
+            .setCreateMode(CreateMode.CREATE_DEFAULT)
+            .setColumnDefinitionList(List.of(
+                ResolvedColumnDefinition.builder()
+                    .setName("column")
+                    .setType(TypeFactory.createSimpleType(TypeKind.TYPE_STRING))
+                    .setIsHidden(false)
+                    .build()
+            ))
+            .setOutputColumnList(List.of(resolvedOutputColumn))
+            .setQuery(
+                ResolvedSingleRowScan.builder()
+                    .setColumnList(List.of(resolvedColumn))
+                    .build()
+            )
+            .setIsValueTable(false)
+            .build();
+
+    resolvedCreateTableAsSelectStmt.accept(visitor);
+
+    ArgumentCaptor<SimpleTable> createdTableCaptor = ArgumentCaptor.forClass(SimpleTable.class);
+    verify(catalog).register(createdTableCaptor.capture(), any(), any());
+
+    SimpleTable createdTable = createdTableCaptor.getValue();
+
+    assertTableEqualsExample(createdTable);
+  }
+
+  @Test
+  void testCreateExternalTableStmt() {
+    ResolvedCreateExternalTableStmt resolvedCreateExternalTableStmt =
+        ResolvedCreateExternalTableStmt.builder()
+            .setNamePath(List.of("table"))
+            .setCreateScope(CreateScope.CREATE_DEFAULT_SCOPE)
+            .setCreateMode(CreateMode.CREATE_DEFAULT)
+            .setColumnDefinitionList(List.of(
+                ResolvedColumnDefinition.builder()
+                    .setName("column")
+                    .setType(TypeFactory.createSimpleType(TypeKind.TYPE_STRING))
+                    .setIsHidden(false)
+                    .build()
+            ))
+            .setIsValueTable(false)
+            .build();
+
+    resolvedCreateExternalTableStmt.accept(visitor);
+
+    ArgumentCaptor<SimpleTable> createdTableCaptor = ArgumentCaptor.forClass(SimpleTable.class);
+    verify(catalog).register(createdTableCaptor.capture(), any(), any());
+
+    SimpleTable createdTable = createdTableCaptor.getValue();
+
+    assertTableEqualsExample(createdTable);
+  }
+
+  @Test
+  void testCreateViewStmt() {
+    ResolvedColumn resolvedColumn = new ResolvedColumn(
+        1, "table", "column",
+        TypeFactory.createSimpleType(TypeKind.TYPE_STRING)
+    );
+    ResolvedOutputColumn resolvedOutputColumn = ResolvedOutputColumn.builder()
+        .setName("column")
+        .setColumn(resolvedColumn)
+        .build();
+
+    ResolvedCreateViewStmt resolvedCreateViewStmt =
+        ResolvedCreateViewStmt.builder()
+            .setNamePath(List.of("table"))
+            .setCreateScope(CreateScope.CREATE_DEFAULT_SCOPE)
+            .setCreateMode(CreateMode.CREATE_DEFAULT)
+            .setOutputColumnList(List.of(resolvedOutputColumn))
+            .setQuery(
+                ResolvedSingleRowScan.builder()
+                    .setColumnList(List.of(resolvedColumn))
+                    .build()
+            )
+            .setIsValueTable(false)
+            .setHasExplicitColumns(true)
+            .setRecursive(false)
+            .build();
+
+    resolvedCreateViewStmt.accept(visitor);
+
+    ArgumentCaptor<SimpleTable> createdTableCaptor = ArgumentCaptor.forClass(SimpleTable.class);
+    verify(catalog).register(createdTableCaptor.capture(), any(), any());
+
+    SimpleTable createdTable = createdTableCaptor.getValue();
+
+    assertTableEqualsExample(createdTable);
+  }
+
+  @Test
+  void testCreateMaterializedViewStmt() {
+    ResolvedColumn resolvedColumn = new ResolvedColumn(
+        1, "table", "column",
+        TypeFactory.createSimpleType(TypeKind.TYPE_STRING)
+    );
+    ResolvedOutputColumn resolvedOutputColumn = ResolvedOutputColumn.builder()
+        .setName("column")
+        .setColumn(resolvedColumn)
+        .build();
+
+    ResolvedCreateMaterializedViewStmt resolvedCreateMaterializedViewStmt =
+        ResolvedCreateMaterializedViewStmt.builder()
+            .setNamePath(List.of("table"))
+            .setCreateScope(CreateScope.CREATE_DEFAULT_SCOPE)
+            .setCreateMode(CreateMode.CREATE_DEFAULT)
+            .setOutputColumnList(List.of(resolvedOutputColumn))
+            .setQuery(
+                ResolvedSingleRowScan.builder()
+                    .setColumnList(List.of(resolvedColumn))
+                    .build()
+            )
+            .setIsValueTable(false)
+            .setHasExplicitColumns(true)
+            .setRecursive(false)
+            .build();
+
+    resolvedCreateMaterializedViewStmt.accept(visitor);
+
+    ArgumentCaptor<SimpleTable> createdTableCaptor = ArgumentCaptor.forClass(SimpleTable.class);
+    verify(catalog).register(createdTableCaptor.capture(), any(), any());
+
+    SimpleTable createdTable = createdTableCaptor.getValue();
+
+    assertTableEqualsExample(createdTable);
+  }
+
+  @Test
+  void testCreateFunction() {
+    FunctionSignature signature = new FunctionSignature(
+        new FunctionArgumentType(
+            TypeFactory.createSimpleType(TypeKind.TYPE_STRING)
+        ),
+        List.of(
+            new FunctionArgumentType(
+                TypeFactory.createSimpleType(TypeKind.TYPE_INT64)
+            )
+        ),
+        -1
+    );
+
+    Function expectedFunction = new Function(
+        List.of("function"),
+        "UDF",
+        Mode.SCALAR,
+        List.of(signature)
+    );
+
+    ResolvedCreateFunctionStmt resolvedCreateFunctionStmt =
+        ResolvedCreateFunctionStmt.builder()
+            .setNamePath(List.of("function"))
+            .setCreateScope(CreateScope.CREATE_DEFAULT_SCOPE)
+            .setCreateMode(CreateMode.CREATE_DEFAULT)
+            .setSignature(signature)
+            .setHasExplicitReturnType(true)
+            .setIsAggregate(false)
+            .setIsRemote(false)
+            .build();
+
+    resolvedCreateFunctionStmt.accept(visitor);
+
+    ArgumentCaptor<Function> createdFunctionCaptor = ArgumentCaptor.forClass(Function.class);
+    verify(catalog).register(createdFunctionCaptor.capture(), any(), any());
+
+    Function createdFunction = createdFunctionCaptor.getValue();
+
+    assertAll(
+        () -> assertIterableEquals(expectedFunction.getNamePath(), createdFunction.getNamePath()),
+        () -> assertEquals(expectedFunction.getGroup(), createdFunction.getGroup()),
+        () -> assertEquals(expectedFunction.getMode(), createdFunction.getMode()),
+        () -> assertEquals(1, createdFunction.getSignatureList().size()),
+        () -> assertTrue(CatalogTestUtils.functionSignatureEquals(
+            expectedFunction.getSignatureList().get(0), createdFunction.getSignatureList().get(0)
+        ))
+    );
+  }
+
+  @Test
+  void testCreateTVF() {
+    FunctionSignature signature = new FunctionSignature(
+        new FunctionArgumentType(SignatureArgumentKind.ARG_TYPE_RELATION),
+        List.of(
+            new FunctionArgumentType(
+                TypeFactory.createSimpleType(TypeKind.TYPE_INT64)
+            )
+        ),
+        -1
+    );
+
+    TVFRelation tvfOutputSchema = TVFRelation.createColumnBased(List.of(
+        Column.create("output", TypeFactory.createSimpleType(TypeKind.TYPE_STRING))
+    ));
+
+    TVFInfo expectedFunction = new TVFInfo(ImmutableList.of("tvf"), signature, tvfOutputSchema);
+
+    ResolvedCreateTableFunctionStmt resolvedCreateTableFunctionStmt =
+        ResolvedCreateTableFunctionStmt.builder()
+            .setNamePath(List.of("tvf"))
+            .setCreateScope(CreateScope.CREATE_DEFAULT_SCOPE)
+            .setCreateMode(CreateMode.CREATE_DEFAULT)
+            .setOutputColumnList(List.of(
+                ResolvedOutputColumn.builder()
+                    .setName("output")
+                    .setColumn(new ResolvedColumn(
+                        1, "table", "output",
+                        TypeFactory.createSimpleType(TypeKind.TYPE_STRING)
+                    ))
+                    .build()
+            ))
+            .setSignature(signature)
+            .setIsValueTable(false)
+            .setHasExplicitReturnSchema(true)
+            .build();
+
+    resolvedCreateTableFunctionStmt.accept(visitor);
+
+    ArgumentCaptor<TVFInfo> createdFunctionCaptor = ArgumentCaptor.forClass(TVFInfo.class);
+    verify(catalog).register(createdFunctionCaptor.capture(), any(), any());
+
+    TVFInfo createdFunction = createdFunctionCaptor.getValue();
+
+    assertAll(
+        () -> assertIterableEquals(expectedFunction.getNamePath(), createdFunction.getNamePath()),
+        () -> assertTrue(CatalogTestUtils.functionSignatureEquals(
+            expectedFunction.getSignature(), createdFunction.getSignature()
+        )),
+        () -> assertEquals(expectedFunction.getOutputSchema(), createdFunction.getOutputSchema())
+    );
+  }
+
+}

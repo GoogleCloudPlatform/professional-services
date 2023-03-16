@@ -21,6 +21,7 @@ import com.google.zetasql.ZetaSQLFunctions.SignatureArgumentKind;
 import com.google.zetasql.ZetaSQLType.TypeKind;
 import com.google.zetasql.resolvedast.ResolvedCreateStatementEnums.CreateMode;
 import com.google.zetasql.resolvedast.ResolvedCreateStatementEnums.CreateScope;
+import com.google.zetasql.toolkit.catalog.CatalogTestUtils;
 import com.google.zetasql.toolkit.catalog.bigquery.exceptions.InvalidBigQueryReference;
 import com.google.zetasql.toolkit.catalog.exceptions.CatalogResourceAlreadyExists;
 import java.util.ArrayList;
@@ -258,7 +259,7 @@ public class BigQueryCatalogTest {
     );
 
     assertTrue(
-        BigQueryTestUtils.tableColumnsEqual(exampleTableInDefaultProject, foundTable),
+        CatalogTestUtils.tableColumnsEqual(exampleTableInDefaultProject, foundTable),
         "Expected table created in Catalog to be equal to the original"
     );
   }
@@ -309,7 +310,7 @@ public class BigQueryCatalogTest {
     Table foundTable = assertTableExistsAtPaths(this.bigQueryCatalog, pathsWhereTableShouldBe);
 
     assertTrue(
-        BigQueryTestUtils.tableColumnsEqual(replacementTableInDefaultProject, foundTable),
+        CatalogTestUtils.tableColumnsEqual(replacementTableInDefaultProject, foundTable),
         "Expected table created in Catalog to be equal to the original"
     );
   }

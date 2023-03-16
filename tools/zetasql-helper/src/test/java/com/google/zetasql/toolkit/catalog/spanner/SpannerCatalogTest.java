@@ -3,9 +3,9 @@ package com.google.zetasql.toolkit.catalog.spanner;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+import com.google.zetasql.toolkit.catalog.CatalogTestUtils;
 import com.google.zetasql.toolkit.catalog.exceptions.CatalogResourceAlreadyExists;
 import com.google.zetasql.toolkit.catalog.spanner.exceptions.InvalidSpannerTableName;
-import com.google.zetasql.Column;
 import com.google.zetasql.SimpleCatalog;
 import com.google.zetasql.SimpleColumn;
 import com.google.zetasql.SimpleTable;
@@ -14,9 +14,7 @@ import com.google.zetasql.TypeFactory;
 import com.google.zetasql.ZetaSQLType.TypeKind;
 import com.google.zetasql.resolvedast.ResolvedCreateStatementEnums.CreateMode;
 import com.google.zetasql.resolvedast.ResolvedCreateStatementEnums.CreateScope;
-import java.util.Comparator;
 import java.util.List;
-import java.util.stream.Collectors;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -74,40 +72,6 @@ public class SpannerCatalogTest {
     );
   }
 
-  boolean tableEquals(Table expected, Table actual) {
-    if(!expected.getName().equals(actual.getName())) {
-      return false;
-    }
-
-    if(expected.getColumnCount() != actual.getColumnCount()) {
-      return false;
-    }
-
-    List<? extends Column> expectedColumns = expected.getColumnList()
-        .stream()
-        .sorted(Comparator.comparing(Column::getName))
-        .collect(Collectors.toList());
-    List<? extends Column> actualColumns = actual.getColumnList()
-        .stream()
-        .sorted(Comparator.comparing(Column::getName))
-        .collect(Collectors.toList());
-
-    for(int i = 0; i < expectedColumns.size(); i++) {
-      Column expectedColumn = expectedColumns.get(i);
-      Column actualColumn = actualColumns.get(i);
-
-      if(!expectedColumn.getName().equals(actualColumn.getName())) {
-        return false;
-      }
-
-      if(!expectedColumn.getType().equals(actualColumn.getType())) {
-        return false;
-      }
-    }
-
-    return true;
-  }
-
   @Test
   void testInvalidSpannerTableNames() {
     String invalidTableName = "Invalid.Spanner.Table.Name";
@@ -141,7 +105,7 @@ public class SpannerCatalogTest {
     Table foundTable = assertTableExistsInCatalog(this.spannerCatalog, exampleTable);
 
     assertTrue(
-        tableEquals(exampleTable, foundTable),
+        CatalogTestUtils.tableEquals(exampleTable, foundTable),
         "Expected table created in Catalog to be equal to the original"
     );
   }
@@ -160,7 +124,7 @@ public class SpannerCatalogTest {
     Table foundTable = assertTableExistsInCatalog(this.spannerCatalog, replacementTable);
 
     assertTrue(
-        tableEquals(replacementTable, foundTable),
+        CatalogTestUtils.tableEquals(replacementTable, foundTable),
         "Expected table to have been replaced"
     );
   }
@@ -196,7 +160,7 @@ public class SpannerCatalogTest {
     Table foundTable = assertTableExistsInCatalog(this.spannerCatalog, exampleTable);
 
     assertTrue(
-        tableEquals(exampleTable, foundTable),
+        CatalogTestUtils.tableEquals(exampleTable, foundTable),
         "Expected table created in Catalog to be equal to the original"
     );
   }
@@ -216,7 +180,7 @@ public class SpannerCatalogTest {
     Table foundTable = assertTableExistsInCatalog(this.spannerCatalog, exampleTable);
 
     assertTrue(
-        tableEquals(exampleTable, foundTable),
+        CatalogTestUtils.tableEquals(exampleTable, foundTable),
         "Expected table created in Catalog to be equal to the original"
     );
   }

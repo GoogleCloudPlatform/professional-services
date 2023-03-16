@@ -317,18 +317,6 @@ public class CatalogOperations {
     }
   }
 
-  /** Creates a copy of a SimpleTable */
-  private static SimpleTable copyTable(SimpleTable table) {
-      SimpleTable newTable = new SimpleTable(table.getName(), table.getColumnList());
-      newTable.setFullName(table.getFullName());
-      newTable.setIsValueTable(table.isValueTable());
-      newTable.setAllowAnonymousColumnName(table.allowAnonymousColumnName());
-      newTable.setAllowDuplicateColumnNames(table.allowDuplicateColumnNames());
-      newTable.setUserIdColumn(table.userIdColumn());
-      table.getPrimaryKey().ifPresent(newTable::setPrimaryKey);
-      return newTable;
-  }
-
   /**
    * Creates a copy of a SimpleCatalog.
    *

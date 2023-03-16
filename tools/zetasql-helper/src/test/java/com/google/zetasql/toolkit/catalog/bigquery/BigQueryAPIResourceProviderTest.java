@@ -29,6 +29,7 @@ import com.google.zetasql.TypeFactory;
 import com.google.zetasql.ZetaSQLFunctions.FunctionEnums.ProcedureArgumentMode;
 import com.google.zetasql.ZetaSQLFunctions.SignatureArgumentKind;
 import com.google.zetasql.ZetaSQLType.TypeKind;
+import com.google.zetasql.toolkit.catalog.CatalogTestUtils;
 import com.google.zetasql.toolkit.catalog.bigquery.BigQueryService.Result;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -97,7 +98,7 @@ public class BigQueryAPIResourceProviderTest {
 
     assertEquals(1, tables.size());
     assertTrue(
-        BigQueryTestUtils.tableColumnsEqual(
+        CatalogTestUtils.tableColumnsEqual(
             expectedSchemaForMockTable, tables.get(0).getColumnList()
         )
     );
@@ -119,7 +120,7 @@ public class BigQueryAPIResourceProviderTest {
 
     assertEquals(1, tables.size());
     assertTrue(
-        BigQueryTestUtils.tableColumnsEqual(
+        CatalogTestUtils.tableColumnsEqual(
             expectedSchemaForMockTable, tables.get(0).getColumnList()
         )
     );
@@ -143,7 +144,7 @@ public class BigQueryAPIResourceProviderTest {
 
     assertEquals(1, tables.size());
     assertTrue(
-        BigQueryTestUtils.tableColumnsEqual(
+        CatalogTestUtils.tableColumnsEqual(
             expectedSchemaForMockTable, tables.get(0).getColumnList()
         )
     );
@@ -196,7 +197,7 @@ public class BigQueryAPIResourceProviderTest {
 
     assertEquals(1, functions.size());
     assertTrue(
-        BigQueryTestUtils.functionSignatureEquals(
+        CatalogTestUtils.functionSignatureEquals(
             expectedSignatureForMockUDF, functions.get(0).getSignatureList().get(0)
         )
     );
@@ -270,7 +271,7 @@ public class BigQueryAPIResourceProviderTest {
 
     assertEquals(1, functions.size());
     assertTrue(
-        BigQueryTestUtils.functionSignatureEquals(
+        CatalogTestUtils.functionSignatureEquals(
             expectedSignatureForMockTVF, functions.get(0).getSignature()
         )
     );
@@ -322,7 +323,7 @@ public class BigQueryAPIResourceProviderTest {
 
     assertEquals(1, procedures.size());
     assertTrue(
-        BigQueryTestUtils.functionSignatureEquals(
+        CatalogTestUtils.functionSignatureEquals(
             expectedSignatureForMockProcedure, procedures.get(0).getSignature()
         )
     );
