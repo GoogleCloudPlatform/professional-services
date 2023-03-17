@@ -11,6 +11,7 @@
     <maven.compiler.source>11</maven.compiler.source>
     <maven.compiler.target>11</maven.compiler.target>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <container.mainClass/>
   </properties>
 
   <dependencies>
@@ -21,5 +22,20 @@
       <scope>compile</scope>
     </dependency>
   </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>com.google.cloud.tools</groupId>
+        <artifactId>jib-maven-plugin</artifactId>
+        <version>3.3.1</version>
+        <configuration>
+          <container>
+            <mainClass>${container.mainClass}</mainClass>
+          </container>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
 
 </project>
