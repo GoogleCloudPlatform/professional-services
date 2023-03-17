@@ -10,6 +10,7 @@ import com.google.zetasql.SimpleTable;
 import com.google.zetasql.TypeFactory;
 import com.google.zetasql.ZetaSQLType.TypeKind;
 import com.google.zetasql.toolkit.catalog.CatalogTestUtils;
+import com.google.zetasql.toolkit.catalog.spanner.exceptions.SpannerTablesNotFound;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -60,6 +61,18 @@ public class SpannerResourceProviderImplTest {
 
     assertEquals(1, tables.size());
     assertTrue(CatalogTestUtils.tableEquals(exampleTable, tables.get(0)));
+  }
+
+  @Test
+  void testTableNotFound() {
+    ResultSet resultSet = mock(ResultSet.class);
+    when(resultSet.next()).thenReturn(false);
+    when(spannerClient.singleUse().executeQuery(any())).thenReturn(resultSet);
+
+    assertThrows(
+        SpannerTablesNotFound.class,
+        () -> spannerResourceProvider.getTables(List.of("table"))
+    );
   }
 
 }

@@ -23,6 +23,7 @@ import com.google.cloud.spanner.Spanner;
 import com.google.cloud.spanner.SpannerOptions;
 import com.google.cloud.spanner.Statement;
 import com.google.zetasql.toolkit.catalog.CatalogOperations;
+import com.google.zetasql.toolkit.catalog.spanner.exceptions.SpannerTablesNotFound;
 import com.google.zetasql.toolkit.catalog.typeparser.ZetaSQLTypeParser;
 import com.google.zetasql.SimpleColumn;
 import com.google.zetasql.SimpleTable;
@@ -31,6 +32,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
@@ -71,9 +74,24 @@ public class SpannerResourceProviderImpl implements SpannerResourceProvider {
 
   @Override
   public List<SimpleTable> getTables(List<String> tableNames) {
-    return this.fetchTables(
+    List<SimpleTable> tablesFetched = this.fetchTables(
         this.schemaForTablesQuery(tableNames)
     );
+
+    if(tableNames.size() > tablesFetched.size()) {
+      // At least one table was not found
+      Set<String> namesOfFetchedTables = tablesFetched.stream()
+          .map(SimpleTable::getName)
+          .collect(Collectors.toSet());
+
+      List<String> notFoundTables = tableNames.stream()
+          .filter(Predicate.not(namesOfFetchedTables::contains))
+          .collect(Collectors.toList());
+
+      throw new SpannerTablesNotFound(notFoundTables);
+    }
+
+    return tablesFetched;
   }
 
   @Override
