@@ -239,17 +239,13 @@ public class BigQueryCatalog implements CatalogWrapper {
         .collect(Collectors.toList());
   }
 
-  /**
-   * @see #buildCatalogPathsForResource(BigQueryReference)
-   */
+  /** @see #buildCatalogPathsForResource(BigQueryReference) */
   private List<List<String>> buildCatalogPathsForResource(String referenceStr) {
     BigQueryReference reference = BigQueryReference.from(this.defaultProjectId, referenceStr);
     return this.buildCatalogPathsForResource(reference);
   }
 
-  /**
-   * @see #buildCatalogPathsForResource(BigQueryReference)
-   */
+  /** @see #buildCatalogPathsForResource(BigQueryReference) */
   private List<List<String>> buildCatalogPathsForResource(List<String> resourcePath) {
     return this.buildCatalogPathsForResource(String.join(".", resourcePath));
   }
