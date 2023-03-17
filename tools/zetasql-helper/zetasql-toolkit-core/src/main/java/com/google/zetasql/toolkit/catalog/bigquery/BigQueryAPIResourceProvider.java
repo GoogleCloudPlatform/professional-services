@@ -19,15 +19,20 @@ package com.google.zetasql.toolkit.catalog.bigquery;
 import com.google.cloud.bigquery.BigQuery;
 import com.google.cloud.bigquery.BigQueryOptions;
 import com.google.cloud.bigquery.Field;
+import com.google.cloud.bigquery.MaterializedViewDefinition;
 import com.google.cloud.bigquery.Routine;
 import com.google.cloud.bigquery.RoutineArgument;
 import com.google.cloud.bigquery.RoutineId;
+import com.google.cloud.bigquery.SnapshotTableDefinition;
 import com.google.cloud.bigquery.StandardSQLDataType;
 import com.google.cloud.bigquery.StandardSQLStructType;
 import com.google.cloud.bigquery.StandardSQLTableType;
 import com.google.cloud.bigquery.StandardSQLTypeName;
+import com.google.cloud.bigquery.StandardTableDefinition;
 import com.google.cloud.bigquery.Table;
+import com.google.cloud.bigquery.TableDefinition;
 import com.google.cloud.bigquery.TableId;
+import com.google.cloud.bigquery.TimePartitioning;
 import com.google.common.collect.ImmutableList;
 import com.google.zetasql.toolkit.catalog.CatalogOperations;
 import com.google.zetasql.toolkit.catalog.bigquery.BigQueryService.Result;
@@ -48,6 +53,7 @@ import com.google.zetasql.ZetaSQLFunctions.FunctionEnums.Mode;
 import com.google.zetasql.ZetaSQLFunctions.FunctionEnums.ProcedureArgumentMode;
 import com.google.zetasql.ZetaSQLFunctions.SignatureArgumentKind;
 import com.google.zetasql.ZetaSQLType.TypeKind;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.BiFunction;
@@ -160,6 +166,22 @@ public class BigQueryAPIResourceProvider implements BigQueryResourceProvider {
     return fieldType;
   }
 
+  /** Return whether the given table is has time partitioning */
+  private boolean tableHasTimePartitioningPseudoColumns(Table table) {
+    TableDefinition tableDefinition = table.getDefinition();
+    TimePartitioning timePartitioning = null;
+
+    if (tableDefinition instanceof StandardTableDefinition) {
+      timePartitioning = ((StandardTableDefinition) tableDefinition).getTimePartitioning();
+    } else if (tableDefinition instanceof MaterializedViewDefinition) {
+      timePartitioning = ((MaterializedViewDefinition) tableDefinition).getTimePartitioning();
+    } else if (tableDefinition instanceof SnapshotTableDefinition) {
+      timePartitioning = ((SnapshotTableDefinition) tableDefinition).getTimePartitioning();
+    }
+
+    return timePartitioning != null && timePartitioning.getField() == null;
+  }
+
   /**
    * Extract the ZetaSQL {@link SimpleColumn}s from a BigQuery API {@link Table}.
    *
@@ -175,7 +197,7 @@ public class BigQueryAPIResourceProvider implements BigQueryResourceProvider {
       return List.of();
     }
 
-    return table.getDefinition()
+    ArrayList<SimpleColumn> columns = table.getDefinition()
         .getSchema()
         .getFields()
         .stream()
@@ -184,7 +206,28 @@ public class BigQueryAPIResourceProvider implements BigQueryResourceProvider {
             field.getName(),
             this.extractTypeFromBigQueryTableField(field)
         ))
-        .collect(Collectors.toList());
+        .collect(Collectors.toCollection(ArrayList::new));
+
+    if(this.tableHasTimePartitioningPseudoColumns(table)) {
+      columns.addAll(List.of(
+          new SimpleColumn(
+            tableId.getTable(),
+            "_PARTITIONTIME",
+            TypeFactory.createSimpleType(TypeKind.TYPE_TIMESTAMP),
+            /*isPseudoColumn=*/true,
+            /*isWriteableColumn=*/false
+          ),
+          new SimpleColumn(
+              tableId.getTable(),
+              "_PARTITIONDATE",
+              TypeFactory.createSimpleType(TypeKind.TYPE_DATE),
+              /*isPseudoColumn=*/true,
+              /*isWriteableColumn=*/false
+          )
+      ));
+    }
+
+    return columns;
   }
 
   /**

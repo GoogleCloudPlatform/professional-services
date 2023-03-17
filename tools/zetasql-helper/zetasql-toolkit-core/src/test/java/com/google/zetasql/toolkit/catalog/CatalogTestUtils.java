@@ -3,12 +3,15 @@ package com.google.zetasql.toolkit.catalog;
 import com.google.zetasql.Column;
 import com.google.zetasql.FunctionArgumentType;
 import com.google.zetasql.FunctionSignature;
+import com.google.zetasql.SimpleColumn;
+import com.google.zetasql.SimpleTable;
 import com.google.zetasql.TVFRelation;
 import com.google.zetasql.Table;
 import com.google.zetasql.ZetaSQLFunctions.SignatureArgumentKind;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class CatalogTestUtils {

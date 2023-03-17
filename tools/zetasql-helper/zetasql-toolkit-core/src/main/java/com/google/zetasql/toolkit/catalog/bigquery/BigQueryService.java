@@ -246,7 +246,8 @@ class BigQueryService {
             TableField.ID,
             TableField.ETAG,
             TableField.TABLE_REFERENCE,
-            TableField.SCHEMA
+            TableField.SCHEMA,
+            TableField.TIME_PARTITIONING
         )
     );
   }
