@@ -30,6 +30,7 @@ import com.google.zetasql.ZetaSQLBuiltinFunctionOptions;
 import com.google.zetasql.ZetaSQLType;
 import com.google.zetasql.resolvedast.ResolvedCreateStatementEnums.CreateMode;
 import com.google.zetasql.resolvedast.ResolvedCreateStatementEnums.CreateScope;
+import com.google.zetasql.toolkit.catalog.exceptions.CatalogResourceAlreadyExists;
 import com.google.zetasql.toolkit.options.BigQueryLanguageOptions;
 import java.util.Arrays;
 import java.util.List;
@@ -106,7 +107,7 @@ public class BigQueryCatalog implements CatalogWrapper {
     this.addBigQueryTypeAliases(this.catalog);
   }
 
-  /** Private constructor used for implementing {@link #copy(boolean)} */
+  /** Private constructor used for implementing {@link #copy()} */
   private BigQueryCatalog(
       String defaultProjectId,
       BigQueryResourceProvider bigQueryResourceProvider,
@@ -181,9 +182,19 @@ public class BigQueryCatalog implements CatalogWrapper {
         .flatMap(pathElement -> Arrays.stream(pathElement.split("\\.")))
         .collect(Collectors.toList());
 
+    // Names for TEMP BigQuery resources should not be qualified
     if(createScope.equals(CreateScope.CREATE_TEMP) && flattenedNamePath.size() > 1) {
       String message = String.format(
           "Cannot create BigQuery TEMP %s %s, TEMP resources should not be qualified",
+          resourceType, fullName
+      );
+      throw new BigQueryCreateError(message, createScope, fullName);
+    }
+
+    // Names for persistent BigQuery resources should be qualified
+    if(!createScope.equals(CreateScope.CREATE_TEMP) && flattenedNamePath.size() == 1) {
+      String message = String.format(
+          "Cannot create BigQuery %s %s, persistent BigQuery resources should be qualified",
           resourceType, fullName
       );
       throw new BigQueryCreateError(message, createScope, fullName);
@@ -252,6 +263,21 @@ public class BigQueryCatalog implements CatalogWrapper {
     return this.buildCatalogPathsForResource(String.join(".", resourcePath));
   }
 
+  private CatalogResourceAlreadyExists addCaseInsensitivityWarning(
+      CatalogResourceAlreadyExists error
+  ) {
+    return new CatalogResourceAlreadyExists(
+        error.getResourceName(),
+        String.format(
+            "Catalog resource already exists: %s. BigQuery resources are treated as "
+                + "case-insensitive, so resources with the same name but different casing "
+                + "are treated as equals and can trigger this error.",
+            error.getResourceName()
+        ),
+        error
+    );
+  }
+
   /**
    * {@inheritDoc}
    *
@@ -260,6 +286,8 @@ public class BigQueryCatalog implements CatalogWrapper {
    * @see #buildCatalogPathsForResource(BigQueryReference)
    *
    * @throws BigQueryCreateError if a pre-create validation fails
+   * @throws CatalogResourceAlreadyExists if the table already exists and
+   * CreateMode != CREATE_OR_REPLACE
    */
   @Override
   public void register(SimpleTable table, CreateMode createMode, CreateScope createScope) {
@@ -275,9 +303,13 @@ public class BigQueryCatalog implements CatalogWrapper {
         ? List.of(List.of(table.getName()))
         : this.buildCatalogPathsForResource(table.getFullName());
 
-    CatalogOperations.createTableInCatalog(
-        this.catalog, tablePaths, table.getFullName(), table.getColumnList(), createMode
-    );
+    try {
+      CatalogOperations.createTableInCatalog(
+          this.catalog, tablePaths, table.getFullName(), table.getColumnList(), createMode
+      );
+    } catch (CatalogResourceAlreadyExists alreadyExists) {
+      throw this.addCaseInsensitivityWarning(alreadyExists);
+    }
   }
 
   /**
@@ -288,6 +320,8 @@ public class BigQueryCatalog implements CatalogWrapper {
    * @see #buildCatalogPathsForResource(BigQueryReference)
    *
    * @throws BigQueryCreateError if a pre-create validation fails
+   * @throws CatalogResourceAlreadyExists if the function already exists and
+   * CreateMode != CREATE_OR_REPLACE
    */
   @Override
   public void register(Function function, CreateMode createMode, CreateScope createScope) {
@@ -306,13 +340,19 @@ public class BigQueryCatalog implements CatalogWrapper {
         ? List.of(functionNamePath)
         : this.buildCatalogPathsForResource(functionNamePath);
 
-    CatalogOperations.createFunctionInCatalog(this.catalog, functionPaths, function, createMode);
+    try {
+      CatalogOperations.createFunctionInCatalog(this.catalog, functionPaths, function, createMode);
+    } catch (CatalogResourceAlreadyExists alreadyExists) {
+      throw this.addCaseInsensitivityWarning(alreadyExists);
+    }
   }
 
   /**
    * {@inheritDoc}
    *
    * @throws BigQueryCreateError if a pre-create validation fails
+   * @throws CatalogResourceAlreadyExists if the function already exists and
+   * CreateMode != CREATE_OR_REPLACE
    */
   @Override
   public void register(TVFInfo tvfInfo, CreateMode createMode, CreateScope createScope) {
@@ -327,7 +367,12 @@ public class BigQueryCatalog implements CatalogWrapper {
     this.validateNamePathForCreation(tvfInfo.getNamePath(), createScope, "TVF");
 
     List<List<String>> functionPaths = this.buildCatalogPathsForResource(fullName);
-    CatalogOperations.createTVFInCatalog(this.catalog, functionPaths, tvfInfo, createMode);
+
+    try {
+      CatalogOperations.createTVFInCatalog(this.catalog, functionPaths, tvfInfo, createMode);
+    } catch (CatalogResourceAlreadyExists alreadyExists) {
+      throw this.addCaseInsensitivityWarning(alreadyExists);
+    }
   }
 
   /**
@@ -338,6 +383,8 @@ public class BigQueryCatalog implements CatalogWrapper {
    * @see #buildCatalogPathsForResource(BigQueryReference)
    *
    * @throws BigQueryCreateError if a pre-create validation fails
+   * @throws CatalogResourceAlreadyExists if the precedure already exists and
+   * CreateMode != CREATE_OR_REPLACE
    */
   @Override
   public void register(
@@ -357,9 +404,13 @@ public class BigQueryCatalog implements CatalogWrapper {
 
     List<List<String>> procedurePaths = this.buildCatalogPathsForResource(fullName);
 
-    CatalogOperations.createProcedureInCatalog(
-        this.catalog, procedurePaths, procedureInfo, createMode
-    );
+    try {
+      CatalogOperations.createProcedureInCatalog(
+          this.catalog, procedurePaths, procedureInfo, createMode
+      );
+    } catch (CatalogResourceAlreadyExists alreadyExists) {
+      throw this.addCaseInsensitivityWarning(alreadyExists);
+    }
   }
 
   /**

@@ -158,7 +158,6 @@ class BigQueryService {
   }
   
   private <T> Stream<T> pageToStream(Page<T> page) {
-    // TODO: What does iterating pages raise in case of failure?
     return StreamSupport.stream(page.iterateAll().spliterator(), false);
   }
 
