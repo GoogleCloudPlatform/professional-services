@@ -5,6 +5,7 @@ import com.google.zetasql.toolkit.catalog.bigquery.BigQueryCatalog;
 import com.google.zetasql.AnalyzerOptions;
 import com.google.zetasql.LanguageOptions;
 import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedStatement;
+import com.google.zetasql.toolkit.options.BigQueryLanguageOptions;
 import java.util.Iterator;
 
 /**
@@ -12,17 +13,6 @@ import java.util.Iterator;
  * while performing analysis
  */
 public class E_AnalyzingCreateStatements {
-
-  private static AnalyzerOptions getAnalyzerOptions() {
-    LanguageOptions languageOptions = new LanguageOptions()
-        .enableMaximumLanguageFeatures();
-    languageOptions.setSupportsAllStatementKinds();
-
-    AnalyzerOptions analyzerOptions = new AnalyzerOptions();
-    analyzerOptions.setLanguageOptions(languageOptions);
-
-    return analyzerOptions;
-  }
 
   public static void main(String[] args) {
     String query = "CREATE TEMP TABLE t AS (SELECT 1 AS column UNION ALL SELECT 2 AS column);\n"
@@ -33,9 +23,10 @@ public class E_AnalyzingCreateStatements {
         + "CREATE PROCEDURE `dataset.procedure_name`()\nBEGIN\n\nEND;\n"
         + "CALL `dataset.procedure_name`();";
 
-    AnalyzerOptions options = getAnalyzerOptions();
-
     BigQueryCatalog catalog = new BigQueryCatalog("bigquery-public-data");
+
+    AnalyzerOptions options = new AnalyzerOptions();
+    options.setLanguageOptions(BigQueryLanguageOptions.get());
 
     Iterator<ResolvedStatement> statementIterator = ZetaSQLToolkit.analyzeStatements(
         query, options, catalog

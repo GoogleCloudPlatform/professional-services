@@ -29,6 +29,7 @@ import com.google.zetasql.SimpleTable;
 import com.google.zetasql.ZetaSQLBuiltinFunctionOptions;
 import com.google.zetasql.resolvedast.ResolvedCreateStatementEnums.CreateMode;
 import com.google.zetasql.resolvedast.ResolvedCreateStatementEnums.CreateScope;
+import com.google.zetasql.toolkit.options.SpannerLanguageOptions;
 import java.util.List;
 
 /**
@@ -103,7 +104,9 @@ public class SpannerCatalog implements CatalogWrapper {
     this.database = database;
     this.spannerResourceProvider = spannerResourceProvider;
     this.catalog = new SimpleCatalog("catalog");
-    this.catalog.addZetaSQLFunctions(new ZetaSQLBuiltinFunctionOptions());
+    this.catalog.addZetaSQLFunctions(
+        new ZetaSQLBuiltinFunctionOptions(SpannerLanguageOptions.get())
+    );
     // TODO: Define and add Spanner-specific functions to the catalog
   }
 

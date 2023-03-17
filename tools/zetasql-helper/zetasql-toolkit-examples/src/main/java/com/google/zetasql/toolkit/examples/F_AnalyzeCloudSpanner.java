@@ -3,24 +3,13 @@ package com.google.zetasql.toolkit.examples;
 import com.google.zetasql.toolkit.ZetaSQLToolkit;
 import com.google.zetasql.toolkit.catalog.spanner.SpannerCatalog;
 import com.google.zetasql.AnalyzerOptions;
-import com.google.zetasql.LanguageOptions;
+import com.google.zetasql.toolkit.options.SpannerLanguageOptions;
 
 /**
  * Example showcasing the basic usage of the {@link SpannerCatalog}, used for
  * analyzing queries while using Cloud Spanner catalog semantics.
  */
 public class F_AnalyzeCloudSpanner {
-
-  private static AnalyzerOptions getAnalyzerOptions() {
-    LanguageOptions languageOptions = new LanguageOptions()
-        .enableMaximumLanguageFeatures();
-    languageOptions.setSupportsAllStatementKinds();
-
-    AnalyzerOptions options = new AnalyzerOptions();
-    options.setLanguageOptions(languageOptions);
-
-    return options;
-  }
 
   public static void main(String[] args) {
     String query = "SELECT * FROM MyTable;";
@@ -42,9 +31,11 @@ public class F_AnalyzeCloudSpanner {
     // In this case, we add all the tables in the database.
     catalog.addAllTablesInDatabase();
 
-    // Step 4: Run the analysis
-    AnalyzerOptions options = getAnalyzerOptions();
+    // Step 4: Set up the analyzer options
+    AnalyzerOptions options = new AnalyzerOptions();
+    options.setLanguageOptions(SpannerLanguageOptions.get());
 
+    // Step 5: Run the analysis
     ZetaSQLToolkit
         .analyzeStatements(query, options, catalog)
         .forEachRemaining(statement -> System.out.println(statement.debugString()));

@@ -30,6 +30,7 @@ import com.google.zetasql.ZetaSQLBuiltinFunctionOptions;
 import com.google.zetasql.ZetaSQLType;
 import com.google.zetasql.resolvedast.ResolvedCreateStatementEnums.CreateMode;
 import com.google.zetasql.resolvedast.ResolvedCreateStatementEnums.CreateScope;
+import com.google.zetasql.toolkit.options.BigQueryLanguageOptions;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -99,7 +100,9 @@ public class BigQueryCatalog implements CatalogWrapper {
     this.defaultProjectId = defaultProjectId;
     this.bigQueryResourceProvider = bigQueryResourceProvider;
     this.catalog = new SimpleCatalog("catalog");
-    this.catalog.addZetaSQLFunctions(new ZetaSQLBuiltinFunctionOptions());
+    this.catalog.addZetaSQLFunctions(
+        new ZetaSQLBuiltinFunctionOptions(BigQueryLanguageOptions.get())
+    );
     this.addBigQueryTypeAliases(this.catalog);
   }
 

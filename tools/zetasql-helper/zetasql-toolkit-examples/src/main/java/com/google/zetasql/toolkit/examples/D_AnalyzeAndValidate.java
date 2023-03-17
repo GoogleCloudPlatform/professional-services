@@ -18,11 +18,11 @@ package com.google.zetasql.toolkit.examples;
 
 import com.google.zetasql.toolkit.ZetaSQLToolkit;
 import com.google.zetasql.toolkit.catalog.bigquery.BigQueryCatalog;
+import com.google.zetasql.toolkit.options.BigQueryLanguageOptions;
 import com.google.zetasql.toolkit.validation.CannotRecreateExistingTable;
 import com.google.zetasql.toolkit.validation.ValidatingVisitor;
 import com.google.zetasql.toolkit.validation.ValidationError;
 import com.google.zetasql.AnalyzerOptions;
-import com.google.zetasql.LanguageOptions;
 import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedStatement;
 import java.util.Iterator;
 import java.util.List;
@@ -32,26 +32,17 @@ import java.util.List;
  */
 public class D_AnalyzeAndValidate {
 
-  private static AnalyzerOptions getAnalyzerOptions() {
-    LanguageOptions languageOptions = new LanguageOptions()
-        .enableMaximumLanguageFeatures();
-    languageOptions.setSupportsAllStatementKinds();
-
-    AnalyzerOptions analyzerOptions = new AnalyzerOptions();
-    analyzerOptions.setLanguageOptions(languageOptions);
-
-    return analyzerOptions;
-  }
-
   public static void main(String[] args) {
     String query =
         "CREATE TABLE `bigquery-public-data.samples.wikipedia` AS SELECT 1 AS column;\n"
         + "SELECT column FROM `bigquery-public-data.samples.wikipedia`;";
-    AnalyzerOptions options = getAnalyzerOptions();
 
     BigQueryCatalog catalog = new BigQueryCatalog(
         "bigquery-public-data"
     );
+
+    AnalyzerOptions options = new AnalyzerOptions();
+    options.setLanguageOptions(BigQueryLanguageOptions.get());
 
     catalog.addAllTablesUsedInQuery(query, options);
 
