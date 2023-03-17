@@ -110,7 +110,7 @@ public class SpannerCatalog implements CatalogWrapper {
     // TODO: Define and add Spanner-specific functions to the catalog
   }
 
-  /** Private constructor used for implementing {@link #copy(boolean)} */
+  /** Private constructor used for implementing {@link #copy()} */
   private SpannerCatalog(
       String projectId,
       String instance,
