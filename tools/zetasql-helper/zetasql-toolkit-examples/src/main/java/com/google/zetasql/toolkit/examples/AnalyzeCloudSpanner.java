@@ -25,10 +25,10 @@ import com.google.zetasql.toolkit.options.SpannerLanguageOptions;
  * Example showcasing the basic usage of the {@link SpannerCatalog}, used for
  * analyzing queries while using Cloud Spanner catalog semantics.
  */
-public class F_AnalyzeCloudSpanner {
+public class AnalyzeCloudSpanner {
 
   public static void main(String[] args) {
-    String query = "SELECT * FROM MyTable;";
+    String query = "UPDATE MyTable SET column2 = 5 WHERE column1 = ''; SELECT * FROM MyTable;";
 
     // Step 1: Configure your Cloud Spanner project, instance and database
     String spannerProjectId = "projectId";

@@ -19,7 +19,6 @@ package com.google.zetasql.toolkit.examples;
 import com.google.zetasql.toolkit.ZetaSQLToolkit;
 import com.google.zetasql.toolkit.catalog.bigquery.BigQueryCatalog;
 import com.google.zetasql.AnalyzerOptions;
-import com.google.zetasql.LanguageOptions;
 import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedStatement;
 import com.google.zetasql.toolkit.options.BigQueryLanguageOptions;
 import java.util.Iterator;
@@ -28,7 +27,7 @@ import java.util.Iterator;
  * Example showcasing the types of create statements this toolkit can transparently handle
  * while performing analysis
  */
-public class E_AnalyzingCreateStatements {
+public class AnalyzingCreateStatements {
 
   public static void main(String[] args) {
     String query = "CREATE TEMP TABLE t AS (SELECT 1 AS column UNION ALL SELECT 2 AS column);\n"

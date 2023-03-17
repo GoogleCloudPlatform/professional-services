@@ -25,7 +25,7 @@ import java.util.Iterator;
 /**
  * Example showcasing the basic example of how to use the ZetaSQL analyzer using this toolkit
  */
-public class A_AnalyzeWithoutCatalog {
+public class AnalyzeWithoutCatalog {
 
   private static AnalyzerOptions getAnalyzerOptions() {
     LanguageOptions languageOptions = new LanguageOptions()

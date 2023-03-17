@@ -27,13 +27,13 @@ import java.util.Iterator;
  * Example showcasing the basic usage of the {@link BigQueryCatalog}, used for
  * analyzing queries while using BigQuery catalog semantics.
  */
-public class B_AnalyzeWithBigQueryCatalog {
+public class AnalyzeWithBigQueryCatalog {
 
   public static void main(String[] args) {
     // Analyzing a query that uses bigquery-public-data tables
     String query =
         "INSERT INTO `bigquery-public-data.samples.wikipedia` (title) VALUES ('random title');\n"
-        + "SELECT * FROM `bigquery-public-data.samples.wikipedia` WHERE title = 'random title';";
+        + "SELECT title, language FROM `bigquery-public-data.samples.wikipedia` WHERE title = 'random title';";
 
     // Step 1: Create a BigQueryCatalog
     // In this case, we provide the project id where queries are assumed to be running. The catalog

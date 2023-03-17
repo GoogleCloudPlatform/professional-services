@@ -30,7 +30,7 @@ import java.util.List;
 /**
  * Showcases how to use validations
  */
-public class D_AnalyzeAndValidate {
+public class AnalyzeAndValidate {
 
   public static void main(String[] args) {
     String query =

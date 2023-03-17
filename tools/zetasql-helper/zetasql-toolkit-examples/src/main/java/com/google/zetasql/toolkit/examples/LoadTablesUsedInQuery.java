@@ -27,7 +27,7 @@ import java.util.Iterator;
  * Example showcasing how we can add to the catalog only the tables that are used in a query,
  * to have the minimum amount of tables necessary loaded in the catalog
  */
-public class C_LoadTablesUsedInQuery {
+public class LoadTablesUsedInQuery {
 
   public static void main(String[] args) {
     String query =
