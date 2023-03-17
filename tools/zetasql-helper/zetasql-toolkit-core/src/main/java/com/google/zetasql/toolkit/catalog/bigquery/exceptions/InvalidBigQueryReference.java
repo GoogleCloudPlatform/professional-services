@@ -33,5 +33,4 @@ public class InvalidBigQueryReference extends BigQueryCatalogException {
   public String getReference() {
     return reference;
   }
-
 }

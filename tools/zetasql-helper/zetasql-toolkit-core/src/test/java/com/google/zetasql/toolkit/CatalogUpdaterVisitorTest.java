@@ -60,19 +60,14 @@ public class CatalogUpdaterVisitorTest {
 
   CatalogUpdaterVisitor visitor;
 
-  @Mock
-  CatalogWrapper catalog;
+  @Mock CatalogWrapper catalog;
 
-  SimpleTable exampleTable = new SimpleTable(
-      "table",
-      List.of(
-          new SimpleColumn(
-              "table",
-              "column",
-              TypeFactory.createSimpleType(TypeKind.TYPE_STRING)
-          )
-      )
-  );
+  SimpleTable exampleTable =
+      new SimpleTable(
+          "table",
+          List.of(
+              new SimpleColumn(
+                  "table", "column", TypeFactory.createSimpleType(TypeKind.TYPE_STRING))));
 
   @BeforeEach
   void init() {
@@ -84,28 +79,25 @@ public class CatalogUpdaterVisitorTest {
     assertEquals(exampleTable.getColumnCount(), table.getColumnCount());
     assertAll(
         () -> assertEquals(exampleTable.getColumn(0).getName(), table.getColumn(0).getName()),
-        () -> assertEquals(
-            exampleTable.getColumn(0).getType(),
-            table.getColumn(0).getType()
-        )
-    );
+        () -> assertEquals(exampleTable.getColumn(0).getType(), table.getColumn(0).getType()));
   }
 
   @Test
   void testCreateTableStmt() {
-    ResolvedCreateTableStmt resolvedCreateTableStmt = ResolvedCreateTableStmt.builder()
-        .setNamePath(List.of("table"))
-        .setCreateScope(CreateScope.CREATE_DEFAULT_SCOPE)
-        .setCreateMode(CreateMode.CREATE_DEFAULT)
-        .setColumnDefinitionList(List.of(
-            ResolvedColumnDefinition.builder()
-                .setName("column")
-                .setType(TypeFactory.createSimpleType(TypeKind.TYPE_STRING))
-                .setIsHidden(false)
-                .build()
-        ))
-        .setIsValueTable(false)
-        .build();
+    ResolvedCreateTableStmt resolvedCreateTableStmt =
+        ResolvedCreateTableStmt.builder()
+            .setNamePath(List.of("table"))
+            .setCreateScope(CreateScope.CREATE_DEFAULT_SCOPE)
+            .setCreateMode(CreateMode.CREATE_DEFAULT)
+            .setColumnDefinitionList(
+                List.of(
+                    ResolvedColumnDefinition.builder()
+                        .setName("column")
+                        .setType(TypeFactory.createSimpleType(TypeKind.TYPE_STRING))
+                        .setIsHidden(false)
+                        .build()))
+            .setIsValueTable(false)
+            .build();
 
     resolvedCreateTableStmt.accept(visitor);
 
@@ -115,38 +107,31 @@ public class CatalogUpdaterVisitorTest {
     SimpleTable createdTable = createdTableCaptor.getValue();
 
     assertTableEqualsExample(createdTable);
-
   }
 
   @Test
   void testCreateTableAsSelectStmt() {
-    ResolvedColumn resolvedColumn = new ResolvedColumn(
-        1, "table", "column",
-        TypeFactory.createSimpleType(TypeKind.TYPE_STRING)
-    );
-    ResolvedOutputColumn resolvedOutputColumn = ResolvedOutputColumn.builder()
-        .setName("column")
-        .setColumn(resolvedColumn)
-        .build();
+    ResolvedColumn resolvedColumn =
+        new ResolvedColumn(
+            1, "table", "column", TypeFactory.createSimpleType(TypeKind.TYPE_STRING));
+    ResolvedOutputColumn resolvedOutputColumn =
+        ResolvedOutputColumn.builder().setName("column").setColumn(resolvedColumn).build();
 
     ResolvedCreateTableAsSelectStmt resolvedCreateTableAsSelectStmt =
         ResolvedCreateTableAsSelectStmt.builder()
             .setNamePath(List.of("table"))
             .setCreateScope(CreateScope.CREATE_DEFAULT_SCOPE)
             .setCreateMode(CreateMode.CREATE_DEFAULT)
-            .setColumnDefinitionList(List.of(
-                ResolvedColumnDefinition.builder()
-                    .setName("column")
-                    .setType(TypeFactory.createSimpleType(TypeKind.TYPE_STRING))
-                    .setIsHidden(false)
-                    .build()
-            ))
+            .setColumnDefinitionList(
+                List.of(
+                    ResolvedColumnDefinition.builder()
+                        .setName("column")
+                        .setType(TypeFactory.createSimpleType(TypeKind.TYPE_STRING))
+                        .setIsHidden(false)
+                        .build()))
             .setOutputColumnList(List.of(resolvedOutputColumn))
             .setQuery(
-                ResolvedSingleRowScan.builder()
-                    .setColumnList(List.of(resolvedColumn))
-                    .build()
-            )
+                ResolvedSingleRowScan.builder().setColumnList(List.of(resolvedColumn)).build())
             .setIsValueTable(false)
             .build();
 
@@ -167,13 +152,13 @@ public class CatalogUpdaterVisitorTest {
             .setNamePath(List.of("table"))
             .setCreateScope(CreateScope.CREATE_DEFAULT_SCOPE)
             .setCreateMode(CreateMode.CREATE_DEFAULT)
-            .setColumnDefinitionList(List.of(
-                ResolvedColumnDefinition.builder()
-                    .setName("column")
-                    .setType(TypeFactory.createSimpleType(TypeKind.TYPE_STRING))
-                    .setIsHidden(false)
-                    .build()
-            ))
+            .setColumnDefinitionList(
+                List.of(
+                    ResolvedColumnDefinition.builder()
+                        .setName("column")
+                        .setType(TypeFactory.createSimpleType(TypeKind.TYPE_STRING))
+                        .setIsHidden(false)
+                        .build()))
             .setIsValueTable(false)
             .build();
 
@@ -189,14 +174,11 @@ public class CatalogUpdaterVisitorTest {
 
   @Test
   void testCreateViewStmt() {
-    ResolvedColumn resolvedColumn = new ResolvedColumn(
-        1, "table", "column",
-        TypeFactory.createSimpleType(TypeKind.TYPE_STRING)
-    );
-    ResolvedOutputColumn resolvedOutputColumn = ResolvedOutputColumn.builder()
-        .setName("column")
-        .setColumn(resolvedColumn)
-        .build();
+    ResolvedColumn resolvedColumn =
+        new ResolvedColumn(
+            1, "table", "column", TypeFactory.createSimpleType(TypeKind.TYPE_STRING));
+    ResolvedOutputColumn resolvedOutputColumn =
+        ResolvedOutputColumn.builder().setName("column").setColumn(resolvedColumn).build();
 
     ResolvedCreateViewStmt resolvedCreateViewStmt =
         ResolvedCreateViewStmt.builder()
@@ -205,10 +187,7 @@ public class CatalogUpdaterVisitorTest {
             .setCreateMode(CreateMode.CREATE_DEFAULT)
             .setOutputColumnList(List.of(resolvedOutputColumn))
             .setQuery(
-                ResolvedSingleRowScan.builder()
-                    .setColumnList(List.of(resolvedColumn))
-                    .build()
-            )
+                ResolvedSingleRowScan.builder().setColumnList(List.of(resolvedColumn)).build())
             .setIsValueTable(false)
             .setHasExplicitColumns(true)
             .setRecursive(false)
@@ -226,14 +205,11 @@ public class CatalogUpdaterVisitorTest {
 
   @Test
   void testCreateMaterializedViewStmt() {
-    ResolvedColumn resolvedColumn = new ResolvedColumn(
-        1, "table", "column",
-        TypeFactory.createSimpleType(TypeKind.TYPE_STRING)
-    );
-    ResolvedOutputColumn resolvedOutputColumn = ResolvedOutputColumn.builder()
-        .setName("column")
-        .setColumn(resolvedColumn)
-        .build();
+    ResolvedColumn resolvedColumn =
+        new ResolvedColumn(
+            1, "table", "column", TypeFactory.createSimpleType(TypeKind.TYPE_STRING));
+    ResolvedOutputColumn resolvedOutputColumn =
+        ResolvedOutputColumn.builder().setName("column").setColumn(resolvedColumn).build();
 
     ResolvedCreateMaterializedViewStmt resolvedCreateMaterializedViewStmt =
         ResolvedCreateMaterializedViewStmt.builder()
@@ -242,10 +218,7 @@ public class CatalogUpdaterVisitorTest {
             .setCreateMode(CreateMode.CREATE_DEFAULT)
             .setOutputColumnList(List.of(resolvedOutputColumn))
             .setQuery(
-                ResolvedSingleRowScan.builder()
-                    .setColumnList(List.of(resolvedColumn))
-                    .build()
-            )
+                ResolvedSingleRowScan.builder().setColumnList(List.of(resolvedColumn)).build())
             .setIsValueTable(false)
             .setHasExplicitColumns(true)
             .setRecursive(false)
@@ -263,24 +236,14 @@ public class CatalogUpdaterVisitorTest {
 
   @Test
   void testCreateFunction() {
-    FunctionSignature signature = new FunctionSignature(
-        new FunctionArgumentType(
-            TypeFactory.createSimpleType(TypeKind.TYPE_STRING)
-        ),
-        List.of(
-            new FunctionArgumentType(
-                TypeFactory.createSimpleType(TypeKind.TYPE_INT64)
-            )
-        ),
-        -1
-    );
+    FunctionSignature signature =
+        new FunctionSignature(
+            new FunctionArgumentType(TypeFactory.createSimpleType(TypeKind.TYPE_STRING)),
+            List.of(new FunctionArgumentType(TypeFactory.createSimpleType(TypeKind.TYPE_INT64))),
+            -1);
 
-    Function expectedFunction = new Function(
-        List.of("function"),
-        "UDF",
-        Mode.SCALAR,
-        List.of(signature)
-    );
+    Function expectedFunction =
+        new Function(List.of("function"), "UDF", Mode.SCALAR, List.of(signature));
 
     ResolvedCreateFunctionStmt resolvedCreateFunctionStmt =
         ResolvedCreateFunctionStmt.builder()
@@ -305,27 +268,24 @@ public class CatalogUpdaterVisitorTest {
         () -> assertEquals(expectedFunction.getGroup(), createdFunction.getGroup()),
         () -> assertEquals(expectedFunction.getMode(), createdFunction.getMode()),
         () -> assertEquals(1, createdFunction.getSignatureList().size()),
-        () -> assertTrue(CatalogTestUtils.functionSignatureEquals(
-            expectedFunction.getSignatureList().get(0), createdFunction.getSignatureList().get(0)
-        ))
-    );
+        () ->
+            assertTrue(
+                CatalogTestUtils.functionSignatureEquals(
+                    expectedFunction.getSignatureList().get(0),
+                    createdFunction.getSignatureList().get(0))));
   }
 
   @Test
   void testCreateTVF() {
-    FunctionSignature signature = new FunctionSignature(
-        new FunctionArgumentType(SignatureArgumentKind.ARG_TYPE_RELATION),
-        List.of(
-            new FunctionArgumentType(
-                TypeFactory.createSimpleType(TypeKind.TYPE_INT64)
-            )
-        ),
-        -1
-    );
+    FunctionSignature signature =
+        new FunctionSignature(
+            new FunctionArgumentType(SignatureArgumentKind.ARG_TYPE_RELATION),
+            List.of(new FunctionArgumentType(TypeFactory.createSimpleType(TypeKind.TYPE_INT64))),
+            -1);
 
-    TVFRelation tvfOutputSchema = TVFRelation.createColumnBased(List.of(
-        Column.create("output", TypeFactory.createSimpleType(TypeKind.TYPE_STRING))
-    ));
+    TVFRelation tvfOutputSchema =
+        TVFRelation.createColumnBased(
+            List.of(Column.create("output", TypeFactory.createSimpleType(TypeKind.TYPE_STRING))));
 
     TVFInfo expectedFunction = new TVFInfo(ImmutableList.of("tvf"), signature, tvfOutputSchema);
 
@@ -334,15 +294,17 @@ public class CatalogUpdaterVisitorTest {
             .setNamePath(List.of("tvf"))
             .setCreateScope(CreateScope.CREATE_DEFAULT_SCOPE)
             .setCreateMode(CreateMode.CREATE_DEFAULT)
-            .setOutputColumnList(List.of(
-                ResolvedOutputColumn.builder()
-                    .setName("output")
-                    .setColumn(new ResolvedColumn(
-                        1, "table", "output",
-                        TypeFactory.createSimpleType(TypeKind.TYPE_STRING)
-                    ))
-                    .build()
-            ))
+            .setOutputColumnList(
+                List.of(
+                    ResolvedOutputColumn.builder()
+                        .setName("output")
+                        .setColumn(
+                            new ResolvedColumn(
+                                1,
+                                "table",
+                                "output",
+                                TypeFactory.createSimpleType(TypeKind.TYPE_STRING)))
+                        .build()))
             .setSignature(signature)
             .setIsValueTable(false)
             .setHasExplicitReturnSchema(true)
@@ -357,11 +319,10 @@ public class CatalogUpdaterVisitorTest {
 
     assertAll(
         () -> assertIterableEquals(expectedFunction.getNamePath(), createdFunction.getNamePath()),
-        () -> assertTrue(CatalogTestUtils.functionSignatureEquals(
-            expectedFunction.getSignature(), createdFunction.getSignature()
-        )),
-        () -> assertEquals(expectedFunction.getOutputSchema(), createdFunction.getOutputSchema())
-    );
+        () ->
+            assertTrue(
+                CatalogTestUtils.functionSignatureEquals(
+                    expectedFunction.getSignature(), createdFunction.getSignature())),
+        () -> assertEquals(expectedFunction.getOutputSchema(), createdFunction.getOutputSchema()));
   }
-
 }

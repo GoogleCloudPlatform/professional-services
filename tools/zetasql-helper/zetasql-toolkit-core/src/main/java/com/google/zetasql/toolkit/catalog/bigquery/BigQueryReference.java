@@ -25,30 +25,58 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Pattern;
 
-/**
- * Dataclass representing a reference to a BigQuery resource.
- */
+/** Dataclass representing a reference to a BigQuery resource. */
 class BigQueryReference {
-
-  private final String projectId;
-  private final String datasetId;
-  private final String resourceName;
 
   private static final Pattern PROJECT_PATTERN = Pattern.compile("[a-zA-Z0-9\\.\\-\\:]+");
   private static final Pattern DATASET_PATTERN = Pattern.compile("[a-zA-Z_][a-zA-Z0-9\\_]*");
   private static final Pattern RESOURCE_PATTERN = Pattern.compile("[a-zA-Z0-9\\_]+");
+  private final String projectId;
+  private final String datasetId;
+  private final String resourceName;
 
   public BigQueryReference(String projectId, String datasetId, String resourceName) {
     this.projectId = projectId;
     this.datasetId = datasetId;
     this.resourceName = resourceName;
-    if(
-        !PROJECT_PATTERN.matcher(projectId).matches()
+    if (!PROJECT_PATTERN.matcher(projectId).matches()
         || !DATASET_PATTERN.matcher(datasetId).matches()
-        || !RESOURCE_PATTERN.matcher(resourceName).matches()
-    ) {
+        || !RESOURCE_PATTERN.matcher(resourceName).matches()) {
       throw new InvalidBigQueryReference(this.getFullName());
     }
+  }
+
+  public static BigQueryReference from(TableId tableId) {
+    return new BigQueryReference(tableId.getProject(), tableId.getDataset(), tableId.getTable());
+  }
+
+  public static BigQueryReference from(RoutineId routineId) {
+    return new BigQueryReference(
+        routineId.getProject(), routineId.getDataset(), routineId.getRoutine());
+  }
+
+  /**
+   * Creates a BigQueryReference given the BigQuery default project id and a reference string in the
+   * format of "project.dataset.resource" or "dataset.resource".
+   *
+   * @param projectId The BigQuery default project id
+   * @param referenceString The reference string for the resource
+   * @return A BigQueryReference instance representing the resource
+   * @throws InvalidBigQueryReference if the project or reference are invalid
+   */
+  public static BigQueryReference from(String projectId, String referenceString) {
+    LinkedList<String> elements = new LinkedList<>(Arrays.asList(referenceString.split("\\.")));
+    int numberOfElements = elements.size();
+
+    if (!List.of(2, 3).contains(numberOfElements)) {
+      throw new InvalidBigQueryReference(referenceString);
+    }
+
+    if (numberOfElements == 2) {
+      elements.addFirst(projectId);
+    }
+
+    return new BigQueryReference(elements.get(0), elements.get(1), elements.get(2));
   }
 
   public String getProjectId() {
@@ -65,82 +93,18 @@ class BigQueryReference {
 
   public String getFullName() {
     return String.format(
-        "%s.%s.%s",
-        this.getProjectId(),
-        this.getDatasetId(),
-        this.getResourceName()
-    );
+        "%s.%s.%s", this.getProjectId(), this.getDatasetId(), this.getResourceName());
   }
 
   public ImmutableList<String> getNamePath() {
-    return ImmutableList.of(
-        this.getProjectId(),
-        this.getDatasetId(),
-        this.getResourceName()
-    );
+    return ImmutableList.of(this.getProjectId(), this.getDatasetId(), this.getResourceName());
   }
 
   public TableId toTableId() {
-    return TableId.of(
-        this.getProjectId(),
-        this.getDatasetId(),
-        this.getResourceName()
-    );
+    return TableId.of(this.getProjectId(), this.getDatasetId(), this.getResourceName());
   }
 
   public RoutineId toRoutineId() {
-    return RoutineId.of(
-        this.getProjectId(),
-        this.getDatasetId(),
-        this.getResourceName()
-    );
+    return RoutineId.of(this.getProjectId(), this.getDatasetId(), this.getResourceName());
   }
-
-  public static BigQueryReference from(TableId tableId) {
-    return new BigQueryReference(
-        tableId.getProject(),
-        tableId.getDataset(),
-        tableId.getTable()
-    );
-  }
-
-  public static BigQueryReference from(RoutineId routineId) {
-    return new BigQueryReference(
-        routineId.getProject(),
-        routineId.getDataset(),
-        routineId.getRoutine()
-    );
-  }
-
-  /**
-   * Creates a BigQueryReference given the BigQuery default project id and
-   * a reference string in the format of "project.dataset.resource" or
-   * "dataset.resource".
-   *
-   * @param projectId The BigQuery default project id
-   * @param referenceString The reference string for the resource
-   * @return A BigQueryReference instance representing the resource
-   * @throws InvalidBigQueryReference if the project or reference are invalid
-   */
-  public static BigQueryReference from(String projectId, String referenceString) {
-    LinkedList<String> elements = new LinkedList<>(
-        Arrays.asList(referenceString.split("\\."))
-    );
-    int numberOfElements = elements.size();
-
-    if(!List.of(2, 3).contains(numberOfElements)) {
-      throw new InvalidBigQueryReference(referenceString);
-    }
-
-    if(numberOfElements == 2) {
-      elements.addFirst(projectId);
-    }
-
-    return new BigQueryReference(
-        elements.get(0),
-        elements.get(1),
-        elements.get(2)
-    );
-  }
-
 }

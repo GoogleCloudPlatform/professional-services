@@ -19,34 +19,30 @@ package com.google.zetasql.toolkit.catalog;
 import com.google.zetasql.Column;
 import com.google.zetasql.FunctionArgumentType;
 import com.google.zetasql.FunctionSignature;
-import com.google.zetasql.SimpleColumn;
-import com.google.zetasql.SimpleTable;
-import com.google.zetasql.TVFRelation;
 import com.google.zetasql.Table;
 import com.google.zetasql.ZetaSQLFunctions.SignatureArgumentKind;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class CatalogTestUtils {
 
-  private CatalogTestUtils() { }
+  private CatalogTestUtils() {}
 
   public static boolean tableColumnsEqual(
       List<? extends Column> expected, List<? extends Column> actual) {
 
-    if(expected.size() != actual.size()) {
+    if (expected.size() != actual.size()) {
       return false;
     }
 
-    expected = expected.stream()
-        .sorted(Comparator.comparing(Column::getName))
-        .collect(Collectors.toList());
-    actual = actual.stream()
-        .sorted(Comparator.comparing(Column::getName))
-        .collect(Collectors.toList());
+    expected =
+        expected.stream()
+            .sorted(Comparator.comparing(Column::getName))
+            .collect(Collectors.toList());
+    actual =
+        actual.stream().sorted(Comparator.comparing(Column::getName)).collect(Collectors.toList());
 
     for (int i = 0; i < expected.size(); i++) {
       Column expectedColumn = expected.get(i);
@@ -77,14 +73,14 @@ public class CatalogTestUtils {
       return false;
     }
 
-    List<? extends Column> expectedColumns = expected.getColumnList()
-        .stream()
-        .sorted(Comparator.comparing(Column::getName))
-        .collect(Collectors.toList());
-    List<? extends Column> actualColumns = actual.getColumnList()
-        .stream()
-        .sorted(Comparator.comparing(Column::getName))
-        .collect(Collectors.toList());
+    List<? extends Column> expectedColumns =
+        expected.getColumnList().stream()
+            .sorted(Comparator.comparing(Column::getName))
+            .collect(Collectors.toList());
+    List<? extends Column> actualColumns =
+        actual.getColumnList().stream()
+            .sorted(Comparator.comparing(Column::getName))
+            .collect(Collectors.toList());
 
     for (int i = 0; i < expectedColumns.size(); i++) {
       Column expectedColumn = expectedColumns.get(i);
@@ -110,35 +106,33 @@ public class CatalogTestUtils {
         && Objects.equals(expected.getType(), actual.getType())
         && Objects.equals(expected.getNumOccurrences(), actual.getNumOccurrences())
         && Objects.equals(expected.getCardinality(), actual.getCardinality())
-        && (
-            !expected.getKind().equals(SignatureArgumentKind.ARG_TYPE_RELATION)
-            || Objects.equals(expected.getRelation(), actual.getRelation())
-        )
-        && Objects.equals(expected.getOptions().getArgumentName(),
-            actual.getOptions().getArgumentName())
-        && Objects.equals(expected.getOptions().getProcedureArgumentMode(),
+        && (!expected.getKind().equals(SignatureArgumentKind.ARG_TYPE_RELATION)
+            || Objects.equals(expected.getRelation(), actual.getRelation()))
+        && Objects.equals(
+            expected.getOptions().getArgumentName(), actual.getOptions().getArgumentName())
+        && Objects.equals(
+            expected.getOptions().getProcedureArgumentMode(),
             actual.getOptions().getProcedureArgumentMode());
   }
 
   public static boolean functionSignatureEquals(
       FunctionSignature expected, FunctionSignature actual) {
-    if(!functionArgumentEquals(expected.getResultType(), actual.getResultType())) {
+    if (!functionArgumentEquals(expected.getResultType(), actual.getResultType())) {
       return false;
     }
 
-    if(expected.getFunctionArgumentList().size() != actual.getFunctionArgumentList().size()) {
+    if (expected.getFunctionArgumentList().size() != actual.getFunctionArgumentList().size()) {
       return false;
     }
 
     for (int i = 0; i < expected.getFunctionArgumentList().size(); i++) {
       FunctionArgumentType expectedArgument = expected.getFunctionArgumentList().get(i);
       FunctionArgumentType actualArgument = actual.getFunctionArgumentList().get(i);
-      if(!functionArgumentEquals(expectedArgument, actualArgument)) {
+      if (!functionArgumentEquals(expectedArgument, actualArgument)) {
         return false;
       }
     }
 
     return true;
   }
-
 }

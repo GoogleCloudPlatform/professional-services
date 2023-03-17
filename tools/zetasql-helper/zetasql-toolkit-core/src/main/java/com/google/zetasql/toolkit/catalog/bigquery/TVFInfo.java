@@ -20,13 +20,12 @@ import com.google.common.collect.ImmutableList;
 import com.google.zetasql.FunctionSignature;
 import com.google.zetasql.TVFRelation;
 import com.google.zetasql.TableValuedFunction;
-import com.google.zetasql.TableValuedFunction.FixedOutputSchemaTVF;
 
 /**
  * Dataclass containing the fields of a ZetaSQL TableValuedFunction
  *
- * <p> This is necessary because the ZetaSQL TableValuedFunction class does not currently implement
- * a getOutputSchema() method.
+ * <p>This is necessary because the ZetaSQL TableValuedFunction class does not currently implement a
+ * getOutputSchema() method.
  *
  * @see TableValuedFunction
  */
@@ -39,10 +38,7 @@ public class TVFInfo {
   private final TVFRelation outputSchema;
 
   public TVFInfo(
-      ImmutableList<String> namePath,
-      FunctionSignature signature,
-      TVFRelation outputSchema
-  ) {
+      ImmutableList<String> namePath, FunctionSignature signature, TVFRelation outputSchema) {
     this.namePath = namePath;
     this.signature = signature;
     this.outputSchema = outputSchema;
@@ -59,5 +55,4 @@ public class TVFInfo {
   public TVFRelation getOutputSchema() {
     return outputSchema;
   }
-
 }

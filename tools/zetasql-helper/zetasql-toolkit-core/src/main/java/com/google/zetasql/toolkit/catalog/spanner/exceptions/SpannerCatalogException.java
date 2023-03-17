@@ -23,5 +23,4 @@ public class SpannerCatalogException extends CatalogException {
   public SpannerCatalogException(String message) {
     super(message);
   }
-
 }

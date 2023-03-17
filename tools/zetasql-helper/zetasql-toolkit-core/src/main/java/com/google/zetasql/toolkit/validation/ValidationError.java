@@ -30,5 +30,4 @@ public class ValidationError extends Exception {
   public ResolvedStatement getStatement() {
     return statement;
   }
-
 }

@@ -23,8 +23,8 @@ import com.google.zetasql.Procedure;
 /**
  * Dataclass containing the fields of a ZetaSQL Procedure
  *
- * <p> This is necessary because the ZetaSQL Procedure class does not currently implement
- * a getSignature() method.
+ * <p>This is necessary because the ZetaSQL Procedure class does not currently implement a
+ * getSignature() method.
  *
  * @see Procedure
  */
@@ -46,5 +46,4 @@ public class ProcedureInfo {
   public FunctionSignature getSignature() {
     return signature;
   }
-
 }

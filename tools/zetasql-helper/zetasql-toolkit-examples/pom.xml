@@ -1,41 +1,41 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://maven.apache.org/POM/4.0.0"
     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
-  <groupId>com.google.zetasql.toolkit</groupId>
   <artifactId>zetasql-toolkit-examples</artifactId>
-  <version>0.1-SNAPSHOT</version>
-
-  <properties>
-    <maven.compiler.source>11</maven.compiler.source>
-    <maven.compiler.target>11</maven.compiler.target>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <container.mainClass/>
-  </properties>
-
-  <dependencies>
-    <dependency>
-      <artifactId>zetasql-toolkit-core</artifactId>
-      <groupId>com.google.zetasql.toolkit</groupId>
-      <version>0.1-SNAPSHOT</version>
-      <scope>compile</scope>
-    </dependency>
-  </dependencies>
-
   <build>
     <plugins>
       <plugin>
-        <groupId>com.google.cloud.tools</groupId>
         <artifactId>jib-maven-plugin</artifactId>
-        <version>3.3.1</version>
         <configuration>
           <container>
             <mainClass>${container.mainClass}</mainClass>
           </container>
         </configuration>
+        <groupId>com.google.cloud.tools</groupId>
+        <version>3.3.1</version>
       </plugin>
     </plugins>
   </build>
+  <dependencies>
+    <dependency>
+      <artifactId>zetasql-toolkit-core</artifactId>
+      <groupId>com.google.zetasql.toolkit</groupId>
+      <scope>compile</scope>
+      <version>0.1-SNAPSHOT</version>
+    </dependency>
+  </dependencies>
+  <groupId>com.google.zetasql.toolkit</groupId>
+
+  <modelVersion>4.0.0</modelVersion>
+
+  <properties>
+    <container.mainClass/>
+    <maven.compiler.source>11</maven.compiler.source>
+    <maven.compiler.target>11</maven.compiler.target>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>
+
+  <version>0.1-SNAPSHOT</version>
 
 </project>

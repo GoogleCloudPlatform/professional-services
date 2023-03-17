@@ -32,7 +32,6 @@ import com.google.cloud.bigquery.StandardSQLTableType;
 import com.google.cloud.bigquery.StandardSQLTypeName;
 import com.google.cloud.bigquery.StandardTableDefinition;
 import com.google.cloud.bigquery.Table;
-import com.google.cloud.bigquery.TableDefinition;
 import com.google.cloud.bigquery.TableId;
 import com.google.cloud.bigquery.TimePartitioning;
 import com.google.zetasql.Function;
@@ -50,7 +49,6 @@ import com.google.zetasql.ZetaSQLFunctions.SignatureArgumentKind;
 import com.google.zetasql.ZetaSQLType.TypeKind;
 import com.google.zetasql.toolkit.catalog.CatalogTestUtils;
 import com.google.zetasql.toolkit.catalog.bigquery.BigQueryService.Result;
-import java.sql.Time;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -65,8 +63,7 @@ public class BigQueryAPIResourceProviderTest {
 
   BigQueryAPIResourceProvider bigqueryResourceProvider;
 
-  @Mock
-  BigQueryService bigQueryServiceMock;
+  @Mock BigQueryService bigQueryServiceMock;
 
   @BeforeEach
   void init() {
@@ -75,28 +72,26 @@ public class BigQueryAPIResourceProviderTest {
 
   Table createMockTable(boolean timePartitioned) {
     Table mockTable = mock(Table.class);
-    StandardTableDefinition mockTableDefinition = mock(
-        StandardTableDefinition.class, Answers.RETURNS_DEEP_STUBS
-    );
+    StandardTableDefinition mockTableDefinition =
+        mock(StandardTableDefinition.class, Answers.RETURNS_DEEP_STUBS);
 
     TableId tableId = TableId.of("project", "dataset", "table");
-    FieldList fields = FieldList.of(
-        Field.of("col1", StandardSQLTypeName.INT64),
-        Field.newBuilder("col2", StandardSQLTypeName.STRING).setMode(Mode.REPEATED).build(),
-        Field.of("col3", StandardSQLTypeName.STRUCT,
-            Field.of("field1", StandardSQLTypeName.INT64)
-        )
-    );
+    FieldList fields =
+        FieldList.of(
+            Field.of("col1", StandardSQLTypeName.INT64),
+            Field.newBuilder("col2", StandardSQLTypeName.STRING).setMode(Mode.REPEATED).build(),
+            Field.of(
+                "col3", StandardSQLTypeName.STRUCT, Field.of("field1", StandardSQLTypeName.INT64)));
 
     when(mockTable.getTableId()).thenReturn(tableId);
     when(mockTable.getDefinition()).thenReturn(mockTableDefinition);
     when(mockTableDefinition.getSchema().getFields()).thenReturn(fields);
 
-    if(timePartitioned) {
-      TimePartitioning timePartitioning = TimePartitioning
-          .newBuilder(TimePartitioning.Type.DAY)
-          .setField(null)  // A null field means the table in ingestion-time partitioned
-          .build();
+    if (timePartitioned) {
+      TimePartitioning timePartitioning =
+          TimePartitioning.newBuilder(TimePartitioning.Type.DAY)
+              .setField(null) // A null field means the table in ingestion-time partitioned
+              .build();
       when(mockTableDefinition.getTimePartitioning()).thenReturn(timePartitioning);
     } else {
       when(mockTableDefinition.getTimePartitioning()).thenReturn(null);
@@ -108,17 +103,17 @@ public class BigQueryAPIResourceProviderTest {
   List<SimpleColumn> expectedColumnsForMockTable() {
     return List.of(
         new SimpleColumn("table", "col1", TypeFactory.createSimpleType(TypeKind.TYPE_INT64)),
-        new SimpleColumn("table", "col2",
-            TypeFactory.createArrayType(
-                TypeFactory.createSimpleType(TypeKind.TYPE_STRING)
-            )
-        ),
-        new SimpleColumn("table", "col3",
-            TypeFactory.createStructType(List.of(
-                new StructField("field1", TypeFactory.createSimpleType(TypeKind.TYPE_INT64))
-            ))
-        )
-    );
+        new SimpleColumn(
+            "table",
+            "col2",
+            TypeFactory.createArrayType(TypeFactory.createSimpleType(TypeKind.TYPE_STRING))),
+        new SimpleColumn(
+            "table",
+            "col3",
+            TypeFactory.createStructType(
+                List.of(
+                    new StructField(
+                        "field1", TypeFactory.createSimpleType(TypeKind.TYPE_INT64))))));
   }
 
   @Test
@@ -129,15 +124,12 @@ public class BigQueryAPIResourceProviderTest {
 
     List<SimpleColumn> expectedSchemaForMockTable = expectedColumnsForMockTable();
 
-    List<SimpleTable> tables =
-        bigqueryResourceProvider.getTables("project", List.of("reference"));
+    List<SimpleTable> tables = bigqueryResourceProvider.getTables("project", List.of("reference"));
 
     assertEquals(1, tables.size());
     assertTrue(
         CatalogTestUtils.tableColumnsEqual(
-            expectedSchemaForMockTable, tables.get(0).getColumnList()
-        )
-    );
+            expectedSchemaForMockTable, tables.get(0).getColumnList()));
   }
 
   @Test
@@ -146,8 +138,7 @@ public class BigQueryAPIResourceProviderTest {
     when(bigQueryServiceMock.fetchTable(anyString(), anyString()))
         .thenReturn(Result.success(mockTable));
 
-    List<SimpleTable> tables =
-        bigqueryResourceProvider.getTables("project", List.of("reference"));
+    List<SimpleTable> tables = bigqueryResourceProvider.getTables("project", List.of("reference"));
 
     assertEquals(1, tables.size());
 
@@ -158,17 +149,21 @@ public class BigQueryAPIResourceProviderTest {
     Optional<SimpleColumn> partitionDateColumn =
         Optional.ofNullable(foundTable.findColumnByName("_PARTITIONDATE"));
 
-    assertTrue(partitionTimeColumn.isPresent(),
-              "Expected ingestion time partitioned table to have _PARTITIONTIME column");
-    assertEquals(TypeFactory.createSimpleType(TypeKind.TYPE_TIMESTAMP),
-                  partitionTimeColumn.get().getType(),
-                  "Expected type of _PARTITIONTIME to be TIMESTAMP");
+    assertTrue(
+        partitionTimeColumn.isPresent(),
+        "Expected ingestion time partitioned table to have _PARTITIONTIME column");
+    assertEquals(
+        TypeFactory.createSimpleType(TypeKind.TYPE_TIMESTAMP),
+        partitionTimeColumn.get().getType(),
+        "Expected type of _PARTITIONTIME to be TIMESTAMP");
 
-    assertTrue(partitionDateColumn.isPresent(),
-              "Expected ingestion time partitioned table to have _PARTITIONDATE column");
-    assertEquals(TypeFactory.createSimpleType(TypeKind.TYPE_DATE),
-                  partitionDateColumn.get().getType(),
-                  "Expected type of _PARTITIONDATE to be TIMESTAMP");
+    assertTrue(
+        partitionDateColumn.isPresent(),
+        "Expected ingestion time partitioned table to have _PARTITIONDATE column");
+    assertEquals(
+        TypeFactory.createSimpleType(TypeKind.TYPE_DATE),
+        partitionDateColumn.get().getType(),
+        "Expected type of _PARTITIONDATE to be TIMESTAMP");
   }
 
   @Test
@@ -182,15 +177,12 @@ public class BigQueryAPIResourceProviderTest {
 
     List<SimpleColumn> expectedSchemaForMockTable = expectedColumnsForMockTable();
 
-    List<SimpleTable> tables =
-        bigqueryResourceProvider.getAllTablesInDataset("project", "dataset");
+    List<SimpleTable> tables = bigqueryResourceProvider.getAllTablesInDataset("project", "dataset");
 
     assertEquals(1, tables.size());
     assertTrue(
         CatalogTestUtils.tableColumnsEqual(
-            expectedSchemaForMockTable, tables.get(0).getColumnList()
-        )
-    );
+            expectedSchemaForMockTable, tables.get(0).getColumnList()));
   }
 
   @Test
@@ -212,9 +204,7 @@ public class BigQueryAPIResourceProviderTest {
     assertEquals(1, tables.size());
     assertTrue(
         CatalogTestUtils.tableColumnsEqual(
-            expectedSchemaForMockTable, tables.get(0).getColumnList()
-        )
-    );
+            expectedSchemaForMockTable, tables.get(0).getColumnList()));
   }
 
   Routine createMockUDF() {
@@ -223,30 +213,31 @@ public class BigQueryAPIResourceProviderTest {
 
     when(routine.getRoutineId()).thenReturn(routineId);
     when(routine.getRoutineType()).thenReturn(BigQueryAPIRoutineType.UDF.getLabel());
-    when(routine.getArguments()).thenReturn(List.of(
-        RoutineArgument.newBuilder().setName("x").setDataType(
-            StandardSQLDataType.newBuilder(StandardSQLTypeName.INT64).build()
-        ).build()
-    ));
-    when(routine.getReturnType()).thenReturn(
-        StandardSQLDataType.newBuilder(StandardSQLTypeName.STRING).build()
-    );
+    when(routine.getArguments())
+        .thenReturn(
+            List.of(
+                RoutineArgument.newBuilder()
+                    .setName("x")
+                    .setDataType(StandardSQLDataType.newBuilder(StandardSQLTypeName.INT64).build())
+                    .build()));
+    when(routine.getReturnType())
+        .thenReturn(StandardSQLDataType.newBuilder(StandardSQLTypeName.STRING).build());
 
     return routine;
   }
 
   FunctionSignature expectedSignatureForMockUDF() {
-    FunctionArgumentType returnType = new FunctionArgumentType(
-        TypeFactory.createSimpleType(TypeKind.TYPE_STRING));
+    FunctionArgumentType returnType =
+        new FunctionArgumentType(TypeFactory.createSimpleType(TypeKind.TYPE_STRING));
 
-    FunctionArgumentType argument = new FunctionArgumentType(
-        TypeFactory.createSimpleType(TypeKind.TYPE_INT64),
-        FunctionArgumentTypeOptions.builder()
-            .setArgumentName("x")
-            .setProcedureArgumentMode(ProcedureArgumentMode.NOT_SET)
-            .build(),
-        1
-    );
+    FunctionArgumentType argument =
+        new FunctionArgumentType(
+            TypeFactory.createSimpleType(TypeKind.TYPE_INT64),
+            FunctionArgumentTypeOptions.builder()
+                .setArgumentName("x")
+                .setProcedureArgumentMode(ProcedureArgumentMode.NOT_SET)
+                .build(),
+            1);
 
     return new FunctionSignature(returnType, List.of(argument), -1);
   }
@@ -265,9 +256,7 @@ public class BigQueryAPIResourceProviderTest {
     assertEquals(1, functions.size());
     assertTrue(
         CatalogTestUtils.functionSignatureEquals(
-            expectedSignatureForMockUDF, functions.get(0).getSignatureList().get(0)
-        )
-    );
+            expectedSignatureForMockUDF, functions.get(0).getSignatureList().get(0)));
   }
 
   Routine createMockTVF() {
@@ -276,50 +265,50 @@ public class BigQueryAPIResourceProviderTest {
 
     when(routine.getRoutineId()).thenReturn(routineId);
     when(routine.getRoutineType()).thenReturn(BigQueryAPIRoutineType.TVF.getLabel());
-    when(routine.getArguments()).thenReturn(List.of(
-        RoutineArgument.newBuilder().setName("x").setDataType(
-            StandardSQLDataType.newBuilder(StandardSQLTypeName.INT64).build()
-        ).build()
-    ));
-    when(routine.getReturnTableType()).thenReturn(
-        StandardSQLTableType.newBuilder()
-            .setColumns(List.of(
-                StandardSQLField.newBuilder()
-                    .setName("out")
-                    .setDataType(
-                        StandardSQLDataType.newBuilder(StandardSQLTypeName.STRING).build()
-                    )
-                    .build()
-            ))
-            .build()
-    );
+    when(routine.getArguments())
+        .thenReturn(
+            List.of(
+                RoutineArgument.newBuilder()
+                    .setName("x")
+                    .setDataType(StandardSQLDataType.newBuilder(StandardSQLTypeName.INT64).build())
+                    .build()));
+    when(routine.getReturnTableType())
+        .thenReturn(
+            StandardSQLTableType.newBuilder()
+                .setColumns(
+                    List.of(
+                        StandardSQLField.newBuilder()
+                            .setName("out")
+                            .setDataType(
+                                StandardSQLDataType.newBuilder(StandardSQLTypeName.STRING).build())
+                            .build()))
+                .build());
 
     return routine;
   }
 
   TVFRelation expectedOutputSchemaForMockTVF() {
-    return TVFRelation.createColumnBased(List.of(
-        Column.create("out", TypeFactory.createSimpleType(TypeKind.TYPE_STRING))
-    ));
+    return TVFRelation.createColumnBased(
+        List.of(Column.create("out", TypeFactory.createSimpleType(TypeKind.TYPE_STRING))));
   }
 
   FunctionSignature expectedSignatureForMockTVF() {
-    FunctionArgumentType returnType = new FunctionArgumentType(
-        SignatureArgumentKind.ARG_TYPE_RELATION,
-        FunctionArgumentTypeOptions.builder()
-            .setRelationInputSchema(expectedOutputSchemaForMockTVF())
-            .build(),
-        1
-    );
+    FunctionArgumentType returnType =
+        new FunctionArgumentType(
+            SignatureArgumentKind.ARG_TYPE_RELATION,
+            FunctionArgumentTypeOptions.builder()
+                .setRelationInputSchema(expectedOutputSchemaForMockTVF())
+                .build(),
+            1);
 
-    FunctionArgumentType argument = new FunctionArgumentType(
-        TypeFactory.createSimpleType(TypeKind.TYPE_INT64),
-        FunctionArgumentTypeOptions.builder()
-            .setArgumentName("x")
-            .setProcedureArgumentMode(ProcedureArgumentMode.NOT_SET)
-            .build(),
-        1
-    );
+    FunctionArgumentType argument =
+        new FunctionArgumentType(
+            TypeFactory.createSimpleType(TypeKind.TYPE_INT64),
+            FunctionArgumentTypeOptions.builder()
+                .setArgumentName("x")
+                .setProcedureArgumentMode(ProcedureArgumentMode.NOT_SET)
+                .build(),
+            1);
 
     return new FunctionSignature(returnType, List.of(argument), -1);
   }
@@ -333,15 +322,12 @@ public class BigQueryAPIResourceProviderTest {
     FunctionSignature expectedSignatureForMockTVF = expectedSignatureForMockTVF();
     TVFRelation expectedOutputSchemaForMockTVF = expectedOutputSchemaForMockTVF();
 
-    List<TVFInfo> functions =
-        bigqueryResourceProvider.getTVFs("project", List.of("reference"));
+    List<TVFInfo> functions = bigqueryResourceProvider.getTVFs("project", List.of("reference"));
 
     assertEquals(1, functions.size());
     assertTrue(
         CatalogTestUtils.functionSignatureEquals(
-            expectedSignatureForMockTVF, functions.get(0).getSignature()
-        )
-    );
+            expectedSignatureForMockTVF, functions.get(0).getSignature()));
     assertEquals(expectedOutputSchemaForMockTVF, functions.get(0).getOutputSchema());
   }
 
@@ -351,28 +337,29 @@ public class BigQueryAPIResourceProviderTest {
 
     when(routine.getRoutineId()).thenReturn(routineId);
     when(routine.getRoutineType()).thenReturn(BigQueryAPIRoutineType.PROCEDURE.getLabel());
-    when(routine.getArguments()).thenReturn(List.of(
-        RoutineArgument.newBuilder()
-            .setName("x")
-            .setDataType(StandardSQLDataType.newBuilder(StandardSQLTypeName.INT64).build())
-            .build()
-    ));
+    when(routine.getArguments())
+        .thenReturn(
+            List.of(
+                RoutineArgument.newBuilder()
+                    .setName("x")
+                    .setDataType(StandardSQLDataType.newBuilder(StandardSQLTypeName.INT64).build())
+                    .build()));
 
     return routine;
   }
 
   FunctionSignature expectedSignatureForMockProcedure() {
-    FunctionArgumentType returnType = new FunctionArgumentType(
-        TypeFactory.createSimpleType(TypeKind.TYPE_STRING));
+    FunctionArgumentType returnType =
+        new FunctionArgumentType(TypeFactory.createSimpleType(TypeKind.TYPE_STRING));
 
-    FunctionArgumentType argument = new FunctionArgumentType(
-        TypeFactory.createSimpleType(TypeKind.TYPE_INT64),
-        FunctionArgumentTypeOptions.builder()
-            .setArgumentName("x")
-            .setProcedureArgumentMode(ProcedureArgumentMode.NOT_SET)
-            .build(),
-        1
-    );
+    FunctionArgumentType argument =
+        new FunctionArgumentType(
+            TypeFactory.createSimpleType(TypeKind.TYPE_INT64),
+            FunctionArgumentTypeOptions.builder()
+                .setArgumentName("x")
+                .setProcedureArgumentMode(ProcedureArgumentMode.NOT_SET)
+                .build(),
+            1);
 
     return new FunctionSignature(returnType, List.of(argument), -1);
   }
@@ -391,9 +378,6 @@ public class BigQueryAPIResourceProviderTest {
     assertEquals(1, procedures.size());
     assertTrue(
         CatalogTestUtils.functionSignatureEquals(
-            expectedSignatureForMockProcedure, procedures.get(0).getSignature()
-        )
-    );
+            expectedSignatureForMockProcedure, procedures.get(0).getSignature()));
   }
-
 }

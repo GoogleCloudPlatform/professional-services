@@ -16,15 +16,15 @@
 
 package com.google.zetasql.toolkit.catalog.typeparser;
 
+import com.google.zetasql.StructType.StructField;
+import com.google.zetasql.Type;
+import com.google.zetasql.TypeFactory;
+import com.google.zetasql.ZetaSQLType.TypeKind;
 import com.google.zetasql.toolkit.catalog.typeparser.ZetaSQLTypeGrammarParser.ArrayTypeContext;
 import com.google.zetasql.toolkit.catalog.typeparser.ZetaSQLTypeGrammarParser.BasicTypeContext;
 import com.google.zetasql.toolkit.catalog.typeparser.ZetaSQLTypeGrammarParser.StructFieldContext;
 import com.google.zetasql.toolkit.catalog.typeparser.ZetaSQLTypeGrammarParser.StructTypeContext;
 import com.google.zetasql.toolkit.catalog.typeparser.ZetaSQLTypeGrammarParser.TypeContext;
-import com.google.zetasql.StructType.StructField;
-import com.google.zetasql.Type;
-import com.google.zetasql.TypeFactory;
-import com.google.zetasql.ZetaSQLType.TypeKind;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -38,10 +38,10 @@ import org.antlr.v4.runtime.tree.ParseTreeWalker;
 /**
  * Parser for ZetaSQL types.
  *
- * <p> Allows parsing string representations of SQL types to their corresponding Type objects.
- * For example; it can parse type strings such as "STRING", "ARRAY<INT64>" and "STRUCT<f DECIMAL>".
+ * <p>Allows parsing string representations of SQL types to their corresponding Type objects. For
+ * example; it can parse type strings such as "STRING", "ARRAY<INT64>" and "STRUCT<f DECIMAL>".
  *
- * <p> Uses an ANTLR4 based parser.
+ * <p>Uses an ANTLR4 based parser.
  */
 public class ZetaSQLTypeParser {
 
@@ -62,10 +62,9 @@ public class ZetaSQLTypeParser {
     TypeContext typeRule = parser.type();
     ParseTreeWalker.DEFAULT.walk(listener, typeRule);
 
-    if(typeRule.exception != null) {
+    if (typeRule.exception != null) {
       throw new ZetaSQLTypeParseError(
-          String.format("Invalid SQL type: %s", type), typeRule.exception
-      );
+          String.format("Invalid SQL type: %s", type), typeRule.exception);
     }
 
     return listener.getResult();
@@ -76,34 +75,33 @@ public class ZetaSQLTypeParser {
    */
   private static class ZetaSQLTypeParserListener extends ZetaSQLTypeGrammarBaseListener {
 
+    private static final Map<String, TypeKind> simpleTypeMapping =
+        Map.ofEntries(
+            Map.entry("STRING", TypeKind.TYPE_STRING),
+            Map.entry("BYTES", TypeKind.TYPE_BYTES),
+            Map.entry("INT32", TypeKind.TYPE_INT32),
+            Map.entry("INT64", TypeKind.TYPE_INT64),
+            Map.entry("UINT32", TypeKind.TYPE_UINT32),
+            Map.entry("UINT64", TypeKind.TYPE_UINT64),
+            Map.entry("FLOAT64", TypeKind.TYPE_FLOAT),
+            Map.entry("DECIMAL", TypeKind.TYPE_NUMERIC),
+            Map.entry("NUMERIC", TypeKind.TYPE_NUMERIC),
+            Map.entry("BIGNUMERIC", TypeKind.TYPE_BIGNUMERIC),
+            Map.entry("INTERVAL", TypeKind.TYPE_INTERVAL),
+            Map.entry("BOOL", TypeKind.TYPE_BOOL),
+            Map.entry("TIMESTAMP", TypeKind.TYPE_TIMESTAMP),
+            Map.entry("DATE", TypeKind.TYPE_DATE),
+            Map.entry("TIME", TypeKind.TYPE_TIME),
+            Map.entry("DATETIME", TypeKind.TYPE_DATETIME),
+            Map.entry("GEOGRAPHY", TypeKind.TYPE_GEOGRAPHY),
+            Map.entry("JSON", TypeKind.TYPE_JSON));
     private final Stack<Type> typeStack = new Stack<>();
     private final Stack<List<StructField>> structFieldStack = new Stack<>();
-
-    private static final Map<String, TypeKind> simpleTypeMapping = Map.ofEntries(
-        Map.entry("STRING", TypeKind.TYPE_STRING),
-        Map.entry("BYTES", TypeKind.TYPE_BYTES),
-        Map.entry("INT32", TypeKind.TYPE_INT32),
-        Map.entry("INT64", TypeKind.TYPE_INT64),
-        Map.entry("UINT32", TypeKind.TYPE_UINT32),
-        Map.entry("UINT64", TypeKind.TYPE_UINT64),
-        Map.entry("FLOAT64", TypeKind.TYPE_FLOAT),
-        Map.entry("DECIMAL", TypeKind.TYPE_NUMERIC),
-        Map.entry("NUMERIC", TypeKind.TYPE_NUMERIC),
-        Map.entry("BIGNUMERIC", TypeKind.TYPE_BIGNUMERIC),
-        Map.entry("INTERVAL", TypeKind.TYPE_INTERVAL),
-        Map.entry("BOOL", TypeKind.TYPE_BOOL),
-        Map.entry("TIMESTAMP", TypeKind.TYPE_TIMESTAMP),
-        Map.entry("DATE", TypeKind.TYPE_DATE),
-        Map.entry("TIME", TypeKind.TYPE_TIME),
-        Map.entry("DATETIME", TypeKind.TYPE_DATETIME),
-        Map.entry("GEOGRAPHY", TypeKind.TYPE_GEOGRAPHY),
-        Map.entry("JSON", TypeKind.TYPE_JSON)
-    );
 
     public Type getResult() {
       return this.typeStack.pop();
     }
-    
+
     @Override
     public void exitBasicType(BasicTypeContext ctx) {
       String basicTypeName = ctx.BASIC_TYPE().getText();
@@ -139,5 +137,4 @@ public class ZetaSQLTypeParser {
       this.typeStack.push(type);
     }
   }
-
 }

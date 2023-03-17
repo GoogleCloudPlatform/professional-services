@@ -42,8 +42,7 @@ public class BigQueryServiceTest {
 
   BigQueryService bigQueryService;
 
-  @Mock
-  BigQuery bigqueryClientMock;
+  @Mock BigQuery bigqueryClientMock;
 
   @BeforeEach
   void init() {
@@ -134,8 +133,7 @@ public class BigQueryServiceTest {
     Table mockTable = mock(Table.class);
     when(bigqueryClientMock.getTable(any(TableId.class), any())).thenReturn(mockTable);
 
-    Result<Table> fetchTableResult =
-        bigQueryService.fetchTable("project", "dataset.table");
+    Result<Table> fetchTableResult = bigQueryService.fetchTable("project", "dataset.table");
 
     assertTrue(fetchTableResult.succeeded(), "Expected fetching table to succeed");
     assertSame(mockTable, fetchTableResult.get());
@@ -146,8 +144,7 @@ public class BigQueryServiceTest {
     Routine mockRoutine = mock(Routine.class);
     when(bigqueryClientMock.getRoutine(any(RoutineId.class))).thenReturn(mockRoutine);
 
-    Result<Routine> fetchRoutineResult =
-        bigQueryService.fetchRoutine("project", "dataset.routine");
+    Result<Routine> fetchRoutineResult = bigQueryService.fetchRoutine("project", "dataset.routine");
 
     assertTrue(fetchRoutineResult.succeeded(), "Expected fetching routine to succeed");
     assertSame(mockRoutine, fetchRoutineResult.get());
@@ -161,14 +158,12 @@ public class BigQueryServiceTest {
     assertThrows(
         BigQueryAPIError.class,
         () -> bigQueryService.listDatasets("project").get(),
-        "Expected BigQuery API when listing error to bubble up"
-    );
+        "Expected BigQuery API when listing error to bubble up");
 
     assertThrows(
         BigQueryAPIError.class,
         () -> bigQueryService.fetchTable("project", "dataset.table").get(),
-        "Expected BigQuery API when fetching tables error to bubble up"
-    );
+        "Expected BigQuery API when fetching tables error to bubble up");
   }
 
   @Test
@@ -191,5 +186,4 @@ public class BigQueryServiceTest {
 
     verify(bigqueryClientMock, times(1)).getRoutine(any(RoutineId.class));
   }
-
 }

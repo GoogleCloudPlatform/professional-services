@@ -16,43 +16,37 @@
 
 package com.google.zetasql.toolkit.examples;
 
+import com.google.zetasql.AnalyzerOptions;
+import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedStatement;
 import com.google.zetasql.toolkit.ZetaSQLToolkit;
 import com.google.zetasql.toolkit.catalog.bigquery.BigQueryCatalog;
 import com.google.zetasql.toolkit.options.BigQueryLanguageOptions;
 import com.google.zetasql.toolkit.validation.CannotRecreateExistingTable;
 import com.google.zetasql.toolkit.validation.ValidatingVisitor;
 import com.google.zetasql.toolkit.validation.ValidationError;
-import com.google.zetasql.AnalyzerOptions;
-import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedStatement;
 import java.util.Iterator;
 import java.util.List;
 
-/**
- * Showcases how to use validations
- */
+/** Showcases how to use validations */
 public class AnalyzeAndValidate {
 
   public static void main(String[] args) {
     String query =
         "CREATE TABLE `bigquery-public-data.samples.wikipedia` AS SELECT 1 AS column;\n"
-        + "SELECT column FROM `bigquery-public-data.samples.wikipedia`;";
+            + "SELECT column FROM `bigquery-public-data.samples.wikipedia`;";
 
-    BigQueryCatalog catalog = new BigQueryCatalog(
-        "bigquery-public-data"
-    );
+    BigQueryCatalog catalog = new BigQueryCatalog("bigquery-public-data");
 
     AnalyzerOptions options = new AnalyzerOptions();
     options.setLanguageOptions(BigQueryLanguageOptions.get());
 
     catalog.addAllTablesUsedInQuery(query, options);
 
-    Iterator<ResolvedStatement> statementIterator = ZetaSQLToolkit.analyzeStatements(
-        query, options, catalog
-    );
+    Iterator<ResolvedStatement> statementIterator =
+        ZetaSQLToolkit.analyzeStatements(query, options, catalog);
 
-    List<ValidatingVisitor> validations = List.of(
-        new CannotRecreateExistingTable(catalog.getZetaSQLCatalog())
-    );
+    List<ValidatingVisitor> validations =
+        List.of(new CannotRecreateExistingTable(catalog.getZetaSQLCatalog()));
 
     try {
       ZetaSQLToolkit.validateStatements(statementIterator, validations);
@@ -61,5 +55,4 @@ public class AnalyzeAndValidate {
       System.out.println(error.getMessage());
     }
   }
-
 }

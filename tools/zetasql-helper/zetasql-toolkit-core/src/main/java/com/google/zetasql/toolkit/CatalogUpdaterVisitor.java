@@ -16,10 +16,6 @@
 
 package com.google.zetasql.toolkit;
 
-import com.google.zetasql.toolkit.catalog.CatalogOperations;
-import com.google.zetasql.toolkit.catalog.CatalogWrapper;
-import com.google.zetasql.toolkit.catalog.bigquery.ProcedureInfo;
-import com.google.zetasql.toolkit.catalog.bigquery.TVFInfo;
 import com.google.zetasql.Function;
 import com.google.zetasql.FunctionArgumentType;
 import com.google.zetasql.FunctionSignature;
@@ -44,21 +40,26 @@ import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedCreateViewBase;
 import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedCreateViewStmt;
 import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedOutputColumn;
 import com.google.zetasql.resolvedast.ResolvedNodes.Visitor;
+import com.google.zetasql.toolkit.catalog.CatalogOperations;
+import com.google.zetasql.toolkit.catalog.CatalogWrapper;
+import com.google.zetasql.toolkit.catalog.bigquery.ProcedureInfo;
+import com.google.zetasql.toolkit.catalog.bigquery.TVFInfo;
 import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * ResolvedNodes.Visitor that creates catalog resources based on the ResolvedCreate*
- * statements it visits. Supports:
+ * ResolvedNodes.Visitor that creates catalog resources based on the ResolvedCreate* statements it
+ * visits. Supports:
+ *
  * <ul>
- *   <li> ResolvedCrateTableStmt
- *   <li> ResolvedCreateTableAsSelectStmt
- *   <li> ResolvedCreateExternalTableStmt
- *   <li> ResolvedCreateViewStmt
- *   <li> ResolvedCreateMaterializedViewStmt
- *   <li> ResolvedCreateFunctionStmt
- *   <li> ResolvedCreateTableFunctionStmt
- *   <li> ResolvedCreateProcedureStmt
+ *   <li>ResolvedCrateTableStmt
+ *   <li>ResolvedCreateTableAsSelectStmt
+ *   <li>ResolvedCreateExternalTableStmt
+ *   <li>ResolvedCreateViewStmt
+ *   <li>ResolvedCreateMaterializedViewStmt
+ *   <li>ResolvedCreateFunctionStmt
+ *   <li>ResolvedCreateTableFunctionStmt
+ *   <li>ResolvedCreateProcedureStmt
  * </ul>
  */
 class CatalogUpdaterVisitor extends Visitor {
@@ -85,12 +86,8 @@ class CatalogUpdaterVisitor extends Visitor {
     List<String> tableNamePath = createTableStmtBase.getNamePath();
     String tableName = tableNamePath.get(tableNamePath.size() - 1);
 
-    return createTableStmtBase
-        .getColumnDefinitionList()
-        .stream()
-        .map(definition -> new SimpleColumn(
-            tableName, definition.getName(), definition.getType()
-        ))
+    return createTableStmtBase.getColumnDefinitionList().stream()
+        .map(definition -> new SimpleColumn(tableName, definition.getName(), definition.getType()))
         .collect(Collectors.toList());
   }
 
@@ -101,10 +98,9 @@ class CatalogUpdaterVisitor extends Visitor {
    */
   private void visitCreateTableBase(ResolvedCreateTableStmtBase createTableStmtBase) {
     List<SimpleColumn> columns = this.getColumnsFromCreateTableStmt(createTableStmtBase);
-    SimpleTable table = CatalogOperations.buildSimpleTable(
-        String.join(".", createTableStmtBase.getNamePath()),
-        columns
-    );
+    SimpleTable table =
+        CatalogOperations.buildSimpleTable(
+            String.join(".", createTableStmtBase.getNamePath()), columns);
 
     CreateMode createMode = createTableStmtBase.getCreateMode();
     CreateScope createScope = createTableStmtBase.getCreateScope();
@@ -152,13 +148,9 @@ class CatalogUpdaterVisitor extends Visitor {
     List<String> tableNamePath = createViewBase.getNamePath();
     String tableName = tableNamePath.get(tableNamePath.size() - 1);
 
-    return createViewBase
-        .getOutputColumnList()
-        .stream()
+    return createViewBase.getOutputColumnList().stream()
         .map(ResolvedOutputColumn::getColumn)
-        .map(definition -> new SimpleColumn(
-            tableName, definition.getName(), definition.getType()
-        ))
+        .map(definition -> new SimpleColumn(tableName, definition.getName(), definition.getType()))
         .collect(Collectors.toList());
   }
 
@@ -169,10 +161,8 @@ class CatalogUpdaterVisitor extends Visitor {
    */
   private void visitCreateViewBase(ResolvedCreateViewBase createViewBase) {
     List<SimpleColumn> columns = this.getColumnsFromCreateViewBase(createViewBase);
-    SimpleTable table = CatalogOperations.buildSimpleTable(
-        String.join(".", createViewBase.getNamePath()),
-        columns
-    );
+    SimpleTable table =
+        CatalogOperations.buildSimpleTable(String.join(".", createViewBase.getNamePath()), columns);
 
     CreateMode createMode = createViewBase.getCreateMode();
     CreateScope createScope = createViewBase.getCreateScope();
@@ -207,12 +197,12 @@ class CatalogUpdaterVisitor extends Visitor {
    */
   @Override
   public void visit(ResolvedCreateFunctionStmt createFunctionStmt) {
-    Function function = new Function(
-        createFunctionStmt.getNamePath(),
-        "UDF",
-        Mode.SCALAR,
-        List.of(createFunctionStmt.getSignature())
-    );
+    Function function =
+        new Function(
+            createFunctionStmt.getNamePath(),
+            "UDF",
+            Mode.SCALAR,
+            List.of(createFunctionStmt.getSignature()));
 
     CreateMode createMode = createFunctionStmt.getCreateMode();
     CreateScope createScope = createFunctionStmt.getCreateScope();
@@ -227,20 +217,19 @@ class CatalogUpdaterVisitor extends Visitor {
    */
   @Override
   public void visit(ResolvedCreateTableFunctionStmt createTableFunctionStmt) {
-    List<Column> outputSchemaColumns = createTableFunctionStmt
-        .getOutputColumnList()
-        .stream()
-        .map(resolvedOutputColumn -> Column.create(
-            resolvedOutputColumn.getName(),
-            resolvedOutputColumn.getColumn().getType())
-        )
-        .collect(Collectors.toList());
+    List<Column> outputSchemaColumns =
+        createTableFunctionStmt.getOutputColumnList().stream()
+            .map(
+                resolvedOutputColumn ->
+                    Column.create(
+                        resolvedOutputColumn.getName(), resolvedOutputColumn.getColumn().getType()))
+            .collect(Collectors.toList());
 
-    TVFInfo tvfInfo = new TVFInfo(
-        createTableFunctionStmt.getNamePath(),
-        createTableFunctionStmt.getSignature(),
-        TVFRelation.createColumnBased(outputSchemaColumns)
-    );
+    TVFInfo tvfInfo =
+        new TVFInfo(
+            createTableFunctionStmt.getNamePath(),
+            createTableFunctionStmt.getSignature(),
+            TVFRelation.createColumnBased(outputSchemaColumns));
 
     CreateMode createMode = createTableFunctionStmt.getCreateMode();
 
@@ -250,32 +239,25 @@ class CatalogUpdaterVisitor extends Visitor {
   /**
    * Visits a ResolvedCreateProcedureStmt and creates the procedure in the catalog.
    *
-   * <p> The return type for procedures is set to TYPE_STRING rather than ARG_TYPE_VOID because
-   * the ZetaSQL analyzer cannot analyze signatures that return void.
+   * <p>The return type for procedures is set to TYPE_STRING rather than ARG_TYPE_VOID because the
+   * ZetaSQL analyzer cannot analyze signatures that return void.
    *
    * @param createProcedureStmt The analyzed statement to create the procedure from
    */
   @Override
   public void visit(ResolvedCreateProcedureStmt createProcedureStmt) {
-    FunctionArgumentType returnType = new FunctionArgumentType(
-        TypeFactory.createSimpleType(TypeKind.TYPE_STRING)
-    );
+    FunctionArgumentType returnType =
+        new FunctionArgumentType(TypeFactory.createSimpleType(TypeKind.TYPE_STRING));
 
-    FunctionSignature signature = new FunctionSignature(
-        returnType,
-        createProcedureStmt.getSignature().getFunctionArgumentList(),
-        -1
-    );
+    FunctionSignature signature =
+        new FunctionSignature(
+            returnType, createProcedureStmt.getSignature().getFunctionArgumentList(), -1);
 
-    ProcedureInfo procedureInfo = new ProcedureInfo(
-        createProcedureStmt.getNamePath(),
-        signature
-    );
+    ProcedureInfo procedureInfo = new ProcedureInfo(createProcedureStmt.getNamePath(), signature);
 
     CreateMode createMode = createProcedureStmt.getCreateMode();
     CreateScope createScope = createProcedureStmt.getCreateScope();
 
     catalog.register(procedureInfo, createMode, createScope);
   }
-
 }

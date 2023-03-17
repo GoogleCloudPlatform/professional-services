@@ -19,9 +19,7 @@ package com.google.zetasql.toolkit.catalog.spanner;
 import com.google.zetasql.SimpleTable;
 import java.util.List;
 
-/**
- * Interface for an object that can find and provide Spanner resources
- */
+/** Interface for an object that can find and provide Spanner resources */
 public interface SpannerResourceProvider {
 
   /**
@@ -33,11 +31,10 @@ public interface SpannerResourceProvider {
   List<SimpleTable> getTables(List<String> tableNames);
 
   /**
-   * Gets a all Spanner tables and views in the Spanner database and returns
-   * them as {@link SimpleTable}s
+   * Gets a all Spanner tables and views in the Spanner database and returns them as {@link
+   * SimpleTable}s
    *
    * @return The list of SimpleTables representing the Spanner tables and views.
    */
   List<SimpleTable> getAllTablesInDatabase();
-
 }

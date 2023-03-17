@@ -16,16 +16,16 @@
 
 package com.google.zetasql.toolkit.examples;
 
-import com.google.zetasql.toolkit.ZetaSQLToolkit;
-import com.google.zetasql.toolkit.catalog.bigquery.BigQueryCatalog;
 import com.google.zetasql.AnalyzerOptions;
 import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedStatement;
+import com.google.zetasql.toolkit.ZetaSQLToolkit;
+import com.google.zetasql.toolkit.catalog.bigquery.BigQueryCatalog;
 import com.google.zetasql.toolkit.options.BigQueryLanguageOptions;
 import java.util.Iterator;
 
 /**
- * Example showcasing the basic usage of the {@link BigQueryCatalog}, used for
- * analyzing queries while using BigQuery catalog semantics.
+ * Example showcasing the basic usage of the {@link BigQueryCatalog}, used for analyzing queries
+ * while using BigQuery catalog semantics.
  */
 public class AnalyzeBigQuery {
 
@@ -33,7 +33,7 @@ public class AnalyzeBigQuery {
     // Analyzing a query that uses bigquery-public-data tables
     String query =
         "INSERT INTO `bigquery-public-data.samples.wikipedia` (title) VALUES ('random title');\n"
-        + "SELECT title, language FROM `bigquery-public-data.samples.wikipedia` WHERE title = 'random title';";
+            + "SELECT title, language FROM `bigquery-public-data.samples.wikipedia` WHERE title = 'random title';";
 
     // Step 1: Create a BigQueryCatalog
     // In this case, we provide the project id where queries are assumed to be running. The catalog
@@ -56,12 +56,10 @@ public class AnalyzeBigQuery {
 
     // Step 4: Use ZetaSQLHelper.analyzeStatements to get an iterator of the ResolvedStatements
     // that result from running the analyzer
-    Iterator<ResolvedStatement> statementIterator = ZetaSQLToolkit.analyzeStatements(
-        query, options, catalog
-    );
+    Iterator<ResolvedStatement> statementIterator =
+        ZetaSQLToolkit.analyzeStatements(query, options, catalog);
 
     // Step 5: Consume the previous iterator and use the ResolvedStatements however you need
     statementIterator.forEachRemaining(statement -> System.out.println(statement.debugString()));
   }
-
 }

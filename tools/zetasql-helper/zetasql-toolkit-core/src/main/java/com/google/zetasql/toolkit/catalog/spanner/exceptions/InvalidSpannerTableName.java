@@ -28,5 +28,4 @@ public class InvalidSpannerTableName extends SpannerCatalogException {
   public String getTableName() {
     return tableName;
   }
-
 }

@@ -17,24 +17,22 @@
 package com.google.zetasql.toolkit.catalog.spanner;
 
 import com.google.cloud.spanner.DatabaseClient;
-import com.google.zetasql.toolkit.catalog.CatalogOperations;
-import com.google.zetasql.toolkit.catalog.CatalogWrapper;
-import com.google.zetasql.toolkit.catalog.bigquery.ProcedureInfo;
-import com.google.zetasql.toolkit.catalog.bigquery.TVFInfo;
-import com.google.zetasql.toolkit.catalog.exceptions.CatalogResourceAlreadyExists;
-import com.google.zetasql.toolkit.catalog.spanner.exceptions.InvalidSpannerTableName;
 import com.google.zetasql.Function;
 import com.google.zetasql.SimpleCatalog;
 import com.google.zetasql.SimpleTable;
 import com.google.zetasql.ZetaSQLBuiltinFunctionOptions;
 import com.google.zetasql.resolvedast.ResolvedCreateStatementEnums.CreateMode;
 import com.google.zetasql.resolvedast.ResolvedCreateStatementEnums.CreateScope;
+import com.google.zetasql.toolkit.catalog.CatalogOperations;
+import com.google.zetasql.toolkit.catalog.CatalogWrapper;
+import com.google.zetasql.toolkit.catalog.bigquery.ProcedureInfo;
+import com.google.zetasql.toolkit.catalog.bigquery.TVFInfo;
+import com.google.zetasql.toolkit.catalog.exceptions.CatalogResourceAlreadyExists;
+import com.google.zetasql.toolkit.catalog.spanner.exceptions.InvalidSpannerTableName;
 import com.google.zetasql.toolkit.options.SpannerLanguageOptions;
 import java.util.List;
 
-/**
- * {@link CatalogWrapper} implementation that follows Cloud Spanner semantics
- */
+/** {@link CatalogWrapper} implementation that follows Cloud Spanner semantics */
 public class SpannerCatalog implements CatalogWrapper {
 
   private final String projectId;
@@ -44,9 +42,8 @@ public class SpannerCatalog implements CatalogWrapper {
   private final SimpleCatalog catalog;
 
   /**
-   * Constructs a SpannerCatalog given a Spanner project,
-   * instance and database. It uses a {@link DatabaseClient} with
-   * application default credentials to access Spanner.
+   * Constructs a SpannerCatalog given a Spanner project, instance and database. It uses a {@link
+   * DatabaseClient} with application default credentials to access Spanner.
    *
    * @param projectId The Spanner project id
    * @param instance The Spanner instance name
@@ -57,13 +54,12 @@ public class SpannerCatalog implements CatalogWrapper {
         projectId,
         instance,
         database,
-        new SpannerResourceProviderImpl(projectId, instance, database)
-    );
+        new SpannerResourceProviderImpl(projectId, instance, database));
   }
 
   /**
-   * Constructs a SpannerCatalog that uses the provided {@link DatabaseClient}
-   * for accessing Spanner.
+   * Constructs a SpannerCatalog that uses the provided {@link DatabaseClient} for accessing
+   * Spanner.
    *
    * @param projectId The Spanner project id
    * @param instance The Spanner instance name
@@ -71,22 +67,13 @@ public class SpannerCatalog implements CatalogWrapper {
    * @param databaseClient The Spanner DatabaseClient to use
    */
   public SpannerCatalog(
-      String projectId,
-      String instance,
-      String database,
-      DatabaseClient databaseClient
-  ) {
-    this(
-        projectId,
-        instance,
-        database,
-        new SpannerResourceProviderImpl(databaseClient)
-    );
+      String projectId, String instance, String database, DatabaseClient databaseClient) {
+    this(projectId, instance, database, new SpannerResourceProviderImpl(databaseClient));
   }
 
   /**
-   * Constructs a SpannerCatalog that uses the provided
-   * {@link SpannerResourceProvider} for fetching Spanner tables.
+   * Constructs a SpannerCatalog that uses the provided {@link SpannerResourceProvider} for fetching
+   * Spanner tables.
    *
    * @param projectId The Spanner project id
    * @param instance The Spanner instance name
@@ -97,16 +84,14 @@ public class SpannerCatalog implements CatalogWrapper {
       String projectId,
       String instance,
       String database,
-      SpannerResourceProvider spannerResourceProvider
-  ) {
+      SpannerResourceProvider spannerResourceProvider) {
     this.projectId = projectId;
     this.instance = instance;
     this.database = database;
     this.spannerResourceProvider = spannerResourceProvider;
     this.catalog = new SimpleCatalog("catalog");
     this.catalog.addZetaSQLFunctions(
-        new ZetaSQLBuiltinFunctionOptions(SpannerLanguageOptions.get())
-    );
+        new ZetaSQLBuiltinFunctionOptions(SpannerLanguageOptions.get()));
     // TODO: Define and add Spanner-specific functions to the catalog
   }
 
@@ -116,8 +101,7 @@ public class SpannerCatalog implements CatalogWrapper {
       String instance,
       String database,
       SpannerResourceProvider spannerResourceProvider,
-      SimpleCatalog internalCatalog
-  ) {
+      SimpleCatalog internalCatalog) {
     this.projectId = projectId;
     this.instance = instance;
     this.database = database;
@@ -141,14 +125,14 @@ public class SpannerCatalog implements CatalogWrapper {
    * {@inheritDoc}
    *
    * @throws InvalidSpannerTableName if the table name is invalid for Spanner
-   * @throws CatalogResourceAlreadyExists if the table already exists and
-   * CreateMode != CREATE_OR_REPLACE
+   * @throws CatalogResourceAlreadyExists if the table already exists and CreateMode !=
+   *     CREATE_OR_REPLACE
    */
   @Override
   public void register(SimpleTable table, CreateMode createMode, CreateScope createScope) {
     String tableName = table.getName();
 
-    if(tableName.contains(".")) {
+    if (tableName.contains(".")) {
       throw new InvalidSpannerTableName(tableName);
     }
 
@@ -157,30 +141,24 @@ public class SpannerCatalog implements CatalogWrapper {
         List.of(List.of(table.getName())),
         table.getName(),
         table.getColumnList(),
-        createMode
-    );
+        createMode);
   }
 
   @Override
   public void register(Function function, CreateMode createMode, CreateScope createScope) {
     throw new UnsupportedOperationException(
-        "Cloud Spanner does not support user-defined functions"
-    );
+        "Cloud Spanner does not support user-defined functions");
   }
 
   @Override
   public void register(TVFInfo tvfInfo, CreateMode createMode, CreateScope createScope) {
     throw new UnsupportedOperationException(
-        "Cloud Spanner does not support table valued functions"
-    );
+        "Cloud Spanner does not support table valued functions");
   }
 
   @Override
   public void register(
-      ProcedureInfo procedureInfo,
-      CreateMode createMode,
-      CreateScope createScope
-  ) {
+      ProcedureInfo procedureInfo, CreateMode createMode, CreateScope createScope) {
     throw new UnsupportedOperationException("Cloud Spanner does not support procedures");
   }
 
@@ -191,27 +169,29 @@ public class SpannerCatalog implements CatalogWrapper {
    */
   @Override
   public void addTables(List<String> tableNames) {
-    tableNames
-        .stream()
+    tableNames.stream()
         .filter(tableName -> tableName.contains("."))
         .findAny()
-        .ifPresent(invalidTableName -> {
-          throw new InvalidSpannerTableName(invalidTableName);
-        });
+        .ifPresent(
+            invalidTableName -> {
+              throw new InvalidSpannerTableName(invalidTableName);
+            });
 
     this.spannerResourceProvider
         .getTables(tableNames)
-        .forEach(table -> this.register(
-            table, CreateMode.CREATE_OR_REPLACE, CreateScope.CREATE_DEFAULT_SCOPE
-        ));
+        .forEach(
+            table ->
+                this.register(
+                    table, CreateMode.CREATE_OR_REPLACE, CreateScope.CREATE_DEFAULT_SCOPE));
   }
 
   public void addAllTablesInDatabase() {
     this.spannerResourceProvider
         .getAllTablesInDatabase()
-        .forEach(table -> this.register(
-            table, CreateMode.CREATE_OR_REPLACE, CreateScope.CREATE_DEFAULT_SCOPE
-        ));
+        .forEach(
+            table ->
+                this.register(
+                    table, CreateMode.CREATE_OR_REPLACE, CreateScope.CREATE_DEFAULT_SCOPE));
   }
 
   @Override
@@ -236,13 +216,11 @@ public class SpannerCatalog implements CatalogWrapper {
         this.instance,
         this.database,
         this.spannerResourceProvider,
-        CatalogOperations.copyCatalog(this.catalog)
-    );
+        CatalogOperations.copyCatalog(this.catalog));
   }
 
   @Override
   public SimpleCatalog getZetaSQLCatalog() {
     return this.catalog;
   }
-
 }

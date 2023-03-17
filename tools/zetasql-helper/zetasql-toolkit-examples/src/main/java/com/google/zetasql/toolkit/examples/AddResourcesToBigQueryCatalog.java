@@ -11,10 +11,10 @@ public class AddResourcesToBigQueryCatalog {
     // Add a table or a set of tables by name
     // Views are considered tables as well, so they can be added this way to the catalog
     catalog.addTable("bigquery-public-data.samples.wikipedia");
-    catalog.addTables(List.of(
-        "bigquery-public-data.samples.wikipedia",
-        "bigquery-public-data.samples.github_nested"
-    ));
+    catalog.addTables(
+        List.of(
+            "bigquery-public-data.samples.wikipedia",
+            "bigquery-public-data.samples.github_nested"));
 
     // Add all tables in a dataset or project
     // Views are considered tables as well, so they will be added to the catalog too
@@ -25,10 +25,7 @@ public class AddResourcesToBigQueryCatalog {
     // For the time being, functions must have an explicit return type (i.e. creating with
     // a RETURNS clause); otherwise adding them will fail.
     catalog.addFunction("project.dataset.function");
-    catalog.addFunctions(List.of(
-        "project.dataset.function2",
-        "project.dataset.function3"
-    ));
+    catalog.addFunctions(List.of("project.dataset.function2", "project.dataset.function3"));
 
     // Add all functions in a dataset or project
     // For the time being, functions without an explicit return type are silently ignored
@@ -39,10 +36,7 @@ public class AddResourcesToBigQueryCatalog {
     // For the time being, TVFs must have an explicit return type (i.e. creating with
     // a RETURNS clause); otherwise adding them will fail.
     catalog.addTVF("project.dataset.tvf");
-    catalog.addTVFs(List.of(
-        "project.dataset.tvf2",
-        "project.dataset.tvf3"
-    ));
+    catalog.addTVFs(List.of("project.dataset.tvf2", "project.dataset.tvf3"));
 
     // Add all TVFs in a dataset or project
     // For the time being, TVFs without an explicit return type are silently ignored
@@ -51,14 +45,10 @@ public class AddResourcesToBigQueryCatalog {
 
     // Add a procedure or a set of procedures by name
     catalog.addProcedure("project.dataset.procedure");
-    catalog.addProcedures(List.of(
-        "project.dataset.procedure1",
-        "project.dataset.procedure2"
-    ));
+    catalog.addProcedures(List.of("project.dataset.procedure1", "project.dataset.procedure2"));
 
     // Add all procedures in a dataset or project
     catalog.addAllProceduresInDataset("projectId", "datasetName");
     catalog.addAllProceduresInProject("projectId");
   }
-
 }

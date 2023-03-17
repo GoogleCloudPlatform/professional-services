@@ -19,9 +19,6 @@ package com.google.zetasql.toolkit.catalog.spanner;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import com.google.zetasql.toolkit.catalog.CatalogTestUtils;
-import com.google.zetasql.toolkit.catalog.exceptions.CatalogResourceAlreadyExists;
-import com.google.zetasql.toolkit.catalog.spanner.exceptions.InvalidSpannerTableName;
 import com.google.zetasql.SimpleCatalog;
 import com.google.zetasql.SimpleColumn;
 import com.google.zetasql.SimpleTable;
@@ -30,6 +27,9 @@ import com.google.zetasql.TypeFactory;
 import com.google.zetasql.ZetaSQLType.TypeKind;
 import com.google.zetasql.resolvedast.ResolvedCreateStatementEnums.CreateMode;
 import com.google.zetasql.resolvedast.ResolvedCreateStatementEnums.CreateScope;
+import com.google.zetasql.toolkit.catalog.CatalogTestUtils;
+import com.google.zetasql.toolkit.catalog.exceptions.CatalogResourceAlreadyExists;
+import com.google.zetasql.toolkit.catalog.spanner.exceptions.InvalidSpannerTableName;
 import java.util.List;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -43,122 +43,95 @@ public class SpannerCatalogTest {
 
   SpannerCatalog spannerCatalog;
 
-  @Mock
-  SpannerResourceProvider spannerResourceProviderMock;
+  @Mock SpannerResourceProvider spannerResourceProviderMock;
 
-  SimpleTable exampleTable = new SimpleTable(
-      "SpannerTable",
-      List.of(
-          new SimpleColumn(
-              "SpannerTable",
-              "col1",
-              TypeFactory.createSimpleType(TypeKind.TYPE_STRING)
-          )
-      )
-  );
+  SimpleTable exampleTable =
+      new SimpleTable(
+          "SpannerTable",
+          List.of(
+              new SimpleColumn(
+                  "SpannerTable", "col1", TypeFactory.createSimpleType(TypeKind.TYPE_STRING))));
 
-  SimpleTable replacementTable = new SimpleTable(
-      "SpannerTable",
-      List.of(
-          new SimpleColumn(
-              "SpannerTable",
-              "col1",
-              TypeFactory.createSimpleType(TypeKind.TYPE_STRING)
-          ),
-          new SimpleColumn(
-              "SpannerTable",
-              "col2",
-              TypeFactory.createSimpleType(TypeKind.TYPE_INT64)
-          )
-      )
-  );
+  SimpleTable replacementTable =
+      new SimpleTable(
+          "SpannerTable",
+          List.of(
+              new SimpleColumn(
+                  "SpannerTable", "col1", TypeFactory.createSimpleType(TypeKind.TYPE_STRING)),
+              new SimpleColumn(
+                  "SpannerTable", "col2", TypeFactory.createSimpleType(TypeKind.TYPE_INT64))));
 
   @BeforeEach
   void init() {
-    this.spannerCatalog = new SpannerCatalog(
-        "project", "instance", "database", spannerResourceProviderMock
-    );
+    this.spannerCatalog =
+        new SpannerCatalog("project", "instance", "database", spannerResourceProviderMock);
   }
 
   Table assertTableExistsInCatalog(SpannerCatalog catalog, SimpleTable table) {
     SimpleCatalog underlyingCatalog = catalog.getZetaSQLCatalog();
 
-    return assertDoesNotThrow(
-        () -> underlyingCatalog.findTable(List.of(table.getName()))
-    );
+    return assertDoesNotThrow(() -> underlyingCatalog.findTable(List.of(table.getName())));
   }
 
   @Test
   void testInvalidSpannerTableNames() {
     String invalidTableName = "Invalid.Spanner.Table.Name";
-    SimpleTable table = new SimpleTable(
-        invalidTableName,
-        TypeFactory.createSimpleType(TypeKind.TYPE_STRING)
-    );
+    SimpleTable table =
+        new SimpleTable(invalidTableName, TypeFactory.createSimpleType(TypeKind.TYPE_STRING));
 
     Assertions.assertThrows(
         InvalidSpannerTableName.class,
-        () -> this.spannerCatalog.register(
-            table, CreateMode.CREATE_DEFAULT, CreateScope.CREATE_DEFAULT_SCOPE
-        ),
-        "Expected SpannerCatalog to fail when registering a table with an invalid name"
-    );
+        () ->
+            this.spannerCatalog.register(
+                table, CreateMode.CREATE_DEFAULT, CreateScope.CREATE_DEFAULT_SCOPE),
+        "Expected SpannerCatalog to fail when registering a table with an invalid name");
 
     assertThrows(
         InvalidSpannerTableName.class,
         () -> this.spannerCatalog.addTable(invalidTableName),
-        "Expected SpannerCatalog to fail when adding a table with an invalid name"
-    );
-
+        "Expected SpannerCatalog to fail when adding a table with an invalid name");
   }
 
   @Test
   void testRegisterTable() {
     spannerCatalog.register(
-        exampleTable, CreateMode.CREATE_DEFAULT, CreateScope.CREATE_DEFAULT_SCOPE
-    );
+        exampleTable, CreateMode.CREATE_DEFAULT, CreateScope.CREATE_DEFAULT_SCOPE);
 
     Table foundTable = assertTableExistsInCatalog(this.spannerCatalog, exampleTable);
 
     assertTrue(
         CatalogTestUtils.tableEquals(exampleTable, foundTable),
-        "Expected table created in Catalog to be equal to the original"
-    );
+        "Expected table created in Catalog to be equal to the original");
   }
 
   @Test
   void testReplaceTable() {
     spannerCatalog.register(
-        exampleTable, CreateMode.CREATE_DEFAULT, CreateScope.CREATE_DEFAULT_SCOPE
-    );
+        exampleTable, CreateMode.CREATE_DEFAULT, CreateScope.CREATE_DEFAULT_SCOPE);
 
     // Replace the table and validate it has been replaced
     spannerCatalog.register(
-        replacementTable, CreateMode.CREATE_OR_REPLACE, CreateScope.CREATE_DEFAULT_SCOPE
-    );
+        replacementTable, CreateMode.CREATE_OR_REPLACE, CreateScope.CREATE_DEFAULT_SCOPE);
 
     Table foundTable = assertTableExistsInCatalog(this.spannerCatalog, replacementTable);
 
     assertTrue(
         CatalogTestUtils.tableEquals(replacementTable, foundTable),
-        "Expected table to have been replaced"
-    );
+        "Expected table to have been replaced");
   }
 
   @Test
   void testTableAlreadyExists() {
     spannerCatalog.register(
-        exampleTable, CreateMode.CREATE_DEFAULT, CreateScope.CREATE_DEFAULT_SCOPE
-    );
+        exampleTable, CreateMode.CREATE_DEFAULT, CreateScope.CREATE_DEFAULT_SCOPE);
 
     // Try to replace the table without using CreateMode.CREATE_OR_REPLACE
     Assertions.assertThrows(
         CatalogResourceAlreadyExists.class,
-        () -> this.spannerCatalog.register(
-            replacementTable, CreateMode.CREATE_DEFAULT, CreateScope.CREATE_DEFAULT_SCOPE
-        ),
-        "Expected fail creating table that already exists"
-    );
+        () ->
+            this.spannerCatalog.register(
+                replacementTable, CreateMode.CREATE_DEFAULT, CreateScope.CREATE_DEFAULT_SCOPE),
+        "Expected fail creating table that already exists");
   }
 
   @Test
@@ -177,8 +150,7 @@ public class SpannerCatalogTest {
 
     assertTrue(
         CatalogTestUtils.tableEquals(exampleTable, foundTable),
-        "Expected table created in Catalog to be equal to the original"
-    );
+        "Expected table created in Catalog to be equal to the original");
   }
 
   @Test
@@ -197,8 +169,7 @@ public class SpannerCatalogTest {
 
     assertTrue(
         CatalogTestUtils.tableEquals(exampleTable, foundTable),
-        "Expected table created in Catalog to be equal to the original"
-    );
+        "Expected table created in Catalog to be equal to the original");
   }
 
   @Test
@@ -207,8 +178,6 @@ public class SpannerCatalogTest {
 
     assertAll(
         () -> assertNotSame(this.spannerCatalog, copy),
-        () -> assertNotSame(this.spannerCatalog.getZetaSQLCatalog(), copy.getZetaSQLCatalog())
-    );
+        () -> assertNotSame(this.spannerCatalog.getZetaSQLCatalog(), copy.getZetaSQLCatalog()));
   }
-
 }

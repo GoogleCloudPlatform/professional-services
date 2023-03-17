@@ -1,20 +1,24 @@
 # ZetaSQL Toolkit
 
-The ZetaSQL Toolkit is a library that helps users use 
-[ZetaSQL](https://github.com/google/zetasql) Java API to perform SQL analysis 
+The ZetaSQL Toolkit is a library that helps users use
+[ZetaSQL](https://github.com/google/zetasql) Java API to perform SQL analysis
 for multiple query engines.
 
 This toolkit offers built-in support for:
+
 * Building catalogs using BigQuery and Cloud Spanner resources.
-Supports tables, views, functions, table-valued functions and procedures.
-* Analyzing queries and scripts using the BigQuery or Cloud Spanner feature sets.
-* Analyzing scripts that mutate the catalog during execution, for example, through a `CREATE TABLE` statement.
+  Supports tables, views, functions, table-valued functions and procedures.
+* Analyzing queries and scripts using the BigQuery or Cloud Spanner feature
+  sets.
+* Analyzing scripts that mutate the catalog during execution, for example,
+  through a `CREATE TABLE` statement.
 
 ## Quickstart for BigQuery
 
 When analyzing queries using BigQuery semantics, you need to:
-1. Create a `BigQueryCatalog` and add resources to it. The `BigQueryCatalog` 
-supports tables, views, functions, table-valued functions and procedures.
+
+1. Create a `BigQueryCatalog` and add resources to it. The `BigQueryCatalog`
+   supports tables, views, functions, table-valued functions and procedures.
 2. Configure the ZetaSQL `AnalyzerOptions` using the BigQuery feature set.
 3. Use `ZetaSQLToolkit.analyzeStatements()` to perform analysis.
 
@@ -86,6 +90,7 @@ QueryStmt
 ## Quickstart for Cloud Spanner
 
 Similarly, when analyzing queries using Spanner semantics, you need to:
+
 1. Create a `SpannerCatalog` and add resources to it. The `SpannerCatalog`
    supports tables and views.
 2. Configure the ZetaSQL `AnalyzerOptions` using the Spanner feature set.

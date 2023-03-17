@@ -18,31 +18,31 @@ package com.google.zetasql.toolkit.catalog;
 
 import com.google.common.collect.ImmutableList;
 import com.google.zetasql.FileDescriptorSetsBuilder;
-import com.google.zetasql.SimpleCatalogProtos.SimpleCatalogProto;
-import com.google.zetasql.toolkit.catalog.bigquery.ProcedureInfo;
-import com.google.zetasql.toolkit.catalog.bigquery.TVFInfo;
-import com.google.zetasql.toolkit.catalog.exceptions.CatalogResourceAlreadyExists;
 import com.google.zetasql.Function;
 import com.google.zetasql.NotFoundException;
 import com.google.zetasql.Procedure;
 import com.google.zetasql.SimpleCatalog;
+import com.google.zetasql.SimpleCatalogProtos.SimpleCatalogProto;
 import com.google.zetasql.SimpleColumn;
 import com.google.zetasql.SimpleTable;
 import com.google.zetasql.TableValuedFunction;
 import com.google.zetasql.TableValuedFunction.FixedOutputSchemaTVF;
-import com.google.zetasql.ZetaSQLBuiltinFunctionOptions;
 import com.google.zetasql.resolvedast.ResolvedCreateStatementEnums.CreateMode;
+import com.google.zetasql.toolkit.catalog.bigquery.ProcedureInfo;
+import com.google.zetasql.toolkit.catalog.bigquery.TVFInfo;
+import com.google.zetasql.toolkit.catalog.exceptions.CatalogResourceAlreadyExists;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
 /**
- * Utility class that exposes static methods for performing various operations on
- * ZetaSQL SimpleCatalogs and related resources. Supports:
+ * Utility class that exposes static methods for performing various operations on ZetaSQL
+ * SimpleCatalogs and related resources. Supports:
+ *
  * <ul>
- *   <li> Building properly configured SimpleTable objects
- *   <li> Adding tables, functions, TVFs and procedures to SimpleCatalogs
- *   <li> Creating copies of SimpleCatalogs
+ *   <li>Building properly configured SimpleTable objects
+ *   <li>Adding tables, functions, TVFs and procedures to SimpleCatalogs
+ *   <li>Creating copies of SimpleCatalogs
  * </ul>
  */
 public class CatalogOperations {
@@ -79,14 +79,11 @@ public class CatalogOperations {
   }
 
   /** Returns true if a table named tableName exists in the SimpleCatalog */
-  private static boolean tableExists(
-      SimpleCatalog catalog,
-      String tableName
-  ) {
+  private static boolean tableExists(SimpleCatalog catalog, String tableName) {
     try {
       catalog.findTable(List.of(tableName));
       return true;
-    } catch(NotFoundException err) {
+    } catch (NotFoundException err) {
       return false;
     }
   }
@@ -106,30 +103,26 @@ public class CatalogOperations {
 
   /** Returns true if the Procedure exists in the SimpleCatalog */
   private static boolean procedureExists(SimpleCatalog catalog, Procedure procedure) {
-    return catalog
-        .getProcedureList()
-        .stream()
+    return catalog.getProcedureList().stream()
         .map(Procedure::getName)
         .anyMatch(name -> name.equalsIgnoreCase(procedure.getName()));
   }
 
   /**
-   * Gets the SimpleCatalog in which a resource should be created, based on the root catalog
-   * and the resource path.
+   * Gets the SimpleCatalog in which a resource should be created, based on the root catalog and the
+   * resource path.
    *
-   * <p> The path for the resource determines whether it should be created in the root catalog
-   * itself or in a nested catalog. For example; a resource with the path ["A.B"] should be
-   * created in the root catalog, but a resource with the path ["A", "B"] should be created
-   * in an "A" catalog nested in the root catalog.
+   * <p>The path for the resource determines whether it should be created in the root catalog itself
+   * or in a nested catalog. For example; a resource with the path ["A.B"] should be created in the
+   * root catalog, but a resource with the path ["A", "B"] should be created in an "A" catalog
+   * nested in the root catalog.
    *
    * @param rootCatalog The root SimpleCatalog the analyzer will use
    * @param resourcePath The path for the resource
    * @return The SimpleCatalog object where the resource should be created
    */
   private static SimpleCatalog getCatalogInWhichToCreateResource(
-      SimpleCatalog rootCatalog,
-      List<String> resourcePath
-  ) {
+      SimpleCatalog rootCatalog, List<String> resourcePath) {
     if (resourcePath.size() > 1) {
       String nestedCatalogName = resourcePath.get(0);
       List<String> pathSuffix = resourcePath.subList(1, resourcePath.size());
@@ -141,25 +134,24 @@ public class CatalogOperations {
   }
 
   /**
-   * Creates a table in a SimpleCatalog using the provided paths and complying with the
-   * provided CreateMode.
+   * Creates a table in a SimpleCatalog using the provided paths and complying with the provided
+   * CreateMode.
    *
    * @param rootCatalog The root SimpleCatalog in which to create the table.
    * @param tablePaths The table paths to create the table at. If multiple paths are provided,
-   * multiple copies of the table will be registered in the catalog.
+   *     multiple copies of the table will be registered in the catalog.
    * @param fullTableName The full name of the table to create.
    * @param columns The list of columns for the table
    * @param createMode The CreateMode to use
-   * @throws CatalogResourceAlreadyExists if the table already exists at any of the provided
-   * paths and CreateMode != CREATE_OR_REPLACE.
+   * @throws CatalogResourceAlreadyExists if the table already exists at any of the provided paths
+   *     and CreateMode != CREATE_OR_REPLACE.
    */
   public static void createTableInCatalog(
       SimpleCatalog rootCatalog,
       List<List<String>> tablePaths,
       String fullTableName,
       List<SimpleColumn> columns,
-      CreateMode createMode
-  ) {
+      CreateMode createMode) {
     for (List<String> tablePath : tablePaths) {
       String tableName = tablePath.get(tablePath.size() - 1);
       SimpleCatalog catalogForCreation = getCatalogInWhichToCreateResource(rootCatalog, tablePath);
@@ -167,11 +159,11 @@ public class CatalogOperations {
       boolean exists = tableExists(catalogForCreation, tableName);
       boolean replace = createMode.equals(CreateMode.CREATE_OR_REPLACE);
 
-      if(exists && replace) {
+      if (exists && replace) {
         catalogForCreation.removeSimpleTable(tableName);
       }
 
-      if(exists && !replace) {
+      if (exists && !replace) {
         throw new CatalogResourceAlreadyExists(fullTableName);
       }
 
@@ -182,45 +174,43 @@ public class CatalogOperations {
   }
 
   /**
-   * Creates a function in a SimpleCatalog using the provided paths and complying with the
-   * provided CreateMode.
+   * Creates a function in a SimpleCatalog using the provided paths and complying with the provided
+   * CreateMode.
    *
    * @param rootCatalog The root SimpleCatalog in which to create the function.
    * @param functionPaths The function paths to create the function at. If multiple paths are
-   * provided, multiple copies of the function will be registered in the catalog.
+   *     provided, multiple copies of the function will be registered in the catalog.
    * @param function The Function object representing the function that should be created
    * @param createMode The CreateMode to use
    * @throws CatalogResourceAlreadyExists if the function already exists at any of the provided
-   * paths and CreateMode != CREATE_OR_REPLACE.
+   *     paths and CreateMode != CREATE_OR_REPLACE.
    */
   public static void createFunctionInCatalog(
       SimpleCatalog rootCatalog,
       List<List<String>> functionPaths,
       Function function,
-      CreateMode createMode
-  ) {
+      CreateMode createMode) {
     for (List<String> functionPath : functionPaths) {
       String functionName = functionPath.get(functionPath.size() - 1);
-      SimpleCatalog catalogForCreation = getCatalogInWhichToCreateResource(
-          rootCatalog, functionPath
-      );
+      SimpleCatalog catalogForCreation =
+          getCatalogInWhichToCreateResource(rootCatalog, functionPath);
 
-      Function finalFunction = new Function(
-          List.of(functionName),
-          function.getGroup(),
-          function.getMode(),
-          function.getSignatureList(),
-          function.getOptions()
-      );
+      Function finalFunction =
+          new Function(
+              List.of(functionName),
+              function.getGroup(),
+              function.getMode(),
+              function.getSignatureList(),
+              function.getOptions());
 
       boolean exists = functionExists(catalogForCreation, finalFunction);
       boolean replace = createMode.equals(CreateMode.CREATE_OR_REPLACE);
 
-      if(exists && replace) {
+      if (exists && replace) {
         catalogForCreation.removeFunction(finalFunction.getFullName());
       }
 
-      if(exists && !replace) {
+      if (exists && !replace) {
         throw new CatalogResourceAlreadyExists(finalFunction.getFullName());
       }
 
@@ -229,43 +219,39 @@ public class CatalogOperations {
   }
 
   /**
-   * Creates a TVF in a SimpleCatalog using the provided paths and complying with the
-   * provided CreateMode.
+   * Creates a TVF in a SimpleCatalog using the provided paths and complying with the provided
+   * CreateMode.
    *
    * @param rootCatalog The root SimpleCatalog in which to create the function.
-   * @param functionPaths The function paths to create the TVF at. If multiple paths are
-   * provided, multiple copies of the function will be registered in the catalog.
+   * @param functionPaths The function paths to create the TVF at. If multiple paths are provided,
+   *     multiple copies of the function will be registered in the catalog.
    * @param tvfInfo The TVFInfo object representing the TVF that should be created
    * @param createMode The CreateMode to use
    * @throws CatalogResourceAlreadyExists if the function already exists at any of the provided
-   * paths and CreateMode != CREATE_OR_REPLACE.
+   *     paths and CreateMode != CREATE_OR_REPLACE.
    */
   public static void createTVFInCatalog(
       SimpleCatalog rootCatalog,
       List<List<String>> functionPaths,
       TVFInfo tvfInfo,
-      CreateMode createMode
-  ) {
+      CreateMode createMode) {
     for (List<String> functionPath : functionPaths) {
       String functionName = functionPath.get(functionPath.size() - 1);
-      SimpleCatalog catalogForCreation = getCatalogInWhichToCreateResource(
-          rootCatalog, functionPath
-      );
+      SimpleCatalog catalogForCreation =
+          getCatalogInWhichToCreateResource(rootCatalog, functionPath);
 
-      TableValuedFunction tvf = new FixedOutputSchemaTVF(
-          ImmutableList.of(functionName),
-          tvfInfo.getSignature(),
-          tvfInfo.getOutputSchema()
-      );
+      TableValuedFunction tvf =
+          new FixedOutputSchemaTVF(
+              ImmutableList.of(functionName), tvfInfo.getSignature(), tvfInfo.getOutputSchema());
 
       boolean exists = tvfExists(catalogForCreation, tvf);
       boolean replace = createMode.equals(CreateMode.CREATE_OR_REPLACE);
 
-      if(exists && replace) {
+      if (exists && replace) {
         catalogForCreation.removeTableValuedFunction(tvf.getName());
       }
 
-      if(exists && !replace) {
+      if (exists && !replace) {
         throw new CatalogResourceAlreadyExists(catalogForCreation.getFullName());
       }
 
@@ -274,42 +260,38 @@ public class CatalogOperations {
   }
 
   /**
-   * Creates a procedure in a SimpleCatalog using the provided paths and complying with the
-   * provided CreateMode.
+   * Creates a procedure in a SimpleCatalog using the provided paths and complying with the provided
+   * CreateMode.
    *
    * @param rootCatalog The root SimpleCatalog in which to create the procedure.
    * @param procedurePaths The procedure paths to create the procedure at. If multiple paths are
-   * provided, multiple copies of the procedure will be registered in the catalog.
+   *     provided, multiple copies of the procedure will be registered in the catalog.
    * @param procedureInfo The ProcedureInfo object representing the procedure that should be created
    * @param createMode The CreateMode to use
    * @throws CatalogResourceAlreadyExists if the procedure already exists at any of the provided
-   * paths and CreateMode != CREATE_OR_REPLACE.
+   *     paths and CreateMode != CREATE_OR_REPLACE.
    */
   public static void createProcedureInCatalog(
       SimpleCatalog rootCatalog,
       List<List<String>> procedurePaths,
       ProcedureInfo procedureInfo,
-      CreateMode createMode
-  ) {
+      CreateMode createMode) {
     for (List<String> procedurePath : procedurePaths) {
       String procedureName = procedurePath.get(procedurePath.size() - 1);
-      SimpleCatalog catalogForCreation = getCatalogInWhichToCreateResource(
-          rootCatalog, procedurePath
-      );
+      SimpleCatalog catalogForCreation =
+          getCatalogInWhichToCreateResource(rootCatalog, procedurePath);
 
-      Procedure procedure = new Procedure(
-          ImmutableList.of(procedureName),
-          procedureInfo.getSignature()
-      );
+      Procedure procedure =
+          new Procedure(ImmutableList.of(procedureName), procedureInfo.getSignature());
 
       boolean exists = procedureExists(catalogForCreation, procedure);
       boolean replace = createMode.equals(CreateMode.CREATE_OR_REPLACE);
 
-      if(exists && replace) {
+      if (exists && replace) {
         catalogForCreation.removeProcedure(procedure.getName());
       }
 
-      if(exists && !replace) {
+      if (exists && !replace) {
         throw new CatalogResourceAlreadyExists(procedure.getName());
       }
 
@@ -331,5 +313,4 @@ public class CatalogOperations {
     SimpleCatalogProto serialized = sourceCatalog.serialize(new FileDescriptorSetsBuilder());
     return SimpleCatalog.deserialize(serialized, ImmutableList.of());
   }
-
 }

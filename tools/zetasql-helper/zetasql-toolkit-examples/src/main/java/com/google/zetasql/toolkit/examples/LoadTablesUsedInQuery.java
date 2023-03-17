@@ -16,16 +16,16 @@
 
 package com.google.zetasql.toolkit.examples;
 
-import com.google.zetasql.toolkit.ZetaSQLToolkit;
-import com.google.zetasql.toolkit.catalog.bigquery.BigQueryCatalog;
 import com.google.zetasql.AnalyzerOptions;
 import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedStatement;
+import com.google.zetasql.toolkit.ZetaSQLToolkit;
+import com.google.zetasql.toolkit.catalog.bigquery.BigQueryCatalog;
 import com.google.zetasql.toolkit.options.BigQueryLanguageOptions;
 import java.util.Iterator;
 
 /**
- * Example showcasing how we can add to the catalog only the tables that are used in a query,
- * to have the minimum amount of tables necessary loaded in the catalog
+ * Example showcasing how we can add to the catalog only the tables that are used in a query, to
+ * have the minimum amount of tables necessary loaded in the catalog
  */
 public class LoadTablesUsedInQuery {
 
@@ -42,11 +42,9 @@ public class LoadTablesUsedInQuery {
     // Will only add bigquery-public-data.samples.wikipedia to the catalog
     catalog.addAllTablesUsedInQuery(query, options);
 
-    Iterator<ResolvedStatement> statementIterator = ZetaSQLToolkit.analyzeStatements(
-        query, options, catalog
-    );
+    Iterator<ResolvedStatement> statementIterator =
+        ZetaSQLToolkit.analyzeStatements(query, options, catalog);
 
     statementIterator.forEachRemaining(statement -> System.out.println(statement.debugString()));
   }
-
 }

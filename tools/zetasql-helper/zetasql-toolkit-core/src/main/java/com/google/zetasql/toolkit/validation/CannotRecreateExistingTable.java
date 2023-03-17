@@ -44,17 +44,16 @@ public class CannotRecreateExistingTable extends ValidatingVisitor {
   private void validateStatement(ResolvedCreateTableStmtBase createTableStmtBase) {
     var createMode = createTableStmtBase.getCreateMode();
 
-    if(!createMode.equals(ResolvedCreateStatementEnums.CreateMode.CREATE_DEFAULT)) {
+    if (!createMode.equals(ResolvedCreateStatementEnums.CreateMode.CREATE_DEFAULT)) {
       return;
     }
 
     var tableNamePath = createTableStmtBase.getNamePath();
 
-    if(this.catalogHasTable(tableNamePath)) {
+    if (this.catalogHasTable(tableNamePath)) {
       String fullTableName = String.join(".", tableNamePath);
-      String errorMessage = String.format(
-          "Cannot create table '%s': already exists", fullTableName
-      );
+      String errorMessage =
+          String.format("Cannot create table '%s': already exists", fullTableName);
       ValidationError error = new ValidationError(errorMessage, createTableStmtBase);
       this.setError(error);
     }
@@ -69,5 +68,4 @@ public class CannotRecreateExistingTable extends ValidatingVisitor {
   public void visit(ResolvedCreateTableAsSelectStmt createTableAsSelectStmt) {
     this.validateStatement(createTableAsSelectStmt);
   }
-
 }

@@ -30,8 +30,7 @@ import org.junit.jupiter.api.Test;
 public class ZetaSQLToolkitTest {
 
   private AnalyzerOptions getAnalyzerOptions() {
-    LanguageOptions languageOptions = new LanguageOptions()
-        .enableMaximumLanguageFeatures();
+    LanguageOptions languageOptions = new LanguageOptions().enableMaximumLanguageFeatures();
     languageOptions.setSupportsAllStatementKinds();
 
     AnalyzerOptions analyzerOptions = new AnalyzerOptions();
@@ -44,28 +43,22 @@ public class ZetaSQLToolkitTest {
   void testSimpleSelectStmt() {
     String stmt = "SELECT 1 AS col";
 
-    ResolvedStatement analyzedStmt = ZetaSQLToolkit
-        .analyzeStatements(stmt, getAnalyzerOptions())
-        .next();
+    ResolvedStatement analyzedStmt =
+        ZetaSQLToolkit.analyzeStatements(stmt, getAnalyzerOptions()).next();
 
     ResolvedQueryStmt queryStmt = assertInstanceOf(ResolvedQueryStmt.class, analyzedStmt);
 
-    ResolvedProjectScan projectScan = assertInstanceOf(
-        ResolvedProjectScan.class, queryStmt.getQuery()
-    );
+    ResolvedProjectScan projectScan =
+        assertInstanceOf(ResolvedProjectScan.class, queryStmt.getQuery());
     assertInstanceOf(ResolvedSingleRowScan.class, projectScan.getInputScan());
     assertEquals(1, projectScan.getColumnList().size());
     assertAll(
         () -> assertEquals("col", projectScan.getColumnList().get(0).getName()),
-        () -> assertTrue(projectScan.getColumnList().get(0).getType().isInteger())
-    );
+        () -> assertTrue(projectScan.getColumnList().get(0).getType().isInteger()));
     assertEquals(1, projectScan.getExprList().size());
 
-    ResolvedLiteral literal = assertInstanceOf(
-        ResolvedLiteral.class, projectScan.getExprList().get(0).getExpr()
-    );
+    ResolvedLiteral literal =
+        assertInstanceOf(ResolvedLiteral.class, projectScan.getExprList().get(0).getExpr());
     assertEquals(1, literal.getValue().getInt64Value());
-
   }
-
 }

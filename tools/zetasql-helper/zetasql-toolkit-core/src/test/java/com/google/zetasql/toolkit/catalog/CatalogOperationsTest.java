@@ -24,8 +24,8 @@ import com.google.zetasql.SimpleTable;
 import com.google.zetasql.TypeFactory;
 import com.google.zetasql.ZetaSQLType.TypeKind;
 import java.util.List;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 class CatalogOperationsTest {
 
@@ -33,16 +33,12 @@ class CatalogOperationsTest {
 
   private SimpleCatalog createSampleCatalog(String name) {
     SimpleCatalog catalog = new SimpleCatalog(name);
-    SimpleTable sampleTable = new SimpleTable(
-        "sample",
-        List.of(
-            new SimpleColumn(
-                "sample",
-                "column",
-                TypeFactory.createSimpleType(TypeKind.TYPE_STRING)
-            )
-        )
-    );
+    SimpleTable sampleTable =
+        new SimpleTable(
+            "sample",
+            List.of(
+                new SimpleColumn(
+                    "sample", "column", TypeFactory.createSimpleType(TypeKind.TYPE_STRING))));
     catalog.addSimpleTable(sampleTable);
     return catalog;
   }
@@ -50,9 +46,7 @@ class CatalogOperationsTest {
   @BeforeEach
   void setUp() {
     this.testCatalog = this.createSampleCatalog("catalog");
-    this.testCatalog.addSimpleCatalog(
-        this.createSampleCatalog("nested")
-    );
+    this.testCatalog.addSimpleCatalog(this.createSampleCatalog("nested"));
   }
 
   @Test
@@ -63,24 +57,23 @@ class CatalogOperationsTest {
     List<String> nestedTablePath = List.of("nested", "sample");
 
     assertAll(
-        () -> assertDoesNotThrow(
-            () -> copiedCatalog.findTable(sampleTablePath),
-            "Existing table was not found in copied catalog"
-        ),
-        () -> assertDoesNotThrow(
-            () -> copiedCatalog.findTable(nestedTablePath),
-            "Existing table was not found in copied nested catalog"
-        ),
-        () -> assertEquals(
-            "sample",
-            copiedCatalog.findTable(sampleTablePath).getName(),
-            "Table name in copied catalog didn't match original"
-        ),
-        () -> assertEquals(
-            "column",
-            copiedCatalog.findTable(sampleTablePath).getColumn(0).getName(),
-            "Column name in copied catalog didn't match original"
-        )
-    );
+        () ->
+            assertDoesNotThrow(
+                () -> copiedCatalog.findTable(sampleTablePath),
+                "Existing table was not found in copied catalog"),
+        () ->
+            assertDoesNotThrow(
+                () -> copiedCatalog.findTable(nestedTablePath),
+                "Existing table was not found in copied nested catalog"),
+        () ->
+            assertEquals(
+                "sample",
+                copiedCatalog.findTable(sampleTablePath).getName(),
+                "Table name in copied catalog didn't match original"),
+        () ->
+            assertEquals(
+                "column",
+                copiedCatalog.findTable(sampleTablePath).getColumn(0).getName(),
+                "Column name in copied catalog didn't match original"));
   }
 }

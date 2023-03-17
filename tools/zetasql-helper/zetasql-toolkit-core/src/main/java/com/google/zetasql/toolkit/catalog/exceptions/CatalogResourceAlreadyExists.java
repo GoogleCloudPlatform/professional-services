@@ -33,5 +33,4 @@ public class CatalogResourceAlreadyExists extends CatalogException {
   public String getResourceName() {
     return resourceName;
   }
-
 }

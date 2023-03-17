@@ -32,5 +32,4 @@ public abstract class ValidatingVisitor extends Visitor {
     statement.accept(this);
     return this.error;
   }
-
 }

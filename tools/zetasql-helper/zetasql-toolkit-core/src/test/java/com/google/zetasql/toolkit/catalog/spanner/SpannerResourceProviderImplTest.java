@@ -43,16 +43,12 @@ public class SpannerResourceProviderImplTest {
   @Mock(answer = Answers.RETURNS_DEEP_STUBS)
   DatabaseClient spannerClient;
 
-  SimpleTable exampleTable = new SimpleTable(
-      "table",
-      List.of(
-          new SimpleColumn(
-              "table",
-              "column",
-              TypeFactory.createSimpleType(TypeKind.TYPE_STRING)
-          )
-      )
-  );
+  SimpleTable exampleTable =
+      new SimpleTable(
+          "table",
+          List.of(
+              new SimpleColumn(
+                  "table", "column", TypeFactory.createSimpleType(TypeKind.TYPE_STRING))));
 
   @BeforeEach
   void init() {
@@ -86,9 +82,6 @@ public class SpannerResourceProviderImplTest {
     when(spannerClient.singleUse().executeQuery(any())).thenReturn(resultSet);
 
     assertThrows(
-        SpannerTablesNotFound.class,
-        () -> spannerResourceProvider.getTables(List.of("table"))
-    );
+        SpannerTablesNotFound.class, () -> spannerResourceProvider.getTables(List.of("table")));
   }
-
 }

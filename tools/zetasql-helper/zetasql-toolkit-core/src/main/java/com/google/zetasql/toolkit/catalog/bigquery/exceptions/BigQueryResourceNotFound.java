@@ -28,5 +28,4 @@ public class BigQueryResourceNotFound extends BigQueryCatalogException {
   public String getReference() {
     return reference;
   }
-
 }

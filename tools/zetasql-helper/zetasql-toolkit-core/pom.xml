@@ -2,17 +2,32 @@
 <project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xmlns="http://maven.apache.org/POM/4.0.0"
     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
-  <groupId>com.google.zetasql.toolkit</groupId>
   <artifactId>zetasql-toolkit-core</artifactId>
-  <version>0.1-SNAPSHOT</version>
-
-  <properties>
-    <maven.compiler.source>11</maven.compiler.source>
-    <maven.compiler.target>11</maven.compiler.target>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-  </properties>
-
+  <build>
+    <plugins>
+      <plugin>
+        <artifactId>antlr4-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <goals>
+              <goal>antlr4</goal>
+            </goals>
+            <id>antlr</id>
+          </execution>
+        </executions>
+        <groupId>org.antlr</groupId>
+        <version>4.11.1</version>
+      </plugin>
+      <plugin>
+        <artifactId>jib-maven-plugin</artifactId>
+        <configuration>
+          <skip>true</skip>
+        </configuration>
+        <groupId>com.google.cloud.tools</groupId>
+        <version>3.3.1</version>
+      </plugin>
+    </plugins>
+  </build>
   <dependencies>
     <!-- https://mvnrepository.com/artifact/com.google.zetasql/zetasql-client -->
     <dependency>
@@ -34,8 +49,8 @@
     </dependency>
     <!-- https://mvnrepository.com/artifact/org.antlr/antlr4-runtime -->
     <dependency>
-      <groupId>org.antlr</groupId>
       <artifactId>antlr4-runtime</artifactId>
+      <groupId>org.antlr</groupId>
       <version>4.12.0</version>
     </dependency>
     <!-- https://mvnrepository.com/artifact/com.google.cloud/google-cloud-bigquery -->
@@ -50,69 +65,54 @@
     </dependency>
     <!-- https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter -->
     <dependency>
-      <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter</artifactId>
+      <groupId>org.junit.jupiter</groupId>
       <scope>test</scope>
     </dependency>
     <!-- https://mvnrepository.com/artifact/org.mockito/mockito-core -->
     <dependency>
-      <groupId>org.mockito</groupId>
       <artifactId>mockito-core</artifactId>
-      <version>5.1.1</version>
+      <groupId>org.mockito</groupId>
       <scope>test</scope>
+      <version>5.1.1</version>
     </dependency>
     <!-- https://mvnrepository.com/artifact/org.mockito/mockito-junit-jupiter -->
     <dependency>
-      <groupId>org.mockito</groupId>
       <artifactId>mockito-junit-jupiter</artifactId>
-      <version>5.1.1</version>
+      <groupId>org.mockito</groupId>
       <scope>test</scope>
+      <version>5.1.1</version>
     </dependency>
   </dependencies>
-
   <dependencyManagement>
     <dependencies>
       <dependency>
         <artifactId>libraries-bom</artifactId>
         <groupId>com.google.cloud</groupId>
-        <version>25.4.0</version>
         <scope>import</scope>
         <type>pom</type>
+        <version>25.4.0</version>
       </dependency>
       <dependency>
-        <groupId>org.junit</groupId>
         <artifactId>junit-bom</artifactId>
-        <version>5.9.2</version>
-        <type>pom</type>
+        <groupId>org.junit</groupId>
         <scope>import</scope>
+        <type>pom</type>
+        <version>5.9.2</version>
       </dependency>
     </dependencies>
   </dependencyManagement>
 
-  <build>
-    <plugins>
-      <plugin>
-        <groupId>org.antlr</groupId>
-        <artifactId>antlr4-maven-plugin</artifactId>
-        <version>4.11.1</version>
-        <executions>
-          <execution>
-            <id>antlr</id>
-            <goals>
-              <goal>antlr4</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <groupId>com.google.cloud.tools</groupId>
-        <artifactId>jib-maven-plugin</artifactId>
-        <version>3.3.1</version>
-        <configuration>
-          <skip>true</skip>
-        </configuration>
-      </plugin>
-    </plugins>
-  </build>
+  <groupId>com.google.zetasql.toolkit</groupId>
+
+  <modelVersion>4.0.0</modelVersion>
+
+  <properties>
+    <maven.compiler.source>11</maven.compiler.source>
+    <maven.compiler.target>11</maven.compiler.target>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>
+
+  <version>0.1-SNAPSHOT</version>
 
 </project>

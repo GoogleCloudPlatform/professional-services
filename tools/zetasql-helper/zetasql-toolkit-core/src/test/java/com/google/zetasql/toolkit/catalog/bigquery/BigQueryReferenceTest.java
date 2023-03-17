@@ -29,18 +29,16 @@ public class BigQueryReferenceTest {
     String datasetId = "dataset";
     String resourceName = "resource";
 
-    BigQueryReference reference = assertDoesNotThrow(
-        () -> BigQueryReference.from(
-          projectId,
-          String.format("%s.%s.%s", projectId, datasetId, resourceName)
-      )
-    );
+    BigQueryReference reference =
+        assertDoesNotThrow(
+            () ->
+                BigQueryReference.from(
+                    projectId, String.format("%s.%s.%s", projectId, datasetId, resourceName)));
 
     assertAll(
         () -> assertEquals(projectId, reference.getProjectId()),
         () -> assertEquals(datasetId, reference.getDatasetId()),
-        () -> assertEquals(resourceName, reference.getResourceName())
-    );
+        () -> assertEquals(resourceName, reference.getResourceName()));
   }
 
   @Test
@@ -49,31 +47,24 @@ public class BigQueryReferenceTest {
     String datasetId = "dataset";
     String resourceName = "resource";
 
-    BigQueryReference reference = assertDoesNotThrow(
-        () -> BigQueryReference.from(
-            projectId,
-            String.format("%s.%s", datasetId, resourceName)
-        )
-    );
+    BigQueryReference reference =
+        assertDoesNotThrow(
+            () ->
+                BigQueryReference.from(projectId, String.format("%s.%s", datasetId, resourceName)));
 
     assertAll(
         () -> assertEquals(projectId, reference.getProjectId()),
         () -> assertEquals(datasetId, reference.getDatasetId()),
-        () -> assertEquals(resourceName, reference.getResourceName())
-    );
+        () -> assertEquals(resourceName, reference.getResourceName()));
   }
 
   @Test
   void testInvalidReferences() {
     assertThrows(
         InvalidBigQueryReference.class,
-        () -> BigQueryReference.from("project", "not.a.valid.ref.string")
-    );
+        () -> BigQueryReference.from("project", "not.a.valid.ref.string"));
 
     assertThrows(
-        InvalidBigQueryReference.class,
-        () -> BigQueryReference.from("project", "notvalid")
-    );
+        InvalidBigQueryReference.class, () -> BigQueryReference.from("project", "notvalid"));
   }
-
 }

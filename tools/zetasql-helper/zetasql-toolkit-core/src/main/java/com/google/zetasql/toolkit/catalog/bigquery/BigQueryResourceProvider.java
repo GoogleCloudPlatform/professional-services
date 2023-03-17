@@ -20,18 +20,16 @@ import com.google.zetasql.Function;
 import com.google.zetasql.SimpleTable;
 import java.util.List;
 
-/**
- * Interface for an object that can find and provide BigQuery resources
- */
+/** Interface for an object that can find and provide BigQuery resources */
 public interface BigQueryResourceProvider {
 
   /**
    * Gets a set of BigQuery tables or views and returns them as {@link SimpleTable}s
    *
-   * @param projectId The default BigQuery project id. If a table or view reference does not
-   * specify the project, the default project is used.
-   * @param tableReferences The list of table or view references. Each reference should
-   * be in the format "project.dataset.table" or "dataset.table".
+   * @param projectId The default BigQuery project id. If a table or view reference does not specify
+   *     the project, the default project is used.
+   * @param tableReferences The list of table or view references. Each reference should be in the
+   *     format "project.dataset.table" or "dataset.table".
    * @return The list of SimpleTables representing the requested BigQuery tables.
    */
   List<SimpleTable> getTables(String projectId, List<String> tableReferences);
@@ -56,10 +54,10 @@ public interface BigQueryResourceProvider {
   /**
    * Gets a set of BigQuery functions and returns them as {@link Function}s
    *
-   * @param projectId The default BigQuery project id. If a function reference does not
-   * specify the project, the default project is used.
-   * @param functionReferences The list of function references. Each reference should
-   * be in the format "project.dataset.function" or "dataset.function".
+   * @param projectId The default BigQuery project id. If a function reference does not specify the
+   *     project, the default project is used.
+   * @param functionReferences The list of function references. Each reference should be in the
+   *     format "project.dataset.function" or "dataset.function".
    * @return The list of Functions representing the requested BigQuery functions.
    */
   List<Function> getFunctions(String projectId, List<String> functionReferences);
@@ -84,10 +82,10 @@ public interface BigQueryResourceProvider {
   /**
    * Gets a set of BigQuery TVFs and returns them as {@link TVFInfo}s
    *
-   * @param projectId The default BigQuery project id. If a function reference does not
-   * specify the project, the default project is used.
-   * @param functionReferences The list of function references. Each reference should
-   * be in the format "project.dataset.function" or "dataset.function".
+   * @param projectId The default BigQuery project id. If a function reference does not specify the
+   *     project, the default project is used.
+   * @param functionReferences The list of function references. Each reference should be in the
+   *     format "project.dataset.function" or "dataset.function".
    * @return The list of TVFInfo representing the requested BigQuery functions.
    */
   List<TVFInfo> getTVFs(String projectId, List<String> functionReferences);
@@ -112,10 +110,10 @@ public interface BigQueryResourceProvider {
   /**
    * Gets a set of BigQuery procedures and returns them as {@link ProcedureInfo}s
    *
-   * @param projectId The default BigQuery project id. If a procedure reference does not
-   * specify the project, the default project is used.
-   * @param procedureReferences The list of procedure references. Each reference should
-   * be in the format "project.dataset.procedure" or "dataset.procedure".
+   * @param projectId The default BigQuery project id. If a procedure reference does not specify the
+   *     project, the default project is used.
+   * @param procedureReferences The list of procedure references. Each reference should be in the
+   *     format "project.dataset.procedure" or "dataset.procedure".
    * @return The list of ProcedureInfo representing the requested BigQuery procedures.
    */
   List<ProcedureInfo> getProcedures(String projectId, List<String> procedureReferences);
@@ -136,5 +134,4 @@ public interface BigQueryResourceProvider {
    * @return The list of ProcedureInfo representing the procedures in the project
    */
   List<ProcedureInfo> getAllProceduresInProject(String projectId);
-
 }
