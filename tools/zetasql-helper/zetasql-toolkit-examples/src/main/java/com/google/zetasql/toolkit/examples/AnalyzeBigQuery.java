@@ -27,7 +27,7 @@ import java.util.Iterator;
  * Example showcasing the basic usage of the {@link BigQueryCatalog}, used for
  * analyzing queries while using BigQuery catalog semantics.
  */
-public class AnalyzeWithBigQueryCatalog {
+public class AnalyzeBigQuery {
 
   public static void main(String[] args) {
     // Analyzing a query that uses bigquery-public-data tables
