@@ -3,13 +3,23 @@
 ## Objective
 Orchestrator to run Notebooks on Dataproc Serverless via Cloud Composer
 
-## What is Dataproc Serverless?
+### What is Dataproc Serverless?
 
 Dataproc Serverless lets you run Spark batch workloads without requiring you to provision and manage your own cluster. You can specify workload parameters, and then submit the workload to the Dataproc Serverless service. The service will run the workload on a managed compute infrastructure, autoscaling resources as needed. Dataproc Serverless charges apply only to the time when the workload is executing.
 
+### Why Dataproc Serverless?
 With Dataproc Serverless, You can run Notebooks and streamline the end-to-end data science workflow without provisioning a cluster. Also, you can run Spark batch workloads without provisioning and managing the clusters and servers. This improves developer productivity and decreases infrastructure costs. A Fortune 10 retailer uses Dataproc Serverless for optimizing retail assortment space for 500M+ items.  
 
 For more details, check this [document](https://cloud.google.com/dataproc-serverless/docs/overview)
+
+## Architecture Diagram for User Scenario
+<img width="780" alt="Screenshot 2023-03-21 at 3 09 32 PM" src="https://user-images.githubusercontent.com/123537947/226715775-074cb542-2b6e-4164-b039-442107f10615.png">
+Two Step Migration Process for typical customer scenario around this example:  
+
+1. Migrate and stage Spark Notebooks that were in legacy data lake to  GCS then
+2. Set up orchestration for deploying the staged Notebooks on Dataproc Serverless as a Spark batch job 
+
+(This example does not cover the development process, but you can check out more details [here](https://cloud.google.com/vertex-ai/docs/pipelines/dataproc-component) for utilizing [Vertex AI](https://cloud.google.com/vertex-ai) for interactive development)
 
 ## File Directory Structure
 
@@ -21,7 +31,7 @@ For more details, check this [document](https://cloud.google.com/dataproc-server
     ├── notebooks 
     │   ├── datasets/                   electric_vehicle_population.csv
     │   ├── jupyter/                    spark_notebook.ipynb
-    │   ├── jupyter/output 
+    │   ├── jupyter/output              spark_notebook_outbook.ipynb
     
 ## File Details    
 ### composer_input
