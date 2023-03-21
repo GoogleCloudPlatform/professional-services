@@ -62,7 +62,7 @@ Two Step Migration Process for typical customer scenario around this example:
         Sample Notebook Output
         ![Screenshot 2023-03-16 at 2 20 35 AM](https://user-images.githubusercontent.com/123537947/225531950-dccde663-fade-413d-9600-eb59ab669800.png)
 
-* **electric_vehicle_population.csv** : this [dataset](https://catalog.data.gov/dataset/electric-vehicle-population-data) shows the Battery Electric Vehicles (BEVs) and Plug-in Hybrid Electric Vehicles (PHEVs) that are currently registered through Washington State Department of Licensing (DOL).
+* **electric_vehicle_population.csv** : this truncated [dataset](https://catalog.data.gov/dataset/electric-vehicle-population-data) shows the Battery Electric Vehicles (BEVs) and Plug-in Hybrid Electric Vehicles (PHEVs) that are currently registered through Washington State Department of Licensing (DOL).
 
 # I) Orchestrating End to End Notebook Execution workflow in Cloud Composer 
 
