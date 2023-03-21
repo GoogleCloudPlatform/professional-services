@@ -1,4 +1,4 @@
-# Copyright 2022 Google LLC
+# Copyright 2023 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ permissions:
 
 env:
   PROJECT_ID: ${project_id}
-  #SA used to authenticate in GCP through Workload Identity Federation 
+  # SA used to authenticate in GCP through Workload Identity Federation 
   SERVICE_ACCOUNT: sa-github@${project_id}.iam.gserviceaccount.com
   REGION: europe-west4
   DOCKER_REPO: europe-west4-docker.pkg.dev/${project_id}/docker-repo
