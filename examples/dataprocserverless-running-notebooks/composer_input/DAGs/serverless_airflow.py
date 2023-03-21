@@ -27,7 +27,6 @@ import uuid
 
 from airflow import models
 from airflow.models import Variable
-from airflow.utils import trigger_rule
 from airflow.providers.google.cloud.operators.dataproc import DataprocCreateBatchOperator
 
 yesterday = datetime.datetime.combine(
