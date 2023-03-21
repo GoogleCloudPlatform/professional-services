@@ -49,6 +49,13 @@ locals {
     docker_repo = module.mlops.github.DOCKER_REPO
   })
 
+  gh_deploy_yaml = templatefile("${path.module}/../../.github/workflows/deploy.yml.TEMPLATE", {
+    wip         = module.mlops.github.WORKLOAD_ID_PROVIDER,
+    project_id  = module.mlops.github.PROJECT_ID,
+    sa          = module.mlops.github.SERVICE_ACCOUNT,
+    docker_repo = module.mlops.github.DOCKER_REPO
+  })
+
   pipeline_deploy = templatefile("${path.module}/../../build/pipeline-deployment.yaml.TEMPLATE", {
     project_id    = module.mlops.github.PROJECT_ID,
     region        = var.region,
@@ -105,6 +112,10 @@ resource "local_file" "run_yml" {
   content  = local.gh_run_yaml
 }
 
+resource "local_file" "deploy_yml" {
+  filename = "${path.module}/../../.github/workflows/deploy.yml"
+  content  = local.gh_deploy_yaml
+}
 
 resource "local_file" "deployment_yml" {
   filename = "${path.module}/../../build/pipeline-deployment.yaml"

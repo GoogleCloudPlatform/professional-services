@@ -27,11 +27,19 @@ variable "dataset_name" {
   default     = null
 }
 
-variable "group_iam" {
-  description = "Authoritative IAM binding for organization groups, in {GROUP_EMAIL => [ROLES]} format."
-  type        = map(list(string))
-  default     = {}
-  nullable    = false
+variable "groups" {
+  description = "Name of the groups (name@domain.org) to apply IAM permissions."
+  type = object({
+    gcp-ml-ds     = string
+    gcp-ml-eng    = string
+    gcp-ml-viewer = string
+  })
+  default = {
+    gcp-ml-ds     = null
+    gcp-ml-eng    = null
+    gcp-ml-viewer = null
+  }
+  nullable = false
 }
 
 variable "github" {

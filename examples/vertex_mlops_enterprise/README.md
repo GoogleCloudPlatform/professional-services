@@ -1,7 +1,8 @@
 # ML Ops with Vertex AI for enterprises
 
 Enterprises frequently have specific requirements, especially around security and scale, that are 
-often not addressed by other examples. In this example we demonstrate machine learning use case implementation that respects typical security requirements, and that includes that automation to 
+often not addressed by other examples. In this example we demonstrate machine learning use case 
+implementation that respects typical security requirements, and that includes that automation to 
 allow larger organizations achieve scale in terms of number of models.
 
 ## Contents of this example
@@ -14,6 +15,11 @@ We provide three notebooks to cover the three processes that we typically observ
 
 Each of the notebooks provides detailed instructions on prerequisites for their execution and they should be self-explanatory.
 
+Once you have reviewed the notebooks, you can go on with these advanced steps to set up the automated environments and the CI/CD process using Github.
+
+1. [Environments](doc/01-ENVIRONMENTS.md) covers how to automate the environments deployments using Terraform.
+1. [GIT Setup](doc/02-GIT_SETUP.md) covers how to configure a Github repo to be used for the CI/CD process.
+1. [03-prediction.ipynb](doc/03-MLOPS.md) cover test the automated MLOps end2end process.
 
 <!-- CONTRIBUTING -->
 ## Contributing
