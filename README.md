@@ -188,6 +188,7 @@ them to fit your particular use case.
     separate single node cluster to look at Spark and YARN History UIs.
 *   [Dataproc Lifecycle Management via Composer](examples/dataproc-lifecycle-via-composer) - Ephemeral Dataproc lifecycle management and resources optimization via Composer, Terraform template to deploy Composer and additional reqs, Dynamically generated DAGs from jobs config files.
 *   [Dataproc Running Notebooks](examples/dataproc-running-notebooks) - Orchestrating the workflow of running Jupyter Notebooks on a Dataproc cluser via PySpark job
+*   [Dataproc Serverless Running Notebooks](examples/dataprocserverless-running-notebooks) - Orchestrating the workflow of running Jupyter Notebooks on Dataproc Serverless via PySpark job
 *   [dbt-on-cloud-composer](examples/dbt-on-cloud-composer) - Example of using
     dbt to manage BigQuery data pipelines, utilizing Cloud Composer to run and
     schedule the dbt runs.
