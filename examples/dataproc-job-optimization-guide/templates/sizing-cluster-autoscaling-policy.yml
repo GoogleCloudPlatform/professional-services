@@ -1,0 +1,12 @@
+workerConfig:
+  minInstances: 2
+  maxInstances: 2
+secondaryWorkerConfig:
+  minInstances: 0
+  maxInstances: 100
+basicAlgorithm:
+  cooldownPeriod: 2m
+  yarnConfig:
+    scaleUpFactor: 1.0
+    scaleDownFactor: 1.0
+    gracefulDecommissionTimeout: 1h

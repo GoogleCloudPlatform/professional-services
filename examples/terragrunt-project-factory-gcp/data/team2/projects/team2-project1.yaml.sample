@@ -1,0 +1,15 @@
+# GCP Folder Id of where to create projects
+labels:
+  department: engineering
+  application: abc
+
+# [opt] APIs to enable on the project.
+services:
+  - compute.googleapis.com
+  - cloudresourcemanager.googleapis.com
+  - dns.googleapis.com
+  - accesscontextmanager.googleapis.com
+  - osconfig.googleapis.com
+  - iap.googleapis.com
+  - sqladmin.googleapis.com
+  - servicenetworking.googleapis.com
