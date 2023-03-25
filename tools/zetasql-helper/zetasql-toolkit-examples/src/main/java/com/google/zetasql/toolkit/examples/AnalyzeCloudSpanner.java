@@ -17,7 +17,7 @@
 package com.google.zetasql.toolkit.examples;
 
 import com.google.zetasql.AnalyzerOptions;
-import com.google.zetasql.toolkit.ZetaSQLToolkit;
+import com.google.zetasql.toolkit.ZetaSQLToolkitAnalyzer;
 import com.google.zetasql.toolkit.catalog.spanner.SpannerCatalog;
 import com.google.zetasql.toolkit.options.SpannerLanguageOptions;
 
@@ -51,7 +51,8 @@ public class AnalyzeCloudSpanner {
     options.setLanguageOptions(SpannerLanguageOptions.get());
 
     // Step 5: Run the analysis
-    ZetaSQLToolkit.analyzeStatements(query, options, catalog)
-        .forEachRemaining(statement -> System.out.println(statement.debugString()));
+    ZetaSQLToolkitAnalyzer analyzer = new ZetaSQLToolkitAnalyzer(options);
+    analyzer.analyzeStatements(query, catalog)
+            .forEachRemaining(statement -> System.out.println(statement.debugString()));
   }
 }

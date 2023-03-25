@@ -18,9 +18,10 @@ package com.google.zetasql.toolkit.examples;
 
 import com.google.zetasql.AnalyzerOptions;
 import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedStatement;
-import com.google.zetasql.toolkit.ZetaSQLToolkit;
+import com.google.zetasql.toolkit.ZetaSQLToolkitAnalyzer;
 import com.google.zetasql.toolkit.catalog.bigquery.BigQueryCatalog;
 import com.google.zetasql.toolkit.options.BigQueryLanguageOptions;
+
 import java.util.Iterator;
 
 /**
@@ -32,19 +33,19 @@ public class LoadTablesUsedInQuery {
   public static void main(String[] args) {
     String query =
         "INSERT INTO `bigquery-public-data.samples.wikipedia` (title) VALUES ('random title');\n"
-            + "SELECT * FROM `bigquery-public-data.samples.wikipedia` WHERE title = 'random title';";
+                + "SELECT * FROM `bigquery-public-data.samples.wikipedia` WHERE title = 'random title';";
 
-    BigQueryCatalog catalog = new BigQueryCatalog("bigquery-public-data");
+      BigQueryCatalog catalog = new BigQueryCatalog("bigquery-public-data");
 
-    AnalyzerOptions options = new AnalyzerOptions();
-    options.setLanguageOptions(BigQueryLanguageOptions.get());
+      AnalyzerOptions options = new AnalyzerOptions();
+      options.setLanguageOptions(BigQueryLanguageOptions.get());
 
-    // Will only add bigquery-public-data.samples.wikipedia to the catalog
-    catalog.addAllTablesUsedInQuery(query, options);
+      // Will only add bigquery-public-data.samples.wikipedia to the catalog
+      catalog.addAllTablesUsedInQuery(query, options);
 
-    Iterator<ResolvedStatement> statementIterator =
-        ZetaSQLToolkit.analyzeStatements(query, options, catalog);
+      ZetaSQLToolkitAnalyzer analyzer = new ZetaSQLToolkitAnalyzer(options);
+      Iterator<ResolvedStatement> statementIterator = analyzer.analyzeStatements(query, catalog);
 
-    statementIterator.forEachRemaining(statement -> System.out.println(statement.debugString()));
+      statementIterator.forEachRemaining(statement -> System.out.println(statement.debugString()));
   }
 }

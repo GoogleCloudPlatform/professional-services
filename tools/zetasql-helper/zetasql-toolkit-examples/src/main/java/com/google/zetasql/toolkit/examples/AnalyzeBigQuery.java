@@ -18,9 +18,10 @@ package com.google.zetasql.toolkit.examples;
 
 import com.google.zetasql.AnalyzerOptions;
 import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedStatement;
-import com.google.zetasql.toolkit.ZetaSQLToolkit;
+import com.google.zetasql.toolkit.ZetaSQLToolkitAnalyzer;
 import com.google.zetasql.toolkit.catalog.bigquery.BigQueryCatalog;
 import com.google.zetasql.toolkit.options.BigQueryLanguageOptions;
+
 import java.util.Iterator;
 
 /**
@@ -54,10 +55,10 @@ public class AnalyzeBigQuery {
     AnalyzerOptions options = new AnalyzerOptions();
     options.setLanguageOptions(BigQueryLanguageOptions.get());
 
-    // Step 4: Use ZetaSQLHelper.analyzeStatements to get an iterator of the ResolvedStatements
-    // that result from running the analyzer
-    Iterator<ResolvedStatement> statementIterator =
-        ZetaSQLToolkit.analyzeStatements(query, options, catalog);
+    // Step 4: Use the ZetaSQLToolkitAnalyzer to get an iterator of the ResolvedStatements
+    // that result from running the analysis
+    ZetaSQLToolkitAnalyzer analyzer = new ZetaSQLToolkitAnalyzer(options);
+    Iterator<ResolvedStatement> statementIterator = analyzer.analyzeStatements(query, catalog);
 
     // Step 5: Consume the previous iterator and use the ResolvedStatements however you need
     statementIterator.forEachRemaining(statement -> System.out.println(statement.debugString()));

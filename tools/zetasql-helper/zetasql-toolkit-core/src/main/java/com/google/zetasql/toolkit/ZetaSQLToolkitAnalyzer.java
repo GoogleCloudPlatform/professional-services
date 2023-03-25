@@ -25,14 +25,13 @@ import com.google.zetasql.toolkit.catalog.CatalogWrapper;
 import com.google.zetasql.toolkit.catalog.basic.BasicCatalogWrapper;
 import com.google.zetasql.toolkit.catalog.bigquery.BigQueryCatalog;
 import com.google.zetasql.toolkit.catalog.spanner.SpannerCatalog;
-import com.google.zetasql.toolkit.validation.ValidatingVisitor;
-import com.google.zetasql.toolkit.validation.ValidationError;
+import com.google.zetasql.toolkit.usage.UsageTracker;
+import com.google.zetasql.toolkit.usage.UsageTrackerImpl;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Optional;
 
 /**
- * Primary class exposed by the ZetaSQL Toolkit to analyze and validate statements.
+ * Primary class exposed by the ZetaSQL Toolkit to perform SQL analysis.
  *
  * <p>It exposes methods to analyze statements using an empty catalog, an existing {@link
  * SimpleCatalog} or a {@link CatalogWrapper} implementation (such as the {@link BigQueryCatalog} or
@@ -43,12 +42,34 @@ import java.util.Optional;
  * SQL scripts that, for example, create a temp table and later query said temp table. This feature
  * supports Tables, Views, Functions, Table Valued Functions and Procedures.
  *
- * <p>Additionally, it exposes methods to validate {@link ResolvedStatement}s using {@link
- * ValidatingVisitor}s.
  */
-public class ZetaSQLToolkit {
+public class ZetaSQLToolkitAnalyzer {
 
-  private ZetaSQLToolkit() {}
+  private final AnalyzerOptions analyzerOptions;
+  private final UsageTracker usageTracker;
+
+  /**
+   * Constructs a ZetaSQLToolkitAnalyzer using the provided {@link AnalyzerOptions}
+   *
+   * @param analyzerOptions The AnalyzerOptions that should be used when performing analysis
+   */
+  public ZetaSQLToolkitAnalyzer(AnalyzerOptions analyzerOptions) {
+    this(analyzerOptions, new UsageTrackerImpl());
+  }
+
+  /**
+   * Constructs a ZetaSQLToolkitAnalyzer using the provided {@link AnalyzerOptions} and
+   * {@link UsageTracker}.
+   *
+   * <p> Package-private, only used internally and for testing.
+   *
+   * @param analyzerOptions The AnalyzerOptions that should be used when performing analysis
+   * @param usageTracker The UsageTracker used for tracking tool usage
+   */
+  ZetaSQLToolkitAnalyzer(AnalyzerOptions analyzerOptions, UsageTracker usageTracker) {
+    this.analyzerOptions = analyzerOptions;
+    this.usageTracker = usageTracker;
+  }
 
   /**
    * Analyze a SQL query or script, starting with an empty catalog.
@@ -56,14 +77,12 @@ public class ZetaSQLToolkit {
    * <p>This method uses the {@link BasicCatalogWrapper} for maintaining the catalog. To follow the
    * semantics of a particular SQL engine (e.g. BigQuery or Spanner),
    *
-   * @see #analyzeStatements(String, AnalyzerOptions, CatalogWrapper).
+   * @see #analyzeStatements(String, CatalogWrapper).
    * @param query The SQL query or script to analyze
-   * @param options The {@link AnalyzerOptions} to use
    * @return An iterator of the resulting {@link ResolvedStatement}s
    */
-  public static Iterator<ResolvedStatement> analyzeStatements(
-      String query, AnalyzerOptions options) {
-    return analyzeStatements(query, options, new BasicCatalogWrapper());
+  public Iterator<ResolvedStatement> analyzeStatements(String query) {
+    return this.analyzeStatements(query, new BasicCatalogWrapper());
   }
 
   /**
@@ -72,15 +91,13 @@ public class ZetaSQLToolkit {
    * <p>This method uses the {@link BasicCatalogWrapper} for maintaining the catalog. To follow the
    * semantics of a particular SQL engine (e.g. BigQuery or Spanner),
    *
-   * @see #analyzeStatements(String, AnalyzerOptions, CatalogWrapper).
+   * @see #analyzeStatements(String, CatalogWrapper).
    * @param query The SQL query or script to analyze
-   * @param options The {@link AnalyzerOptions} to use
    * @param catalog The SimpleCatalog to use
    * @return An iterator of the resulting {@link ResolvedStatement}s
    */
-  public static Iterator<ResolvedStatement> analyzeStatements(
-      String query, AnalyzerOptions options, SimpleCatalog catalog) {
-    return analyzeStatements(query, options, new BasicCatalogWrapper(catalog));
+  public Iterator<ResolvedStatement> analyzeStatements(String query, SimpleCatalog catalog) {
+    return this.analyzeStatements(query, new BasicCatalogWrapper(catalog));
   }
 
   /**
@@ -92,12 +109,12 @@ public class ZetaSQLToolkit {
    * implementation.
    *
    * @param query The SQL query or script to analyze
-   * @param options The {@link AnalyzerOptions} to use
    * @param catalog The CatalogWrapper implementation to use when managing the catalog
    * @return An iterator of the resulting {@link ResolvedStatement}s
    */
-  public static Iterator<ResolvedStatement> analyzeStatements(
-      String query, AnalyzerOptions options, CatalogWrapper catalog) {
+  public Iterator<ResolvedStatement> analyzeStatements(String query, CatalogWrapper catalog) {
+    this.usageTracker.trackUsage();
+
     ParseResumeLocation parseResumeLocation = new ParseResumeLocation(query);
     CatalogUpdaterVisitor catalogUpdaterVisitor = new CatalogUpdaterVisitor(catalog);
 
@@ -122,7 +139,7 @@ public class ZetaSQLToolkit {
 
         ResolvedStatement statement =
             Analyzer.analyzeNextStatement(
-                parseResumeLocation, options, catalog.getZetaSQLCatalog());
+                parseResumeLocation, analyzerOptions, catalog.getZetaSQLCatalog());
 
         this.previous = Optional.of(statement);
 
@@ -131,40 +148,4 @@ public class ZetaSQLToolkit {
     };
   }
 
-  /**
-   * Applies a set of validations to the provided {@link ResolvedStatement}. Validations are
-   * implemented using {@link ValidatingVisitor}s.
-   *
-   * @param statement The ResolvedStatement to validate
-   * @param validations The list of validations tp apply
-   * @throws ValidationError if any validations fail
-   */
-  public static void validateStatement(
-      ResolvedStatement statement, List<ValidatingVisitor> validations) throws ValidationError {
-
-    for (ValidatingVisitor validation : validations) {
-      Optional<ValidationError> maybeError = validation.validate(statement);
-      if (maybeError.isPresent()) {
-        throw maybeError.get();
-      }
-    }
-  }
-
-  /**
-   * Iterates the provided iterator of {@link ResolvedStatement}s and applied a set of validations
-   * to each of them.
-   *
-   * @see #validateStatement(ResolvedStatement, List)
-   * @param statementIterator The iterator of ResolvedStatements to validate
-   * @param validations The list of validations tp apply
-   * @throws ValidationError if any validations fail
-   */
-  public static void validateStatements(
-      Iterator<ResolvedStatement> statementIterator, List<ValidatingVisitor> validations)
-      throws ValidationError {
-
-    while (statementIterator.hasNext()) {
-      validateStatement(statementIterator.next(), validations);
-    }
-  }
 }

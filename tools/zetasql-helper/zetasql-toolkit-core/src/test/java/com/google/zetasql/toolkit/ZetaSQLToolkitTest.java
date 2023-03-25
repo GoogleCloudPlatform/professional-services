@@ -16,35 +16,35 @@
 
 package com.google.zetasql.toolkit;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 import com.google.zetasql.AnalyzerOptions;
-import com.google.zetasql.LanguageOptions;
-import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedLiteral;
-import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedProjectScan;
-import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedQueryStmt;
-import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedSingleRowScan;
-import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedStatement;
+import com.google.zetasql.resolvedast.ResolvedNodes.*;
+import com.google.zetasql.toolkit.options.BigQueryLanguageOptions;
+import com.google.zetasql.toolkit.usage.UsageTracker;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.mock;
 
 public class ZetaSQLToolkitTest {
 
-  private AnalyzerOptions getAnalyzerOptions() {
-    LanguageOptions languageOptions = new LanguageOptions().enableMaximumLanguageFeatures();
-    languageOptions.setSupportsAllStatementKinds();
+  private ZetaSQLToolkitAnalyzer analyzer;
+
+  @BeforeEach
+  void init() {
+    UsageTracker mockUsageTracker = mock(UsageTracker.class);
 
     AnalyzerOptions analyzerOptions = new AnalyzerOptions();
-    analyzerOptions.setLanguageOptions(languageOptions);
+    analyzerOptions.setLanguageOptions(BigQueryLanguageOptions.get());
 
-    return analyzerOptions;
+    this.analyzer = new ZetaSQLToolkitAnalyzer(analyzerOptions, mockUsageTracker);
   }
 
   @Test
   void testSimpleSelectStmt() {
     String stmt = "SELECT 1 AS col";
 
-    ResolvedStatement analyzedStmt =
-        ZetaSQLToolkit.analyzeStatements(stmt, getAnalyzerOptions()).next();
+    ResolvedStatement analyzedStmt = this.analyzer.analyzeStatements(stmt).next();
 
     ResolvedQueryStmt queryStmt = assertInstanceOf(ResolvedQueryStmt.class, analyzedStmt);
 

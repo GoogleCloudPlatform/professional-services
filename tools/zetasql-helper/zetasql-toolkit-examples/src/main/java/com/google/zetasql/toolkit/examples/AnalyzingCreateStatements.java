@@ -18,9 +18,10 @@ package com.google.zetasql.toolkit.examples;
 
 import com.google.zetasql.AnalyzerOptions;
 import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedStatement;
-import com.google.zetasql.toolkit.ZetaSQLToolkit;
+import com.google.zetasql.toolkit.ZetaSQLToolkitAnalyzer;
 import com.google.zetasql.toolkit.catalog.bigquery.BigQueryCatalog;
 import com.google.zetasql.toolkit.options.BigQueryLanguageOptions;
+
 import java.util.Iterator;
 
 /**
@@ -34,19 +35,19 @@ public class AnalyzingCreateStatements {
         "CREATE TEMP TABLE t AS (SELECT 1 AS column UNION ALL SELECT 2 AS column);\n"
             + "CREATE TEMP VIEW v AS (SELECT 2 AS column);\n"
             + "CREATE FUNCTION `dataset.f`(x INT64) AS ((x * 2));\n"
-            + "CREATE TABLE FUNCTION `dataset.tvf`(x INT64) AS (SELECT * FROM t WHERE column = x);\n"
-            + "SELECT `dataset.f`(a.column) from `dataset.tvf`(2) AS a INNER JOIN v USING (column);"
-            + "CREATE PROCEDURE `dataset.procedure_name`()\nBEGIN\n\nEND;\n"
-            + "CALL `dataset.procedure_name`();";
+                + "CREATE TABLE FUNCTION `dataset.tvf`(x INT64) AS (SELECT * FROM t WHERE column = x);\n"
+                + "SELECT `dataset.f`(a.column) from `dataset.tvf`(2) AS a INNER JOIN v USING (column);"
+                + "CREATE PROCEDURE `dataset.procedure_name`()\nBEGIN\n\nEND;\n"
+                + "CALL `dataset.procedure_name`();";
 
-    BigQueryCatalog catalog = new BigQueryCatalog("bigquery-public-data");
+      BigQueryCatalog catalog = new BigQueryCatalog("bigquery-public-data");
 
-    AnalyzerOptions options = new AnalyzerOptions();
-    options.setLanguageOptions(BigQueryLanguageOptions.get());
+      AnalyzerOptions options = new AnalyzerOptions();
+      options.setLanguageOptions(BigQueryLanguageOptions.get());
 
-    Iterator<ResolvedStatement> statementIterator =
-        ZetaSQLToolkit.analyzeStatements(query, options, catalog);
+      ZetaSQLToolkitAnalyzer analyzer = new ZetaSQLToolkitAnalyzer(options);
+      Iterator<ResolvedStatement> statementIterator = analyzer.analyzeStatements(query, catalog);
 
-    statementIterator.forEachRemaining(statement -> System.out.println(statement.debugString()));
+      statementIterator.forEachRemaining(statement -> System.out.println(statement.debugString()));
   }
 }

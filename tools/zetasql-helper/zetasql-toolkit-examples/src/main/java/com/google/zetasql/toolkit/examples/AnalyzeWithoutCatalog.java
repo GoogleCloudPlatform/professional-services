@@ -19,7 +19,8 @@ package com.google.zetasql.toolkit.examples;
 import com.google.zetasql.AnalyzerOptions;
 import com.google.zetasql.LanguageOptions;
 import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedStatement;
-import com.google.zetasql.toolkit.ZetaSQLToolkit;
+import com.google.zetasql.toolkit.ZetaSQLToolkitAnalyzer;
+
 import java.util.Iterator;
 
 /** Example showcasing the basic example of how to use the ZetaSQL analyzer using this toolkit */
@@ -43,10 +44,10 @@ public class AnalyzeWithoutCatalog {
     // Step 1: Define the AnalyzerOptions to configure the ZetaSQL analyzer
     AnalyzerOptions options = getAnalyzerOptions();
 
-    // Step 2: Use ZetaSQLHelper.analyzeStatements to get an iterator of the ResolvedStatements
-    // that result from running the analyzer
-    Iterator<ResolvedStatement> statementIterator =
-        ZetaSQLToolkit.analyzeStatements(query, options);
+    // Step 2: Use the ZetaSQLToolkitAnalyzer to get an iterator of the ResolvedStatements
+    // that result from running the analysis
+    ZetaSQLToolkitAnalyzer analyzer = new ZetaSQLToolkitAnalyzer(options);
+    Iterator<ResolvedStatement> statementIterator = analyzer.analyzeStatements(query);
 
     // Step 3: Consume the previous iterator and use the ResolvedStatements however you need
     statementIterator.forEachRemaining(statement -> System.out.println(statement.debugString()));

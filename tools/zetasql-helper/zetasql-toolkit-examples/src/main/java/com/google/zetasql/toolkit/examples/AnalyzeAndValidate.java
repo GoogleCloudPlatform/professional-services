@@ -18,12 +18,14 @@ package com.google.zetasql.toolkit.examples;
 
 import com.google.zetasql.AnalyzerOptions;
 import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedStatement;
-import com.google.zetasql.toolkit.ZetaSQLToolkit;
+import com.google.zetasql.toolkit.ZetaSQLToolkitAnalyzer;
 import com.google.zetasql.toolkit.catalog.bigquery.BigQueryCatalog;
 import com.google.zetasql.toolkit.options.BigQueryLanguageOptions;
 import com.google.zetasql.toolkit.validation.CannotRecreateExistingTable;
+import com.google.zetasql.toolkit.validation.StatementValidator;
 import com.google.zetasql.toolkit.validation.ValidatingVisitor;
 import com.google.zetasql.toolkit.validation.ValidationError;
+
 import java.util.Iterator;
 import java.util.List;
 
@@ -32,8 +34,8 @@ public class AnalyzeAndValidate {
 
   public static void main(String[] args) {
     String query =
-        "CREATE TABLE `bigquery-public-data.samples.wikipedia` AS SELECT 1 AS column;\n"
-            + "SELECT column FROM `bigquery-public-data.samples.wikipedia`;";
+            "CREATE TABLE `bigquery-public-data.samples.wikipedia` AS SELECT 1 AS column;\n"
+                    + "SELECT column FROM `bigquery-public-data.samples.wikipedia`;";
 
     BigQueryCatalog catalog = new BigQueryCatalog("bigquery-public-data");
 
@@ -42,14 +44,17 @@ public class AnalyzeAndValidate {
 
     catalog.addAllTablesUsedInQuery(query, options);
 
-    Iterator<ResolvedStatement> statementIterator =
-        ZetaSQLToolkit.analyzeStatements(query, options, catalog);
+    ZetaSQLToolkitAnalyzer analyzer = new ZetaSQLToolkitAnalyzer(options);
+
+    Iterator<ResolvedStatement> statementIterator = analyzer.analyzeStatements(query, catalog);
 
     List<ValidatingVisitor> validations =
-        List.of(new CannotRecreateExistingTable(catalog.getZetaSQLCatalog()));
+            List.of(new CannotRecreateExistingTable(catalog.getZetaSQLCatalog()));
+
+    StatementValidator validator = new StatementValidator();
 
     try {
-      ZetaSQLToolkit.validateStatements(statementIterator, validations);
+      validator.validateStatements(statementIterator, validations);
       System.out.println("All validations succeeded!");
     } catch (ValidationError error) {
       System.out.println(error.getMessage());
