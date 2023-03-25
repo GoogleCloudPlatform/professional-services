@@ -17,14 +17,7 @@
 package com.google.zetasql.toolkit.catalog.bigquery;
 
 import com.google.cloud.bigquery.BigQuery;
-import com.google.zetasql.Function;
-import com.google.zetasql.Procedure;
-import com.google.zetasql.SimpleCatalog;
-import com.google.zetasql.SimpleTable;
-import com.google.zetasql.Type;
-import com.google.zetasql.TypeFactory;
-import com.google.zetasql.ZetaSQLBuiltinFunctionOptions;
-import com.google.zetasql.ZetaSQLType;
+import com.google.zetasql.*;
 import com.google.zetasql.resolvedast.ResolvedCreateStatementEnums.CreateMode;
 import com.google.zetasql.resolvedast.ResolvedCreateStatementEnums.CreateScope;
 import com.google.zetasql.toolkit.catalog.CatalogOperations;
@@ -32,6 +25,7 @@ import com.google.zetasql.toolkit.catalog.CatalogWrapper;
 import com.google.zetasql.toolkit.catalog.bigquery.exceptions.BigQueryCreateError;
 import com.google.zetasql.toolkit.catalog.exceptions.CatalogResourceAlreadyExists;
 import com.google.zetasql.toolkit.options.BigQueryLanguageOptions;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -60,7 +54,7 @@ public class BigQueryCatalog implements CatalogWrapper {
    *     this project
    */
   public BigQueryCatalog(String defaultProjectId) {
-    this(defaultProjectId, new BigQueryAPIResourceProvider());
+    this(defaultProjectId, BigQueryAPIResourceProvider.buildDefault());
   }
 
   /**
@@ -75,7 +69,7 @@ public class BigQueryCatalog implements CatalogWrapper {
    * @param bigQueryClient The BigQuery client to use for accessing the API
    */
   public BigQueryCatalog(String defaultProjectId, BigQuery bigQueryClient) {
-    this(defaultProjectId, new BigQueryAPIResourceProvider(bigQueryClient));
+      this(defaultProjectId, BigQueryAPIResourceProvider.build(bigQueryClient));
   }
 
   /**

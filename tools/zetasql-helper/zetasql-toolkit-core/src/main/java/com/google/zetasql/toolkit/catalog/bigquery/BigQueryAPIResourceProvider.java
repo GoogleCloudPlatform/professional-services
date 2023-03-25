@@ -16,34 +16,12 @@
 
 package com.google.zetasql.toolkit.catalog.bigquery;
 
-import com.google.cloud.bigquery.BigQuery;
-import com.google.cloud.bigquery.BigQueryOptions;
-import com.google.cloud.bigquery.Field;
-import com.google.cloud.bigquery.MaterializedViewDefinition;
-import com.google.cloud.bigquery.Routine;
-import com.google.cloud.bigquery.RoutineArgument;
-import com.google.cloud.bigquery.RoutineId;
-import com.google.cloud.bigquery.SnapshotTableDefinition;
-import com.google.cloud.bigquery.StandardSQLDataType;
-import com.google.cloud.bigquery.StandardSQLStructType;
-import com.google.cloud.bigquery.StandardSQLTableType;
-import com.google.cloud.bigquery.StandardSQLTypeName;
-import com.google.cloud.bigquery.StandardTableDefinition;
 import com.google.cloud.bigquery.Table;
-import com.google.cloud.bigquery.TableDefinition;
-import com.google.cloud.bigquery.TableId;
-import com.google.cloud.bigquery.TimePartitioning;
+import com.google.cloud.bigquery.*;
 import com.google.common.collect.ImmutableList;
-import com.google.zetasql.Function;
-import com.google.zetasql.FunctionArgumentType;
+import com.google.zetasql.*;
 import com.google.zetasql.FunctionArgumentType.FunctionArgumentTypeOptions;
-import com.google.zetasql.FunctionSignature;
-import com.google.zetasql.SimpleColumn;
-import com.google.zetasql.SimpleTable;
 import com.google.zetasql.StructType.StructField;
-import com.google.zetasql.TVFRelation;
-import com.google.zetasql.Type;
-import com.google.zetasql.TypeFactory;
 import com.google.zetasql.ZetaSQLFunctions.FunctionEnums.Mode;
 import com.google.zetasql.ZetaSQLFunctions.FunctionEnums.ProcedureArgumentMode;
 import com.google.zetasql.ZetaSQLFunctions.SignatureArgumentKind;
@@ -53,6 +31,7 @@ import com.google.zetasql.toolkit.catalog.bigquery.BigQueryService.Result;
 import com.google.zetasql.toolkit.catalog.bigquery.exceptions.BigQueryAPIError;
 import com.google.zetasql.toolkit.catalog.bigquery.exceptions.InvalidBigQueryReference;
 import com.google.zetasql.toolkit.catalog.bigquery.exceptions.MissingRoutineReturnType;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -68,39 +47,48 @@ public class BigQueryAPIResourceProvider implements BigQueryResourceProvider {
 
   private final BigQueryService service;
 
-  /** Constructs a BigQueryAPIResourceProvider that uses the default BigQuery client */
-  public BigQueryAPIResourceProvider() {
-    this(BigQueryOptions.newBuilder().build().getService());
-  }
-
-  /**
-   * Constructs a BigQueryAPIResourceProvider that uses the provided BigQuery client.
-   *
-   * @param client The BigQuery client this instance should use
-   */
-  public BigQueryAPIResourceProvider(BigQuery client) {
-    this(new BigQueryService(client));
-  }
-
   /**
    * Constructs a BigQueryAPIResourceProvider that uses the provided {@link BigQueryService}.
-   * Package-private, used solely for dependency injection in testing.
+   * Package-private, only used internally and for testing. To build a new
+   * BigQueryAPIResourceProvider, use {@link #build(BigQuery)} and {@link #buildDefault()}.
    *
    * @param service The BigQueryService this instance should use
    */
   BigQueryAPIResourceProvider(BigQueryService service) {
-    this.service = service;
+      this.service = service;
   }
 
-  /**
-   * Converts a StandardSQLTypeName from the BigQuery API to a ZetaSQL {@link TypeKind}.
-   *
-   * @param bigqueryTypeName The StandardSQLTypeName to convert
-   * @return The corresponding ZetaSQL TypeKind
-   */
-  private TypeKind convertBigqueryTypeNameToTypeKind(StandardSQLTypeName bigqueryTypeName) {
-    switch (bigqueryTypeName) {
-      case STRING:
+    /**
+     * Constructs a BigQueryAPIResourceProvider that uses application-default credentials
+     *
+     * @return The new BigQueryAPIResourceProvider instance
+     */
+    public static BigQueryAPIResourceProvider buildDefault() {
+        return new BigQueryAPIResourceProvider(BigQueryService.buildDefault());
+    }
+
+    /**
+     * Constructs a BigQueryAPIResourceProvider with a given BigQuery client.
+     *
+     * <p> The underlying client used by the service will be a copy of the provided client which
+     * includes usage tracking headers.
+     *
+     * @param client The BigQuery client to use when building the service
+     * @return The new BigQueryAPIResourceProvider instance
+     */
+    public static BigQueryAPIResourceProvider build(BigQuery client) {
+        return new BigQueryAPIResourceProvider(BigQueryService.build(client));
+    }
+
+    /**
+     * Converts a StandardSQLTypeName from the BigQuery API to a ZetaSQL {@link TypeKind}.
+     *
+     * @param bigqueryTypeName The StandardSQLTypeName to convert
+     * @return The corresponding ZetaSQL TypeKind
+     */
+    private TypeKind convertBigqueryTypeNameToTypeKind(StandardSQLTypeName bigqueryTypeName) {
+        switch (bigqueryTypeName) {
+            case STRING:
         return TypeKind.TYPE_STRING;
       case BYTES:
         return TypeKind.TYPE_BYTES;

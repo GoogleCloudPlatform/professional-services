@@ -17,23 +17,14 @@
 package com.google.zetasql.toolkit.catalog.bigquery;
 
 import com.google.api.gax.paging.Page;
-import com.google.cloud.bigquery.BigQuery;
-import com.google.cloud.bigquery.BigQuery.DatasetListOption;
-import com.google.cloud.bigquery.BigQuery.RoutineListOption;
-import com.google.cloud.bigquery.BigQuery.TableField;
-import com.google.cloud.bigquery.BigQuery.TableListOption;
-import com.google.cloud.bigquery.BigQuery.TableOption;
-import com.google.cloud.bigquery.BigQueryException;
-import com.google.cloud.bigquery.Dataset;
-import com.google.cloud.bigquery.DatasetId;
-import com.google.cloud.bigquery.Routine;
-import com.google.cloud.bigquery.RoutineId;
-import com.google.cloud.bigquery.Table;
-import com.google.cloud.bigquery.TableId;
+import com.google.cloud.bigquery.*;
+import com.google.cloud.bigquery.BigQuery.*;
 import com.google.zetasql.toolkit.catalog.bigquery.exceptions.BigQueryAPIError;
 import com.google.zetasql.toolkit.catalog.bigquery.exceptions.BigQueryCatalogException;
 import com.google.zetasql.toolkit.catalog.bigquery.exceptions.BigQueryResourceNotFound;
 import com.google.zetasql.toolkit.catalog.bigquery.exceptions.InvalidBigQueryReference;
+import com.google.zetasql.toolkit.usage.UsageTracking;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -48,8 +39,10 @@ import java.util.stream.StreamSupport;
  * methods for listing and fetching resources. It caches fetched resources internally, so multiple
  * requests for the same resource only hit the API once.
  *
- * <p>This service implement no cache invalidation and cached resources will stay cached through the
+ * <p> This service implement no cache invalidation and cached resources will stay cached through the
  * lifetime of this object. It might not be suitable for long-running processes.
+ *
+ * <p> Makes API calls using the zetasql-toolkit user agent
  */
 class BigQueryService {
 
@@ -57,24 +50,57 @@ class BigQueryService {
   private final Map<String, Table> cachedTables = new HashMap<>();
   private final Map<String, Routine> cachedRoutines = new HashMap<>();
 
-  /**
-   * Constructs a BigQueryService
-   *
-   * @param client The underlying BigQuery client for interacting with the API
-   */
-  public BigQueryService(BigQuery client) {
-    this.client = client;
-  }
+    /**
+     * Constructs a BigQueryService with a given BigQuery client.
+     *
+     * <p> Package-private, only used internally and for testing. To build a new BigQueryService,
+     * use {@link #build(BigQuery)} and {@link #buildDefault()}.
+     *
+     * @param client The BigQuery client for interacting with the API
+     */
+    BigQueryService(BigQuery client) {
+        this.client = client;
+    }
 
-  private <T> Stream<T> pageToStream(Page<T> page) {
-    return StreamSupport.stream(page.iterateAll().spliterator(), false);
-  }
+    /**
+     * Constructs a BigQueryService with a given BigQuery client.
+     *
+     * <p> The underlying client used by the service will be a copy of the provided client which
+     * includes usage tracking headers.
+     *
+     * @param client The BigQuery client to use when building the service
+     * @return The new BigQueryService instance
+     */
+    public static BigQueryService build(BigQuery client) {
+        BigQuery clientWithUsageTracking = client.getOptions()
+                .toBuilder()
+                .setHeaderProvider(UsageTracking.HEADER_PROVIDER)
+                .build()
+                .getService();
 
-  /**
-   * Higher order method to a BigQuery resource of type T. See {@link #fetchTable(String, String)}
-   * and {@link #fetchRoutine(String, String)}.
-   *
-   * <p>Receives the default BigQuery project id and the BigQuery reference string (e.g.
+        return new BigQueryService(clientWithUsageTracking);
+    }
+
+    /**
+     * Constructs a BigQueryService using application-default credentials.
+     *
+     * @return The new BigQueryService instance
+     */
+    public static BigQueryService buildDefault() {
+        return BigQueryService.build(
+                BigQueryOptions.newBuilder().build().getService()
+        );
+    }
+
+    private <T> Stream<T> pageToStream(Page<T> page) {
+        return StreamSupport.stream(page.iterateAll().spliterator(), false);
+    }
+
+    /**
+     * Higher order method to a BigQuery resource of type T. See {@link #fetchTable(String, String)}
+     * and {@link #fetchRoutine(String, String)}.
+     *
+     * <p>Receives the default BigQuery project id and the BigQuery reference string (e.g.
    * "project.dataset.resource") for the resource to fetch. If the reference is in the for
    * "dataset.resource", the resource is assumed to be in the default project provided.
    *

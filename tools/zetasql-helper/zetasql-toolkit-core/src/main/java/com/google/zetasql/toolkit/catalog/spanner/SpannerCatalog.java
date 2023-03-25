@@ -17,6 +17,7 @@
 package com.google.zetasql.toolkit.catalog.spanner;
 
 import com.google.cloud.spanner.DatabaseClient;
+import com.google.cloud.spanner.Spanner;
 import com.google.zetasql.Function;
 import com.google.zetasql.SimpleCatalog;
 import com.google.zetasql.SimpleTable;
@@ -30,6 +31,7 @@ import com.google.zetasql.toolkit.catalog.bigquery.TVFInfo;
 import com.google.zetasql.toolkit.catalog.exceptions.CatalogResourceAlreadyExists;
 import com.google.zetasql.toolkit.catalog.spanner.exceptions.InvalidSpannerTableName;
 import com.google.zetasql.toolkit.options.SpannerLanguageOptions;
+
 import java.util.List;
 
 /** {@link CatalogWrapper} implementation that follows Cloud Spanner semantics */
@@ -41,69 +43,73 @@ public class SpannerCatalog implements CatalogWrapper {
   private final SpannerResourceProvider spannerResourceProvider;
   private final SimpleCatalog catalog;
 
-  /**
-   * Constructs a SpannerCatalog given a Spanner project, instance and database. It uses a {@link
-   * DatabaseClient} with application default credentials to access Spanner.
-   *
-   * @param projectId The Spanner project id
-   * @param instance The Spanner instance name
-   * @param database The Spanner database name
-   */
-  public SpannerCatalog(String projectId, String instance, String database) {
-    this(
-        projectId,
-        instance,
-        database,
-        new SpannerResourceProviderImpl(projectId, instance, database));
-  }
+    /**
+     * Constructs a SpannerCatalog that uses the provided {@link SpannerResourceProvider} for fetching
+     * Spanner tables.
+     *
+     * @param projectId               The Spanner project id
+     * @param instance                The Spanner instance name
+     * @param database                The Spanner database name
+     * @param spannerResourceProvider The SpannerResourceProvider to use
+     */
+    SpannerCatalog(
+            String projectId,
+            String instance,
+            String database,
+            SpannerResourceProvider spannerResourceProvider) {
+        this.projectId = projectId;
+        this.instance = instance;
+        this.database = database;
+        this.spannerResourceProvider = spannerResourceProvider;
+        this.catalog = new SimpleCatalog("catalog");
+        this.catalog.addZetaSQLFunctions(
+                new ZetaSQLBuiltinFunctionOptions(SpannerLanguageOptions.get()));
+        // TODO: Define and add Spanner-specific functions to the catalog
+    }
 
-  /**
-   * Constructs a SpannerCatalog that uses the provided {@link DatabaseClient} for accessing
-   * Spanner.
-   *
-   * @param projectId The Spanner project id
-   * @param instance The Spanner instance name
-   * @param database The Spanner database name
-   * @param databaseClient The Spanner DatabaseClient to use
-   */
-  public SpannerCatalog(
-      String projectId, String instance, String database, DatabaseClient databaseClient) {
-    this(projectId, instance, database, new SpannerResourceProviderImpl(databaseClient));
-  }
+    /**
+     * Constructs a SpannerCatalog given a Spanner project, instance and database. It uses a {@link
+     * DatabaseClient} with application default credentials to access Spanner.
+     *
+     * @param projectId The Spanner project id
+     * @param instance  The Spanner instance name
+     * @param database  The Spanner database name
+     */
+    public SpannerCatalog(String projectId, String instance, String database) {
+        this(
+                projectId,
+                instance,
+                database,
+                SpannerResourceProviderImpl.buildDefault(projectId, instance, database));
+    }
 
-  /**
-   * Constructs a SpannerCatalog that uses the provided {@link SpannerResourceProvider} for fetching
-   * Spanner tables.
-   *
-   * @param projectId The Spanner project id
-   * @param instance The Spanner instance name
-   * @param database The Spanner database name
-   * @param spannerResourceProvider The SpannerResourceProvider to use
-   */
-  public SpannerCatalog(
-      String projectId,
-      String instance,
-      String database,
-      SpannerResourceProvider spannerResourceProvider) {
-    this.projectId = projectId;
-    this.instance = instance;
-    this.database = database;
-    this.spannerResourceProvider = spannerResourceProvider;
-    this.catalog = new SimpleCatalog("catalog");
-    this.catalog.addZetaSQLFunctions(
-        new ZetaSQLBuiltinFunctionOptions(SpannerLanguageOptions.get()));
-    // TODO: Define and add Spanner-specific functions to the catalog
-  }
+    /**
+     * Constructs a SpannerCatalog that uses the provided {@link DatabaseClient} for accessing
+     * Spanner.
+     *
+     * @param projectId     The Spanner project id
+     * @param instance      The Spanner instance name
+     * @param database      The Spanner database name
+     * @param spannerClient The Spanner client to use
+     */
+    public SpannerCatalog(
+            String projectId, String instance, String database, Spanner spannerClient) {
+        this(
+                projectId, instance, database,
+                SpannerResourceProviderImpl.build(projectId, instance, database, spannerClient));
+    }
 
-  /** Private constructor used for implementing {@link #copy()} */
-  private SpannerCatalog(
-      String projectId,
-      String instance,
-      String database,
-      SpannerResourceProvider spannerResourceProvider,
-      SimpleCatalog internalCatalog) {
-    this.projectId = projectId;
-    this.instance = instance;
+    /**
+     * Private constructor used for implementing {@link #copy()}
+     */
+    private SpannerCatalog(
+            String projectId,
+            String instance,
+            String database,
+            SpannerResourceProvider spannerResourceProvider,
+            SimpleCatalog internalCatalog) {
+        this.projectId = projectId;
+        this.instance = instance;
     this.database = database;
     this.spannerResourceProvider = spannerResourceProvider;
     this.catalog = internalCatalog;
