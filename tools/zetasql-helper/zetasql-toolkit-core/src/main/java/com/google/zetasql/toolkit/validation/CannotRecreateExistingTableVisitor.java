@@ -24,11 +24,11 @@ import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedCreateTableAsSelectS
 import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedCreateTableStmt;
 import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedCreateTableStmtBase;
 
-public class CannotRecreateExistingTable extends ValidatingVisitor {
+public class CannotRecreateExistingTableVisitor extends ValidatingVisitor {
 
   private final SimpleCatalog catalog;
 
-  public CannotRecreateExistingTable(SimpleCatalog catalog) {
+  public CannotRecreateExistingTableVisitor(SimpleCatalog catalog) {
     this.catalog = catalog;
   }
 

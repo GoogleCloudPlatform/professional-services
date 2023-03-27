@@ -21,7 +21,7 @@ import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedStatement;
 import com.google.zetasql.toolkit.ZetaSQLToolkitAnalyzer;
 import com.google.zetasql.toolkit.catalog.bigquery.BigQueryCatalog;
 import com.google.zetasql.toolkit.options.BigQueryLanguageOptions;
-import com.google.zetasql.toolkit.validation.CannotRecreateExistingTable;
+import com.google.zetasql.toolkit.validation.CannotRecreateExistingTableVisitor;
 import com.google.zetasql.toolkit.validation.StatementValidator;
 import com.google.zetasql.toolkit.validation.ValidatingVisitor;
 import com.google.zetasql.toolkit.validation.ValidationError;
@@ -49,7 +49,7 @@ public class AnalyzeAndValidate {
     Iterator<ResolvedStatement> statementIterator = analyzer.analyzeStatements(query, catalog);
 
     List<ValidatingVisitor> validations =
-            List.of(new CannotRecreateExistingTable(catalog.getZetaSQLCatalog()));
+            List.of(new CannotRecreateExistingTableVisitor(catalog.getZetaSQLCatalog()));
 
     StatementValidator validator = new StatementValidator();
 
