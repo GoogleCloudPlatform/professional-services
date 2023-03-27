@@ -5,7 +5,7 @@ team.
 
 ## Disclaimer
 
-This repository and its contents are not an official Google Product.
+This repository and its contents are not an officially supported Google product.
 
 ## License
 
