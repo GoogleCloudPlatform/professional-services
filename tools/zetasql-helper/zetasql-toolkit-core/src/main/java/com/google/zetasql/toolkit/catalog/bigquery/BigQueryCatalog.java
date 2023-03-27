@@ -27,7 +27,6 @@ import com.google.zetasql.toolkit.catalog.exceptions.CatalogResourceAlreadyExist
 import com.google.zetasql.toolkit.options.BigQueryLanguageOptions;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -87,7 +86,7 @@ public class BigQueryCatalog implements CatalogWrapper {
     this.catalog = new SimpleCatalog("catalog");
     this.catalog.addZetaSQLFunctions(
         new ZetaSQLBuiltinFunctionOptions(BigQueryLanguageOptions.get()));
-    this.addBigQueryTypeAliases(this.catalog);
+    BigQueryBuiltIns.addToCatalog(this.catalog);
   }
 
   /** Private constructor used for implementing {@link #copy()} */
@@ -98,22 +97,6 @@ public class BigQueryCatalog implements CatalogWrapper {
     this.defaultProjectId = defaultProjectId;
     this.bigQueryResourceProvider = bigQueryResourceProvider;
     this.catalog = internalCatalog;
-  }
-
-  /** Adds BigQuery-specific type aliases to a {@link SimpleCatalog} */
-  private void addBigQueryTypeAliases(SimpleCatalog catalog) {
-    Map<String, Type> bigQueryTypeAliases =
-        Map.of(
-            "INT", TypeFactory.createSimpleType(ZetaSQLType.TypeKind.TYPE_INT64),
-            "SMALLINT", TypeFactory.createSimpleType(ZetaSQLType.TypeKind.TYPE_INT64),
-            "INTEGER", TypeFactory.createSimpleType(ZetaSQLType.TypeKind.TYPE_INT64),
-            "BIGINT", TypeFactory.createSimpleType(ZetaSQLType.TypeKind.TYPE_INT64),
-            "TINYINT", TypeFactory.createSimpleType(ZetaSQLType.TypeKind.TYPE_INT64),
-            "BYTEINT", TypeFactory.createSimpleType(ZetaSQLType.TypeKind.TYPE_INT64),
-            "DECIMAL", TypeFactory.createSimpleType(ZetaSQLType.TypeKind.TYPE_NUMERIC),
-            "BIGDECIMAL", TypeFactory.createSimpleType(ZetaSQLType.TypeKind.TYPE_BIGNUMERIC));
-
-    bigQueryTypeAliases.forEach(catalog::addType);
   }
 
   /**

@@ -63,7 +63,7 @@ public class SpannerCatalog implements CatalogWrapper {
     this.catalog = new SimpleCatalog("catalog");
     this.catalog.addZetaSQLFunctions(
         new ZetaSQLBuiltinFunctionOptions(SpannerLanguageOptions.get()));
-    // TODO: Define and add Spanner-specific functions to the catalog
+    SpannerBuiltIns.addToCatalog(this.catalog);
   }
 
   /**
