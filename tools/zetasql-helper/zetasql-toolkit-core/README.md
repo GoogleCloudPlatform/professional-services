@@ -42,11 +42,10 @@ catalog.addTable("bigquery-public-data.samples.wikipedia");
 AnalyzerOptions options = new AnalyzerOptions();
 options.setLanguageOptions(BigQueryLanguageOptions.get());
 
-// ZetaSQLHelper.analyzeStatements to run the analyzer
+// Use the ZetaSQLToolkitAnalyzer to run the analyzer
 // It results an iterator over the resulting ResolvedStatements
-Iterator<ResolvedStatement> statementIterator = ZetaSQLToolkit.analyzeStatements(
-    query, options, catalog
-);
+ZetaSQLToolkitAnalyzer analyzer = new ZetaSQLToolkitAnalyzer(options);
+Iterator<ResolvedStatement> statementIterator = analyzer.analyzeStatements(query, catalog);
 
 // Use the resulting ResolvedStatements
 statementIterator.forEachRemaining(
@@ -121,11 +120,11 @@ catalog.addAllTablesInDatabase();
 AnalyzerOptions options = new AnalyzerOptions();
 options.setLanguageOptions(SpannerLanguageOptions.get());
 
-// ZetaSQLHelper.analyzeStatements to run the analyzer
+// Use the ZetaSQLToolkitAnalyzer to run the analyzer
 // It results an iterator over the resulting ResolvedStatements
-Iterator<ResolvedStatement> statementIterator = ZetaSQLToolkit.analyzeStatements(
-    query, options, catalog
-);
+ZetaSQLToolkitAnalyzer analyzer = new ZetaSQLToolkitAnalyzer(options);
+Iterator<ResolvedStatement> statementIterator = analyzer.analyzeStatements(query, catalog);
+
 
 // Use the resulting ResolvedStatements
 statementIterator.forEachRemaining(
