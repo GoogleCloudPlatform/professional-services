@@ -16,18 +16,18 @@
 
 package com.google.zetasql.toolkit.validation;
 
-import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedStatement;
+import com.google.zetasql.resolvedast.ResolvedNode;
 
 public class ValidationError extends Exception {
 
-  private final ResolvedStatement statement;
+  private final ResolvedNode node;
 
-  public ValidationError(String message, ResolvedStatement statement) {
+  public ValidationError(String message, ResolvedNode node) {
     super("Validation error: " + message);
-    this.statement = statement;
+    this.node = node;
   }
 
-  public ResolvedStatement getStatement() {
-    return statement;
+  public ResolvedNode getNode() {
+    return node;
   }
 }
