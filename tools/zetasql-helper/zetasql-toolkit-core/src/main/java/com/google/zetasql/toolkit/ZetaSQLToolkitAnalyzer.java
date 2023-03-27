@@ -85,18 +85,16 @@ public class ZetaSQLToolkitAnalyzer {
   }
 
   /**
-   * Analyze a SQL query or script, using the provided {@link SimpleCatalog}.
+   * Analyze a SQL query or script, using the provided {@link CatalogWrapper} to manage the catalog.
+   * Creates a copy of the catalog before analyzing to avoid mutating the provided catalog.
    *
-   * <p>This method uses the {@link BasicCatalogWrapper} for maintaining the catalog. To follow the
-   * semantics of a particular SQL engine (e.g. BigQuery or Spanner),
-   *
-   * @see #analyzeStatements(String, CatalogWrapper).
+   * @see #analyzeStatements(String, CatalogWrapper, boolean)
    * @param query The SQL query or script to analyze
-   * @param catalog The SimpleCatalog to use
+   * @param catalog The CatalogWrapper implementation to use when managing the catalog
    * @return An iterator of the resulting {@link ResolvedStatement}s
    */
-  public Iterator<ResolvedStatement> analyzeStatements(String query, SimpleCatalog catalog) {
-    return this.analyzeStatements(query, new BasicCatalogWrapper(catalog));
+  public Iterator<ResolvedStatement> analyzeStatements(String query, CatalogWrapper catalog) {
+    return this.analyzeStatements(query, catalog, false);
   }
 
   /**
@@ -109,13 +107,19 @@ public class ZetaSQLToolkitAnalyzer {
    *
    * @param query The SQL query or script to analyze
    * @param catalog The CatalogWrapper implementation to use when managing the catalog
+   * @param inPlace Whether to apply catalog mutations in place. If true, catalog mutations from
+   *     CREATE or DROP statements are applied to the provided catalog. If false, the provided
+   *     catalog is copied and the copy is used.
    * @return An iterator of the resulting {@link ResolvedStatement}s
    */
-  public Iterator<ResolvedStatement> analyzeStatements(String query, CatalogWrapper catalog) {
+  public Iterator<ResolvedStatement> analyzeStatements(
+      String query, CatalogWrapper catalog, boolean inPlace) {
     this.usageTracker.trackUsage();
 
+    CatalogWrapper catalogForAnalysis = inPlace ? catalog : catalog.copy();
+
     ParseResumeLocation parseResumeLocation = new ParseResumeLocation(query);
-    CatalogUpdaterVisitor catalogUpdaterVisitor = new CatalogUpdaterVisitor(catalog);
+    CatalogUpdaterVisitor catalogUpdaterVisitor = new CatalogUpdaterVisitor(catalogForAnalysis);
 
     return new Iterator<>() {
 
