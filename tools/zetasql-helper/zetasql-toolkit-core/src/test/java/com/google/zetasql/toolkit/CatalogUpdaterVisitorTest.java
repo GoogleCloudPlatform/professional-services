@@ -16,44 +16,32 @@
 
 package com.google.zetasql.toolkit;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
-
 import com.google.common.collect.ImmutableList;
-import com.google.zetasql.Function;
-import com.google.zetasql.FunctionArgumentType;
-import com.google.zetasql.FunctionSignature;
-import com.google.zetasql.SimpleColumn;
-import com.google.zetasql.SimpleTable;
-import com.google.zetasql.TVFRelation;
+import com.google.zetasql.*;
 import com.google.zetasql.TVFRelation.Column;
-import com.google.zetasql.TypeFactory;
 import com.google.zetasql.ZetaSQLFunctions.FunctionEnums.Mode;
 import com.google.zetasql.ZetaSQLFunctions.SignatureArgumentKind;
 import com.google.zetasql.ZetaSQLType.TypeKind;
 import com.google.zetasql.resolvedast.ResolvedColumn;
 import com.google.zetasql.resolvedast.ResolvedCreateStatementEnums.CreateMode;
 import com.google.zetasql.resolvedast.ResolvedCreateStatementEnums.CreateScope;
-import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedColumnDefinition;
-import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedCreateExternalTableStmt;
-import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedCreateFunctionStmt;
-import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedCreateMaterializedViewStmt;
-import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedCreateTableAsSelectStmt;
-import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedCreateTableFunctionStmt;
-import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedCreateTableStmt;
-import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedCreateViewStmt;
-import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedOutputColumn;
-import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedSingleRowScan;
+import com.google.zetasql.resolvedast.ResolvedDropStmtEnums;
+import com.google.zetasql.resolvedast.ResolvedNodes.*;
 import com.google.zetasql.toolkit.catalog.CatalogTestUtils;
 import com.google.zetasql.toolkit.catalog.CatalogWrapper;
 import com.google.zetasql.toolkit.catalog.bigquery.TVFInfo;
-import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 public class CatalogUpdaterVisitorTest {
@@ -324,5 +312,23 @@ public class CatalogUpdaterVisitorTest {
                 CatalogTestUtils.functionSignatureEquals(
                     expectedFunction.getSignature(), createdFunction.getSignature())),
         () -> assertEquals(expectedFunction.getOutputSchema(), createdFunction.getOutputSchema()));
+  }
+
+  @Test
+  void testDropStmt() {
+    ResolvedDropStmt dropStmt =
+        ResolvedDropStmt.builder()
+            .setDropMode(ResolvedDropStmtEnums.DropMode.DROP_MODE_UNSPECIFIED)
+            .setNamePath(List.of("dataset", "table"))
+            .setObjectType("TABLE")
+            .setIsIfExists(false)
+            .build();
+
+    dropStmt.accept(visitor);
+
+    ArgumentCaptor<String> droppedTableCaptor = ArgumentCaptor.forClass(String.class);
+    verify(catalog).removeTable(droppedTableCaptor.capture());
+
+    assertEquals("dataset.table", droppedTableCaptor.getValue());
   }
 }

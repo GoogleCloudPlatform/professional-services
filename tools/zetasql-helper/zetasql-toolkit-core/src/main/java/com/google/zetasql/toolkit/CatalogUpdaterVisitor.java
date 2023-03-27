@@ -16,40 +16,25 @@
 
 package com.google.zetasql.toolkit;
 
-import com.google.zetasql.Function;
-import com.google.zetasql.FunctionArgumentType;
-import com.google.zetasql.FunctionSignature;
-import com.google.zetasql.SimpleColumn;
-import com.google.zetasql.SimpleTable;
-import com.google.zetasql.TVFRelation;
+import com.google.zetasql.*;
 import com.google.zetasql.TVFRelation.Column;
-import com.google.zetasql.TypeFactory;
 import com.google.zetasql.ZetaSQLFunctions.FunctionEnums.Mode;
 import com.google.zetasql.ZetaSQLType.TypeKind;
 import com.google.zetasql.resolvedast.ResolvedCreateStatementEnums.CreateMode;
 import com.google.zetasql.resolvedast.ResolvedCreateStatementEnums.CreateScope;
-import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedCreateExternalTableStmt;
-import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedCreateFunctionStmt;
-import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedCreateMaterializedViewStmt;
-import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedCreateProcedureStmt;
-import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedCreateTableAsSelectStmt;
-import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedCreateTableFunctionStmt;
-import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedCreateTableStmt;
-import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedCreateTableStmtBase;
-import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedCreateViewBase;
-import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedCreateViewStmt;
-import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedOutputColumn;
-import com.google.zetasql.resolvedast.ResolvedNodes.Visitor;
+import com.google.zetasql.resolvedast.ResolvedNodes.*;
 import com.google.zetasql.toolkit.catalog.CatalogOperations;
 import com.google.zetasql.toolkit.catalog.CatalogWrapper;
 import com.google.zetasql.toolkit.catalog.bigquery.ProcedureInfo;
 import com.google.zetasql.toolkit.catalog.bigquery.TVFInfo;
+
 import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * ResolvedNodes.Visitor that creates catalog resources based on the ResolvedCreate* statements it
- * visits. Supports:
+ * ResolvedNodes.Visitor that updates catalog resources based on the statements it visits.
+ *
+ * <p>Supports:
  *
  * <ul>
  *   <li>ResolvedCrateTableStmt
@@ -60,6 +45,10 @@ import java.util.stream.Collectors;
  *   <li>ResolvedCreateFunctionStmt
  *   <li>ResolvedCreateTableFunctionStmt
  *   <li>ResolvedCreateProcedureStmt
+ *   <li>ResolvedDropStmt
+ *   <li>ResolvedDropMaterializedViewStmt
+ *   <li>ResolvedDropFunctionStmt
+ *   <li>ResolvedDropTableFunctionStmt
  * </ul>
  */
 class CatalogUpdaterVisitor extends Visitor {
@@ -259,5 +248,56 @@ class CatalogUpdaterVisitor extends Visitor {
     CreateScope createScope = createProcedureStmt.getCreateScope();
 
     catalog.register(procedureInfo, createMode, createScope);
+  }
+
+  /**
+   * Visits a ResolvedDropStmt and deletes the resource from the catalog if it's a supported
+   * resource type
+   *
+   * @param dropStmt The analyzed DROP statement
+   */
+  @Override
+  public void visit(ResolvedDropStmt dropStmt) {
+    String resourceReference = String.join(".", dropStmt.getNamePath());
+    String objectType = dropStmt.getObjectType();
+
+    if (objectType.equalsIgnoreCase("TABLE") || objectType.equalsIgnoreCase("VIEW")) {
+      catalog.removeTable(resourceReference);
+    } else if (objectType.equalsIgnoreCase("PROCEDURE")) {
+      catalog.removeProcedure(resourceReference);
+    }
+  }
+
+  /**
+   * Visits a ResolvedDropMaterializedViewStmt and deletes the table from the catalog
+   *
+   * @param dropMaterializedViewStmt The analyzed DROP statement
+   */
+  @Override
+  public void visit(ResolvedDropMaterializedViewStmt dropMaterializedViewStmt) {
+    String tableReference = String.join(".", dropMaterializedViewStmt.getNamePath());
+    catalog.removeTable(tableReference);
+  }
+
+  /**
+   * Visits a ResolvedDropFunctionStmt and deletes the function from the catalog
+   *
+   * @param dropFunctionStmt The analyzed DROP statement
+   */
+  @Override
+  public void visit(ResolvedDropFunctionStmt dropFunctionStmt) {
+    String functionReference = String.join(".", dropFunctionStmt.getNamePath());
+    catalog.removeFunction(functionReference);
+  }
+
+  /**
+   * Visits a ResolvedDropTableFunctionStmt and deletes the function from the catalog
+   *
+   * @param dropTableFunctionStmt The analyzed DROP statement
+   */
+  @Override
+  public void visit(ResolvedDropTableFunctionStmt dropTableFunctionStmt) {
+    String functionReference = String.join(".", dropTableFunctionStmt.getNamePath());
+    catalog.removeTVF(functionReference);
   }
 }
