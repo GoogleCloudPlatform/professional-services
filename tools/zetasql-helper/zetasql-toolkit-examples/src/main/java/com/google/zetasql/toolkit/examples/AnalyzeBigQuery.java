@@ -50,7 +50,16 @@ public class AnalyzeBigQuery {
     // See also: BigQueryCatalog.addAllTablesInDataset and BigQueryCatalog.addAllTablesInProject
     catalog.addTable("bigquery-public-data.samples.wikipedia");
 
-    // Step 3: Set up the analyzer options
+    // Step 3: Define the LanguageOptions and AnalyzerOptions to configure the ZetaSQL analyzer
+
+    // LanguageOptions are ZetaSQL's way of customizing the SQL dialect the analyzer accepts. This
+    // toolkit
+    // includes properly configured LanguageOptions for BigQuery.
+
+    // AnalyzerOptions are ZetaSQL's way of customizing the analyzer itself
+    // Usually, setting the LanguageOptions is the only configuration required; but they can be
+    // customized
+    // for more advanced use cases.
     AnalyzerOptions options = new AnalyzerOptions();
     options.setLanguageOptions(BigQueryLanguageOptions.get());
 

@@ -46,7 +46,14 @@ public class AnalyzeCloudSpanner {
     // In this case, we add all the tables in the database.
     catalog.addAllTablesInDatabase();
 
-    // Step 4: Set up the analyzer options
+    // Step 4: Define the LanguageOptions and AnalyzerOptions to configure the ZetaSQL analyzer
+    //
+    // LanguageOptions are ZetaSQL's way of customizing the SQL dialect the analyzer accepts.
+    // This toolkit includes properly configured LanguageOptions for Cloud Spanner.
+    //
+    // AnalyzerOptions are ZetaSQL's way of customizing the analyzer itself
+    // Usually, setting the LanguageOptions is the only configuration required; but they can
+    // be customized for more advanced use cases.
     AnalyzerOptions options = new AnalyzerOptions();
     options.setLanguageOptions(SpannerLanguageOptions.get());
 
