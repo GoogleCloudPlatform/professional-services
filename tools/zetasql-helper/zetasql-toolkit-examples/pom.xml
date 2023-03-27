@@ -1,44 +1,44 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xmlns="http://maven.apache.org/POM/4.0.0"
-    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
 
-  <groupId>com.google.zetasql.toolkit</groupId>
-  <artifactId>zetasql-toolkit-examples</artifactId>
-  <version>0.1-SNAPSHOT</version>
+    <groupId>com.google.zetasql.toolkit</groupId>
+    <artifactId>zetasql-toolkit-examples</artifactId>
+    <version>0.1-SNAPSHOT</version>
 
-  <properties>
-    <maven.compiler.source>11</maven.compiler.source>
-    <maven.compiler.target>11</maven.compiler.target>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <zetasql.toolkit.version>0.1-SNAPSHOT</zetasql.toolkit.version>
-    <google.cloud.jib.version>3.3.1</google.cloud.jib.version>
-    <container.mainClass/>
-  </properties>
+    <properties>
+        <maven.compiler.source>11</maven.compiler.source>
+        <maven.compiler.target>11</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <zetasql.toolkit.version>0.1-SNAPSHOT</zetasql.toolkit.version>
+        <google.cloud.jib.version>3.3.1</google.cloud.jib.version>
+        <container.mainClass/>
+    </properties>
 
-  <dependencies>
-    <dependency>
-      <artifactId>zetasql-toolkit-core</artifactId>
-      <groupId>com.google.zetasql.toolkit</groupId>
-      <scope>compile</scope>
-      <version>${zetasql.toolkit.version}</version>
-    </dependency>
-  </dependencies>
+    <dependencies>
+        <dependency>
+            <artifactId>zetasql-toolkit-core</artifactId>
+            <groupId>com.google.zetasql.toolkit</groupId>
+            <scope>compile</scope>
+            <version>${zetasql.toolkit.version}</version>
+        </dependency>
+    </dependencies>
 
-  <build>
-    <plugins>
-      <plugin>
-        <groupId>com.google.cloud.tools</groupId>
-        <artifactId>jib-maven-plugin</artifactId>
-        <version>${google.cloud.jib.version}</version>
-        <configuration>
-          <container>
-            <mainClass>${container.mainClass}</mainClass>
-          </container>
-        </configuration>
-      </plugin>
-    </plugins>
-  </build>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>com.google.cloud.tools</groupId>
+                <artifactId>jib-maven-plugin</artifactId>
+                <version>${google.cloud.jib.version}</version>
+                <configuration>
+                    <container>
+                        <mainClass>${container.mainClass}</mainClass>
+                    </container>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 
 </project>

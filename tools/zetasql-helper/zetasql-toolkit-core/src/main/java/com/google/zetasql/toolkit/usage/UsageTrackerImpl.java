@@ -10,22 +10,25 @@ public class UsageTrackerImpl implements UsageTracker {
 
   public UsageTrackerImpl() {
     try {
-      this.bigqueryClient = Optional.of(BigQueryOptions.newBuilder()
-          .setHeaderProvider(UsageTracking.HEADER_PROVIDER)
-          .build()
-          .getService());
-    } catch(Exception err) {
+      this.bigqueryClient =
+          Optional.of(
+              BigQueryOptions.newBuilder()
+                  .setHeaderProvider(UsageTracking.HEADER_PROVIDER)
+                  .build()
+                  .getService());
+    } catch (Exception err) {
       this.bigqueryClient = Optional.empty();
     }
   }
 
   @Override
   public void trackUsage() {
-    bigqueryClient.ifPresent(client -> {
-      try {
-        client.listJobs(JobListOption.pageSize(0));
-      } catch (Exception ignored) {}
-    });
+    bigqueryClient.ifPresent(
+        client -> {
+          try {
+            client.listJobs(JobListOption.pageSize(0));
+          } catch (Exception ignored) {
+          }
+        });
   }
-
 }

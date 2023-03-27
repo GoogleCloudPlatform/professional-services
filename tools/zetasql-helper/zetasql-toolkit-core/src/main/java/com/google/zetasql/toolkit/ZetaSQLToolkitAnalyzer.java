@@ -41,7 +41,6 @@ import java.util.Optional;
  * class will also persist those resources to the catalog. This allows it to transparently support
  * SQL scripts that, for example, create a temp table and later query said temp table. This feature
  * supports Tables, Views, Functions, Table Valued Functions and Procedures.
- *
  */
 public class ZetaSQLToolkitAnalyzer {
 
@@ -58,10 +57,10 @@ public class ZetaSQLToolkitAnalyzer {
   }
 
   /**
-   * Constructs a ZetaSQLToolkitAnalyzer using the provided {@link AnalyzerOptions} and
-   * {@link UsageTracker}.
+   * Constructs a ZetaSQLToolkitAnalyzer using the provided {@link AnalyzerOptions} and {@link
+   * UsageTracker}.
    *
-   * <p> Package-private, only used internally and for testing.
+   * <p>Package-private, only used internally and for testing.
    *
    * @param analyzerOptions The AnalyzerOptions that should be used when performing analysis
    * @param usageTracker The UsageTracker used for tracking tool usage
@@ -147,5 +146,4 @@ public class ZetaSQLToolkitAnalyzer {
       }
     };
   }
-
 }

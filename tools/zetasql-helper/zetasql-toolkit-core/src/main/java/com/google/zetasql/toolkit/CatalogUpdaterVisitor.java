@@ -27,7 +27,6 @@ import com.google.zetasql.toolkit.catalog.CatalogOperations;
 import com.google.zetasql.toolkit.catalog.CatalogWrapper;
 import com.google.zetasql.toolkit.catalog.bigquery.ProcedureInfo;
 import com.google.zetasql.toolkit.catalog.bigquery.TVFInfo;
-
 import java.util.List;
 import java.util.stream.Collectors;
 

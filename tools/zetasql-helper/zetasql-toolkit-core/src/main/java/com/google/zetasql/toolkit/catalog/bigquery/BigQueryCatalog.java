@@ -25,7 +25,6 @@ import com.google.zetasql.toolkit.catalog.CatalogWrapper;
 import com.google.zetasql.toolkit.catalog.bigquery.exceptions.BigQueryCreateError;
 import com.google.zetasql.toolkit.catalog.exceptions.CatalogResourceAlreadyExists;
 import com.google.zetasql.toolkit.options.BigQueryLanguageOptions;
-
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;

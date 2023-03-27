@@ -16,6 +16,9 @@
 
 package com.google.zetasql.toolkit.catalog.spanner;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
 import com.google.cloud.spanner.DatabaseClient;
 import com.google.cloud.spanner.ResultSet;
 import com.google.cloud.spanner.Spanner;
@@ -25,6 +28,7 @@ import com.google.zetasql.TypeFactory;
 import com.google.zetasql.ZetaSQLType.TypeKind;
 import com.google.zetasql.toolkit.catalog.CatalogTestUtils;
 import com.google.zetasql.toolkit.catalog.spanner.exceptions.SpannerTablesNotFound;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -32,34 +36,28 @@ import org.mockito.Answers;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
-
 @ExtendWith(MockitoExtension.class)
 public class SpannerResourceProviderImplTest {
 
-    SpannerResourceProviderImpl spannerResourceProvider;
+  SpannerResourceProviderImpl spannerResourceProvider;
 
-    @Mock
-    Spanner spannerClient;
+  @Mock Spanner spannerClient;
 
-    @Mock(answer = Answers.RETURNS_DEEP_STUBS)
-    DatabaseClient dbClient;
+  @Mock(answer = Answers.RETURNS_DEEP_STUBS)
+  DatabaseClient dbClient;
 
-    SimpleTable exampleTable =
-            new SimpleTable(
-                    "table",
-                    List.of(
-                            new SimpleColumn(
-                                    "table", "column", TypeFactory.createSimpleType(TypeKind.TYPE_STRING))));
+  SimpleTable exampleTable =
+      new SimpleTable(
+          "table",
+          List.of(
+              new SimpleColumn(
+                  "table", "column", TypeFactory.createSimpleType(TypeKind.TYPE_STRING))));
 
   @BeforeEach
   void init() {
-      when(spannerClient.getDatabaseClient(any())).thenReturn(dbClient);
-      this.spannerResourceProvider = new SpannerResourceProviderImpl(
-              "project", "instance", "database", spannerClient);
+    when(spannerClient.getDatabaseClient(any())).thenReturn(dbClient);
+    this.spannerResourceProvider =
+        new SpannerResourceProviderImpl("project", "instance", "database", spannerClient);
   }
 
   ResultSet resultSetForExampleTable() {
@@ -74,7 +72,7 @@ public class SpannerResourceProviderImplTest {
   @Test
   void testGetTables() {
     ResultSet resultSetForExampleTable = resultSetForExampleTable();
-      when(dbClient.singleUse().executeQuery(any())).thenReturn(resultSetForExampleTable);
+    when(dbClient.singleUse().executeQuery(any())).thenReturn(resultSetForExampleTable);
 
     List<SimpleTable> tables = spannerResourceProvider.getTables(List.of("table"));
 
@@ -85,8 +83,8 @@ public class SpannerResourceProviderImplTest {
   @Test
   void testTableNotFound() {
     ResultSet resultSet = mock(ResultSet.class);
-      when(resultSet.next()).thenReturn(false);
-      when(dbClient.singleUse().executeQuery(any())).thenReturn(resultSet);
+    when(resultSet.next()).thenReturn(false);
+    when(dbClient.singleUse().executeQuery(any())).thenReturn(resultSet);
 
     assertThrows(
         SpannerTablesNotFound.class, () -> spannerResourceProvider.getTables(List.of("table")));

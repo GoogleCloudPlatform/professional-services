@@ -31,7 +31,6 @@ import com.google.zetasql.toolkit.catalog.bigquery.TVFInfo;
 import com.google.zetasql.toolkit.catalog.exceptions.CatalogResourceAlreadyExists;
 import com.google.zetasql.toolkit.catalog.spanner.exceptions.InvalidSpannerTableName;
 import com.google.zetasql.toolkit.options.SpannerLanguageOptions;
-
 import java.util.List;
 
 /** {@link CatalogWrapper} implementation that follows Cloud Spanner semantics */

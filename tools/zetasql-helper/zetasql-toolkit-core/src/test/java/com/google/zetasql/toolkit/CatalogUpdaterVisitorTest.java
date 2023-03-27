@@ -16,6 +16,10 @@
 
 package com.google.zetasql.toolkit;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.verify;
+
 import com.google.common.collect.ImmutableList;
 import com.google.zetasql.*;
 import com.google.zetasql.TVFRelation.Column;
@@ -30,18 +34,13 @@ import com.google.zetasql.resolvedast.ResolvedNodes.*;
 import com.google.zetasql.toolkit.catalog.CatalogTestUtils;
 import com.google.zetasql.toolkit.catalog.CatalogWrapper;
 import com.google.zetasql.toolkit.catalog.bigquery.TVFInfo;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 public class CatalogUpdaterVisitorTest {

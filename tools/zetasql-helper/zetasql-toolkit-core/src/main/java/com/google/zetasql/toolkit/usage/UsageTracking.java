@@ -13,5 +13,4 @@ public class UsageTracking {
       FixedHeaderProvider.create(ImmutableMap.of(USER_AGENT_HEADER, USER_AGENT_VALUE));
 
   private UsageTracking() {}
-
 }

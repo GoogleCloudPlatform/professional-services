@@ -20,7 +20,6 @@ import com.google.zetasql.AnalyzerOptions;
 import com.google.zetasql.LanguageOptions;
 import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedStatement;
 import com.google.zetasql.toolkit.ZetaSQLToolkitAnalyzer;
-
 import java.util.Iterator;
 
 /** Example showcasing the basic example of how to use the ZetaSQL analyzer using this toolkit */

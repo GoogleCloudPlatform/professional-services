@@ -20,14 +20,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import com.google.api.gax.paging.Page;
-import com.google.cloud.bigquery.BigQuery;
-import com.google.cloud.bigquery.BigQueryException;
-import com.google.cloud.bigquery.Dataset;
-import com.google.cloud.bigquery.DatasetId;
-import com.google.cloud.bigquery.Routine;
-import com.google.cloud.bigquery.RoutineId;
-import com.google.cloud.bigquery.Table;
-import com.google.cloud.bigquery.TableId;
+import com.google.cloud.bigquery.*;
 import com.google.zetasql.toolkit.catalog.bigquery.BigQueryService.Result;
 import com.google.zetasql.toolkit.catalog.bigquery.exceptions.BigQueryAPIError;
 import java.util.List;

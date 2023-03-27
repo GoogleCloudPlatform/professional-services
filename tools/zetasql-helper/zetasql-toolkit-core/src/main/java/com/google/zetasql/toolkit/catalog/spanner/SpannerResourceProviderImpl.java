@@ -24,7 +24,6 @@ import com.google.zetasql.toolkit.catalog.CatalogOperations;
 import com.google.zetasql.toolkit.catalog.spanner.exceptions.SpannerTablesNotFound;
 import com.google.zetasql.toolkit.catalog.typeparser.ZetaSQLTypeParser;
 import com.google.zetasql.toolkit.usage.UsageTracking;
-
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -35,68 +34,66 @@ import java.util.stream.Collectors;
  */
 public class SpannerResourceProviderImpl implements SpannerResourceProvider {
 
-    private final DatabaseClient dbClient;
+  private final DatabaseClient dbClient;
 
-    /**
-     * Constructs a SpannerResourceProviderImpl.
-     *
-     * <p> Package-private, only used internally and for testing. To build a new instance,
-     * see {@link #build(String, String, String, Spanner)} and
-     * {@link #buildDefault(String, String, String)}.
-     *
-     * @param project       The Spanner project id
-     * @param instance      The Spanner instance id
-     * @param database      The Spanner database name
-     * @param spannerClient The {@link Spanner} instance to use when accessing Spanner
-     */
-    SpannerResourceProviderImpl(
-            String project, String instance, String database, Spanner spannerClient
-    ) {
-        DatabaseId databaseId = DatabaseId.of(project, instance, database);
-        this.dbClient = spannerClient.getDatabaseClient(databaseId);
-    }
+  /**
+   * Constructs a SpannerResourceProviderImpl.
+   *
+   * <p>Package-private, only used internally and for testing. To build a new instance, see {@link
+   * #build(String, String, String, Spanner)} and {@link #buildDefault(String, String, String)}.
+   *
+   * @param project The Spanner project id
+   * @param instance The Spanner instance id
+   * @param database The Spanner database name
+   * @param spannerClient The {@link Spanner} instance to use when accessing Spanner
+   */
+  SpannerResourceProviderImpl(
+      String project, String instance, String database, Spanner spannerClient) {
+    DatabaseId databaseId = DatabaseId.of(project, instance, database);
+    this.dbClient = spannerClient.getDatabaseClient(databaseId);
+  }
 
-    /**
-     * Constructs a SpannerResourceProviderImpl with a given Spanner client.
-     *
-     * <p> The underlying client used by the will be a copy of the provided client which
-     * includes usage tracking headers.
-     *
-     * @param project       The Spanner project id
-     * @param instance      The Spanner instance id
-     * @param database      The Spanner database name
-     * @param spannerClient The {@link Spanner} instance to use when building the
-     *                      SpannerResourceProviderImpl
-     * @return The new SpannerResourceProviderImpl instance
-     */
-    public static SpannerResourceProviderImpl build(
-            String project, String instance, String database, Spanner spannerClient
-    ) {
-        Spanner spannerClientWithUsageTracking = spannerClient.getOptions()
-                .toBuilder()
-                .setHeaderProvider(UsageTracking.HEADER_PROVIDER)
-                .build()
-                .getService();
+  /**
+   * Constructs a SpannerResourceProviderImpl with a given Spanner client.
+   *
+   * <p>The underlying client used by the will be a copy of the provided client which includes usage
+   * tracking headers.
+   *
+   * @param project The Spanner project id
+   * @param instance The Spanner instance id
+   * @param database The Spanner database name
+   * @param spannerClient The {@link Spanner} instance to use when building the
+   *     SpannerResourceProviderImpl
+   * @return The new SpannerResourceProviderImpl instance
+   */
+  public static SpannerResourceProviderImpl build(
+      String project, String instance, String database, Spanner spannerClient) {
+    Spanner spannerClientWithUsageTracking =
+        spannerClient
+            .getOptions()
+            .toBuilder()
+            .setHeaderProvider(UsageTracking.HEADER_PROVIDER)
+            .build()
+            .getService();
 
-        return new SpannerResourceProviderImpl(
-                project, instance, database, spannerClientWithUsageTracking);
-    }
+    return new SpannerResourceProviderImpl(
+        project, instance, database, spannerClientWithUsageTracking);
+  }
 
-    /**
-     * Constructs a SpannerResourceProviderImpl given a Spanner project, instance and database. It
-     * uses application-default credentials to access Spanner.
-     *
-     * @param project  The Spanner project id
-     * @param instance The Spanner instance name
-     * @param database The Spanner database name
-     * @return The new SpannerResourceProviderImpl instance
-     */
-    public static SpannerResourceProviderImpl buildDefault(
-            String project, String instance, String database
-    ) {
-        Spanner defaultSpanner = SpannerOptions.newBuilder().build().getService();
-        return SpannerResourceProviderImpl.build(project, instance, database, defaultSpanner);
-    }
+  /**
+   * Constructs a SpannerResourceProviderImpl given a Spanner project, instance and database. It
+   * uses application-default credentials to access Spanner.
+   *
+   * @param project The Spanner project id
+   * @param instance The Spanner instance name
+   * @param database The Spanner database name
+   * @return The new SpannerResourceProviderImpl instance
+   */
+  public static SpannerResourceProviderImpl buildDefault(
+      String project, String instance, String database) {
+    Spanner defaultSpanner = SpannerOptions.newBuilder().build().getService();
+    return SpannerResourceProviderImpl.build(project, instance, database, defaultSpanner);
+  }
 
   @Override
   public List<SimpleTable> getTables(List<String> tableNames) {
@@ -162,15 +159,15 @@ public class SpannerResourceProviderImpl implements SpannerResourceProvider {
    * @return The list of SimpleTables represented the retrieved tables.
    */
   private List<SimpleTable> fetchTables(Statement query) {
-      Map<String, List<SimpleColumn>> tableColumns = new HashMap<>();
+    Map<String, List<SimpleColumn>> tableColumns = new HashMap<>();
 
-      try (ResultSet resultSet = this.dbClient.singleUse().executeQuery(query)) {
-          while (resultSet.next()) {
-              String tableName = resultSet.getString("table_name");
-              String columnName = resultSet.getString("column_name");
-              String columnTypeStr = resultSet.getString("spanner_type");
-              Type columnType = ZetaSQLTypeParser.parse(columnTypeStr);
-              SimpleColumn column = new SimpleColumn(tableName, columnName, columnType);
+    try (ResultSet resultSet = this.dbClient.singleUse().executeQuery(query)) {
+      while (resultSet.next()) {
+        String tableName = resultSet.getString("table_name");
+        String columnName = resultSet.getString("column_name");
+        String columnTypeStr = resultSet.getString("spanner_type");
+        Type columnType = ZetaSQLTypeParser.parse(columnTypeStr);
+        SimpleColumn column = new SimpleColumn(tableName, columnName, columnType);
         tableColumns.computeIfAbsent(tableName, key -> new ArrayList<>()).add(column);
       }
     }

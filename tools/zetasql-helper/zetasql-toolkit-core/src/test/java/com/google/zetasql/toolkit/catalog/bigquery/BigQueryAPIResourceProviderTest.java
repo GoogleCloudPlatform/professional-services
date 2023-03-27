@@ -16,34 +16,17 @@
 
 package com.google.zetasql.toolkit.catalog.bigquery;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
-import com.google.cloud.bigquery.DatasetId;
-import com.google.cloud.bigquery.Field;
+import com.google.cloud.bigquery.*;
 import com.google.cloud.bigquery.Field.Mode;
-import com.google.cloud.bigquery.FieldList;
-import com.google.cloud.bigquery.Routine;
-import com.google.cloud.bigquery.RoutineArgument;
-import com.google.cloud.bigquery.RoutineId;
-import com.google.cloud.bigquery.StandardSQLDataType;
-import com.google.cloud.bigquery.StandardSQLField;
-import com.google.cloud.bigquery.StandardSQLTableType;
-import com.google.cloud.bigquery.StandardSQLTypeName;
-import com.google.cloud.bigquery.StandardTableDefinition;
 import com.google.cloud.bigquery.Table;
-import com.google.cloud.bigquery.TableId;
-import com.google.cloud.bigquery.TimePartitioning;
-import com.google.zetasql.Function;
-import com.google.zetasql.FunctionArgumentType;
+import com.google.zetasql.*;
 import com.google.zetasql.FunctionArgumentType.FunctionArgumentTypeOptions;
-import com.google.zetasql.FunctionSignature;
-import com.google.zetasql.SimpleColumn;
-import com.google.zetasql.SimpleTable;
 import com.google.zetasql.StructType.StructField;
-import com.google.zetasql.TVFRelation;
 import com.google.zetasql.TVFRelation.Column;
-import com.google.zetasql.TypeFactory;
 import com.google.zetasql.ZetaSQLFunctions.FunctionEnums.ProcedureArgumentMode;
 import com.google.zetasql.ZetaSQLFunctions.SignatureArgumentKind;
 import com.google.zetasql.ZetaSQLType.TypeKind;

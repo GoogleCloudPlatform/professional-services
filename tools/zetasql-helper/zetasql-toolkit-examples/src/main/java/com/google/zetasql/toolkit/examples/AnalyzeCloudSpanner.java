@@ -52,7 +52,8 @@ public class AnalyzeCloudSpanner {
 
     // Step 5: Run the analysis
     ZetaSQLToolkitAnalyzer analyzer = new ZetaSQLToolkitAnalyzer(options);
-    analyzer.analyzeStatements(query, catalog)
-            .forEachRemaining(statement -> System.out.println(statement.debugString()));
+    analyzer
+        .analyzeStatements(query, catalog)
+        .forEachRemaining(statement -> System.out.println(statement.debugString()));
   }
 }

@@ -25,7 +25,6 @@ import com.google.zetasql.toolkit.validation.CannotRecreateExistingTableVisitor;
 import com.google.zetasql.toolkit.validation.StatementValidator;
 import com.google.zetasql.toolkit.validation.ValidatingVisitor;
 import com.google.zetasql.toolkit.validation.ValidationError;
-
 import java.util.Iterator;
 import java.util.List;
 
@@ -34,8 +33,8 @@ public class AnalyzeAndValidate {
 
   public static void main(String[] args) {
     String query =
-            "CREATE TABLE `bigquery-public-data.samples.wikipedia` AS SELECT 1 AS column;\n"
-                    + "SELECT column FROM `bigquery-public-data.samples.wikipedia`;";
+        "CREATE TABLE `bigquery-public-data.samples.wikipedia` AS SELECT 1 AS column;\n"
+            + "SELECT column FROM `bigquery-public-data.samples.wikipedia`;";
 
     BigQueryCatalog catalog = new BigQueryCatalog("bigquery-public-data");
 
@@ -49,7 +48,7 @@ public class AnalyzeAndValidate {
     Iterator<ResolvedStatement> statementIterator = analyzer.analyzeStatements(query, catalog);
 
     List<ValidatingVisitor> validations =
-            List.of(new CannotRecreateExistingTableVisitor(catalog.getZetaSQLCatalog()));
+        List.of(new CannotRecreateExistingTableVisitor(catalog.getZetaSQLCatalog()));
 
     StatementValidator validator = new StatementValidator();
 
