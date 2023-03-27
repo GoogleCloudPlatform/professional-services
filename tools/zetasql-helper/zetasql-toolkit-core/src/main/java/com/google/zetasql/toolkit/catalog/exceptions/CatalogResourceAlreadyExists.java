@@ -25,6 +25,11 @@ public class CatalogResourceAlreadyExists extends CatalogException {
     this.resourceName = resourceName;
   }
 
+  public CatalogResourceAlreadyExists(String resourceName, String message) {
+    super(message);
+    this.resourceName = resourceName;
+  }
+
   public CatalogResourceAlreadyExists(String resourceName, String message, Throwable cause) {
     super(message, cause);
     this.resourceName = resourceName;
