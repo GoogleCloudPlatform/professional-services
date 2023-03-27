@@ -43,73 +43,72 @@ public class SpannerCatalog implements CatalogWrapper {
   private final SpannerResourceProvider spannerResourceProvider;
   private final SimpleCatalog catalog;
 
-    /**
-     * Constructs a SpannerCatalog that uses the provided {@link SpannerResourceProvider} for fetching
-     * Spanner tables.
-     *
-     * @param projectId               The Spanner project id
-     * @param instance                The Spanner instance name
-     * @param database                The Spanner database name
-     * @param spannerResourceProvider The SpannerResourceProvider to use
-     */
-    SpannerCatalog(
-            String projectId,
-            String instance,
-            String database,
-            SpannerResourceProvider spannerResourceProvider) {
-        this.projectId = projectId;
-        this.instance = instance;
-        this.database = database;
-        this.spannerResourceProvider = spannerResourceProvider;
-        this.catalog = new SimpleCatalog("catalog");
-        this.catalog.addZetaSQLFunctions(
-                new ZetaSQLBuiltinFunctionOptions(SpannerLanguageOptions.get()));
-        // TODO: Define and add Spanner-specific functions to the catalog
-    }
+  /**
+   * Constructs a SpannerCatalog that uses the provided {@link SpannerResourceProvider} for fetching
+   * Spanner tables.
+   *
+   * @param projectId The Spanner project id
+   * @param instance The Spanner instance name
+   * @param database The Spanner database name
+   * @param spannerResourceProvider The SpannerResourceProvider to use
+   */
+  SpannerCatalog(
+      String projectId,
+      String instance,
+      String database,
+      SpannerResourceProvider spannerResourceProvider) {
+    this.projectId = projectId;
+    this.instance = instance;
+    this.database = database;
+    this.spannerResourceProvider = spannerResourceProvider;
+    this.catalog = new SimpleCatalog("catalog");
+    this.catalog.addZetaSQLFunctions(
+        new ZetaSQLBuiltinFunctionOptions(SpannerLanguageOptions.get()));
+    // TODO: Define and add Spanner-specific functions to the catalog
+  }
 
-    /**
-     * Constructs a SpannerCatalog given a Spanner project, instance and database. It uses a {@link
-     * DatabaseClient} with application default credentials to access Spanner.
-     *
-     * @param projectId The Spanner project id
-     * @param instance  The Spanner instance name
-     * @param database  The Spanner database name
-     */
-    public SpannerCatalog(String projectId, String instance, String database) {
-        this(
-                projectId,
-                instance,
-                database,
-                SpannerResourceProviderImpl.buildDefault(projectId, instance, database));
-    }
+  /**
+   * Constructs a SpannerCatalog given a Spanner project, instance and database. It uses a {@link
+   * DatabaseClient} with application default credentials to access Spanner.
+   *
+   * @param projectId The Spanner project id
+   * @param instance The Spanner instance name
+   * @param database The Spanner database name
+   */
+  public SpannerCatalog(String projectId, String instance, String database) {
+    this(
+        projectId,
+        instance,
+        database,
+        SpannerResourceProviderImpl.buildDefault(projectId, instance, database));
+  }
 
-    /**
-     * Constructs a SpannerCatalog that uses the provided {@link DatabaseClient} for accessing
-     * Spanner.
-     *
-     * @param projectId     The Spanner project id
-     * @param instance      The Spanner instance name
-     * @param database      The Spanner database name
-     * @param spannerClient The Spanner client to use
-     */
-    public SpannerCatalog(
-            String projectId, String instance, String database, Spanner spannerClient) {
-        this(
-                projectId, instance, database,
-                SpannerResourceProviderImpl.build(projectId, instance, database, spannerClient));
-    }
+  /**
+   * Constructs a SpannerCatalog that uses the provided {@link DatabaseClient} for accessing
+   * Spanner.
+   *
+   * @param projectId The Spanner project id
+   * @param instance The Spanner instance name
+   * @param database The Spanner database name
+   * @param spannerClient The Spanner client to use
+   */
+  public SpannerCatalog(String projectId, String instance, String database, Spanner spannerClient) {
+    this(
+        projectId,
+        instance,
+        database,
+        SpannerResourceProviderImpl.build(projectId, instance, database, spannerClient));
+  }
 
-    /**
-     * Private constructor used for implementing {@link #copy()}
-     */
-    private SpannerCatalog(
-            String projectId,
-            String instance,
-            String database,
-            SpannerResourceProvider spannerResourceProvider,
-            SimpleCatalog internalCatalog) {
-        this.projectId = projectId;
-        this.instance = instance;
+  /** Private constructor used for implementing {@link #copy()} */
+  private SpannerCatalog(
+      String projectId,
+      String instance,
+      String database,
+      SpannerResourceProvider spannerResourceProvider,
+      SimpleCatalog internalCatalog) {
+    this.projectId = projectId;
+    this.instance = instance;
     this.database = database;
     this.spannerResourceProvider = spannerResourceProvider;
     this.catalog = internalCatalog;
@@ -168,13 +167,30 @@ public class SpannerCatalog implements CatalogWrapper {
     throw new UnsupportedOperationException("Cloud Spanner does not support procedures");
   }
 
-  /**
-   * {@inheritDoc}
-   *
-   * @throws InvalidSpannerTableName if any of the table names is invalid for Spanner
-   */
   @Override
-  public void addTables(List<String> tableNames) {
+  public void removeTable(String table) {
+    this.validateSpannerTableNames(List.of(table));
+    CatalogOperations.deleteTableFromCatalog(this.catalog, List.of(List.of(table)));
+  }
+
+  @Override
+  public void removeFunction(String function) {
+    throw new UnsupportedOperationException(
+        "Cloud Spanner does not support user-defined functions");
+  }
+
+  @Override
+  public void removeTVF(String function) {
+    throw new UnsupportedOperationException(
+        "Cloud Spanner does not support table valued functions");
+  }
+
+  @Override
+  public void removeProcedure(String procedure) {
+    throw new UnsupportedOperationException("Cloud Spanner does not support procedures");
+  }
+
+  private void validateSpannerTableNames(List<String> tableNames) {
     tableNames.stream()
         .filter(tableName -> tableName.contains("."))
         .findAny()
@@ -182,6 +198,16 @@ public class SpannerCatalog implements CatalogWrapper {
             invalidTableName -> {
               throw new InvalidSpannerTableName(invalidTableName);
             });
+  }
+
+  /**
+   * {@inheritDoc}
+   *
+   * @throws InvalidSpannerTableName if any of the table names is invalid for Spanner
+   */
+  @Override
+  public void addTables(List<String> tableNames) {
+    this.validateSpannerTableNames(tableNames);
 
     this.spannerResourceProvider
         .getTables(tableNames)
@@ -202,12 +228,14 @@ public class SpannerCatalog implements CatalogWrapper {
 
   @Override
   public void addFunctions(List<String> functions) {
-    throw new UnsupportedOperationException("Cloud Spanner does not support UDFs");
+    throw new UnsupportedOperationException(
+        "Cloud Spanner does not support user-defined functions");
   }
 
   @Override
   public void addTVFs(List<String> functions) {
-    throw new UnsupportedOperationException("Cloud Spanner does not support TVFs");
+    throw new UnsupportedOperationException(
+        "Cloud Spanner does not support table valued functions");
   }
 
   @Override

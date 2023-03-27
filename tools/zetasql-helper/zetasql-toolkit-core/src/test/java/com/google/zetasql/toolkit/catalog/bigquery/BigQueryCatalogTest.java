@@ -16,22 +16,9 @@
 
 package com.google.zetasql.toolkit.catalog.bigquery;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
-
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
-import com.google.zetasql.Function;
-import com.google.zetasql.FunctionArgumentType;
-import com.google.zetasql.FunctionSignature;
-import com.google.zetasql.NotFoundException;
-import com.google.zetasql.SimpleCatalog;
-import com.google.zetasql.SimpleColumn;
-import com.google.zetasql.SimpleTable;
-import com.google.zetasql.TVFRelation;
-import com.google.zetasql.Table;
-import com.google.zetasql.Type;
-import com.google.zetasql.TypeFactory;
+import com.google.zetasql.*;
 import com.google.zetasql.ZetaSQLFunctions.FunctionEnums.Mode;
 import com.google.zetasql.ZetaSQLFunctions.SignatureArgumentKind;
 import com.google.zetasql.ZetaSQLType.TypeKind;
@@ -40,9 +27,6 @@ import com.google.zetasql.resolvedast.ResolvedCreateStatementEnums.CreateScope;
 import com.google.zetasql.toolkit.catalog.CatalogTestUtils;
 import com.google.zetasql.toolkit.catalog.bigquery.exceptions.InvalidBigQueryReference;
 import com.google.zetasql.toolkit.catalog.exceptions.CatalogResourceAlreadyExists;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Stream;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -50,6 +34,13 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.function.Executable;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Stream;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class BigQueryCatalogTest {
@@ -148,7 +139,7 @@ public class BigQueryCatalogTest {
     return result;
   }
 
-  Table assertTableExistsAtPaths(BigQueryCatalog catalog, List<List<String>> tablePaths) {
+  private Table assertTableExistsAtPaths(BigQueryCatalog catalog, List<List<String>> tablePaths) {
     Preconditions.checkNotNull(tablePaths, "Table paths cannot be null");
     Preconditions.checkElementIndex(0, tablePaths.size(), "Table paths cannot be empty");
 
@@ -172,6 +163,27 @@ public class BigQueryCatalogTest {
     } catch (NotFoundException e) {
       throw new AssertionError(e);
     }
+  }
+
+  private void assertTableDoesNotExist(BigQueryCatalog catalog, List<List<String>> tablePaths) {
+    Preconditions.checkNotNull(tablePaths, "Table paths cannot be null");
+    Preconditions.checkElementIndex(0, tablePaths.size(), "Table paths cannot be empty");
+
+    SimpleCatalog underlyingCatalog = catalog.getZetaSQLCatalog();
+
+    Stream<Executable> assertions =
+        tablePaths.stream()
+            .map(
+                tablePath ->
+                    (() ->
+                        assertThrows(
+                            NotFoundException.class,
+                            () -> underlyingCatalog.findTable(tablePath),
+                            String.format(
+                                "Expected table to not exist at path %s",
+                                String.join(".", tablePath)))));
+
+    assertAll(assertions);
   }
 
   @Test
@@ -261,6 +273,21 @@ public class BigQueryCatalogTest {
         NotFoundException.class,
         () -> this.bigQueryCatalog.getZetaSQLCatalog().findTable(pathWhereTableShouldNotBe),
         "Expected table not in default project to not be available at DATASET.TABLE path");
+  }
+
+  @Test
+  void testRemoveTable() {
+    this.bigQueryCatalog.register(
+        exampleTableInDefaultProject, CreateMode.CREATE_DEFAULT, CreateScope.CREATE_DEFAULT_SCOPE);
+
+    List<List<String>> pathsWhereTableShouldBe =
+        this.buildPathsWhereResourceShouldBe(exampleTableInDefaultProject.getFullName());
+
+    assertTableExistsAtPaths(this.bigQueryCatalog, pathsWhereTableShouldBe);
+
+    this.bigQueryCatalog.removeTable(exampleTableInDefaultProject.getFullName());
+
+    assertTableDoesNotExist(this.bigQueryCatalog, pathsWhereTableShouldBe);
   }
 
   @Test

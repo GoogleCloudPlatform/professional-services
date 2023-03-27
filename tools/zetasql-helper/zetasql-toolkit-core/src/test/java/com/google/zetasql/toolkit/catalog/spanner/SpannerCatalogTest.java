@@ -16,27 +16,24 @@
 
 package com.google.zetasql.toolkit.catalog.spanner;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
-
-import com.google.zetasql.SimpleCatalog;
-import com.google.zetasql.SimpleColumn;
-import com.google.zetasql.SimpleTable;
-import com.google.zetasql.Table;
-import com.google.zetasql.TypeFactory;
+import com.google.zetasql.*;
 import com.google.zetasql.ZetaSQLType.TypeKind;
 import com.google.zetasql.resolvedast.ResolvedCreateStatementEnums.CreateMode;
 import com.google.zetasql.resolvedast.ResolvedCreateStatementEnums.CreateScope;
 import com.google.zetasql.toolkit.catalog.CatalogTestUtils;
 import com.google.zetasql.toolkit.catalog.exceptions.CatalogResourceAlreadyExists;
 import com.google.zetasql.toolkit.catalog.spanner.exceptions.InvalidSpannerTableName;
-import java.util.List;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class SpannerCatalogTest {
@@ -67,10 +64,16 @@ public class SpannerCatalogTest {
         new SpannerCatalog("project", "instance", "database", spannerResourceProviderMock);
   }
 
-  Table assertTableExistsInCatalog(SpannerCatalog catalog, SimpleTable table) {
+  private Table assertTableExistsInCatalog(SpannerCatalog catalog, SimpleTable table) {
     SimpleCatalog underlyingCatalog = catalog.getZetaSQLCatalog();
 
     return assertDoesNotThrow(() -> underlyingCatalog.findTable(List.of(table.getName())));
+  }
+
+  private void assertTableDoesNotExistInCatalog(SpannerCatalog catalog, String tableName) {
+    SimpleCatalog underlyingCatalog = catalog.getZetaSQLCatalog();
+
+    assertThrows(NotFoundException.class, () -> underlyingCatalog.findTable(List.of(tableName)));
   }
 
   @Test
@@ -102,6 +105,16 @@ public class SpannerCatalogTest {
     assertTrue(
         CatalogTestUtils.tableEquals(exampleTable, foundTable),
         "Expected table created in Catalog to be equal to the original");
+  }
+
+  @Test
+  void testRemoveTable() {
+    spannerCatalog.register(
+        exampleTable, CreateMode.CREATE_DEFAULT, CreateScope.CREATE_DEFAULT_SCOPE);
+
+    spannerCatalog.removeTable(exampleTable.getName());
+
+    assertTableDoesNotExistInCatalog(spannerCatalog, exampleTable.getName());
   }
 
   @Test

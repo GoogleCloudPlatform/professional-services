@@ -16,15 +16,12 @@
 
 package com.google.zetasql.toolkit.catalog;
 
-import com.google.zetasql.Analyzer;
-import com.google.zetasql.AnalyzerOptions;
-import com.google.zetasql.Function;
-import com.google.zetasql.SimpleCatalog;
-import com.google.zetasql.SimpleTable;
+import com.google.zetasql.*;
 import com.google.zetasql.resolvedast.ResolvedCreateStatementEnums.CreateMode;
 import com.google.zetasql.resolvedast.ResolvedCreateStatementEnums.CreateScope;
 import com.google.zetasql.toolkit.catalog.bigquery.ProcedureInfo;
 import com.google.zetasql.toolkit.catalog.bigquery.TVFInfo;
+
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -36,7 +33,6 @@ import java.util.stream.Collectors;
  * BigQuery.
  */
 public interface CatalogWrapper {
-  // TODO: Should the CatalogWrapper support Constants and Types?
 
   /**
    * Registers a SimpleTable in this catalog.
@@ -75,37 +71,109 @@ public interface CatalogWrapper {
   void register(ProcedureInfo procedureInfo, CreateMode createMode, CreateScope createScope);
 
   /**
+   * Removes a table to this catalog by name.
+   *
+   * @param table The reference to the table to add
+   */
+  void removeTable(String table);
+
+  /**
+   * Removes a function to this catalog by name.
+   *
+   * @param function The reference to the function to add
+   */
+  void removeFunction(String function);
+
+  /**
+   * Removes a TVF to this catalog by name.
+   *
+   * @param function The reference to the TVF to add
+   */
+  void removeTVF(String function);
+
+  /**
+   * Removes a procedure to this catalog by name.
+   *
+   * @param procedure The reference to the procedure to add
+   */
+  void removeProcedure(String procedure);
+
+  /**
+   * Removes a set of tables to this catalog by name.
+   *
+   * @param tables The list of table references to remove
+   */
+  default void removeTables(List<String> tables) {
+    for (String table : tables) {
+      this.removeTable(table);
+    }
+  }
+
+  /**
+   * Removes a set of functions to this catalog by name.
+   *
+   * @param functions The list of function references to add
+   */
+  default void removeFunctions(List<String> functions) {
+    for (String function : functions) {
+      this.removeFunction(function);
+    }
+  }
+
+  /**
+   * Removes a set of TVFs to this catalog by name.
+   *
+   * @param functions The list of function references to add
+   */
+  default void removeTVFs(List<String> functions) {
+    for (String function : functions) {
+      this.removeTVF(function);
+    }
+  }
+
+  /**
+   * Removes a set of procedures to this catalog by name.
+   *
+   * @param procedures The list of procedure references to add
+   */
+  default void removeProcedures(List<String> procedures) {
+    for (String procedure : procedures) {
+      this.removeProcedure(procedure);
+    }
+  }
+
+  /**
    * Adds a set of tables to this catalog by name.
    *
-   * @param tables The list of table names to add
+   * @param tables The list of table references to add
    */
   void addTables(List<String> tables);
 
   /**
    * Adds a set of functions to this catalog by name.
    *
-   * @param functions The list of function names to add
+   * @param functions The list of function references to add
    */
   void addFunctions(List<String> functions);
 
   /**
    * Adds a set of TVFs to this catalog by name.
    *
-   * @param functions The list of function names to add
+   * @param functions The list of function references to add
    */
   void addTVFs(List<String> functions);
 
   /**
    * Adds a set of procedures to this catalog by name.
    *
-   * @param procedures The list of procedure names to add
+   * @param procedures The list of procedure references to add
    */
   void addProcedures(List<String> procedures);
 
   /**
    * Adds a table to this catalog by name.
    *
-   * @param table The name of the table to add
+   * @param table The reference to the table to add
    */
   default void addTable(String table) {
     this.addTables(List.of(table));
@@ -114,7 +182,7 @@ public interface CatalogWrapper {
   /**
    * Adds a function to this catalog by name.
    *
-   * @param function The name of the function to add
+   * @param function The reference to the function to add
    */
   default void addFunction(String function) {
     this.addFunctions(List.of(function));
@@ -123,7 +191,7 @@ public interface CatalogWrapper {
   /**
    * Adds a TVF to this catalog by name.
    *
-   * @param function The name of the TVF to add
+   * @param function The reference to the TVF to add
    */
   default void addTVF(String function) {
     this.addTVFs(List.of(function));
@@ -132,7 +200,7 @@ public interface CatalogWrapper {
   /**
    * Adds a procedure to this catalog by name.
    *
-   * @param procedure The name of the procedure to add
+   * @param procedure The reference to the procedure to add
    */
   default void addProcedure(String procedure) {
     this.addProcedures(List.of(procedure));

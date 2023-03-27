@@ -27,6 +27,7 @@ import com.google.zetasql.toolkit.catalog.CatalogWrapper;
 import com.google.zetasql.toolkit.catalog.bigquery.ProcedureInfo;
 import com.google.zetasql.toolkit.catalog.bigquery.TVFInfo;
 import com.google.zetasql.toolkit.catalog.exceptions.CatalogException;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -102,6 +103,26 @@ public class BasicCatalogWrapper implements CatalogWrapper {
 
     CatalogOperations.createProcedureInCatalog(
         this.catalog, procedurePaths, procedureInfo, createMode);
+  }
+
+  @Override
+  public void removeTable(String fullTableName) {
+    CatalogOperations.deleteTableFromCatalog(this.catalog, List.of(List.of(fullTableName)));
+  }
+
+  @Override
+  public void removeFunction(String function) {
+    CatalogOperations.deleteFunctionFromCatalog(this.catalog, List.of(List.of(function)));
+  }
+
+  @Override
+  public void removeTVF(String function) {
+    CatalogOperations.deleteTVFFromCatalog(this.catalog, List.of(List.of(function)));
+  }
+
+  @Override
+  public void removeProcedure(String procedure) {
+    CatalogOperations.deleteProcedureFromCatalog(this.catalog, List.of(List.of(procedure)));
   }
 
   @Override

@@ -69,7 +69,7 @@ public class BigQueryCatalog implements CatalogWrapper {
    * @param bigQueryClient The BigQuery client to use for accessing the API
    */
   public BigQueryCatalog(String defaultProjectId, BigQuery bigQueryClient) {
-      this(defaultProjectId, BigQueryAPIResourceProvider.build(bigQueryClient));
+    this(defaultProjectId, BigQueryAPIResourceProvider.build(bigQueryClient));
   }
 
   /**
@@ -378,6 +378,42 @@ public class BigQueryCatalog implements CatalogWrapper {
     }
   }
 
+  @Override
+  public void removeTable(String tableReference) {
+    boolean isQualified = tableReference.split("\\.").length > 1;
+
+    List<List<String>> tablePaths =
+        !isQualified
+            ? List.of(List.of(tableReference))
+            : this.buildCatalogPathsForResource(tableReference);
+
+    CatalogOperations.deleteTableFromCatalog(this.catalog, tablePaths);
+  }
+
+  @Override
+  public void removeFunction(String functionReference) {
+    boolean isQualified = functionReference.split("\\.").length > 1;
+
+    List<List<String>> functionPaths =
+        !isQualified
+            ? List.of(List.of(functionReference))
+            : this.buildCatalogPathsForResource(functionReference);
+
+    CatalogOperations.deleteFunctionFromCatalog(this.catalog, functionPaths);
+  }
+
+  @Override
+  public void removeTVF(String functionReference) {
+    List<List<String>> functionPaths = this.buildCatalogPathsForResource(functionReference);
+    CatalogOperations.deleteTVFFromCatalog(this.catalog, functionPaths);
+  }
+
+  @Override
+  public void removeProcedure(String procedureReference) {
+    List<List<String>> functionPaths = this.buildCatalogPathsForResource(procedureReference);
+    CatalogOperations.deleteProcedureFromCatalog(this.catalog, functionPaths);
+  }
+
   /**
    * {@inheritDoc}
    *
@@ -525,6 +561,18 @@ public class BigQueryCatalog implements CatalogWrapper {
                 this.register(
                     procedureInfo, CreateMode.CREATE_OR_REPLACE, CreateScope.CREATE_DEFAULT_SCOPE));
   }
+
+  @Override
+  public void removeTables(List<String> tables) {}
+
+  @Override
+  public void removeFunctions(List<String> functions) {}
+
+  @Override
+  public void removeTVFs(List<String> functions) {}
+
+  @Override
+  public void removeProcedures(List<String> procedures) {}
 
   /**
    * Adds all procedures in the provided dataset to this catalog
