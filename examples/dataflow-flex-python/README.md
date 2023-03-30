@@ -237,7 +237,7 @@ DAG_PATH=$(gcloud composer environments describe $COMPOSER_ENV_NAME --location $
 gcloud storage cp dag/xml-to-bq-dag.py $DAG_PATH
 ```
 
-#### Limitations
+### Limitations
 
 Currently this pipleine loads the whole XML file into memory
 for the conversion to dict via xmltodict. This approach works for small
