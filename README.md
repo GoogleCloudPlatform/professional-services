@@ -3,6 +3,16 @@
 Common solutions and tools developed by Google Cloud's Professional Services
 team.
 
+## Disclaimer
+
+This repository and its contents are not an officially supported Google product.
+
+## License
+
+All solutions within this repository are provided under the
+[Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0) license. Please see
+the [LICENSE](/LICENSE) file for more detailed terms and conditions.
+
 [![Open in Cloud Shell](http://gstatic.com/cloudssh/images/open-btn.svg)](https://console.cloud.google.com/cloudshell/editor?cloudshell_git_repo=https%3A%2F%2Fgithub.com%2FGoogleCloudPlatform%2Fprofessional-services.git)
 
 ## Examples
@@ -18,9 +28,6 @@ them to fit your particular use case.
 *   [Audio Content Profiling](examples/ml-audio-content-profiling) - A tool that
     builds a pipeline to scale the process of moderating audio files for
     inappropriate content using machine learning APIs.
-*   [Cloud Audit Log Samples](examples/audit-log-examples/) - A sample
-    collection of Audit Logs for Users and Customers to better the structure,
-    contents, and values contained in various log events.
 *   [BigQuery Analyze Realtime Reddit Data](examples/bigquery-analyze-realtime-reddit-data/) - 
     Solution to deploy a ([reddit](https://www.reddit.com)) social media data collection
     architecture on Google Cloud Platform.  Analyzes reddit comments in realtime and
@@ -37,6 +44,8 @@ them to fit your particular use case.
     scheduled interval. The email will contain a link to a signed or unsigned
     URL, allowing the recipient to view query results as a JSON, CSV, or Avro
     file.
+*   [BigQuery Automated Schema Management](tools/bqman) - Command-line utility
+    for automated provisioning and management of BigQuery datasets and tables.
 *   [BigQuery Billing Dashboard](examples/bigquery-billing-dashboard) - Solution
     to help displaying billing info using Data Studio for visualization and a
     sample SQL script to query the back-end billing export table in BigQuery.
@@ -46,8 +55,20 @@ them to fit your particular use case.
 *   [BigQuery Group Sync For Row Level Access](examples/bigquery-row-access-groups) -
     Sample code to synchronize group membership from G Suite/Cloud Identity into
     BigQuery and join that with your data to control access at row level.
+*   [BigQuery Oracle DDL Migration Utility](examples/bigquery-oracle-ddl-migration-utility) - 
+    Oracle DDL Migration Utility to migrate the tables schema (DDL) from Oracle DB to BigQuery.
+    The utility leverages BigQuery Translation API and offers additional features
+    such as adding partitioning, clustering, metadata columns and prefixes to table names.
 *   [BigQuery Pipeline Utility](tools/bqpipeline) - Python utility class for
     defining data pipelines in BigQuery.
+*   [BigQuery Remote Function](examples/bq-remote-function) - It allows user to implement custom
+    services or libraries in languages other than SQL or Javascript which are not part of UDFs.
+    The utility contains sample string format Java code to deploy cloud run gen2 instance and invoke 
+    the service from BigQuery using remote function.
+*   [BigQuery Snowflake Table Migration Tool](examples/bigquery-snowflake-tables-migration-utility) - 
+    BigQuery Snowflake Table Migration Tool helps to migrate the table DDL's from Snowflake to BigQuery.
+    The utility leverages BigQuery Translation API and offers additional features
+    such as adding partitioning, clustering, metadata columns and prefixes to table names.
 *   [BigQuery Table Access Pattern Analysis](examples/bigquery-table-access-pattern-analysis) -
     Sample code to analyse data pipeline optimisation points, by pinpointing
     suboptimal pipeline scheduling between tables in a data warehouse ELT job.
@@ -68,32 +89,25 @@ them to fit your particular use case.
     table. It works with any table, regardless the schema. It shows how to
     update your key for a table with existing data, to try out different
     alternatives to improve performance.
-*   [BigQuery Automated Schema Management](tools/bqman) - Command-line utility
-    for automated provisioning and management of BigQuery datasets and tables.
-*   [BigQuery Oracle DDL Migration Utility](examples/bigquery-oracle-ddl-migration-utility) - 
-    Oracle DDL Migration Utility to migrate the tables schema (DDL) from Oracle DB to BigQuery.
-    The utility leverages BigQuery Translation API and offers additional features
-    such as adding partitioning, clustering, metadata columns and prefixes to table names.
-*   [BigQuery Snowflake Table Migration Tool](examples/bigquery-snowflake-tables-migration-utility) - 
-    BigQuery Snowflake Table Migration Tool helps to migrate the table DDL's from Snowflake to BigQuery.
-    The utility leverages BigQuery Translation API and offers additional features
-    such as adding partitioning, clustering, metadata columns and prefixes to table names.
 *   [Carbon Footprint Reporting](examples/carbon-foortprint-dashboard) - Example of 
     using the prebuilt Data studio & Looker template for analysing GCP Carbon Footprint Estimates.
+*   [Cloud Audit Log Samples](examples/audit-log-examples/) - A sample
+*   collection of Audit Logs for Users and Customers to better the structure,
+    contents, and values contained in various log events.
 *   [Cloud Build with Proxy Running in Background](examples/cloudbuild-with-tcp-proxy) -
     Examples of cloudbuild with docker-compose running tcp proxy in the
     background for all build steps.
+*   [Cloud Composer CI/CD](examples/cloud-composer-cicd) - Examples of using
+    Cloud Build to deploy airflow DAGs to Cloud Composer.
+*   [Cloud Composer Deployment in Shared VPC](examples/composer-shared-vpc) -
+    Terraform code to deploy cloud composer in shared VPC environment.
 *   [Cloud Composer Examples](examples/cloud-composer-examples) - Examples of
     using Cloud Composer, GCP's managed Apache Airflow service.
-*   [Cloud Composer deployment in shared VPC](examples/composer-shared-vpc) -
-    Terraform code to deploy cloud composer in shared VPC environment.
+*   [Cloud Data Fusion Functions and Plugins](examples/cloud-datafusion-functions-plugins) -
+    Examples of Cloud Data Fusion Functions and Plugins.
 *   [Cloud Function Act As](examples/cloud-function-act-as) - Example of
     executing a Cloud Function on behalf and with IAM permissions of the GitHub
     Workload Identity caller.
-*   [Cloud Composer CI/CD](examples/cloud-composer-cicd) - Examples of using
-    Cloud Build to deploy airflow DAGs to Cloud Composer.
-*   [Cloud Data Fusion Functions and Plugins](examples/cloud-datafusion-functions-plugins) -
-    Examples of Cloud Data Fusion Functions and Plugins.
 *   [Cloud Function VM Delete Event Handler Example](examples/gcf-pubsub-vm-delete-event-handler) -
     Solution to automatically delete A records in Cloud DNS when a VM is
     deleted. This solution implements a [Google Cloud Function][gcf]
@@ -121,17 +135,15 @@ them to fit your particular use case.
     Predicting the future energy price based on historical price and weather.
 *   [CloudML Fraud Detection](examples/cloudml-fraud-detection) - Fraud
     detection model for credit-cards transactions.
-*   [CloudML Sentiment Analysis](examples/cloudml-sentiment-analysis) -
-    Sentiment analysis for movie reviews using TensorFlow `RNNEstimator`.
 *   [CloudML Scikit-learn Pipeline](examples/cloudml-sklearn-pipeline) - This is
     a example for building a scikit-learn-based machine learning pipeline
     trainer that can be run on AI Platform. The pipeline can be trained locally
     or remotely on AI platform. The trained model can be further deployed on AI
     platform to serve online traffic.
+*   [CloudML Sentiment Analysis](examples/cloudml-sentiment-analysis) -
+    Sentiment analysis for movie reviews using TensorFlow `RNNEstimator`.
 *   [CloudML TensorFlow Profiling](examples/tensorflow-profiling-examples) -
     TensorFlow profiling examples for training models with CloudML
-*   [Cost Optimization DataStudio Dashboard](examples/cost-optimization-dashboard) -
-    SQL scripts to help build Cost Optimization DataStudio Dashboard.
 *   [Data Generator](examples/dataflow-data-generator) - Generate random data
     with a custom schema at scale for integration tests or demos.
 *   [Dataflow BigQuery Transpose Example](examples/dataflow-bigquery-transpose) -
@@ -157,6 +169,8 @@ them to fit your particular use case.
 *   [Dataflow Streaming Schema Changes Handler](examples/dataflow-streaming-schema-handler) -
     Dataflow example to handle schema changes using schema enforcement and DLT
     approach
+*   [Dataflow Streaming XML to GCS](examples/dataflow-xml-pubsub-to-gcs) -
+    Dataflow example to handle streaming of xml encoded messages and write them to Google Cloud Storage
 *   [Dataflow DLP Hashpipeline](examples/dataflow-dlp-hash-pipeline) - Match DLP
     Social Security Number findings against a hashed dictionary in Firestore.
     Use Secret Manager for the hash key.
@@ -170,9 +184,13 @@ them to fit your particular use case.
     loading XML data into BigQuery with DataFlow via XMLIO.
 *   [Dataproc GCS Connector](examples/dataproc-gcs-connector) - Install and test
     unreleased features on the GCS Connector for Dataproc.
+*   [Dataproc Job Optimization Guide](examples/dataproc-job-optimization-guide) - Step-by-step
+    guide for optimizing a sample Dataproc Job.
 *   [Dataproc Persistent History Server for Ephemeral Clusters](examples/dataproc-persistent-history-server) -
     Example of writing logs from an ephemeral cluster to GCS and using a
     separate single node cluster to look at Spark and YARN History UIs.
+*   [Dataproc Lifecycle Management via Composer](examples/dataproc-lifecycle-via-composer) - Ephemeral Dataproc lifecycle management and resources optimization via Composer, Terraform template to deploy Composer and additional reqs, Dynamically generated DAGs from jobs config files.
+*   [Dataproc Running Notebooks](examples/dataproc-running-notebooks) - Orchestrating the workflow of running Jupyter Notebooks on a Dataproc cluser via PySpark job
 *   [dbt-on-cloud-composer](examples/dbt-on-cloud-composer) - Example of using
     dbt to manage BigQuery data pipelines, utilizing Cloud Composer to run and
     schedule the dbt runs.
@@ -195,9 +213,14 @@ them to fit your particular use case.
 *   [DLP API Examples](examples/dlp) - Examples of the DLP API usage.
 *   [GCE Access to Google AdminSDK](examples/gce-to-adminsdk) - Example to help
     manage access to Google's AdminSDK using GCE's service account identity
+*   [GCS Hive External Table File Optimization](examples/gcs-hive-external-table-file-optimization) - 
+    Example solution to showcase impact of file count, file size, and file
+    type on Hive external tables and query speeds.
 *   [GCS to BQ using serverless services](examples/gcs-to-bq-serverless-services) -
     Example to ingest GCS to BigQuery using serverless services such as Cloud
     Function, Pub/Sub and Serverless Spark.
+*   [GDCE Terraform Example](examples/gdce-terraform-example) - Example for provisioning GDCE
+    resources using terraform.
 *   [GKE HA setup using spot VMs](examples/gke-ha-setup-using-spot-vms/) -
     Example for running an application with high availability requirements on
     GKE spot nodes using on-demand nodes as fallback
@@ -205,6 +228,7 @@ them to fit your particular use case.
     Basic example of a Grpc server that is connected to a Spanner database.
 *   [Grpc Server connected to Redis](examples/grpc_redis_example) - Basic
     example of a Grpc server that is connected to Redis.
+*   [Gitlab KAS agent for GKE](examples/gitlab-kas-gke) - Terraform solution for          deploying a Gitlab KAS agent for synchronizing container deployments from Gitlab repos into a GKE cluster
 *   [Home Appliance Status Monitoring from Smart Power Readings](examples/e2e-home-appliance-status-monitoring) -
     An end-to-end demo system featuring a suite of Google Cloud Platform
     products such as IoT Core, ML Engine, BigQuery, etc.
@@ -224,18 +248,22 @@ them to fit your particular use case.
     An example that uses a set of Bash scripts to set up a pre-commit hook that
     validates Kubernetes resources with Gatekeeper constraints and constraint
     templates from your choice of sources.
+*   [LookerStudio Cost Optimization Dashboard](examples/cost-optimization-dashboard) -
+    SQL scripts to help build Cost Optimization LookerStudio Dashboard.
+*   [Project factory with Terragrunt](examples/terragrunt-project-factory-gcp/) -
+    This implements a `State-Scalable` project factory pattern for creating Google Cloud Platform projects using Terragrunt and public Terraform modules
 *   [Python CI/CD with Cloud Builder and CSR](examples/python-cicd-with-cloudbuilder) -
     Example that uses Cloud Builder and Cloud Source Repositories to automate
     testing and linting.
 *   [Pub/Sub Client Batching Example](examples/pubsub-publish-avro-example) -
     Batching in Pub/Sub's Java client API.
 *   [QAOA](examples/qaoa) - Examples of parsing a max-SAT problem in a
-    proprietary format.
+    proprietary format, for Quantum Approximate Optimization Algorithm (QAOA)
 *   [Redis Cluster on GKE Example](examples/redis-cluster-gke) - Deploying Redis
     cluster on GKE.
 *   [Spanner Interleave Subquery](examples/spanner-interleave-subquery) -
     Example code to benchmark Cloud Spanner's subqueries for interleaved tables.
-* [Spanner Change Stream to BigQuery using Dataflow](examples/spanner-changestreams-bigquery) - 
+*   [Spanner Change Stream to BigQuery using Dataflow](examples/spanner-changestreams-bigquery) - 
     Terraform code to deploy Spanner change stream and publish changes to BigQuery using Dataflow Streaming Job.
 *   [Spinnaker](examples/spinnaker) - Example pipelines for a Canary /
     Production deployment process.
@@ -248,6 +276,8 @@ them to fit your particular use case.
     to write unit tests for TensorFlow ML models.
 *   [Terraform Internal HTTP Load Balancer](examples/terraform-ilb) - Terraform
     example showing how to deploy an internal HTTP load balancer.
+*   [Terraform NetApp CVS](examples/tf-netapp-cvs) - This example shows how to deploy NetApp CVS volumes using
+    terraform.
 *   [Terraform Resource Change Policy Library](examples/terraform-resource-change-policy-library) -
     Contains a library of policies written in the
     [OPA Constraint Framework](https://github.com/open-policy-agent/frameworks/blob/master/constraint/README.md)
@@ -256,8 +286,6 @@ them to fit your particular use case.
 *   [Uploading files directly to Google Cloud Storage by using Signed URL](examples/direct-upload-to-gcs) -
     Example architecture to enable uploading files directly to GCS by using
     [Signed URL](https://cloud.google.com/storage/docs/access-control/signed-urls).
-*   [Terraform NetApp CVS](examples/tf-netapp-cvs) - This example shows how to
-    deploy NetApp CVS volumes using terraform.
 *   [TSOP object transfer Log prosessor](examples/tsop-log-processor/) - This example shows
     how to log object transfer logs by TSOP to Cloud Logging.
 *   [Vertex AI MLOps Pipeline](examples/vertex_pipeline) - Demonstrates
@@ -276,6 +304,8 @@ Platform usage.
 *   [Airpiler](tools/airpiler) - A python script to convert Autosys JIL files to
     dag-factory format to be executed in Cloud Composer (managed airflow
     environment).
+*   [Ansible Module for Anthos on Bare Metal](tools/anthosbm-ansible-module) -
+    Ansible module for installation of Anthos on Bare Metal
 *   [Anthos Bare Metal Installer](tools/anthosbm-ansible-module) - An
     [ansible](https://www.ansible.com/resources/get-started) playbook that can
     be used to install
@@ -291,12 +321,14 @@ Platform usage.
     recommended best practice.
 *   [AssetInventory](tools/asset-inventory) - Import Cloud Asset Inventory
     resourcs into BigQuery.
-*   [Ansible Module for Anthos on Bare Metal](tools/anthosbm-ansible-module) -
-    Ansible module for installation of Anthos on Bare Metal
 *   [BigQuery Discount Per-Project Attribution](tools/kunskap) - A tool that
     automates the generation of a BigQuery table that uses existing exported
     billing data, by attributing both CUD and SUD charges on a per-project
     basis.
+*   [BigQuery Policy Tag Utility](tools/bqtag) - Utility class for tagging BQ
+    Table Schemas with Data Catalog Taxonomy Policy Tags. Create BQ Authorized
+    Views using Policy Tags. Helper utility to provision BigQuery Dataset, Data
+    Catalog Taxonomy and Policy Tags.
 *   [BigQuery Query Plan Exporter](tools/bigquery-query-plan-exporter) - Command
     line utility for exporting BigQuery query plans in a given date range.
 *   [BigQuery Query Plan Visualizer](tools/bq-visualizer) - A web application
@@ -305,10 +337,6 @@ Platform usage.
 *   [BigQuery z/OS Mainframe Connector](tools/bigquery-zos-mainframe-connector) -
     A utility used to load COBOL MVS data sets into BigQuery and execute query
     and load jobs from the IBM z/OS Mainframe.
-*   [BigQuery Policy Tag Utility](tools/bqtag) - Utility class for tagging BQ
-    Table Schemas with Data Catalog Taxonomy Policy Tags. Create BQ Authorized
-    Views using Policy Tags. Helper utility to provision BigQuery Dataset, Data
-    Catalog Taxonomy and Policy Tags.
 *   [Boolean Organization Policy Enforcer](tools/boolean-org-policy-enforcer) -
     A tool to find the projects that do not set a boolean organization policy to
     its expected state, subsequently, set the organization policy to its
@@ -331,6 +359,9 @@ Platform usage.
     Currently there are a few scripts for generating an AutoML Vision dataset
     CSV file from either raw images or image annotation files in PASCAL VOC
     format.
+*   [Cloud Composer Backup and Recovery](tools/cloud-composer-backup-restore) - A
+    command line tool for applying backup and recovery operations on Cloud
+    Composer Airflow environments.
 *   [CUD Prioritized Attribution](tools/cuds-prioritized-attribution) - A tool
     that allows GCP customers who purchased Committed Use Discounts (CUDs) to
     prioritize a specific scope (e.g. project or folder) to attribute CUDs first
@@ -344,13 +375,13 @@ Platform usage.
     project-level custom roles by combining predefined roles and including and
     removing permissions with wildcards. Can run as Cloud Function or output
     Terraform resources.
-*   [Composer Backup and Recovery](tools/cloud-composer-backup-restore) - A
-    command line tool for applying backup and recovery operations on Cloud
-    Composer Airflow environments.
 *   [Dataproc Event Driven Spark Recommendations](tools/dataproc-event-driven-spark-recommendations/) - 
     Use Google Cloud Functions to analyze Cloud Dataproc clusters and recommend
     best practices for Apache Spark jobs.  Also logs cluster configurations for
     future reference.
+*   [Dataproc Scheduled Cluster Sizing](tools/dataproc-scheduled-cluster-sizing/) -
+    Use Google Cloud Scheduler an Google Cloud Functions to schedule the resizing
+    of a Dataproc cluster.  Changes the primary and secondary worker count.
 *   [DataStream Deployment Automation](tools/datastream-deployment-python-automation) -
     Python script to automate the deployment of Google Cloud DataStream. This
     script will create connection profiles, create stream and start stream.
@@ -373,12 +404,12 @@ Platform usage.
 *   [GCE Usage Log](tools/gce-usage-log) - Collect GCE instance events into a
     BigQuery dataset, surfacing your vCPUs, RAM, and Persistent Disk, sliced by
     project, zone, and labels.
-*   [GCP AWS HA VPN Connection terraform ](tools/gcp-aws-ha-vpn) - Terraform
-    script to setup HA VPN between GCP and AWS.
 *   [GCP Architecture Visualizer](https://github.com/forseti-security/forseti-visualizer) -
     A tool that takes CSV output from a Forseti Inventory scan and draws out a
     dynamic hierarchical tree diagram of org -> folders -> projects ->
     gcp_resources using the D3.js javascript library.
+*   [GCP AWS HA VPN Connection terraform ](tools/gcp-aws-ha-vpn) - Terraform
+    script to setup HA VPN between GCP and AWS.
 *   [GCP Organization Hierarchy Viewer](tools/gcp-org-hierarchy-viewer) - A CLI
     utility for visualizing your organization hierarchy in the terminal.
 *   [GCPViz](tools/gcpviz) - a visualization tool that takes input from
@@ -387,14 +418,16 @@ Platform usage.
     [graphviz](http://graphviz.gitlab.io/).
 *   [GCS Bucket Mover](tools/gcs-bucket-mover) - A tool to move user's bucket,
     including objects, metadata, and ACL, from one project to another.
-*   [GCS Usage Recommender](tools/gcs-usage-recommender) - A tool that generates
-    bucket-level intelligence and access patterns across all projects for a GCP
-    project to generate recommended object lifecycle management.
 *   [GCS to BigQuery](tools/gcs2bq) - A tool fetches object metadata from all
     Google Cloud Storage buckets and exports it in a format that can be imported
     into BigQuery for further analysis.
+*   [GCS Usage Recommender](tools/gcs-usage-recommender) - A tool that generates
+    bucket-level intelligence and access patterns across all projects for a GCP
+    project to generate recommended object lifecycle management.
 *   [GKE Billing Export](tools/gke-billing-export) - Google Kubernetes Engine
     fine grained billing export.
+*   [gmon](tools/gmon/) - A command-line interface (CLI) for Cloud Monitoring
+    written in Python.
 *   [Google Cloud Support Slackbot](tools/google-cloud-support-slackbot) - Slack
     application that pulls Google Cloud support case information via the Cloud
     Support API and pushes the information to Slack
@@ -419,11 +452,14 @@ Platform usage.
     using a customizable score-based method. Also supports database instances.
 *   [IPAM Autopilot](tools/ipam-autopilot) - A simple tool for managing IP
     address ranges for GCP subnets.
-*   [K8S-2-GSM](tools/k8s-2-gsm) - A containerized golang app to migrate Kubernetes secrets to Google Secrets Manger (to leverage [CSI secret driver](https://secrets-store-csi-driver.sigs.k8s.io/)).
-*   [LabelMaker](tools/labelmaker) - A tool that reads key:value pairs from a
+*   [K8S-2-GSM](tools/k8s-2-gsm) - A containerized golang app to migrate Kubernetes
+    secrets to Google Secrets Manger
+    (to leverage [CSI secret driver](https://secrets-store-csi-driver.sigs.k8s.io/)).
+    [LabelMaker](tools/labelmaker) - A tool that reads key:value pairs from a
     json file and labels the running instance and all attached drives
     accordingly.
-*   [Logbucket Global to Regional](tools/logbucket-global-to-regional) - Utility to change _Default sink destination to regional log buckets
+*   [Logbucket Global to Regional](tools/logbucket-global-to-regional) - Utility
+    to change _Default sink destination to regional log buckets
 *   [Machine Learning Auto Exploratory Data Analysis and Feature Recommendation](tools/ml-auto-eda) -
     A tool to perform comprehensive auto EDA, based on which feature
     recommendations are made, and a summary report will be generated.
@@ -443,9 +479,15 @@ Platform usage.
     or GCS objects.
 *   [Quota Manager](tools/quota-manager) - A python module to programmatically
     update GCP service quotas such as bigquery.googleapis.com.
+*   [Quota Monitoring and Alerting](tools/quota-monitoring-alerting) - An
+    easy-to-deploy Data Studio Dashboard with alerting capabilities, showing
+    usage and quota limits in an organization or folder.
 *   [Ranger Hive Assessment for BigQuery/BigLake IAM migration](tools/ranger-to-bigquery-biglake-assessment) - 
     A tool that assesses which Ranger authorization rules can be migrated 
     or not to BigQuery/BigLake IAM.
+*   [Reddit Comment Streaming](tools/reddit-comment-streaming/) - 
+    Use PRAW, TextBlob, and Google Python API to collect and analyze 
+    reddit comments. Pushes comments to a Google Pub/sub Topic.
 *   [Secret Manager Helper](tools/secret-manager-helper) - A Java library to
     make it easy to replace placeholder strings with Secret Manager secret
     payloads.
@@ -467,6 +509,11 @@ Platform usage.
 *   [STS Job Manager](tools/sts-job-manager/) - A petabyte-scale bucket
     migration tool utilizing
     [Storage Transfer Service](https://cloud.google.com/storage-transfer-service)
+*   [VM Migrator](tools/vm-migrator) - This utility automates migrating Virtual
+    Machine instances within GCP. You can migrate VM's from one zone to another
+    zone/region within the same project or different projects while retaining
+    all the original VM properties like disks, network interfaces, ip, metadata,
+    network tags and much more.
 *   [VPC Flow Logs Analysis](tools/vpc-flowlogs-analysis) - A configurable Log
     sink + BigQuery report that shows traffic attributed to the projects in the
     Shared VPCs.
@@ -476,42 +523,22 @@ Platform usage.
 *   [VPC Flow Logs Top Talkers](tools/vpc-flowlogs-toptalkers) - A configurable
     Log sink + BigQuery view to generate monthly/daily aggregate traffic reports
     per subnet or host, with the configurable labelling of IP ranges and ports.
-*   [VM Migrator](tools/vm-migrator) - This utility automates migrating Virtual
-    Machine instances within GCP. You can migrate VM's from one zone to another
-    zone/region within the same project or different projects while retaining
-    all the original VM properties like disks, network interfaces, ip, metadata,
-    network tags and much more.
 *   [Webhook Ingestion Data Pipeline](tools/webhook-ingestion-pipeline) - A
     deployable app to accept and ingest unauthenticated webhook data to
     BigQuery.
-*   [gmon](tools/gmon/) - A command-line interface (CLI) for Cloud Monitoring
-    written in Python.
-*   [Quota Monitoring and Alerting](tools/quota-monitoring-alerting) - An
-    easy-to-deploy Data Studio Dashboard with alerting capabilities, showing
-    usage and quota limits in an organization or folder.
-*   [reddit Comment Streaming](tools/reddit-comment-streaming/) - 
-    Use PRAW, TextBlob, and Google Python API to collect and analyze 
-    reddit comments. Pushes comments to a Google Pub/sub Topic.
 *   [XSD to BigQuery Schema Generator](tools/xsd-to-bigquery-schema) - A command
     line tool for converting an XSD schema representing deeply nested and
     repeated XML content into a BigQuery compatible table schema represented in
     JSON.
-*   [Numeric Family Recommender - Oracle](tools/numeric-family-recommender-oracle) - The Numeric Family Recommender is a database script that recommends the best numeric data type for the NUMBER data type when migrating from legacy databases like Oracle to Google Cloud platforms like BigQuery, AlloyDB, Cloud SQL for PostgreSQL, and Google Cloud Storage.
+*   [Numeric Family Recommender - Oracle](tools/numeric-family-recommender-oracle) - The Numeric Family
+    Recommender is a database script that recommends the best numeric data type for the NUMBER data type
+    when migrating from legacy databases like Oracle to Google Cloud platforms like BigQuery, AlloyDB,
+    Cloud SQL for PostgreSQL, and Google Cloud Storage.
 
 ## Contributing
 
 See the contributing [instructions](/CONTRIBUTING.md) to get started
 contributing.
-
-## License
-
-All solutions within this repository are provided under the
-[Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0) license. Please see
-the [LICENSE](/LICENSE) file for more detailed terms and conditions.
-
-## Disclaimer
-
-This repository and its contents are not an official Google Product.
 
 ## Contact
 

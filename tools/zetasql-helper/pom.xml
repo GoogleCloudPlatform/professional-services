@@ -1,107 +1,34 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xmlns="http://maven.apache.org/POM/4.0.0"
-    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <artifactId>query-pattern-analyzer</artifactId>
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
 
-  <build>
-    <plugins>
-      <plugin>
-        <artifactId>jib-maven-plugin</artifactId>
-        <configuration>
-          <container>
-            <mainClass>
-              com.pso.bigquery.optimization.BuildCatalogBasedOnQueryAndAnalyzeJoins
-            </mainClass>
-          </container>
-          <from>
-            <image>openjdk:11</image>
-          </from>
-          <to>
-            <image>query-pattern-analyzer</image>
-          </to>
-        </configuration>
-        <groupId>com.google.cloud.tools</groupId>
-        <version>3.2.1</version>
-      </plugin>
-    </plugins>
-  </build>
-  <dependencies>
-    <dependency>
-      <artifactId>junit</artifactId>
-      <groupId>junit</groupId>
-      <scope>test</scope>
-      <version>4.11</version>
-    </dependency>
-    <!-- https://mvnrepository.com/artifact/commons-cli/commons-cli -->
-    <dependency>
-      <artifactId>commons-cli</artifactId>
-      <groupId>commons-cli</groupId>
-      <version>1.5.0</version>
-    </dependency>
-    <!-- https://mvnrepository.com/artifact/org.apache.commons/commons-lang3 -->
-    <dependency>
-      <artifactId>commons-lang3</artifactId>
-      <groupId>org.apache.commons</groupId>
-      <version>3.12.0</version>
-    </dependency>
-    <!-- https://mvnrepository.com/artifact/com.google.code.gson/gson -->
-    <dependency>
-      <artifactId>gson</artifactId>
-      <groupId>com.google.code.gson</groupId>
-      <version>2.9.0</version>
-    </dependency>
-    <!-- https://mvnrepository.com/artifact/io.vavr/vavr -->
-    <dependency>
-      <artifactId>vavr</artifactId>
-      <groupId>io.vavr</groupId>
-      <version>0.10.4</version>
-    </dependency>
-    <!-- https://mvnrepository.com/artifact/com.google.cloud/google-cloud-bigquery -->
-    <dependency>
-      <artifactId>google-cloud-bigquery</artifactId>
-      <groupId>com.google.cloud</groupId>
-    </dependency>
-    <!-- https://mvnrepository.com/artifact/com.google.zetasql/zetasql-client -->
-    <dependency>
-      <artifactId>zetasql-client</artifactId>
-      <groupId>com.google.zetasql</groupId>
-      <version>2022.04.1</version>
-    </dependency>
-    <!-- https://mvnrepository.com/artifact/com.google.zetasql/zetasql-types -->
-    <dependency>
-      <artifactId>zetasql-types</artifactId>
-      <groupId>com.google.zetasql</groupId>
-      <version>2022.04.1</version>
-    </dependency>
-    <!-- https://mvnrepository.com/artifact/com.google.zetasql/zetasql-jni-channel -->
-    <dependency>
-      <artifactId>zetasql-jni-channel</artifactId>
-      <groupId>com.google.zetasql</groupId>
-      <version>2022.04.1</version>
-    </dependency>
-  </dependencies>
-  <dependencyManagement>
-    <dependencies>
-      <dependency>
-        <artifactId>libraries-bom</artifactId>
-        <groupId>com.google.cloud</groupId>
-        <scope>import</scope>
-        <type>pom</type>
-        <version>25.2.0</version>
-      </dependency>
-    </dependencies>
-  </dependencyManagement>
+    <groupId>com.google.zetasql</groupId>
+    <artifactId>zetasql-helper</artifactId>
+    <version>0.1-SNAPSHOT</version>
+    <packaging>pom</packaging>
 
-  <groupId>org.example</groupId>
+    <properties>
+        <maven.compiler.source>11</maven.compiler.source>
+        <maven.compiler.target>11</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <google.cloud.jib.version>3.3.1</google.cloud.jib.version>
+    </properties>
 
-  <modelVersion>4.0.0</modelVersion>
+    <modules>
+        <module>zetasql-toolkit-core</module>
+        <module>zetasql-toolkit-examples</module>
+    </modules>
 
-  <properties>
-    <maven.compiler.source>11</maven.compiler.source>
-    <maven.compiler.target>11</maven.compiler.target>
-  </properties>
-
-  <version>1.0-SNAPSHOT</version>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>com.google.cloud.tools</groupId>
+                <artifactId>jib-maven-plugin</artifactId>
+                <version>${google.cloud.jib.version}</version>
+            </plugin>
+        </plugins>
+    </build>
 
 </project>

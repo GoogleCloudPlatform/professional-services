@@ -1,0 +1,4 @@
+# Values for where to store state of projects
+root_project : test-project
+bucket_prefix : name-of-bucket
+region : us-central1
