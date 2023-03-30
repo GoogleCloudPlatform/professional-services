@@ -155,6 +155,9 @@ them to fit your particular use case.
     from Cloud Pub/Sub, enhancing the document using metadata stored in Cloud
     Bigtable and indexing those documents into
     [Elasticsearch](https://www.elastic.co/).
+*   [Dataflow Flex Template in Restricted Networking Env](examples/dataflow-flex-python/) -
+    Example implements a python flex template which can be run in an environment
+    where workers can not download python packages due to egress traffic restrictions.
 *   [Dataflow Python Examples](examples/dataflow-python-examples) - Various ETL
     examples using the Dataflow Python SDK.
 *   [Dataflow Scala Example: Kafka2Avro](examples/dataflow-scala-kafka2avro) -
