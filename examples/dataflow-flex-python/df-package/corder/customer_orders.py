@@ -28,6 +28,15 @@ from apache_beam.io.gcp.gcsio import GcsIO
 
 from corder.bq_schema import CUSTOMER_TABLE_SCHEMA, ORDER_TABLE_SCHEMA
 
+# Currently this pipleine loads the whole XML file into memory
+# for the conversion to dict via xmltodict. This approach works for small
+# files but is not parallelizable on super large XML files as they are not
+# read in chunks but in one go. This risks having a single worker dealing
+# with very large file instances (slow) and running potentially out of memmory.
+# In our experience any XML file above ~ 300mb would start slowing down the
+# pipeline considerably and potentially memory failures can start showing up at ~ 500mb.
+# This is if you go with the default worker.
+
 
 class ParseXMLFilesFn(DoFn):
     """A transform to Parse XMl File object.
