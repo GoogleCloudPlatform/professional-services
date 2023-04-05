@@ -23,6 +23,7 @@ import com.google.zetasql.*;
 import com.google.zetasql.FunctionArgumentType.FunctionArgumentTypeOptions;
 import com.google.zetasql.StructType.StructField;
 import com.google.zetasql.ZetaSQLFunctions.FunctionEnums.Mode;
+import com.google.zetasql.ZetaSQLFunctions.FunctionEnums.NamedArgumentKind;
 import com.google.zetasql.ZetaSQLFunctions.FunctionEnums.ProcedureArgumentMode;
 import com.google.zetasql.ZetaSQLFunctions.SignatureArgumentKind;
 import com.google.zetasql.ZetaSQLType.TypeKind;
@@ -339,7 +340,7 @@ public class BigQueryAPIResourceProvider implements BigQueryResourceProvider {
 
     FunctionArgumentTypeOptions options =
         FunctionArgumentTypeOptions.builder()
-            .setArgumentName(argument.getName())
+            .setArgumentName(argument.getName(), NamedArgumentKind.POSITIONAL_ONLY)
             .setProcedureArgumentMode(procedureArgumentMode)
             .build();
 

@@ -27,6 +27,7 @@ import com.google.zetasql.*;
 import com.google.zetasql.FunctionArgumentType.FunctionArgumentTypeOptions;
 import com.google.zetasql.StructType.StructField;
 import com.google.zetasql.TVFRelation.Column;
+import com.google.zetasql.ZetaSQLFunctions.FunctionEnums.NamedArgumentKind;
 import com.google.zetasql.ZetaSQLFunctions.FunctionEnums.ProcedureArgumentMode;
 import com.google.zetasql.ZetaSQLFunctions.SignatureArgumentKind;
 import com.google.zetasql.ZetaSQLType.TypeKind;
@@ -217,7 +218,7 @@ public class BigQueryAPIResourceProviderTest {
         new FunctionArgumentType(
             TypeFactory.createSimpleType(TypeKind.TYPE_INT64),
             FunctionArgumentTypeOptions.builder()
-                .setArgumentName("x")
+                .setArgumentName("x", NamedArgumentKind.POSITIONAL_ONLY)
                 .setProcedureArgumentMode(ProcedureArgumentMode.NOT_SET)
                 .build(),
             1);
@@ -288,7 +289,7 @@ public class BigQueryAPIResourceProviderTest {
         new FunctionArgumentType(
             TypeFactory.createSimpleType(TypeKind.TYPE_INT64),
             FunctionArgumentTypeOptions.builder()
-                .setArgumentName("x")
+                .setArgumentName("x", NamedArgumentKind.POSITIONAL_ONLY)
                 .setProcedureArgumentMode(ProcedureArgumentMode.NOT_SET)
                 .build(),
             1);
@@ -339,7 +340,7 @@ public class BigQueryAPIResourceProviderTest {
         new FunctionArgumentType(
             TypeFactory.createSimpleType(TypeKind.TYPE_INT64),
             FunctionArgumentTypeOptions.builder()
-                .setArgumentName("x")
+                .setArgumentName("x", NamedArgumentKind.POSITIONAL_ONLY)
                 .setProcedureArgumentMode(ProcedureArgumentMode.NOT_SET)
                 .build(),
             1);

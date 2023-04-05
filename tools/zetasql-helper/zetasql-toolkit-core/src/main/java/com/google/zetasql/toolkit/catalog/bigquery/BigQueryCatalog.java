@@ -84,7 +84,7 @@ public class BigQueryCatalog implements CatalogWrapper {
     this.defaultProjectId = defaultProjectId;
     this.bigQueryResourceProvider = bigQueryResourceProvider;
     this.catalog = new SimpleCatalog("catalog");
-    this.catalog.addZetaSQLFunctions(
+    this.catalog.addZetaSQLFunctionsAndTypes(
         new ZetaSQLBuiltinFunctionOptions(BigQueryLanguageOptions.get()));
     BigQueryBuiltIns.addToCatalog(this.catalog);
   }

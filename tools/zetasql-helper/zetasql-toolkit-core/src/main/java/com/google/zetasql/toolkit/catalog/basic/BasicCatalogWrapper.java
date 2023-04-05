@@ -42,7 +42,7 @@ public class BasicCatalogWrapper implements CatalogWrapper {
 
   public BasicCatalogWrapper() {
     this.catalog = new SimpleCatalog("catalog");
-    this.catalog.addZetaSQLFunctions(new ZetaSQLBuiltinFunctionOptions());
+    this.catalog.addZetaSQLFunctionsAndTypes(new ZetaSQLBuiltinFunctionOptions());
   }
 
   public BasicCatalogWrapper(SimpleCatalog initialCatalog) {
