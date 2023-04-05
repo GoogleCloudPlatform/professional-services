@@ -3,6 +3,16 @@
 Common solutions and tools developed by Google Cloud's Professional Services
 team.
 
+## Disclaimer
+
+This repository and its contents are not an officially supported Google product.
+
+## License
+
+All solutions within this repository are provided under the
+[Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0) license. Please see
+the [LICENSE](/LICENSE) file for more detailed terms and conditions.
+
 [![Open in Cloud Shell](http://gstatic.com/cloudssh/images/open-btn.svg)](https://console.cloud.google.com/cloudshell/editor?cloudshell_git_repo=https%3A%2F%2Fgithub.com%2FGoogleCloudPlatform%2Fprofessional-services.git)
 
 ## Examples
@@ -147,6 +157,9 @@ them to fit your particular use case.
     from Cloud Pub/Sub, enhancing the document using metadata stored in Cloud
     Bigtable and indexing those documents into
     [Elasticsearch](https://www.elastic.co/).
+*   [Dataflow Flex Template in Restricted Networking Env](examples/dataflow-flex-python/) -
+    Example implements a python flex template which can be run in an environment
+    where workers can not download python packages due to egress traffic restrictions.
 *   [Dataflow Python Examples](examples/dataflow-python-examples) - Various ETL
     examples using the Dataflow Python SDK.
 *   [Dataflow Scala Example: Kafka2Avro](examples/dataflow-scala-kafka2avro) -
@@ -178,6 +191,8 @@ them to fit your particular use case.
 *   [Dataproc Persistent History Server for Ephemeral Clusters](examples/dataproc-persistent-history-server) -
     Example of writing logs from an ephemeral cluster to GCS and using a
     separate single node cluster to look at Spark and YARN History UIs.
+*   [Dataproc Lifecycle Management via Composer](examples/dataproc-lifecycle-via-composer) - Ephemeral Dataproc lifecycle management and resources optimization via Composer, Terraform template to deploy Composer and additional reqs, Dynamically generated DAGs from jobs config files.
+*   [Dataproc Running Notebooks](examples/dataproc-running-notebooks) - Orchestrating the workflow of running Jupyter Notebooks on a Dataproc cluser via PySpark job
 *   [dbt-on-cloud-composer](examples/dbt-on-cloud-composer) - Example of using
     dbt to manage BigQuery data pipelines, utilizing Cloud Composer to run and
     schedule the dbt runs.
@@ -206,6 +221,8 @@ them to fit your particular use case.
 *   [GCS to BQ using serverless services](examples/gcs-to-bq-serverless-services) -
     Example to ingest GCS to BigQuery using serverless services such as Cloud
     Function, Pub/Sub and Serverless Spark.
+*   [GDCE Terraform Example](examples/gdce-terraform-example) - Example for provisioning GDCE
+    resources using terraform.
 *   [GKE HA setup using spot VMs](examples/gke-ha-setup-using-spot-vms/) -
     Example for running an application with high availability requirements on
     GKE spot nodes using on-demand nodes as fallback
@@ -524,16 +541,6 @@ Platform usage.
 
 See the contributing [instructions](/CONTRIBUTING.md) to get started
 contributing.
-
-## License
-
-All solutions within this repository are provided under the
-[Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0) license. Please see
-the [LICENSE](/LICENSE) file for more detailed terms and conditions.
-
-## Disclaimer
-
-This repository and its contents are not an official Google Product.
 
 ## Contact
 

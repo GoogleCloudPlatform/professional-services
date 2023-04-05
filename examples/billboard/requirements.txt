@@ -1,3 +1,5 @@
 google-cloud-bigquery
 google-cloud-billing
+google-api-core
 colorama
+google-api-python-client
