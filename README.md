@@ -5,7 +5,7 @@ team.
 
 ## Disclaimer
 
-This repository and its contents are not an official Google Product.
+This repository and its contents are not an officially supported Google product.
 
 ## License
 
@@ -155,6 +155,9 @@ them to fit your particular use case.
     from Cloud Pub/Sub, enhancing the document using metadata stored in Cloud
     Bigtable and indexing those documents into
     [Elasticsearch](https://www.elastic.co/).
+*   [Dataflow Flex Template in Restricted Networking Env](examples/dataflow-flex-python/) -
+    Example implements a python flex template which can be run in an environment
+    where workers can not download python packages due to egress traffic restrictions.
 *   [Dataflow Python Examples](examples/dataflow-python-examples) - Various ETL
     examples using the Dataflow Python SDK.
 *   [Dataflow Scala Example: Kafka2Avro](examples/dataflow-scala-kafka2avro) -
@@ -186,6 +189,7 @@ them to fit your particular use case.
 *   [Dataproc Persistent History Server for Ephemeral Clusters](examples/dataproc-persistent-history-server) -
     Example of writing logs from an ephemeral cluster to GCS and using a
     separate single node cluster to look at Spark and YARN History UIs.
+*   [Dataproc Lifecycle Management via Composer](examples/dataproc-lifecycle-via-composer) - Ephemeral Dataproc lifecycle management and resources optimization via Composer, Terraform template to deploy Composer and additional reqs, Dynamically generated DAGs from jobs config files.
 *   [Dataproc Running Notebooks](examples/dataproc-running-notebooks) - Orchestrating the workflow of running Jupyter Notebooks on a Dataproc cluser via PySpark job
 *   [dbt-on-cloud-composer](examples/dbt-on-cloud-composer) - Example of using
     dbt to manage BigQuery data pipelines, utilizing Cloud Composer to run and
