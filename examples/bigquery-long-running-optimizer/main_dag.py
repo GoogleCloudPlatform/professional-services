@@ -15,7 +15,6 @@
 
 import sqlparse
 import argparse
-import google.cloud
 from google.cloud import storage
 from utils_optimization.utils_optimization import remove_multiple_whitespaces, get_line_numbers_for_select, create_external_table
 from optimization.custom_table_expression.custom_table_expression import consolidated_cte

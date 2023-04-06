@@ -41,7 +41,6 @@ with models.DAG('BQ-long-running-Optimization', schedule_interval=datetime.timed
                      system_site_packages=True)
     
     def bq_optimization_callable(bucket_name, input_path, uid_long_running, project_id, output_path):
-        from google.cloud import storage
         from optimization.main_dag import run_optimization
         from airflow.models import Variable
         run_optimization(bucket_name,input_path, uid_long_running, project_id, output_path)
