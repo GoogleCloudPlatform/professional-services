@@ -46,5 +46,4 @@ arguments:
 The script uses Google [Application Default Credentials](https://cloud.google.com/docs/authentication/production).
 
 If further automation is required, e.g. running the process for multiple GCP
-instances, the `migrate_instance_to_cmek` function is a good starting point and
-it takes the same parameters as the command-line interface.
+instances, you can modify the `main.py` script. The [`migrate_instance_to_cmek`](https://github.com/GoogleCloudPlatform/professional-services/blob/main/tools/gce-google-keys-to-cmek/main.py#L99) function is a good starting point. It takes the same parameters as the command-line interface.
