@@ -55,6 +55,8 @@ them to fit your particular use case.
 *   [BigQuery Group Sync For Row Level Access](examples/bigquery-row-access-groups) -
     Sample code to synchronize group membership from G Suite/Cloud Identity into
     BigQuery and join that with your data to control access at row level.
+*   [BigQuery Long Running Optimization Utility](examples/bigquery-long-running-optimizer) -
+    A utility that reads the entire SQL and provides a list of suggestions that would help to optimize the query and avoid the long running issues.
 *   [BigQuery Oracle DDL Migration Utility](examples/bigquery-oracle-ddl-migration-utility) - 
     Oracle DDL Migration Utility to migrate the tables schema (DDL) from Oracle DB to BigQuery.
     The utility leverages BigQuery Translation API and offers additional features
