@@ -42,7 +42,6 @@ with models.DAG('BQ-Translation-validator-final', schedule_interval=datetime.tim
                      system_site_packages=True)
     
     def bq_translation_validation_callable(bucket_name,test_file_path_BQ,test_file_path_TD,validation_output_path,archive,uid):
-        from google.cloud import storage
         from main_dag import run_validation
         from airflow.models import Variable
         run_validation(bucket_name,test_file_path_BQ,test_file_path_TD,validation_output_path,archive,uid)
