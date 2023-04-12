@@ -1,0 +1,4 @@
+name: \[RESOURCE_HIERARCHY]/policies/custom.gkeCMEKforPD
+spec:
+ rules:
+ - enforce: true

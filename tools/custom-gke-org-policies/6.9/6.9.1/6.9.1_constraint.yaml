@@ -1,0 +1,10 @@
+name: organizations/[ORGANIZATIONID]/customConstraints/custom.gkeCMEKforPD
+resourceTypes:
+- container.googleapis.com/NodePool
+methodTypes:
+- CREATE
+- UPDATE
+condition: has(resource.config.bootDiskKmsKey) == false
+actionType: DENY
+displayName: gkeCMEKforPD
+description: 6.9.1 - Custom Constraint to ensure enabling Customer-Managed Encryption Keys (CMEK) for GKE persistent disks (PDs)

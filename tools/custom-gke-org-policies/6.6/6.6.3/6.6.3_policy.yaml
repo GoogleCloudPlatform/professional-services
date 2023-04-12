@@ -1,0 +1,4 @@
+name: \[RESOURCE_HIERARCHY]/policies/custom.masterauthnetworks
+spec:
+ rules:
+ - enforce: true

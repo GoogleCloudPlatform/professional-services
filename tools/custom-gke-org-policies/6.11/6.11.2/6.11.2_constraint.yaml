@@ -1,0 +1,10 @@
+name: organizations/[ORGANIZATIONID]/customConstraints/custom.gkeconfidentialnodes
+resourceTypes:
+- container.googleapis.com/Cluster
+methodTypes:
+- CREATE
+- UPDATE
+condition: resource.confidentialNodes.enabled == false
+actionType: DENY
+displayName: enforcegkeconfidentialnodes
+description: Custom Constraint to enforce GKE confidential nodes

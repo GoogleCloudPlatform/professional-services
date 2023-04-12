@@ -1,0 +1,10 @@
+name: organizations/[ORGANIZATIONID]/customConstraints/custom.gkeBinaryAuth
+resourceTypes:
+- container.googleapis.com/Cluster
+methodTypes:
+- CREATE
+- UPDATE
+condition: resource.binaryAuthorization.evaluationMode == 'DISABLED'
+actionType: DENY
+displayName: gkeBinaryAuth
+description: 6.10.5 - Custom Constraint to prefer enabling Binary Authorization and configuring policy as appropriate

@@ -1,0 +1,10 @@
+name: organizations/[ORGANIZATIONID]/customConstraints/custom.gkeshieldednodes
+resourceTypes:
+- container.googleapis.com/Cluster
+methodTypes:
+- CREATE
+- UPDATE
+condition: resource.shieldedNodes.enabled == false
+actionType: DENY
+displayName: enforcegkeshieldednodes
+description: Custom Constraint to enforce GKE shielded nodes

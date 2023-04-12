@@ -1,0 +1,10 @@
+name: organizations/[ORGANIZATIONID]/customConstraints/custom.gkeNetworkPolicy
+resourceTypes:
+- container.googleapis.com/Cluster
+methodTypes:
+- CREATE
+- UPDATE
+condition: resource.addonsConfig.networkPolicyConfig.disabled == true
+actionType: DENY
+displayName: gkeNetworkPolicy
+description: Custom Constraint to enforce GKE private nodes

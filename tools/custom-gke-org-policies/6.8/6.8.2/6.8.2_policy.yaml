@@ -1,0 +1,4 @@
+name: \[RESOURCE_HIERARCHY]/policies/custom.issueclientcertificate
+spec:
+ rules:
+ - enforce: true

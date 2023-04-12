@@ -1,0 +1,10 @@
+name: organizations/[ORGANIZATIONID]/customConstraints/custom.imagetype
+resourceTypes:
+- container.googleapis.com/NodePool
+methodTypes:
+- CREATE
+- UPDATE
+condition: resource.config.imageType != "COS_CONTAINERD"
+actionType: DENY
+displayName: imagetype
+description: Custom Constraint to enforce image type

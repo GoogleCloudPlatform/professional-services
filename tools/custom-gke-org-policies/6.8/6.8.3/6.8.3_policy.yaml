@@ -1,0 +1,4 @@
+name: \[RESOURCE_HIERARCHY]/policies/custom.googlegroups
+spec:
+ rules:
+ - enforce: true

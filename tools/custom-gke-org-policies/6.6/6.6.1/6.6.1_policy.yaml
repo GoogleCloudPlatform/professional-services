@@ -1,0 +1,4 @@
+name: \[RESOURCE_HIERARCHY]/policies/custom.intranodevisibility
+spec:
+ rules:
+ - enforce: true

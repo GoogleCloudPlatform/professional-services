@@ -1,0 +1,10 @@
+name: organizations/[ORGANIZATIONID]/customConstraints/custom.dataplanev2
+resourceTypes:
+- container.googleapis.com/Cluster
+methodTypes:
+- CREATE
+- UPDATE
+condition: resource.networkConfig.datapathProvider != 'ADVANCED_DATAPATH'
+actionType: DENY
+displayName: dataplanev2
+description: Custom Constraint to enforce using dataplane v2

@@ -1,0 +1,10 @@
+name: organizations/[ORGANIZATIONID]/customConstraints/custom.alphaclusters
+resourceTypes:
+- container.googleapis.com/Cluster
+methodTypes:
+- CREATE
+- UPDATE
+condition: resource.enableKubernetesAlpha == true
+actionType: DENY
+displayName: alphaclusters
+description: Custom Constraint to Ensure that Alpha clusters are not used for production workloads

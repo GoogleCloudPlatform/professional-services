@@ -1,0 +1,10 @@
+name: organizations/[ORGANIZATIONID]/customConstraints/custom.intranodevisibility
+resourceTypes:
+- container.googleapis.com/Cluster
+methodTypes:
+- CREATE
+- UPDATE
+condition: resource.networkConfig.enableIntraNodeVisibility == false
+actionType: DENY
+displayName: intranodevisibility
+description: Custom Constraint to enforce using dataplane v2

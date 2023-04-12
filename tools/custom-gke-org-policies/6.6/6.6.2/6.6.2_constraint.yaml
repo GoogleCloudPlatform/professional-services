@@ -1,0 +1,10 @@
+name: organizations/[ORGANIZATIONID]/customConstraints/custom.nativecluster
+resourceTypes:
+- container.googleapis.com/NodePool
+methodTypes:
+- CREATE
+- UPDATE
+condition: has(resource.networkConfig.podIpv4CidrBlock) == false 
+actionType: DENY
+displayName: nativecluster
+description: Custom Constraint to Prefer VPC-native clusters

@@ -1,0 +1,4 @@
+name: \[RESOURCE_HIERARCHY]/policies/custom.gkeprivatenodes
+spec:
+ rules:
+ - enforce: true
