@@ -20,6 +20,7 @@ import com.google.cloud.bigquery.BigQuery;
 import com.google.zetasql.*;
 import com.google.zetasql.resolvedast.ResolvedCreateStatementEnums.CreateMode;
 import com.google.zetasql.resolvedast.ResolvedCreateStatementEnums.CreateScope;
+import com.google.zetasql.toolkit.AnalyzerExtensions;
 import com.google.zetasql.toolkit.catalog.CatalogOperations;
 import com.google.zetasql.toolkit.catalog.CatalogWrapper;
 import com.google.zetasql.toolkit.catalog.bigquery.exceptions.BigQueryCreateError;
@@ -27,6 +28,7 @@ import com.google.zetasql.toolkit.catalog.exceptions.CatalogResourceAlreadyExist
 import com.google.zetasql.toolkit.options.BigQueryLanguageOptions;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -485,6 +487,25 @@ public class BigQueryCatalog implements CatalogWrapper {
   }
 
   /**
+   * Adds all the functions used in the provided query to this catalog.
+   *
+   * <p>Uses {@link AnalyzerExtensions#extractFunctionNamesFromScript(String, LanguageOptions)} to
+   * extract the functions names and later uses {@link #addFunctions(List)} to add them.
+   *
+   * @param query The SQL query from which to get the functions that should be added to the catalog
+   */
+  public void addAllFunctionsUsedInQuery(String query) {
+
+    Set<String> functions =
+        AnalyzerExtensions.extractFunctionNamesFromScript(query, BigQueryLanguageOptions.get())
+            .stream()
+            .map(functionPath -> String.join(".", functionPath))
+            .filter(BigQueryReference::isQualified) // Remove non-qualified functions
+            .collect(Collectors.toSet());
+    this.addFunctions(List.copyOf(functions));
+  }
+
+  /**
    * {@inheritDoc}
    *
    * <p>Function references should be in the format "project.dataset.function" or "dataset.function"
@@ -529,6 +550,23 @@ public class BigQueryCatalog implements CatalogWrapper {
   }
 
   /**
+   * Adds all the TVFs used in the provided query to this catalog.
+   *
+   * <p>Uses {@link AnalyzerExtensions#extractTVFNamesFromScript(String, LanguageOptions)} to
+   * extract the TVF names and later uses {@link #addTVFs} to add them.
+   *
+   * @param query The SQL query from which to get the TVFs that should be added to the catalog
+   */
+  public void addAllTVFsUsedInQuery(String query) {
+    Set<String> functions =
+        AnalyzerExtensions.extractTVFNamesFromScript(query, BigQueryLanguageOptions.get()).stream()
+            .map(functionPath -> String.join(".", functionPath))
+            .filter(BigQueryReference::isQualified) // Remove non-qualified functions
+            .collect(Collectors.toSet());
+    this.addTVFs(List.copyOf(functions));
+  }
+
+  /**
    * {@inheritDoc}
    *
    * <p>Procedure references should be in the format "project.dataset.procedure" or
@@ -543,18 +581,6 @@ public class BigQueryCatalog implements CatalogWrapper {
                 this.register(
                     procedureInfo, CreateMode.CREATE_OR_REPLACE, CreateScope.CREATE_DEFAULT_SCOPE));
   }
-
-  @Override
-  public void removeTables(List<String> tables) {}
-
-  @Override
-  public void removeFunctions(List<String> functions) {}
-
-  @Override
-  public void removeTVFs(List<String> functions) {}
-
-  @Override
-  public void removeProcedures(List<String> procedures) {}
 
   /**
    * Adds all procedures in the provided dataset to this catalog
@@ -583,6 +609,25 @@ public class BigQueryCatalog implements CatalogWrapper {
             procedureInfo ->
                 this.register(
                     procedureInfo, CreateMode.CREATE_OR_REPLACE, CreateScope.CREATE_DEFAULT_SCOPE));
+  }
+
+  /**
+   * Adds all the procedures called in the provided query to this catalog.
+   *
+   * <p>Uses {@link AnalyzerExtensions#extractProcedureNamesFromScript} to extract the procedure
+   * names and later uses {@link #addProcedures(List)} to add them.
+   *
+   * @param query The SQL query from which to get the procedures that should be added to the catalog
+   */
+  public void addAllProceduresUsedInQuery(String query) {
+    Set<String> procedures =
+        AnalyzerExtensions.extractProcedureNamesFromScript(query, BigQueryLanguageOptions.get())
+            .stream()
+            .map(functionPath -> String.join(".", functionPath))
+            .filter(BigQueryReference::isQualified) // Remove non-qualified functions
+            .collect(Collectors.toSet());
+
+    this.addProcedures(List.copyOf(procedures));
   }
 
   @Override
