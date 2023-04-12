@@ -16,7 +16,6 @@
 
 package com.google.zetasql.toolkit.catalog.basic;
 
-import com.google.zetasql.Function;
 import com.google.zetasql.SimpleCatalog;
 import com.google.zetasql.SimpleTable;
 import com.google.zetasql.ZetaSQLBuiltinFunctionOptions;
@@ -24,6 +23,7 @@ import com.google.zetasql.resolvedast.ResolvedCreateStatementEnums.CreateMode;
 import com.google.zetasql.resolvedast.ResolvedCreateStatementEnums.CreateScope;
 import com.google.zetasql.toolkit.catalog.CatalogOperations;
 import com.google.zetasql.toolkit.catalog.CatalogWrapper;
+import com.google.zetasql.toolkit.catalog.bigquery.FunctionInfo;
 import com.google.zetasql.toolkit.catalog.bigquery.ProcedureInfo;
 import com.google.zetasql.toolkit.catalog.bigquery.TVFInfo;
 import com.google.zetasql.toolkit.catalog.exceptions.CatalogException;
@@ -65,7 +65,7 @@ public class BasicCatalogWrapper implements CatalogWrapper {
   }
 
   @Override
-  public void register(Function function, CreateMode createMode, CreateScope createScope) {
+  public void register(FunctionInfo function, CreateMode createMode, CreateScope createScope) {
     CatalogOperations.createFunctionInCatalog(
         this.catalog, List.of(function.getNamePath()), function, createMode);
   }

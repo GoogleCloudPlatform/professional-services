@@ -33,6 +33,7 @@ import com.google.zetasql.resolvedast.ResolvedDropStmtEnums;
 import com.google.zetasql.resolvedast.ResolvedNodes.*;
 import com.google.zetasql.toolkit.catalog.CatalogTestUtils;
 import com.google.zetasql.toolkit.catalog.CatalogWrapper;
+import com.google.zetasql.toolkit.catalog.bigquery.FunctionInfo;
 import com.google.zetasql.toolkit.catalog.bigquery.TVFInfo;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -245,21 +246,22 @@ public class CatalogUpdaterVisitorTest {
 
     resolvedCreateFunctionStmt.accept(visitor);
 
-    ArgumentCaptor<Function> createdFunctionCaptor = ArgumentCaptor.forClass(Function.class);
+    ArgumentCaptor<FunctionInfo> createdFunctionCaptor =
+        ArgumentCaptor.forClass(FunctionInfo.class);
     verify(catalog).register(createdFunctionCaptor.capture(), any(), any());
 
-    Function createdFunction = createdFunctionCaptor.getValue();
+    FunctionInfo createdFunction = createdFunctionCaptor.getValue();
 
     assertAll(
         () -> assertIterableEquals(expectedFunction.getNamePath(), createdFunction.getNamePath()),
         () -> assertEquals(expectedFunction.getGroup(), createdFunction.getGroup()),
         () -> assertEquals(expectedFunction.getMode(), createdFunction.getMode()),
-        () -> assertEquals(1, createdFunction.getSignatureList().size()),
+        () -> assertEquals(1, createdFunction.getSignatures().size()),
         () ->
             assertTrue(
                 CatalogTestUtils.functionSignatureEquals(
                     expectedFunction.getSignatureList().get(0),
-                    createdFunction.getSignatureList().get(0))));
+                    createdFunction.getSignatures().get(0))));
   }
 
   @Test

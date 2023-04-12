@@ -390,7 +390,7 @@ public class BigQueryAPIResourceProvider implements BigQueryResourceProvider {
    * @return The resulting Function object
    * @throws MissingRoutineReturnType if the input Routine does not have its return type set
    */
-  private Function buildFunction(Routine routine) {
+  private FunctionInfo buildFunction(Routine routine) {
     assert routine.getRoutineType().equals(BigQueryAPIRoutineType.UDF.getLabel());
 
     RoutineId routineId = routine.getRoutineId();
@@ -407,7 +407,14 @@ public class BigQueryAPIResourceProvider implements BigQueryResourceProvider {
 
     FunctionSignature signature = new FunctionSignature(returnType, arguments, -1);
 
-    return new Function(bigQueryReference.getNamePath(), "UDF", Mode.SCALAR, List.of(signature));
+    return FunctionInfo.newBuilder()
+        .setNamePath(bigQueryReference.getNamePath())
+        .setGroup("UDF")
+        .setMode(Mode.SCALAR)
+        .setSignatures(List.of(signature))
+        .setLanguage(BigQueryAPIRoutineLanguage.valueOfOrUnspecified(routine.getLanguage()))
+        .setBody(routine.getBody())
+        .build();
   }
 
   /**
@@ -492,11 +499,11 @@ public class BigQueryAPIResourceProvider implements BigQueryResourceProvider {
    *     format "project.dataset.function" or "dataset.function".
    * @param ignoreFunctionsWithoutReturnType Whether to filter out functions with a missing return
    *     type.
-   * @return The list of {@link Function}s representing the requested BigQuery functions.
+   * @return The list of {@link FunctionInfo}s representing the requested BigQuery functions.
    * @throws BigQueryAPIError if an API error occurs
    * @throws InvalidBigQueryReference if any provided table reference is invalid
    */
-  private List<Function> getFunctionsImpl(
+  private List<FunctionInfo> getFunctionsImpl(
       String projectId, List<String> functionReferences, boolean ignoreFunctionsWithoutReturnType) {
     return this.getRoutinesOfType(projectId, functionReferences, BigQueryAPIRoutineType.UDF)
         .stream()
@@ -513,7 +520,7 @@ public class BigQueryAPIResourceProvider implements BigQueryResourceProvider {
    * @throws MissingRoutineReturnType if any of the requested functions is missing its return type
    */
   @Override
-  public List<Function> getFunctions(String projectId, List<String> functionReferences) {
+  public List<FunctionInfo> getFunctions(String projectId, List<String> functionReferences) {
     return this.getFunctionsImpl(projectId, functionReferences, false);
   }
 
@@ -541,7 +548,7 @@ public class BigQueryAPIResourceProvider implements BigQueryResourceProvider {
    * @throws BigQueryAPIError if an API error occurs
    */
   @Override
-  public List<Function> getAllFunctionsInDataset(String projectId, String datasetName) {
+  public List<FunctionInfo> getAllFunctionsInDataset(String projectId, String datasetName) {
     List<String> functionReferences = this.listRoutineReferencesInDataset(projectId, datasetName);
     return this.getFunctionsImpl(projectId, functionReferences, true);
   }
@@ -552,7 +559,7 @@ public class BigQueryAPIResourceProvider implements BigQueryResourceProvider {
    * @throws BigQueryAPIError if an API error occurs
    */
   @Override
-  public List<Function> getAllFunctionsInProject(String projectId) {
+  public List<FunctionInfo> getAllFunctionsInProject(String projectId) {
     return this.getAllResourcesInProject(projectId, this::getAllFunctionsInDataset);
   }
 

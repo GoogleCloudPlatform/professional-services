@@ -21,6 +21,7 @@ import com.google.zetasql.*;
 import com.google.zetasql.SimpleCatalogProtos.SimpleCatalogProto;
 import com.google.zetasql.TableValuedFunction.FixedOutputSchemaTVF;
 import com.google.zetasql.resolvedast.ResolvedCreateStatementEnums.CreateMode;
+import com.google.zetasql.toolkit.catalog.bigquery.FunctionInfo;
 import com.google.zetasql.toolkit.catalog.bigquery.ProcedureInfo;
 import com.google.zetasql.toolkit.catalog.bigquery.TVFInfo;
 import com.google.zetasql.toolkit.catalog.exceptions.CatalogResourceAlreadyExists;
@@ -287,7 +288,7 @@ public class CatalogOperations {
    * @param rootCatalog The root SimpleCatalog in which to create the function.
    * @param functionPaths The function paths to create the function at. If multiple paths are
    *     provided, multiple copies of the function will be registered in the catalog.
-   * @param function The Function object representing the function that should be created
+   * @param functionInfo The FunctionInfo object representing the function that should be created
    * @param createMode The CreateMode to use
    * @throws CatalogResourceAlreadyExists if the function already exists at any of the provided
    *     paths and CreateMode != CREATE_OR_REPLACE.
@@ -295,7 +296,7 @@ public class CatalogOperations {
   public static void createFunctionInCatalog(
       SimpleCatalog rootCatalog,
       List<List<String>> functionPaths,
-      Function function,
+      FunctionInfo functionInfo,
       CreateMode createMode) {
 
     if (createMode.equals(CreateMode.CREATE_OR_REPLACE)) {
@@ -303,7 +304,8 @@ public class CatalogOperations {
     }
 
     if (createMode.equals(CreateMode.CREATE_DEFAULT)) {
-      validateFunctionDoesNotExist(rootCatalog, functionPaths, function.getFullName());
+      validateFunctionDoesNotExist(
+          rootCatalog, functionPaths, String.join(".", functionInfo.getNamePath()));
     }
 
     for (List<String> functionPath : functionPaths) {
@@ -313,10 +315,9 @@ public class CatalogOperations {
       Function finalFunction =
           new Function(
               List.of(functionName),
-              function.getGroup(),
-              function.getMode(),
-              function.getSignatureList(),
-              function.getOptions());
+              functionInfo.getGroup(),
+              functionInfo.getMode(),
+              functionInfo.getSignatures());
 
       if (!functionExists(catalogForCreation, finalFunction)) {
         catalogForCreation.addFunction(finalFunction);

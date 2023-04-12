@@ -276,8 +276,8 @@ public class BigQueryCatalog implements CatalogWrapper {
   /**
    * {@inheritDoc}
    *
-   * <p>Multiple copies of the registered {@link Function} will be created in the Catalog to comply
-   * with BigQuery name resolution semantics.
+   * <p>Multiple copies of the registered {@link FunctionInfo} will be created in the Catalog to
+   * comply with BigQuery name resolution semantics.
    *
    * @see #buildCatalogPathsForResource(BigQueryReference)
    * @throws BigQueryCreateError if a pre-create validation fails
@@ -285,7 +285,7 @@ public class BigQueryCatalog implements CatalogWrapper {
    *     CREATE_OR_REPLACE
    */
   @Override
-  public void register(Function function, CreateMode createMode, CreateScope createScope) {
+  public void register(FunctionInfo function, CreateMode createMode, CreateScope createScope) {
     List<String> functionNamePath = function.getNamePath();
     String fullName = String.join(".", functionNamePath);
 

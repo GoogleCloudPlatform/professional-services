@@ -234,13 +234,13 @@ public class BigQueryAPIResourceProviderTest {
 
     FunctionSignature expectedSignatureForMockUDF = expectedSignatureForMockUDF();
 
-    List<Function> functions =
+    List<FunctionInfo> functions =
         bigqueryResourceProvider.getFunctions("project", List.of("reference"));
 
     assertEquals(1, functions.size());
     assertTrue(
         CatalogTestUtils.functionSignatureEquals(
-            expectedSignatureForMockUDF, functions.get(0).getSignatureList().get(0)));
+            expectedSignatureForMockUDF, functions.get(0).getSignatures().get(0)));
   }
 
   Routine createMockTVF() {
