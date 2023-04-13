@@ -1,35 +1,41 @@
 #   Copyright 2023 Google LLC All Rights Reserved
-#  
+#
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
 #   You may obtain a copy of the License at
-#  
+#
 #       http://www.apache.org/licenses/LICENSE-2.0
-#  
+#
 #   Unless required by applicable law or agreed to in writing, software
 #   distributed under the License is distributed on an "AS IS" BASIS,
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-import apache_beam as beam
-import logging
-from google.cloud import storage
-import json
+"""Module that contains the different classes used by the Dataflow pipeline"""
 
-class PipelineHelper():
+import logging
+import json
+import apache_beam as beam
+from google.cloud import storage
+
+
+class PipelineHelper:
+    """Class that encapsulates the logic used by the Dataflow pipeline"""
+
     def __init__(self, config_file_path):
         self.config = Config(config_file_path=config_file_path)
 
-    """
-    Get batches to be used by RowGenerator
-    Example:
-    config.total_number_of_rows = 1002
-    config.number_of_rows_per_batch = 1000
-    result: [1000,2]
-    """
     def get_batches(self):
-        batches = [self.config.number_of_rows_per_batch] * int(self.config.total_number_of_rows / self.config.number_of_rows_per_batch)
+        """
+        Get batches to be used by RowGenerator
+        Example:
+        config.total_number_of_rows = 1002
+        config.number_of_rows_per_batch = 1000
+        result: [1000,2]
+        """
+        batches = [self.config.number_of_rows_per_batch] * int(self.config.total_number_of_rows
+            / self.config.number_of_rows_per_batch)
         batches.append(self.config.total_number_of_rows % self.config.number_of_rows_per_batch)
 
         return batches
@@ -37,16 +43,17 @@ class PipelineHelper():
     def get_config(self):
         return self.config
 
-class Config():
+
+class Config:
     def __init__(self,config_file_path):
         self._parse(
-            config_data=self._get_config_data(config_file_path)
+            config_data=self.get_config_data(config_file_path)
         )
-    
-    """
-    Parses the config file data
-    """
+
     def _parse(self, config_data):
+        """
+        Parses the config file data
+        """
         self.total_number_of_rows = config_data["total_number_of_rows"]
         self.number_of_rows_per_batch = config_data["number_of_rows_per_batch"]
 
@@ -54,10 +61,10 @@ class Config():
         self.lookup_fields = config_data["lookup_fields"]
         self.fields = config_data["fields"]
 
-    """
-    Reads the config file data from the path provided (local file or GCS URI)
-    """
-    def _get_config_data(self, config_file_path):
+    def get_config_data(self, config_file_path):
+        """
+        Reads the config file data from the path provided (local file or GCS URI)
+        """
         config_file_json_data = None
 
         if config_file_path.startswith("gs://"): #GCS
@@ -71,19 +78,22 @@ class Config():
 
             config_file_json_data = blob.download_as_string().decode("UTF-8")
         else: #local file
-            with open(config_file_path) as local_json_file:
+            with open(config_file_path, encoding="UTF-8") as local_json_file:
                 config_file_json_data = local_json_file.read()
 
         return json.loads(config_file_json_data)
 
-class ConfigFileValidator():
+
+class ConfigFileValidator:
+    """ This class validates the config file provided to the process"""
+
     def __init__(self,config: Config):
         self.config = config
 
-    """
-    Validates the config file
-    """
     def validate(self):
+        """
+        Validates the config file
+        """
         errors = []
         warnings = []
 
@@ -92,7 +102,8 @@ class ConfigFileValidator():
 
         if number_of_rows_per_batch > total_number_of_rows:
             errors.append(
-                f"number_of_rows_per_batch ('{number_of_rows_per_batch}') is bigger than total_number_of_rows('{total_number_of_rows}')"
+                f"number_of_rows_per_batch ('{number_of_rows_per_batch}') "
+                + "is bigger than total_number_of_rows('{total_number_of_rows}')"
             )
 
         if len(self.config.sinks) == 0:
@@ -102,16 +113,17 @@ class ConfigFileValidator():
 
         return errors, warnings
 
+
 class RowGenerator(beam.DoFn):
     def __init__(self, config):
         self.config = config
         # self.number_of_rows_per_batch = number_of_rows_per_batch
 
-    """
-    Function called by ParDo
-    Generates a given amount of rows by following the rules defined in the config file
-    """
     def process(self, number_of_rows_per_batch):
+        """
+        Function called by ParDo
+        Generates a given amount of rows by following the rules defined in the config file
+        """
         from datetime import datetime
 
         logging.debug("Starting batch")
@@ -151,7 +163,9 @@ class RowGenerator(beam.DoFn):
                 }.copy())
 
             #Now that we have generated the fields, we can generate the LOOKUP_VALUE ones
-            for field in [x for x in self.config.fields if x["generation"]["type"] == "LOOKUP_VALUE"]:
+            for field in [
+                x for x in self.config.fields if x["generation"]["type"] == "LOOKUP_VALUE"
+            ]:
                 field_name = field["name"]
                 start_time = datetime.now()
                 result[field_name] = self._get_lookup_value(
@@ -164,41 +178,37 @@ class RowGenerator(beam.DoFn):
                     "field": field_name,
                     "runtime": (end_time - start_time).microseconds
                 }.copy())
-
-            # logging.debug(f"metrics: {metrics}")
-
-
             yield result
 
-    """
-    Returns a random string taking as an input a regex expression
-    """
     def _get_random_from_regex(self, field):
+        """
+        Returns a random string taking as an input a regex expression
+        """
         import exrex
 
         result = str(exrex.getone(field["generation"]["expression"]))
         return result
 
-    """
-    Returns a UUID
-    """
     def _get_uuid(self):
+        """
+        Returns a UUID
+        """
         import uuid
 
         uuid_obj = uuid.uuid4()
 
         return uuid_obj.hex
 
-    """
-    Returns different types of random values depending on the data type
-    """
     def _get_random(self, field):
+        """
+        Returns different types of random values depending on the data type
+        """
         if field["type"] == "STRING":
             return self._get_random_string(
                     subtype=field["generation"]["subtype"],
                     length=field["generation"]["length"]
                 )
-        if field["type"] == "INT":
+        elif field["type"] == "INT":
             return self._get_random_int(
                     min=field["generation"]["min"],
                     max=field["generation"]["max"]
@@ -216,32 +226,34 @@ class RowGenerator(beam.DoFn):
                     output_format=field["generation"]["output_format"]
                 )
 
-    """
-    Returns a random string
-    """
+        raise Exception(f"Unknown field type: {field['type']}")
+
     def _get_random_string(self, subtype, length):
+        """
+        Returns a random string
+        """
         import random
         import string
         return "".join(random.choice(getattr(string, subtype)) for i in range(length))
 
-    """
-    Returns a random int
-    """
     def _get_random_int(self, min, max):
+        """
+        Returns a random int
+        """
         import random
         return random.randint(min, max)
 
-    """
-    Returns a random float
-    """
     def _get_random_float(self, min, max, num_decimals):
+        """
+        Returns a random float
+        """
         import random
         return round(random.uniform(min, max), num_decimals)
 
-    """
-    Returns a formatted random datatime between 2 input dates
-    """
     def _get_random_datetime(self, min, max, output_format):
+        """
+        Returns a formatted random datatime between 2 input dates
+        """
         from datetime import datetime, timedelta
         import random
 
@@ -257,15 +269,15 @@ class RowGenerator(beam.DoFn):
         random_date = min_date + timedelta(seconds=random_second)
 
         return random_date.strftime(output_format)
-        
-    """
-    Returns a random value taking a list of values as input
-    The input list can be weighted
-    """
+
     def _get_random_from_list(self, field):
+        """
+        Returns a random value taking a list of values as input
+        The input list can be weighted
+        """
         import random
-        
-        #weights is optional
+
+        # weights is optional
         weights = field["generation"]["weights"] if field["generation"].get("weights") else None
 
         result = random.choices(
@@ -276,15 +288,20 @@ class RowGenerator(beam.DoFn):
 
         return result
 
-    """
-    Returns a value by reading a dictionary
-    """
     def _get_lookup_value(self, field, row):
-        #TODO: this method should be refactored to use a hashmap, it will perform slowly for large lists
-        lookup_field_value =  next((x for x in self.config.lookup_fields if x["lookup_name"] == field["generation"]["lookup_name"]), None)
+        """
+        Returns a value by reading a dictionary
+        """
+        lookup_field_value =  next(
+            (x for x in self.config.lookup_fields
+            if x["lookup_name"] == field["generation"]["lookup_name"]),
+            None
+            )
 
         if lookup_field_value is None:
-            raise Exception(f"Can't lookup value for item for field '{field['generation']['lookup_name']}'")
+            raise Exception(
+                f"Can't lookup value for item for field '{field['generation']['lookup_name']}'"
+            )
 
         result = lookup_field_value["mapping"][row[lookup_field_value["source_field_name"]]]
 
