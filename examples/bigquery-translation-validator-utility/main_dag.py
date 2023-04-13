@@ -107,7 +107,7 @@ def run_validation(bucket_name,output_path,input_path,validation_output_path,arc
             "object name validation" : False,
             "function count validation" : False,
             "is null validation": False,
-            "dry run check" : False
+            "dry run check" : "Success"
         }
 
         # Clean the comments
@@ -227,6 +227,9 @@ def run_validation(bucket_name,output_path,input_path,validation_output_path,arc
             jm_output = pprint.pformat(join_map_output)
             root.info(f"Count of Joins in Input in statement {i}: {jm_input}")
             root.info(f"Count of Joins in Output in statement {i}: {jm_output}")
+
+            if jm_input==jm_output:
+                status_count = True
 
             join_list_string_input= log_list_to_string(list_join_strings_input)
             join_list_string_output= log_list_to_string(list_join_strings_output)
@@ -389,6 +392,7 @@ def run_validation(bucket_name,output_path,input_path,validation_output_path,arc
 
         
         # Final Validation Column
+        print(finalValidationResults)
         status_final = all(value == "Success" for value in finalValidationResults.values())
         new_row["Validation Results"] = status_final
 
@@ -424,7 +428,7 @@ def run_validation(bucket_name,output_path,input_path,validation_output_path,arc
     new_summary_file["Successfull_join_validation"]=total_success_join_validation
     new_summary_file["Successfull_object_validation"]=total_success_object_validation
     new_summary_file["Successfull_function_validation"]=total_success_function_validation
-    new_summary_file["Successfull_statement_validation"]=total_success_function_validation
+    new_summary_file["Successfull_statement_validation"]=total_success_statement_validation
     df3 = pd.DataFrame.from_dict(new_summary_file,orient='index')
     df3=df3.transpose()
     bucket.blob(f'{validation_output_path}/summary/validation_translation_summary{ct_start}.csv').upload_from_string(df3.to_csv(index=False), 'text/csv')
