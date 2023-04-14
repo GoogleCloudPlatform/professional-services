@@ -16,16 +16,31 @@
 
 package com.google.zetasql.toolkit.catalog.bigquery.exceptions;
 
-public class MissingRoutineReturnType extends BigQueryCatalogException {
+import java.util.List;
+
+public class MissingFunctionReturnType extends BigQueryCatalogException {
 
   private final String routineReference;
 
-  public MissingRoutineReturnType(String routineReference) {
+  public MissingFunctionReturnType(List<String> routineNamePath) {
+    this(String.join(".", routineNamePath));
+  }
+
+  public MissingFunctionReturnType(List<String> routineNamePath, Throwable cause) {
+    this(String.join(".", routineNamePath), cause);
+  }
+
+  public MissingFunctionReturnType(String routineReference) {
+    this(routineReference, null);
+  }
+
+  public MissingFunctionReturnType(String routineReference, Throwable cause) {
     super(
         String.format(
-            "BigQuery routine %s is missing an explicit return type. UDFs and Table Valued Functions "
-                + "should be define with a RETURNS clause.",
-            routineReference));
+            "BigQuery routine %s is missing an explicit return type and it could not be inferred. "
+                + "Consider adding an explicit RETURNS clause to it.",
+            routineReference),
+        cause);
     this.routineReference = routineReference;
   }
 

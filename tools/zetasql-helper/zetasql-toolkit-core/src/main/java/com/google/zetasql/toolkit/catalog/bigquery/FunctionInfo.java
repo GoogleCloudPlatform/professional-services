@@ -18,7 +18,6 @@ package com.google.zetasql.toolkit.catalog.bigquery;
 
 import com.google.zetasql.FunctionSignature;
 import com.google.zetasql.ZetaSQLFunctions.FunctionEnums.Mode;
-
 import java.util.List;
 import java.util.Optional;
 
@@ -32,7 +31,7 @@ public class FunctionInfo {
 
   private final List<FunctionSignature> signatures;
 
-  private final Optional<BigQueryAPIRoutineLanguage> language;
+  private final Optional<BigQueryRoutineLanguage> language;
 
   private final Optional<String> body;
 
@@ -41,7 +40,7 @@ public class FunctionInfo {
       String group,
       Mode mode,
       List<FunctionSignature> signatures,
-      Optional<BigQueryAPIRoutineLanguage> language,
+      Optional<BigQueryRoutineLanguage> language,
       Optional<String> body) {
     this.namePath = namePath;
     this.group = group;
@@ -67,12 +66,22 @@ public class FunctionInfo {
     return signatures;
   }
 
-  public Optional<BigQueryAPIRoutineLanguage> getLanguage() {
+  public Optional<BigQueryRoutineLanguage> getLanguage() {
     return language;
   }
 
   public Optional<String> getBody() {
     return this.body;
+  }
+
+  public Builder toBuilder() {
+    return newBuilder()
+        .setNamePath(this.namePath)
+        .setGroup(this.group)
+        .setMode(this.mode)
+        .setSignatures(this.signatures)
+        .setLanguage(this.language)
+        .setBody(this.body);
   }
 
   public static Builder newBuilder() {
@@ -84,7 +93,7 @@ public class FunctionInfo {
     private String group;
     private Mode mode;
     private List<FunctionSignature> signatures;
-    private Optional<BigQueryAPIRoutineLanguage> language;
+    private Optional<BigQueryRoutineLanguage> language;
     private Optional<String> body;
 
     public Builder setNamePath(List<String> namePath) {
@@ -107,14 +116,48 @@ public class FunctionInfo {
       return this;
     }
 
-    public Builder setLanguage(BigQueryAPIRoutineLanguage language) {
+    public Builder setLanguage(BigQueryRoutineLanguage language) {
       this.language = Optional.ofNullable(language);
+      return this;
+    }
+
+    public Builder setLanguage(Optional<BigQueryRoutineLanguage> language) {
+      this.language = language;
       return this;
     }
 
     public Builder setBody(String body) {
       this.body = Optional.ofNullable(body);
       return this;
+    }
+
+    public Builder setBody(Optional<String> body) {
+      this.body = body;
+      return this;
+    }
+
+    public List<String> getNamePath() {
+      return namePath;
+    }
+
+    public String getGroup() {
+      return group;
+    }
+
+    public Mode getMode() {
+      return mode;
+    }
+
+    public List<FunctionSignature> getSignatures() {
+      return signatures;
+    }
+
+    public Optional<BigQueryRoutineLanguage> getLanguage() {
+      return language;
+    }
+
+    public Optional<String> getBody() {
+      return body;
     }
 
     public FunctionInfo build() {

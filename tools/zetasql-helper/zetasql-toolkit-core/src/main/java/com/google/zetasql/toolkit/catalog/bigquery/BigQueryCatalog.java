@@ -24,11 +24,13 @@ import com.google.zetasql.toolkit.AnalyzerExtensions;
 import com.google.zetasql.toolkit.catalog.CatalogOperations;
 import com.google.zetasql.toolkit.catalog.CatalogWrapper;
 import com.google.zetasql.toolkit.catalog.bigquery.exceptions.BigQueryCreateError;
+import com.google.zetasql.toolkit.catalog.bigquery.exceptions.MissingFunctionReturnType;
 import com.google.zetasql.toolkit.catalog.exceptions.CatalogResourceAlreadyExists;
 import com.google.zetasql.toolkit.options.BigQueryLanguageOptions;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -279,10 +281,16 @@ public class BigQueryCatalog implements CatalogWrapper {
    * <p>Multiple copies of the registered {@link FunctionInfo} will be created in the Catalog to
    * comply with BigQuery name resolution semantics.
    *
+   * <p>If any function signature which does not include a valid return type, this method will
+   * attempt to infer it. If inference is not possible, {@link MissingFunctionReturnType} will be
+   * thrown.
+   *
    * @see #buildCatalogPathsForResource(BigQueryReference)
    * @throws BigQueryCreateError if a pre-create validation fails
    * @throws CatalogResourceAlreadyExists if the function already exists and CreateMode !=
    *     CREATE_OR_REPLACE
+   * @throws MissingFunctionReturnType if the function does not have an explicit return type and if
+   *     it cannot be automatically inferred
    */
   @Override
   public void register(FunctionInfo function, CreateMode createMode, CreateScope createScope) {
@@ -296,13 +304,18 @@ public class BigQueryCatalog implements CatalogWrapper {
         "function");
     this.validateNamePathForCreation(functionNamePath, createScope, "function");
 
+    FunctionInfo resolvedFunction =
+        FunctionReturnTypeResolver.resolveFunctionReturnTypesIfNeeded(
+            function, BigQueryLanguageOptions.get(), this.catalog);
+
     List<List<String>> functionPaths =
         createScope.equals(CreateScope.CREATE_TEMP)
             ? List.of(functionNamePath)
             : this.buildCatalogPathsForResource(functionNamePath);
 
     try {
-      CatalogOperations.createFunctionInCatalog(this.catalog, functionPaths, function, createMode);
+      CatalogOperations.createFunctionInCatalog(
+          this.catalog, functionPaths, resolvedFunction, createMode);
     } catch (CatalogResourceAlreadyExists alreadyExists) {
       throw this.addCaseInsensitivityWarning(alreadyExists);
     }
@@ -446,6 +459,10 @@ public class BigQueryCatalog implements CatalogWrapper {
    * {@inheritDoc}
    *
    * <p>Function references should be in the format "project.dataset.function" or "dataset.function"
+   *
+   * <p>If any function signature which does not include a valid return type, this method will
+   * attempt to infer it. If inference is not possible, {@link MissingFunctionReturnType} will be
+   * thrown.
    */
   @Override
   public void addFunctions(List<String> functionReferences) {
@@ -458,14 +475,37 @@ public class BigQueryCatalog implements CatalogWrapper {
   }
 
   /**
+   * Attempts to resolve the return type for a function, ignores it if resolution fails.
+   *
+   * <p>Meant to be used as a mapping function for {@link Stream#flatMap(Function)}
+   *
+   * @param functionInfo The {@link FunctionInfo} representing the function for which return types
+   *     should be resolved
+   * @return A {@link Stream} containing the resolved FunctionInfo if resolution was successful, an
+   *     empty stream otherwise
+   */
+  private Stream<FunctionInfo> resolveFunctionReturnTypeWhenPossible(FunctionInfo functionInfo) {
+    try {
+      FunctionInfo resolvedFunctionInfo =
+          FunctionReturnTypeResolver.resolveFunctionReturnTypesIfNeeded(
+              functionInfo, BigQueryLanguageOptions.get(), this.catalog);
+      return Stream.of(resolvedFunctionInfo);
+    } catch (MissingFunctionReturnType err) {
+      return Stream.of();
+    }
+  }
+
+  /**
    * Adds all functions in the provided dataset to this catalog
+   *
+   * <p>Functions for which a proper return type cannot be determined are silently ignored
    *
    * @param projectId The project id the dataset belongs to
    * @param datasetName The name of the dataset to get functions from
    */
   public void addAllFunctionsInDataset(String projectId, String datasetName) {
-    this.bigQueryResourceProvider
-        .getAllFunctionsInDataset(projectId, datasetName)
+    this.bigQueryResourceProvider.getAllFunctionsInDataset(projectId, datasetName).stream()
+        .flatMap(this::resolveFunctionReturnTypeWhenPossible)
         .forEach(
             function ->
                 this.register(
@@ -475,11 +515,13 @@ public class BigQueryCatalog implements CatalogWrapper {
   /**
    * Adds all functions in the provided project to this catalog
    *
+   * <p>Functions for which a proper return type cannot be determined are silently ignored
+   *
    * @param projectId The project id to get functions from
    */
   public void addAllFunctionsInProject(String projectId) {
-    this.bigQueryResourceProvider
-        .getAllFunctionsInProject(projectId)
+    this.bigQueryResourceProvider.getAllFunctionsInProject(projectId).stream()
+        .flatMap(this::resolveFunctionReturnTypeWhenPossible)
         .forEach(
             function ->
                 this.register(
@@ -495,7 +537,6 @@ public class BigQueryCatalog implements CatalogWrapper {
    * @param query The SQL query from which to get the functions that should be added to the catalog
    */
   public void addAllFunctionsUsedInQuery(String query) {
-
     Set<String> functions =
         AnalyzerExtensions.extractFunctionNamesFromScript(query, BigQueryLanguageOptions.get())
             .stream()

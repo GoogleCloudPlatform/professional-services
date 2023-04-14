@@ -16,7 +16,7 @@
 
 package com.google.zetasql.toolkit.catalog.bigquery;
 
-public enum BigQueryAPIRoutineLanguage {
+public enum BigQueryRoutineLanguage {
   LANGUAGE_UNSPECIFIED,
   SQL,
   JAVASCRIPT,
@@ -24,9 +24,9 @@ public enum BigQueryAPIRoutineLanguage {
   JAVA,
   SCALA;
 
-  public static BigQueryAPIRoutineLanguage valueOfOrUnspecified(String name) {
+  public static BigQueryRoutineLanguage valueOfOrUnspecified(String name) {
     try {
-      return BigQueryAPIRoutineLanguage.valueOf(name);
+      return BigQueryRoutineLanguage.valueOf(name);
     } catch (NullPointerException | IllegalArgumentException err) {
       return LANGUAGE_UNSPECIFIED;
     }

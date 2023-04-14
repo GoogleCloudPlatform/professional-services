@@ -31,9 +31,10 @@ import com.google.zetasql.toolkit.catalog.CatalogOperations;
 import com.google.zetasql.toolkit.catalog.bigquery.BigQueryService.Result;
 import com.google.zetasql.toolkit.catalog.bigquery.exceptions.BigQueryAPIError;
 import com.google.zetasql.toolkit.catalog.bigquery.exceptions.InvalidBigQueryReference;
-import com.google.zetasql.toolkit.catalog.bigquery.exceptions.MissingRoutineReturnType;
+import com.google.zetasql.toolkit.catalog.bigquery.exceptions.MissingFunctionReturnType;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
@@ -331,8 +332,6 @@ public class BigQueryAPIResourceProvider implements BigQueryResourceProvider {
    * @return The resulting ZetaSQL FunctionArgumentType
    */
   private FunctionArgumentType parseRoutineArgument(RoutineArgument argument) {
-    Type zetaSqlDataType = this.convertBigQueryDataTypeToZetaSQLType(argument.getDataType());
-
     ProcedureArgumentMode procedureArgumentMode =
         argument.getMode() == null
             ? ProcedureArgumentMode.NOT_SET
@@ -344,7 +343,12 @@ public class BigQueryAPIResourceProvider implements BigQueryResourceProvider {
             .setProcedureArgumentMode(procedureArgumentMode)
             .build();
 
-    return new FunctionArgumentType(zetaSqlDataType, options, 1);
+    if (Objects.equals(argument.getKind(), "ANY_TYPE")) {
+      return new FunctionArgumentType(SignatureArgumentKind.ARG_TYPE_ARBITRARY, options, 1);
+    } else {
+      Type zetaSqlDataType = this.convertBigQueryDataTypeToZetaSQLType(argument.getDataType());
+      return new FunctionArgumentType(zetaSqlDataType, options, 1);
+    }
   }
 
   /**
@@ -388,17 +392,12 @@ public class BigQueryAPIResourceProvider implements BigQueryResourceProvider {
    *
    * @param routine The BigQuery Routine for which to build a Function
    * @return The resulting Function object
-   * @throws MissingRoutineReturnType if the input Routine does not have its return type set
    */
   private FunctionInfo buildFunction(Routine routine) {
     assert routine.getRoutineType().equals(BigQueryAPIRoutineType.UDF.getLabel());
 
     RoutineId routineId = routine.getRoutineId();
     BigQueryReference bigQueryReference = BigQueryReference.from(routineId);
-
-    if (routine.getReturnType() == null) {
-      throw new MissingRoutineReturnType(bigQueryReference.getFullName());
-    }
 
     List<FunctionArgumentType> arguments = this.parseRoutineArguments(routine.getArguments());
     FunctionArgumentType returnType =
@@ -412,7 +411,7 @@ public class BigQueryAPIResourceProvider implements BigQueryResourceProvider {
         .setGroup("UDF")
         .setMode(Mode.SCALAR)
         .setSignatures(List.of(signature))
-        .setLanguage(BigQueryAPIRoutineLanguage.valueOfOrUnspecified(routine.getLanguage()))
+        .setLanguage(BigQueryRoutineLanguage.valueOfOrUnspecified(routine.getLanguage()))
         .setBody(routine.getBody())
         .build();
   }
@@ -423,7 +422,7 @@ public class BigQueryAPIResourceProvider implements BigQueryResourceProvider {
    *
    * @param routine The BigQuery Routine for which to build a TVFInfo
    * @return The resulting TVFInfo object
-   * @throws MissingRoutineReturnType if the input Routine does not have its return type set
+   * @throws MissingFunctionReturnType if the input Routine does not have its return type set
    */
   private TVFInfo buildTVF(Routine routine) {
     assert routine.getRoutineType().equals(BigQueryAPIRoutineType.TVF.getLabel());
@@ -432,7 +431,7 @@ public class BigQueryAPIResourceProvider implements BigQueryResourceProvider {
     BigQueryReference bigQueryReference = BigQueryReference.from(routineId);
 
     if (routine.getReturnTableType() == null) {
-      throw new MissingRoutineReturnType(bigQueryReference.getFullName());
+      throw new MissingFunctionReturnType(bigQueryReference.getFullName());
     }
 
     TVFRelation outputSchema = this.parseTVFOutputSchema(routine.getReturnTableType());
@@ -517,7 +516,6 @@ public class BigQueryAPIResourceProvider implements BigQueryResourceProvider {
    *
    * @throws BigQueryAPIError if an API error occurs
    * @throws InvalidBigQueryReference if any provided table reference is invalid
-   * @throws MissingRoutineReturnType if any of the requested functions is missing its return type
    */
   @Override
   public List<FunctionInfo> getFunctions(String projectId, List<String> functionReferences) {
@@ -550,7 +548,7 @@ public class BigQueryAPIResourceProvider implements BigQueryResourceProvider {
   @Override
   public List<FunctionInfo> getAllFunctionsInDataset(String projectId, String datasetName) {
     List<String> functionReferences = this.listRoutineReferencesInDataset(projectId, datasetName);
-    return this.getFunctionsImpl(projectId, functionReferences, true);
+    return this.getFunctionsImpl(projectId, functionReferences, false);
   }
 
   /**
@@ -590,7 +588,7 @@ public class BigQueryAPIResourceProvider implements BigQueryResourceProvider {
    *
    * @throws BigQueryAPIError if an API error occurs
    * @throws InvalidBigQueryReference if any provided table reference is invalid
-   * @throws MissingRoutineReturnType if any of the requested functions is missing its return type
+   * @throws MissingFunctionReturnType if any of the requested functions is missing its return type
    */
   @Override
   public List<TVFInfo> getTVFs(String projectId, List<String> functionReferences) {
