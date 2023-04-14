@@ -67,11 +67,14 @@ public class BigQueryCatalogTest {
           .build();
 
   TVFInfo exampleTVF =
-      new TVFInfo(
-          ImmutableList.of(testProjectId, "dataset", "exampletvf"),
-          new FunctionSignature(
-              new FunctionArgumentType(SignatureArgumentKind.ARG_TYPE_RELATION), List.of(), -1),
-          TVFRelation.createValueTableBased(TypeFactory.createSimpleType(TypeKind.TYPE_STRING)));
+      TVFInfo.newBuilder()
+          .setNamePath(ImmutableList.of(testProjectId, "dataset", "exampletvf"))
+          .setSignature(
+              new FunctionSignature(
+                  new FunctionArgumentType(SignatureArgumentKind.ARG_TYPE_RELATION), List.of(), -1))
+          .setOutputSchema(
+              TVFRelation.createValueTableBased(TypeFactory.createSimpleType(TypeKind.TYPE_STRING)))
+          .build();
 
   ProcedureInfo exampleProcedure =
       new ProcedureInfo(

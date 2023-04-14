@@ -24,7 +24,7 @@ import com.google.zetasql.toolkit.AnalyzerExtensions;
 import com.google.zetasql.toolkit.catalog.CatalogOperations;
 import com.google.zetasql.toolkit.catalog.CatalogWrapper;
 import com.google.zetasql.toolkit.catalog.bigquery.exceptions.BigQueryCreateError;
-import com.google.zetasql.toolkit.catalog.bigquery.exceptions.MissingFunctionReturnType;
+import com.google.zetasql.toolkit.catalog.bigquery.exceptions.MissingFunctionResultType;
 import com.google.zetasql.toolkit.catalog.exceptions.CatalogResourceAlreadyExists;
 import com.google.zetasql.toolkit.options.BigQueryLanguageOptions;
 import java.util.Arrays;
@@ -282,14 +282,14 @@ public class BigQueryCatalog implements CatalogWrapper {
    * comply with BigQuery name resolution semantics.
    *
    * <p>If any function signature which does not include a valid return type, this method will
-   * attempt to infer it. If inference is not possible, {@link MissingFunctionReturnType} will be
+   * attempt to infer it. If inference is not possible, {@link MissingFunctionResultType} will be
    * thrown.
    *
    * @see #buildCatalogPathsForResource(BigQueryReference)
    * @throws BigQueryCreateError if a pre-create validation fails
    * @throws CatalogResourceAlreadyExists if the function already exists and CreateMode !=
    *     CREATE_OR_REPLACE
-   * @throws MissingFunctionReturnType if the function does not have an explicit return type and if
+   * @throws MissingFunctionResultType if the function does not have an explicit return type and if
    *     it cannot be automatically inferred
    */
   @Override
@@ -305,7 +305,7 @@ public class BigQueryCatalog implements CatalogWrapper {
     this.validateNamePathForCreation(functionNamePath, createScope, "function");
 
     FunctionInfo resolvedFunction =
-        FunctionReturnTypeResolver.resolveFunctionReturnTypesIfNeeded(
+        FunctionResultTypeResolver.resolveFunctionReturnTypes(
             function, BigQueryLanguageOptions.get(), this.catalog);
 
     List<List<String>> functionPaths =
@@ -336,10 +336,15 @@ public class BigQueryCatalog implements CatalogWrapper {
         createScope, List.of(CreateScope.CREATE_DEFAULT_SCOPE), fullName, "TVF");
     this.validateNamePathForCreation(tvfInfo.getNamePath(), createScope, "TVF");
 
+    TVFInfo resolvedTvfInfo =
+        FunctionResultTypeResolver.resolveTVFOutputSchema(
+            tvfInfo, BigQueryLanguageOptions.get(), this.catalog);
+
     List<List<String>> functionPaths = this.buildCatalogPathsForResource(fullName);
 
     try {
-      CatalogOperations.createTVFInCatalog(this.catalog, functionPaths, tvfInfo, createMode);
+      CatalogOperations.createTVFInCatalog(
+          this.catalog, functionPaths, resolvedTvfInfo, createMode);
     } catch (CatalogResourceAlreadyExists alreadyExists) {
       throw this.addCaseInsensitivityWarning(alreadyExists);
     }
@@ -461,7 +466,7 @@ public class BigQueryCatalog implements CatalogWrapper {
    * <p>Function references should be in the format "project.dataset.function" or "dataset.function"
    *
    * <p>If any function signature which does not include a valid return type, this method will
-   * attempt to infer it. If inference is not possible, {@link MissingFunctionReturnType} will be
+   * attempt to infer it. If inference is not possible, {@link MissingFunctionResultType} will be
    * thrown.
    */
   @Override
@@ -487,10 +492,10 @@ public class BigQueryCatalog implements CatalogWrapper {
   private Stream<FunctionInfo> resolveFunctionReturnTypeWhenPossible(FunctionInfo functionInfo) {
     try {
       FunctionInfo resolvedFunctionInfo =
-          FunctionReturnTypeResolver.resolveFunctionReturnTypesIfNeeded(
+          FunctionResultTypeResolver.resolveFunctionReturnTypes(
               functionInfo, BigQueryLanguageOptions.get(), this.catalog);
       return Stream.of(resolvedFunctionInfo);
-    } catch (MissingFunctionReturnType err) {
+    } catch (MissingFunctionResultType err) {
       return Stream.of();
     }
   }
@@ -562,14 +567,35 @@ public class BigQueryCatalog implements CatalogWrapper {
   }
 
   /**
+   * Attempts to resolve the output schema for a TVF, ignores it if resolution fails.
+   *
+   * <p>Meant to be used as a mapping function for {@link Stream#flatMap(Function)}
+   *
+   * @param tvfInfo The {@link TVFInfo} representing the TVF for which the output schema should be
+   *     resolved
+   * @return A {@link Stream} containing the resolved TVFInfo if resolution was successful, an empty
+   *     stream otherwise
+   */
+  private Stream<TVFInfo> resolveTVFResultTypeWhenPossible(TVFInfo tvfInfo) {
+    try {
+      TVFInfo resolvedTVFInfo =
+          FunctionResultTypeResolver.resolveTVFOutputSchema(
+              tvfInfo, BigQueryLanguageOptions.get(), this.catalog);
+      return Stream.of(resolvedTVFInfo);
+    } catch (MissingFunctionResultType err) {
+      return Stream.of();
+    }
+  }
+
+  /**
    * Adds all TVFs in the provided dataset to this catalog
    *
    * @param projectId The project id the dataset belongs to
    * @param datasetName The name of the dataset to get TVFs from
    */
   public void addAllTVFsInDataset(String projectId, String datasetName) {
-    this.bigQueryResourceProvider
-        .getAllTVFsInDataset(projectId, datasetName)
+    this.bigQueryResourceProvider.getAllTVFsInDataset(projectId, datasetName).stream()
+        .flatMap(this::resolveTVFResultTypeWhenPossible)
         .forEach(
             tvfInfo ->
                 this.register(
@@ -582,8 +608,8 @@ public class BigQueryCatalog implements CatalogWrapper {
    * @param projectId The project id to get TVFs from
    */
   public void addAllTVFsInProject(String projectId) {
-    this.bigQueryResourceProvider
-        .getAllTVFsInProject(projectId)
+    this.bigQueryResourceProvider.getAllTVFsInProject(projectId).stream()
+        .flatMap(this::resolveTVFResultTypeWhenPossible)
         .forEach(
             tvfInfo ->
                 this.register(

@@ -216,10 +216,11 @@ class CatalogUpdaterVisitor extends Visitor {
             .collect(Collectors.toList());
 
     TVFInfo tvfInfo =
-        new TVFInfo(
-            createTableFunctionStmt.getNamePath(),
-            createTableFunctionStmt.getSignature(),
-            TVFRelation.createColumnBased(outputSchemaColumns));
+        TVFInfo.newBuilder()
+            .setNamePath(createTableFunctionStmt.getNamePath())
+            .setSignature(createTableFunctionStmt.getSignature())
+            .setOutputSchema(TVFRelation.createColumnBased(outputSchemaColumns))
+            .build();
 
     CreateMode createMode = createTableFunctionStmt.getCreateMode();
 

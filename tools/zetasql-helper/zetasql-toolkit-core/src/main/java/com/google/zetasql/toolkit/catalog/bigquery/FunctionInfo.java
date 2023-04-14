@@ -35,19 +35,13 @@ public class FunctionInfo {
 
   private final Optional<String> body;
 
-  private FunctionInfo(
-      List<String> namePath,
-      String group,
-      Mode mode,
-      List<FunctionSignature> signatures,
-      Optional<BigQueryRoutineLanguage> language,
-      Optional<String> body) {
-    this.namePath = namePath;
-    this.group = group;
-    this.mode = mode;
-    this.signatures = signatures;
-    this.language = language;
-    this.body = body;
+  private FunctionInfo(Builder builder) {
+    this.namePath = builder.getNamePath();
+    this.group = builder.getGroup();
+    this.mode = builder.getMode();
+    this.signatures = builder.getSignatures();
+    this.language = builder.getLanguage();
+    this.body = builder.getBody();
   }
 
   public List<String> getNamePath() {
@@ -161,7 +155,7 @@ public class FunctionInfo {
     }
 
     public FunctionInfo build() {
-      return new FunctionInfo(namePath, group, mode, signatures, language, body);
+      return new FunctionInfo(this);
     }
   }
 }

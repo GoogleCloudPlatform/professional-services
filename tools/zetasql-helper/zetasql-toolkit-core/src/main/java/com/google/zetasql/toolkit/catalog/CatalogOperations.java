@@ -16,6 +16,7 @@
 
 package com.google.zetasql.toolkit.catalog;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.zetasql.*;
 import com.google.zetasql.SimpleCatalogProtos.SimpleCatalogProto;
@@ -381,6 +382,8 @@ public class CatalogOperations {
       List<List<String>> functionPaths,
       TVFInfo tvfInfo,
       CreateMode createMode) {
+    Preconditions.checkArgument(
+        tvfInfo.getOutputSchema().isPresent(), "Cannot create a a TVF without an output schema");
 
     if (createMode.equals(CreateMode.CREATE_OR_REPLACE)) {
       deleteTVFFromCatalog(rootCatalog, functionPaths);
@@ -397,7 +400,9 @@ public class CatalogOperations {
 
       TableValuedFunction tvf =
           new FixedOutputSchemaTVF(
-              ImmutableList.of(functionName), tvfInfo.getSignature(), tvfInfo.getOutputSchema());
+              ImmutableList.of(functionName),
+              tvfInfo.getSignature(),
+              tvfInfo.getOutputSchema().get());
 
       if (!tvfExists(catalogForCreation, tvf)) {
         catalogForCreation.addTableValuedFunction(tvf);

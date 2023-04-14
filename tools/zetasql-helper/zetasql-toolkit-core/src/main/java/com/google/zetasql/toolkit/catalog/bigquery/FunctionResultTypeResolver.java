@@ -24,34 +24,40 @@ import com.google.zetasql.FunctionSignature;
 import com.google.zetasql.LanguageOptions;
 import com.google.zetasql.SimpleCatalog;
 import com.google.zetasql.SqlException;
-import com.google.zetasql.Type;
+import com.google.zetasql.TVFRelation;
+import com.google.zetasql.TVFRelation.Column;
 import com.google.zetasql.ZetaSQLFunctions.SignatureArgumentKind;
 import com.google.zetasql.ZetaSQLType.TypeKind;
+import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedCreateTableFunctionStmt;
 import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedExpr;
 import com.google.zetasql.toolkit.catalog.bigquery.exceptions.CouldNotInferFunctionReturnType;
-import com.google.zetasql.toolkit.catalog.bigquery.exceptions.MissingFunctionReturnType;
+import com.google.zetasql.toolkit.catalog.bigquery.exceptions.MissingFunctionResultType;
 import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * Allows resolving the return types of {@link FunctionSignature}s for BigQuery.
+ * Allows resolving the result types of {@link FunctionSignature}s for BigQuery.
  *
- * <p>Resolving implies inferring the function return type based on the function body in case the
- * signature does not have a valid return type. Signatures set to return an unknown type (having
- * {@link TypeKind#TYPE_UNKNOWN} as their return type) or an arbitrary type (having {@link
- * SignatureArgumentKind#ARG_TYPE_ARBITRARY} as their return kind) require inference.
+ * <p>Resolving implies inferring the function or TVF return type based on the function body in case
+ * the signature does not have a valid result type.
+ *
+ * <p>Function signatures set to return an unknown type (having {@link TypeKind#TYPE_UNKNOWN} as
+ * their return type) or an arbitrary type (having {@link SignatureArgumentKind#ARG_TYPE_ARBITRARY}
+ * as their return kind) require inference.
+ *
+ * <p>TVF signatures without an explicit output schema require inference.
  */
-class FunctionReturnTypeResolver {
+class FunctionResultTypeResolver {
 
   /**
-   * Infer the return type of a function if necessary.
+   * Infer the return type of a function.
    *
    * @param signature The signature for which to infer the return type
    * @param body The body of the function in question
    * @param languageOptions The {@link LanguageOptions} to use when performing inference
    * @param catalog The {@link SimpleCatalog} to use when performing inference
-   * @return The {@link FunctionArgumentType} that the provided signature should use. Will be the
-   *     same as the original if no inference was necessary.
+   * @return A {@link FunctionArgumentType} representing the return type that the provided signature
+   *     should use.
    * @throws CouldNotInferFunctionReturnType if inference fails for any reason
    */
   private static FunctionArgumentType inferFunctionReturnType(
@@ -59,18 +65,6 @@ class FunctionReturnTypeResolver {
       String body,
       LanguageOptions languageOptions,
       SimpleCatalog catalog) {
-    FunctionArgumentType originalReturn = signature.getResultType();
-
-    boolean returnIsArbitrary =
-        originalReturn.getKind().equals(SignatureArgumentKind.ARG_TYPE_ARBITRARY);
-    boolean returnIsFixed = originalReturn.getKind().equals(SignatureArgumentKind.ARG_TYPE_FIXED);
-    boolean returnTypeIsNull = originalReturn.getType() == null;
-    boolean returnIsUnknown = returnIsFixed && returnTypeIsNull;
-    boolean shouldInferReturnType = returnIsArbitrary || returnIsUnknown;
-
-    if (!shouldInferReturnType) {
-      return originalReturn;
-    }
 
     AnalyzerOptions analyzerOptions = new AnalyzerOptions();
     analyzerOptions.setLanguageOptions(languageOptions);
@@ -117,7 +111,7 @@ class FunctionReturnTypeResolver {
    *     type if needed.
    * @return An updated {@link FunctionSignature} with the return type resolved. Will be the
    *     original signature if no inference was necessary.
-   * @throws MissingFunctionReturnType if the signature does not include a proper return type and it
+   * @throws MissingFunctionResultType if the signature does not include a proper return type and it
    *     could not be inferred.
    */
   private static FunctionSignature resolveReturnTypeForFunctionSignature(
@@ -125,10 +119,17 @@ class FunctionReturnTypeResolver {
       FunctionInfo function,
       LanguageOptions languageOptions,
       SimpleCatalog catalog) {
-    Type returnType = signature.getResultType().getType();
 
-    if (returnType != null) {
-      // The return type is already known, no need to infer it
+    FunctionArgumentType originalReturn = signature.getResultType();
+
+    boolean returnIsArbitrary =
+        originalReturn.getKind().equals(SignatureArgumentKind.ARG_TYPE_ARBITRARY);
+    boolean returnIsFixed = originalReturn.getKind().equals(SignatureArgumentKind.ARG_TYPE_FIXED);
+    boolean returnTypeIsNull = originalReturn.getType() == null;
+    boolean returnIsUnknown = returnIsFixed && returnTypeIsNull;
+    boolean shouldInferReturnType = returnIsArbitrary || returnIsUnknown;
+
+    if (!shouldInferReturnType) {
       return signature;
     }
 
@@ -137,20 +138,20 @@ class FunctionReturnTypeResolver {
         function.getLanguage().orElse(BigQueryRoutineLanguage.LANGUAGE_UNSPECIFIED);
 
     if (!language.equals(BigQueryRoutineLanguage.SQL)) {
-      throw new MissingFunctionReturnType(function.getNamePath());
+      throw new MissingFunctionResultType(function.getNamePath());
     }
 
     String body =
-        function.getBody().orElseThrow(() -> new MissingFunctionReturnType(function.getNamePath()));
+        function.getBody().orElseThrow(() -> new MissingFunctionResultType(function.getNamePath()));
 
     try {
       FunctionArgumentType inferredReturnType =
-          FunctionReturnTypeResolver.inferFunctionReturnType(
+          FunctionResultTypeResolver.inferFunctionReturnType(
               signature, body, languageOptions, catalog);
       return new FunctionSignature(
           inferredReturnType, signature.getFunctionArgumentList(), signature.getContextId());
     } catch (CouldNotInferFunctionReturnType err) {
-      throw new MissingFunctionReturnType(function.getNamePath(), err);
+      throw new MissingFunctionResultType(function.getNamePath(), err);
     }
   }
 
@@ -172,13 +173,13 @@ class FunctionReturnTypeResolver {
    *     that need inference.
    * @param languageOptions The {@link LanguageOptions} to use when performing inference.
    * @param catalog The catalog to use when analyzing the function body in case inferring the return
-   *     type if needed.
+   *     type is needed.
    * @return An updated {@link FunctionInfo} with the return types resolved. Any signature where
    *     inference wasn't necessary will remain unchanged.
-   * @throws MissingFunctionReturnType if any signature does not include a proper return type and it
+   * @throws MissingFunctionResultType if any signature does not include a proper return type and it
    *     could not be inferred.
    */
-  public static FunctionInfo resolveFunctionReturnTypesIfNeeded(
+  public static FunctionInfo resolveFunctionReturnTypes(
       FunctionInfo functionInfo, LanguageOptions languageOptions, SimpleCatalog catalog) {
     List<FunctionSignature> newSignatures =
         functionInfo.getSignatures().stream()
@@ -189,5 +190,94 @@ class FunctionReturnTypeResolver {
             .collect(Collectors.toList());
 
     return functionInfo.toBuilder().setSignatures(newSignatures).build();
+  }
+
+  /**
+   * Infer the output schema of a TVF.
+   *
+   * <p>The ZetaSQL analyzer does not expose a way to bind arguments when analyzing a statement, so
+   * we can't analyze the TVF body directly to infer its output schema. We work around it by
+   * building a matching CREATE TABLE FUNCTION statement for the TVF and analyzing that.
+   *
+   * @param tvfInfo The {@link TVFInfo} representing the TVF
+   * @param languageOptions The {@link LanguageOptions} to use when performing inference
+   * @param catalog The {@link SimpleCatalog} to use when performing inference
+   * @return The {@link TVFRelation} representing the inferred output schema for the function
+   * @throws CouldNotInferFunctionReturnType if inference fails for any reason
+   */
+  private static TVFRelation inferTVFOutputSchema(
+      TVFInfo tvfInfo, LanguageOptions languageOptions, SimpleCatalog catalog) {
+
+    String fullFunctionName = String.join(".", tvfInfo.getNamePath());
+    String argumentDefinitions =
+        tvfInfo.getSignature().getFunctionArgumentList().stream()
+            .map(
+                functionArgument ->
+                    String.format(
+                        "%s %s",
+                        functionArgument.getOptions().getArgumentName(),
+                        functionArgument.getType()))
+            .collect(Collectors.joining(", "));
+
+    String body =
+        tvfInfo.getBody().orElseThrow(() -> new MissingFunctionResultType(fullFunctionName));
+
+    String createStmt =
+        String.format(
+            "CREATE TABLE FUNCTION `%s`(%s) AS (%s)", fullFunctionName, argumentDefinitions, body);
+
+    AnalyzerOptions analyzerOptions = new AnalyzerOptions();
+    analyzerOptions.setLanguageOptions(languageOptions);
+
+    try {
+      ResolvedCreateTableFunctionStmt analyzedStatement =
+          (ResolvedCreateTableFunctionStmt)
+              Analyzer.analyzeStatement(createStmt, analyzerOptions, catalog);
+
+      List<Column> outputSchemaColumns =
+          analyzedStatement.getOutputColumnList().stream()
+              .map(
+                  resolvedOutputColumn ->
+                      Column.create(
+                          resolvedOutputColumn.getName(),
+                          resolvedOutputColumn.getColumn().getType()))
+              .collect(Collectors.toList());
+
+      return TVFRelation.createColumnBased(outputSchemaColumns);
+    } catch (SqlException sqlException) {
+      throw new CouldNotInferFunctionReturnType(
+          tvfInfo.getSignature(), "Failed to infer TVF output schema", sqlException);
+    }
+  }
+
+  /**
+   * Resolves the output schema of a given TVF represented by the provided {@link TVFInfo}. If the
+   * output schema is not explicitly set, it will attempt to infer it using the function body.
+   *
+   * @param tvfInfo The TVFInfo representing the TVF. The function body should be available for
+   *     functions requiring inference, otherwise resolution will fail.
+   * @param languageOptions The {@link LanguageOptions} to use when performing inference.
+   * @param catalog The catalog to use when analyzing the function body in case inference is needed.
+   * @return An updated {@link TVFInfo} with the output schema resolved. Will remain unchanged if
+   *     inference was not necessary.
+   * @throws MissingFunctionResultType if any the TVF did not include an output schema and it could
+   *     not be inferred.
+   */
+  public static TVFInfo resolveTVFOutputSchema(
+      TVFInfo tvfInfo, LanguageOptions languageOptions, SimpleCatalog catalog) {
+
+    if (tvfInfo.getOutputSchema().isPresent()) {
+      // The output schema is already known, no need to infer it
+      return tvfInfo;
+    }
+
+    // The return type is unknown, try to infer it
+
+    try {
+      TVFRelation newOutputSchema = inferTVFOutputSchema(tvfInfo, languageOptions, catalog);
+      return tvfInfo.toBuilder().setOutputSchema(newOutputSchema).build();
+    } catch (CouldNotInferFunctionReturnType err) {
+      throw new MissingFunctionResultType(tvfInfo.getNamePath(), err);
+    }
   }
 }

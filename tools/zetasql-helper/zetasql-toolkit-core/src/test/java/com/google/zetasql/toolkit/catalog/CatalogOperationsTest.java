@@ -340,13 +340,18 @@ class CatalogOperationsTest {
   @Test
   void testCreateTVFInCatalog() {
     TVFInfo newTVF =
-        new TVFInfo(
-            ImmutableList.of("newTVF"),
-            new FunctionSignature(
-                new FunctionArgumentType(ZetaSQLFunctions.SignatureArgumentKind.ARG_TYPE_RELATION),
-                List.of(),
-                -1),
-            TVFRelation.createValueTableBased(TypeFactory.createSimpleType(TypeKind.TYPE_STRING)));
+        TVFInfo.newBuilder()
+            .setNamePath(ImmutableList.of("newTVF"))
+            .setSignature(
+                new FunctionSignature(
+                    new FunctionArgumentType(
+                        ZetaSQLFunctions.SignatureArgumentKind.ARG_TYPE_RELATION),
+                    List.of(),
+                    -1))
+            .setOutputSchema(
+                TVFRelation.createValueTableBased(
+                    TypeFactory.createSimpleType(TypeKind.TYPE_STRING)))
+            .build();
 
     List<String> newFunctionPath1 = List.of("newTVF");
     List<String> newFunctionPath2 = List.of("qualified", "newTVF");

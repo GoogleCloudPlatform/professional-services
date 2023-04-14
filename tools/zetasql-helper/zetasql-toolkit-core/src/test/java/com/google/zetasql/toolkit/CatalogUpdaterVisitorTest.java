@@ -276,7 +276,12 @@ public class CatalogUpdaterVisitorTest {
         TVFRelation.createColumnBased(
             List.of(Column.create("output", TypeFactory.createSimpleType(TypeKind.TYPE_STRING))));
 
-    TVFInfo expectedFunction = new TVFInfo(ImmutableList.of("tvf"), signature, tvfOutputSchema);
+    TVFInfo expectedFunction =
+        TVFInfo.newBuilder()
+            .setNamePath(ImmutableList.of("tvf"))
+            .setSignature(signature)
+            .setOutputSchema(tvfOutputSchema)
+            .build();
 
     ResolvedCreateTableFunctionStmt resolvedCreateTableFunctionStmt =
         ResolvedCreateTableFunctionStmt.builder()
