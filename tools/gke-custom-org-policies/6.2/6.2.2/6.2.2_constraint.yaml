@@ -1,0 +1,10 @@
+name: organizations/[ORGANIZATIONID]/customConstraints/custom.gkeWorkloadIdentity
+resourceTypes:
+- container.googleapis.com/Cluster
+methodTypes:
+- CREATE
+- UPDATE
+condition: resource.workloadIdentityConfig.workloadPool == ""
+actionType: DENY
+displayName: gkeWorkloadIdentity
+description: 6.2.2 - Custom Constraint to require GKE Workload Identity for a specified Workload Pool

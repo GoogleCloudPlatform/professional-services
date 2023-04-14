@@ -1,0 +1,10 @@
+name: organizations/[ORGANIZATIONID]/customConstraints/custom.gkeEncryptKeysKms
+resourceTypes:
+- container.googleapis.com/Cluster
+methodTypes:
+- CREATE
+- UPDATE
+condition: resource.databaseEncryption.state != 'ENCRYPTED'
+actionType: DENY
+displayName: gkeEncryptKeysKms
+description: 6.3.1 - Custom Constraint to enforce encrypting Kubernetes Secrets using keys managed in Cloud KMS

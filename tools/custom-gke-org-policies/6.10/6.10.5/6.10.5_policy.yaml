@@ -1,4 +1,0 @@
-name: projects/gke-org-policy-test-1/policies/custom.gkeBinaryAuth
-spec:
- rules:
- - enforce: true

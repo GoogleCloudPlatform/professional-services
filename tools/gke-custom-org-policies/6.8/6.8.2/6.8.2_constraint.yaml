@@ -4,7 +4,7 @@ resourceTypes:
 methodTypes:
 - CREATE
 - UPDATE
-condition: resource.masterAuth.clientCertificate != ""
+condition: resource.masterAuth.clientCertificateConfig.issueClientCertificate == true
 actionType: DENY
 displayName: issueclientcertificate
-description: Custom Constraint to disable issuing client certificate
+description: Custom Constraint to Ensure authentication using Client Certificates is Disabled
