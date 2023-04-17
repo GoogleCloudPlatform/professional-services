@@ -6,9 +6,10 @@
 
     <groupId>com.google.zetasql.toolkit</groupId>
     <artifactId>zetasql-toolkit-core</artifactId>
-    <version>0.1.2</version>
+    <version>${revision}</version>
 
     <properties>
+        <revision>0.1.3-SNAPSHOT</revision>
         <maven.compiler.source>11</maven.compiler.source>
         <maven.compiler.target>11</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
