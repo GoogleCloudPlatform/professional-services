@@ -19,11 +19,29 @@ package com.google.zetasql.toolkit.usage;
 import com.google.api.gax.rpc.FixedHeaderProvider;
 import com.google.api.gax.rpc.HeaderProvider;
 import com.google.common.collect.ImmutableMap;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Properties;
 
 public class UsageTracking {
-
   private static final String USER_AGENT_HEADER = "user-agent";
-  private static final String USER_AGENT_VALUE = "google-pso-tool/zetasql-toolkit/0.1.3-SNAPSHOT";
+  private static final String USER_AGENT_VALUE;
+
+  static {
+    String revision = "UNSET";
+
+    InputStream propertiesInputStream =
+        UsageTracking.class.getResourceAsStream("/zetasql-toolkit-core.properties");
+
+    try (propertiesInputStream) {
+      Properties properties = new Properties();
+      properties.load(propertiesInputStream);
+      revision = properties.getProperty("zetasql.toolkit.version", "UNSET");
+    } catch (IOException ignored) {
+    }
+
+    USER_AGENT_VALUE = String.format("google-pso-tool/zetasql-toolkit/%s", revision);
+  }
 
   public static final HeaderProvider HEADER_PROVIDER =
       FixedHeaderProvider.create(ImmutableMap.of(USER_AGENT_HEADER, USER_AGENT_VALUE));
