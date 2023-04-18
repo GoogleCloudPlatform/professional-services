@@ -18,7 +18,6 @@ package com.google.zetasql.toolkit.catalog.spanner;
 
 import com.google.cloud.spanner.DatabaseClient;
 import com.google.cloud.spanner.Spanner;
-import com.google.zetasql.Function;
 import com.google.zetasql.SimpleCatalog;
 import com.google.zetasql.SimpleTable;
 import com.google.zetasql.ZetaSQLBuiltinFunctionOptions;
@@ -26,6 +25,7 @@ import com.google.zetasql.resolvedast.ResolvedCreateStatementEnums.CreateMode;
 import com.google.zetasql.resolvedast.ResolvedCreateStatementEnums.CreateScope;
 import com.google.zetasql.toolkit.catalog.CatalogOperations;
 import com.google.zetasql.toolkit.catalog.CatalogWrapper;
+import com.google.zetasql.toolkit.catalog.bigquery.FunctionInfo;
 import com.google.zetasql.toolkit.catalog.bigquery.ProcedureInfo;
 import com.google.zetasql.toolkit.catalog.bigquery.TVFInfo;
 import com.google.zetasql.toolkit.catalog.exceptions.CatalogResourceAlreadyExists;
@@ -61,7 +61,7 @@ public class SpannerCatalog implements CatalogWrapper {
     this.database = database;
     this.spannerResourceProvider = spannerResourceProvider;
     this.catalog = new SimpleCatalog("catalog");
-    this.catalog.addZetaSQLFunctions(
+    this.catalog.addZetaSQLFunctionsAndTypes(
         new ZetaSQLBuiltinFunctionOptions(SpannerLanguageOptions.get()));
     SpannerBuiltIns.addToCatalog(this.catalog);
   }
@@ -149,7 +149,7 @@ public class SpannerCatalog implements CatalogWrapper {
   }
 
   @Override
-  public void register(Function function, CreateMode createMode, CreateScope createScope) {
+  public void register(FunctionInfo function, CreateMode createMode, CreateScope createScope) {
     throw new UnsupportedOperationException(
         "Cloud Spanner does not support user-defined functions");
   }
