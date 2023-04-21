@@ -25,6 +25,7 @@ import com.google.zetasql.resolvedast.ResolvedCreateStatementEnums.CreateScope;
 import com.google.zetasql.resolvedast.ResolvedNodes.*;
 import com.google.zetasql.toolkit.catalog.CatalogOperations;
 import com.google.zetasql.toolkit.catalog.CatalogWrapper;
+import com.google.zetasql.toolkit.catalog.bigquery.FunctionInfo;
 import com.google.zetasql.toolkit.catalog.bigquery.ProcedureInfo;
 import com.google.zetasql.toolkit.catalog.bigquery.TVFInfo;
 import java.util.List;
@@ -185,12 +186,13 @@ class CatalogUpdaterVisitor extends Visitor {
    */
   @Override
   public void visit(ResolvedCreateFunctionStmt createFunctionStmt) {
-    Function function =
-        new Function(
-            createFunctionStmt.getNamePath(),
-            "UDF",
-            Mode.SCALAR,
-            List.of(createFunctionStmt.getSignature()));
+    FunctionInfo function =
+        FunctionInfo.newBuilder()
+            .setNamePath(createFunctionStmt.getNamePath())
+            .setGroup("UDF")
+            .setMode(Mode.SCALAR)
+            .setSignatures(List.of(createFunctionStmt.getSignature()))
+            .build();
 
     CreateMode createMode = createFunctionStmt.getCreateMode();
     CreateScope createScope = createFunctionStmt.getCreateScope();
@@ -214,10 +216,11 @@ class CatalogUpdaterVisitor extends Visitor {
             .collect(Collectors.toList());
 
     TVFInfo tvfInfo =
-        new TVFInfo(
-            createTableFunctionStmt.getNamePath(),
-            createTableFunctionStmt.getSignature(),
-            TVFRelation.createColumnBased(outputSchemaColumns));
+        TVFInfo.newBuilder()
+            .setNamePath(createTableFunctionStmt.getNamePath())
+            .setSignature(createTableFunctionStmt.getSignature())
+            .setOutputSchema(TVFRelation.createColumnBased(outputSchemaColumns))
+            .build();
 
     CreateMode createMode = createTableFunctionStmt.getCreateMode();
 

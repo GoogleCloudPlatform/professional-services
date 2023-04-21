@@ -53,23 +53,28 @@ public class BigQueryCatalogTest {
 
   SimpleTable replacementTableInDefaultProject;
 
-  Function exampleFunction =
-      new Function(
-          List.of(testProjectId, "dataset", "examplefunction"),
-          "UDF",
-          Mode.SCALAR,
-          List.of(
-              new FunctionSignature(
-                  new FunctionArgumentType(TypeFactory.createSimpleType(TypeKind.TYPE_STRING)),
-                  List.of(),
-                  -1)));
+  FunctionInfo exampleFunction =
+      FunctionInfo.newBuilder()
+          .setNamePath(List.of(testProjectId, "dataset", "examplefunction"))
+          .setGroup("UDF")
+          .setMode(Mode.SCALAR)
+          .setSignatures(
+              List.of(
+                  new FunctionSignature(
+                      new FunctionArgumentType(TypeFactory.createSimpleType(TypeKind.TYPE_STRING)),
+                      List.of(),
+                      -1)))
+          .build();
 
   TVFInfo exampleTVF =
-      new TVFInfo(
-          ImmutableList.of(testProjectId, "dataset", "exampletvf"),
-          new FunctionSignature(
-              new FunctionArgumentType(SignatureArgumentKind.ARG_TYPE_RELATION), List.of(), -1),
-          TVFRelation.createValueTableBased(TypeFactory.createSimpleType(TypeKind.TYPE_STRING)));
+      TVFInfo.newBuilder()
+          .setNamePath(ImmutableList.of(testProjectId, "dataset", "exampletvf"))
+          .setSignature(
+              new FunctionSignature(
+                  new FunctionArgumentType(SignatureArgumentKind.ARG_TYPE_RELATION), List.of(), -1))
+          .setOutputSchema(
+              TVFRelation.createValueTableBased(TypeFactory.createSimpleType(TypeKind.TYPE_STRING)))
+          .build();
 
   ProcedureInfo exampleProcedure =
       new ProcedureInfo(
@@ -373,12 +378,48 @@ public class BigQueryCatalogTest {
   }
 
   @Test
-  void testCopy() {
-    BigQueryCatalog copy = this.bigQueryCatalog.copy();
+  void testRegisterFunction() {
+    this.bigQueryCatalog.register(
+        exampleFunction, CreateMode.CREATE_DEFAULT, CreateScope.CREATE_DEFAULT_SCOPE);
 
-    assertAll(
-        () -> assertNotSame(this.bigQueryCatalog, copy),
-        () -> assertNotSame(this.bigQueryCatalog.getZetaSQLCatalog(), copy.getZetaSQLCatalog()));
+    SimpleCatalog underlyingCatalog = this.bigQueryCatalog.getZetaSQLCatalog();
+    assertDoesNotThrow(
+        () -> underlyingCatalog.findFunction(exampleFunction.getNamePath()),
+        String.format(
+            "Expected function to exist at path %s",
+            String.join(".", exampleFunction.getNamePath())));
+  }
+
+  @Test
+  void testInferFunctionReturnType() {
+    FunctionInfo functionWithUnknownReturnType =
+        FunctionInfo.newBuilder()
+            .setNamePath(List.of(testProjectId, "dataset", "function"))
+            .setGroup("UDF")
+            .setMode(Mode.SCALAR)
+            .setSignatures(
+                List.of(
+                    new FunctionSignature(
+                        new FunctionArgumentType(
+                            TypeFactory.createSimpleType(TypeKind.TYPE_UNKNOWN)),
+                        List.of(),
+                        -1)))
+            .setLanguage(BigQueryRoutineLanguage.SQL)
+            .setBody("5.6 + 5")
+            .build();
+
+    this.bigQueryCatalog.register(
+        functionWithUnknownReturnType, CreateMode.CREATE_DEFAULT, CreateScope.CREATE_DEFAULT_SCOPE);
+
+    SimpleCatalog underlyingCatalog = this.bigQueryCatalog.getZetaSQLCatalog();
+    Function foundFunction =
+        assertDoesNotThrow(
+            () -> underlyingCatalog.findFunction(functionWithUnknownReturnType.getNamePath()),
+            String.format(
+                "Expected function to exist at path %s",
+                String.join(".", functionWithUnknownReturnType.getNamePath())));
+
+    assertTrue(foundFunction.getSignatureList().get(0).getResultType().getType().isFloatingPoint());
   }
 
   @Test
@@ -391,6 +432,15 @@ public class BigQueryCatalogTest {
         () -> underlyingCatalog.findProcedure(exampleProcedure.getNamePath()),
         String.format(
             "Expected procedure to exist at path %s",
-            String.join(".", exampleFunction.getNamePath())));
+            String.join(".", exampleProcedure.getNamePath())));
+  }
+
+  @Test
+  void testCopy() {
+    BigQueryCatalog copy = this.bigQueryCatalog.copy();
+
+    assertAll(
+        () -> assertNotSame(this.bigQueryCatalog, copy),
+        () -> assertNotSame(this.bigQueryCatalog.getZetaSQLCatalog(), copy.getZetaSQLCatalog()));
   }
 }
