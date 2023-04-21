@@ -22,6 +22,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.zetasql.*;
 import com.google.zetasql.ZetaSQLType.TypeKind;
 import com.google.zetasql.resolvedast.ResolvedCreateStatementEnums.CreateMode;
+import com.google.zetasql.toolkit.catalog.bigquery.FunctionInfo;
 import com.google.zetasql.toolkit.catalog.bigquery.ProcedureInfo;
 import com.google.zetasql.toolkit.catalog.bigquery.TVFInfo;
 import com.google.zetasql.toolkit.catalog.exceptions.CatalogResourceAlreadyExists;
@@ -268,16 +269,19 @@ class CatalogOperationsTest {
 
   @Test
   void testCreateFunctionInCatalog() {
-    Function newFunction =
-        new Function(
-            List.of("newFunction"),
-            "UDF",
-            ZetaSQLFunctions.FunctionEnums.Mode.SCALAR,
-            List.of(
-                new FunctionSignature(
-                    new FunctionArgumentType(TypeFactory.createSimpleType(TypeKind.TYPE_STRING)),
-                    List.of(),
-                    -1)));
+    FunctionInfo newFunction =
+        FunctionInfo.newBuilder()
+            .setNamePath(List.of("newFunction"))
+            .setGroup("UDF")
+            .setMode(ZetaSQLFunctions.FunctionEnums.Mode.SCALAR)
+            .setSignatures(
+                List.of(
+                    new FunctionSignature(
+                        new FunctionArgumentType(
+                            TypeFactory.createSimpleType(TypeKind.TYPE_STRING)),
+                        List.of(),
+                        -1)))
+            .build();
 
     List<String> newFunctionPath1 = List.of("newFunction");
     List<String> newFunctionPath2 = List.of("qualified", "newFunction");
@@ -336,13 +340,18 @@ class CatalogOperationsTest {
   @Test
   void testCreateTVFInCatalog() {
     TVFInfo newTVF =
-        new TVFInfo(
-            ImmutableList.of("newTVF"),
-            new FunctionSignature(
-                new FunctionArgumentType(ZetaSQLFunctions.SignatureArgumentKind.ARG_TYPE_RELATION),
-                List.of(),
-                -1),
-            TVFRelation.createValueTableBased(TypeFactory.createSimpleType(TypeKind.TYPE_STRING)));
+        TVFInfo.newBuilder()
+            .setNamePath(ImmutableList.of("newTVF"))
+            .setSignature(
+                new FunctionSignature(
+                    new FunctionArgumentType(
+                        ZetaSQLFunctions.SignatureArgumentKind.ARG_TYPE_RELATION),
+                    List.of(),
+                    -1))
+            .setOutputSchema(
+                TVFRelation.createValueTableBased(
+                    TypeFactory.createSimpleType(TypeKind.TYPE_STRING)))
+            .build();
 
     List<String> newFunctionPath1 = List.of("newTVF");
     List<String> newFunctionPath2 = List.of("qualified", "newTVF");

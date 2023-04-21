@@ -16,32 +16,30 @@
 
 package com.google.zetasql.toolkit.catalog.bigquery;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
+import com.google.zetasql.FunctionArgumentType;
+import com.google.zetasql.FunctionArgumentType.FunctionArgumentTypeOptions;
 import com.google.zetasql.FunctionSignature;
 import com.google.zetasql.TVFRelation;
-import com.google.zetasql.TableValuedFunction;
+import com.google.zetasql.ZetaSQLFunctions.SignatureArgumentKind;
+import java.util.Optional;
 
-/**
- * Dataclass containing the fields of a ZetaSQL TableValuedFunction
- *
- * <p>This is necessary because the ZetaSQL TableValuedFunction class does not currently implement a
- * getOutputSchema() method.
- *
- * @see TableValuedFunction
- */
 public class TVFInfo {
 
   private final ImmutableList<String> namePath;
 
   private final FunctionSignature signature;
 
-  private final TVFRelation outputSchema;
+  private final Optional<TVFRelation> outputSchema;
 
-  public TVFInfo(
-      ImmutableList<String> namePath, FunctionSignature signature, TVFRelation outputSchema) {
-    this.namePath = namePath;
-    this.signature = signature;
-    this.outputSchema = outputSchema;
+  private final Optional<String> body;
+
+  private TVFInfo(Builder builder) {
+    this.namePath = builder.getNamePath();
+    this.signature = builder.getSignature();
+    this.outputSchema = builder.getOutputSchema();
+    this.body = builder.getBody();
   }
 
   public ImmutableList<String> getNamePath() {
@@ -52,7 +50,114 @@ public class TVFInfo {
     return signature;
   }
 
-  public TVFRelation getOutputSchema() {
+  public Optional<TVFRelation> getOutputSchema() {
     return outputSchema;
+  }
+
+  public Optional<String> getBody() {
+    return body;
+  }
+
+  public Builder toBuilder() {
+    return newBuilder()
+        .setNamePath(this.namePath)
+        .setSignature(this.signature)
+        .setOutputSchema(this.outputSchema)
+        .setBody(this.body);
+  }
+
+  public static Builder newBuilder() {
+    return new Builder();
+  }
+
+  public static class Builder {
+
+    private ImmutableList<String> namePath;
+
+    private FunctionSignature signature;
+
+    private Optional<TVFRelation> outputSchema;
+
+    private Optional<String> body;
+
+    public Builder setNamePath(ImmutableList<String> namePath) {
+      this.namePath = namePath;
+      return this;
+    }
+
+    public Builder setSignature(FunctionSignature signature) {
+      this.signature = signature;
+      return this;
+    }
+
+    public Builder setOutputSchema(TVFRelation outputSchema) {
+      this.outputSchema = Optional.ofNullable(outputSchema);
+      return this;
+    }
+
+    public Builder setOutputSchema(Optional<TVFRelation> outputSchema) {
+      this.outputSchema = outputSchema;
+      return this;
+    }
+
+    public Builder setBody(String body) {
+      this.body = Optional.ofNullable(body);
+      return this;
+    }
+
+    public Builder setBody(Optional<String> body) {
+      this.body = body;
+      return this;
+    }
+
+    public ImmutableList<String> getNamePath() {
+      return namePath;
+    }
+
+    public FunctionSignature getSignature() {
+      return signature;
+    }
+
+    public Optional<TVFRelation> getOutputSchema() {
+      return outputSchema;
+    }
+
+    public Optional<String> getBody() {
+      return body;
+    }
+
+    private void validate() {
+      Preconditions.checkNotNull(this.namePath, "Cannot build TVFInfo with null name path");
+      Preconditions.checkArgument(!this.namePath.isEmpty(), "TVFInfo name path cannot be empty");
+      Preconditions.checkNotNull(this.signature, "Cannot build TVFInfo with a null signature");
+      Preconditions.checkArgument(
+          this.signature.getResultType().getKind().equals(SignatureArgumentKind.ARG_TYPE_RELATION),
+          "TVF result types must be of type RELATION");
+
+      if (this.outputSchema.isPresent()) {
+        // Make sure the RelationInputSchema is set on the function signature's return type
+        FunctionArgumentTypeOptions newReturnTypeOptions =
+            FunctionArgumentTypeOptions.builder()
+                .setRelationInputSchema(this.outputSchema.get())
+                .build();
+
+        FunctionArgumentType newReturnType =
+            new FunctionArgumentType(
+                SignatureArgumentKind.ARG_TYPE_RELATION, newReturnTypeOptions, 1);
+
+        FunctionSignature newSignature =
+            new FunctionSignature(
+                newReturnType,
+                this.signature.getFunctionArgumentList(),
+                this.signature.getContextId());
+
+        this.setSignature(newSignature);
+      }
+    }
+
+    public TVFInfo build() {
+      this.validate();
+      return new TVFInfo(this);
+    }
   }
 }

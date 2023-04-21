@@ -26,6 +26,7 @@ import com.google.zetasql.Type;
 import com.google.zetasql.TypeFactory;
 import com.google.zetasql.ZetaSQLFunctions.FunctionEnums.ArgumentCardinality;
 import com.google.zetasql.ZetaSQLFunctions.FunctionEnums.Mode;
+import com.google.zetasql.ZetaSQLFunctions.FunctionEnums.NamedArgumentKind;
 import com.google.zetasql.ZetaSQLFunctions.SignatureArgumentKind;
 import com.google.zetasql.ZetaSQLType;
 import com.google.zetasql.ZetaSQLType.TypeKind;
@@ -69,19 +70,20 @@ class BigQueryBuiltIns {
                           new FunctionArgumentType(
                               TypeFactory.createSimpleType(TypeKind.TYPE_STRING),
                               FunctionArgumentTypeOptions.builder()
-                                  .setArgumentName("expression")
+                                  .setArgumentName("expression", NamedArgumentKind.POSITIONAL_ONLY)
                                   .build(),
                               1),
                           new FunctionArgumentType(
                               SignatureArgumentKind.ARG_TYPE_ANY_1,
                               FunctionArgumentTypeOptions.builder()
-                                  .setArgumentName("search_value_literal")
+                                  .setArgumentName(
+                                      "search_value_literal", NamedArgumentKind.POSITIONAL_ONLY)
                                   .build(),
                               1),
                           new FunctionArgumentType(
                               TypeFactory.createSimpleType(TypeKind.TYPE_STRING),
                               FunctionArgumentTypeOptions.builder()
-                                  .setArgumentName("json_scope")
+                                  .setArgumentName("json_scope", NamedArgumentKind.POSITIONAL_ONLY)
                                   .setCardinality(ArgumentCardinality.OPTIONAL)
                                   .build(),
                               1)),
@@ -98,26 +100,27 @@ class BigQueryBuiltIns {
                           new FunctionArgumentType(
                               SignatureArgumentKind.ARG_TYPE_ANY_1,
                               FunctionArgumentTypeOptions.builder()
-                                  .setArgumentName("search_data")
+                                  .setArgumentName("search_data", NamedArgumentKind.POSITIONAL_ONLY)
                                   .build(),
                               1),
                           new FunctionArgumentType(
                               TypeFactory.createSimpleType(TypeKind.TYPE_STRING),
                               FunctionArgumentTypeOptions.builder()
-                                  .setArgumentName("search_query")
+                                  .setArgumentName(
+                                      "search_query", NamedArgumentKind.POSITIONAL_ONLY)
                                   .build(),
                               1),
                           new FunctionArgumentType(
                               TypeFactory.createSimpleType(TypeKind.TYPE_STRING),
                               FunctionArgumentTypeOptions.builder()
-                                  .setArgumentName("json_scope")
+                                  .setArgumentName("json_scope", NamedArgumentKind.POSITIONAL_ONLY)
                                   .setCardinality(ArgumentCardinality.OPTIONAL)
                                   .build(),
                               1),
                           new FunctionArgumentType(
                               TypeFactory.createSimpleType(TypeKind.TYPE_STRING),
                               FunctionArgumentTypeOptions.builder()
-                                  .setArgumentName("analyzer")
+                                  .setArgumentName("analyzer", NamedArgumentKind.POSITIONAL_ONLY)
                                   .setCardinality(ArgumentCardinality.OPTIONAL)
                                   .build(),
                               1)),
@@ -134,7 +137,7 @@ class BigQueryBuiltIns {
                       new FunctionArgumentType(
                           TypeFactory.createSimpleType(TypeKind.TYPE_STRING),
                           FunctionArgumentTypeOptions.builder()
-                              .setArgumentName("session_id")
+                              .setArgumentName("session_id", NamedArgumentKind.POSITIONAL_ONLY)
                               .setCardinality(ArgumentCardinality.OPTIONAL)
                               .build(),
                           1)),
@@ -148,7 +151,7 @@ class BigQueryBuiltIns {
                       new FunctionArgumentType(
                           TypeFactory.createSimpleType(TypeKind.TYPE_STRING),
                           FunctionArgumentTypeOptions.builder()
-                              .setArgumentName("job")
+                              .setArgumentName("job", NamedArgumentKind.POSITIONAL_ONLY)
                               .setCardinality(ArgumentCardinality.REQUIRED)
                               .build(),
                           1)),
@@ -162,7 +165,7 @@ class BigQueryBuiltIns {
                       new FunctionArgumentType(
                           TypeFactory.createSimpleType(TypeKind.TYPE_STRING),
                           FunctionArgumentTypeOptions.builder()
-                              .setArgumentName("table_name")
+                              .setArgumentName("table_name", NamedArgumentKind.POSITIONAL_ONLY)
                               .setCardinality(ArgumentCardinality.REQUIRED)
                               .build(),
                           1)),
@@ -176,7 +179,7 @@ class BigQueryBuiltIns {
                       new FunctionArgumentType(
                           TypeFactory.createSimpleType(TypeKind.TYPE_STRING),
                           FunctionArgumentTypeOptions.builder()
-                              .setArgumentName("view_name")
+                              .setArgumentName("view_name", NamedArgumentKind.POSITIONAL_ONLY)
                               .setCardinality(ArgumentCardinality.REQUIRED)
                               .build(),
                           1)),

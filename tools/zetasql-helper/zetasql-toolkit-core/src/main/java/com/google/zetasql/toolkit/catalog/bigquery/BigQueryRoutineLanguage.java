@@ -14,22 +14,21 @@
  * limitations under the License.
  */
 
-package com.google.zetasql.toolkit.catalog.bigquery.exceptions;
+package com.google.zetasql.toolkit.catalog.bigquery;
 
-public class MissingRoutineReturnType extends BigQueryCatalogException {
+public enum BigQueryRoutineLanguage {
+  LANGUAGE_UNSPECIFIED,
+  SQL,
+  JAVASCRIPT,
+  PYTHON,
+  JAVA,
+  SCALA;
 
-  private final String routineReference;
-
-  public MissingRoutineReturnType(String routineReference) {
-    super(
-        String.format(
-            "BigQuery routine %s is missing an explicit return type. UDFs and Table Valued Functions "
-                + "should be define with a RETURNS clause.",
-            routineReference));
-    this.routineReference = routineReference;
-  }
-
-  public String getRoutineReference() {
-    return routineReference;
+  public static BigQueryRoutineLanguage valueOfOrUnspecified(String name) {
+    try {
+      return BigQueryRoutineLanguage.valueOf(name);
+    } catch (NullPointerException | IllegalArgumentException err) {
+      return LANGUAGE_UNSPECIFIED;
+    }
   }
 }

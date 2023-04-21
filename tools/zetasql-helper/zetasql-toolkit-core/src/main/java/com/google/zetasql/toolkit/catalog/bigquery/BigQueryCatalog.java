@@ -20,13 +20,17 @@ import com.google.cloud.bigquery.BigQuery;
 import com.google.zetasql.*;
 import com.google.zetasql.resolvedast.ResolvedCreateStatementEnums.CreateMode;
 import com.google.zetasql.resolvedast.ResolvedCreateStatementEnums.CreateScope;
+import com.google.zetasql.toolkit.AnalyzerExtensions;
 import com.google.zetasql.toolkit.catalog.CatalogOperations;
 import com.google.zetasql.toolkit.catalog.CatalogWrapper;
 import com.google.zetasql.toolkit.catalog.bigquery.exceptions.BigQueryCreateError;
+import com.google.zetasql.toolkit.catalog.bigquery.exceptions.MissingFunctionResultType;
 import com.google.zetasql.toolkit.catalog.exceptions.CatalogResourceAlreadyExists;
 import com.google.zetasql.toolkit.options.BigQueryLanguageOptions;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -84,7 +88,7 @@ public class BigQueryCatalog implements CatalogWrapper {
     this.defaultProjectId = defaultProjectId;
     this.bigQueryResourceProvider = bigQueryResourceProvider;
     this.catalog = new SimpleCatalog("catalog");
-    this.catalog.addZetaSQLFunctions(
+    this.catalog.addZetaSQLFunctionsAndTypes(
         new ZetaSQLBuiltinFunctionOptions(BigQueryLanguageOptions.get()));
     BigQueryBuiltIns.addToCatalog(this.catalog);
   }
@@ -274,16 +278,22 @@ public class BigQueryCatalog implements CatalogWrapper {
   /**
    * {@inheritDoc}
    *
-   * <p>Multiple copies of the registered {@link Function} will be created in the Catalog to comply
-   * with BigQuery name resolution semantics.
+   * <p>Multiple copies of the registered {@link FunctionInfo} will be created in the Catalog to
+   * comply with BigQuery name resolution semantics.
+   *
+   * <p>If any function signature which does not include a valid return type, this method will
+   * attempt to infer it. If inference is not possible, {@link MissingFunctionResultType} will be
+   * thrown.
    *
    * @see #buildCatalogPathsForResource(BigQueryReference)
    * @throws BigQueryCreateError if a pre-create validation fails
    * @throws CatalogResourceAlreadyExists if the function already exists and CreateMode !=
    *     CREATE_OR_REPLACE
+   * @throws MissingFunctionResultType if the function does not have an explicit return type and if
+   *     it cannot be automatically inferred
    */
   @Override
-  public void register(Function function, CreateMode createMode, CreateScope createScope) {
+  public void register(FunctionInfo function, CreateMode createMode, CreateScope createScope) {
     List<String> functionNamePath = function.getNamePath();
     String fullName = String.join(".", functionNamePath);
 
@@ -294,13 +304,18 @@ public class BigQueryCatalog implements CatalogWrapper {
         "function");
     this.validateNamePathForCreation(functionNamePath, createScope, "function");
 
+    FunctionInfo resolvedFunction =
+        FunctionResultTypeResolver.resolveFunctionReturnTypes(
+            function, BigQueryLanguageOptions.get(), this.catalog);
+
     List<List<String>> functionPaths =
         createScope.equals(CreateScope.CREATE_TEMP)
             ? List.of(functionNamePath)
             : this.buildCatalogPathsForResource(functionNamePath);
 
     try {
-      CatalogOperations.createFunctionInCatalog(this.catalog, functionPaths, function, createMode);
+      CatalogOperations.createFunctionInCatalog(
+          this.catalog, functionPaths, resolvedFunction, createMode);
     } catch (CatalogResourceAlreadyExists alreadyExists) {
       throw this.addCaseInsensitivityWarning(alreadyExists);
     }
@@ -321,10 +336,15 @@ public class BigQueryCatalog implements CatalogWrapper {
         createScope, List.of(CreateScope.CREATE_DEFAULT_SCOPE), fullName, "TVF");
     this.validateNamePathForCreation(tvfInfo.getNamePath(), createScope, "TVF");
 
+    TVFInfo resolvedTvfInfo =
+        FunctionResultTypeResolver.resolveTVFOutputSchema(
+            tvfInfo, BigQueryLanguageOptions.get(), this.catalog);
+
     List<List<String>> functionPaths = this.buildCatalogPathsForResource(fullName);
 
     try {
-      CatalogOperations.createTVFInCatalog(this.catalog, functionPaths, tvfInfo, createMode);
+      CatalogOperations.createTVFInCatalog(
+          this.catalog, functionPaths, resolvedTvfInfo, createMode);
     } catch (CatalogResourceAlreadyExists alreadyExists) {
       throw this.addCaseInsensitivityWarning(alreadyExists);
     }
@@ -444,6 +464,10 @@ public class BigQueryCatalog implements CatalogWrapper {
    * {@inheritDoc}
    *
    * <p>Function references should be in the format "project.dataset.function" or "dataset.function"
+   *
+   * <p>If any function signature which does not include a valid return type, this method will
+   * attempt to infer it. If inference is not possible, {@link MissingFunctionResultType} will be
+   * thrown.
    */
   @Override
   public void addFunctions(List<String> functionReferences) {
@@ -456,14 +480,37 @@ public class BigQueryCatalog implements CatalogWrapper {
   }
 
   /**
+   * Attempts to resolve the return type for a function, ignores it if resolution fails.
+   *
+   * <p>Meant to be used as a mapping function for {@link Stream#flatMap(Function)}
+   *
+   * @param functionInfo The {@link FunctionInfo} representing the function for which return types
+   *     should be resolved
+   * @return A {@link Stream} containing the resolved FunctionInfo if resolution was successful, an
+   *     empty stream otherwise
+   */
+  private Stream<FunctionInfo> resolveFunctionReturnTypeWhenPossible(FunctionInfo functionInfo) {
+    try {
+      FunctionInfo resolvedFunctionInfo =
+          FunctionResultTypeResolver.resolveFunctionReturnTypes(
+              functionInfo, BigQueryLanguageOptions.get(), this.catalog);
+      return Stream.of(resolvedFunctionInfo);
+    } catch (MissingFunctionResultType err) {
+      return Stream.of();
+    }
+  }
+
+  /**
    * Adds all functions in the provided dataset to this catalog
+   *
+   * <p>Functions for which a proper return type cannot be determined are silently ignored
    *
    * @param projectId The project id the dataset belongs to
    * @param datasetName The name of the dataset to get functions from
    */
   public void addAllFunctionsInDataset(String projectId, String datasetName) {
-    this.bigQueryResourceProvider
-        .getAllFunctionsInDataset(projectId, datasetName)
+    this.bigQueryResourceProvider.getAllFunctionsInDataset(projectId, datasetName).stream()
+        .flatMap(this::resolveFunctionReturnTypeWhenPossible)
         .forEach(
             function ->
                 this.register(
@@ -473,15 +520,35 @@ public class BigQueryCatalog implements CatalogWrapper {
   /**
    * Adds all functions in the provided project to this catalog
    *
+   * <p>Functions for which a proper return type cannot be determined are silently ignored
+   *
    * @param projectId The project id to get functions from
    */
   public void addAllFunctionsInProject(String projectId) {
-    this.bigQueryResourceProvider
-        .getAllFunctionsInProject(projectId)
+    this.bigQueryResourceProvider.getAllFunctionsInProject(projectId).stream()
+        .flatMap(this::resolveFunctionReturnTypeWhenPossible)
         .forEach(
             function ->
                 this.register(
                     function, CreateMode.CREATE_OR_REPLACE, CreateScope.CREATE_DEFAULT_SCOPE));
+  }
+
+  /**
+   * Adds all the functions used in the provided query to this catalog.
+   *
+   * <p>Uses {@link AnalyzerExtensions#extractFunctionNamesFromScript(String, LanguageOptions)} to
+   * extract the functions names and later uses {@link #addFunctions(List)} to add them.
+   *
+   * @param query The SQL query from which to get the functions that should be added to the catalog
+   */
+  public void addAllFunctionsUsedInQuery(String query) {
+    Set<String> functions =
+        AnalyzerExtensions.extractFunctionNamesFromScript(query, BigQueryLanguageOptions.get())
+            .stream()
+            .map(functionPath -> String.join(".", functionPath))
+            .filter(BigQueryReference::isQualified) // Remove non-qualified functions
+            .collect(Collectors.toSet());
+    this.addFunctions(List.copyOf(functions));
   }
 
   /**
@@ -500,14 +567,35 @@ public class BigQueryCatalog implements CatalogWrapper {
   }
 
   /**
+   * Attempts to resolve the output schema for a TVF, ignores it if resolution fails.
+   *
+   * <p>Meant to be used as a mapping function for {@link Stream#flatMap(Function)}
+   *
+   * @param tvfInfo The {@link TVFInfo} representing the TVF for which the output schema should be
+   *     resolved
+   * @return A {@link Stream} containing the resolved TVFInfo if resolution was successful, an empty
+   *     stream otherwise
+   */
+  private Stream<TVFInfo> resolveTVFResultTypeWhenPossible(TVFInfo tvfInfo) {
+    try {
+      TVFInfo resolvedTVFInfo =
+          FunctionResultTypeResolver.resolveTVFOutputSchema(
+              tvfInfo, BigQueryLanguageOptions.get(), this.catalog);
+      return Stream.of(resolvedTVFInfo);
+    } catch (MissingFunctionResultType err) {
+      return Stream.of();
+    }
+  }
+
+  /**
    * Adds all TVFs in the provided dataset to this catalog
    *
    * @param projectId The project id the dataset belongs to
    * @param datasetName The name of the dataset to get TVFs from
    */
   public void addAllTVFsInDataset(String projectId, String datasetName) {
-    this.bigQueryResourceProvider
-        .getAllTVFsInDataset(projectId, datasetName)
+    this.bigQueryResourceProvider.getAllTVFsInDataset(projectId, datasetName).stream()
+        .flatMap(this::resolveTVFResultTypeWhenPossible)
         .forEach(
             tvfInfo ->
                 this.register(
@@ -520,12 +608,29 @@ public class BigQueryCatalog implements CatalogWrapper {
    * @param projectId The project id to get TVFs from
    */
   public void addAllTVFsInProject(String projectId) {
-    this.bigQueryResourceProvider
-        .getAllTVFsInProject(projectId)
+    this.bigQueryResourceProvider.getAllTVFsInProject(projectId).stream()
+        .flatMap(this::resolveTVFResultTypeWhenPossible)
         .forEach(
             tvfInfo ->
                 this.register(
                     tvfInfo, CreateMode.CREATE_OR_REPLACE, CreateScope.CREATE_DEFAULT_SCOPE));
+  }
+
+  /**
+   * Adds all the TVFs used in the provided query to this catalog.
+   *
+   * <p>Uses {@link AnalyzerExtensions#extractTVFNamesFromScript(String, LanguageOptions)} to
+   * extract the TVF names and later uses {@link #addTVFs} to add them.
+   *
+   * @param query The SQL query from which to get the TVFs that should be added to the catalog
+   */
+  public void addAllTVFsUsedInQuery(String query) {
+    Set<String> functions =
+        AnalyzerExtensions.extractTVFNamesFromScript(query, BigQueryLanguageOptions.get()).stream()
+            .map(functionPath -> String.join(".", functionPath))
+            .filter(BigQueryReference::isQualified) // Remove non-qualified functions
+            .collect(Collectors.toSet());
+    this.addTVFs(List.copyOf(functions));
   }
 
   /**
@@ -543,18 +648,6 @@ public class BigQueryCatalog implements CatalogWrapper {
                 this.register(
                     procedureInfo, CreateMode.CREATE_OR_REPLACE, CreateScope.CREATE_DEFAULT_SCOPE));
   }
-
-  @Override
-  public void removeTables(List<String> tables) {}
-
-  @Override
-  public void removeFunctions(List<String> functions) {}
-
-  @Override
-  public void removeTVFs(List<String> functions) {}
-
-  @Override
-  public void removeProcedures(List<String> procedures) {}
 
   /**
    * Adds all procedures in the provided dataset to this catalog
@@ -583,6 +676,25 @@ public class BigQueryCatalog implements CatalogWrapper {
             procedureInfo ->
                 this.register(
                     procedureInfo, CreateMode.CREATE_OR_REPLACE, CreateScope.CREATE_DEFAULT_SCOPE));
+  }
+
+  /**
+   * Adds all the procedures called in the provided query to this catalog.
+   *
+   * <p>Uses {@link AnalyzerExtensions#extractProcedureNamesFromScript} to extract the procedure
+   * names and later uses {@link #addProcedures(List)} to add them.
+   *
+   * @param query The SQL query from which to get the procedures that should be added to the catalog
+   */
+  public void addAllProceduresUsedInQuery(String query) {
+    Set<String> procedures =
+        AnalyzerExtensions.extractProcedureNamesFromScript(query, BigQueryLanguageOptions.get())
+            .stream()
+            .map(functionPath -> String.join(".", functionPath))
+            .filter(BigQueryReference::isQualified) // Remove non-qualified functions
+            .collect(Collectors.toSet());
+
+    this.addProcedures(List.copyOf(procedures));
   }
 
   @Override
