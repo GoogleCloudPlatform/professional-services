@@ -461,6 +461,25 @@ public class BigQueryCatalog implements CatalogWrapper {
   }
 
   /**
+   * Adds all the tables used in the provided query to this catalog.
+   *
+   * <p>Uses Analyzer.extractTableNamesFromScript to extract the table names and later uses
+   * this.addTables to add them.
+   *
+   * @param query The SQL query from which to get the tables that should be added to the catalog
+   * @param options The ZetaSQL AnalyzerOptions to use when extracting the table names from the
+   *     query
+   */
+  public void addAllTablesUsedInQuery(String query, AnalyzerOptions options) {
+    Set<String> tables =
+        Analyzer.extractTableNamesFromScript(query, options).stream()
+            .map(tablePath -> String.join(".", tablePath))
+            .filter(BigQueryReference::isQualified) // Remove non-qualified tables
+            .collect(Collectors.toSet());
+    this.addTables(List.copyOf(tables));
+  }
+
+  /**
    * {@inheritDoc}
    *
    * <p>Function references should be in the format "project.dataset.function" or "dataset.function"
