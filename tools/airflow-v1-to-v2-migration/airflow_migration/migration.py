@@ -17,7 +17,7 @@ def find_line_no():
         file_2_line = f2.readline()
         if file_1_line == '' or file_2_line == '':
             break
-    print(lists)
+    
 
 
 def add_comment():
