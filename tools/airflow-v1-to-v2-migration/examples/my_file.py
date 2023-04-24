@@ -14,7 +14,6 @@ dag = DAG('TestMigrationDag', description='Sample DAG to test Migration Tool',
           schedule_interval='0 12 * * *',
           start_date=datetime(2017, 3, 20), catchup=False)
 
-
 start_operator = PythonOperator(task_id='start_operator', python_callable=print_hello('start'), dag=dag)
 
 task_1 = GoogleCloudStorageToBigQueryOperator(
@@ -29,18 +28,20 @@ task_1 = GoogleCloudStorageToBigQueryOperator(
     write_disposition='WRITE_TRUNCATE',
     dag=dag)
 
-CLUSTER_CONFIG = {//sample cluster config goes here}
+CLUSTER_CONFIG = { // sample
+cluster
+config
+goes
+here}
 
 task_2 = create_cluster = DataprocCreateClusterOperator(
     task_id="create_cluster",
     project_id=PROJECT_ID,
     cluster_config=CLUSTER_CONFIG,
     cluster_name='test-cluster',
-   xyz
+    xyz
 )
 
-
-end_operator = PythonOperator(task_id='end_operator',  python_callable=print_hello, dag=dag)
+end_operator = PythonOperator(task_id='end_operator', python_callable=print_hello, dag=dag)
 
 start_operator >> task_1 >> task_2 >> end_operator
-
