@@ -1,0 +1,10 @@
+Operator,Change_Type,Airflow1,Airflow1,Description,Replace,Manual_Intervention
+GoogleCloudStorageToBigQueryOperator,Changes in import,"from airflow.contrib.operators.gcs_to_bq import GoogleCloudStorageToBigQueryOperator","from airflow.providers.google.cloud.transfers.gcs_to_bigquery import GCSToBigQueryOperator",Import Statement Changed,TRUE,FALSE
+GoogleCloudStorageToBigQueryOperator,Changes in Operator,GoogleCloudStorageToBigQueryOperator,GCSToBigQueryOperator,Operator Name Change,TRUE,FALSE
+GoogleCloudStorageToBigQueryOperator,Argument changes,No Changes,No Changes,None,FALSE,FALSE
+DataprocCreateClusterOperator,Changes in import,"from airflow.contrib.operators.dataproc import 
+DataprocCreateClusterOperator","from airflow.providers.google.cloud.operators.
+dataproc import DataprocCreateClusterOperator",Import Statement Changed,TRUE,FALSE
+DataprocCreateClusterOperator,Changes in Operator,DataprocClusterCreateOperator,DataprocCreateClusterOperator,Operator Name Change,TRUE,FALSE
+DataprocCreateClusterOperator,Argument changes,Region Parameter is Optional,"Add a region parameter to these Operators
+For e.g. region = ‘us-central1’ (Required)",Region is Required,TRUE,TRUE
