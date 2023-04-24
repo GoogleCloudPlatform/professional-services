@@ -79,3 +79,7 @@ output "range" {
   value = ipam_ip_range.pod-ranges.cidr
 }
 ```
+## Subnet selection logic
+![IP Subnet selection logic](./img/flow.png "Sequence flow")
+
+A simple example might shed some light on how the selection works. Let's assume we want a `/24` range in the `10.0.0.0/8` subnet. In the IPAM Autopilot database, the subnets `10.0.0.0/28` and `10.0.0.16/28` are allocated. From Cloud Asset Inventory a VPC with a subnet `10.0.0.64/26` is discovered as well. This means that the subnet `10.0.0.0/24` will collide with this subnets, so IPAM Autopilot will allocate `10.0.1.0/24`.

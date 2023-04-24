@@ -1,0 +1,29 @@
+jobs:
+- pysparkJob:
+    args:
+    - "gs://%%BUCKET_NAME%%/raw-%%TIMESTAMP%%/"
+    - "gs://%%BUCKET_NAME%%/transformed-%%TIMESTAMP%%/"
+    mainPythonFileUri: gs://%%BUCKET_NAME%%/scripts/spark_average_speed.py
+  stepId: spark_average_speed
+placement:
+  managedCluster:
+    clusterName: final-cluster-wft
+    config:
+      gceClusterConfig:
+        zoneUri: %%REGION%%-a
+      masterConfig:
+        diskConfig:
+          bootDiskSizeGb: 30
+          bootDiskType: pd-ssd
+        machineTypeUri: n2-standard-8
+        minCpuPlatform: AUTOMATIC
+        numInstances: 1
+        preemptibility: NON_PREEMPTIBLE
+      workerConfig:
+        diskConfig:
+          bootDiskSizeGb: 30
+          bootDiskType: pd-ssd
+        machineTypeUri: n2-standard-8
+        minCpuPlatform: AUTOMATIC
+        numInstances: 2
+        preemptibility: NON_PREEMPTIBLE

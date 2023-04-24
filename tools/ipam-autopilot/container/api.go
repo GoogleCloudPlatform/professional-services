@@ -438,7 +438,13 @@ func UpdateRoutingDomain(c *fiber.Ctx) error {
 			"message": fmt.Sprintf("Bad format %v", err),
 		})
 	}
-	UpdateRoutingDomainOnDb(id, p.Name, p.Vpcs)
+	err = UpdateRoutingDomainOnDb(id, p.Name, p.Vpcs)
+	if err != nil {
+		return c.Status(503).JSON(&fiber.Map{
+			"success": false,
+			"message": fmt.Sprintf("Unable to update routing domain %v", err),
+		})
+	}
 	return c.Status(200).JSON(&fiber.Map{})
 }
 

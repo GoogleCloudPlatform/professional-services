@@ -1,0 +1,51 @@
+# Copyright 2022 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+
+- name: "[adminws] Include role for GCP SA JSON key files"
+  ansible.builtin.include_role:
+    name: copy_credentials
+  vars:
+    is_admin_workstation: true
+
+# Ansible Lint skipping rules
+# ruleID 301 Commands should not change things if nothing needs doing
+# ruleID 204 Lines should be no longer than 160 chars
+- name: "[adminws] Block - Delete workstation, delete credential file"
+  block:
+    - name: "[adminws] Delete admin workstation"
+      ansible.builtin.command: # noqa 305 204 301
+        chdir: "{{ yamldestpath }}"
+        argv:
+          - "{{ yamldestpath }}/gkeadm-{{ glb_anthos_version }}"
+          - delete
+          - admin-workstation
+          - --config
+          - "admin-ws-config-{{ adminws_name }}.yaml"
+          - --force
+          - --skip-validation
+      environment: # noqa 204
+        PATH: "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin" # noqa 204
+        http_proxy: "{{ glb_proxyurl }}"
+        https_proxy: "{{ glb_proxyurl }}"
+        no_proxy: "{{ glb_noproxy }}"
+  always:
+    - name: "[adminws] Include role to delete sensitive files"
+      ansible.builtin.include_role:
+        name: cleanup
+
+- name: "[adminws] Delete admin workstation status file"
+  ansible.builtin.file:
+    path: "{{ yamldestpath }}/{{ adminws_name }}"
+    state: absent

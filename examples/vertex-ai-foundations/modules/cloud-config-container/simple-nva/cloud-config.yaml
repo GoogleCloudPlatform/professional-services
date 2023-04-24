@@ -1,0 +1,58 @@
+#cloud-config
+
+# Copyright 2022 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+write_files:
+%{ for path, data in files }
+  - path: ${path}
+    owner: ${lookup(data, "owner", "root")}
+    permissions: ${lookup(data, "permissions", "0644")}
+    content: |
+      ${indent(6, data.content)}
+%{ endfor }
+  - path: /etc/systemd/system/routing.service
+    permissions: 0644
+    owner: root
+    content: |
+      [Install]
+      WantedBy=multi-user.target
+      [Unit]
+      Description=Start routing
+      After=network-online.target
+      Wants=network-online.target
+      [Service]
+      ExecStart=/bin/sh -c "/var/run/nva/start-routing.sh"
+  - path: /var/run/nva/start-routing.sh
+    permissions: 0744
+    owner: root
+    content: |
+      iptables --policy FORWARD ACCEPT
+%{ for interface in network_interfaces ~}
+%{ if enable_health_checks ~}
+      /var/run/nva/policy_based_routing.sh ${interface.name}
+%{ endif ~}
+%{ for route in interface.routes ~}
+      ip route add ${route} via `curl http://metadata.google.internal/computeMetadata/v1/instance/network-interfaces/${interface.number}/gateway -H "Metadata-Flavor:Google"` dev ${interface.name}
+%{ endfor ~}
+%{ endfor ~}
+
+bootcmd:
+  - systemctl start node-problem-detector
+
+runcmd:
+  - systemctl daemon-reload
+  - systemctl enable routing
+  - systemctl start routing
+  

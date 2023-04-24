@@ -1,0 +1,156 @@
+# Copyright 2022 Google LLC
+# 
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+# 
+#     http://www.apache.org/licenses/LICENSE-2.0
+# 
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+
+- name: "[uc] Setup cluster config"
+  include_tasks: setup-config.yml
+
+- name: "[uc] Block - Preflight checks, deploy cluster and delete GCP SA JSON key files"
+  block:
+
+    - name: "[uc] Check existence of kubevols folder if usercluster uses a separate datastore"
+      ansible.builtin.command: # noqa 305 301 no-changed-when
+        argv:
+          - govc
+          - datastore.ls
+          - -json
+      register: r_kubevols_folder
+      environment:
+        GOVC_URL: "https://{{ glb_vc_fqdn }}/sdk"
+        GOVC_USERNAME: "{{ glb_vc_username }}"
+        GOVC_PASSWORD: "{{ glb_vc_password }}"
+        GOVC_DATASTORE: "{{ uc_vc_datastore }}"
+        GOVC_DATACENTER: "{{ uc_vc_datacenter }}"
+        GOVC_INSECURE: "true"
+      when: 
+        - uc_vc_datastore is defined
+        - uc_vc_datastore | length > 0
+        - uc_vc_datacenter is defined
+        - uc_vc_datacenter | length > 0
+
+    - name: "[uc] Create datastore folder kubevols"
+      ansible.builtin.command: # noqa 305 301 no-changed-when
+        argv:
+          - govc
+          - datastore.mkdir
+          - kubevols
+      environment:
+        GOVC_URL: "https://{{ glb_vc_fqdn }}/sdk"
+        GOVC_USERNAME: "{{ glb_vc_username }}"
+        GOVC_PASSWORD: "{{ glb_vc_password }}"
+        GOVC_DATASTORE: "{{ uc_vc_datastore }}"
+        GOVC_DATACENTER: "{{ uc_vc_datacenter }}"
+        GOVC_INSECURE: "true"
+      when: 
+        - uc_vc_datastore is defined
+        - uc_vc_datastore | length > 0
+        - uc_vc_datacenter is defined
+        - uc_vc_datacenter | length > 0
+        - not r_kubevols_folder.stdout is search("kubevols")
+
+    - name: "[uc] Preflight check status file"
+      ansible.builtin.stat:
+        path: "{{ yamldestpath }}/{{ uc_name }}/{{ uc_name }}-preflight"
+      register: preflight_file
+
+    - name: "[uc] Preflight check"
+      async: 3600
+      poll: 5
+      ansible.builtin.command:
+        chdir: "{{ yamldestpath }}/{{ uc_name }}"
+        argv: "{{ _argv }}"
+      vars:
+        _req_args:
+          - gkectl
+          - check-config
+          - --config
+          - "{{ uc_name }}-cluster.yaml"
+          - --kubeconfig
+          - ../kubeconfig
+          - --alsologtostderr
+          - -v
+          - "{{ uc_verbosity }}"
+        _skips: "{{ uc_skipvalidations if uc_skipvalidations | type_debug == 'list' else (uc_skipvalidations.split(' ')) }}"
+        _argv: "{{ _req_args + _skips }}"
+      register: check_config_result
+      tags: preflight
+      when: not preflight_file.stat.exists
+
+    - name: "[uc] Preflight results"
+      ansible.builtin.file:
+        path: "{{ yamldestpath }}/{{ uc_name }}/{{ uc_name }}-preflight"
+        state: touch
+        mode: 0600
+      when: check_config_result.rc | default('') == 0
+      tags: preflight
+
+    # async: 5400 poll: 5 results in task polling for approximately 5015s
+    - name: "[uc] Create user cluster"
+      async: 5400
+      poll: 5
+      ansible.builtin.command: # noqa 305 no-changed-when
+        chdir: "{{ yamldestpath }}/{{ uc_name }}"
+        argv: "{{ _argv }}"
+        creates: "~/{{ uc_name }}-kubeconfig"
+      vars:
+        _req_args:
+          - gkectl
+          - create
+          - cluster
+          - --config
+          - "{{ uc_name }}-cluster.yaml"
+          - --kubeconfig
+          - ../kubeconfig
+          - --alsologtostderr
+          - -v
+          - "{{ uc_verbosity }}"
+        _skips: "{{ uc_skipvalidations if uc_skipvalidations | type_debug == 'list' else (uc_skipvalidations.split(' ')) }}"
+        _argv: "{{ _req_args + _skips }}"
+
+    - name: "[uc] Template patch for stackdriver configuration"
+      ansible.builtin.template:
+        src: patch-stackdriver.yaml.j2
+        dest: "{{ yamldestpath }}/{{ uc_name }}/patch-stackdriver.yaml"
+        mode: 0600
+      when:
+        - uc_stackdriver_enableapplicationmetrics|default(false)|bool
+    
+    - name: "[uc] Patch stackdriver with enableStackdriverForApplications flag"
+      ansible.builtin.command:
+        argv:
+          - kubectl
+          - --kubeconfig
+          - "{{ yamldestpath }}/{{ uc_name }}-kubeconfig"
+          - patch
+          - stackdriver
+          - stackdriver
+          - -n
+          - kube-system
+          - --patch-file
+          - "{{ yamldestpath }}/{{ uc_name }}/patch-stackdriver.yaml"
+          - --type
+          - merge
+      when:
+        - uc_stackdriver_enableapplicationmetrics|default(false)|bool
+
+  environment:
+    PATH: "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin"
+    http_proxy: "{{ glb_proxyurl }}"
+    https_proxy: "{{ glb_proxyurl }}"
+    no_proxy: "{{ glb_noproxy }}"
+
+  always:
+    - name: "[uc] Include role to delete sensitive files"
+      ansible.builtin.include_role:
+        name: cleanup

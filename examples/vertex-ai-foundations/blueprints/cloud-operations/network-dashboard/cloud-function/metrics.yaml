@@ -1,0 +1,213 @@
+#
+# Copyright 2022 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+---
+metrics_per_subnet:
+  ip_usage_per_subnet:
+    usage:
+      name: number_of_ip_used
+      description: Number of used IP addresses in the subnet.
+    utilization:
+      name: ip_addresses_per_subnet_utilization
+      description: Percentage of IP used in the subnet.
+    limit:
+      name: number_of_max_ip
+      description: Number of available IP addresses in the subnet.
+metrics_per_network:
+  instance_per_network:
+    usage:
+      name: number_of_instances_usage
+      description: Number of instances per VPC network - usage.
+    limit:
+      name: number_of_instances_limit
+      description: Number of instances per VPC network - limit.
+      values:
+        default_value: 15000
+    utilization:
+      name: number_of_instances_utilization
+      description: Number of instances per VPC network - utilization.
+  vpc_peering_active_per_network:
+    usage:
+      name: number_of_active_vpc_peerings_usage
+      description: Number of active VPC Peerings per VPC - usage.
+    limit:
+      name: number_of_active_vpc_peerings_limit
+      description: Number of active VPC Peerings per VPC - limit.
+      values:
+        default_value: 25
+    utilization:
+      name: number_of_active_vpc_peerings_utilization
+      description: Number of active VPC Peerings per VPC - utilization.
+  vpc_peering_per_network:
+    usage:
+      name: number_of_vpc_peerings_usage
+      description: Number of VPC Peerings per VPC - usage.
+    limit:
+      name: number_of_vpc_peerings_limit
+      description: Number of VPC Peerings per VPC - limit.
+      values:
+        default_value: 25
+        https://www.googleapis.com/compute/v1/projects/net-dash-test-host-prod/global/networks/vpc-prod: 40
+    utilization:
+      name: number_of_vpc_peerings_utilization
+      description: Number of VPC Peerings per VPC - utilization.
+  l4_forwarding_rules_per_network:
+    usage:
+      name: internal_forwarding_rules_l4_usage
+      description: Number of Internal Forwarding Rules for Internal L4 Load Balancers - usage.
+    limit:
+      name: internal_forwarding_rules_l4_limit
+      description: Number of Internal Forwarding Rules for Internal L4 Load Balancers - limit.
+      values:
+        default_value: 500
+    utilization:
+      name: internal_forwarding_rules_l4_utilization
+      description: Number of Internal Forwarding Rules for Internal L4 Load Balancers - utilization.
+  l7_forwarding_rules_per_network:
+    usage:
+      name: internal_forwarding_rules_l7_usage
+      description: Number of Internal Forwarding Rules for Internal L7 Load Balancers per network - usage.
+    limit:
+      name: internal_forwarding_rules_l7_limit
+      description: Number of Internal Forwarding Rules for Internal L7 Load Balancers per network - effective limit.
+      values:
+        default_value: 75
+    utilization:
+      name: internal_forwarding_rules_l7_utilization
+      description: Number of Internal Forwarding Rules for Internal L7 Load Balancers per Vnetwork - utilization.
+  dynamic_routes_per_network:
+    usage:
+      name: dynamic_routes_per_network_usage
+      description: Number of Dynamic routes per network - usage.
+    limit:
+      name: dynamic_routes_per_network_limit
+      description: Number of Dynamic routes per network - limit.
+      values:
+        default_value: 100
+    utilization:
+      name: dynamic_routes_per_network_utilization
+      description: Number of Dynamic routes per network - utilization.
+  #static routes limit is per project, but usage is per network
+  static_routes_per_project:
+    usage:
+      name: static_routes_per_project_vpc_usage
+      description: Number of Static routes per project and network - usage.
+    limit:
+      name: static_routes_per_project_limit
+      description: Number of Static routes per project - limit.
+      values:
+        default_value: 250
+    utilization:
+      name: static_routes_per_project_utilization
+      description: Number of Static routes per project - utilization.
+metrics_per_peering_group:
+  l4_forwarding_rules_per_peering_group:
+    usage:
+      name: internal_forwarding_rules_l4_ppg_usage
+      description: Number of Internal Forwarding Rules for Internal L4 Load Balancers per VPC peering group - usage.
+    limit:
+      name: internal_forwarding_rules_l4_ppg_limit
+      description: Number of Internal Forwarding Rules for Internal L4 Load Balancers per VPC peering group - effective limit.
+      values:
+        default_value: 500
+    utilization:
+      name: internal_forwarding_rules_l4_ppg_utilization
+      description: Number of Internal Forwarding Rules for Internal L4 Load Balancers per VPC peering group - utilization.
+  l7_forwarding_rules_per_peering_group:
+    usage:
+      name: internal_forwarding_rules_l7_ppg_usage
+      description: Number of Internal Forwarding Rules for Internal L7 Load Balancers per VPC peering group - usage.
+    limit:
+      name: internal_forwarding_rules_l7_ppg_limit
+      description: Number of Internal Forwarding Rules for Internal L7 Load Balancers per VPC peering group - effective limit.
+      values:
+        default_value: 175
+    utilization:
+      name: internal_forwarding_rules_l7_ppg_utilization
+      description: Number of Internal Forwarding Rules for Internal L7 Load Balancers per VPC peering group - utilization.
+  subnet_ranges_per_peering_group:
+    usage:
+      name: number_of_subnet_IP_ranges_ppg_usage
+      description: Number of Subnet Ranges per peering group - usage.
+    limit:
+      name: number_of_subnet_IP_ranges_ppg_limit
+      description: Number of Subnet Ranges per peering group - effective limit.
+      values:
+        default_value: 400
+    utilization:
+      name: number_of_subnet_IP_ranges_ppg_utilization
+      description: Number of Subnet Ranges per peering group - utilization.
+  instance_per_peering_group:
+    usage:
+      name: number_of_instances_ppg_usage
+      description: Number of instances per peering group - usage.
+    limit:
+      name: number_of_instances_ppg_limit
+      description: Number of instances per peering group - limit.
+      values:
+        default_value: 15500
+    utilization:
+      name: number_of_instances_ppg_utilization
+      description: Number of instances per peering group - utilization.
+  dynamic_routes_per_peering_group:
+    usage:
+      name: dynamic_routes_per_peering_group_usage
+      description: Number of Dynamic routes per peering group - usage.
+    limit:
+      name: dynamic_routes_per_peering_group_limit
+      description: Number of Dynamic routes per peering group - limit.
+      values:
+        default_value: 300
+    utilization:
+      name: dynamic_routes_per_peering_group_utilization
+      description: Number of Dynamic routes per peering group - utilization.
+  static_routes_per_peering_group:
+    usage:
+      name: static_routes_per_peering_group_usage
+      description: Number of Static routes per peering group - usage.
+    limit:
+      name: static_routes_per_peering_group_limit
+      description: Number of Static routes per peering group - limit.
+      values:
+        default_value: 300
+    utilization:
+      name: static_routes_per_peering_group_utilization
+      description: Number of Static routes per peering group - utilization.
+metrics_per_project:
+  firewalls:
+    usage:
+      name: firewalls_per_project_vpc_usage
+      description: Number of VPC firewall rules in a project - usage.
+    limit:
+      # Firewalls limit is per project and we get the limit for the GCP quota API in vpc_firewalls.py
+      name: firewalls_per_project_limit
+      description: Number of VPC firewall rules in a project - limit.
+    utilization:
+      name: firewalls_per_project_utilization
+      description: Number of VPC firewall rules in a project - utilization.
+metrics_per_firewall_policy:
+  firewall_policy_tuples:
+    usage:
+      name: firewall_policy_tuples_per_policy_usage
+      description: Number of tuples in a firewall policy - usage.
+    limit:
+      # This limit is not visibile through Google APIs, set default_value
+      name: firewall_policy_tuples_per_policy_limit
+      description: Number of tuples in a firewall policy - limit.
+      values:
+        default_value: 2000
+    utilization:
+      name: firewall_policy_tuples_per_policy_utilization
+      description: Number of tuples in a firewall policy - utilization.

@@ -121,11 +121,15 @@ object IBM extends MVS with Logging {
     }
   }
 
-  override def loadCopyBook(dd: String, picTCharset: Option[String] = None) : CopyBook = {
+  override def loadCopyBook(dd: String, encoding: Option[String] = None, picTCharset: Option[String] = None) : CopyBook = {
     val raw = readDDString(dd, "\n")
     logger.info(s"Parsing copy book:\n$raw")
     try {
-      val copyBook = CopyBook(raw, Ebcdic, picTCharset = picTCharset)
+      val transcoder = encoding match {
+        case Some(charsetName) => CharsetTranscoder(charsetName)
+        case None => Ebcdic
+      }
+      val copyBook = CopyBook(raw, transcoder, picTCharset = picTCharset)
       logger.info(s"Loaded copy book with LRECL=${copyBook.LRECL}")
       copyBook
     } catch {

@@ -1,0 +1,103 @@
+# Copyright 2022 Google LLC
+# 
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+# 
+#     http://www.apache.org/licenses/LICENSE-2.0
+# 
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+
+# role uc default values
+uc_install: true
+uc_force_uninstall: false
+uc_name: "uc1"
+component_access_gcpsa: ""
+component_access_gcpsa_path: ""
+uc_kubeconfig: "{{ uc_name }}-kubeconfig"
+
+# vSphere/vCenter
+# uc_vc_fqdn: ""
+# uc_vc_credfile: "credential.yaml"
+# uc_vc_credentry: "vCenter"
+# uc_vc_username: ""
+# uc_vc_password: ""
+# uc_vc_datacenter: ""
+# uc_vc_datastore: ""
+# uc_vc_cluster: ""
+# uc_vc_network: "" # VM Network
+# uc_vc_folder: "" # optional
+# uc_vc_respool: "" # if default resourcePool use <uc_vc_cluster>/Resources
+# uc_vc_cacertpath: "/home/ubuntu/vcenter.pem" # Default location with automatically downloaded cert file name
+
+# Networking
+uc_nw_ipallocmode: "" # dhcp or static
+uc_nw_ipfile: "{{ uc_name }}-ip-block.yaml"
+uc_nw_gw: "" # gateway
+uc_nw_nm: "" # netmask 255.255.255.0 or similar
+uc_nw_dns: [""]
+uc_nw_ntp: ["ntp.ubuntu.com"]
+uc_nw_searchdomains: [""]
+uc_nw_servicecidr: "10.96.0.0/20"
+uc_nw_podcidr: ""
+uc_nw_vc_net: "VM Network"
+
+# values for the file content of network.ipMode.ipBlockFilePath
+uc_ipblock_netmask: "255.255.255.0"
+uc_ipblock_gateway: "10.20.0.255"
+uc_ipblock_ips: ["10.20.0.51","10.20.0.52","10.20.0.53","10.20.0.54"]
+
+# Load balancing
+uc_lb_kind: MetalLB
+uc_lb_vips_cp: ""
+uc_lb_vips_ingress: ""
+uc_lb_metallb_ips: ""
+
+# masternode sizing
+uc_masternode_cpus: 4
+uc_masternode_mem: 8192
+uc_masternode_replicas: 1
+uc_antiaffinitygroups: false
+uc_masternode_datastore: ""
+
+# nodepools
+uc_nodepools_name: "{{ uc_name }}-pool-1"
+uc_nodepools_cpus: 4
+uc_nodepools_mem: 8192
+uc_nodepools_replicas: 3
+uc_nodepools_osimagetype: ubuntu_containerd
+uc_nodepools_vsphere_tags_category: "" # optional and must be precreated in vSphere
+uc_nodepools_vsphere_tags_name: "" # optional and must be precreated in vSphere
+
+# GCP project IDs 
+uc_stackdriver_projectid: ""
+uc_stackdriver_clusterlocation: ""
+uc_stackdriver_enablevpc: false
+logging_monitoring_gcpsa_path: ""
+uc_stackdriver_disablevsphereresourcemetrics: false
+uc_gkeconnect_projectid: ""
+connect_register_gcpsa_path: ""
+uc_cloudauditlogging_projectid: ""
+uc_cloudauditlogging_clusterlocation: ""
+audit_logging_gcpsa_path: ""
+
+uc_autorepair: true
+
+# Application logging and monitoring
+uc_stackdriver_enableapplicationmetrics: false
+
+# Kubernetes Secrets at-rest encryption
+uc_secretsencryption_mode: "GeneratedKey"
+uc_secretsencryption_keyversion: 1
+
+# optional --skip-validation for gkectl
+uc_skipvalidations: ""
+uc_verbosity: 8
+
+# upgrades
+uc_upgrade: false

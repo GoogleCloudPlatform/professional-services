@@ -78,6 +78,13 @@ class PrepareTableOptions():
 
         self.job_prefix_source_file = args.job_prefix_source_file
 
+        
+def _int_below_or_equal_to_fifty(int_string):
+    int_val = int(int_string)
+    if int_val > 50:
+        raise argparse.ArgumentTypeError('Value cannot be greater than fifty.')
+    return int_val
+
 
 class STSJobManagerOptions():
     def __init__(self,
@@ -139,7 +146,8 @@ class STSJobManagerOptions():
                                 metrics. This should be >= \
                                 `--sleep-timeout`. (default: %(default)s) \
                                 (unit: seconds)')
-        parser.add_argument('--max-concurrent-jobs', type=int, metavar='N',
+        parser.add_argument('--max-concurrent-jobs',
+                            type=_int_below_or_equal_to_fifty, metavar='N',
                             default=self.max_concurrent_jobs,
                             help='The max number of jobs allowed to run \
                                 concurrently (default: %(default)s)')

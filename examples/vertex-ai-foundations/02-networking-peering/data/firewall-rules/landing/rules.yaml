@@ -1,0 +1,11 @@
+# skip boilerplate check
+
+ingress:
+  allow-onprem-probes-example:
+    description: "Allow traffic from onprem probes"
+    source_ranges:
+      - onprem_probes
+    rules:
+      - protocol: tcp
+        ports:
+          - 12345

@@ -1,0 +1,59 @@
+# Copyright 2022 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+- name: "[mesh] Setup cluster config"
+  include_tasks: setup-config.yml
+
+- name: "[asm] Block - Uninstall Anthos Service Mesh"
+  block:
+    - name: "[asm] Delete webhooks"
+      ansible.builtin.command:
+        argv:
+          - kubectl
+          - delete
+          - validatingwebhookconfiguration,mutatingwebhookconfiguration
+          - -l
+          - operator.istio.io/component=Pilot
+      ignore_errors: true
+
+    - name: "[asm] Remove the in-cluster control plane"
+      ansible.builtin.command:
+        chdir: "{{ asm_out_dir }}"
+        argv:
+          - ./istioctl
+          - x
+          - uninstall
+          - --purge
+          - --skip-confirmation
+      ignore_errors: true
+
+    - name: "[asm] Delete istio-system, asm-ingress and asm-system namespaces"
+      ansible.builtin.command:
+        argv:
+          - kubectl
+          - delete
+          - namespace
+          - istio-system
+          - asm-system
+          - "{{ asm_ingress_namespace }}"
+          - --ignore-not-found
+      ignore_errors: true
+
+  environment:
+    KUBECONFIG: "{{ asm_kubeconfig }}"
+
+  always:
+    - name: "Include role to delete sensitive files"
+      ansible.builtin.include_role:
+        name: cleanup
