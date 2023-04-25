@@ -94,7 +94,6 @@ resource "azurerm_local_network_gateway" "gcp_gw1" {
   resource_group_name = var.azure_resource_group
 
   gateway_address = google_compute_ha_vpn_gateway.target_gateway.vpn_interfaces[0].ip_address
-  address_space   = [var.gcp_subnet_ip_cidr_range]
 
   bgp_settings {
     asn                 = var.gcp_bgp_asn
@@ -108,7 +107,6 @@ resource "azurerm_local_network_gateway" "gcp_gw2" {
   resource_group_name = var.azure_resource_group
 
   gateway_address = google_compute_ha_vpn_gateway.target_gateway.vpn_interfaces[1].ip_address
-  address_space   = [var.gcp_subnet_ip_cidr_range]
 
   bgp_settings {
     asn                 = var.gcp_bgp_asn

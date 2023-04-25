@@ -75,7 +75,6 @@ Update `terraform.tfvars` file in the same directory as the Terraform configurat
 | gcp_project_id          | The GCP project ID                      | Yes      |         |
 | gcp_region              | The GCP region                          | Yes      |         |
 | gcp_vpc_name            | The GCP VPC name                        | Yes      |         |
-| gcp_subnet_name         | The GCP subnet name                     | Yes      |         |
 | gcp_router_name         | The GCP VPN router name                 | Yes      |         |
 | gcp_bgp_asn             | The GCP VPC Router ASN                  | Yes      |  65534  |
 | shared_secret           | The shared secret for the VPN connection| Yes      |         |

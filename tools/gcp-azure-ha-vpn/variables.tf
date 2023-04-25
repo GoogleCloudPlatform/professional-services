@@ -50,11 +50,6 @@ variable "azure_subscription_id" {
 }
 
 # GCP variables
-variable "gcp_subnet_ip_cidr_range" {
-  description = "GCP Subnet IP CIDR Range"
-  type        = string
-}
-
 variable "gcp_project_id" {
   description = "The GCP project ID."
   type        = string

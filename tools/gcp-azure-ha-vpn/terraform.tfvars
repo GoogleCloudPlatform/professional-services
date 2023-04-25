@@ -19,7 +19,6 @@ gcp_project_id           = "<GCP_PROJECT_ID>"
 gcp_region               = "<GCP_REGION>"
 gcp_vpc_name             = "<GCP_VPC_NAME>"
 gcp_router_name          = "<GCP_ROUTER_NAME>"
-gcp_subnet_ip_cidr_range = "<GCP_SUBNET_IP_CIDR_RANGE>"
 
 # Shared secret for VPN Tunnels
 shared_secret = "<SHARED_SECRET>"
