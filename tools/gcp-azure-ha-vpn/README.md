@@ -48,6 +48,8 @@ This configuration creates the following resources:
 
 The GCP and Azure VPN gateways are connected with two VPN tunnels to provide an active-active HA configuration. BGP is used for dynamic routing between GCP and Azure.
 
+![ha-vpn-google-cloud-to-azure](https://user-images.githubusercontent.com/7136208/233800865-043c13d0-df3f-4adc-b9aa-156766e55cb4.svg)
+
 ## Prerequisites
 
 1. [Install Terraform](https://learn.hashicorp.com/tutorials/terraform/install-cli) (v1.3+ is required).

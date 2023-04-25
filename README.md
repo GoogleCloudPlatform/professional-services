@@ -414,6 +414,8 @@ Platform usage.
     gcp_resources using the D3.js javascript library.
 *   [GCP AWS HA VPN Connection terraform ](tools/gcp-aws-ha-vpn) - Terraform
     script to setup HA VPN between GCP and AWS.
+*   [GCP Azure HA VPN Connection Terraform](tools/gcp-azure-ha-vpn) - Terraform
+    code to setup HA VPN between GCP and Microsoft Azure.
 *   [GCP Organization Hierarchy Viewer](tools/gcp-org-hierarchy-viewer) - A CLI
     utility for visualizing your organization hierarchy in the terminal.
 *   [GCPViz](tools/gcpviz) - a visualization tool that takes input from
