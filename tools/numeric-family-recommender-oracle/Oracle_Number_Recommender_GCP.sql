@@ -74,7 +74,7 @@ DECLARE
     --Add semicolon(;) separated list of table name or add wildcard % to scan all table in the specified schema.
     tablename varchar2(4000) := 'SAMPLE_NUMBER_DATA_TYPE';  --'%'; 
 
-    customSchema VARCHAR2(4000) := NULL;
+    customSchema VARCHAR2(32767) := NULL;
     modify_type VARCHAR2(4000) := NULL;
     low_stats_value varchar2(4000) := null;
     high_stats_value varchar2(4000) := null;
