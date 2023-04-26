@@ -193,7 +193,7 @@ DECLARE
                     ',' || substr('MAX_SCLE_' || upper(atc.column_name),1,30) || ',' || substr('CNT_H_SCLE' || '_' || upper(atc.column_name),1,30) ||') AS ' || '''' || 
                     upper(atc.column_name) || '''' AS unpivot_sql
             FROM   all_tab_columns atc 
-            WHERE  atc.OWNER = UPPER(schemaname)
+            WHERE  atc.OWNER = schemaname
             and   (tablename = '%' or atc.table_name IN 
                                     (
                                       select 
@@ -370,8 +370,8 @@ sqlstr1 := CASE WHEN sqlstr1 IS NULL  THEN
             ELSE sqlstr1 || ',' || rect_number_dt.sql_string 
             END;
 
-from_str := ' FROM ' || rect_number_dt.table_schema || '.' ||  rect_number_dt.table_name ||
-' SAMPLE (' || scan_max_table_perc || ') ' || ')';
+from_str := ' FROM "' || rect_number_dt.table_schema || '"."' ||  rect_number_dt.table_name ||
+'" SAMPLE (' || scan_max_table_perc || ') ' || ')';
 
 
 ELSIF rect_number_dt.RUNTYPE = 'ACTUAL' and scan_data_without_prec_scale = 'N' THEN
