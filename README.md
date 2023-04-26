@@ -55,6 +55,8 @@ them to fit your particular use case.
 *   [BigQuery Group Sync For Row Level Access](examples/bigquery-row-access-groups) -
     Sample code to synchronize group membership from G Suite/Cloud Identity into
     BigQuery and join that with your data to control access at row level.
+*   [BigQuery Long Running Optimization Utility](examples/bigquery-long-running-optimizer) -
+    A utility that reads the entire SQL and provides a list of suggestions that would help to optimize the query and avoid the long running issues.
 *   [BigQuery Oracle DDL Migration Utility](examples/bigquery-oracle-ddl-migration-utility) - 
     Oracle DDL Migration Utility to migrate the tables schema (DDL) from Oracle DB to BigQuery.
     The utility leverages BigQuery Translation API and offers additional features
@@ -79,6 +81,8 @@ them to fit your particular use case.
     Tink keysets to BigQuery.
 *   [BigQuery to XML Export](tools/bigquery-to-xml) - Python tool that takes a
     BigQuery query and returns the output as an XML string.
+*   [BigQuery Translation Validator](examples/bigquery-translation-validator-utility) - A python utility to compare 2 SQL Files and  point basic differences like column names,
+    table names, joins, function names, is-Null and query syntax.
 *   [Bigtable Dataflow Cryptocurrencies Exchange RealTime Example](examples/cryptorealtime) -
     Apache Beam example that reads from the Crypto Exchanges WebSocket API as
     Google Cloud Dataflow pipeline and saves the feed in Google Cloud Bigtable.
@@ -410,6 +414,8 @@ Platform usage.
     gcp_resources using the D3.js javascript library.
 *   [GCP AWS HA VPN Connection terraform ](tools/gcp-aws-ha-vpn) - Terraform
     script to setup HA VPN between GCP and AWS.
+*   [GCP Azure HA VPN Connection Terraform](tools/gcp-azure-ha-vpn) - Terraform
+    code to setup HA VPN between GCP and Microsoft Azure.
 *   [GCP Organization Hierarchy Viewer](tools/gcp-org-hierarchy-viewer) - A CLI
     utility for visualizing your organization hierarchy in the terminal.
 *   [GCPViz](tools/gcpviz) - a visualization tool that takes input from

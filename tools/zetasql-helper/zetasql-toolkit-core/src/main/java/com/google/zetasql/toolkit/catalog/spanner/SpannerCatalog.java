@@ -18,7 +18,8 @@ package com.google.zetasql.toolkit.catalog.spanner;
 
 import com.google.cloud.spanner.DatabaseClient;
 import com.google.cloud.spanner.Spanner;
-import com.google.zetasql.Function;
+import com.google.zetasql.Analyzer;
+import com.google.zetasql.AnalyzerOptions;
 import com.google.zetasql.SimpleCatalog;
 import com.google.zetasql.SimpleTable;
 import com.google.zetasql.ZetaSQLBuiltinFunctionOptions;
@@ -26,12 +27,15 @@ import com.google.zetasql.resolvedast.ResolvedCreateStatementEnums.CreateMode;
 import com.google.zetasql.resolvedast.ResolvedCreateStatementEnums.CreateScope;
 import com.google.zetasql.toolkit.catalog.CatalogOperations;
 import com.google.zetasql.toolkit.catalog.CatalogWrapper;
+import com.google.zetasql.toolkit.catalog.bigquery.FunctionInfo;
 import com.google.zetasql.toolkit.catalog.bigquery.ProcedureInfo;
 import com.google.zetasql.toolkit.catalog.bigquery.TVFInfo;
 import com.google.zetasql.toolkit.catalog.exceptions.CatalogResourceAlreadyExists;
 import com.google.zetasql.toolkit.catalog.spanner.exceptions.InvalidSpannerTableName;
 import com.google.zetasql.toolkit.options.SpannerLanguageOptions;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /** {@link CatalogWrapper} implementation that follows Cloud Spanner semantics */
 public class SpannerCatalog implements CatalogWrapper {
@@ -61,7 +65,7 @@ public class SpannerCatalog implements CatalogWrapper {
     this.database = database;
     this.spannerResourceProvider = spannerResourceProvider;
     this.catalog = new SimpleCatalog("catalog");
-    this.catalog.addZetaSQLFunctions(
+    this.catalog.addZetaSQLFunctionsAndTypes(
         new ZetaSQLBuiltinFunctionOptions(SpannerLanguageOptions.get()));
     SpannerBuiltIns.addToCatalog(this.catalog);
   }
@@ -149,7 +153,7 @@ public class SpannerCatalog implements CatalogWrapper {
   }
 
   @Override
-  public void register(Function function, CreateMode createMode, CreateScope createScope) {
+  public void register(FunctionInfo function, CreateMode createMode, CreateScope createScope) {
     throw new UnsupportedOperationException(
         "Cloud Spanner does not support user-defined functions");
   }
@@ -223,6 +227,24 @@ public class SpannerCatalog implements CatalogWrapper {
             table ->
                 this.register(
                     table, CreateMode.CREATE_OR_REPLACE, CreateScope.CREATE_DEFAULT_SCOPE));
+  }
+
+  /**
+   * Adds all the tables used in the provided query to this catalog.
+   *
+   * <p>Uses Analyzer.extractTableNamesFromScript to extract the table names and later uses
+   * this.addTables to add them.
+   *
+   * @param query The SQL query from which to get the tables that should be added to the catalog
+   * @param options The ZetaSQL AnalyzerOptions to use when extracting the table names from the
+   *     query
+   */
+  public void addAllTablesUsedInQuery(String query, AnalyzerOptions options) {
+    Set<String> tables =
+        Analyzer.extractTableNamesFromScript(query, options).stream()
+            .map(tablePath -> String.join(".", tablePath))
+            .collect(Collectors.toSet());
+    this.addTables(List.copyOf(tables));
   }
 
   @Override

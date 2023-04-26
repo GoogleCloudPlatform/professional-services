@@ -142,7 +142,7 @@ public class ZetaSQLToolkitAnalyzer {
 
         ResolvedStatement statement =
             Analyzer.analyzeNextStatement(
-                parseResumeLocation, analyzerOptions, catalog.getZetaSQLCatalog());
+                parseResumeLocation, analyzerOptions, catalogForAnalysis.getZetaSQLCatalog());
 
         this.previous = Optional.of(statement);
 
