@@ -202,10 +202,10 @@ public class DialogflowConversationHandler {
   /**
    * Gets the participants settings for the conversation.
    *
-   * <p>If the billing project id is not null or empty,
-   * add the quota project id header to the client context.
-   * <p>This will ensure that the correct
-   * billing project is used for the conversation.
+   * <p>If the billing project id is not null or empty, add the quota project id header to the
+   * client context.
+   *
+   * <p>This will ensure that the correct billing project is used for the conversation.
    *
    * @param dialogflowDetails The details of the dialogflow conversation.
    * @return The participants settings for the conversation.

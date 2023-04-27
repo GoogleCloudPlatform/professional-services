@@ -37,10 +37,12 @@ public class WebhookHandler {
   public void handleIncomingRequest(Map<String, String> requestBody) {
     String eventType = Strings.nullToEmpty(requestBody.get("EventType"));
 
-    switch (eventType) {
-      case "onParticipantAdded" -> this.handleNewParticipant(new NewParticipant(requestBody));
-      case "onMessageAdded" -> this.handleNewMessage(new NewMessage(requestBody));
-      default -> throw new IllegalArgumentException("Invalid event type");
+    if ("onParticipantAdded".equals(eventType)) {
+      this.handleNewParticipant(new NewParticipant(requestBody));
+    } else if ("onMessageAdded".equals(eventType)) {
+      this.handleNewMessage(new NewMessage(requestBody));
+    } else {
+      throw new IllegalArgumentException("Invalid event type");
     }
   }
 

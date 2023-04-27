@@ -17,9 +17,7 @@ package com.middleware.controller.wehbook;
 import com.middleware.controller.twilio.TwilioConversation;
 import java.util.Map;
 
-/**
- * Process new participant added to a Twilio conversation
- */
+/** Process new participant added to a Twilio conversation */
 public class NewParticipant extends TwilioConversation {
   public NewParticipant(Map<String, String> requestBody) {
     super(requestBody.get("ConversationSid"));

@@ -19,9 +19,7 @@ import com.twilio.rest.flexapi.v1.Interaction;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Processes new messages sent to a Twilio conversation.
- */
+/** Processes new messages sent to a Twilio conversation. */
 public class NewMessage extends TwilioConversation {
   private final String message;
   private final String source;

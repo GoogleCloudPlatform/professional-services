@@ -23,8 +23,7 @@ import java.util.Arrays;
 /**
  * Initializes Twilio Conversations.
  *
- * <p> This initializer is a simple application, that create a conversation and add a
- * participant</p>
+ * <p>This initializer is a simple application, that create a conversation and add a participant
  */
 public class ConversationInitializer {
 
@@ -47,43 +46,39 @@ public class ConversationInitializer {
       }
     }
   }
+
   public void run() throws Exception {
     Twilio.init(ACCOUNT_SID, AUTH_TOKEN);
     Conversation conversation = createConversation();
     createParticipant(conversation);
   }
+
   private Conversation createConversation() {
-    Conversation conversation = Conversation.creator()
-        .setFriendlyName("lch Friendly Conversation")
-        .create();
+    Conversation conversation =
+        Conversation.creator().setFriendlyName("lch Friendly Conversation").create();
     System.out.println("Conversation SID: " + conversation.getSid());
     return conversation;
   }
 
   private Participant createParticipant(Conversation conversation) {
     Participant participant =
-        Participant.creator(conversation.getSid())
-            .setIdentity("MyChatUserIdentity")
-            .create();
+        Participant.creator(conversation.getSid()).setIdentity("MyChatUserIdentity").create();
     System.out.println("Participant SID: " + participant.getSid());
     return participant;
   }
 
   private void deleteConversation(String conversationSid) {
     Conversation.deleter(conversationSid).delete();
-    System.out.println("Conversation deleted: " + conversationSid );
+    System.out.println("Conversation deleted: " + conversationSid);
   }
 
   private Webhook attachWebhook(Conversation conversation) {
-    Webhook webhook = Webhook.creator(
-            conversation.getSid(),
-            Webhook.Target.WEBHOOK)
-        .setConfigurationMethod(Webhook.Method.GET)
-        .setConfigurationFilters(
-            Arrays.asList("onMessageAdded",
-                "onConversationRemoved"))
-        .setConfigurationUrl("https://example.com")
-        .create();
+    Webhook webhook =
+        Webhook.creator(conversation.getSid(), Webhook.Target.WEBHOOK)
+            .setConfigurationMethod(Webhook.Method.GET)
+            .setConfigurationFilters(Arrays.asList("onMessageAdded", "onConversationRemoved"))
+            .setConfigurationUrl("https://example.com")
+            .create();
     System.out.println(webhook.getSid());
     return webhook;
   }

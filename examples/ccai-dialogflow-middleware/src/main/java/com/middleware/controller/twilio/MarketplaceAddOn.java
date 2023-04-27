@@ -18,7 +18,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Optional;
 import java.util.Properties;
-import org.springframework.stereotype.Service;
 
 /**
  * Dummy class to provide twilio marketplace add-on details.
