@@ -212,6 +212,8 @@ them to fit your particular use case.
     example for dialogflow in Python.
 *   [Dialogflow CX Private Webhook Example](examples/dialogflowcx-private-webhook-example) -
     Webhook example for Dialogflow CX in Python.
+*   [Dialogflow Middleware Example](examples/ccai-dialogflow-middleware) -
+    Dialogflow middleware example in Java.
 *   [Dialogflow Entities Creation and Update](examples/dialogflow-entities-example) -
     Creation and update of entities for Dialogflow in Python.
 *   [DLP API Examples](examples/dlp) - Examples of the DLP API usage.
