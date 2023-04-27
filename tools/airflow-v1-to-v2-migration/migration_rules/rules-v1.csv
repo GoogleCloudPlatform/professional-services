@@ -1,0 +1,192 @@
+Operator,Change Type,Airflow(1.0),Airflow(2.0),Impact,Replace,Manual Intervention
+GoogleCloudStorageToBigQueryOperator,Changes in import,"from airflow.contrib.operators.gcs_to_bq 
+import GoogleCloudStorageToBigQueryOperator","from airflow.providers.google.cloud.transfers.
+gcs_to_bigquery import GCSToBigQueryOperator",Import Statement Changed,TRUE,FALSE
+GoogleCloudStorageToBigQueryOperator,Changes in Operator,GoogleCloudStorageToBigQueryOperator,GCSToBigQueryOperator,Operator Name Change,TRUE,FALSE
+GoogleCloudStorageToBigQueryOperator,Argument changes,No Changes,No Changes,None,FALSE,FALSE
+DataflowTemplateOperator,Changes in import,from airflow.contrib.operators.dataflow_operator import DataflowTemplateOperator,from airflow.providers.google.cloud.operators.dataflow import DataflowTemplatedJobStartOperator,Import Statement Changed,TRUE,FALSE
+DataflowTemplateOperator,Changes in Operator,DataflowTemplateOperator,DataflowTemplatedJobStartOperator,Operator Name Change,TRUE,FALSE
+DataflowTemplateOperator,Argument changes,No Changes,No Changes,None,FALSE,FALSE
+"DataprocCreateClusterOperator
+",Changes in import,"from airflow.contrib.operators.dataproc import DataprocClusterCreateOperator 
+
+
+","from airflow.providers.google.cloud.operators.
+dataproc import
+    DataprocCreateClusterOperator
+
+",Import Statement Changed,TRUE,FALSE
+"DataprocCreateClusterOperator
+",Changes in Operator,DataprocClusterCreateOperator,DataprocCreateClusterOperator,None,TRUE,FALSE
+"DataprocCreateClusterOperator
+",Argument changes,Region Parameter is Optional,"Add a region parameter to these Operators
+For e.g. region = ‘us-central1’ (Required)",Region is Required otherwise it will show compilation error,TRUE,TRUE
+DataprocDeleteClusterOperator,Changes in import,from airflow.contrib.operators.dataproc import DataprocClusterDeleteOperator,from airflow.contrib.operators.dataproc import DataprocDeleteClusterOperator,Import Statement Changed,TRUE,FALSE
+DataprocDeleteClusterOperator,Changes in Operator,DataprocClusterDeleteOperator,DataprocDeleteClusterOperator,None,TRUE,FALSE
+DataprocDeleteClusterOperator,Argument changes,Region Parameter is Optional,"Add a region parameter to these Operators
+For e.g. region = ‘us-central1’ (Required)",Region is Required otherwise it will show compilation error,TRUE,TRUE
+DataProcHook,Changes in import,from airflow.contrib.hooks.gcp_dataproc_hook import DataProcHook,"from airflow.providers.google.cloud.hooks.dataproc 
+import DataprocHook",None,FALSE,FALSE
+DataProcHook,Changes in Operator,No Changes,No Changes,None,FALSE,FALSE
+DataProcHook,Argument changes,Region Parameter is Optional,"Add a region parameter to these Operators
+For e.g. region = ‘us-central1’ (Required)",Region is Required otherwise it will show compilation error,TRUE,TRUE
+BigQueryInsertJobOperator,Changes in import,No Changes,No Changes,None,FALSE,FALSE
+BigQueryInsertJobOperator,Changes in Operator,No Changes,No Changes,None,FALSE,FALSE
+BigQueryInsertJobOperator,Argument changes,Parameter jobname is accepted,jobname param is removed from the operator,"job_name was not used anywhere by the Operator. 
+Removal of this argument does not make any imapct to the working",TRUE,TRUE
+BigQueryExecuteQueryOperator,Changes in import,from airflow.contrib.operators.bigquery_operator import BigQueryOperator,from airflow.providers.google.cloud.operators.bigquery import BigQueryExecuteQueryOperator,Import Statement Changed,TRUE,FALSE
+BigQueryExecuteQueryOperator,Changes in Operator,BigQueryOperator,BigQueryExecuteQueryOperator,Operator Name Change,TRUE,FALSE
+BigQueryExecuteQueryOperator,Argument changes,No Changes,No Changes,None,FALSE,FALSE
+TriggerDagRunOperator,Changes in import,from airflow.operators.dagrun_operator import TriggerDagRunOperator ,from airflow.operators.trigger_dagrun import TriggerDagRunOperator,Import Statement Changed,TRUE,FALSE
+TriggerDagRunOperator,Changes in Operator,No Changes,No Changes,None,FALSE,FALSE
+TriggerDagRunOperator,Argument changes,No Changes,No Changes,None,FALSE,FALSE
+GCSDeleteObjectsOperator,Changes in import,from airflow.contrib.operators.gcs_delete_operator import GoogleCloudStorageDeleteOperator,from airflow.providers.google.cloud.operators.gcs import GCSDeleteObjectsOperator,Import Statement Changed,TRUE,FALSE
+GCSDeleteObjectsOperator,Changes in Operator,GoogleCloudStorageDeleteOperator,GCSDeleteObjectsOperator,Operator Name Change,TRUE,FALSE
+GCSDeleteObjectsOperator,Argument changes,"parameter project_id is accepted and taken as  
+**kwargs",parameter project_id is no longer accepted ,"Project_id is not required for this operator and
+is not part of this operator in source code. 
+If any specific project id need to be passed 
+should provide relevant connection id .",TRUE,TRUE
+GCSListObjectsOperator,Changes in import,from airflow.contrib.operators.gcs_list_operator import GoogleCloudStorageListOperator,from airflow.providers.google.cloud.operators.gcs import GCSListObjectsOperator,Import Statement Changed,TRUE,FALSE
+GCSListObjectsOperator,Changes in Operator,GoogleCloudStorageListOperator,GCSListObjectsOperator,Operator Name Change,TRUE,TRUE
+GCSListObjectsOperator,Argument changes,provide_context is accepeted ,provide_context is not accepeted ,"Provide_context is not required for 
+GCSListObjectsOperator and can be removed
+without any change in functionality. 
+
+Provide_context - If set to true, Airflow will pass a set of keyword arguments that can be used in your function. This set of kwargs correspond exactly to what you can use in your jinja templates. For this to work, you need to define **kwargs in your function header.",TRUE,TRUE
+BranchPythonOperator,Changes in import,from airflow.operators.python_operator import BranchPythonOperator,from airflow.operators.python import BranchPythonOperator,Import Statement Changed,TRUE,FALSE
+BranchPythonOperator,Changes in Operator,No Changes,No Changes,None,FALSE,FALSE
+BranchPythonOperator,Argument changes,"parameter labels and job_name are accepted.
+
+Labels for this operator were used like this.
+for e.g.
+
+GCP_LABELS = {
+'business_unit' : 'random'
+'name' : 'penguin'
+'age' : '32'
+
+}
+
+
+random = BranchPythonOperator(
+task_id = '...'
+labels = GCP_LABELS
+)
+","parameter labels and job_names are accepted through **kwargs and op_kwargs.
+
+Labels for this operator in airflow 2.0 should be used like below.
+for e.g.
+
+GCP_LABELS = {
+'business_unit' : 'random'
+'name' : 'penguin'
+'age' : '32'
+'job_name':'noogler'
+}
+
+def random(**kwargs):
+  print(kwargs)
+
+
+random = BranchPythonOperator(
+task_id = '...'
+python_callable = random
+op_kwargs = GCP_LABELS
+)
+","""Pass both parameters through op_kwargs
+which would not change the functionality of 
+operator. ""
+
+
+Refer to Passing Arguments Section in the below link
+https://airflow.apache.org/docs/apache-airflow/stable/howto/operator/python.html
+",TRUE,TRUE
+ShortCircutOperator,Changes in import,from airflow.operators.python_operator import ShortCircutOperator,from airflow.operators.python import ShortCircutOperator,Import Statement Changed,TRUE,FALSE
+ShortCircutOperator,Changes in Operator,No Changes,No Changes,None,FALSE,FALSE
+ShortCircutOperator,Argument changes,No Changes,No Changes,None,FALSE,FALSE
+GCStoBigQueryOperator,Changes in import,airflow.contrib.operators.gcs_to_bq.GoogleCloudStorageToBigQueryOperator,airflow.providers.google.cloud.transfers.gcs_to_bigquery.GCSToBigQueryOperator,Import Statement Changed,TRUE,FALSE
+GCStoBigQueryOperator,Changes in Operator,GoogleCloudStorageToBigQueryOperator,GCSToBigQueryOperator,Operator Name Change,TRUE,FALSE
+GCStoBigQueryOperator,Argument changes,No Changes,No Changes,None,FALSE,FALSE
+BashOperator,Changes in import,No Changes,No Changes,None,FALSE,FALSE
+BashOperator,Changes in Operator,No Changes,No Changes,None,FALSE,FALSE
+BashOperator,Argument changes,No Changes,No Changes,None,FALSE,FALSE
+PythonOperator,Changes in import,from airflow.operators.python_operator import PythonOperator,from airflow.operators.python import PythonOperator,Import Statement Changed,TRUE,FALSE
+PythonOperator,Changes in Operator,No Changes,No Changes,None,FALSE,FALSE
+PythonOperator,Argument changes,No Changes,No Changes,None,FALSE,FALSE
+BigQueryOperator,Changes in import,"from airflow.contrib.operators.bigquery_operator import BigQueryOperator
+",from airflow.providers.google.cloud.operators.bigquery import BigQueryExecuteQueryOperator,Import Statement Changed,TRUE,FALSE
+,Changes in Operator,BigQueryOperator,BigQueryExecuteQueryOperator,Operator Name Change,TRUE,FALSE
+,Argument changes,No Changes,No Changes,None,FALSE,FALSE
+BigQueryHook,Changes in import,from airflow.contrib.hooks.bigquery_hook.BigQueryHook,from airflow.providers.google.cloud.hooks.bigquery.BigQueryHook,Import Statement Changed,TRUE,FALSE
+BigQueryHook,Changes in Operator,No Changes,No Changes,None,FALSE,FALSE
+BigQueryHook,Argument changes,No Changes,No Changes,None,FALSE,FALSE
+DummyOperator,Changes in import,No Changes,No Changes,None,FALSE,FALSE
+DummyOperator,Changes in Operator,No Changes,No Changes,None,FALSE,FALSE
+DummyOperator,Argument changes,No Changes,No Changes,None,FALSE,FALSE
+BigqueryCheckOperator,Changes in import,from airflow.contrib.operators.bigquery_check_operator import BigQueryCheckOperator,from airflow.providers.google.cloud.operators.bigquery import BigQueryCheckOperator,Import Statement Changed,TRUE,FALSE
+BigqueryCheckOperator,Changes in Operator,No Changes,No Changes,None,FALSE,FALSE
+BigqueryCheckOperator,Argument changes,parameters write_disposition and labels are accepted,parameter write_disposition was removed. Labels are accepted.,"write_disposition wont impact the logic because this operator is used for checking values in the table, for e.g. count from the table",TRUE,FALSE
+BigQueryValueCheckOperator,Changes in import,from airflow.contrib.operators.bigquery_check_operator import BigQueryValueCheckOperator,from airflow.providers.google.cloud.operators.bigquery import BigQueryValueCheckOperator,Import Statement Changed,TRUE,FALSE
+BigQueryValueCheckOperator,Changes in Operator,No Changes,No Changes,None,FALSE,FALSE
+BigQueryValueCheckOperator,Argument changes,No Changes,No Changes,None,FALSE,FALSE
+BigQueryToGCSOperator,Changes in import,from airflow.contrib.operators.bigquery_to_gcs import BigQueryToCloudStorageOperator,from airflow.providers.google.cloud.transfers.bigquery_to_gcs import BigQueryToGCSOperator,Import Statement Changed,TRUE,FALSE
+BigQueryToGCSOperator,Changes in Operator,BigQueryToCloudStorageOperator,BigQueryToGCSOperator,Operator Name Change,TRUE,FALSE
+BigQueryToGCSOperator,Argument changes,No Changes,No Changes,None,FALSE,FALSE
+GCSToGCSOperator,Changes in import,from airflow.contrib.operators.gcs_to_gcs import GoogleCloudStorageToGoogleCloudStorageOperator,from airflow.providers.google.cloud.transfers.gcs_to_gcs import GCSToGCSOperator,Import Statement Changed,TRUE,FALSE
+GCSToGCSOperator,Changes in Operator,GoogleCloudStorageToGoogleCloudStorageOperator,GCSToGCSOperator,Operator Name Change,TRUE,FALSE
+GCSToGCSOperator,Argument changes,"parameter labels are accepted.
+
+Labels for this operator were used like this.
+for e.g.
+
+GCP_LABELS = {
+'business_unit' : 'random'
+'name' : 'penguin'
+'age' : '32'
+
+}
+
+
+random = GCSToGCSOperator(
+task_id = '...'
+labels = GCP_LABELS
+)",parameter labels are not supported.,Labels may or may not be required. Need to look for alternative to add labels,TRUE,TRUE
+DataflowTemplatedJobStartOperator,Changes in import,from airflow.contrib.operators.dataflow_operator import DataflowTemplateOperator,from airflow.providers.google.cloud.operators.dataflow import DataflowTemplatedJobStartOperator,Import Statement Changed,TRUE,FALSE
+DataflowTemplatedJobStartOperator,Changes in Operator,DataflowTemplateOperator,DataflowTemplatedJobStartOperator,Operator Name Change,TRUE,FALSE
+DataflowTemplatedJobStartOperator,Argument changes,parameter append_job_name is supported,parameter append_job_name is not supported,No Impact as append_job_name was used to add suffix at the end of job name. But in Airflow 2.0 its suffix is added by default,TRUE,FALSE
+BigQueryTablePartitionExistenceSensor,Changes in import,No Changes,No Changes,None,FALSE,FALSE
+BigQueryTablePartitionExistenceSensor,Changes in Sensor,No Changes,No Changes,None,FALSE,FALSE
+BigQueryTablePartitionExistenceSensor,Argument changes,parameter labels are accepted.,parameter labels is not accepted.,Labels may or may not be required. Need to look for alternative to add labels,TRUE,FALSE
+GCSObjectsWithPrefixExistenceSensor,Changes in import,from airflow.contrib.sensors.gcs_sensor import GoogleCloudStoragePrefixSensor,from airflow.providers.google.cloud.sensors.gcs import GCSObjectsWithPrefixExistenceSensor,Import Statement Changed,TRUE,FALSE
+GCSObjectsWithPrefixExistenceSensor,Changes in Sensor,GoogleCloudStoragePrefixSensor,GCSObjectsWithPrefixExistenceSensor,Operator Name Change,TRUE,FALSE
+GCSObjectsWithPrefixExistenceSensor,Argument changes,No Changes,No Changes,None,FALSE,FALSE
+BeamRunPythonPipelineOperator,Changes in import,No Changes,No Changes,None,FALSE,FALSE
+BeamRunPythonPipelineOperator,Changes in Operator,No Changes,No Changes,None,FALSE,FALSE
+BeamRunPythonPipelineOperator,Argument changes,No Changes,No Changes,A Warning appears while executing the upgrade_check script that the Operator now uses BaseOperator as Metaclass. The warning doesnt have any impact in Airflow 2.0,FALSE,FALSE
+BigQueryTableExistenceSensor,Changes in import,from airflow.contrib.sensors.bigquery_sensor import BigQueryTableSensor,"from airflow.providers.google.cloud.sensors.bigquery import BigQueryTableExistenceSensor
+
+",Import Statement Changed,TRUE,FALSE
+BigQueryTableExistenceSensor,Changes in Sensor,BigQueryTableSensor,BigQueryTableExistenceSensor,Operator Name Change,TRUE,FALSE
+BigQueryTableExistenceSensor,Argument changes,parameter labels are accepted.,parameter labels are not supported.,Labels may or may not be required. Need to look for alternative to add labels,TRUE,TRUE
+BigQueryCreateEmptyTableOperator,Changes in import,from airflow.contrib.operators.bigquery_operator import BigQueryCreateEmptyTableOperator,from airflow.providers.google.cloud.operators.bigquery import BigQueryCreateEmptyTableOperator,Import Statement Changed,TRUE,FALSE
+BigQueryCreateEmptyTableOperator,Changes in Operator,No Changes,No Changes,None,FALSE,FALSE
+BigQueryCreateEmptyTableOperator,Argument changes,No Changes,No Changes,None,FALSE,FALSE
+GoogleCloudStorageToBigqueryOperator,Changes in import,"from airflow.contrib.operators.gcs_to_bq 
+import GoogleCloudStorageToBigQueryOperator","from airflow.providers.google.cloud.transfers.
+gcs_to_bigquery import GCSToBigQueryOperator",Import Statement Changed,TRUE,FALSE
+GoogleCloudStorageToBigqueryOperator,Changes in Operator,GoogleCloudStorageToBigQueryOperator,GCSToBigQueryOperator,Operated changed,TRUE,FALSE
+GoogleCloudStorageToBigqueryOperator,Argument changes,"Parameter ignoreunknownvalues is given wrong
+Instead use ignore_unknown_values
+Parameter Impersonation_chain is not present in 
+airflow1 instead delegat_to is beign used ","parameters ignore_unknown_values and 
+impersonation_chain(replace of delegat_to) 
+is present in airflow 2","These parameters does not impact the operator
+perfomance and for ignoreunknownvalues use
+ignore_unknown_values instead ",TRUE,TRUE
+BashOperator,Changes in import,from airflow.operators.bash_operator import BashOperator,from airflow.operators.bash import BashOperator,Import Statement Changed,TRUE,FALSE
+BashOperator,Changes in Operator,BashOperator,BashOperator,No changes,FALSE,FALSE
+BashOperator,Argument changes,"parameters can be passed as params={""test"":""test""}","Parameters have to be passed as env = {""test"":""test""}. Also append_env parameters needs to be appended if you want to use the parameters passed in env ",Parameter Addition,TRUE,TRUE
+ShortCircutOperator,Changes in import,from airflow.operators.python_operator import ShortCircutOperator,from airflow.operators.python import ShortCircutOperator,Import Statement Changed,TRUE,FALSE
+ShortCircutOperator,Changes in Operator,No Changes,No Changes,None,FALSE,FALSE
+ShortCircutOperator,Argument changes,No Changes,No Changes,None,FALSE,FALSE
