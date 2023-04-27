@@ -16,6 +16,7 @@
 
 package com.google.zetasql.toolkit.catalog.bigquery;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
@@ -27,6 +28,7 @@ import com.google.zetasql.*;
 import com.google.zetasql.FunctionArgumentType.FunctionArgumentTypeOptions;
 import com.google.zetasql.StructType.StructField;
 import com.google.zetasql.TVFRelation.Column;
+import com.google.zetasql.ZetaSQLFunctions.FunctionEnums.NamedArgumentKind;
 import com.google.zetasql.ZetaSQLFunctions.FunctionEnums.ProcedureArgumentMode;
 import com.google.zetasql.ZetaSQLFunctions.SignatureArgumentKind;
 import com.google.zetasql.ZetaSQLType.TypeKind;
@@ -217,7 +219,7 @@ public class BigQueryAPIResourceProviderTest {
         new FunctionArgumentType(
             TypeFactory.createSimpleType(TypeKind.TYPE_INT64),
             FunctionArgumentTypeOptions.builder()
-                .setArgumentName("x")
+                .setArgumentName("x", NamedArgumentKind.POSITIONAL_ONLY)
                 .setProcedureArgumentMode(ProcedureArgumentMode.NOT_SET)
                 .build(),
             1);
@@ -233,13 +235,13 @@ public class BigQueryAPIResourceProviderTest {
 
     FunctionSignature expectedSignatureForMockUDF = expectedSignatureForMockUDF();
 
-    List<Function> functions =
+    List<FunctionInfo> functions =
         bigqueryResourceProvider.getFunctions("project", List.of("reference"));
 
     assertEquals(1, functions.size());
     assertTrue(
         CatalogTestUtils.functionSignatureEquals(
-            expectedSignatureForMockUDF, functions.get(0).getSignatureList().get(0)));
+            expectedSignatureForMockUDF, functions.get(0).getSignatures().get(0)));
   }
 
   Routine createMockTVF() {
@@ -288,7 +290,7 @@ public class BigQueryAPIResourceProviderTest {
         new FunctionArgumentType(
             TypeFactory.createSimpleType(TypeKind.TYPE_INT64),
             FunctionArgumentTypeOptions.builder()
-                .setArgumentName("x")
+                .setArgumentName("x", NamedArgumentKind.POSITIONAL_ONLY)
                 .setProcedureArgumentMode(ProcedureArgumentMode.NOT_SET)
                 .build(),
             1);
@@ -311,7 +313,9 @@ public class BigQueryAPIResourceProviderTest {
     assertTrue(
         CatalogTestUtils.functionSignatureEquals(
             expectedSignatureForMockTVF, functions.get(0).getSignature()));
-    assertEquals(expectedOutputSchemaForMockTVF, functions.get(0).getOutputSchema());
+
+    TVFRelation outputSchema = assertDoesNotThrow(() -> functions.get(0).getOutputSchema().get());
+    assertEquals(expectedOutputSchemaForMockTVF, outputSchema);
   }
 
   Routine createMockProcedure() {
@@ -339,7 +343,7 @@ public class BigQueryAPIResourceProviderTest {
         new FunctionArgumentType(
             TypeFactory.createSimpleType(TypeKind.TYPE_INT64),
             FunctionArgumentTypeOptions.builder()
-                .setArgumentName("x")
+                .setArgumentName("x", NamedArgumentKind.POSITIONAL_ONLY)
                 .setProcedureArgumentMode(ProcedureArgumentMode.NOT_SET)
                 .build(),
             1);

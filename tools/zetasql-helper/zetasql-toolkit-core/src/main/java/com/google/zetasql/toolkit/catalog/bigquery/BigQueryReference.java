@@ -18,6 +18,7 @@ package com.google.zetasql.toolkit.catalog.bigquery;
 
 import com.google.cloud.bigquery.RoutineId;
 import com.google.cloud.bigquery.TableId;
+import com.google.common.base.CharMatcher;
 import com.google.common.collect.ImmutableList;
 import com.google.zetasql.toolkit.catalog.bigquery.exceptions.InvalidBigQueryReference;
 import java.util.Arrays;
@@ -77,6 +78,16 @@ class BigQueryReference {
     }
 
     return new BigQueryReference(elements.get(0), elements.get(1), elements.get(2));
+  }
+
+  /**
+   * Returns whether the provided BigQuery reference string is qualified
+   *
+   * @param referenceString The reference string to check (e.g. dataset.table)
+   * @return Whether the reference is qualified
+   */
+  public static boolean isQualified(String referenceString) {
+    return CharMatcher.is('.').countIn(referenceString) > 0;
   }
 
   public String getProjectId() {
