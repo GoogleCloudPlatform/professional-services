@@ -8,4 +8,6 @@ archive
 google_cloud_support_slackbot_icon_big.png
 google_cloud_support_slackbot_icon_small.png
 google_cloud_support_slackbot_icon.svg
+__pycache__/*
+__pycache__
 README.md
