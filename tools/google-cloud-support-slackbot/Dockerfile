@@ -12,30 +12,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM	python:3.7-slim AS builder
-LABEL   author="TheLanceLord"
+FROM	python:3.7-slim AS compile-image
+LABEL   author="Damian Lance"
 LABEL   created="2022-01-19"
-LABEL   last_updated="2023-05-01"
+LABEL   last_updated="2023-02-08"
 
+RUN	python -m venv /opt/venv
+ENV	PATH="/opt/venv/bin:$PATH"
 
-ENV	PATH="/venv/bin:$PATH"
-RUN     python -m venv /venv
-
-COPY	requirements.txt requirements.txt
-RUN	pip3 install -r requirements.txt
-
-# Build the app
-FROM	python:3.7-slim AS app
-
-ENV	PATH="/venv/bin:$PATH"
-
-COPY	--from=builder /venv /venv
-COPY	. /google-cloud-support-slackbot	
-
-RUN	apt-get update; \
-	apt-get -y install \
-	libffi-dev \
-	libssl-dev;
+COPY	. ./
+RUN     apt-get update; \
+        apt-get -y install \
+        libffi-dev \
+        libssl-dev; \
+	pip3 install -r requirements.txt;
+		
+FROM	python:3.7-slim AS build-image
 
 # Essential environment variables
 ENV	ORG_ID="YOUR NUMERIC ORG ID"
@@ -51,5 +43,8 @@ ENV	TEST_USER_NAME="SLACK USER_NAME FOR TESTING"
 ENV	PROJECT_ID="GOOGLE CLOUD PROJECT ID FOR SUPPORT CASES"
 ENV	PROJECT_NUMBER="GOOGLE CLOUD PROJECT NUMBER FOR SUPPORT CASES"
 
-ENTRYPOINT	/google-cloud-support-slackbot/main.py
+COPY	--from=compile-image . ./
+ENV	PATH="/opt/venv/bin:$PATH"
+
+ENTRYPOINT	/main.py
 

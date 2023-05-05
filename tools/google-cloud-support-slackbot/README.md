@@ -44,7 +44,7 @@ features:
     always_online: false
   slash_commands:
     - command: /google-cloud-support
-      url: https://CLOUDRUN_SERVICE_URL
+      url: https://CLOUDRUN_SERVICE_URL/google-cloud-support
       description: Track and manage your Google Cloud support cases in Slack. Use /google-cloud-support help for the list of commands
       usage_hint: "[command] [parameter 1] [parameter 2]"
       should_escape: false
@@ -76,7 +76,7 @@ Go to [Google Cloud](https://console.cloud.google.com/) to do the following:
 ```
 SIGNING_SECRET=SIGNING_SECRET
 SLACK_TOKEN=SLACK_TOKEN
-TAG=2.1
+TAG=2.0
 alias gcurl='curl -H "Authorization: Bearer $(gcloud auth print-access-token)" -H "Content-Type: application/json"';
 ORG_ID=$(gcurl -X POST https://cloudresourcemanager.googleapis.com/v1/projects/$DEVSHELL_PROJECT_ID:getAncestry | jq '.ancestor[] | select(.resourceId.type == "organization")' | jq '.resourceId.id' | sed 's/"//g');
 PROJECT_NUMBER=`gcloud projects list --filter="${DEVSHELL_PROJECT_ID}" --format="value(PROJECT_NUMBER)"`;
@@ -106,11 +106,11 @@ gcloud artifacts repositories create google-cloud-support-slackbot \
     --repository-format=Docker \
     --location=us-central1 \
     --description="Docker images for the Google Cloud Support Slackbot";
-gcloud app create --location=nam5;
+gcloud app create --region=us-central;
 gcloud firestore databases create --region=us-central;
-docker pull thelancelord/google-cloud-support-slackbot:$TAG;
-docker tag thelancelord/google-cloud-support-slackbot:$TAG us-central1-docker.pkg.dev/$DEVSHELL_PROJECT_ID/google-cloud-support-slackbot/google-cloud-support-slackbot:$TAG;
-docker push us-central1-docker.pkg.dev/$DEVSHELL_PROJECT_ID/google-cloud-support-slackbot/google-cloud-support-slackbot:$TAG;
+docker pull thelancelord/google-cloud-support-slackbot:2.0;
+docker tag thelancelord/google-cloud-support-slackbot:2.0 us-central1-docker.pkg.dev/$DEVSHELL_PROJECT_ID/google-cloud-support-slackbot/google-cloud-support-slackbot:2.0;
+docker push us-central1-docker.pkg.dev/$DEVSHELL_PROJECT_ID/google-cloud-support-slackbot/google-cloud-support-slackbot:2.0;
 gcurl https://apikeys.googleapis.com/v2/projects/$PROJECT_NUMBER/locations/global/keys \
   --request POST \
   --data '{
@@ -132,8 +132,8 @@ gcurl https://apikeys.googleapis.com/v2/projects/$PROJECT_NUMBER/locations/globa
       ]
     },
   }';
-KEY_ID=`gcloud services api-keys list --filter=displayName:'Support Slackbot' --format='value(uid)'`;
-API_KEY=`gcloud beta services api-keys get-key-string $KEY_ID --format='value(keyString)'`;
+KEY_PATH=$(gcurl https://apikeys.googleapis.com/v2/projects/$PROJECT_NUMBER/locations/global/keys | jq ".keys[].name" | sed 's/"//g' | sed -n '([^\/]+$)');
+API_KEY="${KEY_PATH##*/}";
 gcloud run deploy google-cloud-support-slackbot \
 --image=us-central1-docker.pkg.dev/$DEVSHELL_PROJECT_ID/google-cloud-support-slackbot/google-cloud-support-slackbot:$TAG \
 --allow-unauthenticated \
