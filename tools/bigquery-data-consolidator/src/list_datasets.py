@@ -15,7 +15,7 @@
 # Python utility to list all datasets in a given project.
 
 # import libraries.
-from google.cloud import bigquery
+# from google.cloud import bigquery
 
 # function definition
 def dataset_list(client):

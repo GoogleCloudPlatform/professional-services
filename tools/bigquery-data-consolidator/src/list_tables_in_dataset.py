@@ -15,7 +15,7 @@
 # Python utility to list tables in a BigQuery dataset. 
 
 # import libraries. 
-from google.cloud import bigquery
+# from google.cloud import bigquery
 
 # Function definition
 def list_all_tables(client, project_id, dataset_id):

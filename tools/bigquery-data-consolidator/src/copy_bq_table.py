@@ -17,7 +17,7 @@ Python Utility To Copy BigQuery Table From One Dataset To Another
 """
 
 # import required libraries.
-from google.cloud import bigquery
+# from google.cloud import bigquery
 
 def copy_table(client, source_table_id, destination_table_id):
 
