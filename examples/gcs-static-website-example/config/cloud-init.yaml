@@ -1,0 +1,26 @@
+# Copyright 2023 Google.
+# This software is provided as-is, without warranty or representation for any use or purpose.
+# Your use of it is subject to your agreement with Google.
+
+#cloud-config
+
+write_files:
+- path: /etc/systemd/system/nginx.service
+  permissions: 0644
+  owner: root
+  content: |
+    [Unit]
+    Description=Start a simple nginx docker container
+    Wants=gcr-online.target
+    After=gcr-online.target
+
+    [Service]
+    Environment="HOME=/home/nginx"
+    ExecStartPre=/usr/bin/docker-credential-gcr configure-docker --registries REGION-docker.pkg.dev
+    ExecStart=/usr/bin/docker run --rm --name webserver -p 80:80 /usr/bin/docker run --rm --name webserver -p 80:80 REGION.pkg.dev/gPROJECT_ID/image-repo/webserver:v1
+    ExecStop=/usr/bin/docker stop webserver
+    ExecStopPost=/usr/bin/docker rm webserver
+
+runcmd:
+- systemctl daemon-reload
+- systemctl start nginx.service
