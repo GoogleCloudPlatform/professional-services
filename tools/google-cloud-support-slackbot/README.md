@@ -60,7 +60,7 @@ settings:
   token_rotation_enabled: false
 ```
 4. Click **Create**
-5. Under **Settings > Basic Information**, scroll down to **Display Information** and upload the [google_cloud_support_slackbot_icon_big.png](google_cloud_suppport_slackbot_icon_big.png)
+5. Under **Settings > Basic Information**, scroll down to **Display Information** and upload the [google_cloud_support_slackbot_icon_big.png](google_cloud_support_slackbot_icon_big.png)
 6. Go to **Settings > Basic Information** and under **Building Apps for Slack > Install your app**, click **Install to Workspace**. On the next screen click **Allow**. You may need Slack admin approval to install the app
 7. Go to **Settings > Basic Information** and under **App Credentials** copy the `Signing Secret`. You will need this for **Setup Part 2**
 8. Go to  the **Features > OAuth & Permissions** page, under **OAuth Tokens for Your Workspace**. Copy the `Bot User OAuth Token`. You will need this for **Setup Part 2**
