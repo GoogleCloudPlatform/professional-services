@@ -1,8 +1,7 @@
-#import libraries
 import csv
 import glob
 from pathlib import Path
-
+import re
 
 def find_line_no():
     """
@@ -22,7 +21,6 @@ def find_line_no():
         file_2_line = v2_script.readline()
         if file_1_line == '' or file_2_line == '':
             break
-
 
 def add_comment():
     """
@@ -57,18 +55,19 @@ class Migration:
         with open(self.rules_file, 'r') as f:
             reader = csv.reader(f)
             for row in reader:
-                self.rules[row[2]] = [row[3], row[4], row[5], row[6], row[0], row[1]]
+                self.rules[row[2]] = [row[0], row[1], row[3], row[4], row[5], row[6]]
 
     def apply_rules(self, contents):
         """
                Apply the rules to the content.
         """
         for key, value in self.rules.items():
-            if value[5] != "Argument changes" and value[3] == "FALSE" and value[2] == "TRUE":
-                contents = contents.replace(key, value[0])
-                comments.append(value[1])
-            elif value[5] == "Argument changes" and value[3] == "TRUE" and value[2] == "TRUE":
-                contents = contents.replace(value[4], value[4] + " #Migration Utility Generated Comment" + " " + value[1])
+            if value[1] != "Argument changes" and value[4] == "TRUE" and value[5] == "FALSE":
+                comments.append(value[3])
+                contents = re.sub(r'\b%s\b' % key, value[2], contents)
+
+            elif value[1] == "Argument changes" and value[4] == "TRUE" and value[5] == "TRUE" and value[0]!="BashOperator":
+                contents = contents.replace(value[0], value[0] + " #Migration Utility Generated Comment=" + " " + value[3])
         return contents
 
 
