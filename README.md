@@ -52,6 +52,10 @@ them to fit your particular use case.
 *   [BigQuery Cross Project Slot Monitoring](examples/bigquery-cross-project-slot-monitoring) -
     Solution to help monitoring slot utilization across multiple projects, while
     breaking down allocation per project.
+*   [BigQuery Data Consolidator](tools/bigquery-data-consolidator) - Solution to
+    consolidate data within an organization from multiple projects into one target
+    Dataset/Table where all Source tables are of same schema (like Billing Exports!); specifically
+    useful for data consolidation and further reporting in Cloud FinOps engagements.
 *   [BigQuery Group Sync For Row Level Access](examples/bigquery-row-access-groups) -
     Sample code to synchronize group membership from G Suite/Cloud Identity into
     BigQuery and join that with your data to control access at row level.
