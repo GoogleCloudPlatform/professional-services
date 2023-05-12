@@ -52,6 +52,8 @@ them to fit your particular use case.
 *   [BigQuery Cross Project Slot Monitoring](examples/bigquery-cross-project-slot-monitoring) -
     Solution to help monitoring slot utilization across multiple projects, while
     breaking down allocation per project.
+    [BigQuery DDL Validator](examples/bigquery-ddl-validator) -
+    A utility that will read the Legacy DDL and compare it against the previously extracted DDL and produce an output with the name of the objects where the DDL is no longer matching.
 *   [BigQuery Group Sync For Row Level Access](examples/bigquery-row-access-groups) -
     Sample code to synchronize group membership from G Suite/Cloud Identity into
     BigQuery and join that with your data to control access at row level.
