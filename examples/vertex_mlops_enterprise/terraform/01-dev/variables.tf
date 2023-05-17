@@ -27,6 +27,11 @@ variable "dataset_name" {
   default     = null
 }
 
+variable "environment" {
+  description = "Environment prefix that will be used when creating some resources and outputs (Github Actions, build files, etc.): dev, stg, prod"
+  type        = string
+}
+
 variable "groups" {
   description = "Name of the groups (name@domain.org) to apply IAM permissions."
   type = object({
@@ -47,7 +52,6 @@ variable "github" {
   type = object({
     organization = string
     repo         = string
-    branch       = string
   })
   default = null
 }
@@ -70,18 +74,18 @@ variable "prefix" {
   default     = null
 }
 
-variable "project_id" {
-  description = "Project id."
-  type        = string
-}
-
-variable "project_create" {
-  description = "Provide values if project creation is needed, uses existing project if null. Parent is in 'folders/nnn' or 'organizations/nnn' format."
+variable "project_config" {
+  description = "Provide 'billing_account_id' value if project creation is needed, uses existing 'project_id' if null. Parent is in 'folders/nnn' or 'organizations/nnn' format."
   type = object({
-    billing_account_id = string
-    parent             = string
+    billing_account_id = optional(string)
+    parent             = optional(string)
+    project_id         = string
   })
-  default = null
+  validation {
+    condition     = var.project_config.project_id != null
+    error_message = "Project id must be set."
+  }
+  nullable = false
 }
 
 variable "region" {
@@ -96,12 +100,15 @@ variable "sa_mlops_name" {
   default     = "sa-mlops"
 }
 
-variable "service_encryption_keys" { # service encription key
+variable "service_encryption_keys" {
   description = "Cloud KMS to use to encrypt different services. Key location should match service region."
   type = object({
-    bq      = string
-    compute = string
-    storage = string
+    aiplatform    = optional(string)
+    bq            = optional(string)
+    notebooks     = optional(string)
+    secretmanager = optional(string)
+    storage       = optional(string)
   })
-  default = null
+  default  = {}
+  nullable = false
 }

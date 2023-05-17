@@ -22,7 +22,7 @@ locals {
     region        = var.region,
     github_org    = try(var.github.organization, null),
     github_repo   = try(var.github.repo, null),
-    github_branch = try(var.github.branch, null),
+    github_branch = try(local.github.branch, null),
     docker_repo   = module.mlops.github.DOCKER_REPO,
     sa_mlops      = module.mlops.github.SA_MLOPS,
     subnetwork    = module.mlops.github.SUBNETWORK
@@ -33,6 +33,7 @@ locals {
     project_id  = module.mlops.github.PROJECT_ID,
     sa          = module.mlops.github.SERVICE_ACCOUNT,
     docker_repo = module.mlops.github.DOCKER_REPO
+    environment = var.environment
   })
 
   gh_main_yaml = templatefile("${path.module}/../../.github/workflows/main.yml.TEMPLATE", {
@@ -40,6 +41,7 @@ locals {
     project_id  = module.mlops.github.PROJECT_ID,
     sa          = module.mlops.github.SERVICE_ACCOUNT,
     docker_repo = module.mlops.github.DOCKER_REPO
+    environment = var.environment
   })
 
   gh_run_yaml = templatefile("${path.module}/../../.github/workflows/run.yml.TEMPLATE", {
@@ -47,6 +49,7 @@ locals {
     project_id  = module.mlops.github.PROJECT_ID,
     sa          = module.mlops.github.SERVICE_ACCOUNT,
     docker_repo = module.mlops.github.DOCKER_REPO
+    environment = var.environment
   })
 
   gh_deploy_yaml = templatefile("${path.module}/../../.github/workflows/deploy.yml.TEMPLATE", {
@@ -54,6 +57,7 @@ locals {
     project_id  = module.mlops.github.PROJECT_ID,
     sa          = module.mlops.github.SERVICE_ACCOUNT,
     docker_repo = module.mlops.github.DOCKER_REPO
+    environment = var.environment
   })
 
   pipeline_deploy = templatefile("${path.module}/../../build/pipeline-deployment.yaml.TEMPLATE", {
@@ -61,7 +65,7 @@ locals {
     region        = var.region,
     github_org    = try(var.github.organization, null),
     github_repo   = try(var.github.repo, null),
-    github_branch = try(var.github.branch, null),
+    github_branch = try(local.github.branch, null),
     docker_repo   = module.mlops.github.DOCKER_REPO,
     sa_mlops      = module.mlops.github.SA_MLOPS,
     subnetwork    = module.mlops.github.SUBNETWORK
@@ -72,7 +76,7 @@ locals {
     region        = var.region,
     github_org    = try(var.github.organization, null),
     github_repo   = try(var.github.repo, null),
-    github_branch = try(var.github.branch, null),
+    github_branch = try(local.github.branch, null),
     sa_mlops      = module.mlops.github.SA_MLOPS,
   })
 
@@ -82,7 +86,7 @@ locals {
     region        = var.region,
     github_org    = try(var.github.organization, null),
     github_repo   = try(var.github.repo, null),
-    github_branch = try(var.github.branch, null),
+    github_branch = try(local.github.branch, null),
     docker_repo   = module.mlops.github.DOCKER_REPO,
     sa_mlops      = module.mlops.github.SA_MLOPS,
   })
@@ -118,18 +122,18 @@ resource "local_file" "deploy_yml" {
 }
 
 resource "local_file" "deployment_yml" {
-  filename = "${path.module}/../../build/pipeline-deployment.yaml"
+  filename = "${path.module}/../../build/${var.environment}/pipeline-deployment.yaml"
   content  = local.pipeline_deploy
 }
 
 
 resource "local_file" "pipeline_run_yml" {
-  filename = "${path.module}/../../build/pipeline-run.yaml"
+  filename = "${path.module}/../../build/${var.environment}/pipeline-run.yaml"
   content  = local.pipeline_run
 }
 
 resource "local_file" "model_deploy_yml" {
-  filename = "${path.module}/../../build/model-deployment.yaml"
+  filename = "${path.module}/../../build/${var.environment}/model-deployment.yaml"
   content  = local.model_deployment
 }
 

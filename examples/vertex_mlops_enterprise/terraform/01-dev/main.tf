@@ -16,18 +16,37 @@
 
 # tfdoc:file:description Vertex MLOps
 
+locals {
+  bucket_name = "${var.bucket_name}-${var.environment}"
+  env_label = {
+    "env" : "${var.environment}"
+  }
+  labels = merge(local.env_label, var.labels)
+
+  github = {
+    organization = var.github.organization
+    repo         = var.github.repo
+    branch       = var.environment
+  }
+
+  identity_pool_claims = try("attribute.repository/${var.github.organization}/${var.github.repo}", null)
+
+  project_config = {
+    billing_account_id = var.project_config.billing_account_id
+    parent             = var.project_config.parent
+    project_id         = "${var.project_config.project_id}-${var.environment}"
+  }
+
+}
 module "mlops" {
   source                  = "github.com/GoogleCloudPlatform/cloud-foundation-fabric//blueprints/data-solutions/vertex-mlops"
-  #source                  = "../../../../../cloud-foundation-fabric//blueprints/data-solutions/vertex-mlops"
-  project_id              = var.project_id
-  project_create          = var.project_create
+  project_config          = local.project_config
   prefix                  = var.prefix
-  bucket_name             = var.bucket_name
+  bucket_name             = local.bucket_name
   dataset_name            = var.dataset_name
   groups                  = var.groups
-  identity_pool_claims    = try("attribute.repository/${var.github.organization}/${var.github.repo}", null)
-  labels                  = var.labels
+  identity_pool_claims    = local.identity_pool_claims
+  labels                  = local.labels
   notebooks               = var.notebooks
-  sa_mlops_name           = var.sa_mlops_name
   service_encryption_keys = var.service_encryption_keys
 }

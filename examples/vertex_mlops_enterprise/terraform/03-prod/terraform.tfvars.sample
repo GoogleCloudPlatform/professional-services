@@ -1,55 +1,37 @@
-bucket_name  = "creditcards-prd"
+bucket_name  = "creditcards-dev"
 dataset_name = "creditcards"
-group_iam = {
-  "gcp-ml-ds@example.com" = [
-    "roles/aiplatform.admin",
-    "roles/artifactregistry.admin",
-    "roles/bigquery.dataEditor",
-    "roles/bigquery.jobUser",
-    "roles/bigquery.user",
-    "roles/cloudbuild.builds.editor",
-    "roles/cloudfunctions.developer",
-    "roles/dataflow.developer",
-    "roles/dataflow.worker",
-    "roles/iam.serviceAccountUser",
-    "roles/logging.logWriter",
-    "roles/logging.viewer",
-    "roles/notebooks.admin",
-    "roles/pubsub.editor",
-    "roles/serviceusage.serviceUsageConsumer",
-    "roles/storage.admin"
-  ],
-  "gcp-ml-eng@example.com" = [
-    "roles/aiplatform.admin",
-    "roles/artifactregistry.admin",
-    "roles/bigquery.dataEditor",
-    "roles/bigquery.jobUser",
-    "roles/bigquery.user",
-    "roles/dataflow.developer",
-    "roles/dataflow.worker",
-    "roles/iam.serviceAccountUser",
-    "roles/logging.logWriter",
-    "roles/logging.viewer",
-    "roles/serviceusage.serviceUsageConsumer",
-    "roles/storage.admin"
-  ]
+environment  = "prd"
+groups = {
+  gcp-ml-ds     = null
+  gcp-ml-eng    = null
+  gcp-ml-viewer = null
 }
 
+# env will be added as branch name
 github = {
-  organization = "ORGANIZATION"
-  repo         = "REPO"
-  branch       = "prd"
+  organization = "GITHUB_ORG"
+  repo         = "GITHUB_REPO"
 }
 
+# Additional labels. env label will be added automatically
 labels = {
-  "env" : "prd",
   "team" : "ml"
 }
-prefix     = "myprefix"
-project_id = "creditcards-prd"
-project_create = {
-  billing_account_id = "000000-111111-222222"
+
+prefix = "myprefix"
+project_config = {
+  billing_account_id = "000000-111111-222222" # Use only billing BA if it is required to create the project
   parent             = "folders/123456789012"
+  project_id         = "creditcards" # -env will be added as suffix
 }
-sa_mlops_name = "sa-mlops-prd"
+region = "europe-west4"
+
+
+service_encryption_keys = {
+  aiplatform    = "projects/CMEK_PROJECT_ID/locations/europe-west4/keyRings/europe-west4/cryptoKeys/storage"
+  bq            = "projects/CMEK_PROJECT_ID/locations/europe-west4/keyRings/europe-west4/cryptoKeys/bq"
+  notebooks     = "projects/CMEK_PROJECT_ID/locations/europe-west4/keyRings/europe-west4/cryptoKeys/storage"
+  secretmanager = "projects/CMEK_PROJECT_ID/locations/europe-west4/keyRings/europe-west4/cryptoKeys/storage"
+  storage       = "projects/CMEK_PROJECT_ID/locations/europe-west4/keyRings/europe-west4/cryptoKeys/storage"
+}
 
