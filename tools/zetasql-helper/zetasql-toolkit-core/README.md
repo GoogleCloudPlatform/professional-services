@@ -167,6 +167,33 @@ QueryStmt
 
 See a list of comprehensive usage examples [here](../zetasql-toolkit-examples).
 
+## Pushing to Artifact Registry
+
+The ZetaSQL toolkit package is not hosted on maven central for the moment. 
+It can, however, easily be built and hosted on [Artifact Registry](https://cloud.google.com/artifact-registry/docs/java).
+
+To build and push the package to Artifact Registry:
+
+1. Configure the project id, repository name and location
+    ``` bash
+   export PROJECT_ID=...
+   export REPOSITORY_NAME=...
+   export LOCATION=...
+   ```
+2. Create an Artifact Registry Maven Repository if necessary
+   ``` bash
+   gcloud artifacts repositories create $REPOSITORY_NAME \
+     --repository-format=maven \
+     --location=$LOCATION
+   ```
+3. [Configure Authentication](https://cloud.google.com/artifact-registry/docs/java/authentication)
+4. Build and push the package
+   ``` bash
+   mvn deploy \
+     -DskipTests \
+     -Dartifactregistry.repository=artifactregistry://$LOCATION-maven.pkg.dev/$PROJECT_ID/$REPOSITORY_NAME
+   ```
+
 ## Support Disclaimer
 
 This is not an officially supported Google product.

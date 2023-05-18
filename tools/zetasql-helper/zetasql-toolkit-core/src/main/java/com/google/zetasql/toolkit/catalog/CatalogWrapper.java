@@ -16,14 +16,14 @@
 
 package com.google.zetasql.toolkit.catalog;
 
-import com.google.zetasql.*;
+import com.google.zetasql.SimpleCatalog;
+import com.google.zetasql.SimpleTable;
 import com.google.zetasql.resolvedast.ResolvedCreateStatementEnums.CreateMode;
 import com.google.zetasql.resolvedast.ResolvedCreateStatementEnums.CreateScope;
+import com.google.zetasql.toolkit.catalog.bigquery.FunctionInfo;
 import com.google.zetasql.toolkit.catalog.bigquery.ProcedureInfo;
 import com.google.zetasql.toolkit.catalog.bigquery.TVFInfo;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * Interface for an object that wraps a ZetaSQL SimpleCatalog and allows adding resources to it by
@@ -49,7 +49,7 @@ public interface CatalogWrapper {
    * @param createMode The CreateMode for creating the function
    * @param createScope The CreateScope for creating the function
    */
-  void register(Function function, CreateMode createMode, CreateScope createScope);
+  void register(FunctionInfo function, CreateMode createMode, CreateScope createScope);
 
   /**
    * Registers a TVF in this catalog.
@@ -203,24 +203,6 @@ public interface CatalogWrapper {
    */
   default void addProcedure(String procedure) {
     this.addProcedures(List.of(procedure));
-  }
-
-  /**
-   * Adds all the tables used in the provided query to this catalog.
-   *
-   * <p>Uses Analyzer.extractTableNamesFromScript to extract the table names and later uses
-   * this.addTables to add them.
-   *
-   * @param query The SQL query from which to get the tables that should be added to the catalog
-   * @param options The ZetaSQL AnalyzerOptions to use when extracting the table names from the
-   *     query
-   */
-  default void addAllTablesUsedInQuery(String query, AnalyzerOptions options) {
-    Set<String> tables =
-        Analyzer.extractTableNamesFromScript(query, options).stream()
-            .map(tablePath -> String.join(".", tablePath))
-            .collect(Collectors.toSet());
-    this.addTables(List.copyOf(tables));
   }
 
   /**
