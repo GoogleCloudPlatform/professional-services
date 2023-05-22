@@ -1,6 +1,19 @@
 # Quota Monitoring and Alerting 
 > An easy-to-deploy Data Studio Dashboard with alerting capabilities, showing usage and quota limits in an organization or folder.
 
+## Release Notes
+
+> Last Updated on May 22, 2023
+
+### The latest version of the Quota Monitoring Solution code is now available in Java at https://github.com/google/quota-monitoring-solution. 
+<b>This version includes a number of new features and improvements, including support for new quota metrics, application-level monitoring and alerting, and peak quota metric consumption in the last 7 days.</b>
+</br></br>
+
+> Last Updated on Jun 21, 2022
+
+### New features will be released in Java version. Python version will not be supported after July 31. 
+
+
 Google Cloud enforces [quotas](https://cloud.google.com/docs/quota) on resource usage for project owners, setting a limit on how much of a particular Google Cloud resource your project can use. Each quota limit represents a specific countable resource, such as the number of API requests made per day to the number of load balancers used concurrently by your application.
 Quotas are enforced for a variety of reasons:
 - To protect the community of Google Cloud users by preventing unforeseen spikes in usage.
