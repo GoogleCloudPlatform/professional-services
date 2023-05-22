@@ -1,4 +1,3 @@
-
 import csv
 import glob
 from pathlib import Path
@@ -17,25 +16,39 @@ class MigrationUtility:
             for col in reader:
                 self.replacement_dict[col[2]] = (col[0], col[1], col[3], col[4], col[5], col[6])
 
-    def migrate_files(self):
+    def migrate_files(self, comment_flag, comment):
         for filepath in glob.iglob(f"{self.input_dir}/*.py", recursive=True):
             filename = Path(filepath).stem
             new_file = f"{self.output_dir}/{filename}_v2.py"
+
             with open(filepath, 'r') as f, open(new_file, 'w') as temp:
                 for line in f:
                     for word, replacement in self.replacement_dict.items():
                         if word in line:
-                            if replacement[1] != "Argument changes" and replacement[4] == "TRUE" and replacement[5] == "FALSE":
-                                temp.write('#Migration Utility Generated Comment -- Change Type = ' + replacement[1] + " , Impact = " + replacement[3] + '\n')
-                                temp.write(line.replace(word, replacement[2]))
+                            if replacement[1] != "Argument changes" and replacement[4] == "TRUE" and replacement[
+                                    5] == "FALSE":
+                                if comment_flag == 0:
+                                    temp.write('#Migration Utility Generated Comment -- Change Type = ' + replacement[
+                                        1] + " , Impact = " + replacement[3] + '\n')
+                                    temp.write(line.replace(word, replacement[2]))
+                                else:
+                                    temp.write(comment + '\n')
+                                    temp.write(line.replace(word, replacement[2]))
                                 break
                             elif replacement[4] == "TRUE" and replacement[5] == "TRUE":
-                                temp.write('#Migration Utility Generated Comment -- Change Type = ' + replacement[1] + " , Impact = " + replacement[3] + '\n')
+                                if comment_flag == 0:
+                                    temp.write('#Migration Utility Generated Comment -- Change Type = ' + replacement[
+                                        1] + " , Impact = " + replacement[3] + 'Manual Intervention is Required' + '\n')
+                                else:
+                                    temp.write(comment + 'Manual Intervention is Required' + '\n')
                     else:
                         temp.write(line)
 
 
 if __name__ == "__main__":
-    migration_utility = MigrationUtility(rules_file="../migration_rules/rules.csv", input_dir="../examples",output_dir="../output")
+    migration_utility = MigrationUtility(rules_file="../migration_rules/rules.csv", input_dir="../examples",
+                                         output_dir="../output")
     migration_utility.load_rules()
-    migration_utility.migrate_files()
+    comment_flag = 0  # get the flag from user
+    comment = "#some customized comment"  # input the comment from user
+    migration_utility.migrate_files(comment_flag, comment)

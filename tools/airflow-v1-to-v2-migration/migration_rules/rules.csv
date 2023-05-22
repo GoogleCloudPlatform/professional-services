@@ -102,7 +102,7 @@ operator. ""
 Refer to Passing Arguments Section in the below link
 https://airflow.apache.org/docs/apache-airflow/stable/howto/operator/python.html
 ",TRUE,TRUE
-ShortCircutOperator,Changes in import,from airflow.operators.python_operator import ShortCircutOperator,from airflow.operators.python import ShortCircutOperator,Import Statement Changed,TRUE,FALSE
+ShortCircutOperator,Changes in import,from airflow.operators.python_operator import ShortCircuitOperator,from airflow.operators.python import ShortCircuitOperator,Import Statement Changed,TRUE,FALSE
 ShortCircutOperator,Changes in Operator,No Changes,No Changes,None,FALSE,FALSE
 ShortCircutOperator,Argument changes,No Changes,No Changes,None,FALSE,FALSE
 GCStoBigQueryOperator,Changes in import,airflow.contrib.operators.gcs_to_bq.GoogleCloudStorageToBigQueryOperator,airflow.providers.google.cloud.transfers.gcs_to_bigquery.GCSToBigQueryOperator,Import Statement Changed,TRUE,FALSE
