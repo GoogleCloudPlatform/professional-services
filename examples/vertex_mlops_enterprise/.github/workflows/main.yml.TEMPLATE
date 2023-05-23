@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name: Build Vertex AI pipeline
+name: Compile Vertex AI pipeline
 on:
   workflow_dispatch:
 
@@ -22,12 +22,13 @@ permissions:
   id-token: 'write'
 
 env:
-  PROJECT_ID: ${project_id}
+  ENVIRONMENT: dev
+  PROJECT_ID: mlops2-creditcards-dev
   # SA used to authenticate in GCP through Workload Identity Federation 
-  SERVICE_ACCOUNT: sa-github@${project_id}.iam.gserviceaccount.com
+  SERVICE_ACCOUNT: mlops2-sa-github@mlops2-creditcards-dev.iam.gserviceaccount.com
   REGION: europe-west4
-  DOCKER_REPO: europe-west4-docker.pkg.dev/${project_id}/docker-repo
-  WORKLOAD_ID_PROVIDER: '${wip}'
+  DOCKER_REPO: europe-west4-docker.pkg.dev/mlops2-creditcards-dev/docker-repo
+  WORKLOAD_ID_PROVIDER: 'projects/731418723684/locations/global/workloadIdentityPools/gh-pool/providers/gh-provider'
 jobs:
   run-pipeline:
     name: 'Build Vertex AI pipeline'
@@ -35,16 +36,16 @@ jobs:
     steps:
     - uses: 'actions/checkout@v3'
       with:
-        token: $${{ github.token }}
+        token: ${{ github.token }}
          
     - id: 'auth'
       name: 'Authenticate to Google Cloud'
       uses: 'google-github-actions/auth@v1'
       with:
         create_credentials_file: 'true'
-        workload_identity_provider: $${{ env.WORKLOAD_ID_PROVIDER }}
-        service_account: $${{ env.SERVICE_ACCOUNT }}
+        workload_identity_provider: ${{ env.WORKLOAD_ID_PROVIDER }}
+        service_account: ${{ env.SERVICE_ACCOUNT }}
         access_token_lifetime: 3600s
 
     - name: 'Compile Vertex Pipeline'
-      run: gcloud builds submit build/known_hosts.github.zip --config build/pipeline-deployment.yaml --project $${{ env.PROJECT_ID }} --region $${{ env.REGION }} --machine-type=e2-highcpu-8 --suppress-logs
+      run: gcloud builds submit --no-source --config build/${{ env.ENVIRONMENT }}/pipeline-deployment.yaml --project ${{ env.PROJECT_ID }} --region ${{ env.REGION }} --machine-type=e2-highcpu-8 --suppress-logs

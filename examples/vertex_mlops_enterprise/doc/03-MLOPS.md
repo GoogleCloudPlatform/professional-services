@@ -36,7 +36,6 @@ gsutil rm $BUCKET
 
 As next steps, we will create the base table we will use for the ML process:
 ```
-
 sql_script="CREATE OR REPLACE TABLE \`${PROJECT}.${BQ_DATASET_NAME}.${ML_TABLE}\` 
 AS (
     SELECT 
@@ -45,26 +44,6 @@ AS (
       IF(ABS(MOD(FARM_FINGERPRINT(CAST(Time AS STRING)), 100)) <= 80, 'UNASSIGNED', 'TEST') AS ML_use
     FROM
       \`${PROJECT}.${BQ_DATASET_NAME}.${BQ_SOURCE_TABLE}\`
-)
-"
-
-bq query --project_id $PROJECT --nouse_legacy_sql "$sql_script"
-```
-
-
-(OPTIONAL) For the experimentation environment several alternatives are valid, from providing access to the created tables to create an authorized view. For this example, we will just create a new table that will be a subset of all the available data.
-
-
-```
-PROJECT_EXP=<DEVELOPMENT PROJECT>
-BQ_DATASET_NAME_EXP=credit_cards
-
-
-sql_script="CREATE OR REPLACE TABLE \`${PROJECT_EXP}.${BQ_DATASET_NAME_EXP}.${ML_TABLE}\` 
-AS (
-    SELECT * 
-    FROM \`${PROJECT}.${BQ_DATASET_NAME}.${ML_TABLE}\`
-    LIMIT 140000
 )
 "
 
@@ -113,8 +92,5 @@ You can test the overall build process from the Github Actions section.
 
 
 ## Troubleshooting
-### Vertex Pipelines issues
- 
-`Failed to create pipeline job. Error: Vertex AI Service Agent service-nnnnn@gcp-sa-aiplatform-cc.iam.gserviceaccount.com does not have permission to access Artifact Registry repository projects/PROJECT_ID/locations/europe-west4/repositories/docker-repo`
 
-This happens the first time runing a Vertex Pipeline job since the Vertex SA is not still enabled. Re-run again the trigger to launch the job.
+See [Issues](./ISSUES.md)
