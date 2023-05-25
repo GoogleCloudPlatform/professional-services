@@ -35,7 +35,7 @@ PRED_CONTAINER='europe-docker.pkg.dev/vertex-ai/prediction/xgboost-cpu.1-6:lates
 
 ENDPOINT_NAME='xgboost-creditcards-3'
 
-caching = False
+caching = True
 
 # Load data from BigQuery and save to CSV
 @component(
