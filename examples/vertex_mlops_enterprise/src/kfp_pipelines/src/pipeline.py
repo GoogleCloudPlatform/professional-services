@@ -35,20 +35,18 @@ PRED_CONTAINER='europe-docker.pkg.dev/vertex-ai/prediction/xgboost-cpu.1-6:lates
 
 ENDPOINT_NAME='xgboost-creditcards-3'
 
-hptune = False
-caching = True
+caching = False
 
-#########################
-### Download BigQuery and convert to CSV
-#########################
-
+# Load data from BigQuery and save to CSV
 @component(
     packages_to_install=["google-cloud-bigquery", "pandas", "db-dtypes", "pyarrow"],
     base_image=IMAGE
 )
 def get_dataframe(
     bq_table: str,
-    output_data_path: OutputPath("Dataset"),
+    train_data_path: OutputPath("Dataset"),
+    test_data_path: OutputPath("Dataset"),
+    val_data_path: OutputPath("Dataset"),
     project_id: str
 ):
     from google.cloud import bigquery
@@ -58,25 +56,20 @@ def get_dataframe(
     rows = bqclient.list_rows(table)
     dataframe = rows.to_dataframe(create_bqstorage_client=True)
 
-    # sample
-    dataframe = dataframe.sample(frac=1, random_state=2)
+    df_train, df_test = train_test_split(dataframe, test_size=0.3)
+    df_test, df_val = train_test_split(dataframe, test_size=0.5)
 
-    dataframe.to_csv(output_data_path)
+    df_train.to_csv(train_data_path)
+    df_test.to_csv(test_data_path)
+    df_val.to_csv(val_data_path)
 
 
+# Import model and convert to Artifact
 @component(
     packages_to_install=["google-cloud-aiplatform"],
     base_image=IMAGE
 )
 def get_unmanaged_model(model: Input[Model], unmanaged_model: Output[Artifact]):
-  unmanaged_model.metadata = model.metadata
-  unmanaged_model.uri = '/'.join(model.uri.split('/')[:-1]) # remove filename after last / - send dir rather than file
-
-@component(
-    packages_to_install=["google-cloud-aiplatform"],
-    base_image=IMAGE
-)
-def get_vertex_model(model: str, unmanaged_model: Output[Artifact]):
   unmanaged_model.metadata = model.metadata
   unmanaged_model.uri = '/'.join(model.uri.split('/')[:-1]) # remove filename after last / - send dir rather than file
 
@@ -89,7 +82,7 @@ def get_vertex_model(model: str, unmanaged_model: Output[Artifact]):
     # Default pipeline root. You can override it when submitting the pipeline.
     pipeline_root=PIPELINE_ROOT,
     # A name for the pipeline.
-    name=template_path,
+    name=PIPELINE_NAME,
 )
 def pipeline(
     bq_table: str = "",
@@ -105,7 +98,8 @@ def pipeline(
     dataset_task = get_dataframe(bq_table=bq_table, project_id=PROJECT_ID)
 
     model_task = xgb_train(
-        dataset = dataset_task.outputs['output_data_path'],
+        train_data = dataset_task.outputs['train_data_path'],
+        test_data = dataset_task.outputs['test_data_path'],
         xgboost_param_max_depth = xgboost_param_max_depth,
         xgboost_param_learning_rate = xgboost_param_learning_rate,
         xgboost_param_n_estimators = xgboost_param_n_estimators,
@@ -121,18 +115,15 @@ def pipeline(
     converter_op = get_unmanaged_model(
         model=model_task.outputs['model']
     )
-
-    #get_parent_model_op = GetVertexModelOp(model_resource_name=PARENT_MODEL)
             
     upload_op = ModelUploadOp(
             unmanaged_container_model=converter_op.outputs['unmanaged_model'],
             project=PROJECT_ID,
             location=REGION,
-            display_name="xgb_model" #,
-            #parent_model=get_parent_model_op.outputs["model"]
+            display_name="xgb_model"
     )
 
-    deploy_op = ModelDeployOp(
+    _ = ModelDeployOp(
             model=upload_op.outputs['model'],
             endpoint=create_endpoint_op.outputs['endpoint'],
             dedicated_resources_machine_type = 'n1-standard-8',
@@ -150,70 +141,21 @@ logging.getLogger().setLevel(logging.INFO)
 
 TIMESTAMP = datetime.now().strftime("%Y%m%d-%H%M")
 
-if hptune:
-    logging.info("Running hyperparameter tuning")
 
-    worker_pool_specs = [
-            {
-                "machine_spec": {
-                    "machine_type": "n1-standard-4",
-                },
-                "replica_count": 1,
-                "container_spec": {
-                    "image_uri": TRAIN_COMPONENT_IMAGE,
-                    "command": ["python", "train.py"],
-                    "args": [
-                        '--dataset_path', f'/gcs/{MY_STAGING_BUCKET}/custom_job/creditcards.csv',
-                        '--xgboost_param_max_depth', '10',
-                        '--xgboost_param_learning_rate', '0.1',
-                        "--xgboost_param_n_estimators", "100",
-                        "--model_output_path", f'/gcs/{MY_STAGING_BUCKET}/custom_job/model'],
-                            },
-            }
-        ]
+compiler.Compiler().compile(
+    pipeline_func=pipeline, 
+    package_path=PIPELINE_NAME + ".json"
+)
 
-    custom_job = aiplatform.CustomJob(
-        display_name='xgb-custom-job',
-        worker_pool_specs=worker_pool_specs,
-        staging_bucket=f'gs://{MY_STAGING_BUCKET}/custom_job/staging'
-    )
+run = aiplatform.PipelineJob(
+    display_name=PIPELINE_NAME,
+    template_path=PIPELINE_NAME + ".json",
+    job_id=f"{PIPELINE_NAME}-{TIMESTAMP}",
+    parameter_values={"bq_table": BQ_INPUT_DATA},
+    enable_caching=caching,
+)
 
-    # To test it:
-    #custom_job.submit()
-
-    hp_job = aiplatform.HyperparameterTuningJob(
-        display_name=f'hptune-xgb',
-        custom_job=custom_job,  
-        metric_spec={ 'f1': 'maximize' },
-        parameter_spec={
-            'xgboost_param_max_depth': hpt.IntegerParameterSpec(min=4, max=20, scale='linear'),
-            'xgboost_param_learning_rate': hpt.DoubleParameterSpec(min=0.01, max=0.2, scale='log'),
-            'xgboost_param_n_estimators': hpt.IntegerParameterSpec(min=50, max=200, scale='linear')
-        },
-        max_trial_count=16,
-        parallel_trial_count=4,
-        project=PROJECT_ID,
-        location=REGION
-    )
-
-    hp_job.run()
-
-else:
-
-    compiler.Compiler().compile(
-        pipeline_func=pipeline, 
-        package_path=PIPELINE_NAME + ".json"
-    )
-
-    run = aiplatform.PipelineJob(
-        display_name=PIPELINE_NAME,
-        template_path=PIPELINE_NAME + ".json",
-        job_id=f"{PIPELINE_NAME}-{TIMESTAMP}",
-        parameter_values={"bq_table": BQ_INPUT_DATA},
-        enable_caching=caching,
-    )
-
-    run.submit()
+run.submit()
 
 # This can be used to test the online endpoint:
 #

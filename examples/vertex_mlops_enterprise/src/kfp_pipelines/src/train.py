@@ -41,35 +41,38 @@ TRAIN_REQS=[
 
 aiplatform.init(project=PROJECT_ID, location=REGION)
 
+def load_data(dataset_path: str):
+    df = pd.read_csv(dataset_path)
+    labels = df.pop("Class").tolist()
+    data = df.values.tolist()
+
+    # we need to convert it to numpy to avoid
+    # 'list' object has no attribute 'shape' errors in xgb.fit()
+    return (np.asarray(data), np.asarray(labels))
+
+
 
 log = logging.getLogger()
 log.setLevel(logging.INFO)
 
 def train(
-        dataset_path: str, 
+        train_dataset_path: str, 
+        test_dataset_path: str, 
         xgboost_param_max_depth: int,
         xgboost_param_learning_rate: float,
         xgboost_param_n_estimators: int,
         model_output_path,
+        serving_container_image_uri,
         metrics: Output[Metrics] = None,
         metricsc: Output[ClassificationMetrics] = None,
-        model: Output[Model] = None):
+        model: Output[Model] = None,):
 
     # Log to Vertex Experiments for comparison between runs
     #aiplatform.init(experiment='coffee-bean-classification')
     #aiplatform.start_run(run=datetime.now().strftime("%Y%m%d-%H%M%S"))
 
-    df = pd.read_csv(dataset_path)
-    labels = df.pop("Class").tolist()
-    data = df.values.tolist()
-    x_train, x_test, y_train, y_test = train_test_split(data, labels)
-
-    # train_test_split() returns lists, we need to convert it to numpy to avoid
-    # 'list' object has no attribute 'shape' errors in xgb.fit()
-    x_train = np.asarray(x_train)
-    y_train = np.asarray(y_train)
-    x_test = np.asarray(x_test)
-    y_test = np.asarray(y_test)
+    x_train, y_train = load_data(train_dataset_path)
+    x_test, y_test = load_data(test_dataset_path)
 
     logging.info(f"Train X {type(x_train)} {len(x_train)}")
     logging.info(f"Train Y {type(y_train)} {len(y_train)}: {y_train[:5]}")
@@ -116,7 +119,7 @@ def train(
     classifier.save_model(model_output_path)
 
     if model:
-        model.metadata = { "containerSpec": { "imageUri": 'europe-docker.pkg.dev/vertex-ai/prediction/xgboost-cpu.1-6:latest' } }
+        model.metadata = { "containerSpec": { "imageUri": serving_container_image_uri } }
         model.path = model_output_path
 
 if __name__ == '__main__':
@@ -143,7 +146,8 @@ if __name__ == '__main__':
     target_image=TRAIN_COMPONENT_IMAGE
 )
 def xgb_train(
-    dataset: Input[Dataset],
+    train_data: Input[Dataset],
+    test_data: Input[Dataset],
     metrics: Output[Metrics],
     model: Output[Model],
     xgboost_param_max_depth: int,
@@ -154,11 +158,13 @@ def xgb_train(
 ):
     
     train(
-        dataset_path=dataset.path, 
+        train_dataset_path=train_data.path, 
+        test_dataset_path=test_data.path, 
         xgboost_param_max_depth=xgboost_param_max_depth,
         xgboost_param_learning_rate=xgboost_param_learning_rate,
         xgboost_param_n_estimators=xgboost_param_n_estimators,
         model_output_path=model.path,
         metrics=metrics,
         metricsc=metricsc,
-        model=model)
+        model=model,
+        serving_container_image_uri=serving_container_image_uri)

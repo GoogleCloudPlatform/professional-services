@@ -1,6 +1,6 @@
 from train import REGION, PROJECT_NR, PROJECT_ID
 
-MY_STAGING_BUCKET = 'pbalm-cxb-aa'
+MY_STAGING_BUCKET = PROJECT_ID
 PIPELINE_NAME = 'xgb-creditcards'
 PIPELINE_ROOT = f'gs://{MY_STAGING_BUCKET}/pipeline_root/{PIPELINE_NAME}'
 
