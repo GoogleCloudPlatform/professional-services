@@ -20,9 +20,9 @@ import sys
 
 # We would want to move this to config.py but we can't import it here due to a KFP bug
 # https://github.com/kubeflow/pipelines/issues/8385
-PROJECT_ID = 'pbalm-cxb-aa'
-PROJECT_NR = '188940921537'
-REGION = 'europe-west1'
+PROJECT_ID = os.getenv("PROJECT_ID", "")
+PROJECT_NR = os.getenv("PROJECT_NR", "")
+REGION = os.getenv("REGION", "")
 IMAGE='python:3.8'
 TRAIN_COMPONENT_IMAGE=f'{REGION}-docker.pkg.dev{PROJECT_ID}/creditcards-kfp/train-fraud:latest'
 TRAIN_REQS=[
