@@ -17,6 +17,7 @@ import logging
 from datetime import datetime
 import argparse
 import sys
+import os
 
 # We would want to move this to config.py but we can't import it here due to a KFP bug
 # https://github.com/kubeflow/pipelines/issues/8385

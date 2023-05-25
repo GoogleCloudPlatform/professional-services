@@ -1,1 +1,1 @@
-kfp components build --component-filepattern train.py --push-image .
+kfp components build --component-filepattern train.py --push-image src
