@@ -25,7 +25,7 @@ PROJECT_ID = os.getenv("PROJECT_ID", "")
 PROJECT_NR = os.getenv("PROJECT_NR", "")
 REGION = os.getenv("REGION", "")
 IMAGE='python:3.8'
-TRAIN_COMPONENT_IMAGE=f'{REGION}-docker.pkg.dev{PROJECT_ID}/creditcards-kfp/train-fraud:latest'
+TRAIN_COMPONENT_IMAGE=f'{REGION}-docker.pkg.dev/{PROJECT_ID}/creditcards-kfp/train-fraud:latest'
 TRAIN_REQS=[
     'protobuf==3.20.3',
     'cloudml-hypertune',
