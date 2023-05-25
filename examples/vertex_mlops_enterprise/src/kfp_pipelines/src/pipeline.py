@@ -19,8 +19,8 @@ import pickle
 import argparse
 import sys
 
-from config import MY_STAGING_BUCKET, PIPELINE_ROOT, PIPELINE_NAME, BQ_INPUT_DATA, PARENT_MODEL
-from train import xgb_train, PROJECT_ID, REGION, IMAGE, TRAIN_COMPONENT_IMAGE
+from config import PIPELINE_ROOT, PIPELINE_NAME, BQ_INPUT_DATA
+from train import xgb_train, PROJECT_ID, REGION, IMAGE
 
 PRED_CONTAINER='europe-docker.pkg.dev/vertex-ai/prediction/xgboost-cpu.1-6:latest'
 
@@ -169,6 +169,7 @@ def pipeline(
 aiplatform.init(project=PROJECT_ID, location=REGION)
 
 logging.getLogger().setLevel(logging.INFO)
+logging.info(f"Init with project {PROJECT_ID} in region {REGION}. Pipeline root: {PIPELINE_ROOT}")
 
 TIMESTAMP = datetime.now().strftime("%Y%m%d-%H%M")
 
@@ -179,11 +180,14 @@ compiler.Compiler().compile(
 )
 
 run = aiplatform.PipelineJob(
+    project=PROJECT_ID,
+    location=REGION,
     display_name=PIPELINE_NAME,
     template_path=PIPELINE_NAME + ".json",
     job_id=f"{PIPELINE_NAME}-{TIMESTAMP}",
+    pipeline_root=PIPELINE_ROOT,
     parameter_values={"bq_table": BQ_INPUT_DATA},
-    enable_caching=caching,
+    enable_caching=caching
 )
 
 run.submit()
