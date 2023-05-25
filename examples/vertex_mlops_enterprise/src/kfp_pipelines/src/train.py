@@ -24,22 +24,14 @@ import os
 PROJECT_ID = os.getenv("PROJECT_ID", "")
 PROJECT_NR = os.getenv("PROJECT_NR", "")
 REGION = os.getenv("REGION", "")
-IMAGE='python:3.8'
+IMAGE=f'{REGION}-docker.pkg.dev/{PROJECT_ID}/creditcards-kfp/base:latest'
 TRAIN_COMPONENT_IMAGE=f'{REGION}-docker.pkg.dev/{PROJECT_ID}/creditcards-kfp/train-fraud:latest'
-TRAIN_REQS=[
-    'protobuf==3.20.3',
-    'cloudml-hypertune',
-    "xgboost==1.6.2", 
-    "scikit-learn==0.24.1", 
-    "pandas==1.3.5", 
-    "joblib", 
-    "google-cloud-aiplatform",
-    "google-cloud-storage==2.7.0",
-    'gcsfs',
-    'kfp==1.8.19']
 
 
 aiplatform.init(project=PROJECT_ID, location=REGION)
+
+log = logging.getLogger()
+log.setLevel(logging.INFO)
 
 def load_data(dataset_path: str):
     df = pd.read_csv(dataset_path)
@@ -49,11 +41,6 @@ def load_data(dataset_path: str):
     # we need to convert it to numpy to avoid
     # 'list' object has no attribute 'shape' errors in xgb.fit()
     return (np.asarray(data), np.asarray(labels))
-
-
-
-log = logging.getLogger()
-log.setLevel(logging.INFO)
 
 def train(
         train_dataset_path: str, 
@@ -141,7 +128,6 @@ if __name__ == '__main__':
           model_output_path=args.model_output_path)
 
 @component(
-    packages_to_install=TRAIN_REQS,
     base_image=IMAGE,
     target_image=TRAIN_COMPONENT_IMAGE
 )
