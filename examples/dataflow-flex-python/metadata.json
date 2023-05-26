@@ -1,0 +1,36 @@
+{
+    "name": "XML to BQ Flex template",
+    "description": "dataflow flex template for batch ingestion of XML files to BigQuery or json files",
+    "parameters": [
+        {
+            "name": "input",
+            "label": "Source File Path",
+            "helpText": "Specify Source Path to folder containing the input XML files",
+            "isOptional": false
+        },
+        {
+            "name": "output",
+            "label": "Dead letter location",
+            "helpText": "Specify dead_letter_dir, it can be a dir (/tmp) or a gcs bucket path gs://<some-bucket>",
+            "isOptional": false
+        },
+        {
+            "name": "dead_letter_dir",
+            "label": "BQ output dataset",
+            "helpText": "Specify BQ Output dataset in form of 'project:dataset' (tables 'orders' and 'customers' will be created automatically) or json file(example.json)",
+            "isOptional": false
+        },
+        {
+            "name": "sdk_location",
+            "label": "location of apache beam SDK.",
+            "helpText": "use value 'container' since we are using Apache beam SDK from a base container",
+            "isOptional": false
+        },
+        {
+            "name": "sdk_container_image",
+            "label": "Image for worker container.",
+            "helpText": "Image for worker container.",
+            "isOptional": false
+        }
+    ]
+}
