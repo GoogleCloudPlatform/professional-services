@@ -36,7 +36,7 @@ class MigrationUtility:
     def print_report(impacted_files):
         # temp method to print report on console , will modify this in phase 2
         print('Below is the list of impacted files')
-        print(f'Total number of impacted files is {len(impacted_files)}')
+        print(f'Total number of impacted files is - {len(impacted_files)}')
         file_string = '\n '.join(impacted_files)
         print(file_string)
 
@@ -91,10 +91,8 @@ class MigrationUtility:
         self.print_report(impacted_files)
 
 
-if __name__ == "__main__":
-    migration_utility = MigrationUtility(rules_file="../migration_rules/rules.csv", input_dir="../examples",
-                                         output_dir="../output")
+def run_migration(input_dag, output_dag, rules_file, add_comments, comments, report_generation):
+    migration_utility = MigrationUtility(rules_file=rules_file, input_dir=input_dag,
+                                         output_dir=output_dag)
     migration_utility.load_rules()
-    comment_flag = 0  # get the flag from user
-    comment = "#some customized comment"  # input the comment from user
-    migration_utility.migrate_files(comment_flag, comment)
+    migration_utility.migrate_files(add_comments, comments)
