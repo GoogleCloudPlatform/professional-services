@@ -19,26 +19,39 @@ def parse_import_statement(import_statement):
 
 
 class MigrationUtility:
-    def __init__(self, rules_file, input_dir, output_dir):
+    def __init__(self, input_dir, output_dir, rules_file, add_comments, comments, report_generation):
         self.replacement_dict = {}
         self.rules_file = rules_file
         self.input_dir = input_dir
         self.output_dir = output_dir
+        self.add_comments = add_comments
+        self.comments = comments
+        self.report_generation = report_generation
         self.function_regex = r'(\w+)\('
 
     def load_rules(self):
         with open(self.rules_file, 'r') as f:
             reader = csv.reader(f)
             for col in reader:
-                self.replacement_dict[col[2].strip()] = (col[0].strip(), col[1].strip(), col[3].strip(), col[4].strip(), col[5].strip(), col[6].strip())
+                self.replacement_dict[col[2].strip()] = (col[0].strip(), col[1].strip(), col[3].strip(), col[4].strip(),
+                                                         col[5].strip(), col[6].strip())
 
     @staticmethod
     def print_report(impacted_files):
         # temp method to print report on console , will modify this in phase 2
+        print("#" * 40)
+        print("          REPORT GENERATION           ")
+        print("#" * 40)
+        print()
+
         print('Below is the list of impacted files')
         print(f'Total number of impacted files is - {len(impacted_files)}')
         file_string = '\n '.join(impacted_files)
         print(file_string)
+        # Conclusion
+        print("#" * 40)
+        print("             END OF REPORT             ")
+        print("#" * 40)
 
     def migrate_files(self, comment_flag, comment):
         impacted_files = []
@@ -64,9 +77,14 @@ class MigrationUtility:
                             imp_stmt += 'import ' + rec
                             if imp_stmt in self.replacement_dict:
                                 change_count += 1
-                                temp.write('# Migration Utility Generated Comment -- Change Type = ' +
-                                           self.replacement_dict[imp_stmt][1] + " , Impact = " +
-                                           self.replacement_dict[imp_stmt][3] + '\n')
+                                if self.add_comments:
+                                    if self.comments:
+                                        comment = '# ' + self.comments + '\n'
+                                    else:
+                                        comment = '# Migration Utility Generated Comment -- Change Type = ' + \
+                                                  self.replacement_dict[imp_stmt][1] + " , Impact = " + \
+                                                  self.replacement_dict[imp_stmt][3] + '\n'
+                                    temp.write(comment)
                                 temp.write(self.replacement_dict[imp_stmt][2] + '\n')
                             else:
                                 temp.write(line)
@@ -79,20 +97,25 @@ class MigrationUtility:
                             for rec in matches:
                                 if rec in self.replacement_dict:
                                     change_count += 1
-                                    temp.write('# Migration Utility Generated Comment -- Change Type = ' +
-                                               self.replacement_dict[rec][1] + " , Impact = " +
-                                               self.replacement_dict[rec][3] + '\n')
+                                    if self.add_comments:
+                                        if self.comments:
+                                            comment = '# ' + self.comments + '\n'
+                                        else:
+                                            comment = '# Migration Utility Generated Comment -- Change Type = ' + \
+                                                      self.replacement_dict[rec][1] + " , Impact = " + \
+                                                      self.replacement_dict[rec][3] + '\n'
+                                        temp.write(comment)
                                     line = line.replace(rec, self.replacement_dict[rec][2])
                         temp.write(line)
 
             if change_count > 0:
                 impacted_files.append(filename+'.py')
-
-        self.print_report(impacted_files)
+        if self.report_generation:
+            self.print_report(impacted_files)
 
 
 def run_migration(input_dag, output_dag, rules_file, add_comments, comments, report_generation):
-    migration_utility = MigrationUtility(rules_file=rules_file, input_dir=input_dag,
-                                         output_dir=output_dag)
+    migration_utility = MigrationUtility(input_dir=input_dag, output_dir=output_dag, rules_file=rules_file,
+                                         add_comments=add_comments, comments=comments, report_generation= report_generation)
     migration_utility.load_rules()
     migration_utility.migrate_files(add_comments, comments)
