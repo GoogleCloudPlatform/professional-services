@@ -70,8 +70,8 @@ python3 run_mig.py  --input_DAG=/airflow/airflow-v1-to-v2-migration/migration_ru
 
 ## TEST-ENV SETUP
 
-| Airflow 1.x Environment                        | Airflow 2.x Environment                        |
-|------------------------------------------------|------------------------------------------------|
-| Python 3.7.1                                   | Python 3.7.1                                   |
-| Airflow - 1.10.15                              | Airflow - 2.5.3                                |
-| apache-airflow-providers-google version 8.12.0 | apache-airflow-providers-google version 8.12.0 |
+| Airflow 1.x Environment | Airflow 2.x Environment                        |
+|-------------------------|------------------------------------------------|
+| Python 3.7.1            | Python 3.7.1                                   |
+| Airflow - 1.10.15       | Airflow - 2.5.3                                |
+|                         | apache-airflow-providers-google version 8.12.0 |
