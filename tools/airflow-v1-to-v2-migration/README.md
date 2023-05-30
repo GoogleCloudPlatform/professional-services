@@ -3,33 +3,20 @@
 
 ## OVERVIEW:
 
-There have been several upgrades from composer v1(airflow-1.0) to
-composer v2(airflow 2.0). The objective of the tool is to make code
-changes to DAG files from composer-v1(airflow-1.0) to
-composer-v2(airflow 2.0) in accordance with the rules file. Making
-manual changes to DAG files can be time-consuming and can lead to
-errors.
+There have been several upgrades in the DAG from composer v1(airflow-1.0) to
+composer v2(airflow 2.0) which done manually can be time-consuming and error prone. The objective 
+of the tool is to automate the code changes from airflow-v1 DAG files from composer-v1(airflow-1.0) to
+composer-v2(airflow 2.0).
 
 
-## CONSTRAINTS: 
+## DEPLOYMENT:
 
-1. This tool makes changes only to the import statements and operators based on the default rules.csv or the custom
-rules.csv.
-2. For possible changes to the arguments of the operators
-itself, a comment indicating the change to be made would be added above
-the operator. These changes however must be done manually. 
-
-
-## HOW IT WORKS:
-
-The tool takes 6 parameters - 2 required and 4 optional. The tool reads
-through the input DAG and looks for changes to be made based on the
-rules.csv. The user can also generate the rules.csv or the default is
-taken for asserting the DAG changes. Once the changes are made, a
-comment is added above all the changes made. Comments can also be
-customized with the Comment and Add comments parameters. Once the
-changes are made, the updated DAG gets pushed under the Output DAG folder
-location.
+This tool takes the input DAG based on the location provided in the --input_DAG parameter. It reads 
+through the input DAG and look for the operators to be changed based on the rules.csv file which is either the default
+or can be custom created and provided to the tool using --rules_file parameter. The changes are made the output DAG file
+is saved under the location provided in --output_DAG parameter. A default or custom comment is added above all the changes
+made in the DAG file. The comments also indicate changes that need to be done manually for operator arguments. 
+The tool takes 6 parameters - 2 required and 4 optional as listed below,
 
 | Parameter Name    | Description                                                          | Required/Optional                                                                        |
 |-------------------|----------------------------------------------------------------------|------------------------------------------------------------------------------------------|
@@ -41,7 +28,7 @@ location.
 | report_req        | True/False - create migration report in output DAG folder            | Optional - by default will be True                                                       |
 
 
-## Command:
+## Commands:
 
 #### With mandatory parameters: 
 
@@ -65,7 +52,7 @@ python3 run_mig.py  --input_DAG=/airflow/airflow-v1-to-v2-migration/migration_ru
 ## PRE-REQUISITES: 
 
 1. DAG folders, to be changed, must be available on the local machine.
-2. Airflow tool repo to be forked to the local machine to be executed with the command.
+2. Airflow v1 to v2 migration tool repo to be forked to the local machine to be executed with the command.
 
 
 ## TEST-ENV SETUP
@@ -75,3 +62,12 @@ python3 run_mig.py  --input_DAG=/airflow/airflow-v1-to-v2-migration/migration_ru
 | Python 3.7.1            | Python 3.7.1                                   |
 | Airflow - 1.10.15       | Airflow - 2.5.3                                |
 |                         | apache-airflow-providers-google version 8.12.0 |
+
+
+## LIMITATIONS: 
+
+1. This tool makes changes only to the import statements and operators based on the default rules.csv or the custom
+rules.csv.
+2. For possible changes to the arguments of the operators
+itself, a comment indicating the change to be made would be added above
+the operator. These changes however must be done manually.
