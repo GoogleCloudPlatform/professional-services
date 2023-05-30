@@ -93,7 +93,7 @@ class MigrationUtility:
                         matches = re.findall(self.function_regex, line)
 
                         if matches:
-                            # search rif required to replace
+                            # search if required to replace
                             for rec in matches:
                                 if rec in self.replacement_dict:
                                     change_count += 1
@@ -115,7 +115,8 @@ class MigrationUtility:
 
 
 def run_migration(input_dag, output_dag, rules_file, add_comments, comments, report_generation):
-    migration_utility = MigrationUtility(input_dir=input_dag, output_dir=output_dag, rules_file=rules_file,
-                                         add_comments=add_comments, comments=comments, report_generation= report_generation)
+    migration_utility = MigrationUtility(input_dir=input_dag, output_dir=output_dag,
+                                         rules_file=rules_file, add_comments=add_comments,
+                                         comments=comments, report_generation= report_generation)
     migration_utility.load_rules()
     migration_utility.migrate_files(add_comments, comments)

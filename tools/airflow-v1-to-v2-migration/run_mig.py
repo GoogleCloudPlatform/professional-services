@@ -13,6 +13,7 @@ def convert_to_bool(arg):
     else:
         return False
 
+
 def validate_folder_access(input_folder):
     if os.access(input_folder, os.F_OK) and os.access(input_folder, os.R_OK) and os.access(input_folder, os.W_OK):
         return True
@@ -29,6 +30,7 @@ def main(input_dag, output_dag, rules_file, add_comments, comments, report_gener
         logging.error(msg)
     else:
         add_comments = convert_to_bool(add_comments)
+        report_generation = convert_to_bool(report_generation)
         migration.run_migration(input_dag, output_dag, rules_file, add_comments, comments, report_generation)
 
 
@@ -59,15 +61,15 @@ if __name__ == '__main__':
     )
     parser.add_argument(
         '--add_comments', dest='add_comments',
-        help='[OPTIONAL]If client wants to see Migration Utility generated comments in the outpur files',
+        help='[OPTIONAL]If client wants to see Migration Utility generated comments in the output files',
         default="True")
     parser.add_argument(
         '--comments', dest='comment',
         help='[OPTIONAL]The path to optional rules.csv folder when custom rules are to be used',
         default="")
     parser.add_argument(
-        '--report_req', dest='report_generation', type=bool,
-        help='[OPTIONAL]True or False to determine the generation of final output report', default=False)
+        '--report_req', dest='report_generation',
+        help='[OPTIONAL]True or False to determine the generation of final output report', default=True)
 
     args = parser.parse_args()
     main(args.input_dag_folder, args.output_dag_folder, args.rules_file, args.add_comments,
