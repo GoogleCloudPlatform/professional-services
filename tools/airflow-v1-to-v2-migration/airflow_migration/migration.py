@@ -4,6 +4,10 @@ from pathlib import Path
 import re
 
 
+def clean_input(arg):
+    return arg.strip().replace('\n', '')
+
+
 def parse_import_statement(import_statement):
     pattern = r'^(?:from\s+([\w.]+)\s+)?import\s+(?:\(([^)]+)\)|([\w., ]+))$'
     match = re.search(pattern, import_statement)
@@ -33,8 +37,8 @@ class MigrationUtility:
         with open(self.rules_file, 'r') as f:
             reader = csv.reader(f)
             for col in reader:
-                self.replacement_dict[col[2].strip()] = (col[0].strip(), col[1].strip(), col[3].strip(), col[4].strip(),
-                                                         col[5].strip(), col[6].strip())
+                self.replacement_dict[col[2].strip()] = (clean_input(col[0]), clean_input(col[1]), clean_input(col[3]),
+                                                         clean_input(col[4]), clean_input(col[5]), clean_input(col[6]))
 
     @staticmethod
     def print_report(impacted_files):
