@@ -1,5 +1,6 @@
 # Usage guidelines
 
+
 ## OVERVIEW:
 
 There have been several upgrades from composer v1(airflow-1.0) to
@@ -7,13 +8,17 @@ composer v2(airflow 2.0). The objective of the tool is to make code
 changes to DAG files from composer-v1(airflow-1.0) to
 composer-v2(airflow 2.0) in accordance with the rules file. Making
 manual changes to DAG files can be time-consuming and can lead to
-errors. 
+errors.
+
+
 ## CONSTRAINTS: 
+
 1. This tool makes changes only to the import statements and operators based on the default rules.csv or the custom
 rules.csv.
 2. For possible changes to the arguments of the operators
 itself, a comment indicating the change to be made would be added above
 the operator. These changes however must be done manually. 
+
 
 ## HOW IT WORKS:
 
@@ -26,7 +31,6 @@ customized with the Comment and Add comments parameters. Once the
 changes are made, the updated DAG gets pushed under the Output DAG folder
 location.
 
-
 | Parameter Name    | Description                                                          | Required/Optional                                                                        |
 |-------------------|----------------------------------------------------------------------|------------------------------------------------------------------------------------------|
 | input_dag_folder  | Input folder where Airflow 1.x DAG code is present                   | Required - supports local and gcs location                                               |
@@ -36,27 +40,33 @@ location.
 | comments          | Client can customize to custom comment                               | Optional- by default will be a generic comment                                           |
 | report_req        | True/False - create migration report in output DAG folder            | Optional - by default will be True                                                       |
 
+
 ## Command:
 
 #### With mandatory parameters: 
+
 ``` 
-python3 run_mig.py --input_DAG="Input-DAG-location" --output_DAG="Output-DAG-location"
+python3 run_mig.py --input_DAG="Input-DAG-location" --output_DAG="Output-DAG-location" 
 ```
 
 #### With all parameters: 
+
 ```` 
-python3 run_mig.py --input_DAG="Input-DAG-location" --output_DAG="Output-DAG-location" --rules_folder="Rules_folder location" --comments="Custom comments to be added for the changes" --report_req="for final generation of report"
+python3 run_mig.py --input_DAG="Input-DAG-location" --output_DAG="Output-DAG-location" --rules_folder="Rules_folder location" --add_comments=FALSE --comments="Custom comments to be added for the changes" --report_req="for final generation of report"
 ````
 
 #### Sample Command
 
 ```
-python3 __init__.py  --input_DAG=/airflow/airflow-v1-to-v2-migration/migration_rules/input.dag --output_DAG=/airflow/airflow-v1-to-v2-migration/migration_rules/output.dag  --rules_folder=/airflow/airflow-v1-to-v2-migration/migration_rules/rules.csv --add_comments=TRUE  --comments=”Operator Name changed” --report_req=”for final generation of report”
+python3 run_mig.py  --input_DAG=/airflow/airflow-v1-to-v2-migration/migration_rules/input.dag --output_DAG=/airflow/airflow-v1-to-v2-migration/migration_rules/output.dag  --rules_folder=/airflow/airflow-v1-to-v2-migration/migration_rules/rules.csv --add_comments=TRUE  --comments=”Operator Name changed” --report_req=”for final generation of report”
 ```
 
+
 ## PRE-REQUISITES: 
+
 1. DAG folders, to be changed, must be available on the local machine.
 2. Airflow tool repo to be forked to the local machine to be executed with the command.
+
 
 ## TEST-ENV SETUP
 
