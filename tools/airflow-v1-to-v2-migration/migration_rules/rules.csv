@@ -8,20 +8,13 @@ DataflowTemplateOperator,Changes in import,from airflow.contrib.operators.datafl
 DataflowTemplateOperator,Changes in Operator,DataflowTemplateOperator,DataflowTemplatedJobStartOperator,Operator Name Change,TRUE,FALSE
 DataflowTemplateOperator,Argument changes,No Changes,No Changes,None,FALSE,FALSE
 "DataprocCreateClusterOperator
-",Changes in import,"from airflow.contrib.operators.dataproc import DataprocClusterCreateOperator 
-
-
-","from airflow.providers.google.cloud.operators.
-dataproc import
-    DataprocCreateClusterOperator
-
-",Import Statement Changed,TRUE,FALSE
+",Changes in import,"from airflow.contrib.operators.dataproc_operator import DataprocClusterCreateOperator","from airflow.providers.google.cloud.operators.dataproc import DataprocCreateClusterOperator",Import Statement Changed,TRUE,FALSE
 "DataprocCreateClusterOperator
 ",Changes in Operator,DataprocClusterCreateOperator,DataprocCreateClusterOperator,None,TRUE,FALSE
 "DataprocCreateClusterOperator
 ",Argument changes,Region Parameter is Optional,"Add a region parameter to these Operators
 For e.g. region = ‘us-central1’ (Required)",Region is Required otherwise it will show compilation error,TRUE,TRUE
-DataprocDeleteClusterOperator,Changes in import,from airflow.contrib.operators.dataproc import DataprocClusterDeleteOperator,from airflow.contrib.operators.dataproc import DataprocDeleteClusterOperator,Import Statement Changed,TRUE,FALSE
+DataprocDeleteClusterOperator,Changes in import,from airflow.contrib.operators.dataproc_operator import DataprocClusterDeleteOperator,from airflow.contrib.operators.dataproc import DataprocDeleteClusterOperator,Import Statement Changed,TRUE,FALSE
 DataprocDeleteClusterOperator,Changes in Operator,DataprocClusterDeleteOperator,DataprocDeleteClusterOperator,None,TRUE,FALSE
 DataprocDeleteClusterOperator,Argument changes,Region Parameter is Optional,"Add a region parameter to these Operators
 For e.g. region = ‘us-central1’ (Required)",Region is Required otherwise it will show compilation error,TRUE,TRUE

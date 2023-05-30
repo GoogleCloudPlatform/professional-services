@@ -24,10 +24,7 @@ Example Airflow DAG that creates DataProc cluster.
 import os
 import airflow
 from airflow import models
-from airflow.contrib.operators.dataproc_operator import (
-    DataprocClusterCreateOperator,
-    DataprocClusterDeleteOperator
-)
+from airflow.contrib.operators.dataproc_operator import (DataprocClusterCreateOperator, DataprocClusterDeleteOperator)
 from airflow.contrib.operators.dataproc_operator import DataprocClusterCreateOperator
 
 PROJECT_ID = os.environ.get('GCP_PROJECT_ID', 'an-id')
