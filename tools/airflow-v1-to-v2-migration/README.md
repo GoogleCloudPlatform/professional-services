@@ -3,10 +3,10 @@
 
 ## OVERVIEW:
 
-There have been several upgrades in the DAG from composer v1(airflow-1.0) to
-composer v2(airflow 2.0) which done manually can be time-consuming and error prone. The objective 
-of the tool is to automate the code changes from airflow-v1 DAG files from composer-v1(airflow-1.0) to
-composer-v2(airflow 2.0).
+There have been several upgrades in the DAG from composer v1(airflow-1.x) to
+composer v2(airflow 2.x) which done manually can be time-consuming and error prone. The objective 
+of the tool is to automate the code changes from airflow-v1 DAG files from composer-v1(airflow-1.x) to
+composer-v2(airflow 2.x).
 
 
 ## DEPLOYMENT:
