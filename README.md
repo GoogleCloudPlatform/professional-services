@@ -163,6 +163,8 @@ them to fit your particular use case.
     from Cloud Pub/Sub, enhancing the document using metadata stored in Cloud
     Bigtable and indexing those documents into
     [Elasticsearch](https://www.elastic.co/).
+*   [Dataflow BigQuery to AlloyDB](examples/dataflow-bigquery-to-alloydb/) -
+    Example that shows how to move data from BigQuery to an AlloyDB table using Dataflow.
 *   [Dataflow Flex Template in Restricted Networking Env](examples/dataflow-flex-python/) -
     Example implements a python flex template which can be run in an environment
     where workers can not download python packages due to egress traffic restrictions.
