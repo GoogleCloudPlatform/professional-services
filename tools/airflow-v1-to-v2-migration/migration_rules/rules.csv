@@ -7,17 +7,10 @@ GoogleCloudStorageToBigQueryOperator,Argument Changes,No Changes,No Changes,None
 DataflowTemplateOperator,Changes in import,from airflow.contrib.operators.dataflow_operator import DataflowTemplateOperator,from airflow.providers.google.cloud.operators.dataflow import DataflowTemplatedJobStartOperator,Import Statement Changed,TRUE,FALSE,
 DataflowTemplateOperator,Changes in Operator,DataflowTemplateOperator,DataflowTemplatedJobStartOperator,Operator Name Change,TRUE,FALSE,
 DataflowTemplateOperator,Argument changes,No Changes,No Changes,None,FALSE,FALSE,
-DataprocClusterCreateOperator,Changes in import,"from airflow.contrib.operators.dataproc import DataprocClusterCreateOperator 
-
-
-","from airflow.providers.google.cloud.operators.
-dataproc import
-    DataprocCreateClusterOperator
-
-",Import Statement Changed,TRUE,FALSE,
+DataprocClusterCreateOperator,Changes in import,"from airflow.contrib.operators.dataproc_operator import DataprocClusterCreateOperator","from airflow.providers.google.cloud.operators.dataproc import DataprocCreateClusterOperator",Import Statement Changed,TRUE,FALSE,
 DataprocClusterCreateOperator,Changes in Operator,DataprocClusterCreateOperator,DataprocCreateClusterOperator,None,TRUE,FALSE,
 DataprocClusterCreateOperator,Argument changes,Region Parameter is Optional,Region Parameter is Required,Region is a required parameter,TRUE,TRUE,
-DataprocClusterDeleteOperator,Changes in import,from airflow.contrib.operators.dataproc import DataprocClusterDeleteOperator,from airflow.providers.google.cloud.operators.dataproc.DataprocDeleteClusterOperator,Import Statement Changed,TRUE,FALSE,
+DataprocClusterDeleteOperator,Changes in import,from airflow.contrib.operators.dataproc_operator import DataprocClusterDeleteOperator,from airflow.providers.google.cloud.operators.dataproc import DataprocDeleteClusterOperator,Import Statement Changed,TRUE,FALSE,
 DataprocClusterDeleteOperator,Changes in Operator,DataprocClusterDeleteOperator,DataprocDeleteClusterOperator,None,TRUE,FALSE,
 DataprocClusterDeleteOperator,Argument changes,Region Parameter is Optional,Region Parameter is Required,Region is a required parameter,TRUE,TRUE,
 BigQueryInsertJobOperator,Changes in import,No Changes,No Changes,None,FALSE,FALSE,
@@ -50,8 +43,7 @@ BashOperator,Argument changes,No Changes,No Changes,None,FALSE,FALSE,
 PythonOperator,Changes in import,from airflow.operators.python_operator import PythonOperator,from airflow.operators.python import PythonOperator,Import Statement Changed,TRUE,FALSE,
 PythonOperator,Changes in Operator,No Changes,No Changes,None,FALSE,FALSE,
 PythonOperator,Argument changes,No Changes,No Changes,None,FALSE,FALSE,
-BigQueryOperator,Changes in import,"from airflow.contrib.operators.bigquery_operator import BigQueryOperator
-",from airflow.providers.google.cloud.operators.bigquery import BigQueryExecuteQueryOperator,Import Statement Changed,TRUE,FALSE,
+BigQueryOperator,Changes in import,"from airflow.contrib.operators.bigquery_operator import BigQueryOperator",from airflow.providers.google.cloud.operators.bigquery import BigQueryExecuteQueryOperator,Import Statement Changed,TRUE,FALSE,
 BigQueryOperator,Changes in Operator,BigQueryOperator,BigQueryExecuteQueryOperator,Operator Name Change,TRUE,FALSE,
 BigQueryOperator,Argument changes,No Changes,No Changes,None,FALSE,FALSE,
 DummyOperator,Changes in import,No Changes,No Changes,None,FALSE,FALSE,
@@ -78,9 +70,7 @@ GCSObjectsWithPrefixExistenceSensor,Argument changes,No Changes,No Changes,None,
 BeamRunPythonPipelineOperator,Changes in import,No Changes,No Changes,None,FALSE,FALSE,
 BeamRunPythonPipelineOperator,Changes in Operator,No Changes,No Changes,None,FALSE,FALSE,
 BeamRunPythonPipelineOperator,Argument changes,No Changes,No Changes,Does not exist. Need to check,FALSE,FALSE,
-BigQueryTableExistenceSensor,Changes in import,from airflow.contrib.sensors.bigquery_sensor import BigQueryTableSensor,"from airflow.providers.google.cloud.sensors.bigquery import BigQueryTableExistenceSensor
-
-",Import Statement Changed,TRUE,FALSE,
+BigQueryTableExistenceSensor,Changes in import,from airflow.contrib.sensors.bigquery_sensor import BigQueryTableSensor,"from airflow.providers.google.cloud.sensors.bigquery import BigQueryTableExistenceSensor",Import Statement Changed,TRUE,FALSE,
 BigQueryTableExistenceSensor,Changes in Sensor,BigQueryTableSensor,BigQueryTableExistenceSensor,Operator Name Change,TRUE,FALSE,
 BigQueryTableExistenceSensor,Argument changes,No Changes,No Changes,Labels may or may not be required. Need to look for alternative to add labels,FALSE,FALSE,
 BigQueryCreateEmptyTableOperator,Changes in import,from airflow.contrib.operators.bigquery_operator import BigQueryCreateEmptyTableOperator,from airflow.providers.google.cloud.operators.bigquery import BigQueryCreateEmptyTableOperator,Import Statement Changed,TRUE,FALSE,
