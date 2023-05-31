@@ -12,14 +12,14 @@ SELECT
         ELSE SAFE_CAST(value AS NUMERIC)
         END AS value,
     block_timestamp
-    FROM
-        bigquery-public-data.crypto_ethereum.token_transfers
-    WHERE
-        DATE(block_timestamp) = DATE_ADD(CURRENT_DATE(), INTERVAL -1 DAY)
+FROM
+    bigquery-public-data.crypto_ethereum.token_transfers
+WHERE
+    DATE(block_timestamp) = DATE_ADD(CURRENT_DATE(), INTERVAL -1 DAY)
 ```
 
 
-## Create the sink table in AlloyDB
+## Create the AlloyDB table in which we will store the BigQuery data
 
 Create a database for the table in AlloyDB:
 ```SQL
@@ -37,7 +37,6 @@ CREATE TABLE token_transfers (
 ```
 
 ## Create the local environment
-I used Cloud Shell for running everything
 ```
 python3 -m venv env
 source env/bin/activate
@@ -57,7 +56,7 @@ For running the Dataflow pipeline, a Bucket is needed for staging the BigQuery d
 gcloud storage buckets create gs://<BUCKET_NAME> --location=southamerica-east1
 ```
 
-Configure variables
+Configure environment variables
 ```
 TMP_BUCKET=<name of the bucket used for staging>
 PROJECT=<name of your GCP project>
@@ -88,7 +87,7 @@ Execute the pipeline
 ```
 python3 main.py \
     --runner DataflowRunner \
-    --region southamerica-east1 \
+    --region ${REGION} \
     --project ${PROJECT} \
     --temp_location gs://${TMP_BUCKET}/tmp/ \
     --alloydb_username ${ALLOYDB_USERNAME} \
