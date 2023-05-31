@@ -28,6 +28,8 @@ them to fit your particular use case.
 *   [Audio Content Profiling](examples/ml-audio-content-profiling) - A tool that
     builds a pipeline to scale the process of moderating audio files for
     inappropriate content using machine learning APIs.
+*   [Bigdata generator](tools/bigdata-generator/) - 
+    Solution that generates large amounts of data for stress-testing bigdata solutions (e.g BigQuery). For each of the fields you want to generate, you can specify rules for generating their values. The generated data can stored in BigQuery or GCS (Avro, CSV).
 *   [BigQuery Analyze Realtime Reddit Data](examples/bigquery-analyze-realtime-reddit-data/) - 
     Solution to deploy a ([reddit](https://www.reddit.com)) social media data collection
     architecture on Google Cloud Platform.  Analyzes reddit comments in realtime and
@@ -52,6 +54,8 @@ them to fit your particular use case.
 *   [BigQuery Cross Project Slot Monitoring](examples/bigquery-cross-project-slot-monitoring) -
     Solution to help monitoring slot utilization across multiple projects, while
     breaking down allocation per project.
+    [BigQuery DDL Validator](examples/bigquery-ddl-validator) -
+    A utility that will read the Legacy DDL and compare it against the previously extracted DDL and produce an output with the name of the objects where the DDL is no longer matching.
 *   [BigQuery Group Sync For Row Level Access](examples/bigquery-row-access-groups) -
     Sample code to synchronize group membership from G Suite/Cloud Identity into
     BigQuery and join that with your data to control access at row level.
@@ -542,6 +546,9 @@ Platform usage.
     Recommender is a database script that recommends the best numeric data type for the NUMBER data type
     when migrating from legacy databases like Oracle to Google Cloud platforms like BigQuery, AlloyDB,
     Cloud SQL for PostgreSQL, and Google Cloud Storage.
+*   [Composer DAG Load Generator](tools/cloud-composer-dag-generator) - This is an automatic 
+    DAG generator tool which can be used to create test workload on a cloud composer environmnet
+    and to test differents airflows configurations or to do fine tune using the composer/airflow metrics.
 
 ## Contributing
 
