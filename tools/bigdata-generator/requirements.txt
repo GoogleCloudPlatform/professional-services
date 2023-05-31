@@ -1,0 +1,4 @@
+wheel==0.38.4
+apache-beam[gcp]==2.44.0
+google-cloud-storage==2.7.0
+exrex==0.10.5
