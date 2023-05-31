@@ -546,6 +546,9 @@ Platform usage.
     Recommender is a database script that recommends the best numeric data type for the NUMBER data type
     when migrating from legacy databases like Oracle to Google Cloud platforms like BigQuery, AlloyDB,
     Cloud SQL for PostgreSQL, and Google Cloud Storage.
+*   [Composer DAG Load Generator](tools/cloud-composer-dag-generator) - This is an automatic 
+    DAG generator tool which can be used to create test workload on a cloud composer environmnet
+    and to test differents airflows configurations or to do fine tune using the composer/airflow metrics.
 
 ## Contributing
 
