@@ -77,7 +77,7 @@ def run(argv=None, save_main_session=True):
     with beam.Pipeline(options=pipeline_options) as p:
         coders.registry.register_coder(EthereumTokenTransfersRowType, coders.RowCoder)
 
-        elements = (
+        (
             p | 'ReadFromBigQuery' >> beam.io.ReadFromBigQuery(
                 query=known_args.bq_query,
                 use_standard_sql=True
@@ -87,7 +87,7 @@ def run(argv=None, save_main_session=True):
                     to_address=bq_row['to_address'],
                     value=bq_row['value'],
                     block_timestamp=bq_row['block_timestamp'].isoformat()
-                )
+            )
             ).with_output_types(EthereumTokenTransfersRowType)
             | 'Write to jdbc' >> WriteToJdbc(
                     driver_class_name='org.postgresql.Driver',
@@ -99,8 +99,8 @@ def run(argv=None, save_main_session=True):
                     username=known_args.alloydb_username,
                     password=known_args.alloydb_password,
                     connection_properties='stringtype=unspecified'
-                )
             )
+        )
 
 if __name__ == '__main__':
     logging.getLogger().setLevel(logging.INFO)
