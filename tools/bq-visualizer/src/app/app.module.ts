@@ -39,7 +39,7 @@ import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
 import {RouterModule} from '@angular/router';
 import * as Sentry from '@sentry/browser';
 import {OAuthModule} from 'angular-oauth2-oidc';
-import {AngularResizeEventModule} from 'angular-resize-event';
+//import {AngularResizeEventModule} from 'angular-resize-event';
 
 import {environment} from '../environments/environment';
 
@@ -88,7 +88,7 @@ export class SentryErrorHandler implements ErrorHandler {
     ProgressDisplayComponent,
   ],
   imports: [
-    AngularResizeEventModule,
+    //AngularResizeEventModule,
     FlexLayoutModule,
     ScrollingModule,
     MatDividerModule,
@@ -116,6 +116,9 @@ export class SentryErrorHandler implements ErrorHandler {
     // there is trouble.
     HttpClientModule,
     OAuthModule.forRoot(),
+  ],
+  exports:[
+    PlanSideDisplayComponent
   ],
   providers: [
     {provide: ErrorHandler, useClass: SentryErrorHandler},

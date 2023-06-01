@@ -13,6 +13,43 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/*.mat-mdc-list-base {
+    --mdc-list-list-item-one-line-container-height: unset;
+    --mdc-list-list-item-two-line-container-height: 64px;
+    --mdc-list-list-item-three-line-container-height: 88px;
+}
+*/
+ 
+
+#filenamedisp {
+  border-width: 5 px;
+  border-style: solid;
+  border-color: blue;
+  border-radius: 3 px;
+  padding-top: 3px;
+  padding-bottom: 3px;
+  width: 100%;
+  
+}
+
+.mdc-list-item {
+  padding-left: 16px;
+  padding-right: 16px;
+  padding-top: 13px;
+  padding-bottom: 13px;
+  
+}
+.mat-mdc-list {
+  text-align: center;
+}
+.mat-raised-button {
+  padding: 6px;
+}
+
+.mat-mdc-form-field-infix {
+  padding-top: unset;
+  padding-bottom: unset;
+}
 .grid-container {
   margin: 20px;
 }
@@ -29,6 +66,8 @@
 }
 mat-form-field {
   width: 100%;
+  padding-left: 16px;
+  padding-right: 16px;
   }
 table {
   width: 100%;
@@ -43,4 +82,11 @@ tr.mat-row {
 .mat-cell, .mat-footer-cell {
   font-size: 12px;
   font-weight: 500;
+}
+.mat-mdc-raised-button {
+  height: var(--mdc-protected-button-container-height, 36px);
+  border-radius: var(--mdc-protected-button-container-shape, var(--mdc-shape-small, 4px));
+  box-shadow: var(--mdc-protected-button-container-elevation, 0px 3px 1px -2px rgba(0, 0, 0, 0.2), 0px 2px 2px 0px rgba(0, 0, 0, 0.14), 0px 1px 5px 0px rgba(0, 0, 0, 0.12));
+  padding-top: 16px;
+  padding-bottom: 16px;
 }

@@ -26,12 +26,12 @@ export const environment = {
     redirectUri: window.location.origin + '/jobs',
 
     // The SPA's id. The SPA is registerd with this id at the auth-server
-    clientId:
-        '697664373295-i3fqtavcagei5qklsighjb8qv2jkm7f3.apps.googleusercontent.com',
+    clientId:'699963415840-a0surv0c6s5l12ea2at40k94cgtjog7g.apps.googleusercontent.com',
+        
 
     // set the scope for the permissions the client should request
     // The first three are defined by OIDC. The 4th is a usecase-specific one
-    scope: 'profile email https://www.googleapis.com/auth/bigquery.readonly ',
+    scope: 'profile email https://www.googleapis.com/auth/bigquery.readonly',
     strictDiscoveryDocumentValidation: false,
     showDebugInformation: true
   },

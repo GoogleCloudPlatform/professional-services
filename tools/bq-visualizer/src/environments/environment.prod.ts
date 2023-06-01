@@ -31,7 +31,7 @@ export const environment = {
     clientSecret: '-bSKcuv2mYDgpLFgvdIiaF2R',
 
     // Set the scope for the permissions the client should request
-    scope: 'profile email https://www.googleapis.com/auth/bigquery',
+    scope: 'profile email https://www.googleapis.com/auth/bigquery.readonly',
     strictDiscoveryDocumentValidation: false,
     showDebugInformation: true,
   },

@@ -15,8 +15,8 @@
  */
 import {EventEmitter, Injectable} from '@angular/core';
 import {OAuthService} from 'angular-oauth2-oidc';
-import {JwksValidationHandler} from 'angular-oauth2-oidc';
-import {AuthConfig} from 'angular-oauth2-oidc';
+import {JwksValidationHandler} from 'angular-oauth2-oidc-jwks';
+import {AuthConfig, LoginOptions} from 'angular-oauth2-oidc';
 
 import {environment} from '../environments/environment';
 
@@ -26,7 +26,10 @@ import {LogService} from './log.service';
 export class GoogleAuthService {
   loginEvent = new EventEmitter<boolean>();
 
-  constructor(private logSvc: LogService, private oauthService: OAuthService) {}
+  constructor(private logSvc: LogService, private oauthService: OAuthService) {
+    //this.oauthService.initCodeFlow();
+    this.oauthService.initLoginFlow();
+  }
 
   public async login() {
     if (this.isLoggedIn() === false) {
@@ -34,6 +37,7 @@ export class GoogleAuthService {
     }
   }
   public isLoggedIn(): boolean {
+    console.log('isLoggedin: ' + this.oauthService.hasValidAccessToken())
     return this.oauthService.hasValidAccessToken();
   }
   public logout() {
@@ -51,7 +55,11 @@ export class GoogleAuthService {
     this.logSvc.debug('configureAuth');
     this.oauthService.configure(environment.authConfig);
     this.oauthService.tokenValidationHandler = new JwksValidationHandler();
-    const result = await this.oauthService.loadDiscoveryDocumentAndLogin();
+    let options = new LoginOptions();
+    options.disableNonceCheck=true;
+    const result = await this.oauthService.loadDiscoveryDocumentAndTryLogin(options);
+    console.log('configureAuth: result=')
+    console.debug(result)
     this.loginEvent.emit(result);
     return result;
   }

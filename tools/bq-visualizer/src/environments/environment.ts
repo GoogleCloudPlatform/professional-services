@@ -33,9 +33,10 @@ export const environment = {
     clientId:
         '697664373295-i3fqtavcagei5qklsighjb8qv2jkm7f3.apps.googleusercontent.com',
 
+    //responseType: 'code',    
     // set the scope for the permissions the client should request
     // The first three are defined by OIDC. The 4th is a usecase-specific one
-    scope: 'https://www.googleapis.com/auth/bigquery.readonly ',
+    scope: 'https://www.googleapis.com/auth/bigquery.readonly',
     strictDiscoveryDocumentValidation: false,
     showDebugInformation: true
   },
@@ -47,4 +48,3 @@ export const environment = {
  * import the following file, but please comment it out in production mode
  * because it will have performance impact when throw error
  */
-// import 'zone.js/dist/zone-error';  // Included with Angular CLI.

@@ -16,7 +16,7 @@
  */
 -->
 <div class="job_display">
-  <mat-grid-list cols="3" rowHeight="200px">
+  <mat-grid-list cols="3" rowHeight="300px">
     <mat-grid-tile [colspan]="1" [rowspan]="1">
       <app-projects (getJobs)="getJobs($event)"></app-projects>
       <!-- this receives the event from the projects component -->
@@ -24,17 +24,17 @@
     <mat-grid-tile [colspan]="1" [rowspan]="1">
       <mat-card class="dashboard-card">
         <mat-card-title> Get by Job Id</mat-card-title>
-        <mat-list>
-          <mat-list-item>
+        <mat-grid-list cols="10">
+          <mat-grid-tile colspan="10">
             <mat-form-field>
               <input matInput id="jobId" placeholder="<project>:<location>.<jobid>" [(ngModel)]="jobId">
 
             </mat-form-field>
-          </mat-list-item>
-          <mat-list-item>
-            <button mat-button (click)="loadJob()">GET</button>
-          </mat-list-item>
-        </mat-list>
+          </mat-grid-tile>
+          <mat-grid-tile colspan="10">
+            <button mat-raised-button (click)="loadJob()">GET</button>
+          </mat-grid-tile>
+        </mat-grid-list>
       </mat-card>
     </mat-grid-tile>
     <mat-grid-tile [colspan]="1" [rowspan]="1">
@@ -44,14 +44,25 @@
           Upload job files that have previously been downloaded to the computer
         </mat-card-subtitle>
         <mat-card-content class="dashboard-card-content">
-          <button mat-raised-button (click)="openInput()">
-            Select File to Upload
-          </button>
-          <input id="fileInput" hidden type="file" (change)="fileChange($event.target.files)" />
-          <button mat-button [disabled]="!planFile" (click)="upload()">
-            Upload
-          </button>
-            <div id="filenamedisp">-</div>
+          <mat-grid-list cols="10">
+            <mat-grid-tile colspan="10">
+              <button mat-raised-button (click)="openInput()">
+                Select File to Upload
+              </button>
+              <input id="fileInput" hidden type="file" (change)="fileChange($event.target.files)" />
+            </mat-grid-tile>
+            <mat-grid-tile colspan="10" >
+              <span id="filenamedisp">
+                nothing selected
+              </span>
+            </mat-grid-tile>
+            <mat-grid-tile colspan="10">
+              <button mat-raised-button [disabled]="!planFile" (click)="upload()">
+                Upload
+              </button>
+            </mat-grid-tile>
+
+          </mat-grid-list>
         </mat-card-content>
       </mat-card>
     </mat-grid-tile>

@@ -30,6 +30,7 @@ export class PlanStatusCardComponent {
   HIDEREPARTITION = 'hideRepartition';
   stageDisplayOption = this.HIDEREPARTITION;
   dislayOptionEvent = new EventEmitter<string>();
+  reservation_data = []
 
   constructor(private logSvc: LogService) {}
 
@@ -68,7 +69,8 @@ export class PlanStatusCardComponent {
         etag: this.plan.plan.etag,
         id: this.plan.plan.id,
         jobId: this.plan.plan.jobReference.jobId,
-        projectId: this.plan.plan.jobReference.projectId
+        projectId: this.plan.plan.jobReference.projectId,
+        status: this.plan.plan.status
       };
       return JSON.stringify(results, null, 4);
     }
@@ -84,7 +86,7 @@ export class PlanStatusCardComponent {
           Math.ceil(Number(stats.query.totalSlotMs) / duration)
               .toLocaleString('en') :
           'n/a';
-
+      
       const results = {
         'creationTime            ': new Date(Number(stats.creationTime)),
         'startTime               ': new Date(Number(stats.startTime)),
@@ -112,26 +114,49 @@ export class PlanStatusCardComponent {
         'totalPartitionsProcessed': stats.query ?
             Number(stats.query.totalPartitionsProcessed).toLocaleString('en') :
             'n/a',
+        'reservation Id          ': stats.reservationId,
+  
+
       };
+     
       return JSON.stringify(results, null, 4);
     }
     return 'No Timings to display';
   }
 
-  /** Return status message. */
-  get status(): string {
-    if (!this.plan) {
-      return 'No Status to display';
-    }
-    return JSON.stringify(this.plan.plan.status, null, 4);
+  get reservationInfo(): string{
+    if (this.plan) {
+      const stats = this.plan.plan.statistics;
+      var usage : {  [id: string] : string;} = {
+        'reservation Id': stats.reservationId,
+        totalSlotMs: stats.query ?
+          Number(stats.query.totalSlotMs).toLocaleString('en') :
+          'n/a'
+      };
+     
+
+      if (stats.reservationUsage) {
+        stats.reservationUsage.forEach((element) => {
+        usage[element.name] = Number(element.slotMs).toLocaleString('en')
+        }) }
+      return JSON.stringify(usage, null, 4);
+      
+      }
+      return ""
   }
 
-  /** Get timings information to be displayed. */
-  get timings(): string {
+
+  /** Get referenced tables from query plan. */
+  get tables(): string {
     if (this.plan) {
       if (this.plan.plan.statistics.query) {
+        const tables = this.plan.plan.statistics.query.referencedTables;
+        var tableRefs :string[] = [];
+        tables.forEach((element) => {
+            tableRefs.push(`${ element.projectId }.${ element.datasetId }.${ element.tableId }`);
+          }) 
         return JSON.stringify(
-            this.plan.plan.statistics.query.timeline, null, 4);
+          tableRefs, null, 4);
       } else {
         return JSON.stringify(this.plan.plan.statistics, null, 4);
       }
@@ -139,5 +164,5 @@ export class PlanStatusCardComponent {
     return 'No Statistics to display';
   }
 
-  /** display settings */
+  /** display settings */ 
 }

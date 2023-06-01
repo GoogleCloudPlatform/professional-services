@@ -31,8 +31,8 @@ export type GetJobsReturn = [Observable<BqJob>, () => any];
 @Injectable({providedIn: 'root'})
 export class BigQueryService {
   projectList: BqProject[] = [];
-  projectFilter: string;
-  lastProjectId: string;
+  projectFilter: string = "";
+  lastProjectId: string = "";
 
   constructor(
       private http: HttpClient,  // private oauthService: OAuthService,
@@ -60,118 +60,127 @@ export class BigQueryService {
   /** Get all jobs for a project. */
   getJobs(projectId: string, maxJobs: number, allUsers: boolean):
       Observable<BqJob> {
-    return Observable.create(async (obs:Observer<BqJob>) => {
-      const token = this.googleAuthService.getAccessToken();
-      let nextPageToken = '';
-      let totalJobs = 0;
-      while (true) {
-        const url = bqUrl(`/${projectId}/jobs`, {
-          access_token: token,
-          maxResults: 200,
-          allUsers: allUsers,
-          projection: 'full',
-          pageToken: nextPageToken,
-        });
-
-        try {
-          await new Promise((resolve, reject) => {
-            this.http.get<BqListJobResponse>(url).subscribe(
-                res => {
-                  if (!res.jobs) {
-                    console.error(`No jobs found in bq response`, res);
-                    if (allUsers) {
-                      alert(
-                          `There were no jobs found that you can view. To ` +
-                          `list jobs for all users, you ` +
-                          `need the Owner permission on the project.`);
-                    } else {
-                      alert('There were no jobs found that you can view.');
-                    }
-                    throw new Error('No jobs found');
-                  }
-                  for (const job of res.jobs.map(el => new BqJob(el))) {
-                    if (obs.closed) return;
-                    obs.next(job);
-                  }
-                  nextPageToken = res.nextPageToken;
-                  totalJobs += res.jobs.length;
-                  if (totalJobs >= maxJobs) {
-                    obs.complete();
-                    return;
-                  }
-                },
-                err => {
-                  console.error(`Error loading jobs: ${err}`);
-                  throw new Error(err);
-                },
-                () => {
-                  resolve([]);
-                });
+    return new Observable( (obs:Observer<BqJob>) => {
+      (async () => {
+        const token = this.googleAuthService.getAccessToken();
+        let nextPageToken = '';
+        let totalJobs = 0;
+        while (true) {
+          const url = bqUrl(`/${projectId}/jobs`, {
+            access_token: token,
+            maxResults: 200,
+            allUsers: allUsers,
+            projection: 'full',
+            pageToken: nextPageToken,
           });
-        } catch (err) {
-          obs.error(err);
-        }
 
-        if (!nextPageToken || obs.closed) {
-          obs.complete();
-          return;
+          try {
+            await new Promise((resolve, reject) => {
+              this.http.get<BqListJobResponse>(url).subscribe({
+                  next: (res) => {
+                    if (!res.jobs) {
+                      console.error(`No jobs found in bq response`, res);
+                      if (allUsers) {
+                        alert(
+                            `There were no jobs found that you can view. To ` +
+                            `list jobs for all users, you ` +
+                            `need the Owner permission on the project.`);
+                      } else {
+                        alert('There were no jobs found that you can view.');
+                      }
+                      throw new Error('No jobs found');
+                    }
+                    for (const job of res.jobs.map(el => new BqJob(el))) {
+                      
+                      obs.next(job);
+                    }
+                    nextPageToken = res.nextPageToken;
+                    totalJobs += res.jobs.length;
+                    if (totalJobs >= maxJobs) {
+                      obs.complete();
+                      return;
+                    }
+                  },
+                  error:(err) => {
+                    console.error(`Error loading jobs: ${err}`);
+                    throw new Error(err);
+                  },
+                  complete: () => {
+                    resolve([]);
+                  }});
+            });
+          } catch (err) {
+            obs.error(err);
+          }
+
+          if (!nextPageToken) {
+            obs.complete();
+            return null;
+          }
         }
-      }
+      })()
+        // HACK: prevent linter warning when `no-floating-promises` is set
+        // see https://github.com/ReactiveX/rxjs/issues/2827
+    .then(null, obs.error)
     });
   }
 
   /** Get all projects. */
   getProjects(): Observable<BqProject> {
-    return Observable.create(async (obs:Observer<BqProject>)=> {
-      if (this.googleAuthService.isLoggedIn() === false) {
-        await this.googleAuthService.login();
-        if (this.googleAuthService.isLoggedIn()) {
-          this.logSvc.info('successfully Logged in');
-        } else {
-          this.logSvc.error  ('failed Logged in');
-          obs.error('No authentication token available.');
+    return new Observable((obs:Observer<BqProject>)=> {
+      (async () => {
+        if (this.googleAuthService.isLoggedIn() === false) {
+          await this.googleAuthService.login();
+          if (this.googleAuthService.isLoggedIn()) {
+            this.logSvc.info('successfully Logged in');
+          } else {
+            this.logSvc.error  ('failed Logged in');
+            obs.error('No authentication token available.');
+          }
         }
-      }
-      const token = this.googleAuthService.getAccessToken();
+        const token = this.googleAuthService.getAccessToken();
 
-      let nextPageToken = '';
-      while (true) {
-        const url = bqUrl('', {
-          access_token: token,
-          maxResults: 1000,
-          pageToken: nextPageToken,
-        });
-
-        try {
-          await new Promise((resolve, reject) => {
-            this.http.get<BqProjectListResponse>(url).subscribe(
-                res => {
-                  if (!res.projects) {
-                    throw new Error('No projects found');
-                  }
-                  for (const project of res.projects) {
-                    if (obs.closed) return;
-                    obs.next(project);
-                  }
-                  nextPageToken = res.nextPageToken;
-                },
-                err => {
-                  console.error(`Error loading projects: ${err}`);
-                  throw (err);
-                },
-                () => {
-                  resolve([]);
-                });
+        let nextPageToken = '';
+        while (true) {
+          const url = bqUrl('', {
+            access_token: token,
+            maxResults: 1000,
+            pageToken: nextPageToken,
           });
-        } catch (err) {
-          obs.error(err);
-        }
 
-        if (!nextPageToken || obs.closed) {
-          obs.complete();
-          return;
+          try {
+            await new Promise((resolve, reject) => {
+              this.http.get<BqProjectListResponse>(url).subscribe({
+                next: ( res) => {
+                    if (!res.projects) {
+                      throw new Error('No projects found');
+                    }
+                    for (const project of res.projects) {
+                      obs.next(project);
+                    }
+                    nextPageToken = res.nextPageToken;
+                  },
+                error: ( err) => {
+                    console.error(`Error loading projects: ${err}`);
+                    throw (err);
+                  },
+                complete:  () => {
+                    resolve([]);
+                  }});
+            });
+          } catch (err) {
+            obs.error(err);
+          }
+
+          if (!nextPageToken) {
+            obs.complete();
+            return;
+          }
         }
-      }
+      })()
+        // HACK: prevent linter warning when `no-floating-promises` is set
+        // see https://github.com/ReactiveX/rxjs/issues/2827
+    .then(null, obs.error)
     });
   }
 

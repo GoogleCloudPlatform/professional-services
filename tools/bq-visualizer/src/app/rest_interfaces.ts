@@ -51,6 +51,7 @@ export interface QueryStage {
   waitMsAvg: string;
   waitRatioMax: string;
   waitMsMax: string;
+  performanceInsights?:StagePerformanceStandaloneInsight[];
 }
 
 interface Status {
@@ -85,6 +86,8 @@ interface Query {
   useQueryCache?: string;
   queryPlan?: QueryStage[];
   timeline: Timeline[];
+  metadataCacheStatistics?: MetadataCacheStatistics;
+  performanceInsights?: PerformanceInsights;
 }
 
 interface ReservationUsage {
@@ -92,13 +95,42 @@ interface ReservationUsage {
   slotMs: string;
 }
 
+interface MetadataCacheStatistics {
+  tableReference: ReferencedTables;
+  unusedReason?: string;
+  explanation?: string;
+}
+
+interface StagePerformanceStandaloneInsight {
+  stageId: string;
+  slotContention: boolean;
+  insufficientShuffleQuota: boolean;
+}
+
+interface InputDataChange {
+  recordsReadDiffPercentage: Number;
+}
+
+interface StagePerformanceChangeInsight {
+  stageId: string;
+  inputDataChange: InputDataChange;
+}
+
+interface PerformanceInsights {
+  avgPreviousExecutionMs: string;
+  stagePerformanceStandaloneInsights: StagePerformanceStandaloneInsight[];
+  stagePerformanceChangeInsights : StagePerformanceChangeInsight[];
+}
+
 interface Statistics {
   creationTime: string;
   endTime: string;
   startTime: string;
   totalBytesProcessed: string;
+  reservationId: string;
   reservationUsage: ReservationUsage[];
   query?: Query;
+  finalExecutionDurationMs?: string;
 }
 
 interface JobReference {
@@ -189,7 +221,7 @@ export interface BqProject {
 export interface BqProjectListResponse {
   kind: string;
   etag: string;
-  nextPageToken?: string;
+  nextPageToken: string;
   projects: BqProject[];
   totalItems: number;
 }
