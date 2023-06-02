@@ -127,7 +127,7 @@ interface Statistics {
   endTime: string;
   startTime: string;
   totalBytesProcessed: string;
-  reservationId: string;
+  reservation_id: string;
   reservationUsage: ReservationUsage[];
   query?: Query;
   finalExecutionDurationMs?: string;

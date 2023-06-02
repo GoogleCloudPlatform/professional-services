@@ -25,37 +25,54 @@
         <pre>{{ sql }}</pre>
       </mat-tab>
       <mat-tab label="Tables">
-        <pre>{{ tables }}</pre>
-      </mat-tab>     
+        <!--pre>{{ tables }}</pre-->
+        <mat-table [dataSource]="tables" >
+          <!-- name Column -->
+          <ng-container matColumnDef="tableName">
+            <mat-header-cell *matHeaderCellDef>Table Name </mat-header-cell>
+            <mat-cell *matCellDef="let element"> {{element}} </mat-cell>
+          </ng-container>
+ 
+          <mat-header-row *matHeaderRowDef="tableColumns">Input Table</mat-header-row>
+          <mat-row *matRowDef="let row; columns: tableColumns;"></mat-row>
+        </mat-table>
+      </mat-tab>
       <mat-tab label="Reservation">
-        <pre>{{ reservationInfo }}</pre>
-      </mat-tab>
-      <mat-tab label="Statistics">
-        <pre>{{ statistics }}</pre>
-      </mat-tab>
-      <mat-tab label="experiment">
-        <table mat-table cdkScrollable [dataSource]="reservation_data" class="mat-elevation-z8">
-          <!-- State Column -->
-          <ng-container matColumnDef="id">
-            <th mat-header-cell *matHeaderCellDef>ID</th>
-            <td mat-cell *matCellDef="let element">{{ element.id }}</td>
-          </ng-container>
-         
-          <!-- location Column -->
-          <ng-container matColumnDef="project">
-            <th mat-header-cell *matHeaderCellDef>Id</th>
-            <td mat-cell *matCellDef="let element">{{ element.project }}</td>
-          </ng-container>
-  
-          <!-- date Column -->
-          <ng-container matColumnDef="slots">
-            <th mat-header-cell *matHeaderCellDef>Slots</th>
-            <td mat-cell *matCellDef="let element">
-              {{ element.slots }}
-            </td>
+        <mat-table [dataSource]="reservation_data" >
+          <!-- Position Column -->
+          <ng-container matColumnDef="key">
+            <mat-header-cell *matHeaderCellDef>{{ reservationsHeader[0] }} </mat-header-cell>
+            <mat-cell *matCellDef="let element"> {{element.key}} </mat-cell>
           </ng-container>
 
-        </table>
+          <!-- Name Column -->
+          <ng-container matColumnDef="value">
+            <mat-header-cell *matHeaderCellDef> {{ reservationsHeader[1] }} </mat-header-cell>
+            <mat-cell *matCellDef="let element"> {{element.value}} </mat-cell>
+          </ng-container>
+
+          <mat-header-row *matHeaderRowDef="reservationColumns"></mat-header-row>
+          <mat-row *matRowDef="let row; columns: reservationColumns;"></mat-row>
+        </mat-table>
+      </mat-tab>
+      <mat-tab label="Statistics">
+        <mat-table [dataSource]="statistics_data" id="statsTable" >
+          <!-- Position Column -->
+          <ng-container matColumnDef="statskey">
+            <mat-header-cell *matHeaderCellDef>Key </mat-header-cell>
+            <mat-cell *matCellDef="let element"> {{element.key}} </mat-cell>
+          </ng-container>
+
+          <!-- Name Column -->
+          <ng-container matColumnDef="statsvalue">
+            <mat-header-cell *matHeaderCellDef> Value </mat-header-cell>
+            <mat-cell *matCellDef="let element"> {{element.value}} </mat-cell>
+          </ng-container>
+          <mat-row *matRowDef="let row; columns: statisticsColumns;"></mat-row>
+        </mat-table>
+      </mat-tab>
+      <mat-tab label="experiment">
+       
       </mat-tab>
       <mat-tab label="Settings">
         <pre> {{ settings }}</pre>

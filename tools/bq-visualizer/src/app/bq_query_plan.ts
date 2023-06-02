@@ -149,12 +149,10 @@ export class BqQueryPlan {
       if (insights.stagePerformanceStandaloneInsights){
       let standaloneInsights = insights.stagePerformanceStandaloneInsights.filter((v)=>{return v.stageId==node.id});
       node.performanceInsights = standaloneInsights
-      //console.log(standaloneInsights)      
-      console.log(insights)
-
+     
       }
     }
-    console.log(node);
+
     if (isNaN(startMs) || isNaN(endMs) || isNaN(jobStartMs) ||
       isNaN(jobEndMs)) {
       return;
