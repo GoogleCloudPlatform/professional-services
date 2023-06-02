@@ -1,4 +1,4 @@
-"""This module shows how to move data from BigQuery to AlloyDB using Dataflow"""
+"""This module shows how to move data from BigQuery to AlloyDB with Dataflow"""
 
 #   Copyright 2023 Google LLC All Rights Reserved
 #
@@ -23,12 +23,14 @@ from apache_beam.options.pipeline_options import SetupOptions
 from apache_beam.io.jdbc import WriteToJdbc
 from apache_beam import coders
 
+
 class EthereumTokenTransfersRowType(typing.NamedTuple):
     """Class that defines the Row Type of the AlloyDB table"""
-    from_address:str
-    to_address:str
-    value:float
-    block_timestamp:str
+    from_address: str
+    to_address: str
+    value: float
+    block_timestamp: str
+
 
 def run(argv=None, save_main_session=True):
     """Runs the pipeline"""
@@ -38,44 +40,56 @@ def run(argv=None, save_main_session=True):
         '--alloydb_username',
         dest='alloydb_username',
         required=True,
-        help='AlloyDB username')
+        help='AlloyDB username'
+    )
     parser.add_argument(
         '--alloydb_password',
         dest='alloydb_password',
         required=True,
-        help='AlloyDB password')
+        help='AlloyDB password'
+    )
     parser.add_argument(
         '--alloydb_ip',
         dest='alloydb_ip',
         required=True,
-        help='AlloyDB IP Address')
+        help='AlloyDB IP Address'
+    )
     parser.add_argument(
         '--alloydb_port',
         dest='alloydb_port',
         default="5432",
-        help='AlloyDB Port')
+        help='AlloyDB Port'
+    )
     parser.add_argument(
         '--alloydb_database',
         dest='alloydb_database',
         required=True,
-        help='AlloyDB Database name')
+        help='AlloyDB Database name'
+    )
     parser.add_argument(
         '--alloydb_table',
         dest='alloydb_table',
         required=True,
-        help='AlloyDB table name')
+        help='AlloyDB table name'
+    )
     parser.add_argument(
         '--bq_query',
         dest='bq_query',
         required=True,
-        help='Query to be executed by BigQuery for extracting the source data')
+        help='Query to be executed by BigQuery for extracting the source data'
+    )
     known_args, pipeline_args = parser.parse_known_args(argv)
 
     pipeline_options = PipelineOptions(pipeline_args)
-    pipeline_options.view_as(SetupOptions).save_main_session = save_main_session
+    pipeline_options.view_as(
+        SetupOptions
+        ).save_main_session = save_main_session
 
     with beam.Pipeline(options=pipeline_options) as p:
-        coders.registry.register_coder(EthereumTokenTransfersRowType, coders.RowCoder)
+        coders.registry.register_coder(
+            EthereumTokenTransfersRowType,
+            coders.RowCoder
+        )
 
         (
             p | 'ReadFromBigQuery' >> beam.io.ReadFromBigQuery(
@@ -94,13 +108,15 @@ def run(argv=None, save_main_session=True):
                     table_name=known_args.alloydb_table,
                     jdbc_url=(
                         f'jdbc:postgresql://{known_args.alloydb_ip}:'
-                        f'{known_args.alloydb_port}/{known_args.alloydb_database}'
+                        f'{known_args.alloydb_port}'
+                        f'/{known_args.alloydb_database}'
                     ),
                     username=known_args.alloydb_username,
                     password=known_args.alloydb_password,
                     connection_properties='stringtype=unspecified'
             )
         )
+
 
 if __name__ == '__main__':
     logging.getLogger().setLevel(logging.INFO)
