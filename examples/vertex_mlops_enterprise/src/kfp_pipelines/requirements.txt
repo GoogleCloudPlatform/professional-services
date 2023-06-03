@@ -22,3 +22,5 @@ seaborn==0.12.2
 shap==0.41.0
 google-cloud-spanner==3.26.0
 google-cloud-videointelligence==2.8.3
+pyzmq==25.0.2
+tensorflow==2.9.0
