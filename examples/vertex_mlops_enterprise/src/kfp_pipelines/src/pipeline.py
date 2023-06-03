@@ -10,7 +10,7 @@ from google_cloud_pipeline_components.v1.endpoint import EndpointCreateOp
 from google_cloud_pipeline_components.aiplatform import ModelDeployOp
 from google_cloud_pipeline_components.v1.custom_job import create_custom_training_job_from_component
 from google_cloud_pipeline_components.v1.model import ModelUploadOp
-from google_cloud_pipeline_components.experimental.evaluation import GetVertexModelOp
+from google_cloud_pipeline_components.experimental.model import GetVertexModelOp
 
 import logging
 from datetime import datetime
@@ -20,16 +20,12 @@ import argparse
 import sys
 
 from config import PIPELINE_ROOT, PIPELINE_NAME, BQ_INPUT_DATA
-from train import xgb_train, PROJECT_ID, REGION, IMAGE
+from train import xgb_train, PROJECT_ID, REGION, IMAGE, CLASS_NAMES, COLUMN_NAMES
+from eval import evaluate_model
+
 
 PRED_CONTAINER='europe-docker.pkg.dev/vertex-ai/prediction/xgboost-cpu.1-6:latest'
-
 ENDPOINT_NAME='xgboost-creditcards'
-
-COLUMN_NAMES = ["Time", "V1", "V2", "V3", "V4", "V5", "V6", "V7", "V8", "V9", "V10", "V11", "V12", "V13", "V14", "V15", "V16", "V17", "V18", "V19", "V20", "V21", "V22", "V23", "V24", "V25", "V26", "V27", "V28", "Amount", "Class"]
-CLASS_NAMES = ['OK', 'Fraud']
-
-
 caching = True
 
 # Load data from BigQuery and save to CSV
@@ -136,6 +132,12 @@ def pipeline(
         xgboost_param_n_estimators = xgboost_param_n_estimators,
         serving_container_image_uri=serving_container_image_uri
     )
+
+    evaluate_model_op = evaluate_model(
+        test_dataset=dataset_task.outputs['val_data_path'],
+        trained_model=model_task.outputs['model'],
+        column_names=COLUMN_NAMES,
+        class_names=CLASS_NAMES)
 
     create_endpoint_op = EndpointCreateOp(
         project=PROJECT_ID,

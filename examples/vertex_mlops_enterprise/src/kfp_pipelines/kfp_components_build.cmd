@@ -1,1 +1,1 @@
-kfp components build --component-filepattern train.py --push-image src
+kfp components build --component-filepattern train.py --push-image --overwrite-dockerfile src

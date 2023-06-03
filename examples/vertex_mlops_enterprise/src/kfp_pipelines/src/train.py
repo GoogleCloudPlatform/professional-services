@@ -1,6 +1,3 @@
-from google.cloud import aiplatform
-from google.cloud import storage
-
 from kfp.v2.dsl import (Artifact, Dataset, Input, Model, Output,
                         OutputPath, ClassificationMetrics, Metrics, component)
 
@@ -12,9 +9,7 @@ import xgboost as xgb
 import numpy as np
 from hypertune import HyperTune
 
-import pickle
 import logging
-from datetime import datetime
 import argparse
 import sys
 import os
@@ -27,8 +22,9 @@ REGION = os.getenv("REGION", "")
 IMAGE=f'{REGION}-docker.pkg.dev/{PROJECT_ID}/creditcards-kfp/base:latest'
 TRAIN_COMPONENT_IMAGE=f'{REGION}-docker.pkg.dev/{PROJECT_ID}/creditcards-kfp/train-fraud:latest'
 
-
-aiplatform.init(project=PROJECT_ID, location=REGION)
+CLASS_NAMES = ['OK', 'Fraud']
+COLUMN_NAMES = ["Time", "V1", "V2", "V3", "V4", "V5", "V6", "V7", "V8", "V9", "V10", "V11", "V12", "V13", "V14", "V15", "V16", "V17", "V18", "V19", "V20", "V21", "V22", "V23", "V24", "V25", "V26", "V27", "V28", "Amount", "Class"]
+TARGET_COLUMN = 'Class'
 
 log = logging.getLogger()
 log.setLevel(logging.INFO)
@@ -89,7 +85,7 @@ def train(
         logging.info(f"Predictions: {','.join(map(str, y_pred[:10]))}")
 
         metricsc.log_confusion_matrix(
-            ['0', '1'],
+            CLASS_NAMES,
             confusion_matrix(y_test, y_pred).tolist() # to convert np array to list.
         )
 
