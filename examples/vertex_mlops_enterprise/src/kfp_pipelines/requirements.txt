@@ -24,3 +24,10 @@ google-cloud-spanner==3.26.0
 google-cloud-videointelligence==2.8.3
 pyzmq==25.0.2
 tensorflow==2.9.0
+prompt-toolkit==3.0.38
+google-cloud-vision==3.1.4
+google-cloud-recommendations-ai==0.7.1
+google-cloud-language==2.6.1
+google-cloud-datastore==2.11.0
+google-cloud-bigtable==2.15.0
+google-cloud-bigquery-storage==2.16.2
