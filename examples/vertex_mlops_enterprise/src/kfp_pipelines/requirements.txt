@@ -31,3 +31,5 @@ google-cloud-language==2.6.1
 google-cloud-datastore==2.11.0
 google-cloud-bigtable==2.15.0
 google-cloud-bigquery-storage==2.16.2
+platformdirs==3.5.1
+pexpect==4.8.0
