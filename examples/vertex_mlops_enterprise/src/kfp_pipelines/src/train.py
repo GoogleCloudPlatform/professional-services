@@ -1,6 +1,6 @@
-from kfp.v2.dsl import (Artifact, Dataset, Input, Model, Output,
-                        OutputPath, ClassificationMetrics, Metrics, component)
-
+from kfp.v2.dsl import (Dataset, Input, Model, Output,
+                        ClassificationMetrics, Metrics)
+from kfp import dsl
 from sklearn.metrics import accuracy_score, confusion_matrix, f1_score, roc_curve
 from sklearn.model_selection import train_test_split
 
@@ -123,7 +123,7 @@ if __name__ == '__main__':
           xgboost_param_n_estimators=int(args.xgboost_param_n_estimators),
           model_output_path=args.model_output_path)
 
-@component(
+@dsl.component(
     base_image=IMAGE,
     target_image=TRAIN_COMPONENT_IMAGE
 )
