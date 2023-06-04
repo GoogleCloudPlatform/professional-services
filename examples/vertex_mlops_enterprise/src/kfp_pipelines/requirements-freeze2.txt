@@ -16,8 +16,14 @@ google-auth-oauthlib==0.4.6
 google-cloud-aiplatform==1.17.0
 google-cloud-bigquery==2.34.4
 google-cloud-bigquery-storage==2.16.2
+google-cloud-bigtable==2.15.0
+google-cloud-datastore==2.11.0
+google-cloud-language==2.6.1
 google-cloud-pipeline-components==2.0.0b4
+google-cloud-spanner==3.26.0
 google-cloud-storage==2.7.0
+google-cloud-videointelligence==2.8.3
+google-cloud-vision==3.1.4
 googleapis-common-protos==1.59.0
 grpc-google-iam-v1==0.12.6
 grpcio==1.55.0
@@ -46,6 +52,7 @@ seaborn==0.12.2
 shap==0.39.0
 tensorboard==2.9.0
 tensorflow==2.9.0
+tensorflow-serving-api==2.9.0
 tfx==1.10.0
 tfx-addons==0.6.0
 typing_extensions==4.6.0
