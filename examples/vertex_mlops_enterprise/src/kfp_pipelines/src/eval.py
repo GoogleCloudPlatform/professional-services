@@ -70,7 +70,7 @@ def evaluate_model(
   #f = open(model_filepath, "rb")
   #pipe = pkl.load(f)
   model = xgb.Booster()
-  model.load_model("model.bst")
+  model.load_model(trained_model.path)
 
   # Evaluate model
   print("Evaluating model...")

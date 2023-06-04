@@ -1,6 +1,6 @@
 from kfp import dsl
-from kfp.v2 import compiler
-from kfp.v2.dsl import (Artifact, Dataset, Input, Model, Output,
+from kfp import compiler
+from kfp.dsl import (Artifact, Dataset, Input, Model, Output,
                         OutputPath, ClassificationMetrics, Metrics, 
                         component)
 
