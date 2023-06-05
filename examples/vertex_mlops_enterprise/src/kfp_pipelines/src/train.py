@@ -2,7 +2,6 @@ from kfp.v2.dsl import (Dataset, Input, Model, Output,
                         ClassificationMetrics, Metrics)
 from kfp import dsl
 from sklearn.metrics import accuracy_score, confusion_matrix, f1_score, roc_curve
-from sklearn.model_selection import train_test_split
 
 import pandas as pd
 import xgboost as xgb

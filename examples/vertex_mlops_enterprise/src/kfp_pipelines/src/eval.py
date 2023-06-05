@@ -1,7 +1,7 @@
 from kfp.v2 import dsl
 from kfp.v2.dsl import Artifact, Dataset, Input, Model, Output
 
-from train import IMAGE, TARGET_COLUMN
+from train import IMAGE
 
 
 @dsl.component(
@@ -21,10 +21,16 @@ def evaluate_model(
   import pandas as pd
   import xgboost as xgb
   import numpy as np
+  import sklearn
   from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
   from sklearn.metrics import ConfusionMatrixDisplay, PrecisionRecallDisplay, RocCurveDisplay
+  from sklearn.metrics import confusion_matrix, precision_recall_curve, roc_curve, auc
   import shap
   from model_card_toolkit.utils.graphics import figure_to_base64str
+
+  # TODO
+  #from train import TARGET_COLUMN
+  TARGET_COLUMN='Class'
 
   # This is a work-around for a bug in shap
   np.int = int
@@ -61,14 +67,10 @@ def evaluate_model(
   
   # Read data
   print("Reading data...")
-  #f = open(test_data_filepath, "rb")
-  #test = pkl.load(f)
   test = pd.read_csv(test_data_filepath)
 
   # Read model
   print("Reading model...")
-  #f = open(model_filepath, "rb")
-  #pipe = pkl.load(f)
   model = xgb.Booster()
   model.load_model(trained_model.path)
 
@@ -76,12 +78,13 @@ def evaluate_model(
   print("Evaluating model...")
   y = test.pop(TARGET_COLUMN)
   X = test
-  y_pred_prob = model.predict(X)
-  y_pred = list(lambda x: x >= 0.5, y_pred_prob)
+  y_pred_prob = model.predict(xgb.DMatrix(X))
+  y_pred = list(map(lambda x: x >= 0.5, y_pred_prob))
   accuracy = accuracy_score(y, y_pred)
-  precision = precision_score(y, y_pred, pos_label="good")
-  recall = recall_score(y, y_pred, pos_label="good")
-  f1 = f1_score(y, y_pred, pos_label="good")
+  pos_label=1
+  precision = precision_score(y, y_pred, pos_label=pos_label)
+  recall = recall_score(y, y_pred, pos_label=pos_label)
+  f1 = f1_score(y, y_pred, pos_label=pos_label)
   print(f"Accuracy: {accuracy:.3g}")
   print(f"Precision: {precision:.3g}")
   print(f"Recall: {recall:.3g}")
@@ -89,9 +92,20 @@ def evaluate_model(
 
   # Save model reports
   print("Saving model reports...")
-  cm = ConfusionMatrixDisplay.from_predictions(y, y_pred, cmap="Blues")
-  pr = PrecisionRecallDisplay.from_predictions(y, y_pred_prob, pos_label="good")
-  roc = RocCurveDisplay.from_predictions(y, y_pred_prob, pos_label="good")
+  print(f"sklearn {sklearn.__version__}")
+  
+  c_m = confusion_matrix(y, y_pred)
+  cm = ConfusionMatrixDisplay(confusion_matrix=c_m)
+  cm.plot()
+  
+  precision, recall, _ = precision_recall_curve(y, y_pred)
+  pr = PrecisionRecallDisplay(precision=precision, recall=recall)
+  pr.plot()
+
+  fpr, tpr, _ = roc_curve(y, y_pred)
+  roc_auc = auc(fpr, tpr)
+  roc = RocCurveDisplay(fpr=fpr, tpr=tpr, roc_auc=roc_auc)
+  roc.plot()
 
   # Calculate SHAP summary plot
   encoder = None
