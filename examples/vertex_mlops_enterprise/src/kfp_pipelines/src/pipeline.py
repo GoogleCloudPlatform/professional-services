@@ -1,8 +1,6 @@
 from kfp import dsl
 from kfp import compiler
-from kfp.dsl import (Artifact, Dataset, Input, Model, Output,
-                        OutputPath, ClassificationMetrics, Metrics, 
-                        component)
+from kfp.dsl import Artifact, Input, Model, Output, OutputPath
 
 from google.cloud import aiplatform
 
@@ -15,21 +13,17 @@ from google_cloud_pipeline_components.experimental.model import GetVertexModelOp
 import logging
 from datetime import datetime
 
-import pickle
-import argparse
-import sys
-
-from config import PIPELINE_ROOT, PIPELINE_NAME, BQ_INPUT_DATA
+from config import PIPELINE_ROOT, PIPELINE_NAME, BQ_INPUT_DATA, MODEL_CARD_CONFIG
 from train import xgb_train, PROJECT_ID, REGION, IMAGE, CLASS_NAMES, COLUMN_NAMES
 from eval import evaluate_model
-
+from model_card import plot_model_card
 
 PRED_CONTAINER='europe-docker.pkg.dev/vertex-ai/prediction/xgboost-cpu.1-6:latest'
 ENDPOINT_NAME='xgboost-creditcards'
 caching = True
 
 # Load data from BigQuery and save to CSV
-@component(
+@dsl.component(
     packages_to_install=['seaborn==0.12.2'],
     base_image=IMAGE
 )
@@ -87,9 +81,8 @@ def get_dataframe(
         pickle.dump(stats_dict, f)
 
 
-
 # Import model and convert to Artifact
-@component(
+@dsl.component(
     packages_to_install=["google-cloud-aiplatform"],
     base_image=IMAGE
 )
@@ -103,10 +96,8 @@ def get_unmanaged_model(model: Input[Model], unmanaged_model: Output[Artifact]):
 #########################
 
 @dsl.pipeline(
-    # Default pipeline root. You can override it when submitting the pipeline.
     pipeline_root=PIPELINE_ROOT,
-    # A name for the pipeline.
-    name=PIPELINE_NAME,
+    name=PIPELINE_NAME
 )
 def pipeline(
     bq_table: str = "",
@@ -116,9 +107,6 @@ def pipeline(
     serving_container_image_uri: str = PRED_CONTAINER,    
 ):
     
-    #from kfp.v2.components import importer_node
-    #from google_cloud_pipeline_components.types import artifact_types
-
     dataset_task = get_dataframe(
         bq_table=bq_table, 
         project_id=PROJECT_ID,
@@ -138,6 +126,17 @@ def pipeline(
         trained_model=model_task.outputs['model'],
         column_names=COLUMN_NAMES,
         class_names=CLASS_NAMES)
+    
+    with open(MODEL_CARD_CONFIG, 'r') as f:
+        model_card_config = ' '.join([x.strip() for x in f.readlines()])
+    
+    plot_model_card_op = plot_model_card(
+        train_data = dataset_task.outputs['train_data_path'],
+        test_data = dataset_task.outputs['val_data_path'],
+        stats = dataset_task.outputs['stats'],
+        reports = evaluate_model_op.outputs['reports'],
+        model_card_config = model_card_config
+    )
 
     create_endpoint_op = EndpointCreateOp(
         project=PROJECT_ID,
