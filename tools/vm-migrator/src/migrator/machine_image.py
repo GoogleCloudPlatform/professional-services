@@ -42,27 +42,29 @@ def machine_image(compute, project, target_region, source_instance, name):
 
 def get(project, name):
     compute = get_compute()
-    logging.info('looking for machine image %s', name)
+    logging.info('Looking for machine image "%s" in "%s"', name, project)
     try:
         result = compute.machineImages().get(project=project,
                                              machineImage=name).execute()
         if result['selfLink']:
             return result
-    except Exception:
+    except Exception as ex:
+        logging.warning('Could not find machine image "%s" in "%s". Error: %s', name, project, ex)
         return None
 
 
 def wait_for_operation(compute, project, name):
     """
-    This methods waits untill the operation is complete.
+    This method waits until the operation is complete.
     """
-    logging.info('Waiting for machine image creation to finish...')
+    logging.info('Waiting for machine image "%s" in "%s" creation to finish', name, project)
     while True:
         result = compute.machineImages().get(project=project,
                                              machineImage=name).execute()
 
         if result['status'] == 'READY':
             if 'error' in result:
+                logging.error('Machine image "%s" in "%s" could not be created. Result: %s', name, project, result)
                 raise GCPOperationException(result['error'])
             return result
 
@@ -83,16 +85,16 @@ def create(project, target_region, source_instance, name, wait=True):
     try:
         waited_time = RATE_LIMIT.wait()  # wait before starting the task
         logging.info('  task: waited for %s secs', waited_time)
-        logging.info('Creating Machine Image %s from source %s', name,
-                     source_instance)
+        logging.info('Creating Machine Image "%s" from source "%s" in project "%s" and region "%s"',
+                     name, source_instance, project, target_region)
         compute = get_compute()
         machine_image(compute, project, target_region, source_instance, name)
         if wait:
             wait_for_operation(compute, project, name)
-        logging.info('Machine Image %s Created', name)
+        logging.info('Machine Image "%s" in project "%s" created', name, project)
         return name
     except Exception as exc:
-        logging.error(exc)
+        logging.error('Could not create machine image "%s" in "%s". Error: %s', name, project, exc)
         raise exc
 
 
@@ -118,8 +120,8 @@ def add_iam_policy(source_project, name, target_service_account) -> bool:
             break
     if add:
         body['bindings'].append(new_binding)
-        logging.info('Setting IAM policy for machine image %s',
-                     machine_image_uri)
+        logging.info('Setting IAM policy for machine image "%s" and service account "%s"',
+                     machine_image_uri, target_service_account)
         # TODO: does this throw an exception on a outdated eTag?
         compute.machineImages().setIamPolicy(project=source_project,
                                              resource=name,

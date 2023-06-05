@@ -50,7 +50,9 @@ def is_hosted_on_sole_tenant(instance):
                             == 'compute.googleapis.com/node-group-name'):
                         return True
         return False
-    except KeyError:
+    except KeyError as err:
+        logging.warning('Could not check if instance "%s" is hosted in sole tenant. Error: %s',
+                        instance, err)
         return False
 
 
@@ -74,12 +76,13 @@ def get_updated_node_group(node_group) -> Optional[object]:
                     }]
                 }
             }
-            logging.info('Found a matching node group %s for %s', node_group,
-                         node_group_mapping.FIND.get(node_group))
+            logging.info('Found a matching node group %s for %s',
+                         node_group, node_group_mapping.FIND.get(node_group))
             return config
         else:
             return None
-    except KeyError:
+    except KeyError as err:
+        logging.warning('Could not update node group "%s". Error: %s', node_group, err)
         return None
 
 
@@ -88,21 +91,21 @@ def shutdown(instance_uri: uri.Instance) -> str:
         waited_time = RATE_LIMIT.wait()  # wait before starting the task
         logging.info('  task: waited for %s secs', waited_time)
         compute = get_compute()
-        logging.info('Shutting Down Instance %s ', instance_uri)
+        logging.info('Shutting Down Instance "%s"', instance_uri)
         result = compute.instances().stop(project=instance_uri.project,
                                           zone=instance_uri.zone,
                                           instance=instance_uri.name).execute()
         wait_for_zonal_operation(compute, instance_uri, result['name'])
         return instance_uri.name
     except Exception as ex:
-        logging.error(ex)
+        logging.error('Could not shutdown instance "%s". Error: %s', instance_uri, ex)
         raise ex
 
 
 def disable_deletionprotection(instance_uri: uri.Instance) -> str:
     try:
         compute = get_compute()
-        logging.info('Disabling delete protection for instance %s ',
+        logging.info('Disabling delete protection for instance "%s"',
                      instance_uri)
         result = compute.instances().setDeletionProtection(
             project=instance_uri.project, zone=instance_uri.zone,
@@ -110,7 +113,7 @@ def disable_deletionprotection(instance_uri: uri.Instance) -> str:
         wait_for_zonal_operation(compute, instance_uri, result['name'])
         return instance_uri.name
     except Exception as ex:
-        logging.error(ex)
+        logging.error('Could not disable delete protection in instance "%s". Error: %s', instance_uri, ex)
         raise ex
 
 
@@ -119,19 +122,19 @@ def start(instance_uri: uri.Instance) -> str:
         waited_time = RATE_LIMIT.wait()  # wait before starting the task
         logging.info('  task: waited for %s secs', waited_time)
         compute = get_compute()
-        logging.info('Starting Instance %s ', instance_uri.name)
+        logging.info('Starting Instance "%s"', instance_uri)
         result = compute.instances().start(
             project=instance_uri.project, zone=instance_uri.zone,
             instance=instance_uri.name).execute()
         wait_for_zonal_operation(compute, instance_uri, result['name'])
         return instance_uri.name
     except Exception as ex:
-        logging.error(ex)
+        logging.error('Could not start instance "%s". Error: %s', instance_uri, ex)
         raise ex
 
 
 def delete_instance(compute, instance_uri: uri.Instance):
-    logging.info('Deleting Instance %s ', instance_uri)
+    logging.info('Deleting Instance "%s"', instance_uri)
     return compute.instances().delete(project=instance_uri.project,
                                       zone=instance_uri.zone,
                                       instance=instance_uri.name).execute()
@@ -139,24 +142,28 @@ def delete_instance(compute, instance_uri: uri.Instance):
 
 def wait_for_zonal_operation(compute, project_zone_uri: uri.ProjectZone,
                              operation):
-    logging.info('Waiting for operation to finish...')
+    logging.info('Waiting for zonal operation "%s" in project "%s" to finish',
+                 operation, project_zone_uri)
     while True:
         result = compute.zoneOperations().get(project=project_zone_uri.project,
                                               zone=project_zone_uri.zone,
                                               operation=operation).execute()
 
         if result['status'] == 'DONE':
-            logging.info('done.')
+            logging.info('Finished zonal operation "%s" in project "%s"',
+                         operation, project_zone_uri)
             if 'error' in result:
+                logging.error('Error in zonal operation "%s" in project "%s". Result: "%s"',
+                              operation, project_zone_uri, result)
                 raise GCPOperationException(result['error'])
             return result
-
         time.sleep(10)
 
 
 def wait_for_regional_operation(compute, project_region_uri: uri.ProjectRegion,
                                 operation):
-    logging.info('Waiting for operation to finish...')
+    logging.info('Waiting for regional operation "%s" in project "%s" to finish',
+                 operation, project_region_uri)
     while True:
         result = compute.regionOperations() \
             .get(project=project_region_uri.project,
@@ -164,8 +171,10 @@ def wait_for_regional_operation(compute, project_region_uri: uri.ProjectRegion,
                  operation=operation).execute()
 
         if result['status'] == 'DONE':
-            logging.info('done.')
+            logging.info('Finished regional operation "%s" in project "%s"', operation, project_region_uri)
             if 'error' in result:
+                logging.error('Error in regional operation "%s" in project "%s". Result: "%s"',
+                              operation, project_region_uri, result)
                 raise GCPOperationException(result['error'])
             return result
 
@@ -179,16 +188,16 @@ def delete(instance_uri: uri.Instance) -> str:
         compute = get_compute()
         image = machine_image.get(instance_uri.project, instance_uri.name)
         if image:
-            logging.info('Found machine image can safely delete the instance')
+            logging.info('Found machine image "%s", can safely delete the instance "%s"', image, instance_uri)
             delete_operation = delete_instance(compute, instance_uri)
             wait_for_zonal_operation(compute, instance_uri,
                                      delete_operation['name'])
             return instance_uri.name
         else:
             raise NotFoundException(
-                'Cant Delete the instance as machine image not found')
+                'Cannot delete instance "%s" as machine image not found', instance_uri)
     except Exception as ex:
-        logging.error(ex)
+        logging.error('Could not delete instance "%s". Error: %s', instance_uri, ex)
         raise ex
 
 
@@ -207,7 +216,8 @@ def reserve_internal_ip(compute, instance_uri: uri.Instance, name,
         'name': name,
         'subnetwork': subnet_uri.uri
     }
-    logging.info('Reserving internal ip with name=%s and ip=%s', name, ip)
+    logging.info('Reserving internal ip "%s" with name "%s" for instance "%s" in subnet "%s"',
+                 ip, name, instance_uri, subnet_uri)
     insert_operation = compute.addresses().insert(project=instance_uri.project,
                                                   region=instance_uri.region,
                                                   body=config).execute()
@@ -247,26 +257,19 @@ def prepare_create_instance(compute, instance_uri: uri.Instance, network,
     # If we get ip variable set, we expect to use the same ip in the
     # destination subnet
     if ip:
-        logging.info(
-            'Trying to create the machine %s while preserving its ips',
-            instance_uri.name
-        )
-        reserve_internal_ip(compute, instance_uri, instance_uri.name,
-                            subnet_uri, ip)
+        logging.info('Trying to create instance "%s" while preserving its ips', instance_uri)
+        reserve_internal_ip(compute, instance_uri, instance_uri.name, subnet_uri, ip)
     else:
         # Since we cant reserve the same ip address passing
         # None as the ip to reserve random IP
         # The internal ip address is reserved with the same name
         # as machine name
-        logging.info('Reserving random ip for machine %s ', instance_uri.name)
-        reserve_internal_ip(compute, instance_uri, instance_uri.name,
-                            subnet_uri, None)
-        config['networkInterfaces'][0]['networkIP'] = \
-            get_ip(compute, instance_uri, instance_uri.name)
+        logging.info('Reserving random ip for instance %s ', instance_uri)
+        reserve_internal_ip(compute, instance_uri, instance_uri.name, subnet_uri, None)
+        config['networkInterfaces'][0]['networkIP'] = get_ip(compute, instance_uri, instance_uri.name)
 
     if node_group and get_updated_node_group(node_group):
-        logging.info('Found a sole tenant maching running on node group %s',
-                     node_group)
+        logging.info('Found a sole tenant matching running on node group "%s"', node_group)
         config['scheduling'] = get_updated_node_group(node_group)['scheduling']
 
     if target_service_account and target_scopes:
@@ -277,7 +280,7 @@ def prepare_create_instance(compute, instance_uri: uri.Instance, network,
 
     i = 1
     if len(alias_ip_ranges) > 0:
-        logging.info('Found alias ip ranges, reserving it')
+        logging.info('Found alias ip ranges "%s", reserving it', alias_ip_ranges)
         for alias_ip in alias_ip_ranges:
             # If the alias ip is from the primary range then reserve it
             if (not alias_ip.get('subnetworkRangeName')
@@ -300,8 +303,8 @@ def prepare_create_instance(compute, instance_uri: uri.Instance, network,
 
                 # Passing None in actual ip will reserve a
                 # random ip for the name
-                logging.info('reserving alias ip %s for machine %s', actual_ip,
-                             instance_uri.name)
+                logging.info('Reserving alias "%s" for ip "%s" for instance "%s" in subnet "%s"',
+                             alias_ip_name, actual_ip, instance_uri, subnet_uri)
                 reserve_internal_ip(compute, instance_uri, alias_ip_name,
                                     subnet_uri, actual_ip)
                 # Since we are not retaining the ip we will use the
@@ -323,7 +326,7 @@ def wait_for_instance(compute, instance_uri: uri.Instance):
     """
     Function to wait for creation of machine image.
     """
-    logging.info('Waiting for VM to start...')
+    logging.info('Waiting for instance "%s" to start', instance_uri)
     while True:
         result = compute.instances().get(project=instance_uri.project,
                                          zone=instance_uri.zone,
@@ -331,6 +334,7 @@ def wait_for_instance(compute, instance_uri: uri.Instance):
         if result['status'] == 'RUNNING':
             # logging.info("VM", name, "created and running")
             if 'error' in result:
+                logging.error('Instance "%s" did not start. Result: %s', instance_uri, result)
                 raise GCPOperationException(result['error'])
             return result
 
@@ -341,18 +345,15 @@ def move_to_subnet_and_rename(instance_uri: uri.Instance, row,
                              to_subnet_uri, direction: str) \
         -> str:
     if direction not in ['backup', 'rollback']:
-        logging.error(
-            "move_to_subnet_and_rename: specify a direction"
-            "('backup' or 'rollback')"
-        )
+        logging.error('move_to_subnet_and_rename: specify a direction("backup" or "rollback"). Got "%s"', direction)
         return False
     # ONLY DEALING WITH ONE ZONE SO FAR!
     try:
         waited_time = RATE_LIMIT.wait()  # wait before starting the task
         logging.info('  task: waited for %s secs', waited_time)
         compute = get_compute()
-        logging.info('Updating Network Interface for Instance %s ',
-                     instance_uri.name)
+        logging.info('Updating network interface "%s" in row "%s" for instance "%s"',
+                     to_subnet_uri, row, instance_uri)
         request_body = {
             'network': row['network'],
             'subnetwork': to_subnet_uri.uri,
@@ -410,7 +411,12 @@ def create(instance_uri: uri.Instance,
     waited_time = RATE_LIMIT.wait()  # wait before starting the task
     logging.info('  task: waited for %s secs', waited_time)
     compute = get_compute()
-    logging.info('Creating instance %s', instance_uri.name)
+    logging.info('Creating instance "%s" in network "%s", subnet "%s", '
+                 'alias IP "%s", node group "%s", disks "%s", IPs "%s",'
+                 'machine type "%s", image "%s", target SA "%s", targe scopes "%s"',
+                 instance_uri, network, subnet,
+                 alias_ip_ranges, node_group, disk_names, ip,
+                 machine_type_uri, image_project, target_service_account, target_scopes)
 
     kwargs = prepare_create_instance(compute, instance_uri, network, subnet,
                                 alias_ip_ranges, node_group, disk_names,
@@ -422,16 +428,8 @@ def create(instance_uri: uri.Instance,
         try:
             if 0 < retry_count:
                 wait_time = min(retry_count * 30, 300)
-                logging.info(
-                    'Retry #{} for instance {}: Waiting {} seconds.'
-                    .format(retry_count, instance_uri.name, wait_time)
-                )
+                logging.info('Retry #%d: Creating instance "%s", waiting "%d"', retry_count, instance_uri, wait_time)
                 time.sleep(wait_time)
-                logging.info(
-                    'Retry #{} for instance {}: Sleeping finished,'
-                    'attempting creation...'
-                    .format(retry_count, instance_uri.name)
-                )
 
             operation = compute.instances().insert(**kwargs).execute()
 
@@ -441,23 +439,17 @@ def create(instance_uri: uri.Instance,
                 )
                 result = wait_for_instance(compute, instance_uri)
             created_instance_uri = uri.Instance.from_uri(result['selfLink'])
-            logging.info('Instance %s created from source MachineImage %s and '
-                        'successfully started', created_instance_uri,
-                        instance_uri.name)
+            logging.info('Instance "%s" created from source instance "%s" and successfully started',
+                         created_instance_uri, instance_uri)
             return created_instance_uri.name
         except Exception as ex:
+            msg = f'Retry #{retry_count}: Creating instance "{instance_uri}" failed. Error: {ex}'
             if re.search('INTERNAL_ERROR', str(ex)):
                 if retry_count < 5:
-                    logging.warning(
-                        'Retry #{} for instance {} failed.'
-                        .format(retry_count, instance_uri.name)
-                    )
+                    logging.warning(msg)
                     retry_count += 1
                     continue
                 else:
-                    logging.error(
-                        'Retry #{} for instance {} failed.'
-                        .format(retry_count, instance_uri.name)
-                    )
-            logging.error(ex)
+                    logging.error(msg)
+            logging.error(msg)
             raise ex

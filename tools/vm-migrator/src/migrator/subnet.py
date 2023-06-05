@@ -57,7 +57,7 @@ def get_alias_ip_name(instance_uri: uri.Instance, subnet_uri: uri.Subnet, ip):
         ip_details = ips.get('items')[0]
         return ip_details['name']
     else:
-        logging.info('Alias ip %s was not reserved', ip)
+        logging.info('Alias ip "%s" was not reserved for instance "%s" in subnet "%s"', ip, instance_uri, subnet_uri)
         return None
 
 
@@ -68,8 +68,8 @@ def export_instances(project, zone, zone_2, zone_3, subnet_uri: uri.Subnet,
     result_zone_2 = {}
     result_zone_3 = {}
 
-    logging.info('fetching the inventory for the source subnet %s and zone %s',
-                 subnet_uri.uri, zone)
+    logging.info('Fetching the inventory for the source subnet "%s" and zones "%s" in project "%s". Results in "%s"',
+                 subnet_uri, [zone, zone_2, zone_3], project, file_name)
     result = compute.instances().list(project=project,
                                       zone=zone,
                                       maxResults=10000).execute()
@@ -78,15 +78,15 @@ def export_instances(project, zone, zone_2, zone_3, subnet_uri: uri.Subnet,
 
     if zone_2:
         logging.info(
-            'fetching the inventory for the source subnet %s and zone %s',
-            subnet_uri.uri, zone_2)
+            'Fetching the inventory for the source subnet "%s" and zone "%s" in project "%s"',
+            subnet_uri, zone_2, project)
         result_zone_2 = compute.instances().list(project=project,
                                                  zone=zone_2,
                                                  maxResults=10000).execute()
     if zone_3:
         logging.info(
-            'fetching the inventory for the source subnet %s and zone %s',
-            subnet_uri.uri, zone_3)
+            'Fetching the inventory for the source subnet "%s" and zone "%s" in project "%s"',
+            subnet_uri, zone_3, project)
         result_zone_3 = compute.instances().list(project=project,
                                                  zone=zone_3,
                                                  maxResults=10000).execute()
@@ -99,8 +99,8 @@ def export_instances(project, zone, zone_2, zone_3, subnet_uri: uri.Subnet,
     if result_zone_3.get('items') and zone_3:
         result['items'] = result['items'] + result_zone_3.get('items')
 
-    logging.info('Identified %i potential instance(s) in the given zones',
-                 len(result['items']))
+    logging.info('Identified %i potential instance(s) in the given zones "%s" in subnet "%s" in project "%s"',
+                 len(result['items']), [zone, zone_2, zone_3], subnet_uri, project)
 
     instances_by_disk = {}
 
@@ -127,12 +127,15 @@ def export_instances(project, zone, zone_2, zone_3, subnet_uri: uri.Subnet,
                     instances_by_disk[disk_uri.abs_beta_uri] = instances['selfLink']
                 else:
                     logging.warning(
-                        'Too many disks: dropping disk name %s with and '
-                        'device name %s', disk_uri.name, disks['deviceName'])
+                        'Too many disks (total: %s): dropping disk name "%s" with and device name "%s" '
+                        'in subnet "%s" in project "%s"',
+                        len(instances['disks']), disk_uri, disks['deviceName'],
+                        subnet_uri, project
+                    )
 
             alias_ips = instances['networkInterfaces'][0].get('aliasIpRanges')
             if alias_ips:
-                logging.info('Found Alias IP for %s', instances['name'])
+                logging.info('Found Alias IP for "%s"', instances['name'])
                 for i in range(len(alias_ips)):
                     csv['alias_ip_' + str(i + 1)] = alias_ips[i]['ipCidrRange']
 
@@ -152,21 +155,18 @@ def export_instances(project, zone, zone_2, zone_3, subnet_uri: uri.Subnet,
             fingerprint = instances['networkInterfaces'][0].get('fingerprint')
             if fingerprint:
                 logging.info(
-                    'Found instance nic0 fingerprint for %s',
+                    'Found instance nic0 fingerprint for "%s"',
                     instances['name']
                 )
                 csv['fingerprint'] = fingerprint
 
             mydict[instances['selfLink']] = csv
         else:
-            logging.debug(
-                'Ignoring VM {} in subnet {} (looking for subnet {})'.format(
-                    instances['name'],
-                    instances['networkInterfaces'][0]['subnetwork'],
-                    subnet_uri.uri))
+            logging.debug('Ignoring VM "%s" in subnet "%s" (looking for subnet "%s")',
+                          instances['name'], instances['networkInterfaces'][0]['subnetwork'], subnet_uri.uri)
 
-    logging.info('fetching the disks for the source subnet %s and zone %s',
-                 subnet_uri.uri, zone)
+    logging.info('Fetching disks for the source subnet "%s" and zones "%s" in project "%s"',
+                 subnet_uri, [zone, zone_2, zone_3], project)
     result = compute.disks().list(project=project,
                                   zone=zone,
                                   maxResults=10000).execute()
@@ -174,16 +174,14 @@ def export_instances(project, zone, zone_2, zone_3, subnet_uri: uri.Subnet,
         result = {'items': []}
 
     if zone_2:
-        logging.info(
-            'fetching the disks for the source subnet %s and zone %s',
-            subnet_uri.uri, zone_2)
+        logging.info('Fetching disks for the source subnet "%s" and zone "%s" in project "%s"',
+                     subnet_uri, zone_2, project)
         result_zone_2 = compute.disks().list(project=project,
                                              zone=zone_2,
                                              maxResults=10000).execute()
     if zone_3:
-        logging.info(
-            'fetching the disks for the source subnet %s and zone %s',
-            subnet_uri.uri, zone_3)
+        logging.info('Fetching disks for the source subnet "%s" and zone "%s" in project "%s"',
+                     subnet_uri, zone_2, project)
         result_zone_3 = compute.disks().list(project=project,
                                              zone=zone_3,
                                              maxResults=10000).execute()
@@ -213,10 +211,7 @@ def export_instances(project, zone, zone_2, zone_3, subnet_uri: uri.Subnet,
         writer.writeheader()
         writer.writerows(mydict.values())
 
-    logging.info(
-        'Successfully written %i records to %s', len(mydict),
-        file_name
-    )
+    logging.info('Successfully written %i records to "%s"', len(mydict), file_name)
 
     return True
 
@@ -236,15 +231,16 @@ def list_instances_for_rollback(
             for row in csv_dict_reader:
                 internal_ips[row['id']] = row['internal_ip']
     except Exception as exc:
-        logging.error('Can not get previous IPs of instances: %s', exc)
+        logging.error('Cannot read file "%s" and get previous IPs of instances. Error: %s',
+                      previous_instances_file, exc)
         return False
     if not internal_ips:
-        logging.error('Can not find previous IPs of instances')
+        logging.error('Can not find previous IPs of instances in file "%s"', previous_instances_file)
         return False
     compute = get_compute()
 
-    logging.info('fetching the inventory for the source subnet %s and zone %s',
-                 backup_subnet_uri.uri, zone)
+    logging.info('Fetching inventory for source subnet "%s" and zone "%s" in project "%s"',
+                 backup_subnet_uri, zone, project)
     result = compute.instances().list(project=project,
                                       zone=zone,
                                       maxResults=10000).execute()
@@ -253,8 +249,8 @@ def list_instances_for_rollback(
 
     mydict = {}
 
-    logging.info('Identified %i potential instance(s) in the given zones',
-                 len(result['items']))
+    logging.info('Identified %i potential instance(s) in the given zone "%s" in project "%s"',
+                 len(result['items']), zone, project)
 
     for instances in result['items']:
         if instances['networkInterfaces'][0]['subnetwork'] \
@@ -277,27 +273,18 @@ def list_instances_for_rollback(
             if fingerprint:
                 csv['fingerprint'] = fingerprint
             else:
-                logging.error(
-                    'Instance %s fingerprint for nic0 not found, aborting',
-                    instances['name']
-                )
+                logging.error('Instance "%s" fingerprint for nic0 not found, aborting', instances['name'])
                 return False
 
             if instances['id'] not in internal_ips: # previous IP not found
-                logging.error(
-                    'No previous IP found for instance %s',
-                    instances['name']
-                )
+                logging.error('No previous IP found for instance "%s"', instances['name'])
                 return False
 
             csv['previous_internal_ip'] = internal_ips[instances['id']]
             mydict[instances['selfLink']] = csv
         else:
-            logging.debug(
-                'Ignoring VM {} in subnet {} (looking for subnet {})'.format(
-                    instances['name'],
-                    instances['networkInterfaces'][0]['subnetwork'],
-                    backup_subnet_uri.uri))
+            logging.debug('Ignoring VM "%s" in subnet "%s" (looking for subnet "%s")',
+                          instances['name'], instances['networkInterfaces'][0]['subnetwork'], backup_subnet_uri)
 
     with open(to_file, 'w') as csvfile:
         fieldnames = fields.HEADERS
@@ -306,8 +293,7 @@ def list_instances_for_rollback(
         writer.writeheader()
         writer.writerows(mydict.values())
 
-    logging.info('Successfully written %i records to %s', len(mydict),
-                 to_file)
+    logging.info('Successfully written %i records to "%s"', len(mydict), to_file)
 
     return True
 
@@ -316,14 +302,14 @@ def release(project_region_uri: uri.ProjectRegion, address) \
         -> bool:
     compute = get_compute()
     try:
-        logging.info('Releasing IP address %s in project %s', address,
-                     project_region_uri)
+        logging.info('Releasing IP address "%s" in project "%s"', address, project_region_uri)
         result = compute.addresses().delete(project=project_region_uri.project,
                                             region=project_region_uri.region,
                                             address=address).execute()
         wait_for_operation(compute, project_region_uri, result['name'])
     except HttpError as err:
-        logging.error('Error while releasing IP address %s: %s', address, err)
+        logging.error('Error while releasing IP address "%s" in project "%s". Error: %s',
+                      address, project_region_uri, err)
         return False
     return True
 
@@ -341,9 +327,9 @@ def release_individual_ips(subnet_uri: uri.Subnet, instance_uri: uri.Instance,
             result = release(instance_uri,
                              ips_result['items'][0]['name']) and result
         else:
-            logging.info('Deletion of internal ip %s for instance %s not '
-                         'needed (no reserved static ip found)', ip,
-                         instance_uri.uri)
+            logging.info('Deletion of internal ip "%s" in subnet "%s" for instance "%s" '
+                         'not needed (no reserved static ip found)',
+                         ip, subnet_uri, instance_uri)
     return result
 
 
@@ -382,22 +368,21 @@ def release_ip(project: str, subnet_uri: uri.Subnet) -> bool:
                     sub_result = future.result()
                     result = sub_result and result
                     tracker += 1
-                    logging.info('%i out of %i %s ', tracker, count,
-                                 'released' if sub_result else 'failed')
+                    logging.info('[] Releasing %i out of %i IPs in subnet "%s" in project "%s"',
+                                 'DONE' if sub_result else 'FAILED', tracker, count, sub_result, project)
                 except Exception as exc:
-                    logging.error(
-                        'releasing ip generated an exception: %s', exc)
+                    logging.error('Error releasing IPs "%s" in project "%s" subnet "%s". Error: %s',
+                                  ips.get('items'), project, subnet_uri, exc)
                     result = False
     else:
-        logging.warning(
-            'No reserved internal IP addresses found in the subnet %s',
-            subnet_uri.uri)
+        logging.warning('No reserved internal IP addresses found in the subnet "%s" from project "%s"',
+                        subnet_uri, project)
     return result
 
 
 def wait_for_operation(compute, project_region_uri: uri.ProjectRegion,
                        operation) -> object:
-    logging.info('Waiting for operation to finish...')
+    logging.info('Waiting for operation "%s" to finish in "%s"', operation, project_region_uri)
     while True:
         result = compute.regionOperations() \
             .get(project=project_region_uri.project,
@@ -405,9 +390,9 @@ def wait_for_operation(compute, project_region_uri: uri.ProjectRegion,
                  operation=operation).execute()
 
         if result['status'] == 'DONE':
-            logging.info('done.')
+            logging.info('Finished operation "%s" in "%s"', operation, project_region_uri)
             if 'error' in result:
-                print(result['error'])
+                logging.info('Error in operation "%s" in "%s". Results: %s', operation, project_region_uri, result)
                 raise GCPOperationException(result['error'])
             return result
 
@@ -423,19 +408,18 @@ def duplicate(source_subnet_uri: uri.Subnet, target_subnet_uri: uri.Subnet) \
              subnetwork=source_subnet_uri.name)
     config = subnet_request.execute()
     config['region'] = target_subnet_uri.region
-    logging.info('starting subnet %s deletion', source_subnet_uri.uri)
+    logging.info('Starting subnet "%s" deletion', source_subnet_uri)
     delete_operation = delete_subnetwork(compute, source_subnet_uri)
     try:
         wait_for_operation(compute, source_subnet_uri, delete_operation['name']
                            )
     except HttpError as err:
-        logging.error('Deleting subnetwork %s failed with %s',
-                      source_subnet_uri, err)
+        logging.error('Could not delete subnetwork "%s". Error: %s', source_subnet_uri, err)
         return False
 
-    logging.info('subnet %s deleted successfully', source_subnet_uri.uri)
+    logging.info('Deleted subnet "%s"', source_subnet_uri)
 
-    logging.info('re creating subnet %s', target_subnet_uri.uri)
+    logging.info('Recreating subnet "%s"', target_subnet_uri.uri)
 
     del config['selfLink']
     # edge case: VPC flow logs were activated at some point, but then disabled.
@@ -454,8 +438,7 @@ def duplicate(source_subnet_uri: uri.Subnet, target_subnet_uri: uri.Subnet) \
         wait_for_operation(compute, target_subnet_uri, insert_operation['name']
                            )
     except HttpError as err:
-        logging.error('Creating subnetwork %s failed with %s',
-                      target_subnet_uri, err)
+        logging.error('Could not recreate subnetwork "%s". Error: %s', target_subnet_uri, err)
         return False
     return True
 
