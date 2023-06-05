@@ -25,9 +25,6 @@ class Project:
     def __init__(self, project: str):
         self._project = project
 
-    def __str__(self):
-        return self.uri
-
     @property
     def uri(self):
         return 'projects/{}'.format(self.project)
@@ -39,6 +36,8 @@ class Project:
     @property
     def project(self):
         return self._project
+    def __str__(self):
+        return f'{self.__class__.__name__}: {self.uri}'
 
 
 class ProjectRegion(Project):
@@ -55,6 +54,9 @@ class ProjectRegion(Project):
     @property
     def region(self):
         return self._region
+
+    def __str__(self):
+        return f'{self.__class__.__name__}: {self.uri}'
 
 
 class ProjectZone(ProjectRegion):
@@ -77,6 +79,9 @@ class ProjectZone(ProjectRegion):
     @property
     def uri(self):
         return 'projects/{}/zones/{}'.format(self.project, self.zone)
+
+    def __str__(self):
+        return f'{self.__class__.__name__}: {self.uri}'
 
 
 class Instance(ProjectZone):
@@ -111,6 +116,9 @@ class Instance(ProjectZone):
         return 'projects/{}/zones/{}/instances/{}'.format(self.project,
                                                           self.zone,
                                                           self.name)
+
+    def __str__(self):
+        return f'{self.__class__.__name__}: {self.uri}'
 
 
 class Subnet(ProjectRegion):
@@ -147,6 +155,9 @@ class Subnet(ProjectRegion):
                                                               self.region,
                                                               self.name)
 
+    def __str__(self):
+        return f'{self.__class__.__name__}: {self.uri}'
+
 
 class Disk(ProjectZone):
 
@@ -180,6 +191,9 @@ class Disk(ProjectZone):
         return 'projects/{}/zones/{}/disks/{}'.format(self.project,
                                                       self.zone,
                                                       self.name)
+
+    def __str__(self):
+        return f'{self.__class__.__name__}: {self.uri}'
 
 
 class MachineType(ProjectZone):
@@ -215,6 +229,9 @@ class MachineType(ProjectZone):
                                                              self.zone,
                                                              self.machine_type)
 
+    def __str__(self):
+        return f'{self.__class__.__name__}: {self.uri}'
+
 
 class MachineImage(Project):
 
@@ -248,3 +265,6 @@ class MachineImage(Project):
     def uri(self):
         return 'projects/{}/global/machineImages/{}'.format(self.project,
                                                             self.name)
+
+    def __str__(self):
+        return f'{self.__class__.__name__}: {self.uri}'

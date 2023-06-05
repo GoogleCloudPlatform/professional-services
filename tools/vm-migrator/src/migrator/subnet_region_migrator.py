@@ -63,14 +63,11 @@ def bulk_image_create(project, machine_image_region, file_name='export.csv') \
                 try:
                     machine_image_name = future.result()
                     tracker = tracker + 1
-                    logging.info('%r machine image created sucessfully',
-                                 machine_image_name)
-                    logging.info('Machine image %i out of %i completed',
-                                 tracker, count)
+                    logging.info('Created machine image "%s" (%i/%i) in project "%s"',
+                                 machine_image_name, tracker, count, project)
                 except Exception as exc:
-                    logging.error(
-                        'machine image creation generated an exception: %s',
-                        exc)
+                    logging.error('Could not create machine image "%s" in project "%s". Error: %s',
+                                  machine_image_name, project, exc)
                     result = False
     return result
 
@@ -82,7 +79,6 @@ def bulk_delete_instances_and_disks(file_name, source_project) -> bool:
         count = 0
         tracker = 0
         instance_future = []
-        instance_name = ''
         deleted_instances = []
         # We can use a with statement to ensure threads are cleaned up promptly
         with concurrent.futures.ThreadPoolExecutor(
@@ -99,12 +95,9 @@ def bulk_delete_instances_and_disks(file_name, source_project) -> bool:
                     instance_name = future.result()
                     deleted_instances.append(instance_name)
                     tracker = tracker + 1
-                    logging.info('%r machine deleted sucessfully',
-                                 instance_name)
-                    logging.info('%i out of %i deleted', tracker, count)
+                    logging.info('Deleted instance "%r" (%i/%i)', instance_name, tracker, count)
                 except Exception as exc:
-                    logging.error(
-                        'machine deletion generated an exception: %s', exc)
+                    logging.error('Could not delete machine. Error: %s', exc)
                     result = False
         count = 0
         tracker = 0
@@ -125,21 +118,16 @@ def bulk_delete_instances_and_disks(file_name, source_project) -> bool:
                                                 source_project))
                             count = count + 1
                         else:
-                            logging.info(
-                                'Since instance {} was not deleted, disk {} '
-                                'is being left undeleted as well.'
-                                .format(instance_uri.name,
-                                        row['disk_name_' + str(i + 1)]))
+                            logging.info('Instance "%s" not deleted, preserving disk "%s"',
+                                         instance_uri, row['disk_name_' + str(i + 1)])
 
             for future in concurrent.futures.as_completed(disk_future):
                 try:
                     disk_name = future.result()
                     tracker = tracker + 1
-                    logging.info('%r disk deleted sucessfully', disk_name)
-                    logging.info('%i out of %i deleted', tracker, count)
+                    logging.info('Deleted disk "%r" (%i/%i)', disk_name, tracker, count)
                 except Exception as exc:
-                    logging.error('disk deletion generated an exception: %s',
-                                  exc)
+                    logging.error('Could not delete disk. Error: %s', exc)
                     result = False
     return result
 
@@ -165,12 +153,9 @@ def bulk_instance_shutdown(file_name) -> bool:
                 try:
                     machine_name = future.result()
                     tracker = tracker + 1
-                    logging.info('%r machine shutdown sucessfully',
-                                 machine_name)
-                    logging.info('%i out of %i shutdown', tracker, count)
+                    logging.info('Shutdown machine "%r" (%i/%i)', machine_name, tracker, count)
                 except Exception as exc:
-                    logging.error(
-                        'machine shutdown generated an exception: %s', exc)
+                    logging.error('Could not shutdown machine. Error: %s', exc)
                     result = False
     return result
 
@@ -197,12 +182,9 @@ def bulk_instance_start(file_name) -> bool:
                 try:
                     machine_name = future.result()
                     tracker = tracker + 1
-                    logging.info('%r machine started sucessfully',
-                                 machine_name)
-                    logging.info('%i out of %i started up', tracker, count)
+                    logging.info('Started machine "%r" (%i/%i)', machine_name, tracker, count)
                 except Exception as exc:
-                    logging.error(
-                        'machine strating generated an exception: %s', exc)
+                    logging.error('Could not start machine. Error: %s', exc)
                     result = False
     return result
 
@@ -211,10 +193,8 @@ def bulk_move_instances_to_subnet(
         file_name, to_subnet_uri: uri.Subnet, direction: str
     ) -> bool:
     if direction != 'backup' and direction != 'rollback':
-        logging.error(
-            "bulk_move_instances_to_subnet: specify a direction \
-            ('backup' or 'rollback')"
-        )
+        logging.error('bulk_move_instances_to_subnet: specify a direction ("backup" or "rollback"). Got: "%s"',
+                      direction)
         return False
     result = True
     # first go through the whole file and check for instance fingerprints
@@ -222,10 +202,7 @@ def bulk_move_instances_to_subnet(
         csv_dict_reader = DictReader(read_obj)
         for row in csv_dict_reader:
             if not row['fingerprint']:
-                logging.error(
-                    'Missing fingerprint for instance %s, aborting',
-                    row['name']
-                )
+                logging.error('Missing fingerprint for instance "%s", aborting', row['name'])
                 return False
     # all fingerprints there, proceeding
     with open(file_name, 'r') as read_obj:
@@ -240,10 +217,7 @@ def bulk_move_instances_to_subnet(
             for row in csv_dict_reader:
                 instance_uri = uri.Instance.from_uri(row['self_link'])
                 if not row['fingerprint']:
-                    logging.error(
-                        'Missing fingerprint for %s, aborting',
-                        row['name']
-                    )
+                    logging.error('Missing fingerprint for "%s", aborting', row['name'])
                 instance_future.append(
                     executor.submit(
                         instance.move_to_subnet_and_rename, instance_uri,
@@ -254,14 +228,9 @@ def bulk_move_instances_to_subnet(
                 try:
                     machine_name = future.result()
                     tracker = tracker + 1
-                    logging.info('%r machine moved to subnet %s sucessfully',
-                                 machine_name, to_subnet_uri)
-                    logging.info('%i out of %i moved to subnet', tracker, count)
+                    logging.info('Moved machine "%r" (%i/%i) to subnet "%s"', machine_name, tracker, count, to_subnet_uri)
                 except Exception as exc:
-                    logging.error(
-                        'Moving machine to subnet %s: exception: %s',
-                        to_subnet_uri, exc
-                    )
+                    logging.error('Could not move machine to subnet "%s". Error: %s', to_subnet_uri, exc)
                     result = False
     return result
 
@@ -290,12 +259,11 @@ def add_machineimage_iampolicies(file_name, source_project,
                 try:
                     machine_name = future.result()
                     tracker = tracker + 1
-                    logging.info('Set IAM policy for service account to '
-                                 '%s machine image sucessfully', machine_name)
-                    logging.info('%i out of %i set ', tracker, count)
+                    logging.info('Set IAM policy for service account "%s to machine image "%s" (%i/%i)',
+                                 target_service_account, machine_name, tracker, count)
                 except Exception as exc:
-                    logging.error(
-                        'machine iam policy generated an exception: %s', exc)
+                    logging.error('Could not set IAM policy for service account "%s". Error: %s',
+                                  target_service_account, exc)
                     result = False
     return result
 
@@ -373,10 +341,8 @@ def bulk_create_instances(file_name, target_project, target_service_account,
                 )
 
                 if target_subnet_uri.region != target_instance_uri.region:
-                    logging.error(
-                        'Instance zone mapping from %s to %s is outside the '
-                        'target region %s', source_instance_uri.zone,
-                        target_instance_uri.zone, target_subnet_uri.zone)
+                    logging.error('Instance mapping from "%s" to "%s" is outside the target region "%s"',
+                                  source_instance_uri, target_instance_uri, target_subnet_uri)
                     continue
 
                 instance_future.append(
@@ -393,11 +359,9 @@ def bulk_create_instances(file_name, target_project, target_service_account,
                 try:
                     instance_name = future.result()
                     tracker = tracker + 1
-                    logging.info('%r instance %i out of %i created '
-                                 'sucessfully', instance_name, tracker, count)
+                    logging.info('Created instance "%r" (%i/%i)', instance_name, tracker, count)
                 except Exception as exc:
-                    logging.error(
-                        'Instance creation generated an exception: %s', exc)
+                    logging.error('Could not create instance. Error: %s', exc)
                     result = False
 
             if not result:
@@ -414,12 +378,9 @@ def bulk_create_instances(file_name, target_project, target_service_account,
                 try:
                     disk_name = future.result()
                     tracker = tracker + 1
-                    logging.info('%r disk %i out of %i updated with labels '
-                                 'sucessfully', disk_name, tracker,
-                                 len(disk_labels))
+                    logging.info('Updated labels for disk "%r" (%i/%i)', disk_name, tracker, len(disk_labels))
                 except Exception as exc:
-                    logging.error(
-                        'Disk update generated an exception: %s', exc)
+                    logging.error('Could not set labels to disk. Error: %s', exc)
                     result = False
 
     return result
@@ -449,14 +410,10 @@ def bulk_instance_disable_deletionprotection(file_name) -> bool:
                 try:
                     instance_name = future.result()
                     tracker = tracker + 1
-                    logging.info('Disabled deletion protection for  '
-                                 '%s instance sucessfully', instance_name)
-                    logging.info('%i out of %i set ', tracker, count)
+                    logging.info('Disabled deletion protection for instance "%s" (%i/%i)',
+                                 instance_name, tracker, count)
                 except Exception as exc:
-                    logging.error(
-                        'Disable deletion protection: exception: %s',
-                        exc
-                    )
+                    logging.error('Could not disable deletion protection. Error: %s', exc)
                     result = False
     return result
 
@@ -479,7 +436,7 @@ def query_yes_no(question, default='yes'):
     elif default == 'no':
         prompt = ' [y/N] '
     else:
-        raise ValueError('invalid default answer: %s' % default)
+        raise ValueError(f'Invalid default answer "{default}" for question "{question}"')
 
     while True:
         sys.stdout.write(question + prompt)
@@ -510,8 +467,7 @@ def filter_records(source_file, filter_file, destination_file):
                 filtered.append(row)
 
     overwrite_file = query_yes_no(
-        'About to overwrite %s with %i records, please confirm to continue' %
-        (destination_file, len(filtered)),
+        f'About to overwrite "{destination_file}" with {len(filtered)}, please confirm to continue',
         default='no')
 
     if overwrite_file:
@@ -550,10 +506,10 @@ def release_individual_ips(source_subnet_uri, file_name) -> bool:
                     sub_result = future.result()
                     result = sub_result and result
                     tracker += 1
-                    logging.info('%i out of %i %s ', tracker, count, 'released' if sub_result else 'failed')
+                    logging.info('[%s] Releasing individual IPs (%i/%i)',
+                                 'DONE' if sub_result else 'FAILED', tracker, count)
                 except Exception as exc:
-                    logging.error(
-                        'releasing ip generated an exception: %s', exc)
+                    logging.error('Could not release individual IP. Error: %s', exc)
                     result = False
     return result
 
@@ -595,44 +551,44 @@ def main(step, machine_image_region, source_project,
                         format='%(asctime)s  %(levelname)s %(message)s',
                         level=numeric_level)
 
-    logging.info('executing step %s', step)
+    logging.info('Executing step "%s"', step)
     if step == 'prepare_inventory':
         logging.info('Exporting the inventory')
         if subnet.export_instances(source_project, source_zone, source_zone_2,
                                    source_zone_3, source_subnet_uri,
                                    source_csv):
-            logging.info('%s now has exported records', source_csv)
+            logging.info('File "%s" now has exported records', source_csv)
         else:
-            logging.info('File %s was not overwritten', source_csv)
+            logging.info('File "%s" was not overwritten', source_csv)
             return False
 
     elif step == 'filter_inventory':
-        logging.info('Exporting the inventory')
+        logging.info('Filtering the inventory')
         if subnet.export_instances(source_project, source_zone, source_zone_2,
                                    source_zone_3, source_subnet_uri,
                                    source_csv):
-            logging.info('%s now has exported records', source_csv)
+            logging.info('File "%s" now has exported records', source_csv)
         else:
-            logging.info('File %s was not overwritten', source_csv)
+            logging.info('File "%s" was not overwritten', source_csv)
             return False
 
         logging.info('Filtering out the exported records')
         if filter_records(source_csv, filter_csv, input_csv):
-            logging.info('%s now has filtered records', input_csv)
+            logging.info('File "%s" now has filtered records', input_csv)
         else:
-            logging.info('File %s was not overwritten', input_csv)
+            logging.info('File "%s" was not overwritten', input_csv)
             return False
 
     elif step == 'prepare_rollback':
         logging.info('Listing the VMs to roll back')
         if subnet.list_instances_for_rollback(source_project, source_zone, backup_subnet_uri, input_csv, rollback_csv):
-            logging.info('%s now has exported records', rollback_csv)
+            logging.info('File "%s" now has exported records', rollback_csv)
         else:
-            logging.info('File %s was not overwritten', rollback_csv)
+            logging.info('File "%s" was not overwritten', rollback_csv)
             return False
 
     elif step == 'rollback_instances':
-        logging.info('Performing rollback of instances in file %s', rollback_csv)
+        logging.info('Performing rollback of instances in file "%s"', rollback_csv)
         if bulk_move_instances_to_subnet(rollback_csv, source_subnet_uri, 'rollback'):
             logging.info('Instances rollback completed successfully')
         else:
@@ -696,11 +652,9 @@ def main(step, machine_image_region, source_project,
             logging.info('Disabling deletion protection for all instances')
 
             if bulk_instance_disable_deletionprotection(input_csv):
-                logging.info('Successfully disabled deletion protection for all '
-                             'instances')
+                logging.info('Successfully disabled deletion protection for all instances')
             else:
-                logging.info('Disabling deletion protection for all instances '
-                             'failed')
+                logging.info('Disabling deletion protection for all instances failed')
                 return False
         else:
             return False
@@ -713,14 +667,11 @@ def main(step, machine_image_region, source_project,
                                 'instances and disks present in the inventory '
                                 '?' % count, default='no')
         if response:
-            logging.info('Deleting all the instances and disks present in the '
-                         'inventory')
+            logging.info('Deleting all the instances and disks present in the inventory')
             if bulk_delete_instances_and_disks(input_csv, source_project):
-                logging.info('Successfully deleted all instances and disks '
-                             'present in the inventory')
+                logging.info('Successfully deleted all instances and disks present in the inventory')
             else:
-                logging.info('Deleting all instances and disks in the '
-                             'inventory failed')
+                logging.info('Deleting all instances and disks in the inventory failed')
                 return False
         else:
             logging.info('Not deleting any instances nor disks')
@@ -735,25 +686,22 @@ def main(step, machine_image_region, source_project,
             return False
 
     elif step == 'add_machineimage_iampolicies':
-        logging.info('Setting IAM policies of created machine images with '
-                     'input_csv=%s, source_project=%s, target_service_account='
-                     '%s', input_csv, source_project, target_service_account)
+        logging.info('Setting IAM policies of created machine images with input_csv="%s", source_project="%s", '
+                     'target_service_account="%s"',
+                     input_csv, source_project,
+                     target_service_account)
         if add_machineimage_iampolicies(input_csv, source_project,
                                         target_service_account):
-            logging.info('Successfully set IAM policies of created machine '
-                         'images')
+            logging.info('Successfully set IAM policies of created machine images')
         else:
-            logging.info('Setting IAM policies of created machine images '
-                         'failed')
+            logging.info('Setting IAM policies of created machine images failed')
             return False
 
     elif step == 'create_instances':
-        logging.info(
-            'Creating instances retaining the original ips in file %s with '
-            'source_project=%s, target_project=%s, target_service_account=%s, '
-            'target_scopes=%s, target_subnet_uri=%s', input_csv,
-            source_project, target_project, target_service_account,
-            target_scopes, target_subnet_uri)
+        logging.info('Creating instances retaining the original ips in file "%s" with source_project="%s", '
+                     'target_project="%s", target_service_account="%s", target_scopes="%s", target_subnet_uri="%s"',
+                     input_csv, source_project,
+                     target_project, target_service_account, target_scopes, target_subnet_uri)
         if bulk_create_instances(input_csv, target_project,
                                  target_service_account, target_scopes,
                                  target_subnet_uri, source_project, True):
@@ -764,11 +712,10 @@ def main(step, machine_image_region, source_project,
 
     elif step == 'create_instances_without_ip':
         logging.info(
-            'Creating instances without retaining the original ips in file %s '
-            'with source_project=%s, target_project=%s, target_service_account'
-            '=%s, target_scopes=%s, target_subnet_uri=%s', input_csv,
-            source_project, target_project, target_service_account,
-            target_scopes, target_subnet_uri)
+            'Creating instances without retaining the original ips in file "%s" with source_project="%s", '
+            'target_project="%s", target_service_account="%s", target_scopes="%s", target_subnet_uri="%s"',
+            input_csv, source_project,
+            target_project, target_service_account, target_scopes, target_subnet_uri)
         if bulk_create_instances(input_csv, target_project,
                                  target_service_account, target_scopes,
                                  target_subnet_uri, source_project, False):
@@ -778,9 +725,7 @@ def main(step, machine_image_region, source_project,
             return False
 
     elif step == 'backup_instances':
-        logging.info(
-            'Backing up instances in file %s to backup_subnet_uri=%s',
-            input_csv, backup_subnet_uri)
+        logging.info('Backing up instances in file %s to backup_subnet_uri=%s', input_csv, backup_subnet_uri)
         if bulk_move_instances_to_subnet(input_csv, backup_subnet_uri, 'backup'):
             logging.info('Instances backed up successfully')
         else:
@@ -788,27 +733,24 @@ def main(step, machine_image_region, source_project,
             return False
 
     elif step == 'release_ip_for_subnet':
-        logging.info('Releasing all IPs of project %s present in '
-                     'subnet %s', source_project, source_subnet_uri)
+        logging.info('Releasing all IPs of project "%s" present in subnet "%s"', source_project, source_subnet_uri)
         if subnet.release_ip(source_project, source_subnet_uri):
-            logging.info('All IPs of project %s present in subnet %s released '
-                         'sucessfully', source_project,  source_subnet_uri)
+            logging.info('All IPs of project "%s" present in subnet "%s" released successfully',
+                         source_project,  source_subnet_uri)
         else:
-            logging.error('Releasing the IPs of project %s present in subnet '
-                          '%s failed', source_project, source_subnet_uri)
+            logging.error('Releasing the IPs of project "%s" present in subnet "%s" failed',
+                          source_project, source_subnet_uri)
             return False
 
     elif step == 'release_ip':
-        logging.info('Releasing the IPs present in the %s file', input_csv)
+        logging.info('Releasing the IPs present in the "%s" file', input_csv)
         if release_individual_ips(source_subnet_uri, input_csv):
-            logging.info('IPs present in the file %s released successfully',
-                         input_csv)
+            logging.info('IPs present in the file "%s" released successfully', input_csv)
         else:
-            logging.error('Releasing ips present in the file %s failed',
-                          input_csv)
+            logging.error('Releasing ips present in the file "%s" failed', input_csv)
             return False
     else:
-        logging.error('Step %s unknown', step)
+        logging.error('Step "%s" unknown', step)
         return False
 
     return True
