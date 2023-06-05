@@ -228,7 +228,7 @@ export class BqQueryPlan {
     data.addColumn('date', 'time');
     data.addColumn('number', 'Completed Units');
     data.addColumn('number', 'Active Units');
-    data.addColumn('number', 'Pending Units');
+    data.addColumn('number', 'Pending Units'); 
 
     // get the time data, ignore last entry as it often is an invalid data point
     const timeline = this.plan.statistics.query.timeline.slice(
@@ -304,24 +304,51 @@ export class BqQueryPlan {
           onSelectHandler(chart, data);
         });
     }
-  }
-  /**
-   * Calculate the node background color, returning the one for the
-   * biggest time.
-   */
-  private colorForMaxTime(node: QueryStage): string {
-    if (node.waitMsAvg) {
-      const timeList = [
-        Number(node.waitMsAvg), Number(node.readMsAvg),
-        Number(node.computeMsAvg), Number(node.waitMsAvg)
-      ];
-      const maxTime = Math.max(...timeList);
-      const index = timeList.indexOf(maxTime);
-      return ['#fbc02d', '#7b1fa2', '#ef6c00', '#1565c0'][index];
-    } else {
-      return '#2290FF';
+  } 
+
+  /**Visualise metric estimatedRunnableUnits */
+  asRunnableUsageChart(
+    containerName: string,
+    onSelectHandler: OnSelectHandler<google.GoogleCharts.AreaChart>
+  ): void {
+    const container = document.getElementById(containerName);
+    if (!container) {
+      this.logSvc.error(`Can't find container '${containerName}'`);
+      return;
     }
-  }
+    if (!this.plan.statistics.query?.timeline){
+      return;
+    }
+    const data = new google.GoogleCharts.api.visualization.DataTable();
+    data.addColumn('date', 'time');
+    data.addColumn('number', 'estimated runnable units');
+    const chart =
+      new google.GoogleCharts.api.visualization.LineChart(container);
+
+      const timeline = this.plan.statistics.query.timeline.slice(
+        0, this.plan.statistics.query.timeline.length - 1);
+    
+      data.addRows(timeline.map(
+      item =>
+        [new Date(
+          Number(item.elapsedMs) +
+          Number(this.plan.statistics.startTime)),
+          Number(item.estimatedRunnableUnits)]));
+    const options = {
+      isStacked: true,
+      legend: { position: 'bottom' },
+      connectSteps: false,
+      colors: ['#4374E0', '#53A8FB', '#F1CA3A', '#E49307'],
+      title: 'Estimated Runnable Units'
+    };
+    chart.draw(data, options);
+    if (onSelectHandler) {
+      google.GoogleCharts.api.visualization.events.addListener(
+        chart, 'select', (none: any) => {
+          onSelectHandler(chart, data);
+        });
+    }
+  } 
 
   /** Return stage details details minus the steps. */
   getStageStats(node: QueryStage): KeyValueData[] {

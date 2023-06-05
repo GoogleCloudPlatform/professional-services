@@ -60,6 +60,8 @@ export class ProgressDisplayComponent implements OnInit {
           'Progress', (chart: google.GoogleCharts.AreaChart, data: any) => {});
       this.plan.asSlotUsageChart(
           'SlotUsage', (chart: google.GoogleCharts.LineChart, data: any) => {});
+    this.plan.asRunnableUsageChart(
+          'Runnable', (chart: google.GoogleCharts.LineChart, data: any) => {});
     } else {
       console.log('no Plan');
     }

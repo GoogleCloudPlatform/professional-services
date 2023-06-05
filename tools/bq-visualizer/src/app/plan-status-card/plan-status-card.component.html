@@ -19,51 +19,52 @@
   <mat-card-content class="plan-status">
     <mat-tab-group [dynamicHeight]="true">
       <mat-tab label="Overview">
-        <pre>{{ overview }}</pre>
+        <!--pre>{{ overview }}</pre-->
+        <mat-table [dataSource]="overview">
+          <ng-container matColumnDef="overviewKey">
+            <mat-header-cell *matHeaderCellDef>key </mat-header-cell>
+            <mat-cell *matCellDef="let element"> {{element.key}} </mat-cell>
+          </ng-container>
+          <ng-container matColumnDef="overviewValue">
+            <mat-header-cell *matHeaderCellDef> Value </mat-header-cell>
+            <mat-cell *matCellDef="let element"> {{element.value}} </mat-cell>
+          </ng-container>
+          <mat-row *matRowDef="let row; columns: overviewColumns;"></mat-row>
+        </mat-table>
       </mat-tab>
       <mat-tab label="SQL">
         <pre>{{ sql }}</pre>
       </mat-tab>
       <mat-tab label="Tables">
-        <!--pre>{{ tables }}</pre-->
-        <mat-table [dataSource]="tables" >
-          <!-- name Column -->
+        <mat-table [dataSource]="tables">
           <ng-container matColumnDef="tableName">
             <mat-header-cell *matHeaderCellDef>Table Name </mat-header-cell>
             <mat-cell *matCellDef="let element"> {{element}} </mat-cell>
           </ng-container>
- 
           <mat-header-row *matHeaderRowDef="tableColumns">Input Table</mat-header-row>
           <mat-row *matRowDef="let row; columns: tableColumns;"></mat-row>
         </mat-table>
       </mat-tab>
       <mat-tab label="Reservation">
-        <mat-table [dataSource]="reservation_data" >
-          <!-- Position Column -->
+        <mat-table [dataSource]="reservation_data">
           <ng-container matColumnDef="key">
             <mat-header-cell *matHeaderCellDef>{{ reservationsHeader[0] }} </mat-header-cell>
             <mat-cell *matCellDef="let element"> {{element.key}} </mat-cell>
           </ng-container>
-
-          <!-- Name Column -->
           <ng-container matColumnDef="value">
             <mat-header-cell *matHeaderCellDef> {{ reservationsHeader[1] }} </mat-header-cell>
             <mat-cell *matCellDef="let element"> {{element.value}} </mat-cell>
           </ng-container>
-
           <mat-header-row *matHeaderRowDef="reservationColumns"></mat-header-row>
           <mat-row *matRowDef="let row; columns: reservationColumns;"></mat-row>
         </mat-table>
       </mat-tab>
       <mat-tab label="Statistics">
-        <mat-table [dataSource]="statistics_data" id="statsTable" >
-          <!-- Position Column -->
+        <mat-table [dataSource]="statistics_data" id="statsTable">
           <ng-container matColumnDef="statskey">
             <mat-header-cell *matHeaderCellDef>Key </mat-header-cell>
             <mat-cell *matCellDef="let element"> {{element.key}} </mat-cell>
           </ng-container>
-
-          <!-- Name Column -->
           <ng-container matColumnDef="statsvalue">
             <mat-header-cell *matHeaderCellDef> Value </mat-header-cell>
             <mat-cell *matCellDef="let element"> {{element.value}} </mat-cell>
@@ -71,12 +72,25 @@
           <mat-row *matRowDef="let row; columns: statisticsColumns;"></mat-row>
         </mat-table>
       </mat-tab>
-      <mat-tab label="experiment">
-       
-      </mat-tab>
       <mat-tab label="Settings">
-        <pre> {{ settings }}</pre>
+        <mat-table [dataSource]="settings_data">
+          <ng-container matColumnDef="settingsKey">
+            <mat-header-cell *matHeaderCellDef> </mat-header-cell>
+            <mat-cell *matCellDef="let element"> {{element.key}} </mat-cell>
+          </ng-container>
+          <ng-container matColumnDef="settingsValue">
+            <mat-header-cell *matHeaderCellDef> </mat-header-cell>
+            <mat-cell *matCellDef="let element"> {{element.value}} </mat-cell>
+          </ng-container>
+
+          <mat-row *matRowDef="let row; columns: settingsColumns;"></mat-row>
+        </mat-table>
       </mat-tab>
+      <div *ngIf="errorMsgs != null">
+        <mat-tab label="Errors">
+          <pre>{{ errorMsgs }}</pre>
+        </mat-tab>
+      </div>
       <mat-tab label="Display Options">
         <mat-card-header>
           <mat-card-title>Select display options</mat-card-title>

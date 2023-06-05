@@ -15,6 +15,8 @@
  */
 /** The interface to the return of the API call list jobs in BQ */
 
+import { Dictionary } from "lodash";
+
 export interface QueryStep {
   kind: string;
   substeps: string[];
@@ -56,6 +58,7 @@ export interface QueryStage {
 
 interface Status {
   state: string;
+  errors?:Record<string,string>[];
 }
 
 interface ReferencedTables {
@@ -70,6 +73,7 @@ interface Timeline {
   elapsedMs: string;
   pendingUnits: string;
   totalSlotMs: string;
+  estimatedRunnableUnits: string;
 }
 
 interface Query {
@@ -156,7 +160,9 @@ interface ConfigurationQuery {
 }
 
 interface Configuration {
+  jobType: string;
   query?: ConfigurationQuery;
+  labels: Record<string,string>;
 }
 
 interface ErrorResult {
@@ -171,6 +177,8 @@ export interface Job {
   etag: string;
   jobReference: JobReference;
   kind: string;
+  principal_subject: string;
+  user_email: string;
   state: string;
   status: Status;
   errorResult?: ErrorResult;

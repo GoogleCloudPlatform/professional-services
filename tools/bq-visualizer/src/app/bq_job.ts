@@ -51,7 +51,7 @@ export class BqJob {
   private dateFromTimeString(timeString: String): Date {
     const aNumber = Number(timeString);
     if (isNaN(aNumber)) {
-      console.log('can\'t parse timeString :' + timeString);
+      //console.log('can\'t parse timeString :' + timeString);
       return undefined;
     }
     return new Date(aNumber);

@@ -18,6 +18,9 @@
   overflow: auto;
   height: 100%;
 }
+pre {
+  white-space: pre-wrap;
+}
 .mat-mdc-table .mdc-data-table__row {
   height: unset;
   
@@ -35,14 +38,31 @@ mat-row, mat-header-row {
   padding-left: 8px;
   padding-right: 8px;
 }
+
+.mat-column-overviewKey {
+  max-width: 15em;
+  text-align: right;
+}
+.mat-column-overviewValue {
+  text-align: left;
+  min-width: 50em;
+}
 .mat-column-statskey {
   max-width: 15em;
   text-align: right;
 }
 .mat-column-statsvalue {
   text-align: right;
+  min-width: 20em;
 }
-
+.mat-column-settingsKey {
+  max-width: 15em;
+  text-align: right;
+}
+.mat-column-settingsValue {
+  text-align: left;
+  min-width: 50em;
+}
 .mat-column-key {
 
   text-align: right;
@@ -58,6 +78,8 @@ mat-cell, mat-header-cell, mat-header-cell {
 .mdc-data-table__table {
   max-width: fit-content; 
   min-width: unset;
+  border-style: solid;
+  border-width: 0.8px;
 } 
 
 

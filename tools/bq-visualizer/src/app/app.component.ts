@@ -25,22 +25,30 @@ import {GoogleAuthService} from './google-auth.service';
 })
 export class AppComponent {
   title = 'BQ Visualiser';
-  isLoggedIn = false;
+  xxxisLoggedIn = false;
   constructor(private googleAuthService: GoogleAuthService) {
     this.googleAuthService.loginEvent.subscribe(
         (isloggedIn: boolean) => this.register_login(isloggedIn));
 
-    this.isLoggedIn = this.googleAuthService.isLoggedIn();
+    //this.isLoggedIn = this.googleAuthService.isLoggedIn();
   }
   /* event handler to recognise a login or logout event has occurred */
   private register_login(what: boolean) {
-    this.isLoggedIn = what;
+    this.xxxisLoggedIn = what;
+    //console.log('AppComponent::registered_login: ' + what)
   }
   public login() {
+    //console.log('AppComponent::login calling googleAuthService.login')
     this.googleAuthService.login();
   }
 
   public logout() {
+    console.log('AppComponent::logout calling googleAuthService.logout')
+
     this.googleAuthService.logout();
+  }
+
+  get isLoggedIn(){
+    return this.googleAuthService.isLoggedIn();
   }
 }

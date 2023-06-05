@@ -32,15 +32,18 @@ export class GoogleAuthService {
   }
 
   public async login() {
+    //console.log('GoogleAuthService::login calling isLoggedIn')
     if (this.isLoggedIn() === false) {
       await this.configureAuth();
     }
   }
   public isLoggedIn(): boolean {
-    console.log('isLoggedin: ' + this.oauthService.hasValidAccessToken())
+    //console.log('GoogleAuthService::isLoggedin: ' + this.oauthService.hasValidAccessToken())
     return this.oauthService.hasValidAccessToken();
   }
   public logout() {
+    //console.log('GoogleAuthService::logout calling isLoggedIn')
+    
     if (this.isLoggedIn()) {
       this.oauthService.logOut();
       this.loginEvent.emit(false);
@@ -58,7 +61,7 @@ export class GoogleAuthService {
     let options = new LoginOptions();
     options.disableNonceCheck=true;
     const result = await this.oauthService.loadDiscoveryDocumentAndTryLogin(options);
-    console.log('configureAuth: result=')
+    //console.log('GoogleAuthService::configureAuth: result=')
     console.debug(result)
     this.loginEvent.emit(result);
     return result;
