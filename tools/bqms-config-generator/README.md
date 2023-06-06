@@ -72,17 +72,17 @@ output: output/hive/
 
 The CSV is expected to have below columns
 
-| COLUMN NAME        | DESCRIPTION                                                                                                                            |
-|--------------------|----------------------------------------------------------------------------------------------------------------------------------------|
-| type               | The type of the source database object (e.g., RELATION, SCHEMA, DATABASE, etc)                                                         |
-| src_db             | The name of the source database                                                                                                        |
-| src_schema         | The name of the schema in the source database                                                                                          |
-| src_relation       | The name of the source relation OR an alias for the source relation OR an function applied to the source attribute (e.g., myprocedure) |
-| src_attribute      | The name of the source attribute (i.e. column) or an alias for the source attribute                                                    |
-| bq_project         | The ID of the Google BigQuery project where the table will be created                                                                  |
-| bq_dataset         | The name of the BigQuery dataset where the table will be created                                                                       |
-| bq_table           | The name of the target table or an alias for the target table in BigQuery                                                              |
-| bq_column          | The name of the target column OR an alias for the target column OR an function name in BigQuery                                        |
+| COLUMN NAME        | NULLABLE | DESCRIPTION                                                                                                                            |
+|--------------------|----------|----------------------------------------------------------------------------------------------------------------------------------------|
+| type               | FALSE    | The type of the source database object (e.g., RELATION, SCHEMA, DATABASE, etc)                                                         |
+| src_db             | TRUE     | The name of the source database                                                                                                        |
+| src_schema         | TRUE     | The name of the schema in the source database                                                                                          |
+| src_relation       | FALSE    | The name of the source relation OR an alias for the source relation OR an function applied to the source attribute (e.g., myprocedure) |
+| src_attribute      | FALSE    | The name of the source attribute (i.e. column) or an alias for the source attribute                                                    |
+| bq_project         | FALSE    | The ID of the Google BigQuery project where the table will be created                                                                  |
+| bq_dataset         | FALSE    | The name of the BigQuery dataset where the table will be created                                                                       |
+| bq_table           | FALSE    | The name of the target table or an alias for the target table in BigQuery                                                              |
+| bq_column          | FALSE    | The name of the target column OR an alias for the target column OR an function name in BigQuery                                        |
 
 ### Input CSV file for ATR Mapping
 
