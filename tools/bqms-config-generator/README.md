@@ -18,13 +18,13 @@ This also validates the config json/yaml generated.
 git clone https://github.com/GoogleCloudPlatform/professional-services.git
 
 # Change directory to your project directory.
-cd <YOUR_PROJECT_DIRECTORY>
-# cd professional-services/tools/bqms-config-generator
+#cd <YOUR_PROJECT_DIRECTORY>
+cd professional-services
 
 # Create a virtualenv and install the Python CLI.
 python3 -m venv venv
 source venv/bin/activate
-pip install ../bqms-config-generator/config_generator
+pip install ./tools/bqms-config-generator
 
 # Remove the example input files from the input directory, if required.
 # rm -rf input/*
@@ -72,7 +72,7 @@ output: output/hive/
 
 The CSV is expected to have below columns
 
-| COLUMN NAME        | DEFINITION                                                                                                                             |
+| COLUMN NAME        | DESCRIPTION                                                                                                                            |
 |--------------------|----------------------------------------------------------------------------------------------------------------------------------------|
 | type               | The type of the source database object (e.g., RELATION, SCHEMA, DATABASE, etc)                                                         |
 | src_db             | The name of the source database                                                                                                        |
@@ -88,7 +88,7 @@ The CSV is expected to have below columns
 
 The CSV is expected to have below columns
 
-| COLUMN NAME       | DEFINITION                                                          |
+| COLUMN NAME       | DESCRIPTION                                                          |
 |-------------------|---------------------------------------------------------------------|
 | bq_project        | The name of the BigQuery project                                    |
 | bq_dataset        | The name of the BigQuery dataset                                    |
