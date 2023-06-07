@@ -79,7 +79,3 @@ def main() -> None:
 
         # Call the method
         getattr(obj, method_name)()
-
-
-if __name__ == "__main__":
-    main()
