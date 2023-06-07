@@ -35,15 +35,12 @@ class CsvToJson:
         self.input_file_path = input_file_path
         self.output_file_path = output_file_path
 
-    def object_map_prep(self) -> NameMap:
+    def object_map_prep(self, data) -> NameMap:
         """
-        This function converts the 'input_file_name.csv' to json file
+        This function converts the 'input_file_name.csv' to json file.
+        Args:
+            data (list of dictionary): A list of dictionary representing the input CSV file
         """
-
-        # Open the CSV file and read in the data
-        with open(self.input_file_path, 'r', encoding='utf=8') as csvfile:
-            reader = csv.DictReader(csvfile)
-            data = list(reader)
 
         # Check for valid columns
         headers = list(data[0].keys())
@@ -97,7 +94,13 @@ class CsvToJson:
         """
         This function writes the converted json to 'output_file_name.json' file.
         """
-        res = self.object_map_prep()
+
+        # Open the CSV file and read in the data
+        with open(self.input_file_path, 'r', encoding='utf=8') as csvfile:
+            reader = csv.DictReader(csvfile)
+            data = list(reader)
+
+        res = self.object_map_prep(data)
         mapping_json = res.to_dict()
 
         try:

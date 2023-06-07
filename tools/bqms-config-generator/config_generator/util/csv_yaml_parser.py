@@ -93,16 +93,13 @@ class CsvToYaml:
             }
         }
 
-    def atr_conf_prep(self):
+    def atr_conf_prep(self, data):
         """
         This function converts the CSV to Required YAML file which in turn used in ATR tool
+        Args:
+              data (list of dictionary): A list of dictionary representing the input CSV file
+
         """
-
-        # Open the CSV file and read in the data
-        with open(self.input_file_path, 'r', encoding='utf=8') as csvfile:
-            reader = csv.DictReader(csvfile)
-            data = list(reader)
-
         # Check for valid columns
         headers = list(data[0].keys())
         self.check_cols(headers)
@@ -154,7 +151,14 @@ class CsvToYaml:
         """
         This function writes the converted yaml in given output file.
         """
-        json_object = self.atr_conf_prep()
+
+        # Open the CSV file and read in the data
+        with open(self.input_file_path, 'r', encoding='utf=8') as csvfile:
+            reader = csv.DictReader(csvfile)
+            data = list(reader)
+
+
+        json_object = self.atr_conf_prep(data)
         self.save_yaml(json_object)
 
         logger.info("YAML has been successfully created at path: %s", self.output_file_path)
