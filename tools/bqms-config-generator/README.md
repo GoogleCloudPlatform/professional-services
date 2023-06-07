@@ -88,17 +88,16 @@ The CSV is expected to have below columns
 
 The CSV is expected to have below columns
 
-| COLUMN NAME       | DESCRIPTION                                                          |
-|-------------------|---------------------------------------------------------------------|
-| bq_project        | The name of the BigQuery project                                    |
-| bq_dataset        | The name of the BigQuery dataset                                    |
-| table_name        | The name of the BigQuery table                                      |
-| column_name       | The name of the column in the BigQuery table                        |
-| source_datatype   | The data type of the column in the source system                    |
-| target_datatype   | The data type of the column in BigQuery                             |
-| source_pattern    | The date or datetime pattern of the column in the source system     |
-| target_pattern    | The date or datetime pattern of the column in BigQuery              |
-
+| COLUMN NAME       | NULLABLE   | DESCRIPTION                                                         |
+|-------------------|------------|---------------------------------------------------------------------|
+| bq_project        | FALSE      | The name of the BigQuery project                                    |
+| bq_dataset        | FALSE      | The name of the BigQuery dataset                                    |
+| table_name        | FALSE      | The name of the BigQuery table                                      |
+| column_name       | FALSE      | The name of the column in the BigQuery table                        |
+| source_datatype   | FALSE      | The data type of the column in the source system                    |
+| target_datatype   | FALSE      | The data type of the column in BigQuery                             |
+| source_pattern    | TRUE       | The date or datetime pattern of the column in the source system     |
+| target_pattern    | TRUE       | The date or datetime pattern of the column in BigQuery              |
 
 ## Results
 On successful execution, utility generates config files under the output directory mentioned in `conf_prep_path.yaml` file
