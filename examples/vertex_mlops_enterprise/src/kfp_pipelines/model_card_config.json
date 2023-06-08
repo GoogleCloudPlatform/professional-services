@@ -1,18 +1,24 @@
 {
-    "model_name": "UCI - Car Evaluation Database", 
-    "model_overview": "The dataset has the following attributes: CAR car acceptability, PRICE overall price, buying buying price, maint price of 
-    the maintenance, TECH technical characteristics, COMFORT comfort, doors number of doors, persons capacity in terms of persons to carry, 
-    lug_boot the size of luggage boot, safety estimated safety of the car Input attributes are printed in lowercase", 
-    "model_owners": [{"name": "Javier Garcia Puga", "contact": "abcdef@google.com"}], 
-    "model_references": ["https://archive-beta.ics.uci.edu/dataset/19/car+evaluation", "http://www-ai.ijs.si/MarkoBohanec/pub/Sistemica90.pdf"], 
-    "model_version_name": "c1a8ef94-83d4-420e-97c8-400d0c151c2d", 
-    "model_version_date": "", 
+    "model_name": "ULB - Credit Card Fraud Public Dataset", 
+    "model_overview":
+    "The dataset contains a set of transactions, all of which have been labeled as fraudulent or legit. 
+    The fraudulent transaction are by far the smaller class (0.172% or the total), so this is a highly 
+    imbalanced dataset. It contains labeled transaction from 2013 from European cardholders and it
+    was published by the Université Libre de Bruxelles (Brussels Free University, ULB).
+
+    <P>The features comprised in this dataset are the result of applying PCA to the original dataset
+    and therefore cannot be interpreted. There are 31 features, labeled V1 to V31 in this dataset,
+    plus Amount and Time.", 
+    "model_owners": [{"name": "Paul Balm", "contact": "abcdef@google.com"}], 
+    "model_references": ["https://www.kaggle.com/datasets/mlg-ulb/creditcardfraud"], 
     "model_ethical_consideration_risks": [
         {
-            "name": "The Car Evaluation Database contains examples with the structural information removed, i.e., 
-                     directly relates CAR to the six input attributes: buying, maint, doors, persons, lug_boot, safety.", 
-            "mitigation_strategy": "Ensure that the dataset is representative of the real world data."}], 
-    "model_ethical_limitations": [{"description": "This database may be particularly useful for testing constructive induction and structure discovery methods"}], 
-    "model_considerations_use_cases": [{"description": "Car Evaluation"}], 
-    "model_considerations_users": [{"description": "Car Reseller"}, {"description": "Data Scientists"}]
+            "name": "The dataset contains a small number of fraud cases that makes it difficult to verify that models trained on this data will generalize to unseen data.", 
+            "mitigation_strategy": "Verify that the model generalizes to the data for the use case at hand, before using it for any decision making."}, 
+        {
+            "name": "Classifying a transaction as fraudulent can be highly impactful for the person responsible for the transaction.", 
+            "mitigation_strategy": "Any classification as fraudulent and implication thereof needs to be treated with caution and requires a very high level of certainty."}], 
+        "model_ethical_limitations": [{"description": "Using this model requires knowledge of the PCA transformation that was applied to the training data."}], 
+    "model_considerations_use_cases": [{"description": "Fraud detection and prevention (ML technology demo only)"}], 
+    "model_considerations_users": [{"description": "Data Scientists"}]
 }

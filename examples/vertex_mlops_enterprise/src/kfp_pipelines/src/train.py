@@ -13,8 +13,6 @@ import argparse
 import sys
 import os
 
-# We would want to move this to config.py but we can't import it here due to a KFP bug
-# https://github.com/kubeflow/pipelines/issues/8385
 PROJECT_ID = os.getenv("PROJECT_ID", "")
 PROJECT_NR = os.getenv("PROJECT_NR", "")
 REGION = os.getenv("REGION", "")
@@ -22,7 +20,7 @@ IMAGE=f'{REGION}-docker.pkg.dev/{PROJECT_ID}/creditcards-kfp/base:latest'
 TRAIN_COMPONENT_IMAGE=f'{REGION}-docker.pkg.dev/{PROJECT_ID}/creditcards-kfp/train-fraud:latest'
 
 CLASS_NAMES = ['OK', 'Fraud']
-COLUMN_NAMES = ["Time", "V1", "V2", "V3", "V4", "V5", "V6", "V7", "V8", "V9", "V10", "V11", "V12", "V13", "V14", "V15", "V16", "V17", "V18", "V19", "V20", "V21", "V22", "V23", "V24", "V25", "V26", "V27", "V28", "Amount", "Class"]
+#COLUMN_NAMES = ["V1", "V2", "V3", "V4", "V5", "V6", "V7", "V8", "V9", "V10", "V11", "V12", "V13", "V14", "V15", "V16", "V17", "V18", "V19", "V20", "V21", "V22", "V23", "V24", "V25", "V26", "V27", "V28", "Amount"]
 TARGET_COLUMN = 'Class'
 
 log = logging.getLogger()
