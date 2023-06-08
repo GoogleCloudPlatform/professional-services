@@ -1,7 +1,7 @@
 from kfp.v2.dsl import (Dataset, Input, Model, Output,
                         ClassificationMetrics, Metrics)
 from kfp import dsl
-from sklearn.metrics import accuracy_score, confusion_matrix, f1_score, roc_curve
+from sklearn.metrics import accuracy_score, confusion_matrix, f1_score
 
 import pandas as pd
 import xgboost as xgb
@@ -20,11 +20,8 @@ IMAGE=f'{REGION}-docker.pkg.dev/{PROJECT_ID}/creditcards-kfp/base:latest'
 TRAIN_COMPONENT_IMAGE=f'{REGION}-docker.pkg.dev/{PROJECT_ID}/creditcards-kfp/train-fraud:latest'
 
 CLASS_NAMES = ['OK', 'Fraud']
-#COLUMN_NAMES = ["V1", "V2", "V3", "V4", "V5", "V6", "V7", "V8", "V9", "V10", "V11", "V12", "V13", "V14", "V15", "V16", "V17", "V18", "V19", "V20", "V21", "V22", "V23", "V24", "V25", "V26", "V27", "V28", "Amount"]
 TARGET_COLUMN = 'Class'
 
-log = logging.getLogger()
-log.setLevel(logging.INFO)
 
 def load_data(dataset_path: str):
     df = pd.read_csv(dataset_path)
@@ -46,10 +43,6 @@ def train(
         metrics: Output[Metrics] = None,
         metricsc: Output[ClassificationMetrics] = None,
         model: Output[Model] = None,):
-
-    # Log to Vertex Experiments for comparison between runs
-    #aiplatform.init(experiment='coffee-bean-classification')
-    #aiplatform.start_run(run=datetime.now().strftime("%Y%m%d-%H%M%S"))
 
     x_train, y_train = load_data(train_dataset_path)
     x_test, y_test = load_data(test_dataset_path)

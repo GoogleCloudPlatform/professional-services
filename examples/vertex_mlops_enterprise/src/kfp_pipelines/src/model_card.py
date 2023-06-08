@@ -86,19 +86,19 @@ def plot_model_card(
     ## Datasets section
     mc.model_parameters.data.append(mctlib.Dataset(
         name="Training dataset",
-        description=f'{train.shape[0]:,} rows with {train.shape[1]:,} features'))
+        description=f'{train.shape[0]:,} rows with {train.shape[1]:,} columns (features + target)'))
     mc.model_parameters.data[0].graphics.collection = [
         mctlib.Graphic(image=stats['train'])
     ]
     mc.model_parameters.data.append(mctlib.Dataset(
         name="Test dataset",
-        description=f'{test.shape[0]:,} rows with {test.shape[1]:,} features'))
+        description=f'{test.shape[0]:,} rows with {test.shape[1]:,} columns (features + target)'))
     mc.model_parameters.data[1].graphics.collection = [
         mctlib.Graphic(image=stats['test'])
     ]
     mc.model_parameters.data.append(mctlib.Dataset(
         name="Validation dataset",
-        description=f'{val.shape[0]:,} rows with {val.shape[1]:,} features'))
+        description=f'{val.shape[0]:,} rows with {val.shape[1]:,} columns (features + target)'))
     mc.model_parameters.data[2].graphics.collection = [
         mctlib.Graphic(image=stats['val'])
     ]

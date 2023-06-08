@@ -23,19 +23,13 @@ def evaluate_model(
     from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
     from sklearn.metrics import ConfusionMatrixDisplay, PrecisionRecallDisplay, RocCurveDisplay
     from sklearn.metrics import confusion_matrix, precision_recall_curve, roc_curve, auc
-    import shap
     from model_card_toolkit.utils.graphics import figure_to_base64str
     import logging
 
     # This is a work-around for a bug in shap
     np.int = int
 
-    # Variables
-    test_data_filepath = test_data.path
-    model_filepath = trained_model.path
-    reports_filepath = reports.path
 
-    # Helpers
     def ShapDisplay(model, x, class_names):
         """
         This function returns a SHAP summary plot.
@@ -48,6 +42,8 @@ def evaluate_model(
             A Matplotlib figure.
         """
         import matplotlib.pyplot as plt
+        import shap
+
         fig = plt.figure()
         explainer = shap.TreeExplainer(model)
         shap_values = explainer.shap_values(x)
@@ -59,7 +55,7 @@ def evaluate_model(
   
     # Read data
     logging.info("Reading data...")
-    test = pd.read_csv(test_data_filepath)
+    test = pd.read_csv(test_data.path)
 
     # Read model
     logging.info("Reading model...")
@@ -111,8 +107,5 @@ def evaluate_model(
         "roc_curve": figure_to_base64str(roc.figure_),
         "shap_plot": figure_to_base64str(shap_fig)
     }
-    with open(reports_filepath, "wb") as f:
+    with open(reports.path, "wb") as f:
         pkl.dump(reports_dict, f)
-
-    # save metadata
-    reports.path = reports_filepath
