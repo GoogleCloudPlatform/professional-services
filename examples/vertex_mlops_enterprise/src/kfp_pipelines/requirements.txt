@@ -29,7 +29,7 @@ google-cloud-videointelligence==2.8.3
 google-cloud-vision==3.1.4
 googleapis-common-protos==1.59.0
 grpc-google-iam-v1==0.12.6
-grpcio==1.55.0
+grpcio==1.54.2
 grpcio-status==1.47.0
 jsonschema==3.2.0
 keras==2.9.0
