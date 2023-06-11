@@ -35,7 +35,7 @@ export class PlanStatusCardComponent {
   tableColumns: string[] = ['tableName'];
   statisticsColumns: string[] = ['statskey', 'statsvalue'];
   reservationsHeader: string[] = []
-  reservationColumns: string[] = ['key', 'value'];
+  reservationColumns: string[] = ['reservationKey', 'reservationValue'];
   settingsColumns: string[] = ['settingsKey', 'settingsValue'];
 
 
@@ -100,14 +100,15 @@ export class PlanStatusCardComponent {
   get overview(): KeyValue[] {
     if (this.plan) {
       const configuration = this.plan.plan.configuration;
+      const jobRef =  this.plan.plan.jobReference;
       const data = [
         new KeyValue({ key: 'job type', value: configuration ? configuration.jobType : '' }),
         new KeyValue({ key: 'etag', value: this.plan.plan.etag }),
         new KeyValue({ key: 'user email', value: this.plan.plan.user_email }),
-        new KeyValue({ key: 'principal subject', value: this.plan.plan.principal_subject }),
-        new KeyValue({ key: 'job id', value: this.plan.plan.jobReference.jobId }),
-        new KeyValue({ key: 'location', value: this.plan.plan.jobReference.location }),
-        new KeyValue({ key: 'project id', value: this.plan.plan.jobReference.projectId }),
+        new KeyValue({ key: 'principal subject', value: this.plan.plan.principal_subject  }),
+        new KeyValue({ key: 'job id', value: jobRef?jobRef.jobId: 'N/A' }),
+        new KeyValue({ key: 'location', value: jobRef?jobRef.location: 'N/A' }),
+        new KeyValue({ key: 'project id', value: jobRef?jobRef.projectId: 'N/A' }),
         new KeyValue({ key: 'status', value: this.plan.plan.status ? this.plan.plan.status.state : 'None' })
       ];
       if (configuration) {
@@ -254,7 +255,7 @@ export class PlanStatusCardComponent {
   /** Get referenced tables from query plan. */
   get tables(): string[] {
     if (this.plan) {
-      if (this.plan.plan.statistics.query) {
+      if (this.plan.plan.statistics.query && this.plan.plan.statistics.query.referencedTables) {
         const tables = this.plan.plan.statistics.query.referencedTables;
         var tableRefs: string[] = [];
         tables.forEach((element) => {

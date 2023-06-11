@@ -30,7 +30,7 @@
 mat-form-field {
   width: 100%;
   padding-left: 16px;
-  padding-right: 16px;
+  padding-right: 16px; 
   }
   
 .dashboard-card {
@@ -39,6 +39,7 @@ mat-form-field {
   left: 15px;
   right: 15px;
   bottom: 15px;
+  padding: 10px;
 }
 
 .dashboard-card-content {

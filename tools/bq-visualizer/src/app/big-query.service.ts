@@ -13,35 +13,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {HttpClient} from '@angular/common/http';
-import {Injectable} from '@angular/core';
-import {concat, defer, EMPTY, from, Observable, Observer, of, Subscription} from 'rxjs';
-import {catchError, filter, map} from 'rxjs/operators';
+import { HttpClient } from '@angular/common/http';
+import { Injectable } from '@angular/core';
+import { concat, defer, EMPTY, from, Observable, Observer, of, Subscription } from 'rxjs';
+import { catchError, filter, map } from 'rxjs/operators';
 
-import {environment} from '../environments/environment';
+import { environment } from '../environments/environment';
 
-import {BqJob} from './bq_job';
-import {GoogleAuthService} from './google-auth.service';
-import {LogService} from './log.service';
-import {BqListJobResponse, BqProject, BqProjectListResponse, Job} from './rest_interfaces';
+import { BqJob } from './bq_job';
+import { GoogleAuthService } from './google-auth.service';
+import { LogService } from './log.service';
+import { BqListJobResponse, BqProject, BqProjectListResponse, Job } from './rest_interfaces';
 
 export type GetJobsReturn = [Observable<BqJob>, () => any];
 
 /** All services that talk to the BigQuery API. */
-@Injectable({providedIn: 'root'})
+@Injectable({ providedIn: 'root' })
 export class BigQueryService {
   projectList: BqProject[] = [];
   projectFilter: string = "";
   lastProjectId: string = "";
 
   constructor(
-      private http: HttpClient,  // private oauthService: OAuthService,
-      private googleAuthService: GoogleAuthService,
-      private logSvc: LogService) {}
+    private http: HttpClient,  // private oauthService: OAuthService,
+    private googleAuthService: GoogleAuthService,
+    private logSvc: LogService) { }
 
   /** Get the detail of a job. */
   getQueryPlan(projectId: string, jobId: string, location: string):
-      Observable<Job> {
+    Observable<Job> {
     // Extract job id if the job id is a collection of
     // [project]:[location].jobId
     const realid = jobId.split('.').slice(-1)[0];
@@ -49,18 +49,18 @@ export class BigQueryService {
 
     const token = this.googleAuthService.getAccessToken();
 
-    const args = {access_token: token, location: location};
+    const args = { access_token: token, location: location };
     const url = bqUrl(`/${projectId}/jobs/${realid}`, args);
 
     this.logSvc.debug(`Requested job detail for: ${realid}`);
     return this.http.get<Job>(url).pipe(
-        catchError(this.handleError('getQueryPlan')));
+      catchError(this.handleError('getQueryPlan')));
   }
 
   /** Get all jobs for a project. */
   getJobs(projectId: string, maxJobs: number, allUsers: boolean):
-      Observable<BqJob> {
-    return new Observable( (obs:Observer<BqJob>) => {
+    Observable<BqJob> {
+    return new Observable((obs: Observer<BqJob>) => {
       (async () => {
         const token = this.googleAuthService.getAccessToken();
         let nextPageToken = '';
@@ -77,37 +77,38 @@ export class BigQueryService {
           try {
             await new Promise((resolve, reject) => {
               this.http.get<BqListJobResponse>(url).subscribe({
-                  next: (res) => {
-                    if (!res.jobs) {
-                      console.error(`No jobs found in bq response`, res);
-                      if (allUsers) {
-                        alert(
-                            `There were no jobs found that you can view. To ` +
-                            `list jobs for all users, you ` +
-                            `need the Owner permission on the project.`);
-                      } else {
-                        alert('There were no jobs found that you can view.');
-                      }
-                      throw new Error('No jobs found');
+                next: (res) => {
+                  if (!res.jobs) {
+                    console.error(`No jobs found in bq response`, res);
+                    if (allUsers) {
+                      alert(
+                        `There were no jobs found that you can view. To ` +
+                        `list jobs for all users, you ` +
+                        `need the Owner permission on the project.`);
+                    } else {
+                      alert('There were no jobs found that you can view.');
                     }
-                    for (const job of res.jobs.map(el => new BqJob(el))) {
-                      
-                      obs.next(job);
-                    }
-                    nextPageToken = res.nextPageToken;
-                    totalJobs += res.jobs.length;
-                    if (totalJobs >= maxJobs) {
-                      obs.complete();
-                      return;
-                    }
-                  },
-                  error:(err) => {
-                    console.error(`Error loading jobs: ${err}`);
-                    throw new Error(err);
-                  },
-                  complete: () => {
-                    resolve([]);
-                  }});
+                    throw new Error('No jobs found');
+                  }
+                  for (const job of res.jobs.map(el => new BqJob(el))) {
+
+                    obs.next(job);
+                  }
+                  nextPageToken = res.nextPageToken;
+                  totalJobs += res.jobs.length;
+                  if (totalJobs >= maxJobs) {
+                    obs.complete();
+                    return;
+                  }
+                },
+                error: (err) => {
+                  console.error(`Error loading jobs: ${err}`);
+                  throw new Error(err);
+                },
+                complete: () => {
+                  resolve([]);
+                }
+              });
             });
           } catch (err) {
             obs.error(err);
@@ -121,20 +122,20 @@ export class BigQueryService {
       })()
         // HACK: prevent linter warning when `no-floating-promises` is set
         // see https://github.com/ReactiveX/rxjs/issues/2827
-    .then(null, obs.error)
+        .then(null, obs.error)
     });
   }
 
   /** Get all projects. */
   getProjects(): Observable<BqProject> {
-    return new Observable((obs:Observer<BqProject>)=> {
+    return new Observable((obs: Observer<BqProject>) => {
       (async () => {
         if (this.googleAuthService.isLoggedIn() === false) {
           await this.googleAuthService.login();
           if (this.googleAuthService.isLoggedIn()) {
             this.logSvc.info('successfully Logged in');
           } else {
-            this.logSvc.error  ('failed Logged in');
+            this.logSvc.error('failed Logged in');
             obs.error('No authentication token available.');
           }
         }
@@ -151,22 +152,26 @@ export class BigQueryService {
           try {
             await new Promise((resolve, reject) => {
               this.http.get<BqProjectListResponse>(url).subscribe({
-                next: ( res) => {
-                    if (!res.projects) {
-                      throw new Error('No projects found');
-                    }
-                    for (const project of res.projects) {
-                      obs.next(project);
-                    }
-                    nextPageToken = res.nextPageToken;
-                  },
-                error: ( err) => {
-                    console.error(`Error loading projects: ${err}`);
-                    throw (err);
-                  },
-                complete:  () => {
-                    resolve([]);
-                  }});
+                next: (res) => {
+                  if (!res.projects) {
+                    throw new Error('No projects found');
+                  }
+                  for (const project of res.projects) {
+                    obs.next(project);
+                  }
+                  nextPageToken = res.nextPageToken;
+                },
+                error: (err) => {
+                  this.logSvc.error('Error loading projects: ');
+                  this.logSvc.error(JSON.stringify(err));
+                  console.error(`Error loading projects: ${err}`);
+                  alert(JSON.stringify(err.error,null, 2))
+                  throw (err);
+                },
+                complete: () => {
+                  resolve([]);
+                }
+              });
             });
           } catch (err) {
             obs.error(err);
@@ -180,7 +185,7 @@ export class BigQueryService {
       })()
         // HACK: prevent linter warning when `no-floating-promises` is set
         // see https://github.com/ReactiveX/rxjs/issues/2827
-    .then(null, obs.error)
+        .then(null, obs.error)
     });
   }
 
@@ -194,7 +199,7 @@ export class BigQueryService {
       this.logSvc.error(`${operation} failed: ${error.message}`);
       if (error.error.error.message) {
         this.logSvc.error(
-            `${operation} failed(2): ${error.error.error.message}`);
+          `${operation} failed(2): ${error.error.error.message}`);
         alert(`${operation} failed: ${error.error.error.message}`);
       }
       return of([]);
@@ -209,7 +214,7 @@ function bqUrl(path: string, args: any): string {
     for (const key of Object.keys(args)) {
       if (args[key]) {
         opts.push(
-            encodeURIComponent(key) + '=' + encodeURIComponent(args[key]));
+          encodeURIComponent(key) + '=' + encodeURIComponent(args[key]));
       }
     }
     url += '?' + opts.join('&');
@@ -217,7 +222,7 @@ function bqUrl(path: string, args: any): string {
   return url;
 }
 
-@Injectable({providedIn: 'root'})
+@Injectable({ providedIn: 'root' })
 export class MockBigQueryService extends BigQueryService {
   getJobs(projectId: string, maxJobs: number): Observable<BqJob> {
     return from<BqJob[]>(require('../assets/test/get_jobs.json').jobs);

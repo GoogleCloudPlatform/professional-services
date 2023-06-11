@@ -63,8 +63,15 @@ mat-row, mat-header-row {
   text-align: left;
   min-width: 50em;
 }
+.mat-column-reservationKey {
+  text-align: right;
+  min-width: 30em;
+}
+.mat-column-reservationValue {
+  max-width:20;
+  text-align: right;
+}
 .mat-column-key {
-
   text-align: right;
 }
 .mat-column-value {

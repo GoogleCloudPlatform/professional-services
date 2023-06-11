@@ -47,11 +47,11 @@
       </mat-tab>
       <mat-tab label="Reservation">
         <mat-table [dataSource]="reservation_data">
-          <ng-container matColumnDef="key">
+          <ng-container matColumnDef="reservationKey">
             <mat-header-cell *matHeaderCellDef>{{ reservationsHeader[0] }} </mat-header-cell>
             <mat-cell *matCellDef="let element"> {{element.key}} </mat-cell>
           </ng-container>
-          <ng-container matColumnDef="value">
+          <ng-container matColumnDef="reservationValue">
             <mat-header-cell *matHeaderCellDef> {{ reservationsHeader[1] }} </mat-header-cell>
             <mat-cell *matCellDef="let element"> {{element.value}} </mat-cell>
           </ng-container>

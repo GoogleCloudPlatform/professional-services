@@ -66,7 +66,7 @@ Sentry.init({
 @Injectable()
 export class SentryErrorHandler implements ErrorHandler {
   handleError(error:any) {
-    Sentry.captureException(error.originalError || error);
+    //Sentry.captureException(error.originalError || error);
     throw error;
   }
 }
@@ -112,6 +112,7 @@ export class SentryErrorHandler implements ErrorHandler {
     MatIconModule,
     BrowserModule,
     MatButtonToggleModule,
+  
     // note to self: import HttpClientModule after BrowserModule, otherwise
     // there is trouble.
     HttpClientModule,

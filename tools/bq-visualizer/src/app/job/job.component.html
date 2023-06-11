@@ -16,7 +16,7 @@
  */
 -->
 <div class="job_display">
-  <mat-grid-list cols="3" rowHeight="300px">
+  <mat-grid-list cols="3" rowHeight="320px">
     <mat-grid-tile [colspan]="1" [rowspan]="1">
       <app-projects (getJobs)="getJobs($event)"></app-projects>
       <!-- this receives the event from the projects component -->
@@ -24,7 +24,7 @@
     <mat-grid-tile [colspan]="1" [rowspan]="1">
       <mat-card class="dashboard-card">
         <mat-card-title> Get by Job Id</mat-card-title>
-        <mat-grid-list cols="10">
+        <mat-grid-list cols="10" rowHeight="3em">
           <mat-grid-tile colspan="10">
             <mat-form-field>
               <input matInput id="jobId" placeholder="<project>:<location>.<jobid>" [(ngModel)]="jobId">

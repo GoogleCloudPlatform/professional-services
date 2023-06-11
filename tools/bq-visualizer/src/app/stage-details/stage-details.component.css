@@ -36,7 +36,7 @@
   
 }
 mat-row, mat-footer-row {
-  min-height: 28px; 
+  min-height: 24px; 
 }
 
 .mat-mdc-cell {

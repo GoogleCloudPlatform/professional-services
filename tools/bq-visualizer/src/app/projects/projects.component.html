@@ -22,7 +22,7 @@
   </mat-card-subtitle>
   <mat-card-content class="dashboard-card-content">
 
-    <mat-grid-list cols="10" >
+    <mat-grid-list cols="10" rowHeight="3em">
       <mat-grid-tile colspan="10">
         <button mat-raised-button id="btnGetProjects" aria-label="getProjectsLabel()" (click)="getProjects()"
           *ngIf="!isLoading">

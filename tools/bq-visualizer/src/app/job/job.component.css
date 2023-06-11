@@ -59,6 +59,7 @@
   left: 15px;
   right: 15px;
   bottom: 15px;
+  padding: 10px;
 }
 .dashboard-card-content {
   overflow: auto;

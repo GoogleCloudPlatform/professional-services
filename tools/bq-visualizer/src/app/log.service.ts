@@ -19,6 +19,7 @@ import * as StackTrace from 'stacktrace-js';
 import {environment} from '../environments/environment';
 
 import {LogMessage} from './log_message';
+import { localservices } from 'googleapis/build/src/apis/localservices';
 
 @Injectable({providedIn: 'root'})
 export class LogService {
@@ -27,6 +28,20 @@ export class LogService {
   private messages: LogMessage[] = [];
   private logToConsole = environment.name != 'test';
 
+  constructor(){
+    const logs = localStorage.getItem('logs')||"";
+    console.log(logs) 
+    const asarr = '[' + logs + '{}]'
+    try {
+      const parsedmessages:any[] = JSON.parse(asarr);
+      //console.log(messages) ;
+      this.messages = parsedmessages.map((rec) => new LogMessage(rec.severity, rec.message, rec.source));
+    } catch(e:any){
+       console.log(asarr)
+      console.error(e);
+    }
+  }
+   
   public getMessages() {
     return this.messages;
   }
@@ -34,6 +49,9 @@ export class LogService {
   public clear() {
     this.messages.length = 0;
     this.messagesSubject.next(this.messages);
+    if (!environment.production){
+      localStorage.removeItem('logs');
+    }
   }
 
   private async mkMessage(severity: string, msg: string): Promise<any> {
@@ -51,11 +69,16 @@ export class LogService {
     const fn = trace[0].fileName.replace('webpack://', '');
     const message = new LogMessage(
         severity, msg,
-        `${trace[0].functionName} (${fn}:${trace[0].lineNumber})`, trace);
+        `${trace[0].functionName} (${fn}:${trace[0].lineNumber})`);
     this.messages.push(message);
     this.messagesSubject.next(this.messages);
     if (this.logToConsole) {
       console.log(message.toString());
+    }
+    if (!environment.production){
+      let logs = localStorage.getItem('logs')||"";
+      logs  += JSON.stringify(message, null, 2) +',';
+      localStorage.setItem('logs', logs);
     }
   }
 

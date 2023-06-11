@@ -175,9 +175,9 @@ interface ErrorResult {
 export interface Job {
   id: string;
   etag: string;
-  jobReference: JobReference;
+  jobReference?: JobReference;
   kind: string;
-  principal_subject: string;
+  principal_subject?: string;
   user_email: string;
   state: string;
   status: Status;
