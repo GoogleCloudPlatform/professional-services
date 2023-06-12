@@ -112,7 +112,7 @@ interface StagePerformanceStandaloneInsight {
 }
 
 interface InputDataChange {
-  recordsReadDiffPercentage: Number;
+  recordsReadDiffPercentage: number;
 }
 
 interface StagePerformanceChangeInsight {
@@ -205,8 +205,8 @@ export interface Project {
   projectId: string;
   lifecycleState: LifeCycleState;
   name: string;
-  labels: any;
-  parent?: Object;
+  labels?: Record<string,string>;
+  parent?: object;
 }
 
 export interface GcpProjectListResponse {

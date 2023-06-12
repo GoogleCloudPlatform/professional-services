@@ -17,10 +17,7 @@
 -->
 <div class="log_display">
   <div>
-    <h3>Debug Messages</h3>
-    <div [style.visibility]="!messages ? 'visible' : 'hidden'">
-      <h2>No Logs</h2>
-    </div>
+  
     <button class="clear" (click)="logSvc.clear()">clear</button>
     <mat-paginator [length]="messages.length" [pageSize]="pageSize" [pageSizeOptions]="pageSizeOptions" (page)="switchPage($event)">
     </mat-paginator>

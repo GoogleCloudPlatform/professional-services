@@ -53,6 +53,7 @@ export class ProjectsComponent implements OnInit, OnDestroy , AfterViewInit{
   }
 
   private register_login(isloggedIn:boolean) {
+    this.logSvc.info('Login event . logged in = '+ isloggedIn);
     this.isLoggedIn = isloggedIn;
     //console.log('ProjectsComponent::register_login. what= '+isloggedIn)
   }

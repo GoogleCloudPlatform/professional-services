@@ -15,8 +15,8 @@
  */
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { concat, defer, EMPTY, from, Observable, Observer, of, Subscription } from 'rxjs';
-import { catchError, filter, map } from 'rxjs/operators';
+import { from, Observable, Observer, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 
 import { environment } from '../environments/environment';
 
@@ -31,8 +31,8 @@ export type GetJobsReturn = [Observable<BqJob>, () => any];
 @Injectable({ providedIn: 'root' })
 export class BigQueryService {
   projectList: BqProject[] = [];
-  projectFilter: string = "";
-  lastProjectId: string = "";
+  projectFilter = "";
+  lastProjectId = "";
 
   constructor(
     private http: HttpClient,  // private oauthService: OAuthService,
@@ -210,7 +210,7 @@ export class BigQueryService {
 function bqUrl(path: string, args: any): string {
   let url = environment.bqUrl + path;
   if (args) {
-    let opts = [];
+    const opts = [];
     for (const key of Object.keys(args)) {
       if (args[key]) {
         opts.push(

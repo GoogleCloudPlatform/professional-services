@@ -73,7 +73,7 @@ export class PlanStatusCardComponent {
     if (this.plan && this.plan.plan.configuration && this.plan.plan.configuration.query) {
       const query_conf =this.plan.plan.configuration.query
       const results = [
-        new KeyValue({ key: 'useLegacySql', value: query_conf.useLegacySql.toString() }),
+        new KeyValue({ key: 'useLegacySql', value: query_conf.useLegacySql? query_conf.useLegacySql.toString():"N/A" }),
         new KeyValue({ key: 'useQueryCache', value: query_conf.useQueryCache? 'true': 'false' }),
         new KeyValue({ key: 'write disposition', value: query_conf.writeDisposition }),
         new KeyValue({ key: 'destination table', 
