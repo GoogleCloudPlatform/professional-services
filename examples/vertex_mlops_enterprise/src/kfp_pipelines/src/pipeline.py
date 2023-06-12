@@ -10,7 +10,9 @@ from google_cloud_pipeline_components.aiplatform import ModelDeployOp
 import logging
 from datetime import datetime
 
-from config import PIPELINE_ROOT, PIPELINE_NAME, BQ_INPUT_DATA, MODEL_CARD_CONFIG, MODEL_DISPLAY_NAME, PRED_CONTAINER, ENDPOINT_NAME, PARENT_MODEL
+from config import (PIPELINE_ROOT, PIPELINE_NAME, BQ_INPUT_DATA, MODEL_CARD_CONFIG, 
+                    MODEL_DISPLAY_NAME, PRED_CONTAINER, ENDPOINT_NAME, PARENT_MODEL,
+                    SERVICE_ACCOUNT, NETWORK)
 from train import xgb_train, PROJECT_ID, REGION, IMAGE, CLASS_NAMES, TARGET_COLUMN
 from eval import evaluate_model
 from model_card import plot_model_card
@@ -227,7 +229,8 @@ run = aiplatform.PipelineJob(
     enable_caching=caching
 )
 
-run.submit()
+run.submit(service_account=SERVICE_ACCOUNT,
+           network=NETWORK)
 
 # This can be used to test the online endpoint:
 #
