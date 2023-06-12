@@ -436,6 +436,8 @@ Platform usage.
 *   [GCS Usage Recommender](tools/gcs-usage-recommender) - A tool that generates
     bucket-level intelligence and access patterns across all projects for a GCP
     project to generate recommended object lifecycle management.
+*   [GKE AutoPSC Controller](tools/gke-autopsc-controller) - Google Kubernetes Engine
+    controller, to setup PSC ServiceAttachment for Gateway API managed Forwarding Rules.
 *   [GKE Billing Export](tools/gke-billing-export) - Google Kubernetes Engine
     fine grained billing export.
 *   [gmon](tools/gmon/) - A command-line interface (CLI) for Cloud Monitoring
