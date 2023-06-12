@@ -6,6 +6,7 @@ PIPELINE_NAME = 'xgb-creditcards'
 PIPELINE_ROOT = f'gs://{MY_STAGING_BUCKET}/pipeline_root/{PIPELINE_NAME}'
 SERVICE_ACCOUNT = os.getenv("SERVICE_ACCOUNT") # returns None is not defined
 NETWORK = os.getenv("NETWORK") # returns None is not defined
+KEY_ID = os.getenv("CMEK_KEY_ID") # e.g. projects/my-project/locations/my-region/keyRings/my-kr/cryptoKeys/my-key
 
 BQ_INPUT_DATA=f"{PROJECT_ID}.vertex_eu.creditcards"
 PARENT_MODEL=f'projects/{PROJECT_NR}/locations/{REGION}/models/1423322200202543104'
