@@ -298,9 +298,6 @@ them to fit your particular use case.
     [Signed URL](https://cloud.google.com/storage/docs/access-control/signed-urls).
 *   [TSOP object transfer Log prosessor](examples/tsop-log-processor/) - This example shows
     how to log object transfer logs by TSOP to Cloud Logging.
-*   [Vertex AI MLOps Pipeline](examples/vertex_pipeline) - Demonstrates
-    end-to-end MLOps process using Vertex AI platform and Smart Analytics
-    technology capabilities.
 
 ## Tools
 
@@ -546,6 +543,9 @@ Platform usage.
     Recommender is a database script that recommends the best numeric data type for the NUMBER data type
     when migrating from legacy databases like Oracle to Google Cloud platforms like BigQuery, AlloyDB,
     Cloud SQL for PostgreSQL, and Google Cloud Storage.
+*   [Composer DAG Load Generator](tools/cloud-composer-dag-generator) - This is an automatic 
+    DAG generator tool which can be used to create test workload on a cloud composer environmnet
+    and to test differents airflows configurations or to do fine tune using the composer/airflow metrics.
 
 ## Contributing
 
