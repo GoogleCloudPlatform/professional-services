@@ -12,7 +12,7 @@ def read_csv_as_text(input_file_path):
         csvreader = csv.reader(f)
         return csvreader
     except Exception as e:
-        raise ValueError("FileNotFoundError: Input file path not found")
+        raise ValueError("Validation failed due to: {error}}".format(error=e) )
 
 
 def read_yaml(path):

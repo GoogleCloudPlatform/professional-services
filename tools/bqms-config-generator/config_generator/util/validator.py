@@ -29,6 +29,7 @@ def schema_validator(jsonData,schema_match):
     try:
         validate(instance=jsonData, schema=schema_match)
     except jsonschema.exceptions.ValidationError as err:
+        print("Validation failed due to: {error}}".format(error=err) )
         return False
     return True
 
