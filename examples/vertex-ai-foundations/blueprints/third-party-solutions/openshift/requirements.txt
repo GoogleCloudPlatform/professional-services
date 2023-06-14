@@ -1,3 +1,0 @@
-click
-pyhcl
-ruamel.yaml
