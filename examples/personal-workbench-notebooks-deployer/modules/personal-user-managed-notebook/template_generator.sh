@@ -7,18 +7,22 @@ user_pre=(${user_pre//;/ })
 user="${user_pre[1]}"
 
 bucket_pre=$(gcloud compute instances describe "$(hostname)" --zone="$zone" --flatten="metadata[templates_bucket_name]")
+# shellcheck disable=SC2206
 bucket_pre=(${bucket_pre//;/ })
 bucket="${bucket_pre[1]}"
 
 templatesrc_pre=$(gcloud compute instances describe "$(hostname)" --zone="$zone" --flatten="metadata[master_templates_path_name]")
+# shellcheck disable=SC2206
 templatesrc_pre=(${templatesrc_pre//;/ })
 templatesrc="${templatesrc_pre[1]}"
 
 templatedest_pre=$(gcloud compute instances describe "$(hostname)" --zone="$zone" --flatten="metadata[generated_templates_path_name]")
+# shellcheck disable=SC2206
 templatedest_pre=(${templatedest_pre//;/ })
 templatedest="${templatedest_pre[1]}"
 
 yamlname_pre=$(gcloud compute instances describe "$(hostname)" --zone="$zone" --flatten="metadata[dataproc_yaml_template_file_name]")
+# shellcheck disable=SC2206
 yamlname_pre=(${yamlname_pre//;/ })
 yamlname="${yamlname_pre[1]}"
 
