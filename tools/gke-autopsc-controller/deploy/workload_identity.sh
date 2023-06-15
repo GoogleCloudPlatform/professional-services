@@ -13,15 +13,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-gcloud iam service-accounts create autopsc-system --display-name "autopsc" --project ${GOOGLE_CLOUD_PROJECT}
+gcloud iam service-accounts create autopsc-system --display-name "autopsc" --project "${GOOGLE_CLOUD_PROJECT}"
 gcloud iam service-accounts add-iam-policy-binding \
   --role roles/iam.workloadIdentityUser \
   --member "serviceAccount:${GOOGLE_CLOUD_PROJECT}.svc.id.goog[autopsc-system/autopsc-controller-manager]" \
-  autopsc-system@${GOOGLE_CLOUD_PROJECT}.iam.gserviceaccount.com
+  "autopsc-system@${GOOGLE_CLOUD_PROJECT}.iam.gserviceaccount.com"
 
-gcloud iam roles create autopsc --project ${GOOGLE_CLOUD_PROJECT} \
+gcloud iam roles create autopsc --project "${GOOGLE_CLOUD_PROJECT}" \
   --permissions=compute.serviceAttachments.create,compute.serviceAttachments.get,compute.serviceAttachments.list,compute.serviceAttachments.delete,compute.serviceAttachments.update,compute.subnetworks.use,compute.regionOperations.get,compute.forwardingRules.use
 gcloud projects add-iam-policy-binding \
-  --role projects/${GOOGLE_CLOUD_PROJECT}/roles/autopsc \
+  --role "projects/${GOOGLE_CLOUD_PROJECT}/roles/autopsc" \
   --member "serviceAccount:autopsc-system@${GOOGLE_CLOUD_PROJECT}.iam.gserviceaccount.com" \
-  ${GOOGLE_CLOUD_PROJECT}
+  "${GOOGLE_CLOUD_PROJECT}"
