@@ -500,6 +500,7 @@ def release_individual_ips(source_subnet_uri, file_name) -> bool:
 
 
 def main(step, migration_json) -> bool:
+    result = True
     try:
         with open(migration_json, "r") as in_json:
             try:
@@ -533,7 +534,8 @@ def main(step, migration_json) -> bool:
         target_subnet_uri = uri.Subnet.from_uri(migration_map.get("target_subnet_uri"))
         target_project = target_subnet_uri.project
         target_service_account = migration_map.get("target_service_account")
-        target_scopes = migration_map.get("target_service_account_scopes")
+        target_service_account_scopes = migration_map.get("target_service_account_scopes")
+        target_scopes = ",".join(target_service_account_scopes) if target_service_account_scopes else ""
         backup_subnet_uri = uri.Subnet.from_uri(migration_map.get("backup_subnet_uri"))
         result = single_subnet_main(
             step, machine_image_region, source_project, source_subnet_uri, source_zone, source_zone_2,
