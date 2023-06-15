@@ -1,0 +1,23 @@
+{
+  "log_level": "INFO",
+  "mapping": [
+    {
+      "skip": "not_a_step_name",
+      "csv": {
+        "source": "source_subnet_a.csv",
+        "input": "input_subnet_a.csv",
+        "filter": "filter_subnet_a.csv",
+        "rollback": "rollback_subnet_a.csv"
+      },
+      "source_subnet_uri": "projects/my-host-project/regions/europe-west3/subnetworks/source-subnet",
+      "source_zones": ["europe-west3-c"],
+      "machine_image_region": "europe-west3",
+      "backup_subnet_uri": "projects/my-host-project/regions/us-central1/subnetworks/backup-subnet",
+      "target_subnet_uri": "projects/my-host-project/regions/europe-west3/subnetworks/target-subnet",
+      "target_service_account": "1234567890-compute@developer.gserviceaccount.com",
+      "target_service_account_scopes": [
+        "https://www.googleapis.com/auth/cloud-platform"
+      ]
+    }
+  ]
+}

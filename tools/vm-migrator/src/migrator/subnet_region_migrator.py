@@ -37,8 +37,7 @@ from csv import DictReader
 from csv import DictWriter
 
 
-def bulk_image_create(project, machine_image_region, file_name='export.csv') \
-        -> bool:
+def bulk_image_create(project, machine_image_region, file_name='export.csv') -> bool:
 
     result = True
     with open(file_name, 'r') as read_obj:
@@ -53,9 +52,7 @@ def bulk_image_create(project, machine_image_region, file_name='export.csv') \
             # Start the load operations and mark each future with its URL
             for row in csv_dict_reader:
                 machine_image_future.append(
-                    executor.submit(machine_image.create, project,
-                                    machine_image_region, row['self_link'],
-                                    row['name']))
+                    executor.submit(machine_image.create, project, machine_image_region, row['self_link'], row['name']))
                 count = count + 1
 
             for future in concurrent.futures.as_completed(
@@ -86,8 +83,7 @@ def bulk_delete_instances_and_disks(file_name, source_project) -> bool:
             # Start the load operations and mark each future with its URL
             for row in csv_dict_reader:
                 instance_uri = uri.Instance.from_uri(row['self_link'])
-                instance_future.append(
-                    executor.submit(instance.delete, instance_uri))
+                instance_future.append(executor.submit(instance.delete, instance_uri))
                 count = count + 1
 
             for future in concurrent.futures.as_completed(instance_future):
@@ -112,10 +108,10 @@ def bulk_delete_instances_and_disks(file_name, source_project) -> bool:
                 for i in range(9):
                     if row['disk_name_' + str(i + 1)] != '':
                         if instance_uri.name in deleted_instances:
-                            disk_future.append(
-                                executor.submit(disk.delete, instance_uri,
-                                                row['disk_name_' + str(i + 1)],
-                                                source_project))
+                            disk_future.append(executor.submit(disk.delete,
+                                                               instance_uri,
+                                                               row['disk_name_' + str(i + 1)],
+                                                               source_project))
                             count = count + 1
                         else:
                             logging.info('Instance "%s" not deleted, preserving disk "%s"',
@@ -146,8 +142,7 @@ def bulk_instance_shutdown(file_name) -> bool:
             # Start the load operations and mark each future with its URL
             for row in csv_dict_reader:
                 instance_uri = uri.Instance.from_uri(row['self_link'])
-                instance_future.append(
-                    executor.submit(instance.shutdown, instance_uri))
+                instance_future.append(executor.submit(instance.shutdown, instance_uri))
                 count = count + 1
             for future in concurrent.futures.as_completed(instance_future):
                 try:
@@ -174,8 +169,7 @@ def bulk_instance_start(file_name) -> bool:
             # Start the load operations and mark each future with its URL
             for row in csv_dict_reader:
                 instance_uri = uri.Instance.from_uri(row['self_link'])
-                instance_future.append(
-                    executor.submit(instance.start, instance_uri))
+                instance_future.append(executor.submit(instance.start, instance_uri))
                 count = count + 1
 
             for future in concurrent.futures.as_completed(instance_future):
@@ -189,9 +183,7 @@ def bulk_instance_start(file_name) -> bool:
     return result
 
 
-def bulk_move_instances_to_subnet(
-        file_name, to_subnet_uri: uri.Subnet, direction: str
-    ) -> bool:
+def bulk_move_instances_to_subnet(file_name, to_subnet_uri: uri.Subnet, direction: str) -> bool:
     if direction != 'backup' and direction != 'rollback':
         logging.error('bulk_move_instances_to_subnet: specify a direction ("backup" or "rollback"). Got: "%s"',
                       direction)
@@ -219,24 +211,21 @@ def bulk_move_instances_to_subnet(
                 if not row['fingerprint']:
                     logging.error('Missing fingerprint for "%s", aborting', row['name'])
                 instance_future.append(
-                    executor.submit(
-                        instance.move_to_subnet_and_rename, instance_uri,
-                        row, to_subnet_uri, direction)
-                    )
+                    executor.submit(instance.move_to_subnet_and_rename, instance_uri, row, to_subnet_uri, direction))
                 count = count + 1
             for future in concurrent.futures.as_completed(instance_future):
                 try:
                     machine_name = future.result()
                     tracker = tracker + 1
-                    logging.info('Moved machine "%r" (%i/%i) to subnet "%s"', machine_name, tracker, count, to_subnet_uri)
+                    logging.info('Moved machine "%r" (%i/%i) to subnet "%s"',
+                                 machine_name, tracker, count, to_subnet_uri)
                 except Exception as exc:
                     logging.error('Could not move machine to subnet "%s". Error: %s', to_subnet_uri, exc)
                     result = False
     return result
 
 
-def add_machineimage_iampolicies(file_name, source_project,
-                                 target_service_account) -> bool:
+def add_machineimage_iampolicies(file_name, source_project, target_service_account) -> bool:
 
     result = True
     with open(file_name, 'r') as read_obj:
@@ -303,28 +292,24 @@ def bulk_create_instances(file_name, target_project, target_service_account,
                 for i in range(4):
                     alias_range = {}
                     if row['range_name_' + str(i + 1)] != '':
-                        alias_range['subnetworkRangeName'] = row['range_name_'
-                                                                 + str(i + 1)]
+                        alias_range['subnetworkRangeName'] = row['range_name_' + str(i + 1)]
                     if row['alias_ip_name_' + str(i + 1)]:
-                        alias_range['aliasIpName'] = row['alias_ip_name_' +
-                                                         str(i + 1)]
+                        alias_range['aliasIpName'] = row['alias_ip_name_' + str(i + 1)]
                     if row['alias_ip_' + str(i + 1)]:
-                        alias_range['ipCidrRange'] = row['alias_ip_' +
-                                                         str(i + 1)]
+                        alias_range['ipCidrRange'] = row['alias_ip_' + str(i + 1)]
                         alias_ip_ranges.append(alias_range)
                 # This supports up to 9 disks
                 disk_names = {}
                 for i in range(9):
                     if row['device_name_' + str(i + 1)] != '':
-                        disk_names[row['device_name_' +
-                                       str(i + 1)]] = row['disk_name_' +
-                                                          str(i + 1)]
+                        disk_names[row['device_name_' + str(i + 1)]] = row['disk_name_' + str(i + 1)]
                     if row['disk_labels_' + str(i + 1)] != '':
-                        disk_labels[uri.Disk(target_instance_uri.project,
-                                             target_instance_uri.zone,
-                                             row['disk_name_' + str(i + 1)]
-                                             ).uri] = row['disk_labels_' +
-                                                          str(i + 1)]
+                        disk_labels[
+                            uri.Disk(
+                                target_instance_uri.project,
+                                target_instance_uri.zone,
+                                row['disk_name_' + str(i + 1)]
+                            ).uri] = row['disk_labels_' + str(i + 1)]
 
                 node_group = None
                 if row['node_group'] and row['node_group'] != '':
@@ -346,11 +331,16 @@ def bulk_create_instances(file_name, target_project, target_service_account,
                     continue
 
                 instance_future.append(
-                    executor.submit(instance.create, target_instance_uri,
-                                    row['network'], target_subnet_uri,
-                                    alias_ip_ranges, node_group, disk_names,
+                    executor.submit(instance.create,
+                                    target_instance_uri,
+                                    row['network'],
+                                    target_subnet_uri,
+                                    alias_ip_ranges,
+                                    node_group,
+                                    disk_names,
                                     ip, target_machine_type_uri,
-                                    source_project, target_service_account,
+                                    source_project,
+                                    target_service_account,
                                     target_scopes))
                 count = count + 1
 
@@ -370,8 +360,7 @@ def bulk_create_instances(file_name, target_project, target_service_account,
             disk_future = []
             for disk_uri, labels in disk_labels.items():
                 disk_future.append(
-                    executor.submit(disk.setLabels, uri.Disk.from_uri(disk_uri),
-                                    json.loads(labels)))
+                    executor.submit(disk.setLabels, uri.Disk.from_uri(disk_uri), json.loads(labels)))
 
             tracker = 0
             for future in concurrent.futures.as_completed(disk_future):
@@ -392,16 +381,14 @@ def bulk_instance_disable_deletionprotection(file_name) -> bool:
     with open(file_name, 'r') as read_obj:
         csv_dict_reader = DictReader(read_obj)
         # We can use a with statement to ensure threads are cleaned up promptly
-        with concurrent.futures.ThreadPoolExecutor(
-                max_workers=100) as executor:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=100) as executor:
             disable_deletionprotection_future = []
             count = 0
             # Start the load operations and mark each future with its URL
             for row in csv_dict_reader:
                 source_instance_uri = uri.Instance.from_uri(row['self_link'])
                 disable_deletionprotection_future.append(
-                    executor.submit(instance.disable_deletionprotection,
-                                    source_instance_uri))
+                    executor.submit(instance.disable_deletionprotection, source_instance_uri))
                 count = count + 1
 
             tracker = 0
@@ -446,8 +433,7 @@ def query_yes_no(question, default='yes'):
         if choice in valid:
             return valid[choice]
         else:
-            sys.stdout.write('Please respond with \'yes\' or \'no\''
-                             '(or \'y\' or \'n\').\n')
+            sys.stdout.write('Please respond with \'yes\' or \'no\'(or \'y\' or \'n\').\n')
 
 
 def filter_records(source_file, filter_file, destination_file):
@@ -497,8 +483,7 @@ def release_individual_ips(source_subnet_uri, file_name) -> bool:
                     if alias_ip != '' and row['range_name_' + str(i + 1)] == '':
                         ips.append(alias_ip)
                 releaseip_future.append(
-                    executor.submit(subnet.release_individual_ips,
-                                    source_subnet_uri, instance_uri, ips))
+                    executor.submit(subnet.release_individual_ips, source_subnet_uri, instance_uri, ips))
                 count += 1
             tracker = 0
             for future in concurrent.futures.as_completed(releaseip_future):
@@ -514,25 +499,72 @@ def release_individual_ips(source_subnet_uri, file_name) -> bool:
     return result
 
 
+def main(step, migration_json) -> bool:
+    try:
+        with open(migration_json, "r") as in_json:
+            try:
+                config = json.load(in_json)
+            except Exception as json_err:
+                raise RuntimeError(
+                    f"Could not parse content of '{migration_json}' as a JSON file. Error: {json_err}"
+                ) from json_err
+    except Exception as err:
+        raise RuntimeError(f"Could not read content of '{migration_json}' as a JSON file. Error: {err}") from err
+
+    logging.info("[Step: '%s'] Using the following migration config: '%s'", step, config)
+    log_level = config.get("log_level", "INFO")
+    for migration_map in config.get("mapping", []):
+        logging.info("[Step: '%s'] Migration unit: '%s'", step, migration_map)
+        skip = migration_map.get("skip", "")
+        if skip == step:
+            logging.info("[Step: '%s'] Skipping migration unit: '%s' (skip='%s')", step, migration_map, skip)
+        csv_files = migration_map.get("csv", {})
+        source_csv = csv_files.get("source", "source.csv")
+        filter_csv = csv_files.get("filter", "filter.csv")
+        input_csv = csv_files.get("input", "input.csv")
+        rollback_csv = csv_files.get("rollback", "rollback.csv")
+        machine_image_region = migration_map.get("machine_image_region")
+        source_subnet_uri = uri.Subnet.from_uri(migration_map.get("source_subnet_uri"))
+        source_project = source_subnet_uri.project
+        source_zone_lst = migration_map.get("source_zones")
+        source_zone = source_zone_lst[0] if len(source_zone_lst) > 0 else None
+        source_zone_2 = source_zone_lst[1] if len(source_zone_lst) > 1 else None
+        source_zone_3 = source_zone_lst[2] if len(source_zone_lst) > 2 else None
+        target_subnet_uri = uri.Subnet.from_uri(migration_map.get("target_subnet_uri"))
+        target_project = target_subnet_uri.project
+        target_service_account = migration_map.get("target_service_account")
+        target_scopes = migration_map.get("target_service_account_scopes")
+        backup_subnet_uri = uri.Subnet.from_uri(migration_map.get("backup_subnet_uri"))
+        result = single_subnet_main(
+            step, machine_image_region, source_project, source_subnet_uri, source_zone, source_zone_2,
+            source_zone_3, target_project, target_service_account, target_scopes, target_subnet_uri,
+            backup_subnet_uri, source_csv, filter_csv, input_csv, rollback_csv, log_level
+        )
+        if not result:
+            logging.error(
+                "Failed to process step '%s' on single subnet spec: '%s'. Check logs. Full config: '%'",
+                step, migration_map, config
+            )
+    return result
+
+
 # main function
-def main(step, machine_image_region, source_project,
-         source_subnet_uri: uri.Subnet, source_zone, source_zone_2,
-         source_zone_3, target_project, target_service_account, target_scopes,
-         target_subnet_uri: uri.Subnet, backup_subnet_uri: uri.Subnet,
-         source_csv, filter_csv, input_csv, rollback_csv,
-         log_level) -> bool:
+def single_subnet_main(step, machine_image_region, source_project, source_subnet_uri: uri.Subnet, source_zone,
+                       source_zone_2, source_zone_3, target_project, target_service_account, target_scopes,
+                       target_subnet_uri: uri.Subnet, backup_subnet_uri: uri.Subnet, source_csv, filter_csv, input_csv,
+                       rollback_csv, log_level) -> bool:
     """
     The main method to trigger the VM migration.
     """
+    logging.info("Starting single subnet migration step using: %s", locals())
     if not target_project:
         target_project = source_project
     if not target_subnet_uri:
         target_subnet_uri = copy.deepcopy(source_subnet_uri)
     if source_project != target_project:
         if not target_service_account:
-            target_service_account = \
-                "{}-compute@developer.gserviceaccount.com".format(
-                    project.get_number(target_project))
+            target_service_account = "{}-compute@developer.gserviceaccount.com".format(
+                project.get_number(target_project))
         if target_scopes:
             target_scopes = target_scopes.split(',')
         else:
@@ -690,8 +722,7 @@ def main(step, machine_image_region, source_project,
                      'target_service_account="%s"',
                      input_csv, source_project,
                      target_service_account)
-        if add_machineimage_iampolicies(input_csv, source_project,
-                                        target_service_account):
+        if add_machineimage_iampolicies(input_csv, source_project, target_service_account):
             logging.info('Successfully set IAM policies of created machine images')
         else:
             logging.info('Setting IAM policies of created machine images failed')
@@ -757,64 +788,17 @@ def main(step, machine_image_region, source_project,
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(
-        description=__doc__,
-        formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument(
-        '--step',
-        default='prepare_inventory',
-        help='Which step to execute. '
-        'The steps can be any of prepare_inventory | '
-        'filter_inventory | shutdown_instances | create_machine_images |  '
-        'delete_instances | release_ip_for_subnet | release_ip '
-        '| clone_subnet | add_machineimage_iampolicies | create_instances | '
-        'create_instances_without_ip')
-    parser.add_argument('--machine_image_region',
-                        help='Compute Engine region to deploy to.')
-    parser.add_argument('--source_project',
-                        help='Source project ID')
-    parser.add_argument('--source_subnet',
-                        help='Source subnet uri')
-    parser.add_argument('--source_zone',
-                        help='Source zone where the existing subnet exist')
-    parser.add_argument(
-        '--source_zone_2',
-        help='Second source zone where the existing subnet exist')
-    parser.add_argument(
-        '--source_zone_3',
-        help='Third source zone where the existing subnet exist')
-    parser.add_argument('--target_project',
-                        help='Target project ID')
-    parser.add_argument('--target_project_sa',
-                        help='Target service account in target project')
-    parser.add_argument('--target_project_sa_scopes', help='Target service '
-                        'account scopes in the target project')
-    parser.add_argument('--target_subnet',
-                        help='Target subnet uri')
-    parser.add_argument('--backup_subnet',
-                        help='Backup subnet uri')
-    parser.add_argument('--source_csv',
-                        default='source.csv',
-                        help='The csv with the full dump of movable VMs.')
-    parser.add_argument('--filter_csv',
-                        default='filter.csv',
-                        help='filter file containing names of '
-                        'instances to filter from overall inventory')
-    parser.add_argument('--input_csv',
-                        default='input.csv',
-                        help='destination file to export the data to')
-    parser.add_argument('--rollback_csv',
-                        default='rollback.csv',
-                        help='destination file to list the VMs to rollback to')
-    parser.add_argument('--log_level', default='INFO', help='Log Level')
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument('--step',
+                        default='prepare_inventory',
+                        help='Which step to execute. The steps can be any of prepare_inventory:\n'
+                             '| filter_inventory | shutdown_instances | create_machine_images | delete_instances '
+                             '| release_ip_for_subnet | release_ip | clone_subnet | add_machineimage_iampolicies '
+                             '| create_instances | create_instances_without_ip')
+    parser.add_argument('--migration_json',
+                        default='migration_map.json',
+                        help='Has all configuration specifications for the migration')
     args = parser.parse_args()
 
-    if not main(args.step, args.machine_image_region, args.source_project,
-                uri.Subnet.from_uri(args.source_subnet), args.source_zone,
-                args.source_zone_2, args.source_zone_3, args.target_project,
-                args.target_project_sa, args.target_project_sa_scopes,
-                uri.Subnet.from_uri(args.target_subnet),
-                uri.Subnet.from_uri(args.backup_subnet),
-                args.source_csv, args.filter_csv, args.input_csv, args.rollback_csv,
-                args.log_level):
+    if not main(args.step, args.migration_json):
         sys.exit(1)

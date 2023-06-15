@@ -44,8 +44,7 @@ def get(project, name):
     compute = get_compute()
     logging.info('Looking for machine image "%s" in "%s"', name, project)
     try:
-        result = compute.machineImages().get(project=project,
-                                             machineImage=name).execute()
+        result = compute.machineImages().get(project=project, machineImage=name).execute()
         if result['selfLink']:
             return result
     except Exception as ex:
@@ -59,9 +58,7 @@ def wait_for_operation(compute, project, name):
     """
     logging.info('Waiting for machine image "%s" in "%s" creation to finish', name, project)
     while True:
-        result = compute.machineImages().get(project=project,
-                                             machineImage=name).execute()
-
+        result = compute.machineImages().get(project=project, machineImage=name).execute()
         if result['status'] == 'READY':
             if 'error' in result:
                 logging.error('Machine image "%s" in "%s" could not be created. Result: %s', name, project, result)
@@ -72,11 +69,8 @@ def wait_for_operation(compute, project, name):
 
 
 def get_compute():
-    compute = googleapiclient.discovery.build('compute',
-                                              'beta',
-                                              cache_discovery=False)
-    logging.getLogger('googleapiclient.discovery_cache').setLevel(
-        logging.ERROR)
+    compute = googleapiclient.discovery.build('compute', 'beta', cache_discovery=False)
+    logging.getLogger('googleapiclient.discovery_cache').setLevel(logging.ERROR)
     return compute
 
 
@@ -105,16 +99,13 @@ def add_iam_policy(source_project, name, target_service_account) -> bool:
                                                 resource=name).execute()
     new_binding = {
         'role': 'roles/compute.admin',
-        'members': [
-            'serviceAccount:{}'.format(target_service_account),
-        ],
+        'members': ['serviceAccount:{}'.format(target_service_account),],
     }
     add = True
     if 'bindings' not in body:
         body['bindings'] = []
     for binding in body['bindings']:
-        if binding['role'] == new_binding['role'] and \
-           set(new_binding['members']).issubset(binding['members']):
+        if binding['role'] == new_binding['role'] and set(new_binding['members']).issubset(binding['members']):
             logging.info('Binding already exists: {}'.format(pformat(binding)))
             add = False
             break
@@ -123,7 +114,5 @@ def add_iam_policy(source_project, name, target_service_account) -> bool:
         logging.info('Setting IAM policy for machine image "%s" and service account "%s"',
                      machine_image_uri, target_service_account)
         # TODO: does this throw an exception on a outdated eTag?
-        compute.machineImages().setIamPolicy(project=source_project,
-                                             resource=name,
-                                             body=body).execute()
+        compute.machineImages().setIamPolicy(project=source_project, resource=name, body=body).execute()
     return machine_image_uri

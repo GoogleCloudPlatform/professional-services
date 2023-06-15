@@ -92,14 +92,10 @@ class Instance(ProjectZone):
         if not uri:
             return None
 
-        match = \
-            re.search(
-                r'(?:\/|^)projects\/(.*?)\/zones\/(.*?)\/instances\/(.*?)$',
-                uri)
+        match = re.search(r'(?:\/|^)projects\/(.*?)\/zones\/(.*?)\/instances\/(.*?)$', uri)
 
         if not match or len(match.groups()) != 3:
-            raise InvalidFormatException(
-                'Invalid instance URI format {}'.format(uri))
+            raise InvalidFormatException('Invalid instance URI format {}'.format(uri))
 
         return cls(match.group(1), match.group(2), match.group(3))
 
@@ -113,9 +109,7 @@ class Instance(ProjectZone):
 
     @property
     def uri(self):
-        return 'projects/{}/zones/{}/instances/{}'.format(self.project,
-                                                          self.zone,
-                                                          self.name)
+        return 'projects/{}/zones/{}/instances/{}'.format(self.project, self.zone, self.name)
 
     def __str__(self):
         return f'{self.__class__.__name__}: {self.uri}'
@@ -129,15 +123,10 @@ class Subnet(ProjectRegion):
         if not uri:
             return None
 
-        match = \
-            re.search(
-                r'(?:\/|^)projects\/(.*?)\/regions'
-                r'\/(.*?)\/subnetworks\/(.*?)$',
-                uri)
+        match = re.search(r'(?:\/|^)projects\/(.*?)\/regions\/(.*?)\/subnetworks\/(.*?)$', uri)
 
         if not match or len(match.groups()) != 3:
-            raise InvalidFormatException(
-                'Invalid subnet URI format {}'.format(uri))
+            raise InvalidFormatException('Invalid subnet URI format {}'.format(uri))
 
         return cls(match.group(1), match.group(2), match.group(3))
 
@@ -151,9 +140,7 @@ class Subnet(ProjectRegion):
 
     @property
     def uri(self):
-        return 'projects/{}/regions/{}/subnetworks/{}'.format(self.project,
-                                                              self.region,
-                                                              self.name)
+        return 'projects/{}/regions/{}/subnetworks/{}'.format(self.project, self.region, self.name)
 
     def __str__(self):
         return f'{self.__class__.__name__}: {self.uri}'
@@ -167,14 +154,10 @@ class Disk(ProjectZone):
         if not uri:
             return None
 
-        match = \
-            re.search(
-                r'(?:\/|^)projects\/(.*?)\/zones\/(.*?)\/disks\/(.*?)$',
-                uri)
+        match = re.search(r'(?:\/|^)projects\/(.*?)\/zones\/(.*?)\/disks\/(.*?)$', uri)
 
         if not match or len(match.groups()) != 3:
-            raise InvalidFormatException(
-                'Invalid disk URI format {}'.format(uri))
+            raise InvalidFormatException('Invalid disk URI format {}'.format(uri))
 
         return cls(match.group(1), match.group(2), match.group(3))
 
@@ -188,9 +171,7 @@ class Disk(ProjectZone):
 
     @property
     def uri(self):
-        return 'projects/{}/zones/{}/disks/{}'.format(self.project,
-                                                      self.zone,
-                                                      self.name)
+        return 'projects/{}/zones/{}/disks/{}'.format(self.project, self.zone, self.name)
 
     def __str__(self):
         return f'{self.__class__.__name__}: {self.uri}'
@@ -204,14 +185,10 @@ class MachineType(ProjectZone):
         if not uri:
             return None
 
-        match = \
-            re.search(
-                r'(?:\/|^)projects\/(.*?)\/zones\/(.*?)\/machineTypes\/(.*?)$',
-                uri)
+        match = re.search(r'(?:\/|^)projects\/(.*?)\/zones\/(.*?)\/machineTypes\/(.*?)$', uri)
 
         if not match or len(match.groups()) != 3:
-            raise InvalidFormatException(
-                'Invalid machine type URI format {}'.format(uri))
+            raise InvalidFormatException('Invalid machine type URI format {}'.format(uri))
 
         return cls(match.group(1), match.group(2), match.group(3))
 
@@ -225,9 +202,7 @@ class MachineType(ProjectZone):
 
     @property
     def uri(self):
-        return 'projects/{}/zones/{}/machineTypes/{}'.format(self.project,
-                                                             self.zone,
-                                                             self.machine_type)
+        return 'projects/{}/zones/{}/machineTypes/{}'.format(self.project, self.zone, self.machine_type)
 
     def __str__(self):
         return f'{self.__class__.__name__}: {self.uri}'
@@ -241,14 +216,10 @@ class MachineImage(Project):
         if not uri:
             return None
 
-        match = \
-            re.search(
-                r'(?:\/|^)projects\/(.*?)\/global\/machineImages\/(.*?)$',
-                uri)
+        match = re.search(r'(?:\/|^)projects\/(.*?)\/global\/machineImages\/(.*?)$', uri)
 
         if not match or len(match.groups()) != 2:
-            raise InvalidFormatException(
-                'Invalid machine image URI format {}'.format(uri))
+            raise InvalidFormatException('Invalid machine image URI format {}'.format(uri))
 
         return cls(match.group(1), match.group(2))
 
@@ -263,8 +234,7 @@ class MachineImage(Project):
 
     @property
     def uri(self):
-        return 'projects/{}/global/machineImages/{}'.format(self.project,
-                                                            self.name)
+        return 'projects/{}/global/machineImages/{}'.format(self.project, self.name)
 
     def __str__(self):
         return f'{self.__class__.__name__}: {self.uri}'

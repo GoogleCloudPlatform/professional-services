@@ -32,11 +32,8 @@ RATE_LIMIT = RateLimit(max_count=2000, per=100)
 
 
 def get_compute():
-    compute = googleapiclient.discovery.build('compute',
-                                              'beta',
-                                              cache_discovery=False)
-    logging.getLogger('googleapiclient.discovery_cache').setLevel(
-        logging.ERROR)
+    compute = googleapiclient.discovery.build('compute', 'beta', cache_discovery=False)
+    logging.getLogger('googleapiclient.discovery_cache').setLevel(logging.ERROR)
     return compute
 
 
@@ -51,8 +48,7 @@ def is_hosted_on_sole_tenant(instance):
                         return True
         return False
     except KeyError as err:
-        logging.warning('Could not check if instance "%s" is hosted in sole tenant. Error: %s',
-                        instance, err)
+        logging.warning('Could not check if instance "%s" is hosted in sole tenant. Error: %s', instance, err)
         return False
 
 
@@ -76,8 +72,7 @@ def get_updated_node_group(node_group) -> Optional[object]:
                     }]
                 }
             }
-            logging.info('Found a matching node group %s for %s',
-                         node_group, node_group_mapping.FIND.get(node_group))
+            logging.info('Found a matching node group %s for %s', node_group, node_group_mapping.FIND.get(node_group))
             return config
         else:
             return None
@@ -105,11 +100,12 @@ def shutdown(instance_uri: uri.Instance) -> str:
 def disable_deletionprotection(instance_uri: uri.Instance) -> str:
     try:
         compute = get_compute()
-        logging.info('Disabling delete protection for instance "%s"',
-                     instance_uri)
+        logging.info('Disabling delete protection for instance "%s"', instance_uri)
         result = compute.instances().setDeletionProtection(
-            project=instance_uri.project, zone=instance_uri.zone,
-            resource=instance_uri.name, deletionProtection=False).execute()
+            project=instance_uri.project,
+            zone=instance_uri.zone,
+            resource=instance_uri.name,
+            deletionProtection=False).execute()
         wait_for_zonal_operation(compute, instance_uri, result['name'])
         return instance_uri.name
     except Exception as ex:
@@ -124,7 +120,8 @@ def start(instance_uri: uri.Instance) -> str:
         compute = get_compute()
         logging.info('Starting Instance "%s"', instance_uri)
         result = compute.instances().start(
-            project=instance_uri.project, zone=instance_uri.zone,
+            project=instance_uri.project,
+            zone=instance_uri.zone,
             instance=instance_uri.name).execute()
         wait_for_zonal_operation(compute, instance_uri, result['name'])
         return instance_uri.name
@@ -140,18 +137,15 @@ def delete_instance(compute, instance_uri: uri.Instance):
                                       instance=instance_uri.name).execute()
 
 
-def wait_for_zonal_operation(compute, project_zone_uri: uri.ProjectZone,
-                             operation):
-    logging.info('Waiting for zonal operation "%s" in project "%s" to finish',
-                 operation, project_zone_uri)
+def wait_for_zonal_operation(compute, project_zone_uri: uri.ProjectZone, operation):
+    logging.info('Waiting for zonal operation "%s" in project "%s" to finish', operation, project_zone_uri)
     while True:
         result = compute.zoneOperations().get(project=project_zone_uri.project,
                                               zone=project_zone_uri.zone,
                                               operation=operation).execute()
 
         if result['status'] == 'DONE':
-            logging.info('Finished zonal operation "%s" in project "%s"',
-                         operation, project_zone_uri)
+            logging.info('Finished zonal operation "%s" in project "%s"', operation, project_zone_uri)
             if 'error' in result:
                 logging.error('Error in zonal operation "%s" in project "%s". Result: "%s"',
                               operation, project_zone_uri, result)
@@ -160,15 +154,13 @@ def wait_for_zonal_operation(compute, project_zone_uri: uri.ProjectZone,
         time.sleep(10)
 
 
-def wait_for_regional_operation(compute, project_region_uri: uri.ProjectRegion,
-                                operation):
-    logging.info('Waiting for regional operation "%s" in project "%s" to finish',
-                 operation, project_region_uri)
+def wait_for_regional_operation(compute, project_region_uri: uri.ProjectRegion, operation):
+    logging.info('Waiting for regional operation "%s" in project "%s" to finish', operation, project_region_uri)
     while True:
-        result = compute.regionOperations() \
-            .get(project=project_region_uri.project,
-                 region=project_region_uri.region,
-                 operation=operation).execute()
+        result = compute.regionOperations().get(
+            project=project_region_uri.project,
+            region=project_region_uri.region,
+            operation=operation).execute()
 
         if result['status'] == 'DONE':
             logging.info('Finished regional operation "%s" in project "%s"', operation, project_region_uri)
@@ -190,8 +182,7 @@ def delete(instance_uri: uri.Instance) -> str:
         if image:
             logging.info('Found machine image "%s", can safely delete the instance "%s"', image, instance_uri)
             delete_operation = delete_instance(compute, instance_uri)
-            wait_for_zonal_operation(compute, instance_uri,
-                                     delete_operation['name'])
+            wait_for_zonal_operation(compute, instance_uri, delete_operation['name'])
             return instance_uri.name
         else:
             raise NotFoundException(
@@ -208,8 +199,7 @@ def get_ip(compute, instance_uri: uri.Instance, address) -> str:
     return result['address']
 
 
-def reserve_internal_ip(compute, instance_uri: uri.Instance, name,
-                        subnet_uri: uri.Subnet, ip) -> str:
+def reserve_internal_ip(compute, instance_uri: uri.Instance, name, subnet_uri: uri.Subnet, ip) -> str:
     config = {
         'address': ip,
         'addressType': 'INTERNAL',
@@ -227,11 +217,9 @@ def reserve_internal_ip(compute, instance_uri: uri.Instance, name,
     return insert_operation['selfLink']
 
 
-def prepare_create_instance(compute, instance_uri: uri.Instance, network,
-                    subnet_uri: uri.Subnet, alias_ip_ranges, node_group,
-                    disk_names, ip, target_machine_type_uri: uri.MachineType,
-                    image_project, target_service_account, target_scopes) \
-        -> object:
+def prepare_create_instance(compute, instance_uri: uri.Instance, network, subnet_uri: uri.Subnet, alias_ip_ranges,
+                            node_group, disk_names, ip, target_machine_type_uri: uri.MachineType, image_project,
+                            target_service_account, target_scopes) -> object:
     """
     Create Instance method create a new GCP VM from the machine image.
     """
@@ -248,8 +236,7 @@ def prepare_create_instance(compute, instance_uri: uri.Instance, network,
                 'diskName': disk_name
             }
         } for (device_name, disk_name) in disk_names.items()],
-        'sourceMachineImage': 'projects/' + image_project +
-                              '/global/machineImages/' + instance_uri.name,
+        'sourceMachineImage': 'projects/' + image_project + '/global/machineImages/' + instance_uri.name,
         'machineType': target_machine_type_uri.uri
     }
 
@@ -283,8 +270,7 @@ def prepare_create_instance(compute, instance_uri: uri.Instance, network,
         logging.info('Found alias ip ranges "%s", reserving it', alias_ip_ranges)
         for alias_ip in alias_ip_ranges:
             # If the alias ip is from the primary range then reserve it
-            if (not alias_ip.get('subnetworkRangeName')
-                    and alias_ip['ipCidrRange'].endswith('/32')):
+            if not alias_ip.get('subnetworkRangeName') and alias_ip['ipCidrRange'].endswith('/32'):
 
                 # Extract the ip address from something like 10.0.0.2/32
                 length_ip = len(alias_ip['ipCidrRange']) - 3
@@ -305,13 +291,11 @@ def prepare_create_instance(compute, instance_uri: uri.Instance, network,
                 # random ip for the name
                 logging.info('Reserving alias "%s" for ip "%s" for instance "%s" in subnet "%s"',
                              alias_ip_name, actual_ip, instance_uri, subnet_uri)
-                reserve_internal_ip(compute, instance_uri, alias_ip_name,
-                                    subnet_uri, actual_ip)
+                reserve_internal_ip(compute, instance_uri, alias_ip_name, subnet_uri, actual_ip)
                 # Since we are not retaining the ip we will use the
                 # random reserved ip
                 if not actual_ip:
-                    alias_ip['ipCidrRange'] = get_ip(compute, instance_uri,
-                                                     alias_ip_name) + '/32'
+                    alias_ip['ipCidrRange'] = get_ip(compute, instance_uri, alias_ip_name) + '/32'
                 i = i + 1
         config['networkInterfaces'][0]['aliasIpRanges'] = alias_ip_ranges
 
@@ -341,9 +325,7 @@ def wait_for_instance(compute, instance_uri: uri.Instance):
         time.sleep(10)
 
 
-def move_to_subnet_and_rename(instance_uri: uri.Instance, row,
-                             to_subnet_uri, direction: str) \
-        -> str:
+def move_to_subnet_and_rename(instance_uri: uri.Instance, row, to_subnet_uri, direction: str) -> str:
     if direction not in ['backup', 'rollback']:
         logging.error('move_to_subnet_and_rename: specify a direction("backup" or "rollback"). Got "%s"', direction)
         return False
@@ -359,8 +341,7 @@ def move_to_subnet_and_rename(instance_uri: uri.Instance, row,
             'subnetwork': to_subnet_uri.uri,
             'fingerprint': row['fingerprint'],
         }
-        if 'previous_internal_ip' in row \
-            and row['previous_internal_ip'] is not None:
+        if 'previous_internal_ip' in row and row['previous_internal_ip'] is not None:
             request_body['networkIP'] = row['previous_internal_ip']
         kwargs_base = {
             'project': instance_uri.project,
@@ -419,9 +400,9 @@ def create(instance_uri: uri.Instance,
                  machine_type_uri, image_project, target_service_account, target_scopes)
 
     kwargs = prepare_create_instance(compute, instance_uri, network, subnet,
-                                alias_ip_ranges, node_group, disk_names,
-                                ip, machine_type_uri, image_project,
-                                target_service_account, target_scopes)
+                                    alias_ip_ranges, node_group, disk_names,
+                                    ip, machine_type_uri, image_project,
+                                    target_service_account, target_scopes)
 
     retry_count=0
     while True:
@@ -434,9 +415,7 @@ def create(instance_uri: uri.Instance,
             operation = compute.instances().insert(**kwargs).execute()
 
             if wait:
-                wait_for_zonal_operation(
-                    compute, instance_uri, operation['name']
-                )
+                wait_for_zonal_operation(compute, instance_uri, operation['name'])
                 result = wait_for_instance(compute, instance_uri)
             created_instance_uri = uri.Instance.from_uri(result['selfLink'])
             logging.info('Instance "%s" created from source instance "%s" and successfully started',
