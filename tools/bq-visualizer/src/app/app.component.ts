@@ -43,7 +43,7 @@ export class AppComponent {
     //console.log('AppComponent::registered_login: ' + what)
   }
   public login() {
-    console.log('AppComponent::login calling googleAuthService.login')
+    //console.log('AppComponent::login calling googleAuthService.login')
     this.googleAuthService.login();
   }
 

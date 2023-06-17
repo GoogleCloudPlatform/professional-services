@@ -119,8 +119,8 @@ export class VisDisplayComponent implements AfterViewInit {
       onEdgeDeselect?: EdgeDeselectCallback): TreeChart | null {
     let visnodes = new vis.DataSet<vis.Edge>([]);
     let visedges = new vis.DataSet<vis.Edge>([]);
-    console.log('plan.nodes')
-    console.log(plan.nodes)
+    //console.log('plan.nodes')
+    //console.log(plan.nodes)
     if (plan.nodes.length === 0) {
       this.logSvc.warn('Current Plan has no nodes.');
       return null;

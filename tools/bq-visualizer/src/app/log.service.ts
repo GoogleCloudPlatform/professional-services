@@ -30,14 +30,14 @@ export class LogService {
 
   constructor(){
     const logs = localStorage.getItem('logs')||"";
-    console.log(logs) 
+    //console.log(logs) 
     const asarr = '[' + logs + '{}]'
     try {
       const parsedmessages:any[] = JSON.parse(asarr);
       //console.log(messages) ;
       this.messages = parsedmessages.map((rec) => new LogMessage(rec.severity, rec.message, rec.source));
     } catch(e:any){
-       console.log(asarr)
+       //console.log(asarr)
       console.error(e);
     }
   }

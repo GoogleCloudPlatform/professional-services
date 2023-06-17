@@ -15,6 +15,8 @@
  */
 import { Component, OnInit } from '@angular/core';
 import { EventEmitter } from '@angular/core';
+import { SelectionModel } from '@angular/cdk/collections';
+
 
 import { BqQueryPlan, KeyValue } from '../bq_query_plan';
 import { LogService } from '../log.service';
@@ -32,21 +34,41 @@ export class PlanStatusCardComponent {
   stageDisplayOption = this.HIDEREPARTITION;
   dislayOptionEvent = new EventEmitter<string>();
   overviewColumns: string[] = ['overviewKey', 'overviewValue'];
+  overview: KeyValue[] = [];
   tableColumns: string[] = ['tableName'];
+  tables: string[] = [];
   statisticsColumns: string[] = ['statskey', 'statsvalue'];
+  statistics: KeyValue[] = [];
   reservationsHeader: string[] = []
   reservationColumns: string[] = ['reservationKey', 'reservationValue'];
+  reservation_data:KeyValue[] = [];
   settingsColumns: string[] = ['settingsKey', 'settingsValue'];
+  settings_data: KeyValue[] = [];
+  selection = new SelectionModel(true,[]);
 
 
   constructor(private logSvc: LogService) { }
 
   async loadPlan(plan: BqQueryPlan) {
     this.plan = plan;
-    if (plan.plan && plan.plan.status && plan.plan.status.errors){
-    this.errorMsgs = JSON.stringify (plan.plan.status.errors, null,4);
+    if (plan && plan.plan){
+      if (plan.plan.status && plan.plan.status.errors){
+        this.errorMsgs = JSON.stringify (plan.plan.status.errors, null,4);
+      } else{
+        this.errorMsgs=null
+      }
+      this.overview = this.mk_overview();
+      this.statistics = this.mk_statistics();
+      this.tables = this.mk_tables();
+      this.reservation_data = this.mk_reservation_data();
+      this.settings_data = this.mk_settings_data();
     } else{
+      this.overview=[];
       this.errorMsgs=null
+      this.statistics = [];
+      this.tables=[];
+      this.reservation_data = [];
+      this.settings_data = [];
     }
   }
 
@@ -54,24 +76,10 @@ export class PlanStatusCardComponent {
     this.dislayOptionEvent.emit(this.stageDisplayOption);
   }
 
-  /** deprecated */
-  get xxxsettings(): string {
-    if (this.plan && this.plan.plan.configuration && this.plan.plan.configuration.query) {
-      const results = {
-        useLegacySql: this.plan.plan.configuration.query.useLegacySql,
-        useQueryCache: this.plan.plan.configuration.query.useQueryCache,
-        writeDisposition: this.plan.plan.configuration.query.writeDisposition,
-        destinationTable: this.plan.plan.configuration.query.destinationTable,
-        createDisposition: this.plan.plan.configuration.query.createDisposition
-      };
-      return JSON.stringify(results, null, 4);
-    }
-    return 'No Query Settings to display';
-  }
-
-  get settings_data(): KeyValue[] {
+  mk_settings_data(): KeyValue[] {
     if (this.plan && this.plan.plan.configuration && this.plan.plan.configuration.query) {
       const query_conf =this.plan.plan.configuration.query
+      console.log('get settings data')
       const results = [
         new KeyValue({ key: 'useLegacySql', value: query_conf.useLegacySql? query_conf.useLegacySql.toString():"N/A" }),
         new KeyValue({ key: 'useQueryCache', value: query_conf.useQueryCache? 'true': 'false' }),
@@ -97,15 +105,17 @@ export class PlanStatusCardComponent {
   }
 
   /* Return a formatted view of general information from the query plan. */
-  get overview(): KeyValue[] {
+  mk_overview(): KeyValue[] {
     if (this.plan) {
       const configuration = this.plan.plan.configuration;
+      console.log('get overview data')
+
       const jobRef =  this.plan.plan.jobReference;
       const data = [
         new KeyValue({ key: 'job type', value: configuration ? configuration.jobType : '' }),
         new KeyValue({ key: 'etag', value: this.plan.plan.etag }),
         new KeyValue({ key: 'user email', value: this.plan.plan.user_email }),
-        new KeyValue({ key: 'principal subject', value: this.plan.plan.principal_subject  }),
+        new KeyValue({ key: 'principal subject', value: this.plan.plan.principal_subject? this.plan.plan.principal_subject:''}),
         new KeyValue({ key: 'job id', value: jobRef?jobRef.jobId: 'N/A' }),
         new KeyValue({ key: 'location', value: jobRef?jobRef.location: 'N/A' }),
         new KeyValue({ key: 'project id', value: jobRef?jobRef.projectId: 'N/A' }),
@@ -121,57 +131,12 @@ export class PlanStatusCardComponent {
     return [];
   }
 
-  /** Deprecated Provide statistics of qp minus the queryplan part. */
-  get xxstatistics(): string {
-    if (this.plan) {
-      const stats = this.plan.plan.statistics;
-      const duration = Number(stats.endTime) - Number(stats.startTime);
-      const slots = stats.query ?
-        Math.ceil(Number(stats.query.totalSlotMs) / duration)
-          .toLocaleString('en') :
-        'n/a';
-
-      const results = {
-        'creationTime            ': new Date(Number(stats.creationTime)),
-        'startTime               ': new Date(Number(stats.startTime)),
-        'endTime                 ': new Date(Number(stats.endTime)),
-        'elapsedMs               ': duration.toLocaleString('en'),
-        'estd. slots used        ': slots,
-        'totalSlotMs             ': stats.query ?
-          Number(stats.query.totalSlotMs).toLocaleString('en') :
-          'n/a',
-        'billingTier             ': stats.query ?
-          Number(stats.query.billingTier).toLocaleString('en') :
-          'n/a',
-        'cacheHit                ': stats.query && stats.query.cacheHit ?
-          stats.query.cacheHit.toString() :
-          'n/a',
-        'estimatedBytesProcessed ': stats.query ?
-          Number(stats.query.estimatedBytesProcessed).toLocaleString('en') :
-          'n/a',
-        'totalBytesProcessed     ': stats.query ?
-          Number(stats.query.totalBytesProcessed).toLocaleString('en') :
-          'n/a',
-        'totalBytesBilled        ': stats.query ?
-          Number(stats.query.totalBytesBilled).toLocaleString('en') :
-          'n/a',
-        'totalPartitionsProcessed': stats.query ?
-          Number(stats.query.totalPartitionsProcessed).toLocaleString('en') :
-          'n/a',
-        'reservation Id          ': stats.reservation_id,
-
-
-      };
-
-      return JSON.stringify(results, null, 4);
-    }
-    return 'No Timings to display';
-  }
-
 
   /**  Provide statistics of qp minus the queryplan part. */
-  get statistics_data(): KeyValue[] {
+  mk_statistics(): KeyValue[] {
+  
     let result: KeyValue[] = [];
+    console.log('get statistics data')
     if (this.plan) {
       const stats = this.plan.plan.statistics;
       const duration = Number(stats.endTime) - Number(stats.startTime);
@@ -229,8 +194,8 @@ export class PlanStatusCardComponent {
   }
 
   /** reservation data for a key value style display */
-  get reservation_data(): KeyValue[] {
-    // console.log('get reservation data')
+  mk_reservation_data(): KeyValue[] {
+    console.log('get reservation data')
     if (this.plan == null) {
       return []
     }
@@ -253,9 +218,10 @@ export class PlanStatusCardComponent {
   }
 
   /** Get referenced tables from query plan. */
-  get tables(): string[] {
+  mk_tables(): string[] {
     if (this.plan) {
       if (this.plan.plan.statistics.query && this.plan.plan.statistics.query.referencedTables) {
+        console.log('get table data')
         const tables = this.plan.plan.statistics.query.referencedTables;
         var tableRefs: string[] = [];
         tables.forEach((element) => {

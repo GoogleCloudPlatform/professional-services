@@ -60,7 +60,7 @@
         </mat-table>
       </mat-tab>
       <mat-tab label="Statistics">
-        <mat-table [dataSource]="statistics_data" id="statsTable">
+        <mat-table [dataSource]="statistics" id="statsTable">
           <ng-container matColumnDef="statskey">
             <mat-header-cell *matHeaderCellDef>Key </mat-header-cell>
             <mat-cell *matCellDef="let element"> {{element.key}} </mat-cell>

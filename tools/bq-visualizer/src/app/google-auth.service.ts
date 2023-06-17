@@ -41,7 +41,7 @@ export class GoogleAuthService {
     });
 
     logSvc.info('Logged in: ' + this.isLoggedIn());
-    console.log('find google auth library');
+    //console.log('find google auth library');
   }
 
   public async login() {
