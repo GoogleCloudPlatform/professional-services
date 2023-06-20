@@ -1,3 +1,4 @@
+*.json
 *.pyc
 *.log
 *.csv
