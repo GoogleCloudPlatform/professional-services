@@ -36,8 +36,12 @@ class Project:
     @property
     def project(self):
         return self._project
+
     def __str__(self):
         return f'{self.__class__.__name__}: {self.uri}'
+
+    def __repr__(self):
+        return self.__str__()
 
 
 class ProjectRegion(Project):

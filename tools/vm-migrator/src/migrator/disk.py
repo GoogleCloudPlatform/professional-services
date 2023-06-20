@@ -23,19 +23,22 @@ from .exceptions import NotFoundException
 from . import uri
 
 
+_LOGGER = logging.getLogger(__name__)
+
+
 def delete_disk(disk, project_zone: uri.ProjectZone, disk_name: str):
-    logging.info('Deleting Disk "%s" in "%s"', disk_name, project_zone)
+    _LOGGER.info('Deleting Disk "%s" in "%s"', disk_name, project_zone)
     return disk.delete(project=project_zone.project, zone=project_zone.zone, disk=disk_name).execute()
 
 
 def delete(instance_uri: uri.Instance, disk_name, source_project):
     try:
         waited_time = instance.RATE_LIMIT.wait()  # wait before starting the task
-        logging.info('  task: waited for %s secs', waited_time)
+        _LOGGER.info('  task: waited for %s secs', waited_time)
         compute = instance.get_compute()
         image = machine_image.get(instance_uri.project, instance_uri.name)
         if image:
-            logging.info('Found machine image "%s" for instance "%s" can safely delete the disk "%s"',
+            _LOGGER.info('Found machine image "%s" for instance "%s" can safely delete the disk "%s"',
                          image,
                          instance_uri,
                          disk_name)
@@ -44,7 +47,7 @@ def delete(instance_uri: uri.Instance, disk_name, source_project):
                 disk = disks.get(project=instance_uri.project, zone=instance_uri.zone, disk=disk_name).execute()
             except Exception as err:
                 disk = None
-                logging.warning('Could not get disk "%s" from instance "%s". Error: %s', disk_name, instance_uri, err)
+                _LOGGER.warning('Could not get disk "%s" from instance "%s". Error: %s', disk_name, instance_uri, err)
             if disk:
                 delete_operation = delete_disk(disks, instance_uri, disk_name)
                 instance.wait_for_zonal_operation(compute, instance_uri, delete_operation['name'])
@@ -54,17 +57,17 @@ def delete(instance_uri: uri.Instance, disk_name, source_project):
                 f'Can\'t delete the disk "{disk_name}" from instance "{instance_uri}". image was not found.'
                 f' Source project "{source_project}"')
     except Exception as ex:
-        logging.error('Error deleting disk "%s" from instance "%s" and source project "%s". Error: %s',
+        _LOGGER.error('Error deleting disk "%s" from instance "%s" and source project "%s". Error: %s',
                       disk_name, instance_uri, source_project, ex)
         raise ex
 
 
 def setLabels(disk_uri: uri.Disk, labels):
-    logging.getLogger().setLevel(logging.DEBUG)
+    _LOGGER.setLevel(logging.DEBUG)
     try:
         # wait before starting the task
         waited_time = instance.RATE_LIMIT.wait()
-        logging.info('  task: waited for %s secs', waited_time)
+        _LOGGER.info('  task: waited for %s secs', waited_time)
         compute = instance.get_compute()
         disk = compute.disks().get(project=disk_uri.project, zone=disk_uri.zone, disk=disk_uri.name).execute()
         update_operation = compute.disks().setLabels(
@@ -78,5 +81,5 @@ def setLabels(disk_uri: uri.Disk, labels):
         instance.wait_for_zonal_operation(compute, disk_uri, update_operation['name'])
         return disk_uri.name
     except Exception as ex:
-        logging.error('Could not set labels "%s" to disk "%s". Error: %s', labels, disk_uri, ex)
+        _LOGGER.error('Could not set labels "%s" to disk "%s". Error: %s', labels, disk_uri, ex)
         raise ex

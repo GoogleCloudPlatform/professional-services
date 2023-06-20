@@ -1,20 +1,39 @@
 {
   "log_level": "INFO",
+  "log_filename_prefix": "vm_migration",
   "mapping": [
     {
       "skip": "not_a_step_name",
       "csv": {
-        "source": "source_subnet_a.csv",
-        "input": "input_subnet_a.csv",
-        "filter": "filter_subnet_a.csv",
-        "rollback": "rollback_subnet_a.csv"
+        "source": "source_my-subnet-1.csv",
+        "input": "input_my-subnet-1.csv",
+        "filter": "filter_my-subnet-1.csv",
+        "rollback": "rollback_my-subnet-1.csv"
       },
-      "source_subnet_uri": "projects/my-host-project/regions/europe-west3/subnetworks/source-subnet",
-      "source_zones": ["europe-west3-c"],
-      "machine_image_region": "europe-west3",
-      "backup_subnet_uri": "projects/my-host-project/regions/us-central1/subnetworks/backup-subnet",
-      "target_subnet_uri": "projects/my-host-project/regions/europe-west3/subnetworks/target-subnet",
-      "target_service_account": "1234567890-compute@developer.gserviceaccount.com",
+      "source_subnet_uri": "projects/my-project/regions/my-region1/subnetworks/my-subnet-1",
+      "source_zones": ["my-region1-a", "my-region1-b"],
+      "machine_image_region": "my-region3",
+      "backup_subnet_uri": "projects/my-project/regions/bkp-region1/subnetworks/backup-subnet-1",
+      "target_subnet_uri": "projects/my-project/regions/my-region3/subnetworks/my-target-subnet-1",
+      "target_service_account": "vm-migrator@my-project.iam.gserviceaccount.com",
+      "target_service_account_scopes": [
+        "https://www.googleapis.com/auth/cloud-platform"
+      ]
+    },
+    {
+      "skip": "start_instances",
+      "csv": {
+        "source": "source_my-subnet-2.csv",
+        "input": "input_my-subnet-2.csv",
+        "filter": "filter_my-subnet-2.csv",
+        "rollback": "rollback_my-subnet-2.csv"
+      },
+      "source_subnet_uri": "projects/my-project/regions/my-region2/subnetworks/my-subnet-2",
+      "source_zones": ["my-region2-b", "my-region2-c"],
+      "machine_image_region": "my-region4",
+      "backup_subnet_uri": "projects/my-project/regions/bkp-region2/subnetworks/backup-subnet-2",
+      "target_subnet_uri": "projects/my-project/regions/my-region4/subnetworks/my-target-subnet-2",
+      "target_service_account": "vm-migrator@my-project.iam.gserviceaccount.com",
       "target_service_account_scopes": [
         "https://www.googleapis.com/auth/cloud-platform"
       ]
