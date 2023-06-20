@@ -22,5 +22,10 @@ FIND = {
     "europe-west3-b": "us-central1-c",
     "us-central1-b": "europe-west3-a",
     "us-west1-b": "us-west1-c",
-    "us-west1-c": "us-west1-c"
+    "us-west1-c": "us-west1-c",
+
+    "europe-west2-a": "europe-west3-a",
+    "europe-west2-b": "europe-west3-c",
+    "europe-west1-b": "europe-west4-a",
+    "europe-west1-c": "europe-west4-b",
 }

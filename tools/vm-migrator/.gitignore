@@ -1,3 +1,4 @@
 *.pyc
 *.log
+*.csv
 .vscode/
