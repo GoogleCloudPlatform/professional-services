@@ -1,0 +1,3 @@
+bq_project,bq_dataset,table_name,column_name,source_datatype,target_datatype,source_pattern,target_pattern
+testdb,acme,employee,jd,int64,DATE,%Y%m%d,%Y%m%d
+testdb,acme2,employee,eid,int,VARCHAR,,

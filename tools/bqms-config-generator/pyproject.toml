@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "config_generator"
+version = "0.1.2"
+description = "BQMS Config Generator - Python package"
+authors = ["Darshan Barapatre <mrdarshan@google.com>", "Guru", "Kinjal", "Akanksha", "Harsha"]
+
+[tool.poetry.scripts]
+bqms-config-generator = 'config_generator.main:main'
+
+[tool.poetry.dependencies]
+python = "^3.7"
+PyYAML = "^6.0"
+pytest = "^5.2"
+jsonschema = "4.17.3"
+
+[tool.poetry.dev-dependencies]
+
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
