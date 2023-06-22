@@ -221,15 +221,7 @@ func createServieAttachmentFromGateway(gw *gatewayv1beta1.Gateway) *compute.Serv
 }
 
 func convertCommaSeparatedStringToArray(gw *gatewayv1beta1.Gateway, propertyName string) []string {
-	var elements []string
-	if gw.Annotations[propertyName] != "" {
-		for _, element := range strings.Split(gw.Annotations[propertyName], ",") {
-			if strings.TrimSpace(element) != "" {
-				elements = append(elements, strings.TrimSpace(element))
-			}
-		}
-	}
-	return elements
+	return strings.FieldsFunc(gw.Annotations[propertyName], func(c rune) bool { return c == ',' || unicode.IsSpace(c) })
 }
 
 func extractConnectionPreferenceAndConsumerAcceptList(gw *gatewayv1beta1.Gateway, connectionPreference string) ([]*compute.ServiceAttachmentConsumerProjectLimit, string) {
