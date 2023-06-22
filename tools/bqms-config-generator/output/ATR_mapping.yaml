@@ -1,0 +1,9 @@
+type: object_rewriter
+attribute:
+- match: testdb.acme.employee.jd
+  type:
+    target: DATE
+    sourceToTarget: parse_date('%Y%m%d', cast(? as string))
+    targetToSource: cast(format_date('%Y%m%d', ?) as int64)
+- match: testdb.acme2.employee.eid
+  type: VARCHAR

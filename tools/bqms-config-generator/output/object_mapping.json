@@ -1,0 +1,94 @@
+{
+    "name_map": [
+        {
+            "source": {
+                "type": "RELATION",
+                "schema": "dataset2",
+                "relation": "table2"
+            },
+            "target": {
+                "database": "bq_project",
+                "schema": "bq_dataset2",
+                "relation": "bq_table2"
+            }
+        },
+        {
+            "source": {
+                "type": "SCHEMA",
+                "schema": "mySchema"
+            },
+            "target": {
+                "database": "bq_project",
+                "schema": "bq_dataset"
+            }
+        },
+        {
+            "source": {
+                "type": "DATABASE",
+                "database": "finance"
+            },
+            "target": {
+                "database": "bq_project_finance"
+            }
+        },
+        {
+            "source": {
+                "type": "RELATION_ALIAS",
+                "relation": "t"
+            },
+            "target": {
+                "relation": "t_alias"
+            }
+        },
+        {
+            "source": {
+                "type": "RELATION_ALIAS",
+                "relation": "table1"
+            },
+            "target": {
+                "relation": "table1_alias"
+            }
+        },
+        {
+            "source": {
+                "type": "ATTRIBUTE",
+                "schema": "dataset2",
+                "relation": "table2",
+                "attribute": "field1"
+            },
+            "target": {
+                "database": "bq_project",
+                "schema": "bq_dataset2",
+                "relation": "bq_table2",
+                "attribute": "bq_column"
+            }
+        },
+        {
+            "source": {
+                "type": "ATTRIBUTE_ALIAS",
+                "schema": "dataset2",
+                "relation": "table2",
+                "attribute": "field1"
+            },
+            "target": {
+                "database": "bq_project",
+                "schema": "bq_dataset2",
+                "relation": "bq_table2",
+                "attribute": "bq_column"
+            }
+        },
+        {
+            "source": {
+                "type": "FUNCTION",
+                "database": "mydb",
+                "schema": "myschema",
+                "relation": "myprocedure"
+            },
+            "target": {
+                "database": "bq_project",
+                "schema": "myschema",
+                "relation": "procedure1"
+            }
+        }
+    ]
+}
