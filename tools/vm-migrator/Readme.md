@@ -38,7 +38,7 @@ See example in [``migration_map.json``](./migration_map.json).
 
 Below is the structure:
 
-```json
+```text
 {
   "log_level": string?, // Optinal log level value, default: "INFO" 
   "log_filename_prefix": string?, // Optional log file name prefix, default: "vm_migration",
