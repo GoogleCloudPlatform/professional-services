@@ -31,7 +31,39 @@ Run ```make test```
 
 ## Configuration
 
-### 1. Edit Makefile - or set variables in the command line
+### 1. Create ``migration_map.json`` 
+
+The ``migration_map.json`` (the file name can be changed via `Makefile` or environment variable, see below) specifies the migration plan.
+See example in [``migration_map.json``](./migration_map.json).
+
+Below is the structure:
+
+```json
+{
+  "log_level": string?, // Optinal log level value, default: "INFO" 
+  "log_filename_prefix": string?, // Optional log file name prefix, default: "vm_migration",
+  "mapping": [ // Each entry corresponds to a subnet, put as many as there are subnets to migrate
+    {
+      "skip": string?, // Optional and can be used to tell the migrator to skip the step indicated for this subnet, e.g.: "delete_instances". Default: ``None``
+      "csv": { // All entries below are mandatory and must be unique
+        "source": string, // inventory output CSV filename, e.g., "source_my-subnet-1.csv",
+        "input": string, // input CSV filename for migration (output from filter step), e.g., "input_my-subnet-1.csv",
+        "filter": string, // which instance to KEEP from inventory CSV filename, e.g., "filter_my-subnet-1.csv",
+        "rollback": string, // rollback inventory CSV filename, e.g., "rollback_my-subnet-1.csv"
+      },
+      "source_subnet_uri": string, // which subnet to migrate FROM, e.g., "projects/my-project/regions/europe-west1/subnetworks/my-subnet-1",
+      "source_zones": list(string), // which zones are being targeted, e.g., ["europe-west1-a", "europe-west1-b"]
+      "machine_image_region": string, // in which region to store the machine images, e.g., "europe-west3",
+      "backup_subnet_uri": string, // where to backup the FROM for rollback, e.g., "projects/my-project/regions/europe-west4/subnetworks/backup-subnet-1",
+      "target_subnet_uri": string, // where to migrate TO subnet, e.g., "projects/my-project/regions/europe-west6/subnetworks/my-target-subnet-1",
+      "target_service_account": string, // service account that needs access to the machine image, e.g., "vm-migrator@my-project.iam.gserviceaccount.com",
+      "target_service_account_scopes": list(string)?, // If the target project is different than the source project, scopes to assign to the Service Account on the VMs, default see subnet_region_mgirator.py
+    }
+  ]
+}
+```
+
+### 2. Edit Makefile - or set variables in the command line
 The `Makefile` has different variables which are passed to the subnet_region_migratory.py.
 
 These variables can be overridden from the command line:
@@ -40,29 +72,15 @@ make VARIABLE=VALUE migrate-subnet
 ```
 The variables NOT marked as "[Optional]" are **mandatory**.
 
-| Variable      | Value                              |
-| ------------- | ---------------------------------- |
-| STEP | The name of the step to run |
-| MACHINE_IMAGE_REGION | The region where you want to store your machine images, e.g "us-central1" |
-| SOURCE_PROJECT | Project ID where the VMs to be migrated are located |
-| SOURCE_SUBNET | The source subnetwork URI, for example, "projects/my-host-project/regions/europe-west3/subnetworks/source-subnet" |
-| SOURCE_ZONE | The zone in which the source subnet is present, this is used to fetch the inventory details, for example, "europe-west3-c" |
-| SOURCE_ZONE_2 | [Optional] The second zone in which the source subnet is present, this is used to fetch the inventory details |
-| SOURCE_ZONE_3 | [Optional] The third zone in which the source subnet is present, this is used to fetch the inventory details |
-| TARGET_PROJECT | [Optional] If different from the source project, the Project ID where the new subnet will exist |
-| TARGET_PROJECT_SA | Required if the target project is different than the source project, otherwise [Optional]. Used as Service Account on the target VMs. |
-| TARGET_PROJECT_SA_SCOPES | [Optional] If the target project is different than the source project, scopes to assign to the Service Account on the VMs |
-| TARGET_SUBNET | Leave this argument empty if you're just migrating VMs within the same subnet (and region) into a different service project. Otherwise the target subnetwork URI, for example, "projects/my-host-project/regions/us-central1/subnetworks/target-subnet" |
-| BACKUP_SUBNET | [Optional] If you want to back up your instances to a subnet, specify the subnet's URI, for example, "projects/my-host-project/regions/us-central1/subnetworks/backup-subnet" |
-| SOURCE_CSV | [Optional] (by default `source.csv`) The filename used by `prepare_inventory` |
-| FILTER_CSV | [Optional] (by default `filter.csv`) File that contains the instance names that will be included by `filter_inventory` |
-| INPUT_CSV | [Optional] (by default `export.csv`) The filtered list of machines created by `filter_inventory` used as input for the migration. |
-| LOG_LEVEL | [Optional] Debugging level |
+| Variable      | Value                                                                 |
+|---------------|-----------------------------------------------------------------------|
+| STEP          | The name of the step to run                                           |
+| MIGRATION_MAP | JSON file containing the migration plan, e.g., ``migration_map.json`` |
 
-### 2. Edit the filter file
+### 3. Edit the filter file
 The FILTER_CSV variable from above has the name of the file that contains the instance names that will be included by the `filter_inventory` step. It is basically the list of the instances you actually want to migrate. Please either edit the filter.csv file or provide your file and change the variable value.
 
-### 3. Edit the zone mapping file
+### 4. Edit the zone mapping file
 The file ```src/migrator/zone_mapping.py``` contains the mapping of the zones - which will be migrated to which. If your zones are not there, please edit it and add them there.
 
 ## Supported Functionality
@@ -75,24 +93,24 @@ While you can move all the machines in a subnet to the destination subnet, you h
     * This approach lets you keep the same IP ( Internal + Alias IPs ) of the source VM in the destination subnet
 2. Individual machine move, in this approach you can move only some of the machines to the destination subnet. Since you are not draining the entire subnet, the cloned machines created will have a different IP from the source machine.
 
-| STEP      | Description                              |
-| ------------- | ---------------------------------- |
-| prepare_inventory          | This will dump the entire inventory in the specified subnet and zones in CSV format into the `SOURCE_CSV` (by default `source.csv`).|
-| filter_inventory     | Executes `prepare_inventory` and copies `SOURCE_CSV` to `INPUT_CSV` (by default `export.csv`) only selecting machines whose instance names match any row in `FILTER_CSV` (by default `filter.csv`). |
-| shutdown_instances | This will shutdown all the machines whose details are found in the `INPUT_CSV` file, this is particularly useful when you want to shutdown the instances before taking their machine image |
-| start_instances | This will start all the machines whose details are found in the `INPUT_CSV` file, this is particularly useful when you want to rollback the shutdown step |
-| create_machine_images | This will create the machine image of the instances which are specifed in the `INPUT_CSV` file | 
-| backup_instances | The backup functionality moves the original instances to a backup subnet you specify in the `BACKUP_SUBNET` variable. Please see the section "Backup" below for more information |
-| prepare_rollback | This populates the `rollback.csv` file with instances to be moved from the backup subnet to the original one. Please see the section "Rollback" below for more information |
-| rollback_instances | This moves the instances listed in `rollback.csv` from `BACKUP_SUBNET` to `SOURCE_SUBNET`. Please see the section "Rollback" below for more information |
-| disable_deletionprotection_instances | This will disable the deletion protection on all instances in the `INPUT_CSV` file. In case it's enabled on any instances, this should be run before `delete_instances`. |
-| delete_instances | This will delete the instances which are specifed in the `INPUT_CSV` file |
-| release_ip | This will release all the internal static IP addresses of the instances which are specifed in the `INPUT_CSV` file |
-| release_ip_for_subnet | This will release all the internal static IP addresses of the source subnet | 
-| clone_subnet | This will delete and re-create the subnet in the destination region with the same config as the source subnet, this is required when you want to drain the entire subnet and create it in the destination region. Keep in mind that subnets can't be deleted from VPCs with auto subnet mode. |
-| add_machineimage_iampolicies | This will provide the target project service account with the right permissions to access the source project machine images |
-| create_instances | This will create the instances from the machine images in the destination subnet/region, it requires the destination subnet to be in place (if you are cloning the subnet, it will automatically be created) |
-| create_instances_without_ip | This is similar to the create_instances step, just that it will not preserve the source IPs, this is useful in a situation when you are moving some of the machines to the destination subnet which has a different CIDR range |
+| STEP                                 | Description                                                                                                                                                                                                                                                                                   |
+|--------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| prepare_inventory                    | This will dump the entire inventory in the specified subnet and zones in CSV format into the `SOURCE_CSV` (by default `source.csv`).                                                                                                                                                          |
+| filter_inventory                     | Executes `prepare_inventory` and copies `SOURCE_CSV` to `INPUT_CSV` (by default `export.csv`) only selecting machines whose instance names match any row in `FILTER_CSV` (by default `filter.csv`).                                                                                           |
+| shutdown_instances                   | This will shutdown all the machines whose details are found in the `INPUT_CSV` file, this is particularly useful when you want to shutdown the instances before taking their machine image                                                                                                    |
+| start_instances                      | This will start all the machines whose details are found in the `INPUT_CSV` file, this is particularly useful when you want to rollback the shutdown step                                                                                                                                     |
+| create_machine_images                | This will create the machine image of the instances which are specifed in the `INPUT_CSV` file                                                                                                                                                                                                | 
+| backup_instances                     | The backup functionality moves the original instances to a backup subnet you specify in the `BACKUP_SUBNET` variable. Please see the section "Backup" below for more information                                                                                                              |
+| prepare_rollback                     | This populates the `rollback.csv` file with instances to be moved from the backup subnet to the original one. Please see the section "Rollback" below for more information                                                                                                                    |
+| rollback_instances                   | This moves the instances listed in `rollback.csv` from `BACKUP_SUBNET` to `SOURCE_SUBNET`. Please see the section "Rollback" below for more information                                                                                                                                       |
+| disable_deletionprotection_instances | This will disable the deletion protection on all instances in the `INPUT_CSV` file. In case it's enabled on any instances, this should be run before `delete_instances`.                                                                                                                      |
+| delete_instances                     | This will delete the instances which are specifed in the `INPUT_CSV` file                                                                                                                                                                                                                     |
+| release_ip                           | This will release all the internal static IP addresses of the instances which are specifed in the `INPUT_CSV` file                                                                                                                                                                            |
+| release_ip_for_subnet                | This will release all the internal static IP addresses of the source subnet                                                                                                                                                                                                                   | 
+| clone_subnet                         | This will delete and re-create the subnet in the destination region with the same config as the source subnet, this is required when you want to drain the entire subnet and create it in the destination region. Keep in mind that subnets can't be deleted from VPCs with auto subnet mode. |
+| add_machineimage_iampolicies         | This will provide the target project service account with the right permissions to access the source project machine images                                                                                                                                                                   |
+| create_instances                     | This will create the instances from the machine images in the destination subnet/region, it requires the destination subnet to be in place (if you are cloning the subnet, it will automatically be created)                                                                                  |
+| create_instances_without_ip          | This is similar to the create_instances step, just that it will not preserve the source IPs, this is useful in a situation when you are moving some of the machines to the destination subnet which has a different CIDR range                                                                |
 
 ## Running the Utility
 
