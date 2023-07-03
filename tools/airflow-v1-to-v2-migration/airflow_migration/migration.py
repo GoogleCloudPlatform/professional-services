@@ -31,7 +31,8 @@ class MigrationUtility:
         self.add_comments = add_comments
         self.comments = comments
         self.report_generation = report_generation
-        self.function_regex = r'(\w+)\('
+        # self.function_regex = r'(\w+)\('
+        self.function_regex = r'(\w+(?:\.\w+)*)\('
 
     def load_rules(self):
         with open(self.rules_file, 'r') as f:
