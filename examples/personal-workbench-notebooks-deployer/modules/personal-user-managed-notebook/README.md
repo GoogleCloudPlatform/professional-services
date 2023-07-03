@@ -1,0 +1,47 @@
+# Personal User Managed Workbench notebooks
+
+## Example
+
+```hcl
+module "sample-user-managed-module" {
+  source                                  = "./modules/personal-user-managed-notebook"
+  notebook_users_list                     = ["<USER>@<DOMAIN>"]
+  dataproc_yaml_template_file_name        = "<YAML_FILE_IN_LOCAL_MASTER_TEMPLATES_PATH>"
+  personal_dataproc_notebooks_bucket_name = "<BUCKET_NAME>"
+  user_managed_instance_prefix            = "<PREFIX_STRING>"
+  generated_templates_path_name           = "<PATH_IN_BUCKET>"
+  master_templates_path_name              = "<PATH_IN_BUCKET_AND_THIS_PROJECT>"
+  project_id                              = "<PROJECT_ID>"
+  no_public_ip                            = <true/false>
+  networking_tags                         = [ "default-allow-internal", "default-allow-internal-egress"]
+}
+```
+
+## Variables
+
+| name                                                        | description                                                                                                                                                                                                                                                |           type           | required |                                           default                                            |
+|-------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:------------------------:|:--------:|:--------------------------------------------------------------------------------------------:|
+| [project_id](variables.tf#L15)                              | Project ID where all the resources will be created. We assume this project already exists.                                                                                                                                                                 |   <code>string</code>    |    ✓     |                                                                                              |
+| [notebook_users_list](variables.tf#L20)                     | Set of notebook users, for each user a notebook instance will be created.                                                                                                                                                                                  | <code>set(string)</code> |    ✓     |                                                                                              |
+| [user_managed_instance_prefix](variables.tf#L25)            | Prefix to be used to create the name of the user managed notebook instances.                                                                                                                                                                               |   <code>string</code>    |          |                              <code>user-managed-instance</code>                              |
+| [personal_dataproc_notebooks_bucket_name](variables.tf#L31) | GCS bucket to be created for: 1. To upload the master dataproc templates you define in local folder: dataproc_master_templates. 2. To write the generated dataproc templates for each end-user. 3. To upload notebook and dataproc initialization scripts. |   <code>string</code>    |          |                           <code>personal_dataproc_notebooks</code>                           |
+| [master_templates_path_name](variables.tf#L37)              | Path name in local project to be replicated in GCS bucket storing Dataproc Yaml template files.                                                                                                                                                            |   <code>string</code>    |          |                            <code>dataproc_master_templates</code>                            |
+| [dataproc_yaml_template_file_name](variables.tf#L43)        | Template name to be used as the available template for users to create their Dataproc clusters. Should be located in master_templates_path_name.                                                                                                           |   <code>string</code>    |          |                              <code>per-auth-cluster.yaml</code>                              |
+| [generated_templates_path_name](variables.tf#L49)           | SubNetwork name to deploy notebook instances to.                                                                                                                                                                                                           |   <code>string</code>    |          |                          <code>dataproc_generated_templates</code>                           |
+| [machine_type](variables.tf#L55)                            | A reference to a machine type which defines notebooks VM kind.                                                                                                                                                                                             |   <code>string</code>    |          |                                    <code>e2-medium</code>                                    |
+| [zone](variables.tf#L61)                                    | Zone where the resources will be created.                                                                                                                                                                                                                  |   <code>string</code>    |          |                                  <code>us-central1-a</code>                                  |
+| [region](variables.tf#L67)                                  | Region where the resources will be created.                                                                                                                                                                                                                |   <code>string</code>    |          |                                   <code>us-central1</code>                                   |
+| [no_public_ip](variables.tf#L73)                            | To restrict or not public IP on notebook instances.                                                                                                                                                                                                        |   <code>string</code>    |          |                                      <code>false</code>                                      |
+| [networking_tags](variables.tf#L79)                         | Networking tags to be used by notebook instances.                                                                                                                                                                                                          | <code>set(string)</code> |          |                                       <code>[]</code>                                        |
+| [service_acct_roles](variables.tf#L85)                      | Roles for Service account on the notebooks VMs to call Google Cloud APIs. Needs at least [this](https://cloud.google.com/iam/docs/understanding-roles#dataproc.hubAgent) role                                                                              | <code>set(string)</code> |          | <code>["roles/compute.admin", "roles/dataproc.hubAgent", "roles/storage.objectAdmin"]</code> |
+| [network_name](variables.tf#L91)                            | Network name to deploy notebook instances to.                                                                                                                                                                                                              |   <code>string</code>    |          |                                     <code>default</code>                                     |
+| [sub_network_name](variables.tf#L96)                        | SubNetwork name to deploy notebook instances to.                                                                                                                                                                                                           |   <code>string</code>    |          |                                     <code>default</code>                                     |
+
+## Outputs
+
+| name                                 | description                                                                                                                   | sensitive |
+|--------------------------------------|-------------------------------------------------------------------------------------------------------------------------------|:---------:|
+| [bucket_self_link](outputs.tf#L17)   | Bucket created to store Dataproc templates (master and generated), and cluster and notebooks instances Initialization scripts |           |
+| [notebook_instances](outputs.tf#L22) | User Managed notebook instances created.                                                                                      |           |
+
+<!-- END TFDOC -->

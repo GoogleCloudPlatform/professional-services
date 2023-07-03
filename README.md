@@ -3,6 +3,16 @@
 Common solutions and tools developed by Google Cloud's Professional Services
 team.
 
+## Disclaimer
+
+This repository and its contents are not an officially supported Google product.
+
+## License
+
+All solutions within this repository are provided under the
+[Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0) license. Please see
+the [LICENSE](/LICENSE) file for more detailed terms and conditions.
+
 [![Open in Cloud Shell](http://gstatic.com/cloudssh/images/open-btn.svg)](https://console.cloud.google.com/cloudshell/editor?cloudshell_git_repo=https%3A%2F%2Fgithub.com%2FGoogleCloudPlatform%2Fprofessional-services.git)
 
 ## Examples
@@ -18,6 +28,8 @@ them to fit your particular use case.
 *   [Audio Content Profiling](examples/ml-audio-content-profiling) - A tool that
     builds a pipeline to scale the process of moderating audio files for
     inappropriate content using machine learning APIs.
+*   [Bigdata generator](tools/bigdata-generator/) - 
+    Solution that generates large amounts of data for stress-testing bigdata solutions (e.g BigQuery). For each of the fields you want to generate, you can specify rules for generating their values. The generated data can stored in BigQuery or GCS (Avro, CSV).
 *   [BigQuery Analyze Realtime Reddit Data](examples/bigquery-analyze-realtime-reddit-data/) - 
     Solution to deploy a ([reddit](https://www.reddit.com)) social media data collection
     architecture on Google Cloud Platform.  Analyzes reddit comments in realtime and
@@ -42,15 +54,23 @@ them to fit your particular use case.
 *   [BigQuery Cross Project Slot Monitoring](examples/bigquery-cross-project-slot-monitoring) -
     Solution to help monitoring slot utilization across multiple projects, while
     breaking down allocation per project.
+    [BigQuery DDL Validator](examples/bigquery-ddl-validator) -
+    A utility that will read the Legacy DDL and compare it against the previously extracted DDL and produce an output with the name of the objects where the DDL is no longer matching.
 *   [BigQuery Group Sync For Row Level Access](examples/bigquery-row-access-groups) -
     Sample code to synchronize group membership from G Suite/Cloud Identity into
     BigQuery and join that with your data to control access at row level.
+*   [BigQuery Long Running Optimization Utility](examples/bigquery-long-running-optimizer) -
+    A utility that reads the entire SQL and provides a list of suggestions that would help to optimize the query and avoid the long running issues.
 *   [BigQuery Oracle DDL Migration Utility](examples/bigquery-oracle-ddl-migration-utility) - 
     Oracle DDL Migration Utility to migrate the tables schema (DDL) from Oracle DB to BigQuery.
     The utility leverages BigQuery Translation API and offers additional features
     such as adding partitioning, clustering, metadata columns and prefixes to table names.
 *   [BigQuery Pipeline Utility](tools/bqpipeline) - Python utility class for
     defining data pipelines in BigQuery.
+*   [BigQuery Remote Function](examples/bq-remote-function) - It allows user to implement custom
+    services or libraries in languages other than SQL or Javascript which are not part of UDFs.
+    The utility contains sample string format Java code to deploy cloud run gen2 instance and invoke 
+    the service from BigQuery using remote function.
 *   [BigQuery Snowflake Table Migration Tool](examples/bigquery-snowflake-tables-migration-utility) - 
     BigQuery Snowflake Table Migration Tool helps to migrate the table DDL's from Snowflake to BigQuery.
     The utility leverages BigQuery Translation API and offers additional features
@@ -65,6 +85,8 @@ them to fit your particular use case.
     Tink keysets to BigQuery.
 *   [BigQuery to XML Export](tools/bigquery-to-xml) - Python tool that takes a
     BigQuery query and returns the output as an XML string.
+*   [BigQuery Translation Validator](examples/bigquery-translation-validator-utility) - A python utility to compare 2 SQL Files and  point basic differences like column names,
+    table names, joins, function names, is-Null and query syntax.
 *   [Bigtable Dataflow Cryptocurrencies Exchange RealTime Example](examples/cryptorealtime) -
     Apache Beam example that reads from the Crypto Exchanges WebSocket API as
     Google Cloud Dataflow pipeline and saves the feed in Google Cloud Bigtable.
@@ -141,6 +163,9 @@ them to fit your particular use case.
     from Cloud Pub/Sub, enhancing the document using metadata stored in Cloud
     Bigtable and indexing those documents into
     [Elasticsearch](https://www.elastic.co/).
+*   [Dataflow Flex Template in Restricted Networking Env](examples/dataflow-flex-python/) -
+    Example implements a python flex template which can be run in an environment
+    where workers can not download python packages due to egress traffic restrictions.
 *   [Dataflow Python Examples](examples/dataflow-python-examples) - Various ETL
     examples using the Dataflow Python SDK.
 *   [Dataflow Scala Example: Kafka2Avro](examples/dataflow-scala-kafka2avro) -
@@ -152,6 +177,8 @@ them to fit your particular use case.
 *   [Dataflow Streaming Schema Changes Handler](examples/dataflow-streaming-schema-handler) -
     Dataflow example to handle schema changes using schema enforcement and DLT
     approach
+*   [Dataflow Streaming XML to GCS](examples/dataflow-xml-pubsub-to-gcs) -
+    Dataflow example to handle streaming of xml encoded messages and write them to Google Cloud Storage
 *   [Dataflow DLP Hashpipeline](examples/dataflow-dlp-hash-pipeline) - Match DLP
     Social Security Number findings against a hashed dictionary in Firestore.
     Use Secret Manager for the hash key.
@@ -170,6 +197,8 @@ them to fit your particular use case.
 *   [Dataproc Persistent History Server for Ephemeral Clusters](examples/dataproc-persistent-history-server) -
     Example of writing logs from an ephemeral cluster to GCS and using a
     separate single node cluster to look at Spark and YARN History UIs.
+*   [Dataproc Lifecycle Management via Composer](examples/dataproc-lifecycle-via-composer) - Ephemeral Dataproc lifecycle management and resources optimization via Composer, Terraform template to deploy Composer and additional reqs, Dynamically generated DAGs from jobs config files.
+*   [Dataproc Running Notebooks](examples/dataproc-running-notebooks) - Orchestrating the workflow of running Jupyter Notebooks on a Dataproc cluser via PySpark job
 *   [dbt-on-cloud-composer](examples/dbt-on-cloud-composer) - Example of using
     dbt to manage BigQuery data pipelines, utilizing Cloud Composer to run and
     schedule the dbt runs.
@@ -187,6 +216,8 @@ them to fit your particular use case.
     example for dialogflow in Python.
 *   [Dialogflow CX Private Webhook Example](examples/dialogflowcx-private-webhook-example) -
     Webhook example for Dialogflow CX in Python.
+*   [Dialogflow Middleware Example](examples/ccai-dialogflow-middleware) -
+    Dialogflow middleware example in Java.
 *   [Dialogflow Entities Creation and Update](examples/dialogflow-entities-example) -
     Creation and update of entities for Dialogflow in Python.
 *   [DLP API Examples](examples/dlp) - Examples of the DLP API usage.
@@ -198,6 +229,8 @@ them to fit your particular use case.
 *   [GCS to BQ using serverless services](examples/gcs-to-bq-serverless-services) -
     Example to ingest GCS to BigQuery using serverless services such as Cloud
     Function, Pub/Sub and Serverless Spark.
+*   [GDCE Terraform Example](examples/gdce-terraform-example) - Example for provisioning GDCE
+    resources using terraform.
 *   [GKE HA setup using spot VMs](examples/gke-ha-setup-using-spot-vms/) -
     Example for running an application with high availability requirements on
     GKE spot nodes using on-demand nodes as fallback
@@ -227,6 +260,7 @@ them to fit your particular use case.
     templates from your choice of sources.
 *   [LookerStudio Cost Optimization Dashboard](examples/cost-optimization-dashboard) -
     SQL scripts to help build Cost Optimization LookerStudio Dashboard.
+*   [Personal Workbench Notebooks Deployer](examples/personal-workbench-notebooks-deployer) - Terraform sample modules to provision Dataproc Hub using personal auth clusters, and workbench managed notebooks for individual analytical users.
 *   [Project factory with Terragrunt](examples/terragrunt-project-factory-gcp/) -
     This implements a `State-Scalable` project factory pattern for creating Google Cloud Platform projects using Terragrunt and public Terraform modules
 *   [Python CI/CD with Cloud Builder and CSR](examples/python-cicd-with-cloudbuilder) -
@@ -265,9 +299,6 @@ them to fit your particular use case.
     [Signed URL](https://cloud.google.com/storage/docs/access-control/signed-urls).
 *   [TSOP object transfer Log prosessor](examples/tsop-log-processor/) - This example shows
     how to log object transfer logs by TSOP to Cloud Logging.
-*   [Vertex AI MLOps Pipeline](examples/vertex_pipeline) - Demonstrates
-    end-to-end MLOps process using Vertex AI platform and Smart Analytics
-    technology capabilities.
 
 ## Tools
 
@@ -387,6 +418,8 @@ Platform usage.
     gcp_resources using the D3.js javascript library.
 *   [GCP AWS HA VPN Connection terraform ](tools/gcp-aws-ha-vpn) - Terraform
     script to setup HA VPN between GCP and AWS.
+*   [GCP Azure HA VPN Connection Terraform](tools/gcp-azure-ha-vpn) - Terraform
+    code to setup HA VPN between GCP and Microsoft Azure.
 *   [GCP Organization Hierarchy Viewer](tools/gcp-org-hierarchy-viewer) - A CLI
     utility for visualizing your organization hierarchy in the terminal.
 *   [GCPViz](tools/gcpviz) - a visualization tool that takes input from
@@ -511,21 +544,14 @@ Platform usage.
     Recommender is a database script that recommends the best numeric data type for the NUMBER data type
     when migrating from legacy databases like Oracle to Google Cloud platforms like BigQuery, AlloyDB,
     Cloud SQL for PostgreSQL, and Google Cloud Storage.
+*   [Composer DAG Load Generator](tools/cloud-composer-dag-generator) - This is an automatic 
+    DAG generator tool which can be used to create test workload on a cloud composer environmnet
+    and to test differents airflows configurations or to do fine tune using the composer/airflow metrics.
 
 ## Contributing
 
 See the contributing [instructions](/CONTRIBUTING.md) to get started
 contributing.
-
-## License
-
-All solutions within this repository are provided under the
-[Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0) license. Please see
-the [LICENSE](/LICENSE) file for more detailed terms and conditions.
-
-## Disclaimer
-
-This repository and its contents are not an official Google Product.
 
 ## Contact
 
