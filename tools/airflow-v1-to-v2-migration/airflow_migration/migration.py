@@ -92,7 +92,7 @@ class MigrationUtility:
                                     temp.write(comment)
                                 temp.write(self.replacement_dict[imp_stmt][2] + '\n')
                             else:
-                                temp.write(line)
+                                temp.write(imp_stmt + '\n')
                     else:
                         # extract function call
                         matches = re.findall(self.function_regex, line)
