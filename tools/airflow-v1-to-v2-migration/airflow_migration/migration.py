@@ -110,6 +110,20 @@ class MigrationUtility:
                                                       self.replacement_dict[rec][3] + '\n'
                                         temp.write(comment)
                                     line = line.replace(rec, self.replacement_dict[rec][2])
+
+                                    if rec+"(" in self.replacement_dict:
+                                        space_count = len(line) - len(line.lstrip())
+                                        space_count +=4
+                                        if self.add_comments:
+                                            if self.comments:
+                                                comment = '# ' + self.comments + '\n'
+                                            else:
+                                                comment = '# Migration Utility Generated Comment -- Change Type = ' + \
+                                                      self.replacement_dict[rec+"("][1] + " , Impact = " + \
+                                                      self.replacement_dict[rec+"("][3] + '\n'
+                                            temp.write(comment)
+                                        line = line+' '*space_count +self.replacement_dict[rec+"("][2]+",\n"
+
                         temp.write(line)
 
             if change_count > 0:
