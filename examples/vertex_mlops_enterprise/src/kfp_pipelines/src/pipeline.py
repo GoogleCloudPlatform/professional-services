@@ -4,89 +4,32 @@ from kfp.dsl import Artifact, Input, Model, Output, OutputPath
 
 from google.cloud import aiplatform
 
-from google_cloud_pipeline_components.v1.endpoint import EndpointCreateOp
-from google_cloud_pipeline_components.aiplatform import ModelDeployOp
+from google_cloud_pipeline_components.v1.batch_predict_job import ModelBatchPredictOp
+from google_cloud_pipeline_components.v1.endpoint import EndpointCreateOp, ModelDeployOp
+from google_cloud_pipeline_components.experimental.evaluation import (
+    EvaluationDataSamplerOp, ModelEvaluationClassificationOp, ModelImportEvaluationOp, TargetFieldDataRemoverOp)
+#from google_cloud_pipeline_components.experimental.model import GetVertexModelOp
 
 import logging
 from datetime import datetime
 
 from config import (PIPELINE_ROOT, PIPELINE_NAME, BQ_INPUT_DATA, MODEL_CARD_CONFIG, 
                     MODEL_DISPLAY_NAME, PRED_CONTAINER, ENDPOINT_NAME, PARENT_MODEL,
-                    SERVICE_ACCOUNT, NETWORK)
+                    SERVICE_ACCOUNT, NETWORK, KEY_ID, EMAILS)
+from config import DATAFLOW_NETWORK, DATAFLOW_PUBLIC_IPS, DATAFLOW_SA, BQ_OUTPUT_DATASET_ID
 from train import xgb_train, PROJECT_ID, REGION, IMAGE, CLASS_NAMES, TARGET_COLUMN
 from eval import evaluate_model
+from load import get_dataframe
 from model_card import plot_model_card
+from model_monitoring import model_monitoring
+from model_upload import upload_model
+from reformat_preds import reformat_predictions_bq, reformat_groundtruth_json, upload_to_bq
+
+from typing import NamedTuple
 
 caching = True
 
-# Load data from BigQuery and save to CSV
-@dsl.component(base_image=IMAGE)
-def get_dataframe(
-    project_id: str,
-    bq_table: str,
-    train_data: OutputPath("Dataset"),
-    test_data: OutputPath("Dataset"),
-    val_data: OutputPath("Dataset"),
-    stats: Output[Artifact],
-    class_names: list
-):
-    from google.cloud import bigquery
-    from model_card_toolkit.utils.graphics import figure_to_base64str
-    from sklearn.model_selection import train_test_split
-    import pickle
-    import seaborn as sns
-    import logging
-
-    bqclient = bigquery.Client(project=project_id)
-    logging.info(f"Pulling data from {bq_table}")
-    table = bigquery.TableReference.from_string(bq_table)
-    rows = bqclient.list_rows(table)
-    dataframe = rows.to_dataframe(create_bqstorage_client=True)
-    # Drop the Time column, otherwise the model will just memorize when the fraud cases happened
-    dataframe.drop(columns=['Time'], inplace=True) 
-    logging.info("Data loaded, writing splits")
-
-    # 60 / 20 / 20
-    df_train, df_test = train_test_split(dataframe, test_size=0.4)
-    df_test, df_val = train_test_split(df_test, test_size=0.5)
-
-    df_train.to_csv(train_data, index=False)
-    df_test.to_csv(test_data, index=False)
-    df_val.to_csv(val_data, index=False)
-
-    def get_fig(df, title):
-        n_fraud = (df.Class == '1').sum()
-        n_ok = len(df) - n_fraud
-
-        logging.info(f"Stats for {title}: {n_ok=} {n_fraud=}")
-
-        ys = [n_ok, n_fraud]
-
-        g = sns.barplot(x=class_names, y=ys)
-        g.set_yscale('log')
-        g.set_ylim(1, n_ok*2)
-        fig = g.get_figure()
-        fig.suptitle(title)
-        return fig
-
-    logging.info("Generating stats")
-    stats_dict = {} 
-    fig = get_fig(df_train, "Training data")
-    stats_dict['train'] = figure_to_base64str(fig)
-    fig.clf()
-
-    fig = get_fig(df_test, "Test data")
-    stats_dict['test'] = figure_to_base64str(fig)
-    fig.clf()
-    
-    fig = get_fig(df_val, "Validation data")
-    stats_dict['val'] = figure_to_base64str(fig)
-    fig.clf()
-    
-    logging.info(f"Writing stats to {stats.path}")
-    with open(stats.path, 'wb') as f:
-        pickle.dump(stats_dict, f)
-
+TIMESTAMP = datetime.now().strftime("%Y%m%d-%H%M")
 
 # Import model and convert to Artifact
 @dsl.component(base_image=IMAGE)
@@ -94,32 +37,18 @@ def get_unmanaged_model(model: Input[Model], unmanaged_model: Output[Artifact]):
   unmanaged_model.metadata = model.metadata
   unmanaged_model.uri = '/'.join(model.uri.split('/')[:-1]) # remove filename after last / - send dir rather than file
 
-
+# Get an Artifact and return its URIs
+# Also produce an area in GCS that can be used as output for the Batch Prediction job
 @dsl.component(base_image=IMAGE)
-def upload_model(
-    project_id: str,
-    region: str,
-    model: Input[Model],
-    display_name: str,
-    serving_image: str,
-    parent_model: str,
-    uploaded_model: Output[Artifact]
-):
-    from google.cloud import aiplatform
-    vertex_model = aiplatform.Model.upload(
-        project=project_id,
-        location=region,
-        display_name=display_name,
-        artifact_uri='/'.join(model.uri.split('/')[:-1]), # remove filename after last / - send dir rather than file,
-        serving_container_image_uri=serving_image,
-        parent_model=parent_model
-    )
+def artifact_to_uris(artifact: Input[Artifact],
+                     gcs_dataset: dsl.OutputPath("Dataset")) -> NamedTuple('outputs', [('uris', list), ('gcs_data', str)]):
+   from collections import namedtuple
+   t = namedtuple('outputs', ['uris', 'gcs_data'])
 
-    uploaded_model.metadata['resourceName'] = vertex_model.resource_name
-    uploaded_model.uri = f'https://{region}-aiplatform.googleapis.com/v1/{vertex_model.resource_name}'
+   # transform from /gcs/a/b/c to gs://a/b/c
+   gcs_path = 'gs://' + '/'.join(gcs_dataset.split('/')[2:])
 
-
-
+   return t([artifact.uri], gcs_path)
 
 #########################
 ### Define pipeline
@@ -157,14 +86,7 @@ def pipeline(
         trained_model=train_op.outputs['model'],
         class_names=CLASS_NAMES,
         target_column=TARGET_COLUMN
-    ).set_display_name("Evaluate Model")
-
-
-    create_endpoint_op = EndpointCreateOp(
-        project = PROJECT_ID,
-        location = REGION,
-        display_name = ENDPOINT_NAME
-    ).set_display_name("Create Vertex AI Endpoint")
+    ).set_display_name("Model Card Graphics")
 
 
     upload_op = upload_model(
@@ -173,7 +95,9 @@ def pipeline(
         model = train_op.outputs['model'],
         display_name = MODEL_DISPLAY_NAME,
         serving_image = PRED_CONTAINER,
-        parent_model = PARENT_MODEL
+        parent_model = PARENT_MODEL,
+        run = dsl.PIPELINE_JOB_NAME_PLACEHOLDER,
+        run_id = dsl.PIPELINE_JOB_ID_PLACEHOLDER
     ).set_display_name("Upload Model")
 
 
@@ -192,40 +116,133 @@ def pipeline(
         model_card_config = model_card_config
     ).set_display_name("Generate Model Card")
 
+    #
+    # Online Endpoint
+    #
 
-    _ = ModelDeployOp(
-            model=upload_op.outputs['uploaded_model'],
-            endpoint=create_endpoint_op.outputs['endpoint'],
-            dedicated_resources_machine_type = 'n1-standard-8',
-            dedicated_resources_min_replica_count = 1,
-            dedicated_resources_max_replica_count = 1,
-            enable_access_logging = True
-    ).set_display_name("Deploy Model To Endpoint")
+    # create_endpoint_op = EndpointCreateOp(
+    #     project = PROJECT_ID,
+    #     location = REGION,
+    #     display_name = ENDPOINT_NAME
+    # ).set_display_name("Create Vertex AI Endpoint")
 
+    # deploy_op = ModelDeployOp(
+    #         model=upload_op.outputs['uploaded_model'],
+    #         endpoint=create_endpoint_op.outputs['endpoint'],
+    #         dedicated_resources_machine_type = 'n1-standard-8',
+    #         dedicated_resources_min_replica_count = 1,
+    #         dedicated_resources_max_replica_count = 1,
+    #         enable_access_logging = True
+    # ).set_display_name("Deploy Model To Endpoint")
 
+    # _ = model_monitoring(
+    #     project_id=PROJECT_ID,
+    #     region=REGION,
+    #     endpoint=create_endpoint_op.outputs['endpoint'],
+    #     pipeline_id=dsl.PIPELINE_JOB_NAME_PLACEHOLDER,
+    #     bq_train_data=bq_table,
+    #     skew_threshold=0.5,
+    #     sampling_rate=1.0,
+    #     monitoring_interval_hours=1,
+    #     user_emails=EMAILS
+    # ).set_display_name("Enable Model Montoring")
+
+    #
+    # Evaluation Pipeline
+    #
+    
+    upload_to_bq_op = upload_to_bq(
+       project=PROJECT_ID, 
+       location=REGION, 
+       csv_data=load_data_op.outputs['val_data'],
+       dest_dataset_id=BQ_OUTPUT_DATASET_ID,
+       dest_table_id=f'{PIPELINE_NAME}-val-{TIMESTAMP}'
+    ).set_display_name("Upload to BigQuery")
+
+    # Run the data sampling task
+    data_sampler_task = EvaluationDataSamplerOp(
+        project=PROJECT_ID,
+        location=REGION,
+        bigquery_source_uri=upload_to_bq_op.outputs['bq_table_uri'],
+        instances_format="bigquery",
+        #sample_size=batch_predict_data_sample_size, # default 10k - TODO get size from load_data op
+        #dataflow_service_account=DATAFLOW_SA,
+        #dataflow_subnetwork=DATAFLOW_NETWORK,
+        dataflow_use_public_ips=DATAFLOW_PUBLIC_IPS
+    ).set_display_name("Evaluation Data Sampler")
+
+    # Run the batch prediction task
+    batch_predict_op = ModelBatchPredictOp(
+        project=PROJECT_ID,
+        location=REGION,
+        model=upload_op.outputs['uploaded_model'],
+        job_display_name=f"bp-{PIPELINE_NAME}-{TIMESTAMP}",
+        bigquery_source_input_uri=data_sampler_task.outputs['bigquery_output_table'],
+        instances_format="bigquery",
+        predictions_format="bigquery",
+        bigquery_destination_output_uri=f"bq://{PROJECT_ID}.{BQ_OUTPUT_DATASET_ID}.{PIPELINE_NAME}-bp-{TIMESTAMP}",
+        excluded_fields=[TARGET_COLUMN],
+        machine_type="n1-standard-8",
+        starting_replica_count=2,
+        max_replica_count=8,
+    ).set_display_name("Batch Prediction")
+
+    # Format the predictions column from "0.1" that xgboost produces to "[0.9, 0.1]" that sklearn produces
+    reformat_predictions_op = reformat_predictions_bq(
+       project=PROJECT_ID,
+       location=REGION,
+       input_predictions=batch_predict_op.outputs['bigquery_output_table']
+    ).set_display_name("Reformat Predictions")
+
+    # Run the evaluation based on prediction type
+    eval_task = ModelEvaluationClassificationOp(
+        project=PROJECT_ID,
+        location=REGION,
+        class_labels=CLASS_NAMES,
+        prediction_score_column= "prediction",
+        target_field_name=TARGET_COLUMN,
+        ground_truth_format="bigquery",
+        ground_truth_bigquery_source=upload_to_bq_op.outputs['bq_table_uri'],
+        predictions_format="bigquery",
+        predictions_bigquery_source=reformat_predictions_op.outputs['predictions'],
+        #dataflow_service_account=DATAFLOW_SA,
+        #dataflow_subnetwork=DATAFLOW_NETWORK,
+        dataflow_use_public_ips=DATAFLOW_PUBLIC_IPS,
+        force_runner_mode='Dataflow'
+    ).set_display_name("Model Evaluation")
+
+    # Import the model evaluations to the Vertex AI model in Model Registry
+    ModelImportEvaluationOp(
+        classification_metrics=eval_task.outputs["evaluation_metrics"],
+        model=upload_op.outputs['uploaded_model'],
+        dataset_type="bigquery",
+    ).set_display_name("Import Model Evaluation")
 
 # Compile and run the pipeline
-aiplatform.init(project=PROJECT_ID, location=REGION)
+aiplatform.init(project=PROJECT_ID, location=REGION, encryption_spec_key_name=KEY_ID)
 
 logging.getLogger().setLevel(logging.INFO)
 logging.info(f"Init with project {PROJECT_ID} in region {REGION}. Pipeline root: {PIPELINE_ROOT}")
 
-TIMESTAMP = datetime.now().strftime("%Y%m%d-%H%M")
 
 
 compiler.Compiler().compile(
     pipeline_func=pipeline, 
-    package_path=PIPELINE_NAME + ".json"
+    package_path=PIPELINE_NAME + ".yaml"
 )
 
 run = aiplatform.PipelineJob(
     project=PROJECT_ID,
     location=REGION,
     display_name=PIPELINE_NAME,
-    template_path=PIPELINE_NAME + ".json",
+    template_path=PIPELINE_NAME + ".yaml",
     job_id=f"{PIPELINE_NAME}-{TIMESTAMP}",
     pipeline_root=PIPELINE_ROOT,
-    parameter_values={"bq_table": BQ_INPUT_DATA},
+    parameter_values={
+        "bq_table": BQ_INPUT_DATA,
+        "xgboost_param_max_depth": 5,
+        "xgboost_param_learning_rate": 0.1,
+        "xgboost_param_n_estimators": 20},
     enable_caching=caching
 )
 

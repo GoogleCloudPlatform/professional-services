@@ -12,6 +12,7 @@ import logging
 import argparse
 import sys
 import os
+import pickle
 
 PROJECT_ID = os.getenv("PROJECT_ID", "")
 PROJECT_NR = os.getenv("PROJECT_NR", "")
@@ -85,6 +86,12 @@ def train(
         hyperparameter_metric_tag='f1',
         metric_value=f1)
     
+
+    # Write Pickle for convenience: This is what we trained and will have sklearn interface
+    pickle_output_path = model_output_path + '_sklearn.pkl'
+    with open(pickle_output_path, 'wb') as f:
+        pickle.dump(classifier, f)
+
     # Save using save_model method of XGB Classifier object
     # -- this is important if we want to use the prebuilt xgb container for prediction
     model_output_path = model_output_path + '.bst'
@@ -113,10 +120,7 @@ if __name__ == '__main__':
           xgboost_param_n_estimators=int(args.xgboost_param_n_estimators),
           model_output_path=args.model_output_path)
 
-@dsl.component(
-    base_image=IMAGE,
-    target_image=TRAIN_COMPONENT_IMAGE
-)
+@dsl.component(base_image=f'{IMAGE}')
 def xgb_train(
     train_data: Input[Dataset],
     test_data: Input[Dataset],
@@ -128,7 +132,8 @@ def xgb_train(
     metricsc: Output[ClassificationMetrics],
     serving_container_image_uri: str
 ):
-    
+    from train import train
+
     train(
         train_dataset_path=train_data.path, 
         test_dataset_path=test_data.path, 
