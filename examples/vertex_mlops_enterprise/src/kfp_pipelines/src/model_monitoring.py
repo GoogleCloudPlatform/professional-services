@@ -1,7 +1,7 @@
 from kfp import dsl
 from google_cloud_pipeline_components.types.artifact_types import VertexEndpoint
 
-from train import IMAGE
+from config import IMAGE
 
 @dsl.component(base_image=IMAGE)
 def model_monitoring(

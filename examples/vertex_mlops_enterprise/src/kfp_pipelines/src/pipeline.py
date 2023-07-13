@@ -1,29 +1,30 @@
 from kfp import dsl
 from kfp import compiler
-from kfp.dsl import Artifact, Input, Model, Output, OutputPath
+from kfp.dsl import Artifact, Input, Model, Output
 
 from google.cloud import aiplatform
 
 from google_cloud_pipeline_components.v1.batch_predict_job import ModelBatchPredictOp
 from google_cloud_pipeline_components.v1.endpoint import EndpointCreateOp, ModelDeployOp
 from google_cloud_pipeline_components.experimental.evaluation import (
-    EvaluationDataSamplerOp, ModelEvaluationClassificationOp, ModelImportEvaluationOp, TargetFieldDataRemoverOp)
-#from google_cloud_pipeline_components.experimental.model import GetVertexModelOp
+    EvaluationDataSamplerOp, ModelEvaluationClassificationOp, ModelImportEvaluationOp)
 
 import logging
 from datetime import datetime
 
 from config import (PIPELINE_ROOT, PIPELINE_NAME, BQ_INPUT_DATA, MODEL_CARD_CONFIG, 
                     MODEL_DISPLAY_NAME, PRED_CONTAINER, ENDPOINT_NAME, PARENT_MODEL,
-                    SERVICE_ACCOUNT, NETWORK, KEY_ID, EMAILS)
-from config import DATAFLOW_NETWORK, DATAFLOW_PUBLIC_IPS, DATAFLOW_SA, BQ_OUTPUT_DATASET_ID
-from train import xgb_train, PROJECT_ID, REGION, IMAGE, CLASS_NAMES, TARGET_COLUMN
+                    SERVICE_ACCOUNT, NETWORK, KEY_ID, EMAILS,
+                    PROJECT_ID, REGION, IMAGE, CLASS_NAMES, TARGET_COLUMN,
+                    DATAFLOW_NETWORK, DATAFLOW_PUBLIC_IPS, DATAFLOW_SA, 
+                    BQ_OUTPUT_DATASET_ID)
+from train import xgb_train
 from eval import evaluate_model
-from load import get_dataframe
+from load import get_dataframe, upload_to_bq
 from model_card import plot_model_card
 from model_monitoring import model_monitoring
 from model_upload import upload_model
-from reformat_preds import reformat_predictions_bq, reformat_groundtruth_json, upload_to_bq
+from reformat_preds import reformat_predictions_bq
 
 from typing import NamedTuple
 
@@ -120,21 +121,22 @@ def pipeline(
     # Online Endpoint
     #
 
-    # create_endpoint_op = EndpointCreateOp(
-    #     project = PROJECT_ID,
-    #     location = REGION,
-    #     display_name = ENDPOINT_NAME
-    # ).set_display_name("Create Vertex AI Endpoint")
+    create_endpoint_op = EndpointCreateOp(
+        project = PROJECT_ID,
+        location = REGION,
+        display_name = ENDPOINT_NAME
+    ).set_display_name("Create Vertex AI Endpoint")
 
-    # deploy_op = ModelDeployOp(
-    #         model=upload_op.outputs['uploaded_model'],
-    #         endpoint=create_endpoint_op.outputs['endpoint'],
-    #         dedicated_resources_machine_type = 'n1-standard-8',
-    #         dedicated_resources_min_replica_count = 1,
-    #         dedicated_resources_max_replica_count = 1,
-    #         enable_access_logging = True
-    # ).set_display_name("Deploy Model To Endpoint")
+    deploy_op = ModelDeployOp(
+            model=upload_op.outputs['uploaded_model'],
+            endpoint=create_endpoint_op.outputs['endpoint'],
+            dedicated_resources_machine_type = 'n1-standard-8',
+            dedicated_resources_min_replica_count = 1,
+            dedicated_resources_max_replica_count = 1,
+            enable_access_logging = True
+    ).set_display_name("Deploy Model To Endpoint")
 
+    # Start Model Monitoring job. Enable after bugfix: https://github.com/googleapis/python-aiplatform/issues/2361
     # _ = model_monitoring(
     #     project_id=PROJECT_ID,
     #     region=REGION,

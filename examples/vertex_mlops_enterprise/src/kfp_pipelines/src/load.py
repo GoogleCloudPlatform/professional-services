@@ -1,6 +1,8 @@
 from kfp import dsl
+from google_cloud_pipeline_components.types.artifact_types import BQTable
+from typing import NamedTuple
 
-from train import IMAGE
+from config import IMAGE
 
 # Load data from BigQuery and save to CSV
 @dsl.component(base_image=IMAGE)
@@ -69,3 +71,36 @@ def get_dataframe(
     logging.info(f"Writing stats to {stats.path}")
     with open(stats.path, 'wb') as f:
         pickle.dump(stats_dict, f)
+
+
+@dsl.component(base_image=IMAGE)
+def upload_to_bq(
+    project: str,
+    location: str,
+    dest_dataset_id: str,
+    dest_table_id: str, 
+    csv_data: dsl.Input[dsl.Dataset], 
+    bq_table: dsl.Output[BQTable]) -> NamedTuple('outputs', [('bq_table_uri', str)]):
+
+    from collections import namedtuple
+    import logging
+    import pandas as pd
+
+    bq_table.metadata["projectId"] = project
+    bq_table.metadata["datasetId"] = dest_dataset_id
+    bq_table.metadata["tableId"] = dest_table_id
+    logging.info(f"BQ table: {bq_table}\nmetadata: {bq_table.metadata}")
+
+    logging.info(f"Reading {csv_data.path}")
+    dest_table = f'{dest_dataset_id}.{dest_table_id}'
+    logging.info(f"Writing to {dest_table}")
+
+    df = pd.read_csv(csv_data.path)
+    df.to_gbq(
+        destination_table=f"{dest_table}", 
+        project_id=project, 
+        location=location)
+
+    t = namedtuple('outputs', ['bq_table_uri'])
+    return t(f'bq://{project}.{dest_dataset_id}.{dest_table_id}')
+    

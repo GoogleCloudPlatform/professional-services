@@ -1,7 +1,7 @@
 from kfp.v2 import dsl
 from kfp.v2.dsl import Artifact, Dataset, Input, Model, Output
 
-from train import IMAGE
+from config import IMAGE
 
 
 @dsl.component(

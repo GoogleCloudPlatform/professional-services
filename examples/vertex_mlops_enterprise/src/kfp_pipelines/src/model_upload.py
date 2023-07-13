@@ -1,6 +1,6 @@
 from kfp import dsl
 
-from train import IMAGE
+from config import IMAGE
 
 @dsl.component(base_image=IMAGE)
 def upload_model(
@@ -35,6 +35,6 @@ def upload_model(
         }
     )
 
-    uploaded_model.metadata['resourceName'] = vertex_model.resource_name
-    uploaded_model.uri = f'https://{region}-aiplatform.googleapis.com/v1/{vertex_model.resource_name}'
+    uploaded_model.metadata['resourceName'] = f'{vertex_model.resource_name}@{vertex_model.version_id}'
+    uploaded_model.uri = f'https://{region}-aiplatform.googleapis.com/v1/{vertex_model.resource_name}@{vertex_model.version_id}'
 

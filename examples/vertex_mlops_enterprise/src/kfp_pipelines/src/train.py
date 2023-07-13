@@ -11,18 +11,9 @@ from hypertune import HyperTune
 import logging
 import argparse
 import sys
-import os
 import pickle
 
-PROJECT_ID = os.getenv("PROJECT_ID", "")
-PROJECT_NR = os.getenv("PROJECT_NR", "")
-REGION = os.getenv("REGION", "")
-IMAGE=f'{REGION}-docker.pkg.dev/{PROJECT_ID}/creditcards-kfp/base:latest'
-TRAIN_COMPONENT_IMAGE=f'{REGION}-docker.pkg.dev/{PROJECT_ID}/creditcards-kfp/train-fraud:latest'
-
-CLASS_NAMES = ['OK', 'Fraud']
-TARGET_COLUMN = 'Class'
-
+from config import CLASS_NAMES, IMAGE
 
 def load_data(dataset_path: str):
     df = pd.read_csv(dataset_path)

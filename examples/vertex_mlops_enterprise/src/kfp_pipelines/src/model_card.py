@@ -1,7 +1,7 @@
 from kfp import dsl
 from kfp.dsl import Input, Output, Dataset, Artifact, HTML
-from train import IMAGE
 
+from config import IMAGE
 
 
 @dsl.component(base_image=IMAGE)
@@ -51,8 +51,25 @@ def plot_model_card(
     mc = mct.scaffold_assets()
 
     ## Model Details section
-    model_resource_name = model.metadata['resourceName']
-    vertex_model = [m for m in aiplatform.Model.list(project=project_id, location=region) if m.resource_name==model_resource_name][0]
+    uri = model.metadata['resourceName']
+    if uri.find('@') >= 0: # has version or alias
+        model_resource_name = uri[:uri.find('@')] # strip version or alias
+        model_version = uri[uri.find('@')+1:]
+    else:
+        model_resource_name = uri
+        model_version = None
+
+    vertex_models = [m for m in aiplatform.Model.list(project=project_id, location=region) if m.resource_name==model_resource_name]
+
+    if model_version:
+        models = [m for m in vertex_models if m.version_id == model_version]
+        if len(models)>1:
+            logging.warning(f"Found {len(models)} models with for {uri}")
+        vertex_model = models[0]
+    else:
+        if len(vertex_models)>1:
+            logging.warning(f"Found {len(vertex_models)} models with for {uri}")
+        vertex_model = vertex_models[0]
 
     mc.model_details.name = model_card_cd['model_name']
     mc.model_details.overview = model_card_cd['model_overview']
