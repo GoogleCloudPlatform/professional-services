@@ -94,11 +94,11 @@ class MigrationUtility:
                             else:
                                 temp.write(imp_stmt + '\n')
                     else:
-                        # extract function call
+                        # extract Operator Name from the current line 
                         matches = re.findall(self.function_regex, line)
 
                         if matches:
-                            # search if required to replace
+                            # Iterate over all the perator name matches and check if that matches with any of the rules in rule dict
                             for rec in matches:
                                 if rec in self.replacement_dict:
                                     change_count += 1
@@ -111,6 +111,27 @@ class MigrationUtility:
                                                       self.replacement_dict[rec][3] + '\n'
                                         temp.write(comment)
                                     line = line.replace(rec, self.replacement_dict[rec][2])
+                                    # Argument CHanges - Check for a rule in rules dict with Operatorname+( e.g. BigQueryOperator(
+                                    if rec+"(" in self.replacement_dict:
+                                        space_count = len(line) - len(line.lstrip())
+                                        space_count +=4
+                                        if self.add_comments:
+                                            if self.comments:
+                                                comment = '# ' + self.comments + '\n'
+                                            else:
+                                                comment = '# Migration Utility Generated Comment -- Change Type = ' + \
+                                                      self.replacement_dict[rec+"("][1] + " , Impact = " + \
+                                                      self.replacement_dict[rec+"("][3] + '\n'
+                                            temp.write(comment)
+                                        # Truncate the new line character and hold in temp variable to check if line ends with ) to identify if operator call is in single line
+                                        # if it is single line operator function execute the if statment and add argument in the current line itself 
+                                        # else add a new line with argument details from rule dict
+                                        truncatedLine = line.strip()
+                                        if truncatedLine.endswith(")"):
+                                            line = line.replace(")",","+self.replacement_dict[rec+"("][2]+")")
+                                        else:
+                                            line = line+' '*space_count +self.replacement_dict[rec+"("][2]+",\n"
+
                         temp.write(line)
 
             if change_count > 0:
