@@ -29,78 +29,78 @@
 #
 # """
 #
-# import os
-#
-# from future.backports.urllib.parse import urlparse
-#
-# from airflow import models
-# from airflow.contrib.operators.gcp_cloud_build_operator import CloudBuildCreateBuildOperator
-# from airflow.operators.bash_operator import BashOperator
-# from airflow.utils import dates
-#
-# # [START howto_operator_gcp_common_variables]
-# GCP_PROJECT_ID = os.environ.get("GCP_PROJECT_ID", "example-project")
-# # [END howto_operator_gcp_common_variables]
-#
-# # [START howto_operator_gcp_create_build_variables]
-# GCP_SOURCE_ARCHIVE_URL = os.environ.get("GCP_CLOUD_BUILD_ARCHIVE_URL", "gs://example-bucket/file")
-# GCP_SOURCE_REPOSITORY_NAME = os.environ.get("GCP_CLOUD_BUILD_REPOSITORY_NAME", "")
-# # [END howto_operator_gcp_create_build_variables]
-#
-# GCP_SOURCE_ARCHIVE_URL_PARTS = urlparse(GCP_SOURCE_ARCHIVE_URL)
-# GCP_SOURCE_BUCKET_NAME = GCP_SOURCE_ARCHIVE_URL_PARTS.netloc
-#
-# # [START howto_operator_gcp_create_build_from_storage_body]
-# create_build_from_storage_body = {
-#     "source": {"storageSource": GCP_SOURCE_ARCHIVE_URL},
-#     "steps": [
-#         {
-#             "name": "gcr.io/cloud-builders/docker",
-#             "args": ["build", "-t", "gcr.io/$PROJECT_ID/{}".format(GCP_SOURCE_BUCKET_NAME), "."],
-#         }
-#     ],
-#     "images": ["gcr.io/$PROJECT_ID/{}".format(GCP_SOURCE_BUCKET_NAME)],
-# }
-# # [END howto_operator_gcp_create_build_from_storage_body]
-#
-# # [START howto_operator_create_build_from_repo_body]
-# create_build_from_repo_body = {
-#     "source": {"repoSource": {"repoName": GCP_SOURCE_REPOSITORY_NAME, "branchName": "master"}},
-#     "steps": [
-#         {
-#             "name": "gcr.io/cloud-builders/docker",
-#             "args": ["build", "-t", "gcr.io/$PROJECT_ID/$REPO_NAME", "."],
-#         }
-#     ],
-#     "images": ["gcr.io/$PROJECT_ID/$REPO_NAME"],
-# }
-# # [END howto_operator_create_build_from_repo_body]
-#
-# with models.DAG(
-#     "example_gcp_cloud_build", default_args=dict(start_date=dates.days_ago(1)), schedule_interval=None
-# ) as dag:
-#     # [START howto_operator_create_build_from_storage]
-#     create_build_from_storage = CloudBuildCreateBuildOperator(
-#         task_id="create_build_from_storage", project_id=GCP_PROJECT_ID, body=create_build_from_storage_body
-#     )
-#     # [END howto_operator_create_build_from_storage]
-#
-#     # [START howto_operator_create_build_from_storage_result]
-#     create_build_from_storage_result = BashOperator(
-#         bash_command="echo '{{ task_instance.xcom_pull('create_build_from_storage')['images'][0] }}'",
-#         task_id="create_build_from_storage_result",
-#     )
-#     # [END howto_operator_create_build_from_storage_result]
-#
-#     create_build_from_repo = CloudBuildCreateBuildOperator(
-#         task_id="create_build_from_repo", project_id=GCP_PROJECT_ID, body=create_build_from_repo_body
-#     )
-#
-#     create_build_from_repo_result = BashOperator(
-#         bash_command="echo '{{ task_instance.xcom_pull('create_build_from_repo')['images'][0] }}'",
-#         task_id="create_build_from_repo_result",
-#     )
-#
-#     create_build_from_storage >> create_build_from_storage_result  # pylint: disable=pointless-statement
-#
-#     create_build_from_repo >> create_build_from_repo_result  # pylint: disable=pointless-statement
+import os
+
+from future.backports.urllib.parse import urlparse
+
+from airflow import models
+from airflow.contrib.operators.gcp_cloud_build_operator import CloudBuildCreateBuildOperator
+from airflow.operators.bash_operator import BashOperator
+from airflow.utils import dates
+
+# [START howto_operator_gcp_common_variables]
+GCP_PROJECT_ID = os.environ.get("GCP_PROJECT_ID", "example-project")
+# [END howto_operator_gcp_common_variables]
+
+# [START howto_operator_gcp_create_build_variables]
+GCP_SOURCE_ARCHIVE_URL = os.environ.get("GCP_CLOUD_BUILD_ARCHIVE_URL", "gs://example-bucket/file")
+GCP_SOURCE_REPOSITORY_NAME = os.environ.get("GCP_CLOUD_BUILD_REPOSITORY_NAME", "")
+# [END howto_operator_gcp_create_build_variables]
+
+GCP_SOURCE_ARCHIVE_URL_PARTS = urlparse(GCP_SOURCE_ARCHIVE_URL)
+GCP_SOURCE_BUCKET_NAME = GCP_SOURCE_ARCHIVE_URL_PARTS.netloc
+
+# [START howto_operator_gcp_create_build_from_storage_body]
+create_build_from_storage_body = {
+    "source": {"storageSource": GCP_SOURCE_ARCHIVE_URL},
+    "steps": [
+        {
+            "name": "gcr.io/cloud-builders/docker",
+            "args": ["build", "-t", "gcr.io/$PROJECT_ID/{}".format(GCP_SOURCE_BUCKET_NAME), "."],
+        }
+    ],
+    "images": ["gcr.io/$PROJECT_ID/{}".format(GCP_SOURCE_BUCKET_NAME)],
+}
+# [END howto_operator_gcp_create_build_from_storage_body]
+
+# [START howto_operator_create_build_from_repo_body]
+create_build_from_repo_body = {
+    "source": {"repoSource": {"repoName": GCP_SOURCE_REPOSITORY_NAME, "branchName": "master"}},
+    "steps": [
+        {
+            "name": "gcr.io/cloud-builders/docker",
+            "args": ["build", "-t", "gcr.io/$PROJECT_ID/$REPO_NAME", "."],
+        }
+    ],
+    "images": ["gcr.io/$PROJECT_ID/$REPO_NAME"],
+}
+# [END howto_operator_create_build_from_repo_body]
+
+with models.DAG(
+    "example_gcp_cloud_build", default_args=dict(start_date=dates.days_ago(1)), schedule_interval=None
+) as dag:
+    # [START howto_operator_create_build_from_storage]
+    create_build_from_storage = CloudBuildCreateBuildOperator(
+        task_id="create_build_from_storage", project_id=GCP_PROJECT_ID, body=create_build_from_storage_body
+    )
+    # [END howto_operator_create_build_from_storage]
+
+    # [START howto_operator_create_build_from_storage_result]
+    create_build_from_storage_result = BashOperator(
+        bash_command="echo '{{ task_instance.xcom_pull('create_build_from_storage')['images'][0] }}'",
+        task_id="create_build_from_storage_result",
+    )
+    # [END howto_operator_create_build_from_storage_result]
+
+    create_build_from_repo = CloudBuildCreateBuildOperator(
+        task_id="create_build_from_repo", project_id=GCP_PROJECT_ID, body=create_build_from_repo_body
+    )
+
+    create_build_from_repo_result = BashOperator(
+        bash_command="echo '{{ task_instance.xcom_pull('create_build_from_repo')['images'][0] }}'",
+        task_id="create_build_from_repo_result",
+    )
+
+    create_build_from_storage >> create_build_from_storage_result  # pylint: disable=pointless-statement
+
+    create_build_from_repo >> create_build_from_repo_result  # pylint: disable=pointless-statement
