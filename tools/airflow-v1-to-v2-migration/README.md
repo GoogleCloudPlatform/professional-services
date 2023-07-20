@@ -11,20 +11,12 @@ associated with manual upgrades.
 
 ## DEPLOYMENT:
 
-This tool takes the input DAG based on the location provided in the --_input_dag_folder_ parameter. It reads 
-through the input DAG and look for the import statements, operators and arguments to be changed based on the _rules.csv_ file 
-which is either the default rules.csv under the ./migration_rules folder or can be custom created in a similar pattern as 
-the default rules.csv file. This can be provided to the tool using --_rules_file_ parameter. The changes are made and the 
-output DAG file is saved under the location provided in --_output_DAG_ parameter as _filename_v2.py_. A default or custom 
-comment is added above all the changes made in the DAG files indicating the type of change done. The tool takes 6 
-parameters - 2 required and 4 optional as listed below,
-
 This tool processes the input Directed Acyclic Graph's (DAG) based on the location provided in the --input_dag_folder 
-parameter. It scans the input DAG's' for import statements, operators, and arguments that require changes according to the 
+parameter. It scans the input DAG's for import statements, operators, and arguments that require changes according to the 
 rules.csv file. The rules.csv file can either be the default rules.csv under the ./migration_rules folder or a custom
 file created in a similar pattern. To use a custom rules file, provide it to the tool using the --rules_file parameter.
 
-Upon applying the changes, the output DAG file is saved under the location specified in the --output_DAG parameter as 
+Upon applying the changes, the output DAG files are saved under the location specified in the --output_DAG parameter as 
 filename_v2.py. A comment is added above each change made in the DAG files, indicating the type of modification. The 
 tool accepts six parameters, with two being required and four being optional. The parameters are as follows:
 
@@ -74,6 +66,43 @@ python3 run_mig.py --input_dag_folder="Input-DAG-location" --output_dag_folder="
 
 ```
 python3 run_mig.py  --input_dag_folder=/airflow/airflow-v1-to-v2-migration/migration_rules/input.dag --output_dag_folder=/airflow/airflow-v1-to-v2-migration/migration_rules/output.dag  --rules_file=/airflow/airflow-v1-to-v2-migration/migration_rules/rules.csv --add_comments=TRUE  --comments=”Operator Name changed” --report_req=”for final generation of report”
+```
+
+## Output and Report Generation: 
+
+The tool generates output files in the specified --output_dag_folder with a "_v2" suffix. Additionally, it creates 
+two reports: Summary-Report and Detailed-Report, both located in the same folder. The Summary-Report provides an 
+overview of the parsed DAGs, with separate counts for DAGs with import, operator, and argument changes. In contrast, 
+the Detailed-Report offers comprehensive information, including rows indicating files with specific import, operator, 
+or argument changes, along with corresponding DAG files and their respective alterations. Both reports are generated 
+as .txt files. Sample reports are provided below:
+
+#### Sample Summary Report
+```
+|--------------------------------------------------------------------|------|
+| DESCRIPTION                                                        | COUNT |
+|--------------------------------------------------------------------|-------|
+| Total number of DAG's                                              |   6   |
+| Total number of DAG's with changes:                                |   5   |
+| Total number of DAG's with import changes:                         |   2   |
+| Total number of DAG's with import and operator changes:            |   1   |
+| Total number of DAG's with import, operator and argument changes:  |   2   |
+```
+
+#### Sample Detailed Report
+```
+|----------------------------------------------|----------------------------|
+| DESCRIPTION                                  | DAG FILE                   |
+|----------------------------------------------|----------------------------|
+| Impacted DAG's with import changes           | ['check_imp.py',           |
+|                                              | 'python_imp.py']           |
+|----------------------------------------------|----------------------------|
+| Impacted DAG's with import and operator      | ['dataproc_op.py']         |
+| changes                                      |                            |
+|----------------------------------------------|----------------------------|
+| Impacted DAG's with import, operator and     | ['test_arg.py',            |
+| argument changes                             | 'bigquery_arg.py']         |
+
 ```
 
 

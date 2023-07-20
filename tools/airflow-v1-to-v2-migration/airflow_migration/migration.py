@@ -44,7 +44,7 @@ class MigrationUtility:
                                                          clean_input(col[4]), clean_input(col[5]), clean_input(col[6]))
 
     # Function to generate summary report
-    def generate_summary_report(self, total_num, total_change_num, imp_num, imp_op_num, imp_op_arg_num):
+    def generate_summary_report(self, total_num_dag, total_change_num, imp_num, imp_op_num, imp_op_arg_num):
         summary_report = PrettyTable()
         summary_report.title = "SUMMARY REPORT"
         summary_report.field_names = ["DESCRIPTION", "COUNT"]
@@ -54,7 +54,7 @@ class MigrationUtility:
         summary_report.align["COUNT"] = "l"
 
         # Adding each value to the table
-        summary_report.add_row(["Total number of DAG's", total_num])
+        summary_report.add_row(["Total number of DAG's", total_num_dag])
         summary_report.add_row(["Total number of DAG's with changes: ", total_change_num])
         summary_report.add_row(["Total number of DAG's with import changes: ", imp_num])
         summary_report.add_row(["Total number of DAG's with import and operator changes: ", imp_op_num])
@@ -62,7 +62,7 @@ class MigrationUtility:
             ["Total number of DAG's with import, operator and argument changes: ", imp_op_arg_num])
 
         # Generate the empty report and add the table to the report
-        summary_report_file = f"{self.output_dir}/Summary_Report"
+        summary_report_file = f"{self.output_dir}/Summary-Report.txt"
         with open(summary_report_file, "w") as sum_report:
             sum_report.write(str(summary_report))
 
@@ -87,21 +87,21 @@ class MigrationUtility:
                                  [file for file in impacted_imp_operator_arg_files]])
 
         # Generate the empty report and add the table to the report
-        detailed_report_file = f"{self.output_dir}/Detailed_report"
+        detailed_report_file = f"{self.output_dir}/Detailed-Report.txt"
         with open(detailed_report_file, "w") as det_report:
             det_report.write(str(detailed_report))
 
-    def migrate_files(self, comment_flag, comment):
+    def migrate_files(self):
         impacted_files = []
         impacted_imp_files = []
         impacted_imp_op_files = []
         impacted_imp_op_arg_files = []
-        total_num = 0
+        total_num_dag = 0
         imp_num = 0
         imp_op_num = 0
         imp_op_arg_num = 0
         for filepath in glob.iglob(f"{self.input_dir}/*.py", recursive=True):
-            total_num += 1
+            total_num_dag += 1
             imp_change = False
             imp_op_change = False
             imp_op_arg_change = False
@@ -179,8 +179,8 @@ class MigrationUtility:
                                         # ends with ")" to identify if operator call is in single line if it is single
                                         # line operator function execute the if statement and add argument in the
                                         # current line itself else add a new line with argument details from rule dict
-                                        truncatedLine = line.strip()
-                                        if truncatedLine.endswith(")"):
+                                        truncatedline = line.strip()
+                                        if truncatedline.endswith(")"):
                                             line = line.replace(")", ","+self.replacement_dict[rec+"("][2]+")")
                                         else:
                                             line = line+' '*space_count + self.replacement_dict[rec+"("][2]+",\n"
@@ -204,7 +204,7 @@ class MigrationUtility:
 
         # Append all filenames when is a change
         if self.report_generation:
-            self.generate_summary_report(total_num, imp_num+imp_op_num+imp_op_arg_num, imp_num, imp_op_num, imp_op_arg_num)
+            self.generate_summary_report(total_num_dag, imp_num+imp_op_num+imp_op_arg_num, imp_num, imp_op_num, imp_op_arg_num)
             self.generate_detailed_report(impacted_imp_files, impacted_imp_op_files, impacted_imp_op_arg_files)
 
 
@@ -213,4 +213,4 @@ def run_migration(input_dag, output_dag, rules_file, add_comments, comments, rep
                                          rules_file=rules_file, add_comments=add_comments,
                                          comments=comments, report_generation=report_generation)
     migration_utility.load_rules()
-    migration_utility.migrate_files(add_comments, comments)
+    migration_utility.migrate_files()
