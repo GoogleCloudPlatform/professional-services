@@ -5,3 +5,4 @@ google-cloud-bigquery-migration
 google-api-core
 vertica_python
 jaydebeapi
+oracledb

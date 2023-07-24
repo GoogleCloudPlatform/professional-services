@@ -66,12 +66,11 @@ if __name__ == "__main__":
                 username, password, host, port, args.dbname, args.gcs_config_path, args.project_id
             )
             mssql_module.mssql_metastore_discovery()
-            netezza_module.netezza_metastore_discovery()
         elif args.dbtype == "oracle":
+            parser.add_argument("instant_client_path", help="Oracle Instant Client Path for thick mode")
             oracle_module = OracleMetastoreModule(
-                username, password, host, port, args.dbname, args.gcs_config_path, args.project_id
+                username, password, host, port, args.dbname, args.gcs_config_path, args.project_id, args.instant_client_path
             )
-            oracle_module.oracle_metastore_discovery()
             oracle_module.oracle_metastore_discovery()
         elif args.dbtype == "snowflake":
             snowflake_module = SnowflakeMetastoreModule(
@@ -79,4 +78,4 @@ if __name__ == "__main__":
             )
             snowflake_module.snowflake_metastore_discovery()
     except Exception as error:
-        logger.error("Error when retreiving secret credentials")
+        logger.error(f"Error when retreiving secret credentials/Incorrect option : {error}")

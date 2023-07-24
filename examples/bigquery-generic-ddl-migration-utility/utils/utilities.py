@@ -13,9 +13,10 @@
 # limitations under the License.
 """Utility for the function used in generic ddl extractor utility modules"""
 from setup_logger import logger
-from google.cloud import bigquery
+from google.cloud import bigquery, storage
 import ast
 import json
+import oracledb
 
 class UtilFunction:
     """This Class has functions related to the utility being used in hive metastore
@@ -88,3 +89,20 @@ class UtilFunction:
         config_intermediate_data = json.dumps(config_parsed_data)
         parsed_json_data = json.loads(config_intermediate_data)
         return parsed_json_data
+    
+    @staticmethod
+    def output_type_handler(cursor, default_type):
+        """Function to Convert CLOB to String"""
+        if default_type == oracledb.DB_TYPE_CLOB:
+            return cursor.var(oracledb.DB_TYPE_LONG, arraysize=cursor.arraysize)
+        if default_type == oracledb.DB_TYPE_BLOB:
+            return cursor.var(oracledb.DB_TYPE_LONG_RAW, arraysize=cursor.arraysize)
+
+    @staticmethod
+    def read_config(gcs_client, config_source_bucket_name, config_source_prefix):
+        # Read Config File values:
+        config_string = UtilFunction.readgcs_file(
+            gcs_client, config_source_bucket_name, config_source_prefix
+        )
+        migration_config_dict = UtilFunction.parse_json(config_string)
+        return migration_config_dict
