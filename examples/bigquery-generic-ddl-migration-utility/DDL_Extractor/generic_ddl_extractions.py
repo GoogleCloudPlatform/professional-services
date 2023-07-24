@@ -73,8 +73,11 @@ if __name__ == "__main__":
             )
             oracle_module.oracle_metastore_discovery()
         elif args.dbtype == "snowflake":
+            account=credentials['account'],
+            warehouse=credentials['warehouse'],
+            schema=credentials['schema']
             snowflake_module = SnowflakeMetastoreModule(
-                username, password, host, port, args.dbname, args.gcs_config_path, args.project_id
+                username, password, host, port, args.dbname, args.gcs_config_path, args.project_id, account, warehouse, schema
             )
             snowflake_module.snowflake_metastore_discovery()
     except Exception as error:
