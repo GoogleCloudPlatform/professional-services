@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 import {Component, Input, OnInit} from '@angular/core';
-import { StringNullableChain } from 'lodash';
 import { KeyValue } from '../bq_query_plan';
 
 @Component({

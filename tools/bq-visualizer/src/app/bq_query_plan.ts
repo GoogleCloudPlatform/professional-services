@@ -397,7 +397,8 @@ export class BqQueryPlan {
       !isNaN(jobEndMs)) {
       const duration = endMs - startMs;
       const slotMs = Number(_.get(node, 'slotMs', 0));
-
+      result.push(new KeyValue({ key: 'slotMs', value: slotMs.toLocaleString('en') }));
+      
       result.push(new KeyValue({ key: 'avg slots', value: (slotMs / duration).toLocaleString('en') }));
       const startPct = (100 * (startMs - jobStartMs)) / (jobEndMs - jobStartMs);
       const endPct = (100 * (endMs - jobStartMs)) / (jobEndMs - jobStartMs);
