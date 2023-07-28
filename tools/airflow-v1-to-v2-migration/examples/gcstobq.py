@@ -23,7 +23,7 @@ import airflow
 from airflow import models
 from airflow.operators import bash_operator
 
-gcs_to_bq = None  # type: Any
+gcs_to_bq = None 
 try:
     from airflow.contrib.operators import gcs_to_bq
 except ImportError:

@@ -1,6 +1,4 @@
-import json
 from datetime import timedelta, datetime
-
 from airflow import DAG
 from airflow.models import Variable
 from airflow.contrib.operators.bigquery_operator import BigQueryOperator
@@ -36,9 +34,10 @@ dag = DAG(
     schedule_interval=schedule_interval
     )
 
-## Task 1: check that the github archive data has a dated table created for that date
+# Task 1: check that the github archive data has a dated table created for that date
 # To test this task, run this command:
-# docker-compose -f docker-compose-gcloud.yml run --rm webserver airflow test bigquery_github_trends bq_check_githubarchive_day 2018-12-01
+# docker-compose -f docker-compose-gcloud.yml run --rm webserver airflow
+# test bigquery_github_trends bq_check_githubarchive_day 2018-12-01
 t1 = BigQueryCheckOperator(
         task_id='bq_check_githubarchive_day',
         sql='''
@@ -55,7 +54,7 @@ t1 = BigQueryCheckOperator(
         dag=dag
     )
 
-## Task 2: check that the hacker news table contains data for that date.
+# Task 2: check that the hacker news table contains data for that date.
 t2 = BigQueryCheckOperator(
         task_id='bq_check_hackernews_full',
         sql='''
@@ -75,7 +74,7 @@ t2 = BigQueryCheckOperator(
         dag=dag
     )
 
-## Task 3: create a github daily metrics partition table
+# Task 3: create a github daily metrics partition table
 t3 = BigQueryOperator(
         task_id='bq_write_to_github_daily_metrics',
         sql='''
@@ -109,7 +108,7 @@ t3 = BigQueryOperator(
         dag=dag
     )
 
-## Task 4: aggregate past github events to daily partition table
+# Task 4: aggregate past github events to daily partition table
 t4 = BigQueryOperator(
         task_id='bq_write_to_github_agg',
         sql='''
