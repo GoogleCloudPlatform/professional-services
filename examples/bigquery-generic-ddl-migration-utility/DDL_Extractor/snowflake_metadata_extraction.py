@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Module to extract mssql metastore data from on-prem database"""
+"""Module to extract Snowflake metastore data"""
 import sys
 import datetime
 import snowflake.connector
@@ -90,7 +90,7 @@ class SnowflakeMetastoreModule:
             return ctx
 
 
-    def extract_metastore_from_on_prem(self, con, gcs_client, bq_client, table_config, source_bucket_name, source_dataset, table_ref):
+    def extract_metastore(self, con, gcs_client, bq_client, table_config, source_bucket_name, source_dataset, table_ref):
         """Function to execute the core logic for metastore extraction"""
         try:
             cursor = con.cursor()
@@ -146,7 +146,7 @@ class SnowflakeMetastoreModule:
         except Exception as error:
             logger.error("Error in the Extract Metastore function call %s", str(error))
 
-    def oracle_metastore_discovery(self):
+    def snowflake_metastore_discovery(self):
         """Creates a connection and query to the Snowflake database."""
         try:
             config_source_bucket_name = self.gcs_config_path.split("//")[1].split("/")[0]
@@ -168,7 +168,7 @@ class SnowflakeMetastoreModule:
             table_ref = UtilFunction.create_log_table(self.project_id, target_dataset, bq_client)
 
             con = self.connect_snowflake_conn(table_ref, bq_client)
-            self.extract_metastore_from_on_prem(con, gcs_client, bq_client, table_config, source_bucket_name, source_dataset, table_ref)
+            self.extract_metastore(con, gcs_client, bq_client, table_config, source_bucket_name, source_dataset, table_ref)
         except Exception as error:
             logger.error("Error in the main function call %s", str(error))
             sys.exit(1)

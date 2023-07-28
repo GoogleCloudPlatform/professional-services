@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Module to extract mssql metastore data from on-prem database"""
+"""Module to extract Oracle metastore data"""
 import sys
 import oracledb
 import datetime
@@ -91,7 +91,7 @@ class OracleMetastoreModule:
             return con
 
 
-    def extract_metastore_from_on_prem(self, con, gcs_client, bq_client, table_config, source_bucket_name, source_dataset, table_ref):
+    def extract_metastore(self, con, gcs_client, bq_client, table_config, source_bucket_name, source_dataset, table_ref):
         """Function to execute the core logic for metastore extraction"""
         try:
             cursor = con.cursor()
@@ -218,7 +218,7 @@ class OracleMetastoreModule:
             table_ref = UtilFunction.create_log_table(self.project_id, target_dataset, bq_client)
 
             con = self.connect_oracle_conn(table_ref, bq_client)
-            self.extract_metastore_from_on_prem(con, gcs_client, bq_client, table_config, source_bucket_name, source_dataset, table_ref)
+            self.extract_metastore(con, gcs_client, bq_client, table_config, source_bucket_name, source_dataset, table_ref)
         except Exception as error:
             logger.error("Error in the main function call %s", str(error))
             sys.exit(1)

@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+"""Module to extract Netezza metastore data"""
 import sys
 import datetime
 import jaydebeapi
@@ -68,7 +69,7 @@ class NetezzaMetastoreModule:
         return conn
 
 
-    def extract_metastore_from_on_prem(self, conn: str):
+    def extract_metastore(self, conn: str):
         """Function to execute the core logic for metastore extraction"""
         try:
             cursor = conn.cursor()
@@ -119,7 +120,7 @@ class NetezzaMetastoreModule:
         """Creates a connection and query to the Mssql database."""
         try:
             conn = self.connect_netezza_conn()
-            self.extract_metastore_from_on_prem(conn)
+            self.extract_metastore(conn)
         except Exception as error:
             logger.error("Error in the main function call %s", str(error))
             sys.exit(1)
