@@ -1,6 +1,9 @@
 import argparse
 import os
 import logging
+import sys
+import traceback
+
 import airflow_migration.migration as migration
 
 
@@ -21,17 +24,21 @@ def validate_folder_access(input_folder):
         return False
 
 
-# Main class to get the check the inputs for rw_access and location. Pass to the main migration class
+# Main class to check the inputs for rw_access and location, then call the migration clss
 def main(input_dag, output_dag, rules_file, add_comments, comments, report_generation):
-    invalid_folders = [folder for folder in [input_dag, output_dag, rules_file] if not validate_folder_access(folder)]
-    if invalid_folders:
-        invalid_folder_names = ','.join(invalid_folders)
-        msg = f"The following folder may have invalid permissions or may not exist: {invalid_folder_names}"
-        logging.error(msg)
-    else:
-        add_comments = convert_to_bool(add_comments)
-        report_generation = convert_to_bool(report_generation)
-        migration.run_migration(input_dag, output_dag, rules_file, add_comments, comments, report_generation)
+    try:
+        invalid_folders = [folder for folder in [input_dag, output_dag, rules_file] if not validate_folder_access(folder)]
+        if invalid_folders:
+            invalid_folder_names = ','.join(invalid_folders)
+            msg = f"The following folder may have invalid permissions or may not exist: {invalid_folder_names}"
+            logging.error(msg)
+        else:
+            add_comments = convert_to_bool(add_comments)
+            report_generation = convert_to_bool(report_generation)
+            migration.run_migration(input_dag, output_dag, rules_file, add_comments, comments, report_generation)
+    except:
+        logging.error("Oops! Ran into an error. Kindly check the trace log")
+        traceback.print_exception(*sys.exc_info())
 
 
 if __name__ == '__main__':
