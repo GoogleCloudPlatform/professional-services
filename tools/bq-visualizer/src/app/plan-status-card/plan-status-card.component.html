@@ -37,11 +37,19 @@
       </mat-tab>
       <mat-tab label="Tables">
         <mat-table [dataSource]="tables">
-          <ng-container matColumnDef="tableName">
+          <ng-container matColumnDef="tableId">
             <mat-header-cell *matHeaderCellDef>Table Name </mat-header-cell>
-            <mat-cell *matCellDef="let element"> {{element}} </mat-cell>
+            <mat-cell *matCellDef="let element"> {{element.tableId}} </mat-cell>
           </ng-container>
-          <mat-header-row *matHeaderRowDef="tableColumns">Input Table</mat-header-row>
+          <ng-container matColumnDef="unused">
+            <mat-header-cell *matHeaderCellDef>Unused Cache</mat-header-cell>
+            <mat-cell *matCellDef="let element"> {{element.reason}} </mat-cell>
+          </ng-container>
+          <ng-container matColumnDef="explanation">
+            <mat-header-cell *matHeaderCellDef>Explanation </mat-header-cell>
+            <mat-cell *matCellDef="let element"> {{element.explanation}} </mat-cell>
+          </ng-container>
+          <mat-header-row *matHeaderRowDef="tableColumns"></mat-header-row>
           <mat-row *matRowDef="let row; columns: tableColumns;"></mat-row>
         </mat-table>
       </mat-tab>

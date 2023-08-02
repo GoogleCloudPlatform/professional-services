@@ -61,7 +61,7 @@ interface Status {
   errors?:Record<string,string>[];
 }
 
-interface ReferencedTables {
+interface ReferencedTable {
   datasetId: string;
   projectId: string;
   tableId: string;
@@ -79,7 +79,7 @@ interface Timeline {
 interface Query {
   billingTier: number;
   cacheHit: boolean;
-  referencedTables: ReferencedTables[];
+  referencedTables: ReferencedTable[];
   statementType: string;
   totalBytesBilled: number;
   totalBytesProcessed: number;
@@ -100,7 +100,12 @@ interface ReservationUsage {
 }
 
 interface MetadataCacheStatistics {
-  tableReference: ReferencedTables;
+  tableMetadataCacheUsage?: TableMetadataCacheUsage[];
+}
+
+
+interface TableMetadataCacheUsage {
+  tableReference: ReferencedTable;
   unusedReason?: string;
   explanation?: string;
 }

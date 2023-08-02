@@ -46,6 +46,18 @@ export class KeyValue {
   }
 }
 
+
+export class TableDetails{
+  tableId: string;
+  reason: string;
+  explanation: string;
+  constructor(data: TableDetails) {
+    this.tableId = data.tableId;
+    this.reason = data.reason;
+    this.explanation = data.explanation;
+  }
+}
+
 export class BqQueryPlan {
   readonly nodes: QueryStage[] = [];
   readonly edges: Edge[] = [];
@@ -421,6 +433,46 @@ export class BqQueryPlan {
     })
     }
     return result
+  }
+
+  /**  Provide a list of tables used in the queries, merged with Meta Data insights */
+  table_usage(): TableDetails[] {
+    if (this.plan && this.plan.statistics.query && this.plan.statistics.query.referencedTables) {
+      console.log('get table data')
+      const tables = this.plan.statistics.query.referencedTables;
+      const metaData = this.plan.statistics.query.metadataCacheStatistics;
+      var tableRefs: TableDetails[] = [];
+      tables.forEach((tableRef) => {
+        const table_id =`${tableRef.projectId}.${tableRef.datasetId}.${tableRef.tableId}`;
+        const to_push = new TableDetails({
+          tableId: table_id,
+          reason:  '',
+          explanation: ''});
+        // Merge in meta data if available        
+        if (metaData && metaData.tableMetadataCacheUsage){
+          metaData.tableMetadataCacheUsage.forEach(element => {
+            if ((element.tableReference.projectId == tableRef.projectId) &&
+                (element.tableReference.datasetId == tableRef.datasetId) && 
+                (element.tableReference.tableId == tableRef.tableId)){
+                to_push['reason'] = element.unusedReason || '';
+                to_push['explanation'] = element.explanation || '';
+                return;
+            }
+          })
+        }
+        tableRefs.push(to_push);
+      })
+      tableRefs.sort((r1, r2)=> {
+        if (r1.tableId > r2.tableId)
+          return 1
+        else if (r1.tableId < r2.tableId)
+          return -1
+        else return 0
+      });
+      return tableRefs;
+    } else {
+      return [];
+    }  
   }
 
   /** Return the formatted text of the steps. */

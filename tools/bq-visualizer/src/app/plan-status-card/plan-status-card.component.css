@@ -47,6 +47,18 @@ mat-row, mat-header-row {
   text-align: left;
   min-width: 50em;
 }
+.mat-column-tableId {
+  text-align: left;
+  min-width: 50em;
+}
+.mat-column-unused {
+  text-align: left;
+  min-width: 12em;
+}
+.mat-column-explanation {
+  text-align: left;
+  min-width: 12em;
+}
 .mat-column-statskey {
   max-width: 15em;
   text-align: right;

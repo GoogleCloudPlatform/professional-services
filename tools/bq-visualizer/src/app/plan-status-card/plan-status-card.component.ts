@@ -16,9 +16,9 @@
 import { Component, OnInit } from '@angular/core';
 import { EventEmitter } from '@angular/core';
 import { SelectionModel } from '@angular/cdk/collections';
+import  * as _  from "lodash"
 
-
-import { BqQueryPlan, KeyValue } from '../bq_query_plan';
+import { BqQueryPlan, KeyValue, TableDetails } from '../bq_query_plan';
 import { LogService } from '../log.service';
 
 @Component({
@@ -26,6 +26,8 @@ import { LogService } from '../log.service';
   templateUrl: './plan-status-card.component.html',
   styleUrls: ['./plan-status-card.component.css']
 })
+
+
 export class PlanStatusCardComponent {
   plan: BqQueryPlan|null|undefined = null;
   errorMsgs: string|null = null;
@@ -35,8 +37,9 @@ export class PlanStatusCardComponent {
   dislayOptionEvent = new EventEmitter<string>();
   overviewColumns: string[] = ['overviewKey', 'overviewValue'];
   overview: KeyValue[] = [];
-  tableColumns: string[] = ['tableName'];
-  tables: string[] = [];
+  tableColumns: string[] = ['tableId', 'unused', 'explanation'];
+  tablesHeader: string[] = ['Table Name', 'Unused', 'Explanation']
+  tables: TableDetails[] = [];
   statisticsColumns: string[] = ['statskey', 'statsvalue'];
   statistics: KeyValue[] = [];
   reservationsHeader: string[] = []
@@ -46,7 +49,7 @@ export class PlanStatusCardComponent {
   settings_data: KeyValue[] = [];
   selection = new SelectionModel(true,[]);
 
-
+ 
   constructor(private logSvc: LogService) { }
 
   async loadPlan(plan: BqQueryPlan) {
@@ -217,22 +220,15 @@ export class PlanStatusCardComponent {
 
   }
 
-  /** Get referenced tables from query plan. */
-  mk_tables(): string[] {
+  /** Get referenced tables from query plan. Merge in meta data */
+  mk_tables(): TableDetails[] {
+    
     if (this.plan) {
-      if (this.plan.plan.statistics.query && this.plan.plan.statistics.query.referencedTables) {
-        console.log('get table data')
-        const tables = this.plan.plan.statistics.query.referencedTables;
-        var tableRefs: string[] = [];
-        tables.forEach((element) => {
-          tableRefs.push(`${element.projectId}.${element.datasetId}.${element.tableId}`);
-        })
-        return tableRefs;
-      } else {
-        return [];
-      }
+      return this.plan.table_usage();
+    } else {
+      return [];
     }
-    return ['No tables referenced'];
+      
   }
  
 }
