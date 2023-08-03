@@ -21,7 +21,9 @@
   <button mat-button [disabled]="this.isLoggedIn" (click)="login()">login</button>
   <button mat-button [disabled]="!this.isLoggedIn" (click)="logout()">logout</button>
   <div id=gloginBtn></div>
+  <a mat-button href="https://bqvisualiser.readthedocs.io/en/latest/" target="_blank" rel="noopener noreferrer">Docs</a>  
   <a mat-button href="/terms">Terms</a>
+
 </div>
 <div class="main">
   <router-outlet></router-outlet>
