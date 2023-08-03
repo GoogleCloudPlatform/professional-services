@@ -17,6 +17,7 @@ export const environment = {
   production: false,
   name: 'test',
   bqUrl: 'https://www.googleapis.com/bigquery/v2/projects',
+  appVersion: require('../../package.json').version + '-dev',
 
   authConfig: {
     // Url of the Identity Provider
@@ -26,8 +27,11 @@ export const environment = {
     redirectUri: window.location.origin + '/jobs',
 
     // The SPA's id. The SPA is registerd with this id at the auth-server
-    clientId:'699963415840-a0surv0c6s5l12ea2at40k94cgtjog7g.apps.googleusercontent.com',
+    clientId:'501142949425-t7saa008maohaagcd96rmlc9palmppvm.apps.googleusercontent.com',
         
+    //configure your solution for code flow + PKCE you have to set the responseType to code:
+    //gcloud auresponseType: 'code',//'token', //'code',
+    // currently code flow is broken
 
     // set the scope for the permissions the client should request
     // The first three are defined by OIDC. The 4th is a usecase-specific one
@@ -36,3 +40,5 @@ export const environment = {
     showDebugInformation: true
   },
 };
+
+
