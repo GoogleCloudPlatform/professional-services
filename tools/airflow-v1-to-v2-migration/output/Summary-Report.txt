@@ -1,0 +1,18 @@
++---------------------------------------------------------------------------------------------------------+
+|                                              SUMMARY REPORT                                             |
++--------------------------------------------------------------------+------------------------------------+
+| DESCRIPTION                                                        | INFO                               |
++--------------------------------------------------------------------+------------------------------------+
+| Total number of DAG's                                              | 6                                  |
+| Total number of DAG's with changes:                                | 5                                  |
+| Total number of DAG's with import changes:                         | 2                                  |
+| Total number of DAG's with import and operator changes:            | 1                                  |
+| Total number of DAG's with import, operator and argument changes:  | 2                                  |
+|                                                                    |                                    |
+|                                                                    |                                    |
+| Impacted DAG's with import changes                                 | ['check_imp.py', 'python_imp.py']  |
+| ____________________                                               | ____________________               |
+| Impacted DAG's with import and operator changes                    | ['dataproc_op.py']                 |
+| ____________________                                               | ____________________               |
+| Impacted DAG's with import, operator and argument changes          | ['test_arg.py', 'bigquery_arg.py'] |
++--------------------------------------------------------------------+------------------------------------+

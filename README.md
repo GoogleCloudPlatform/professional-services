@@ -260,6 +260,7 @@ them to fit your particular use case.
     templates from your choice of sources.
 *   [LookerStudio Cost Optimization Dashboard](examples/cost-optimization-dashboard) -
     SQL scripts to help build Cost Optimization LookerStudio Dashboard.
+*   [Personal Workbench Notebooks Deployer](examples/personal-workbench-notebooks-deployer) - Terraform sample modules to provision Dataproc Hub using personal auth clusters, and workbench managed notebooks for individual analytical users.
 *   [Project factory with Terragrunt](examples/terragrunt-project-factory-gcp/) -
     This implements a `State-Scalable` project factory pattern for creating Google Cloud Platform projects using Terragrunt and public Terraform modules
 *   [Python CI/CD with Cloud Builder and CSR](examples/python-cicd-with-cloudbuilder) -
@@ -298,9 +299,6 @@ them to fit your particular use case.
     [Signed URL](https://cloud.google.com/storage/docs/access-control/signed-urls).
 *   [TSOP object transfer Log prosessor](examples/tsop-log-processor/) - This example shows
     how to log object transfer logs by TSOP to Cloud Logging.
-*   [Vertex AI MLOps Pipeline](examples/vertex_pipeline) - Demonstrates
-    end-to-end MLOps process using Vertex AI platform and Smart Analytics
-    technology capabilities.
 
 ## Tools
 
