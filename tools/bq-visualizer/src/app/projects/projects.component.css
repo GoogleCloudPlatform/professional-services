@@ -13,12 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+
+ .mdc-text-field--no-label:not(.mdc-text-field--outlined):not(.mdc-text-field--textarea) .mat-mdc-form-field-infix
+ {
+  padding-top: 0px;
+  padding-bottom: 0px; 
+ }
+
+.mat-mdc-form-field-flex {
+  padding-top: 0px;
+  padding-bottom: 0px;
+    width: 100%;
+}
+
+mat-form-field {
+  width: 100%;
+  padding-left: 16px;
+  padding-right: 16px; 
+  }
+  
 .dashboard-card {
   position: absolute;
   top: 15px;
   left: 15px;
   right: 15px;
   bottom: 15px;
+  padding: 10px;
 }
 
 .dashboard-card-content {

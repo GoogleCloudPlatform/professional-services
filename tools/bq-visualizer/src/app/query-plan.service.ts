@@ -40,7 +40,7 @@ export class QueryPlanService {
               new BqQueryPlan(JSON.parse(reader.result as string), this.logSvc);
           this.logSvc.debug('QueryPlan loaded from uploaded file');
           resolve(plan);
-        } catch (e) {
+        } catch (e:any) {
           this.logSvc.error(e);
           alert(e);
           reject(e);

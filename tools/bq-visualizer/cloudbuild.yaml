@@ -17,13 +17,13 @@
 steps:
 
   # Install node packages
-  - name:  node:16
+  - name:  node:18
     entrypoint: npm
     args: [ 'install' ]
     dir: 'tools/bq-visualizer'
 
   # build
-  - name: node:16
+  - name: node:18
     entrypoint: npm
     args: ['run', 'build', '--', '--prod' ]
     dir: 'tools/bq-visualizer'
