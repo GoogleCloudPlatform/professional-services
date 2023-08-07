@@ -7,6 +7,20 @@ This utility provides a web application which can be used to visualise the flow 
 --- 
 
 ## Release Notes
+**June 2023**
+* Upgrade to Node 18
+* UI improvements
+* login issue remains
+* Stages with performance issue:
+   * Tree display will highlight nodes in red 
+   * Stage Details will list cause of performance issue
+* Progress tab now shows `Estimated Runnable Units` metric
+* bottom tabs
+  * Query tab now wraps long SQL
+  * list referenced tables
+  * lists reservation details and slot usage by reservation
+  * optional error tab if query has errors
+
 
 **11 Nov 2021**
 
@@ -176,7 +190,7 @@ And Authorized redirect URIs need to be set to:
 Once Done, set the value for *clientId* in the file ./envirnments/environment.prod.ts to 
 the *ClientId* value in the console's Credential page
 
-##Building
+## Building
 The Angular UI needs to be installed.
 The compile with
   *ng build --prod*
