@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Utility for the function used in generic ddl extractor utility modules"""
-from setup_logger import logger
+from utils.setup_logger import logger
 from google.cloud import bigquery, storage
 import ast
 import json

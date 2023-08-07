@@ -1,6 +1,38 @@
+
+The Generic DDL Extraction Script does the following functionalities:
+
+1. The script connects to Generci(MSSQL, Neteeza, Vertica, Snowflake, Oracle) Database
+2. The script uses the metadata table (all_tab_columns) to retieve the table schema information
+3. The script produces the "create table" statement using the schema information and store the extracted ddl in the specified gcs path
+4. 4. The status of each table conversion is logged in the audit table in the target datset.
+
+
+Below packages are need to run the script:
+google-cloud-secret-manager
+google-cloud-bigquery
+google-cloud-storage
+google-api-core
+sudo apt install unixodbc
+
+
+Steps to run this script:
+
+1.  Create the generic-ddl-extraction-config.json file and place it in the gcs bucket. 
+
+2. Create the object_name_mapping.json file and place it in the gcs bucket.
+
+3. Add the needed additional metadata columns to the metadata_columns.json file and place it in the gcs bucket
+
+4. After completing the above steps, the script can be run as
+
+        a) pip install -r requirements.txt  
+        b) python3 generic_ddl_extraction.py <gcs_json_config_file_path> <project_name> <client-path>
+
+5. Once done, verify that the extracted ddl is placed in the specified gcs path.
+
 # DDL Extractor Utility
 
-A utility to extract metadata of the tables in the Database(Oracle, Snowflake, Vertica, Netezza, MSSQL).
+A utility to extract metadata of the tables in the Database(Oracle, Snowflake, Vertica, Netezza, MSSQL, Oracle, Snowflake).
 
 The Generic DDL Migration Utility does the following functionalities:
 
@@ -30,6 +62,7 @@ To create a common repository for metadata extraction for each of the source dat
 The utility that will connect to each of the legacy databases and extract the Table Metadata by reading from different internal system tables, formatting the information and producing the final Table Metadata to be migrated to GCP.
 
 ## Step to setup MSSql driver for running the code:
+Install pip install -r requirement.txt
 To install the SQL Server 2017 ODBC driver on Debian 11, you can use the following steps:
 
 1. Download the ODBC driver package for Debian 10 (Buster) from the Microsoft repository:
@@ -69,5 +102,6 @@ Below packages are need to run the script:pandas, sqlparse, XlsxWriter
 2. Add your credentials for gcloud authentication as creds.json file in the utility folder.
 3. Select the type of database. Currently supported types include (mysql, vertica, netezza).
 4. Run the utility
-    `python3 main.py --dbtype vertica --username user --password pass --host 0.0.0.0 --port 75 --dbname mydb --bucket ddl_utility`
+    #python3  generic_ddl_extractions.py --secret_name jdbc-ora-connection-string --dbname DB_TEST --gcs_config_path gs://oracle-sql-migration/orcl-ddl-extraction-config-replica.json --project_id poc-env-aks
 5. Check the result in given bucket name Folder.
+

@@ -13,6 +13,7 @@
 # limitations under the License.
 """Module to drive the generic metadata utility"""
 from google.cloud import secretmanager
+import importlib
 import json
 import argparse
 from netezza_metadata_extraction import NetezzaMetastoreModule
@@ -31,7 +32,9 @@ if __name__ == "__main__":
         "--dbtype", help="database type (vertica, netezza, mysql)", required=True
     )
 
-    parser.add_argument("--dbname", help="database name", required=True)
+    parser.add_argument(
+        "--secret_name", help="Secret name", required=True
+    )
 
     parser.add_argument("--gcs_config_path", help="output bucket name", required=True)
 
@@ -42,7 +45,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     try:
-        secret_resource_id = 'projects/{args.project_id}/secrets/secret_name/versions/latest'
+        secret_resource_id = f"projects/{args.project_id}/secrets/{args.secret_name}/versions/latest"
         client_secret = secretmanager.SecretManagerServiceClient()
         response = client_secret.access_secret_version(name=secret_resource_id)
         secret_val = response.payload.data.decode('UTF-8')
@@ -51,25 +54,26 @@ if __name__ == "__main__":
         password = credentials['password']
         host = credentials['host']
         port = credentials['port']
+        dbname = credentials['database']
         if args.dbtype == "vertica":
             vertica_module = VerticaMetastoreModule(
-                username, password, host, port, args.dbname, args.gcs_config_path, args.project_id
+                username, password, host, port, dbname, args.gcs_config_path, args.project_id
             )
             vertica_module.vertica_metastore_discovery()
         elif args.dbtype == "netezza":
             netezza_module = NetezzaMetastoreModule(
-                username, password, host, port, args.dbname, args.gcs_config_path, args.project_id
+                username, password, host, port, dbname, args.gcs_config_path, args.project_id
             )
             netezza_module.netezza_metastore_discovery()
         elif args.dbtype == "mssql":
             mssql_module = MssqlMetastoreModule(
-                username, password, host, port, args.dbname, args.gcs_config_path, args.project_id
+                username, password, host, port, dbname, args.gcs_config_path, args.project_id
             )
             mssql_module.mssql_metastore_discovery()
         elif args.dbtype == "oracle":
-            parser.add_argument("instant_client_path", help="Oracle Instant Client Path for thick mode")
+            instant_client_path = credentials['instant_client_path']
             oracle_module = OracleMetastoreModule(
-                username, password, host, port, args.dbname, args.gcs_config_path, args.project_id, args.instant_client_path
+                username, password, host, port, dbname, args.gcs_config_path, args.project_id, instant_client_path
             )
             oracle_module.oracle_metastore_discovery()
         elif args.dbtype == "snowflake":
@@ -77,7 +81,7 @@ if __name__ == "__main__":
             warehouse=credentials['warehouse'],
             schema=credentials['schema']
             snowflake_module = SnowflakeMetastoreModule(
-                username, password, host, port, args.dbname, args.gcs_config_path, args.project_id, account, warehouse, schema
+                username, password, host, port, dbname, args.gcs_config_path, args.project_id, account, warehouse, schema
             )
             snowflake_module.snowflake_metastore_discovery()
     except Exception as error:

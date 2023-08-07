@@ -71,6 +71,7 @@ class OracleMetastoreModule:
             # This is needed only in the case of oracle thick client
             oracledb.init_oracle_client(lib_dir=self.instant_client_path)
             con = oracledb.connect(credentials_str)
+            return con
         except oracledb.DatabaseError as ex:
             print(f"Connection to oracle failed: {str(ex)}")
             failure_record = [
@@ -87,8 +88,6 @@ class OracleMetastoreModule:
             ]
             UtilFunction.log_table_data(table_ref, bq_client, failure_record)
             raise Exception(str(ex)) from ex
-        else:
-            return con
 
 
     def extract_metastore(self, con, gcs_client, bq_client, table_config, source_bucket_name, source_dataset, table_ref):
