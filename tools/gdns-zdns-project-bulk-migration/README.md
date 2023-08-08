@@ -27,7 +27,7 @@ the reason why the projects are not ready to migrate. The reasons can include
 but not limited to:
 - inaccessible project (project id does not exist or the current user does not have permission to access the project)
 - inaccessbile metrics (the current user doesn not have permission to access the project's Cloud Monitoring metrics)
-- not ready for migration
+- not ready for migration (incompatible with ZonalOnly settings)
 - have been using Zonal DNS already (no action needed)
 
 If you have any questions about the migration, please refer to https://cloud.google.com/compute/docs/internal-dns#migrating-to-zonal for more information.
@@ -69,7 +69,7 @@ bash migration --project_id=p1 --dry_run=false # p1 will be migrated if it is re
 The script prints out a summary at the end to tell the users which projects are:
 - inaccessible project (project id does not exist or the current user does not have permission to access the project)
 - inaccessbile metrics (the current user doesn not have permission to access the project's Cloud Monitoring metrics)
-- not ready for migration
+- not ready for migration (incompatible with ZonalOnly settings)
 - have been using Zonal DNS already (no action needed)
 - ready for migration (and migrated if `--dry_run=false`)
 
@@ -185,14 +185,11 @@ The following 2 projects were ready and migrated to Zonal DNS:
 
 ```
 
+## Rollback
+
+If you see any issues or for any other reasons you want to rollback after the
+migration, please see https://cloud.google.com/compute/docs/internal-dns#disabling-zonal-dns.
+
 ## Links
 
 - Zonal DNS Migration: https://cloud.google.com/compute/docs/internal-dns#migrating-to-zonal
-
-## Licensing
-
-One really important part: Give your project a proper license. Here you should
-state what the license is and how to find the text version of the license.
-Something like:
-
-"The code in this project is licensed under MIT license."
