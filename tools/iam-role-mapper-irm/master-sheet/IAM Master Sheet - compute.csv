@@ -1,0 +1,9 @@
+GCP,AWS
+Compute Admin,AdministratorAccess
+Compute Editor,PowerUser
+Compute Viewer,ReadOnlyAccess
+Compute Image User ,EC2ImageBuilderCreateImage
+Compute Storage Admin ,AmazonS3FullAccess
+Compute Network Admin,AmazonEC2FullAccess
+Compute Load Balancer Admin,ElasticLoadBalancingFullAccess
+Compute OS Login,AWSNetworkFirewallServiceRolePolicy
