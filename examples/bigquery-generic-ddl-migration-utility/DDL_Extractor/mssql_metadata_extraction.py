@@ -17,7 +17,7 @@ import pyodbc
 import datetime
 from google.cloud import storage, bigquery
 from utils.setup_logger import logger
-from utils.utilities import UtilFunction
+from utils import utilities as UtilFunction
 
 
 class MssqlMetastoreModule:

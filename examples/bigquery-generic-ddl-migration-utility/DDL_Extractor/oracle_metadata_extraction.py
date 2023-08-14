@@ -13,11 +13,12 @@
 # limitations under the License.
 """Module to extract Oracle metastore data"""
 import sys
+import cx_Oracle
 import oracledb
 import datetime
 from google.cloud import storage, bigquery
 from utils.setup_logger import logger
-from utils.utilities import UtilFunction
+from utils import utilities as UtilFunction
 
 
 class OracleMetastoreModule:
@@ -68,9 +69,11 @@ class OracleMetastoreModule:
                 + "/"
                 + self.dbname
             )
+            print("Credential string:" + str(credentials_str))
             # This is needed only in the case of oracle thick client
             oracledb.init_oracle_client(lib_dir=self.instant_client_path)
             con = oracledb.connect(credentials_str)
+            print("Connection: " + str(con))
             return con
         except oracledb.DatabaseError as ex:
             print(f"Connection to oracle failed: {str(ex)}")
@@ -89,19 +92,30 @@ class OracleMetastoreModule:
             UtilFunction.log_table_data(table_ref, bq_client, failure_record)
             raise Exception(str(ex)) from ex
 
+    def output_type_handler(self, cursor, name, default_type, size, precision, scale):
+        if default_type == cx_Oracle.DB_TYPE_CLOB:
+            return cursor.var(cx_Oracle.DB_TYPE_LONG, arraysize=cursor.arraysize)
+        if default_type == cx_Oracle.DB_TYPE_BLOB:
+            return cursor.var(cx_Oracle.DB_TYPE_LONG_RAW, arraysize=cursor.arraysize)
+
 
     def extract_metastore(self, con, gcs_client, bq_client, table_config, source_bucket_name, source_dataset, table_ref):
         """Function to execute the core logic for metastore extraction"""
         try:
             cursor = con.cursor()
-            con.outputtypehandler = UtilFunction.output_type_handler
+            print("connection con " + str(con))
+            print("Cursor Details : " + str(cursor))
+            con.outputtypehandler = self.output_type_handler
+            print(con.outputtypehandler)
+            print("Table Config : \n")
+            print(table_config) 
             for row in table_config:
                 try:
                     query = f"""
                         WITH cte_sql AS
                         (
                             select  table_name table_name, 0 seq, 'CREATE TABLE ' || rtrim(owner)||'.'||rtrim(table_name) || '(' AS sql_out
-                            from all_tab_columns where owner = upper('{0}') AND table_name  in (upper('{1}')
+                            from all_tab_columns where owner = upper('{row["table_name"].split(".")[0].strip()}') AND table_name  in (upper('{row["table_name"].split(".")[1].strip()}')
                         ) 
                         union
                             select table_name table_name,
@@ -139,15 +153,17 @@ class OracleMetastoreModule:
                             cte_sql
                             group by
                             table_name"""
+                    print(query)
                     cursor.execute(query)
+                    print("Query Executed Successfully")
                     output = cursor.fetchone()
-                    output_str = "".join(output)
+                    print(output)
                     UtilFunction.write_to_blob(
                         gcs_client,
-                        bucket_name=source_bucket_name,
-                        file_name=f"{source_dataset}/{row['table_name'].split('.')[0].strip()}-\
+                        source_bucket_name,
+                        f"{source_dataset}/{row['table_name'].split('.')[0].strip()}-\
                             {row['table_name'].split('.')[1].strip()}.sql",
-                        content=output_str,
+                        output_str,
                     )
                 except Exception as ex:
                     failure_record = [
@@ -187,11 +203,6 @@ class OracleMetastoreModule:
             print(
                 "Connection close in case of failure of any table check the log table in Big Query"
             )
-
-            if cursor:
-                cursor.close()
-            if con:
-                con.close()
         except Exception as error:
             logger.error("Error in the Extract Metastore function call %s", str(error))
 
@@ -211,15 +222,15 @@ class OracleMetastoreModule:
             source_bucket_name = migration_config_dict["source_bucket_name"]
             source_dataset = gcs_source_path.split("//")[1].split("/")[1]
             table_config = migration_config_dict["table_config"]
-
+            print("Reached here")		
             bq_client = bigquery.Client(project=self.project_id, location=dataset_location)
-
+            print(bq_client)
             table_ref = UtilFunction.create_log_table(self.project_id, target_dataset, bq_client)
-
+            print(table_ref)
             con = self.connect_oracle_conn(table_ref, bq_client)
+            print(con)
             self.extract_metastore(con, gcs_client, bq_client, table_config, source_bucket_name, source_dataset, table_ref)
+            con.close()
         except Exception as error:
             logger.error("Error in the main function call %s", str(error))
             sys.exit(1)
-        finally:
-            con.close()

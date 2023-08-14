@@ -17,7 +17,7 @@ import datetime
 import vertica_python
 from google.cloud import storage
 from utils.setup_logger import logger
-from utils.utilities import UtilFunction
+from utils import utilities as UtilFunction
 
 
 class VerticaMetastoreModule:

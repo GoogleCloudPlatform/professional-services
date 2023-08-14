@@ -71,7 +71,9 @@ if __name__ == "__main__":
             )
             mssql_module.mssql_metastore_discovery()
         elif args.dbtype == "oracle":
-            instant_client_path = credentials['instant_client_path']
+            #instant_client_path = credentials['instant_client_path']
+            #instant_client_path = 'gs://cx_oracle/instantclient_21_9/'
+            instant_client_path = '/home/shashanktp/cx_oracle/instantclient_21_9/'
             oracle_module = OracleMetastoreModule(
                 username, password, host, port, dbname, args.gcs_config_path, args.project_id, instant_client_path
             )

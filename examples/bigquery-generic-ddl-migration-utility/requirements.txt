@@ -6,4 +6,6 @@ google-api-core
 vertica_python
 jaydebeapi
 oracledb
+pyodbc
+cx_Oracle
 snowflake-connector-python

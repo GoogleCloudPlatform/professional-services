@@ -18,7 +18,7 @@ import snowflake.connector
 from snowflake.connector.errors import DatabaseError
 from google.cloud import storage, bigquery
 from utils.setup_logger import logger
-from utils.utilities import UtilFunction
+from utils import utilities as UtilFunction
 
 
 class SnowflakeMetastoreModule:

@@ -16,7 +16,7 @@ import logging
 
 logging.basicConfig(level=logging.INFO)
 
-logger = logging.getLogger("Lake Discovery Module")
+logger = logging.getLogger("Generic DDL Migration Utility")
 
 ch = logging.StreamHandler()
 ch.setLevel(logging.INFO)
