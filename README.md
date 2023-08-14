@@ -434,6 +434,8 @@ Platform usage.
 *   [GCS Usage Recommender](tools/gcs-usage-recommender) - A tool that generates
     bucket-level intelligence and access patterns across all projects for a GCP
     project to generate recommended object lifecycle management.
+*   [Global DNS -> Zonal DNS Project Bulk Migration](tools/gdns-zdns-project-bulk-migration) - 
+    A shell script for gDNS-zDNS project bulk migration.
 *   [GKE Billing Export](tools/gke-billing-export) - Google Kubernetes Engine
     fine grained billing export.
 *   [gmon](tools/gmon/) - A command-line interface (CLI) for Cloud Monitoring
