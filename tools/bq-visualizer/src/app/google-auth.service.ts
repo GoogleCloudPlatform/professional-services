@@ -13,52 +13,91 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {EventEmitter, Injectable} from '@angular/core';
-import {OAuthService} from 'angular-oauth2-oidc';
-import {JwksValidationHandler} from 'angular-oauth2-oidc';
-import {AuthConfig} from 'angular-oauth2-oidc';
+import { EventEmitter, Injectable, NgZone } from '@angular/core';
+import { OAuthService } from 'angular-oauth2-oidc';
+import { JwksValidationHandler } from 'angular-oauth2-oidc-jwks';
+import { AuthConfig, LoginOptions, OAuthErrorEvent } from 'angular-oauth2-oidc';
+//import { accounts } from 'google-one-tap';
+import { environment } from '../environments/environment';
 
-import {environment} from '../environments/environment';
+import { LogService } from './log.service';
+import { env } from 'process';
 
-import {LogService} from './log.service';
-
-@Injectable({providedIn: 'root'})
+@Injectable({ providedIn: 'root' })
 export class GoogleAuthService {
   loginEvent = new EventEmitter<boolean>();
 
-  constructor(private logSvc: LogService, private oauthService: OAuthService) {}
+  constructor(private logSvc: LogService, private oauthService: OAuthService, private _ngZone: NgZone) {
+
+    logSvc.info("GoogleAuthService constructor")
+    oauthService.events.subscribe(event => {
+      if (event instanceof OAuthErrorEvent) {
+        console.error('OAuthErrorEvent Object:', event);
+        logSvc.error('OAuthErrorEvent Object:' + JSON.stringify(event));
+      } else {
+        //console.debug('OAuthEvent Object:', JSON.stringify(event));
+        logSvc.debug('OAuthEvent Object:' + JSON.stringify(event));
+      }
+    });
+
+    logSvc.info('Logged in: ' + this.isLoggedIn());
+    //console.log('find google auth library');
+  }
 
   public async login() {
-    if (this.isLoggedIn() === false) {
-      await this.configureAuth();
+    await this.configureAuth();
+  }
+
+  private async configureAuth() {
+    try {
+      this.logSvc.info("configuring using eng: " + environment.name)
+      this.oauthService.configure(environment.authConfig);
+    } catch (error: any) {
+      this.logSvc.error("failed to configure oauthService");
+      this.logSvc.error(error);
     }
+    const options = new LoginOptions();
+    options.onLoginError = (msg) => { "oauth login error " + this.logSvc.error(JSON.stringify(msg)); };
+    options.onTokenReceived = (msg) => { "oauth recieved token: " + this.logSvc.info(JSON.stringify(msg)); };
+
+    this.logSvc.debug('about to this.oauthService.loadDiscoveryDocumentAndLogin()');
+    try {
+      const result = await this.oauthService.loadDiscoveryDocumentAndLogin(options);
+      this.loginEvent.emit(result);
+    } catch (error: any) {
+      this.logSvc.error(error);
+    }
+
   }
   public isLoggedIn(): boolean {
+    console.log('GoogleAuthService::isLoggedin: ' + this.oauthService.hasValidAccessToken())
     return this.oauthService.hasValidAccessToken();
   }
   public logout() {
+    //console.log('GoogleAuthService::logout calling isLoggedIn')
+
     if (this.isLoggedIn()) {
       this.oauthService.logOut();
       this.loginEvent.emit(false);
     }
   }
 
-  getAccessToken(): string {
-    return this.oauthService.getAccessToken();
+  getAccessToken(): string | null {
+    this.logSvc.info("Abput to get access token");
+    try {
+      return this.oauthService.getAccessToken();
+    } catch (error: any) {
+      this.logSvc.error("error getting accessToken");
+      this.logSvc.error(JSON.stringify(error));
+
+    }
+    return null;
   }
 
-  private async configureAuth() {
-    this.logSvc.debug('configureAuth');
-    this.oauthService.configure(environment.authConfig);
-    this.oauthService.tokenValidationHandler = new JwksValidationHandler();
-    const result = await this.oauthService.loadDiscoveryDocumentAndLogin();
-    this.loginEvent.emit(result);
-    return result;
-  }
 }
 
 export class MockOAuthService extends OAuthService {
-  configure(config: any): void {}
+  configure(config: any): void { }
 
   configureAuth(): Promise<boolean> {
     return Promise.resolve(true);

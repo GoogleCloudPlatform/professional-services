@@ -24,7 +24,7 @@ export class LogMessage {
       private severity: string,
       private message: string,
       private source: string,
-      private stack: StackTrace.StackFrame[],
+      //private stack: StackTrace.StackFrame[],
   ) {
     this.timestamp = new Date();
   }
