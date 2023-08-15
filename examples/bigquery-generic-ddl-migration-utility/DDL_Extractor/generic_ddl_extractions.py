@@ -52,25 +52,34 @@ if __name__ == "__main__":
         credentials = json.loads(secret_val)
         username = credentials['user']
         password = credentials['password']
-        host = credentials['host']
-        port = credentials['port']
-        dbname = credentials['database']
         if args.dbtype == "vertica":
+            host = credentials['host']
+            port = credentials['port']
+            dbname = credentials['database']
             vertica_module = VerticaMetastoreModule(
                 username, password, host, port, dbname, args.gcs_config_path, args.project_id
             )
             vertica_module.vertica_metastore_discovery()
         elif args.dbtype == "netezza":
+            host = credentials['host']
+            port = credentials['port']
+            dbname = credentials['database']            
             netezza_module = NetezzaMetastoreModule(
                 username, password, host, port, dbname, args.gcs_config_path, args.project_id
             )
             netezza_module.netezza_metastore_discovery()
         elif args.dbtype == "mssql":
+            host = credentials['host']
+            port = credentials['port']
+            dbname = credentials['database']            
             mssql_module = MssqlMetastoreModule(
                 username, password, host, port, dbname, args.gcs_config_path, args.project_id
             )
             mssql_module.mssql_metastore_discovery()
         elif args.dbtype == "oracle":
+            host = credentials['host']
+            port = credentials['port']
+            dbname = credentials['database']            
             #instant_client_path = credentials['instant_client_path']
             #instant_client_path = 'gs://cx_oracle/instantclient_21_9/'
             instant_client_path = '/home/shashanktp/cx_oracle/instantclient_21_9/'
@@ -79,12 +88,14 @@ if __name__ == "__main__":
             )
             oracle_module.oracle_metastore_discovery()
         elif args.dbtype == "snowflake":
-            account=credentials['account'],
-            warehouse=credentials['warehouse'],
+            account = credentials['account']
+            warehouse = credentials['warehouse']
+            dbname = credentials['database']            
             schema=credentials['schema']
             snowflake_module = SnowflakeMetastoreModule(
-                username, password, host, port, dbname, args.gcs_config_path, args.project_id, account, warehouse, schema
+                username, password, account, warehouse, dbname, schema, args.gcs_config_path, args.project_id
             )
             snowflake_module.snowflake_metastore_discovery()
     except Exception as error:
         logger.error(f"Error when retreiving secret credentials/Incorrect option : {error}")
+

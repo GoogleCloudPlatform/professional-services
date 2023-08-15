@@ -60,6 +60,7 @@ class MssqlMetastoreModule:
                 DATABASE={self.dbname};UID={self.username};PWD={self.password}"
             logger.info("Connecting to the Mssql Database...")
             conn = pyodbc.connect(connection_string)
+            return conn
         except Exception as ex:
             print(f"Connection to oracle failed: {str(ex)}")
             failure_record = [
@@ -76,8 +77,6 @@ class MssqlMetastoreModule:
             ]
             UtilFunction.log_table_data(table_ref, bq_client, failure_record)
             raise Exception(str(ex)) from ex
-        else:
-            return conn
 
     def extract_metastore(self, con, gcs_client, bq_client, table_config, source_bucket_name, source_dataset, table_ref):
         """Function to execute the core logic for metastore extraction"""
@@ -160,11 +159,6 @@ class MssqlMetastoreModule:
                     print(
                         "Connection close in case of failure of any table check the log table in Big Query"
                     )
-
-                    if cursor:
-                        cursor.close()
-                    if con:
-                        con.close()
         except Exception as error:
             logger.error("Error in the Extract Metastore function call %s", str(error))
 
@@ -191,8 +185,8 @@ class MssqlMetastoreModule:
 
             con = self.connect_mssql_conn(table_ref, bq_client)
             self.extract_metastore(con, gcs_client, bq_client, table_config, source_bucket_name, source_dataset, table_ref)
+            con.close()
         except Exception as error:
             logger.error("Error in the main function call %s", str(error))
             sys.exit(1)
-        finally:
-            con.close()
+

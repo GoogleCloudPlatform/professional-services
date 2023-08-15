@@ -61,10 +61,10 @@ class VerticaMetastoreModule:
             logger.info("Connecting to the vertica Database...")
             # Connect to Vertica
             conn = vertica_python.connect(connection_string)
+            return conn
         except Exception as error:
             logger.error("Connection Has Failed... %s", str(error))
             sys.exit(1)
-        return conn
 
 
     def extract_metastore_from_on_prem(self, conn: str):
@@ -125,8 +125,8 @@ class VerticaMetastoreModule:
         try:
             conn = self.connect_vertica_conn()
             self.extract_metastore_from_on_prem(conn)
+            conn.close()
         except Exception as error:
             logger.error("Error in the main function call %s", str(error))
             sys.exit(1)
-        finally:
-            conn.close()
+

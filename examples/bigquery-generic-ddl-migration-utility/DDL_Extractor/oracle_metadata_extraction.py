@@ -69,11 +69,9 @@ class OracleMetastoreModule:
                 + "/"
                 + self.dbname
             )
-            print("Credential string:" + str(credentials_str))
             # This is needed only in the case of oracle thick client
             oracledb.init_oracle_client(lib_dir=self.instant_client_path)
             con = oracledb.connect(credentials_str)
-            print("Connection: " + str(con))
             return con
         except oracledb.DatabaseError as ex:
             print(f"Connection to oracle failed: {str(ex)}")
@@ -103,12 +101,7 @@ class OracleMetastoreModule:
         """Function to execute the core logic for metastore extraction"""
         try:
             cursor = con.cursor()
-            print("connection con " + str(con))
-            print("Cursor Details : " + str(cursor))
             con.outputtypehandler = self.output_type_handler
-            print(con.outputtypehandler)
-            print("Table Config : \n")
-            print(table_config) 
             for row in table_config:
                 try:
                     query = f"""
@@ -153,11 +146,10 @@ class OracleMetastoreModule:
                             cte_sql
                             group by
                             table_name"""
-                    print(query)
                     cursor.execute(query)
                     print("Query Executed Successfully")
-                    output = cursor.fetchone()
-                    print(output)
+                    output = cursor.fetchall()
+                    output_str = str(output[0][0])
                     UtilFunction.write_to_blob(
                         gcs_client,
                         source_bucket_name,
@@ -222,13 +214,9 @@ class OracleMetastoreModule:
             source_bucket_name = migration_config_dict["source_bucket_name"]
             source_dataset = gcs_source_path.split("//")[1].split("/")[1]
             table_config = migration_config_dict["table_config"]
-            print("Reached here")		
             bq_client = bigquery.Client(project=self.project_id, location=dataset_location)
-            print(bq_client)
             table_ref = UtilFunction.create_log_table(self.project_id, target_dataset, bq_client)
-            print(table_ref)
             con = self.connect_oracle_conn(table_ref, bq_client)
-            print(con)
             self.extract_metastore(con, gcs_client, bq_client, table_config, source_bucket_name, source_dataset, table_ref)
             con.close()
         except Exception as error:

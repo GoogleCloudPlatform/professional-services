@@ -78,19 +78,6 @@ def parse_json(raw_string):
     return parsed_json_data
 
 
-#def output_type_handler(cursor, default_type):
-#    """Function to Convert CLOB to String"""
-#    if default_type == oracledb.DB_TYPE_CLOB:
-#        return cursor.var(oracledb.DB_TYPE_LONG, arraysize=cursor.arraysize)
-#    if default_type == oracledb.DB_TYPE_BLOB:
-#        return cursor.var(oracledb.DB_TYPE_LONG_RAW, arraysize=cursor.arraysize)
-#def output_type_handler(cursor, name, default_type, size, precision, scale):
-#    if default_type == cx_Oracle.DB_TYPE_CLOB:
-#        return cursor.var(cx_Oracle.DB_TYPE_LONG, arraysize=cursor.arraysize)
-#    if default_type == cx_Oracle.DB_TYPE_BLOB:
-#        return cursor.var(cx_Oracle.DB_TYPE_LONG_RAW, arraysize=cursor.arraysize)
-
-
 def read_config(gcs_client, config_source_bucket_name, config_source_prefix):
     # Read Config File values:
     config_string = readgcs_file(

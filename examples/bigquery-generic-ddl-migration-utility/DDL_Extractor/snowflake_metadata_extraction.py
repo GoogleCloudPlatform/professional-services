@@ -35,26 +35,22 @@ class SnowflakeMetastoreModule:
         self,
         username: str,
         password: str,
-        host: str,
-        port: str,
-        dbname: str,
-        gcs_config_path: str,
-        project_id: str,
         account: str, 
         warehouse: str,
-        schema: str
+        dbname: str,
+        schema: str,
+        gcs_config_path: str,
+        project_id: str,
     ) -> None:
         """Initialize the attributes"""
         self.username = username
         self.password = password
-        self.host = host
-        self.port = port
-        self.dbname = dbname
-        self.gcs_config_path = gcs_config_path
-        self.project_id = project_id
         self.account = account
         self.warehouse = warehouse
-        self.schema = schema
+        self.dbname = dbname
+        self.schema = schema        
+        self.gcs_config_path = gcs_config_path
+        self.project_id = project_id
 
     def connect_snowflake_conn(self, table_ref, bq_client):
         """
@@ -70,6 +66,7 @@ class SnowflakeMetastoreModule:
                 database=self.dbname,
                 schema=self.schema
             )
+            return ctx
         except DatabaseError as ex:
             print(f"Connection to snowflake failed: {str(ex)}")
             failure_record = [
@@ -86,9 +83,7 @@ class SnowflakeMetastoreModule:
             ]
             UtilFunction.log_table_data(table_ref, bq_client, failure_record)
             raise Exception(str(ex)) from ex
-        else:
-            return ctx
-
+ 
 
     def extract_metastore(self, con, gcs_client, bq_client, table_config, source_bucket_name, source_dataset, table_ref):
         """Function to execute the core logic for metastore extraction"""
@@ -169,8 +164,8 @@ class SnowflakeMetastoreModule:
 
             con = self.connect_snowflake_conn(table_ref, bq_client)
             self.extract_metastore(con, gcs_client, bq_client, table_config, source_bucket_name, source_dataset, table_ref)
+            con.close()
         except Exception as error:
             logger.error("Error in the main function call %s", str(error))
             sys.exit(1)
-        finally:
-            con.close()
+
