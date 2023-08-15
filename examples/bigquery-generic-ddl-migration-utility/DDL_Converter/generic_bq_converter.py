@@ -86,7 +86,8 @@ def create_migration_workflow(
         source_dialect.sqlserver_dialect = bigquery_migration_v2.SQLServerDialect()
     else:
         raise Exception("Invalid DB Type")
-                
+
+    print(f"Reached here :{db_type}")
     # Set the target dialect to BigQuery dialect.
     target_dialect = bigquery_migration_v2.Dialect()
     target_dialect.bigquery_dialect = bigquery_migration_v2.BigQueryDialect()
@@ -97,6 +98,7 @@ def create_migration_workflow(
         gcs_client, target_bucket_name, prefix=object_name_config_file
     )
     object_name_mapping_list = parse_json(json_data_string)
+    print(object_name_mapping_list)
 
     # Prepare the config proto.
     translation_config = bigquery_migration_v2.TranslationConfigDetails(
@@ -108,6 +110,7 @@ def create_migration_workflow(
         name_mapping_list=object_name_mapping_list,
     )
 
+    print(translation_config)
     # Prepare the task.
     migration_task = bigquery_migration_v2.MigrationTask(
         type_="Translation_Generic2BQ", translation_config_details=translation_config
@@ -193,11 +196,11 @@ if __name__ == "__main__":
         description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
     )
 
-    parser.add_argument("gcs_config_path", help="GCS Config Path for defined variables")
+    parser.add_argument("--gcs_config_path", help="GCS Config Path for defined variables")
 
-    parser.add_argument("project_id", help="Project_id required to run the code")
+    parser.add_argument("--project_id", help="Project_id required to run the code")
 
-    parser.add_argument("db_type", help="GCS Config Path for defined variables")
+    parser.add_argument("--db_type", help="GCS Config Path for defined variables")
 
     args = parser.parse_args()
 

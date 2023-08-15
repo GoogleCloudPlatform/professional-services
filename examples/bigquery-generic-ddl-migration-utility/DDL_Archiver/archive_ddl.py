@@ -116,9 +116,9 @@ if __name__ == "__main__":
         description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
     )
 
-    parser.add_argument("gcs_config_path", help="GCS Config Path for defined variables")
+    parser.add_argument("--gcs_config_path", help="GCS Config Path for defined variables")
 
-    parser.add_argument("project_id", help="Project_id required to run the code")
+    parser.add_argument("--project_id", help="Project_id required to run the code")
 
     args = parser.parse_args()
 

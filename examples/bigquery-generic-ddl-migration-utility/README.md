@@ -15,11 +15,11 @@ The order of execution of the script is as follows along with the command mentio
 1. DDL_Extractor -> generic_ddl_extraction.py
     command: python3  generic_ddl_extractions.py --dbtype <dbtype_name> --secret_name <secret_name> --gcs_config_path <gcs_config_path> --project_id <project_id>
 2. DDL_Converter -> generic_bq_converter.py
-    command: python3 generic_bq_converter.py <json_config_file_path> <project_name> <db_type>
+    command: python3 generic_bq_converter.py --gcs_config_path <gcs_json_config_file_path> --project_id <project_name> --db_type <db_type>
 3. BQ_Table_Creator -> bq_table_creator.py
-    command: python3 bq_table_creator.py <json_config_file_path> <project_name>
+    command: python3 bq_table_creator.py --gcs_config_path <gcs_json_config_file_path> --project_id <project_name>
 4. DDL_Archiver -> archive_ddl.py
-    command: python3 archive_ddl.py <json_config_file_path> <project_name>
+    command: python3 archive_ddl.py --gcs_config_path <gcs_json_config_file_path> --project_id <project_name>
 
 ## Business Requirements
 
