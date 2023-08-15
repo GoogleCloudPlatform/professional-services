@@ -13,7 +13,6 @@
 # limitations under the License.
 """Module to drive the generic metadata utility"""
 from google.cloud import secretmanager
-import importlib
 import json
 import argparse
 from netezza_metadata_extraction import NetezzaMetastoreModule

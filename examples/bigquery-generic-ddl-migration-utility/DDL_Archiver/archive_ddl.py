@@ -123,5 +123,4 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     main(args.gcs_config_path, args.project_id)
-# Command to run the script
-# python3 archive_ddl.py <json_config_file_path> <project_name>
+

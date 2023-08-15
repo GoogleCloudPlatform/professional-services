@@ -1,12 +1,3 @@
-
-The Generic DDL Extraction Script does the following functionalities:
-
-1. The script connects to Generci(MSSQL, Neteeza, Vertica, Snowflake, Oracle) Database
-2. The script uses the metadata table (all_tab_columns) to retieve the table schema information
-3. The script produces the "create table" statement using the schema information and store the extracted ddl in the specified gcs path
-4. 4. The status of each table conversion is logged in the audit table in the target datset.
-
-
 Below packages are need to run the script:
 google-cloud-secret-manager
 google-cloud-bigquery
@@ -33,33 +24,6 @@ Steps to run this script:
 # DDL Extractor Utility
 
 A utility to extract metadata of the tables in the Database(Oracle, Snowflake, Vertica, Netezza, MSSQL, Oracle, Snowflake).
-
-The Generic DDL Migration Utility does the following functionalities:
-
-1. The script connects to Generic Database (MSSQL, Neteeza, Vertica).
-2. The script uses the metadata table (all_tab_columns) to retrieve the table schema information.
-3. The script produces the "create table" statement using the schema information and store the extracted ddl in the specified gcs path.
-4. The script calls the BigQuery Migration API and converts the ddl to the BigQuery DDL and placed it in the specified gcs path.
-5. The script create the Bigquery Tables in the specified target dataset. 
-6. The table structure will include source columns, metadata columns and paritioning and clustering info.
-7. The script archives the DDL files created by the scripts (generic_ddl_extraction.py, generic_bq_converter.py and archive_ddl.py).
-8. The status of each table conversion is logged in the audit table in the target datset.
-
-
-The order of execution of the script is as follows
-
-1. generic_ddl_extraction.py
-2. generic_bq_converter.py
-3. bq_table_creator.py
-4. archive_ddl.py
-
-## Business Requirements
-
-To create a common repository for metadata extraction for each of the source databases, so that there is a standard way to retrieve this information and also avoid any duplication efforts from different engagements.
-
-## Asset Feature
-
-The utility that will connect to each of the legacy databases and extract the Table Metadata by reading from different internal system tables, formatting the information and producing the final Table Metadata to be migrated to GCP.
 
 ## Step to setup MSSql driver for running the code:
 Install pip install -r requirement.txt
@@ -95,13 +59,13 @@ By following these steps, you should be able to locate the ODBC driver library f
 
 ## Instructions to Run
 
-Below packages are need to run the script:pandas, sqlparse, XlsxWriter
+Below packages are need to run the script:pandas, cx_Oracle
 
 1. Install the dependencies listed in requirements.txt using pip3.
     `pip3 install -r requirements.txt `
-2. Add your credentials for gcloud authentication as creds.json file in the utility folder.
+2. Add your credentials in the secret manager for the respective database
 3. Select the type of database. Currently supported types include (mysql, vertica, netezza).
 4. Run the utility
-    #python3  generic_ddl_extractions.py --secret_name jdbc-ora-connection-string --dbname DB_TEST --gcs_config_path gs://oracle-sql-migration/orcl-ddl-extraction-config-replica.json --project_id poc-env-aks
+    python3  generic_ddl_extractions.py --dbtype <dbtype_name> --secret_name <secret_name> --gcs_config_path <gcs_config_path> --project_id <project_id>
 5. Check the result in given bucket name Folder.
 

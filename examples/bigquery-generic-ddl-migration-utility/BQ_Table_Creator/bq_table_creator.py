@@ -413,9 +413,3 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     main(args.gcs_config_path, args.project_id)
-# Command to run the script
-# python3 bq_table_creator.py <json_config_file_path> <project_name>
-# eg) python3 bq_table_creator.py
-#           gs://orcl-ddl-migration/orcl-ddl-extraction-config-replica.json helix-poc
-# eg) python3 bq_table_creator.py
-#       gs://orcl-ddl-migration/orcl-ddl-extraction-config-cdc.json helix-poc

@@ -56,6 +56,7 @@ def create_migration_workflow(
     gcs_source_path,
     gcs_target_path,
     project_id,
+    db_type,
     target_bucket_name,
     log_table_id,
     object_name_config_file,
@@ -70,11 +71,22 @@ def create_migration_workflow(
 
     # Construct a BigQuery Migration client object.
     service_client = bigquery_migration_v2.MigrationServiceClient()
+    source_dialect = bigquery_migration_v2.Dialect()
 
     # Set the source dialect to Generic SQL.
-    source_dialect = bigquery_migration_v2.Dialect()
-    source_dialect.oracle_dialect = bigquery_migration_v2.OracleDialect()
-
+    if db_type == 'oracle':
+        source_dialect.oracle_dialect = bigquery_migration_v2.OracleDialect()
+    elif db_type == 'snowflake':
+        source_dialect.snowflake_dialect = bigquery_migration_v2.SnowflakeDialect()
+    elif db_type == 'netezza':
+        source_dialect.netezza_dialect = bigquery_migration_v2.NetezzaDialect()
+    elif db_type == 'vertica':
+        source_dialect.vertica_dialect = bigquery_migration_v2.VerticaDialect()
+    elif db_type == "mssql":
+        source_dialect.sqlserver_dialect = bigquery_migration_v2.SQLServerDialect()
+    else:
+        raise Exception("Invalid DB Type")
+                
     # Set the target dialect to BigQuery dialect.
     target_dialect = bigquery_migration_v2.Dialect()
     target_dialect.bigquery_dialect = bigquery_migration_v2.BigQueryDialect()
@@ -128,7 +140,7 @@ def create_migration_workflow(
     print("Migration completed succesfully")
 
 
-def main(gcs_config_path, project_id):
+def main(gcs_config_path, project_id, db_type):
     """
     Main function to execute the other function call
     """
@@ -167,6 +179,7 @@ def main(gcs_config_path, project_id):
         gcs_source_path,
         gcs_target_path,
         project_id,
+        db_type,
         target_bucket_name,
         log_table_id,
         object_name_config_file,
@@ -184,10 +197,9 @@ if __name__ == "__main__":
 
     parser.add_argument("project_id", help="Project_id required to run the code")
 
+    parser.add_argument("db_type", help="GCS Config Path for defined variables")
+
     args = parser.parse_args()
 
-    main(args.gcs_config_path, args.project_id)
-# Command to run the script
-# python3 generic_bq_converter.py <json_config_file_path> <project_name>
-# eg) python3 generic_bq_converter.py
-#       gs://generic-ddl-migration/generic-ddl-extraction-config-replica.json dataset_name
+    main(args.gcs_config_path, args.project_id, args.db_type)
+
