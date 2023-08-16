@@ -23,7 +23,7 @@ Steps to run this script:
 
 # DDL Extractor Utility
 
-A utility to extract metadata of the tables in the Database(Oracle, Snowflake, Vertica, Netezza, MSSQL, Oracle, Snowflake).
+A utility to extract metadata of the tables in the Database(Oracle, Snowflake, MSSQL, Vertica, Neteeza).
 
 ## Step to setup MSSql driver for running the code:
 Install pip install -r requirement.txt

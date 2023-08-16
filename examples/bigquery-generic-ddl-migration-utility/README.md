@@ -1,6 +1,6 @@
 The Generic DDL Migration Utility does the following functionalities:
 
-1. The script connects to Generic Database (MSSQL, Neteeza, Vertica).
+1. The script connects to Generic Database (Oracle, Snowflake, MSSQL, Vertica, Neteeza).
 2. The script uses the metadata table (all_tab_columns) to retrieve the table schema information.
 3. The script produces the "create table" statement using the schema information and store the extracted ddl in the specified gcs path.
 4. The script calls the BigQuery Migration API and converts the ddl to the BigQuery DDL and placed it in the specified gcs path.

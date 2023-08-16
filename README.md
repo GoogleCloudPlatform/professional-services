@@ -87,6 +87,10 @@ them to fit your particular use case.
     BigQuery query and returns the output as an XML string.
 *   [BigQuery Translation Validator](examples/bigquery-translation-validator-utility) - A python utility to compare 2 SQL Files and  point basic differences like column names,
     table names, joins, function names, is-Null and query syntax.
+*   [BigQuery Generic DDL Migration Utility](examples/bigquery-generic-ddl-migration-utility) - 
+    Generic DDL Migration Utility to migrate the tables schema (DDL) from Database(Oracle, Snowflake, MSSQL, Vertica, Neteeza) DB to BigQuery.
+    The utility leverages BigQuery Translation API and offers additional features
+    such as adding partitioning, clustering, metadata columns and prefixes to table names.
 *   [Bigtable Dataflow Cryptocurrencies Exchange RealTime Example](examples/cryptorealtime) -
     Apache Beam example that reads from the Crypto Exchanges WebSocket API as
     Google Cloud Dataflow pipeline and saves the feed in Google Cloud Bigtable.
