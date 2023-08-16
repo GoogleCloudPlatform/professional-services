@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-import {Component, OnInit, ViewChild} from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 //import * as google from 'google.visualization';
 import * as google from 'google-charts';
-import {BqQueryPlan} from '../bq_query_plan';
-import {LogService} from '../log.service';
-import {PlanStatusCardComponent} from '../plan-status-card/plan-status-card.component';
+import { BqQueryPlan } from '../bq_query_plan';
+import { LogService } from '../log.service';
+import { PlanStatusCardComponent } from '../plan-status-card/plan-status-card.component';
 
 @Component({
   selector: 'app-progress-display',
@@ -32,10 +32,10 @@ export class ProgressDisplayComponent implements OnInit {
 
   @ViewChild('status_card') statusCard: PlanStatusCardComponent;
 
-  constructor(private logSvc: LogService) {}
+  constructor(private logSvc: LogService) { }
 
   ngOnInit() {
-    google.GoogleCharts.load(() => {}, 'Progress');
+    google.GoogleCharts.load(() => { }, 'Progress');
   }
 
 
@@ -57,9 +57,11 @@ export class ProgressDisplayComponent implements OnInit {
   drawProgressChart() {
     if (this.plan && this.plan.plan.statistics.query) {
       this.plan.asProgressChart(
-          'Progress', (chart: google.GoogleCharts.AreaChart, data: any) => {});
+        'Progress', (chart: google.GoogleCharts.AreaChart, data: any) => { });
       this.plan.asSlotUsageChart(
-          'SlotUsage', (chart: google.GoogleCharts.LineChart, data: any) => {});
+        'SlotUsage', (chart: google.GoogleCharts.LineChart, data: any) => { });
+      this.plan.asRunnableUsageChart(
+        'Runnable', (chart: google.GoogleCharts.LineChart, data: any) => { });
     } else {
       console.log('no Plan');
     }

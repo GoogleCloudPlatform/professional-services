@@ -18,7 +18,87 @@
   overflow: auto;
   height: 100%;
 }
-
+pre {
+  white-space: pre-wrap;
+}
+.mat-mdc-table .mdc-data-table__row {
+  height: unset;
+  
+}
+mat-row, mat-header-row {
+  min-height: 1em; 
+}
 .mat-tab-label {
   min-width: 100px;
 }
+.mat-mdc-cell {
+  border-bottom-color: rgba(0, 0, 0, 0.12);
+  border-right-style: solid;
+  border-right-width: 0.83px;
+  padding-left: 8px;
+  padding-right: 8px;
+}
+
+.mat-column-overviewKey {
+  max-width: 15em;
+  text-align: right;
+}
+.mat-column-overviewValue {
+  text-align: left;
+  min-width: 50em;
+}
+.mat-column-tableId {
+  text-align: left;
+  min-width: 50em;
+}
+.mat-column-unused {
+  text-align: left;
+  min-width: 12em;
+}
+.mat-column-explanation {
+  text-align: left;
+  min-width: 12em;
+}
+.mat-column-statskey {
+  max-width: 15em;
+  text-align: right;
+}
+.mat-column-statsvalue {
+  text-align: right;
+  min-width: 20em;
+}
+.mat-column-settingsKey {
+  max-width: 15em;
+  text-align: right;
+}
+.mat-column-settingsValue {
+  text-align: left;
+  min-width: 50em;
+}
+.mat-column-reservationKey {
+  text-align: right;
+  min-width: 30em;
+}
+.mat-column-reservationValue {
+  max-width:20;
+  text-align: right;
+}
+.mat-column-key {
+  text-align: right;
+}
+.mat-column-value {
+  max-width:20;
+  text-align: right;
+}
+mat-cell, mat-header-cell, mat-header-cell {
+  flex: 1;
+  display: unset;
+}
+.mdc-data-table__table {
+  max-width: fit-content; 
+  min-width: unset;
+  border-style: solid;
+  border-width: 0.8px;
+} 
+
+

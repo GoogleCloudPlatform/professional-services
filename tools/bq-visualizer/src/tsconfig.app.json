@@ -17,13 +17,16 @@
   "extends": "../tsconfig.json",
   "compilerOptions": {
     "outDir": "../out-tsc/app",
-    "module": "es2015",
+    "module": "es2022",
     "strictPropertyInitialization": false,
     "strictNullChecks": false,
-    "noImplicitAny": false
+    "noImplicitAny": false,
+    "types":["node"]
   },
   "exclude": [
     "src/test.ts",
-    "**/*.spec.ts"
+    "**/*.spec.ts",
+    "environments/environment.test.ts",
+    "environments/environment.prod.ts"
   ]
 }

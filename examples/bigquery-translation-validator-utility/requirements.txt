@@ -1,3 +1,4 @@
 pandas
 sqlparse
 XlsxWriter
+google-cloud
