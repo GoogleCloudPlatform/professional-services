@@ -2,8 +2,8 @@
 
 ## Set up the experimentation notebook
 
-Once the environment have been deployed, first step is to open the Jupyter notebook available in the [Vertex Workbench section](https://console.cloud.google.com/vertex-ai/workbench/list/managed), under the sepecific region (i.e. europe-west4).
-Use the `OPEN JUPYTERLAB` command to launch the notebook. Once it is ready, you can use the menu option `Git -> Clone a Repository` to clone the Github repo.
+Once the environment has been deployed, the first step is to open the Jupyter notebook available in the [Vertex Workbench section](https://console.cloud.google.com/vertex-ai/workbench/list/managed), under the specific region (e.g. `europe-west4`).
+Use the `OPEN JUPYTERLAB` button to launch the notebook. Once it is ready, you can use the menu option `Git -> Clone a Repository` to clone the Github repo.
 
 
 ## Set up the required tables

@@ -38,18 +38,6 @@ def get_unmanaged_model(model: Input[Model], unmanaged_model: Output[Artifact]):
   unmanaged_model.metadata = model.metadata
   unmanaged_model.uri = '/'.join(model.uri.split('/')[:-1]) # remove filename after last / - send dir rather than file
 
-# Get an Artifact and return its URIs
-# Also produce an area in GCS that can be used as output for the Batch Prediction job
-@dsl.component(base_image=IMAGE)
-def artifact_to_uris(artifact: Input[Artifact],
-                     gcs_dataset: dsl.OutputPath("Dataset")) -> NamedTuple('outputs', [('uris', list), ('gcs_data', str)]):
-   from collections import namedtuple
-   t = namedtuple('outputs', ['uris', 'gcs_data'])
-
-   # transform from /gcs/a/b/c to gs://a/b/c
-   gcs_path = 'gs://' + '/'.join(gcs_dataset.split('/')[2:])
-
-   return t([artifact.uri], gcs_path)
 
 #########################
 ### Define pipeline
@@ -136,7 +124,8 @@ def pipeline(
             enable_access_logging = True
     ).set_display_name("Deploy Model To Endpoint")
 
-    # Start Model Monitoring job. Enable after bugfix: https://github.com/googleapis/python-aiplatform/issues/2361
+    # Start Model Monitoring job. 
+    # Fails intermittently. Enable after bugfix: https://github.com/googleapis/python-aiplatform/issues/2361
     # _ = model_monitoring(
     #     project_id=PROJECT_ID,
     #     region=REGION,
