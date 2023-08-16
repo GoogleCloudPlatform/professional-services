@@ -53,7 +53,9 @@ export class ProjectsComponent implements OnInit, OnDestroy , AfterViewInit{
   }
 
   private register_login(isloggedIn:boolean) {
+    this.logSvc.info('Login event . logged in = '+ isloggedIn);
     this.isLoggedIn = isloggedIn;
+    //console.log('ProjectsComponent::register_login. what= '+isloggedIn)
   }
   async ngOnInit() { }
   async ngAfterViewInit() {  
@@ -78,7 +80,9 @@ export class ProjectsComponent implements OnInit, OnDestroy , AfterViewInit{
   }
 
   async getProjects() {
+    console.log('ProjectsComponent::getProjects calling this.oauthService.isLoggedIn()')
     if (this.oauthService.isLoggedIn() === false) {
+      //console.log ('ProjectsComponent::not logged in. calling login')
       this.oauthService.login();
     }
     this.isLoading = true;

@@ -44,8 +44,10 @@ def format_dict_to_output_string(dict1, dict2):
 def generate_count_and_name_output_string(validation_type, list1, list2, status_count, status_name):
     if validation_type == "column" or validation_type == "object":
         return "Count Validation: " + str(status_count)+ " ( " +(str(len(list1))+" | "+str(len(list2))) + " ) " + "Name Validation: " + str(status_name)
-    elif validation_type == "join" or validation_type == "function":
+    elif validation_type == "join" or validation_type == "function" or validation_type=='statement':
         return "Count Validation: " + str(status_count) + " ( " + (str(len(list1))+" | "+str(len(list2))) + " ) ; "
+    elif validation_type == "isnull":
+        return "Count Validation: " + str(status_count)
 
 def log_list_to_string(list):
     log_string=""

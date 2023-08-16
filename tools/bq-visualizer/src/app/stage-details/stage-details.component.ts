@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import {Component, Input, OnInit} from '@angular/core';
+import { KeyValue } from '../bq_query_plan';
 
 @Component({
   selector: 'app-stage-details',
@@ -21,5 +22,8 @@ import {Component, Input, OnInit} from '@angular/core';
   styleUrls: ['./stage-details.component.css']
 })
 export class StageDetailsComponent {
-  @Input() details: string = '';
+  @Input() details: KeyValue[] = [];
+
+  displayedColumns: string[] = ['key', 'value'];
+
 }

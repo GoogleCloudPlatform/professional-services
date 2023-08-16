@@ -1,5 +1,0 @@
-# skip boilerplate check
-
-region: us-central1
-ip_cidr_range: 10.128.64.0/22
-description: Subnet for prod network
