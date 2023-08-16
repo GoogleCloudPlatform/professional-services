@@ -7,7 +7,7 @@ from google.cloud import aiplatform
 from google_cloud_pipeline_components.v1.batch_predict_job import ModelBatchPredictOp
 from google_cloud_pipeline_components.v1.endpoint import EndpointCreateOp, ModelDeployOp
 from google_cloud_pipeline_components.experimental.evaluation import (
-    EvaluationDataSamplerOp, ModelEvaluationClassificationOp, ModelImportEvaluationOp)
+    ModelEvaluationClassificationOp, ModelImportEvaluationOp)
 
 import logging
 from datetime import datetime
@@ -150,25 +150,13 @@ def pipeline(
        dest_table_id=f'{PIPELINE_NAME}-val-{TIMESTAMP}'
     ).set_display_name("Upload to BigQuery")
 
-    # Run the data sampling task
-    data_sampler_task = EvaluationDataSamplerOp(
-        project=PROJECT_ID,
-        location=REGION,
-        bigquery_source_uri=upload_to_bq_op.outputs['bq_table_uri'],
-        instances_format="bigquery",
-        #sample_size=batch_predict_data_sample_size, # default 10k - TODO get size from load_data op
-        #dataflow_service_account=DATAFLOW_SA,
-        #dataflow_subnetwork=DATAFLOW_NETWORK,
-        dataflow_use_public_ips=DATAFLOW_PUBLIC_IPS
-    ).set_display_name("Evaluation Data Sampler")
-
     # Run the batch prediction task
     batch_predict_op = ModelBatchPredictOp(
         project=PROJECT_ID,
         location=REGION,
         model=upload_op.outputs['uploaded_model'],
         job_display_name=f"bp-{PIPELINE_NAME}-{TIMESTAMP}",
-        bigquery_source_input_uri=data_sampler_task.outputs['bigquery_output_table'],
+        bigquery_source_input_uri=upload_to_bq_op.outputs['bq_table_uri'],
         instances_format="bigquery",
         predictions_format="bigquery",
         bigquery_destination_output_uri=f"bq://{PROJECT_ID}.{BQ_OUTPUT_DATASET_ID}.{PIPELINE_NAME}-bp-{TIMESTAMP}",
