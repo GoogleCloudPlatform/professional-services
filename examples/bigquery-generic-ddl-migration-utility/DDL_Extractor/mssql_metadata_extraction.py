@@ -119,7 +119,7 @@ class MssqlMetastoreModule:
                         bucket_name=source_bucket_name,
                         file_name=f"{source_dataset}/{row['table_name'].split('.')[0].strip()}-\
                             {row['table_name'].split('.')[1].strip()}.sql",
-                        content=output_str,
+                        content=content,
                     )
                 except Exception as ex:
                     failure_record = [
