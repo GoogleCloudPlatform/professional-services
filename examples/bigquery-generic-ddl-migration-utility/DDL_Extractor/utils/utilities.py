@@ -13,10 +13,9 @@
 # limitations under the License.
 """Utility for the function used in generic ddl extractor utility modules"""
 from utils.setup_logger import logger
-from google.cloud import bigquery, storage
+from google.cloud import bigquery
 import ast
 import json
-import oracledb
 
 def write_to_blob_from_file(gcs_client, bucket_name, destination_file_name, source_file_name):
     """Function to write data in gcs bucket"""
