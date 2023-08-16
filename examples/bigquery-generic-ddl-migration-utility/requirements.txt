@@ -1,0 +1,11 @@
+google-cloud-storage
+google-cloud-bigquery
+google-cloud-secret-manager
+google-cloud-bigquery-migration
+google-api-core
+vertica_python
+jaydebeapi
+oracledb
+pyodbc
+cx_Oracle
+snowflake-connector-python
