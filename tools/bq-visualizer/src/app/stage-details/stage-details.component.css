@@ -31,3 +31,26 @@
   margin-bottom: 1px;
   margin-left: 1px;
 }
+.mat-mdc-table .mdc-data-table__row {
+  height: unset;
+  
+}
+mat-row, mat-footer-row {
+  min-height: 24px; 
+}
+
+.mat-mdc-cell {
+  border-bottom-color: rgba(0, 0, 0, 0.12);
+  border-right-style: solid;
+  border-right-width: 0.83px;
+  padding-left: 8px;
+  padding-right: 8px;
+}
+
+.mat-column-key {
+  max-width:40%;
+}
+mat-cell, mat-header-cell, mat-footer-cell {
+  flex: 1;
+  display: unset;
+}

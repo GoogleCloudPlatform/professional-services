@@ -1,1 +1,0 @@
-Creating here resources to test the Cloud Function and ensuring metrics are correctly populated

@@ -1,0 +1,151 @@
+#!/bin/bash
+
+# Initialize variables
+project_ids=()
+dry_run_default=true
+dry_run=$dry_run_default
+
+err() {
+  echo "[$(date +'%Y-%m-%dT%H:%M:%S%z')]: $*" >&2
+}
+
+summary_dividing_line() {
+  echo -e '\n================================Summary================================'
+}
+
+###############################################
+# Print list elements with a given message
+# Arguments:
+#   List to print
+#   Message to show
+# Outputs:
+#   Write a message and list elements to stout
+###############################################
+print_list() {
+  local list_elements=("${!1}")
+  local message="$2"
+  if [ ${#list_elements[@]} -gt 0 ]; then
+    echo -e "$message:"
+    for element in "${list_elements[@]}"; do
+      echo -e "- $element"
+    done
+    echo '------------------------------------------------------------------------'
+  fi
+}
+
+# Parse command line arguments
+for arg in "$@"; do
+  case "$arg" in
+    --project_ids=*)
+      # Extract project IDs from the argument
+      IFS=',' read -ra project_ids <<< "${arg#*=}"
+      ;;
+    --dry_run=*)
+      # Extract the value of the dry_run flag
+      dry_run_value="${arg#*=}"
+      case "$dry_run_value" in
+        true|false)
+          dry_run=$dry_run_value
+          ;;
+        *)
+          err "Invalid --dry_run value, can only be 'true' or 'false'."
+          exit 1
+          ;;
+      esac
+      ;;
+    esac
+done
+
+# Check if project IDs are provided
+if [[ ${#project_ids[@]} -eq 0 ]]; then
+  err "Project IDs are required. Please provide project IDs using the
+    --project_ids flag."
+  exit 1
+fi
+
+lists=('no_permission' 'inaccessible' 
+  'unready' 'already_migrated' 'migrated')
+for name in "${lists[@]}"; do
+  declare -a "$name=()"
+done
+
+# Check each project id whether it is migrated or not
+for project_id in "${project_ids[@]}"; do
+  echo -e "Checking project $project_id ..."
+
+  # Set gcloud project and validate
+  HAS_ERROR_WARNING=$(gcloud config set project $project_id 2>&1 \
+   | grep -E "ERROR|WARNING")
+  if [[ -n $HAS_ERROR_WARNING ]]; then
+    no_permission+=($project_id)
+    continue
+  fi
+
+  # Check the previous VmDnsSetting value
+  EXISTING_MATADATA_VALUE=$(gcloud compute project-info describe --flatten="commonInstanceMetadata[VmDnsSetting]" | grep -oP "(?<=  ).*")
+  if [ "$EXISTING_MATADATA_VALUE" == "ZonalOnly" ]; then
+    already_migrated+=($project_id)
+    continue
+  fi
+
+  # The curl command to get the metrics value from Cloud Monitoring
+  CURL=$(curl -s --request POST "https://monitoring.googleapis.com/v3/projects/$project_id/timeSeries:query"   -H "Authorization: Bearer $(gcloud auth print-access-token)"   -H "Accept: application/json"   -H "Content-Type: application/json"   --data '{"query":"fetch compute.googleapis.com/Location | metric '"'"'compute.googleapis.com/global_dns/request_count'"'"' | filter metric.zonal_dns_readiness = '"'"'zonal_dns_risky'"'"' | every 30d | within 30d"}'   --compressed)
+  
+  # Check if has permission for monitoring data
+  ERROR=$(echo $CURL | jq -r '.error')
+  if ! [[ "$ERROR" -eq "null" ]]; then
+    inaccessible+=($project_id)
+    continue
+  fi
+
+  # Check if blocking gDNS query count is 0
+  QUERY_COUNT=$(echo $CURL | jq -r '.timeSeriesData[0].pointData[0].values[0].int64Value')
+  if [[ "$QUERY_COUNT" -ne "null" ]] && [[ "$QUERY_COUNT" -ne "0" ]]; then
+    unready+=($project_id)
+  else
+    if $dry_run; then
+      # Do nothing if dry run is enabled
+      migrated+=($project_id)
+    else
+      $(gcloud compute project-info add-metadata --metadata VmDnsSetting=ZonalOnly >/dev/null 2>&1)
+      migrated+=($project_id)
+    fi
+  fi
+done
+
+summary_dividing_line
+print_list no_permission[@] "
+Unable to access the following ${#no_permission[@]} projects, make sure the
+projects exist or you have the right permissions"
+
+print_list inaccessible[@] "
+Unable to access the metrics for the following ${#inaccessible[@]} projects,
+please make sure you have the right permissions"
+
+print_list unready[@] "
+The following ${#unready[@]} projects are incompatible with zonal-only
+settings and require additional action before migration.
+Learn more here:
+https://cloud.google.com/compute/docs/internal-dns#migrating-to-zonal"
+
+print_list already_migrated[@] "
+The following ${#already_migrated[@]} projects are using Zonal DNS \
+and no action needed"
+
+if [ ${#migrated[@]} -ne 0 ]; then
+  if $dry_run; then
+    echo -e "
+The following ${#migrated[@]} projects are compatible with zonal-only
+settings and can be migrated to Zonal DNS. Please set
+\`--dry_run=false\` in real run to migrate these projects.
+Learn more here:
+https://cloud.google.com/compute/docs/internal-dns#migrating-to-zonal."
+  else
+    echo -e "
+The following ${#migrated[@]} projects were ready and migrated to Zonal DNS:"
+  fi
+  for project_id in "${migrated[@]}"; do
+    echo -e "- $project_id"
+  done
+fi
+summary_dividing_line

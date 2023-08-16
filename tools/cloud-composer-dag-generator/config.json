@@ -1,0 +1,21 @@
+{
+    "number_of_dags_to_generate":
+        3,
+    "file_start_index":
+        1,
+    "min_number_of_task_in_dag":
+        5,
+    "max_number_of_task_in_dag":
+        20,
+    "percentage_of_job_in_parallel":
+        20,
+    "number_of_operators_defined":
+        2,
+    "task_min_time_in_sec":
+        5,
+    "task_max_time_in_sec":
+        15,
+    "schedules": [
+        "min", "hour", "everyhalfhour", "everyhour"
+    ]
+}
