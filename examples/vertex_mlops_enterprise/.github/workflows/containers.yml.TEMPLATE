@@ -26,13 +26,13 @@ permissions:
   id-token: 'write'
 
 env:
-  ENVIRONMENT: dev
-  PROJECT_ID: mlops2-creditcards-dev
+  ENVIRONMENT: ${environment}
+  PROJECT_ID: ${project_id}
   # SA used to authenticate in GCP through Workload Identity Federation 
-  SERVICE_ACCOUNT: mlops2-sa-github@mlops2-creditcards-dev.iam.gserviceaccount.com
+  SERVICE_ACCOUNT: ${sa}
   REGION: europe-west4
-  DOCKER_REPO: europe-west4-docker.pkg.dev/mlops2-creditcards-dev/docker-repo
-  WORKLOAD_ID_PROVIDER: 'projects/731418723684/locations/global/workloadIdentityPools/gh-pool/providers/gh-provider'
+  DOCKER_REPO: ${docker_repo}
+  WORKLOAD_ID_PROVIDER: ${wip}
   CLOUDBUILD_LOGS: gs://mlops2-creditcards-dev_cloudbuild/logs
 jobs:
   build-container-cicd:
@@ -41,21 +41,21 @@ jobs:
     steps:
     - uses: 'actions/checkout@v3'
       with:
-        token: ${{ github.token }}
+        token: $${{ github.token }}
          
     - id: 'auth'
       name: 'Authenticate to Google Cloud'
       uses: 'google-github-actions/auth@v1'
       with:
         create_credentials_file: 'true'
-        workload_identity_provider: ${{ env.WORKLOAD_ID_PROVIDER }}
-        service_account: ${{ env.SERVICE_ACCOUNT }}
+        workload_identity_provider: $${{ env.WORKLOAD_ID_PROVIDER }}
+        service_account: $${{ env.SERVICE_ACCOUNT }}
         access_token_lifetime: 3600s
     
     - name: 'Build container'
       run: |
           cp build/Dockerfile.cicd build/Dockerfile
-          gcloud builds submit --gcs-log-dir=${{ env.CLOUDBUILD_LOGS }} --project ${{ env.PROJECT_ID }} --region ${{ env.REGION }} --tag ${{ env.DOCKER_REPO }}/cicd:latest build/. --timeout=15m --machine-type=e2-highcpu-8 --suppress-logs
+          gcloud builds submit --gcs-log-dir=$${{ env.CLOUDBUILD_LOGS }} --project $${{ env.PROJECT_ID }} --region $${{ env.REGION }} --tag $${{ env.DOCKER_REPO }}/cicd:latest build/. --timeout=15m --machine-type=e2-highcpu-8 --suppress-logs
 
   
   build-container-vertex:
@@ -64,21 +64,21 @@ jobs:
     steps:
     - uses: 'actions/checkout@v3'
       with:
-        token: ${{ github.token }}
+        token: $${{ github.token }}
          
     - id: 'auth'
       name: 'Authenticate to Google Cloud'
       uses: 'google-github-actions/auth@v1'
       with:
         create_credentials_file: 'true'
-        workload_identity_provider: ${{ env.WORKLOAD_ID_PROVIDER }}
-        service_account: ${{ env.SERVICE_ACCOUNT }}
+        workload_identity_provider: $${{ env.WORKLOAD_ID_PROVIDER }}
+        service_account: $${{ env.SERVICE_ACCOUNT }}
         access_token_lifetime: 3600s
   
     - name: 'Build container'
       run: |
           cp build/Dockerfile.vertex Dockerfile
-          gcloud builds submit --gcs-log-dir=${{ env.CLOUDBUILD_LOGS }} --project ${{ env.PROJECT_ID }} --region ${{ env.REGION }} --tag ${{ env.DOCKER_REPO }}/vertex:latest . --timeout=15m --machine-type=e2-highcpu-8 --suppress-logs
+          gcloud builds submit --gcs-log-dir=$${{ env.CLOUDBUILD_LOGS }} --project $${{ env.PROJECT_ID }} --region $${{ env.REGION }} --tag $${{ env.DOCKER_REPO }}/vertex:latest . --timeout=15m --machine-type=e2-highcpu-8 --suppress-logs
         
   build-container-dataflow:
     name: 'Build container Dataflow'
@@ -86,19 +86,19 @@ jobs:
     steps:
     - uses: 'actions/checkout@v3'
       with:
-        token: ${{ github.token }}
+        token: $${{ github.token }}
          
     - id: 'auth'
       name: 'Authenticate to Google Cloud'
       uses: 'google-github-actions/auth@v1'
       with:
         create_credentials_file: 'true'
-        workload_identity_provider: ${{ env.WORKLOAD_ID_PROVIDER }}
-        service_account: ${{ env.SERVICE_ACCOUNT }}
+        workload_identity_provider: $${{ env.WORKLOAD_ID_PROVIDER }}
+        service_account: $${{ env.SERVICE_ACCOUNT }}
         access_token_lifetime: 3600s
 
     - name: 'Build container'
       run: |
           cp build/Dockerfile.dataflow Dockerfile
-          gcloud builds submit --gcs-log-dir=${{ env.CLOUDBUILD_LOGS }} --project ${{ env.PROJECT_ID }} --region ${{ env.REGION }} --tag ${{ env.DOCKER_REPO }}/dataflow:latest . --timeout=15m --machine-type=e2-highcpu-8 --suppress-logs
+          gcloud builds submit --gcs-log-dir=$${{ env.CLOUDBUILD_LOGS }} --project $${{ env.PROJECT_ID }} --region $${{ env.REGION }} --tag $${{ env.DOCKER_REPO }}/dataflow:latest . --timeout=15m --machine-type=e2-highcpu-8 --suppress-logs
 
