@@ -105,7 +105,7 @@ if __name__ == "__main__":
     test_channel_id = os.environ.get("TEST_CHANNEL_ID")
     test_channel_name = os.environ.get("TEST_CHANNEL_NAME")
     test_user_id = os.environ.get("TEST_USER_ID")
-    test_project_id = os.environ.get["TEST_PROJECT_ID"]
+    test_project_id = os.environ.get("TEST_PROJECT_ID")
     test_priority_list = ["P1", "P2"]
     autotrack_edit(test_channel_id, test_channel_name, "projects",
                    test_project_id, test_user_id, test_priority_list)
