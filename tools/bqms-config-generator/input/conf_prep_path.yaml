@@ -1,0 +1,7 @@
+source: "teradata"  # Supported sources: hive, teradata, redshift
+
+input:
+    object_mapping: input/object_mapv2.csv
+    ATR_mapping: input/hive_bq_datatype_map.csv
+
+output: output/

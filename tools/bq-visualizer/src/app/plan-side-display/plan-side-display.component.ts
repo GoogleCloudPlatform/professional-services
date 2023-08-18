@@ -16,6 +16,7 @@
 import {Component, Input, OnInit} from '@angular/core';
 
 import {QueryStep} from '../rest_interfaces';
+import { KeyValue } from '../bq_query_plan';
 
 @Component({
   selector: 'app-plan-side-display',
@@ -24,5 +25,5 @@ import {QueryStep} from '../rest_interfaces';
 })
 export class PlanSideDisplayComponent {
   @Input() stepDetails: QueryStep[] = [];
-  @Input() stageDetails: string = '';
+  @Input() stageDetails: KeyValue[] = [];
 }
