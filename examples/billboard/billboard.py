@@ -297,7 +297,7 @@ def main(argv):
         project_billing_info = billing.CloudBillingClient(
         ).get_project_billing_info(name=project_id_temp)
     except PermissionDenied:
-        print("Permission Denied, check project level permission.")
+        print("ermission Denied, check project level permission or if the Cloud Billing API is enabled.")
         return sys.exit(1)
 
     billing_account_name = project_billing_info.billing_account_name.split(
