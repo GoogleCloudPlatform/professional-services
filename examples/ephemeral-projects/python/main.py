@@ -12,11 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import json
 import secrets
 from google.cloud import resourcemanager_v3
-from google.auth import compute_engine
-from google.iam.v1 import iam_policy_pb2, policy_pb2
+from google.iam.v1 import iam_policy_pb2
 from google.cloud import service_usage_v1
 from google.protobuf.json_format import MessageToDict
 

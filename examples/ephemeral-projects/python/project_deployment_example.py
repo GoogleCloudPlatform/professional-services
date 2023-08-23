@@ -14,9 +14,7 @@
 
 from main import EphemeralInstance
 from google.auth.compute_engine import Credentials
-from google.cloud import resourcemanager_v3
 import json
-import time
 
 '''
 This is an example project deployment instance.
