@@ -14,8 +14,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-export BACKUP_NAME=graph.db-backup
-export BACKUP_SET="$BACKUP_NAME-$(date "+%Y-%m-%d-%H:%M:%S")"
+BACKUP_NAME=graph.db-backup
+BACKUP_SET="${BACKUP_NAME}-$(date "+%Y-%m-%d-%H:%M:%S")"
+export BACKUP_SET
 export REMOTE_BACKUPSET="<GCS_BUCKET>"
 export CLUSTER_NAME="<GKE_CLUSTER_NAME>"
 export COMPUTE_ZONE="<GKE_COMPUTE_ZONE>"

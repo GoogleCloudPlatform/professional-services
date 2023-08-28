@@ -22,10 +22,10 @@
 source ../neo4j-env-variables.sh
 
 # Build with Artifact Registry address tag
-docker build -t "$BACKUP_IMAGE" .
+docker build -t "${BACKUP_IMAGE}" .
 
 # Autenticate and configure docker with Artifact Registory
 gcloud auth configure-docker <GCP_REGION>-docker.pkg.dev
 
 # Push the tagged docker image
-docker push "$BACKUP_IMAGE"s
+docker push "${BACKUP_IMAGE}"

@@ -22,42 +22,42 @@
 source /scripts/neo4j-env-variables.sh
 
 # Validation of inputs upfront
-if [ -z "$REMOTE_BACKUPSET" ]; then
+if [[ -z "${REMOTE_BACKUPSET}" ]]; then
     echo "You must specify a REMOTE_BACKUPSET such as gs://my-backups/my-backup.tar.gz"
     exit 1
 fi
 
 echo "=============== Neo4j Backup ==============================="
-echo "Beginning backup from Managed Graphdb Neo4j Staging to /backups/$BACKUP_SET"
-echo "To google storage bucket $REMOTE_BACKUPSET"
+echo "Beginning backup from Managed Graphdb Neo4j Staging to /backups/${BACKUP_SET}"
+echo "To google storage bucket ${REMOTE_BACKUPSET}"
 echo "============================================================"
 
 echo "Creating Directory for current backup"
-mkdir /backups/"$BACKUP_SET"
+mkdir /backups/"${BACKUP_SET}"
 
 neo4j-admin database backup \
     --compress=true \
-    --from="$NEO4J_ADMIN_SERVER_1","$NEO4J_ADMIN_SERVER_2","$NEO4J_ADMIN_SERVER_3" \
-    --to-path=/backups/"$BACKUP_SET" \
+    --from="${NEO4J_ADMIN_SERVER_1}","${NEO4J_ADMIN_SERVER_2}","${NEO4J_ADMIN_SERVER_3}" \
+    --to-path=/backups/"${BACKUP_SET}" \
     --verbose
 #   <DATABASE_NAME>/If not set it will default to neo4j    
 
 echo "Access the directory"
-chmod +x "/backups/$BACKUP_SET"
+chmod +x "/backups/${BACKUP_SET}"
 
 echo "Backup size:"
-du -hs "/backups/$BACKUP_SET"
+du -hs "/backups/${BACKUP_SET}"
 
 echo "Tarring -> /backups.tar"
-tar -cvf "/backups/$BACKUP_SET.tar" "/backups/$BACKUP_SET" --remove-files
+tar -cvf "/backups/${BACKUP_SET}.tar" "/backups/${BACKUP_SET}" --remove-files
 
 echo "Zipping -> /backups.tar.gz"
-gzip -9 "/backups/$BACKUP_SET.tar"
+gzip -9 "/backups/${BACKUP_SET}.tar"
 
 echo "Zipped backup size:"
-du -hs "/backups/$BACKUP_SET.tar.gz"
+du -hs "/backups/${BACKUP_SET}.tar.gz"
 
-echo "Pushing /backups/$BACKUP_SET.tar.gz -> $REMOTE_BACKUPSET"
-gcloud storage cp backups/$BACKUP_SET.tar.gz "$REMOTE_BACKUPSET"
+echo "Pushing /backups/${BACKUP_SET}.tar.gz -> ${REMOTE_BACKUPSET}"
+gcloud storage cp backups/"${BACKUP_SET}".tar.gz "${REMOTE_BACKUPSET}"
 
 exit $?

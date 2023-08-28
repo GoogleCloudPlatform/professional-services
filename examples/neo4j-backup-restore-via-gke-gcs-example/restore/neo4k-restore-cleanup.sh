@@ -15,7 +15,7 @@
 # limitations under the License.
 
 echo "Change directory to data"
-cd data
+cd data || true
 
 echo "Clean-up all backups"
 rm -rf backups
