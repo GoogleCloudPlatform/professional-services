@@ -40,11 +40,7 @@ neo4j-admin database backup \
     --from=$NEO4J_ADMIN_SERVER_1,$NEO4J_ADMIN_SERVER_2,$NEO4J_ADMIN_SERVER_3 \
     --to-path=/backups/$BACKUP_SET \
     --verbose
-
-neo4j-admin database aggregate-backup \
-    --from-path=/backups/$BACKUP_SET \
-    --verbose \
-    neo4j
+#   <DATABASE_NAME>/If not set it will default to neo4j    
 
 echo "Access the directory"
 chmod +x "/backups/$BACKUP_SET"
