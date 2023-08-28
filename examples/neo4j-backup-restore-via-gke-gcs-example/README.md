@@ -1,0 +1,112 @@
+
+# [Neo4j](https://neo4j.com/developer/graph-database/) Backup & Restore via [GKE Cronjob](https://cloud.google.com/kubernetes-engine/docs/how-to/cronjobs) and [GCS](https://cloud.google.com/storage) Example
+
+
+## Project Structure
+```
+.
+└── neo4j_backup_restore_via_gke_gcs_example
+ └── backup
+    └── deployment 
+          ├── neo4j-backup-cronjob.yaml
+          └── neo4j-backup-deploy.sh
+    └── docker
+          ├── Dockerfile
+          ├── neo4j-backup-admin.sh
+          └── neo4j-backup-pod-image.sh
+    ├── neo4j-backup-architecture.png
+    └──  neo4j-env-variables.sh
+ └── restore
+    ├── neo4j-env-variables.sh
+    ├── neo4j-gcloud-copy.sh
+    ├── neo4j-restore-admin.sh
+    ├── neo4j-restore.sh
+    └── neo4k-restore-cleanup.sh
+ └── README.md
+```
+
+## Backup
+
+### Backup Architecture
+![image info](./backup/neo4j-backup-architecture.png)
+
+### Build and push backup pod image
+
+* Make sure the Enviornment variables are set correctly in ```backup/neo4j-env-variables.sh``` file. 
+  - This file should point to the Google Cloud Storage `REMOTE_BACKUPSET` to backup the graphs, GCR bucket used to point to the `BACKUP_IMAGE` used by the backup pod, `GKE_NAMESPACE` to be used to backup from the correct Neo4j cluster, and the `NEO4J_ADMIN_SERVER` IPs to backup the servers from.
+* Simply run ```neo4j-backup-pod-image.sh``` file to build and push the backup pod image.
+
+```bash
+# Have execute-access to the script
+$ chmod u+x backup/docker/neo4j-backup-pod-image.sh
+
+# Run the back-up pod image script
+$ ./backup/docker/neo4j-backup-pod-image.sh
+```
+
+### Deploy backup kubernetes cronjob
+* Navigate to ```backup/deployment/neo4j-backup-cronjob.yaml``` and edit the schedule or anything else you'd like to customize in the cronjob.
+* Run the ```backup/deployment/neo4j-backup-deployment.sh``` to deploy the cronjob on your neo4j cluster.
+```bash
+# Have execute-access to the script
+$ chmod u+x backup/deployment/neo4j-backup-deployment.sh
+
+# Run the back-up cronjob deployment script
+$ ./backup/deployment/neo4j-backup-deployment.sh
+```
+
+
+### Update backup pod image
+* Configuration for image used by the backup-pod can be found in the file `backup/docker/Dockerfile`. 
+* If any changes need to be made to the Backup configuration used by the back-up pod, please modify and save your changes on the following shell file `neo4j-backup-via-admin.sh`
+  - Once any of these files are changed, an updated container image needs to be built and pushed to container registry.
+
+```bash
+# Script to build and push the image
+$ ./neo4j-backup-pod-image.sh
+```
+
+### Delete backup cronjob
+* Run the following command to delete the backup cronjob. Replace the <CRONJOB_NAME> with currently assigned cronjob name
+
+```bash
+# Delete cronjob
+$ kubectl delete cronjob <CRONJOB_NAME>
+```
+
+### Re-deploy Backup Cronjob
+* Run the following YAML file to de-deploy the Kubernetes Cronjob which schedules the backups
+
+```bash
+# Delete cronjob
+$ kubectl apply -f neo4j-backup-cronjob.yaml
+```
+
+## Restore
+
+This procedure assumes that you either have sidecar container on your neo4j instance running the google cloud-sdk or your neo4j instance servers have the google cloud-sdk pre-installed
+
+### Download and restore from Google Cloud Storage Bucket
+
+Simply run the ```/restore/neo4j-restore.sh``` which will call the helper shell scripts and complete the restore process one server at a time.
+
+```bash
+# Have execute-access to the script
+$ chmod u+x restore/neo4j-restore.sh
+
+# Execute restore procedure script
+$ ./restore/neo4j-restore.sh
+
+```
+
+## References
+
+This software uses the following open source packages:
+
+- [GKE Cronjobs](https://cloud.google.com/kubernetes-engine/docs/how-to/cronjobs)
+- [Artifact Registory](https://cloud.google.com/artifact-registry)
+- [Dockerfile](https://docs.docker.com/develop/develop-images/dockerfile_best-practices/)
+- [Neo4j Enterprise](https://neo4j.com/licensing/)
+
+
+---
