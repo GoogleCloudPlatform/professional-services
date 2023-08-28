@@ -18,21 +18,20 @@ export BACKUP_NAME=graph.db-backup
 
 echo "Fetch the latest copy of backup"
 response=(`gsutil ls -l gs://<GCS_BUCKET>|sort -k 2|tail -2|head -1`)
-latest_backup_timestamp=`echo ${response[1]}`
-latest_backup=`echo ${response[2]}`
+latest_backup=`${response[2]}`
 
 echo "Make directory for Backups"
 mkdir /data/backups && cd data/backups
 
 echo "Latest Backup name"
-echo $latest_backup
+echo "$latest_backup"
 
 echo "Download latest copy of backup"
-gcloud storage cp $latest_backup .
+gcloud storage cp "$latest_backup" .
 
 echo "Unzip Backup file"
 backup_file=$(ls)
-tar --force-local --overwrite -zxvf $backup_file
+tar --force-local --overwrite -zxvf "$backup_file"
 chown -R 7474 backups
 
 echo "Leave the gcloud container"

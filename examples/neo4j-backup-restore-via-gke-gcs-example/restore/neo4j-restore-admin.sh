@@ -19,10 +19,10 @@ cd data/backups/backups
 
 echo "Get the latest backup name"
 backup_dir=$(ls)
-cd $backup_dir
+cd "$backup_dir"
 backup_artifact=$(ls)
 
 echo "Run Restore using the backup Artifact"
-neo4j-admin database restore --from-path=$backup_artifact --expand-commands <DATABASE_NAME>
+neo4j-admin database restore --from-path="$backup_artifact" --expand-commands "<DATABASE_NAME>"
 
 exit

@@ -25,16 +25,16 @@ echo "gcloud login"
 gcloud auth login
 
 echo "GKE connect neo4j cluster"
-gcloud container clusters get-credentials $CLUSTER_NAME \
-    --zone=$COMPUTE_ZONE
+gcloud container clusters get-credentials "$CLUSTER_NAME" \
+    --zone="$COMPUTE_ZONE"
 
 echo "SSH into Server 1 cloud-sdk container and download backup"
-kubectl exec neo4j-server-1-0 -n <GKE_NAMESPACE> -c <CLOUD_SDK_SIDECAR_CONTAINER> -- /bin/bash -c "`cat neo4j-gcloud-copy.sh`"
+kubectl exec neo4j-server-1-0 -n "<GKE_NAMESPACE>" -c "<CLOUD_SDK_SIDECAR_CONTAINER>" -- /bin/bash -c "`cat neo4j-gcloud-copy.sh`"
 
 echo "SSH into Server 1 neo4j container and restore"
-kubectl exec neo4j-server-1-0 -n <GKE_NAMESPACE> -c <NEO4J_CONTAINER> -- /bin/bash -c "`cat neo4j-restore-admin.sh`"
+kubectl exec neo4j-server-1-0 -n "<GKE_NAMESPACE>" -c "<NEO4J_CONTAINER>" -- /bin/bash -c "`cat neo4j-restore-admin.sh`"
 
 echo "SSH into Server 1 cloud-sdk container and clean-up"
-kubectl exec neo4j-server-1-0 -n <GKE_NAMESPACE> -c <CLOUD_SDK_SIDECAR_CONTAINER> -- /bin/bash -c "`cat neo4k-restore-cleanup.sh`"
+kubectl exec neo4j-server-1-0 -n "<GKE_NAMESPACE>" -c "<CLOUD_SDK_SIDECAR_CONTAINER>" -- /bin/bash -c "`cat neo4k-restore-cleanup.sh`"
 
 exit $?
