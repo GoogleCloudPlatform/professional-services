@@ -12,9 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# This Dockerfile will install a neo4j instance along with cloud-sdk on
-# the backup pod along with the backup admin shell script to complete
-# the scheduled backup
+#######################################
+# Docker env to run neo4j and cloud-sdk
+# Globals:
+#   None
+# Arguments:
+#   None
+#######################################
+
 
 FROM launcher.gcr.io/google/debian11
 RUN apt-get update
@@ -35,9 +40,9 @@ RUN apt-get install -y neo4j-enterprise=1:5.8.0 --fix-missing
 RUN apt-get install -y google-cloud-sdk
 
 RUN mkdir /backups
-ADD /neo4j-backup-admin.sh /scripts/neo4j-backup-admin.sh
-RUN chmod u+x /scripts/neo4j-backup-admin.sh
-ADD /neo4j-env-variables.sh /scripts/neo4j-env-variables.sh
-RUN chmod u+x /scripts/neo4j-env-variables.sh
+ADD /backup-via-admin.sh /backup-via-admin.sh
+RUN chmod u+x /backup-via-admin.sh
+ADD ../backup.env /backup.env
+RUN chmod u+x /neo4j-env-variables.sh
 
-CMD ["/scripts/neo4j-backup-admin.sh"]
+CMD ["/backup-via-admin.sh"]

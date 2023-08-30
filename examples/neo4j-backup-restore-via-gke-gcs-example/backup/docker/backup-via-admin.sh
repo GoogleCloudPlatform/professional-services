@@ -14,12 +14,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# This shell file is responsible for running the backup job via the neo4j-admin
-# tool provide out of box with neo4j along with zipping up and offloading
-# the backup to Google Cloud Storage (GCS) bucket
+#######################################
+# Run backup via neo4j-admin
+# Globals:
+#   BACKUP_SET
+#   REMOTE_BACKUPSET
+#   NEO4J_ADMIN_SERVER_1
+#   NEO4J_ADMIN_SERVER_2
+#   NEO4J_ADMIN_SERVER_3
+# Arguments:
+#   None
+#######################################
 
 # Load the environment variables
-source /scripts/neo4j-env-variables.sh
+. ..backup.env
 
 # Validation of inputs upfront
 if [[ -z "${REMOTE_BACKUPSET}" ]]; then

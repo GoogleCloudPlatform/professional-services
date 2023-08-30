@@ -14,18 +14,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# This shell file will load the environment variables for the backup image
-# name and version to build and push the docker image used for by the
-# backup cronjob. 
+#######################################
+# Build and Push the Backup Cronjob image
+# Globals:
+#   BACKUP_IMAGE
+# Arguments:
+#   None
+#######################################
 
 # Load the variables
-source ../neo4j-env-variables.sh
+. ../backup.env
 
 # Build with Artifact Registry address tag
-docker build -t "$BACKUP_IMAGE" .
+docker build -t "${BACKUP_IMAGE}" .
 
 # Autenticate and configure docker with Artifact Registory
 gcloud auth configure-docker <GCP_REGION>-docker.pkg.dev
 
 # Push the tagged docker image
-docker push "$BACKUP_IMAGE"
+docker push "${BACKUP_IMAGE}"

@@ -14,18 +14,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# This shell file will load the environment variables for the backup image
-# name and version to build and push the docker image used for by the
-# backup cronjob. 
+#######################################
+# Deploy the Neo4j Backup Cronjob
+# Globals:
+#   GKE_NAMESPACE
+# Arguments:
+#   None
+#######################################
+ 
+# Load global variables
+. ../backup.env
 
-# Load the variables
-source ../neo4j-env-variables.sh
+# Authenticate via gcloud-sdk
+gcloud auth login
 
-# Build with Artifact Registry address tag
-docker build -t "${BACKUP_IMAGE}" .
-
-# Autenticate and configure docker with Artifact Registory
-gcloud auth configure-docker <GCP_REGION>-docker.pkg.dev
-
-# Push the tagged docker image
-docker push "${BACKUP_IMAGE}"
+# Use correct namespace and deploy the cronjob
+kubectl config set-context --current --namespace="${GKE_NAMESPACE}"
+kubectl apply -f backup-cronjob.yaml
