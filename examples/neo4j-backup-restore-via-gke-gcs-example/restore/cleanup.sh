@@ -14,15 +14,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-echo "Set backup as the working directory"
-cd data/backups/backups||return
+#######################################
+# Restore cleanup via removal of local copy
+# Globals:
+#   None
+# Arguments:
+#   None
+#######################################
 
-echo "Get the latest backup name"
-backup_dir=$(ls)
-cd "${backup_dir}" || true
-backup_artifact=$(ls)
+echo "Change directory to data"
+cd data || true
 
-echo "Run Restore using the backup Artifact"
-neo4j-admin database restore --from-path="${backup_artifact}" --expand-commands "<DATABASE_NAME>"
+echo "Clean-up all backups"
+rm -rf backups
 
+echo "Exit - Restore complete!"
 exit

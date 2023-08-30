@@ -14,25 +14,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-export BACKUP_NAME=graph.db-backup
+#######################################
+# Execute Restore admin command
+# Globals:
+#   None
+# Arguments:
+#   None
+#######################################
 
-echo "Fetch the latest copy of backup"
-response=$(gsutil ls -l gs://"<GCS_BUCKET>"|sort -k 2|tail -2|head -1 || true)
-latest_backup=$(${response[2]})
+echo "Set backup as the working directory"
+cd data/backups/backups||return
 
-echo "Make directory for Backups"
-mkdir /data/backups && cd data/backups || return
+echo "Get the latest backup name"
+backup_dir=$(ls)
+cd "${backup_dir}" || true
+backup_artifact=$(ls)
 
-echo "Latest Backup name"
-echo "${latest_backup}"
+echo "Run Restore using the backup Artifact"
+neo4j-admin database restore --from-path="${backup_artifact}" --expand-commands "<DATABASE_NAME>"
 
-echo "Download latest copy of backup"
-gcloud storage cp "${latest_backup}" .
-
-echo "Unzip Backup file"
-backup_file=$(ls)
-tar --force-local --overwrite -zxvf "${backup_file}"
-chown -R 7474 backups
-
-echo "Leave the gcloud container"
 exit
