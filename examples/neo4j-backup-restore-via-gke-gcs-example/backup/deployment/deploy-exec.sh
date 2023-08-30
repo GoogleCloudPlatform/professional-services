@@ -23,7 +23,7 @@
 #######################################
  
 # Load global variables
-. ../backup.env
+. backup/backup.env
 
 # Authenticate via gcloud-sdk
 gcloud auth login

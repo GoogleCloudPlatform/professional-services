@@ -27,7 +27,8 @@
 #######################################
 
 # Load the environment variables
-. ..backup.env
+# shellcheck disable=SC1091
+. .backup.env
 
 # Validation of inputs upfront
 if [[ -z "${REMOTE_BACKUPSET}" ]]; then

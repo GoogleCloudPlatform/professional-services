@@ -23,7 +23,7 @@
 #######################################
 
 # Load the variables
-. ../backup.env
+. backup/backup.env
 
 # Build with Artifact Registry address tag
 docker build -t "${BACKUP_IMAGE}" .
