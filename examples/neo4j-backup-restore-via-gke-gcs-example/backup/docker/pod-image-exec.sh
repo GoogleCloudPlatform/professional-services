@@ -23,7 +23,8 @@
 #######################################
 
 # Load the variables
-. backup/backup.env
+# shellcheck disable=SC1091
+source ../backup.env
 
 # Build with Artifact Registry address tag
 docker build -t "${BACKUP_IMAGE}" .

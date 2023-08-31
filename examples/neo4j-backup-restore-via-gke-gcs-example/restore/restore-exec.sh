@@ -14,7 +14,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-. ./restore.env
+# shellcheck disable=SC1091
+. ./restore/restore.env
 
 echo "=============== Neo4j Restore ==============================="
 echo "Beginning restore from google storage bucket ${REMOTE_BACKUPSET}"

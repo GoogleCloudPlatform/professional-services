@@ -23,7 +23,8 @@
 #######################################
  
 # Load global variables
-. backup/backup.env
+# shellcheck disable=SC1091
+source ../backup.env
 
 # Authenticate via gcloud-sdk
 gcloud auth login
