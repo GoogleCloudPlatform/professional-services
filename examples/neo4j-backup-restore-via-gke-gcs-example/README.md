@@ -8,20 +8,20 @@
 └── neo4j_backup_restore_via_gke_gcs_example
  └── backup
     └── deployment 
-          ├── neo4j-backup-cronjob.yaml
-          └── neo4j-backup-deploy.sh
+          ├── backup-cronjob.yaml  #(Cronjob configuration)
+          └── deploy-exec.sh  #(Executable for backup deployment)
     └── docker
-          ├── Dockerfile
-          ├── neo4j-backup-admin.sh
-          └── neo4j-backup-pod-image.sh
+          ├── Dockerfile  #(Backup pod docker mage)
+          ├── backup-via-admin.sh #(Helper used by docker image)
+          └── pod-image-exec.sh #(Executable for build & push docker image)
     ├── neo4j-backup-architecture.png
-    └──  neo4j-env-variables.sh
+    └──  backup.env  #(Update gcloud configuration)
  └── restore
-    ├── neo4j-env-variables.sh
-    ├── neo4j-gcloud-copy.sh
-    ├── neo4j-restore-admin.sh
-    ├── neo4j-restore.sh
-    └── neo4k-restore-cleanup.sh
+    ├── restore.env  #(Update gcloud configuration)
+    ├── download-backup.sh  #(Helper to copy backup from GCS)
+    ├── restore-via-admin.sh #(Helper to run restore admin commands)
+    ├── restore-exec.sh  #(Excutable for Restore)
+    └── cleanup.sh  #(Helper to remove local backup copy on pod)
  └── README.md
 ```
 
