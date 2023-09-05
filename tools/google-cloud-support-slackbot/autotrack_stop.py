@@ -24,10 +24,9 @@ from firebase_admin import firestore
 logger = logging.getLogger(__name__)
 
 
-def stop_asset_auto_cc(channel_id, channel_name, asset_type, asset_id,
-                       user_id):
+def autotrack_stop(channel_id, channel_name, asset_type, asset_id, user_id):
     """
-    Remove a case from the list of tracked Google Cloud support cases.
+    Stop cases from being automatically tracked by an auto tracker
 
     Parameters
     ----------
@@ -56,7 +55,8 @@ def stop_asset_auto_cc(channel_id, channel_name, asset_type, asset_id,
         })
 
     client = slack.WebClient(token=os.environ.get("SLACK_TOKEN"))
-    collection = f"tracked_assets/{channel_id}/{asset_type}"
+    collection_name = "auto_case_tracker"
+    collection = f"{collection_name}/{channel_id}/{asset_type}"
     db_collection = firestore.Client().collection(collection)
     tracked_asset = (db_collection.where("asset_id", "==", asset_id).get())
 
@@ -67,21 +67,23 @@ def stop_asset_auto_cc(channel_id, channel_name, asset_type, asset_id,
         db_collection.document(asset_id).delete()
         client.chat_postMessage(
             channel=channel_id,
-            text=(f"Asset {asset_id} is no longer being tracked"
-                  f" in {channel_name}")
+            text=(f"Asset {asset_id} is no longer auto tracking cases in"
+                  f" {channel_name}")
         )
     else:
         client.chat_postEphemeral(
             channel=channel_id,
             user=user_id,
-            text=(f"The tracking for {asset_id} has not found"
-                  f" for {channel_name}")
+            text=(f"Auto tracking cases for {asset_id} was not found for"
+                  f" {channel_name}")
         )
 
 
 if __name__ == "__main__":
     test_channel_id = os.environ.get("TEST_CHANNEL_ID")
     test_channel_name = os.environ.get("TEST_CHANNEL_NAME")
+    test_asset = os.environ.get("TEST_ASSET")
+    test_asset_id = os.environ.get("TEST_ASSET_ID")
     test_user_id = os.environ.get("TEST_USER_ID")
-    stop_asset_auto_cc(test_channel_id, test_channel_name, "projects",
-                       "testing", test_user_id)
+    autotrack_stop(test_channel_id, test_channel_name, test_asset,
+                   test_asset_id, test_user_id)
