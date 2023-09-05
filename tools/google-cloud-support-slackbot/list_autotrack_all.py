@@ -24,11 +24,11 @@ from firebase_admin import firestore
 logger = logging.getLogger(__name__)
 
 
-def list_asset_auto_cc_subscriptions(channel_id, channel_name):
+def list_autotrack_all(channel_id, channel_name):
     """
     Display all the Google Cloud assets that are being tracked along with the
-    email list attached to that tracking in the Slack channel to the user that
-    submitted the command.
+    priority list attached to that tracking in the Slack channel to the user
+    that submitted the command.
 
     Parameters
     ----------
@@ -49,7 +49,8 @@ def list_asset_auto_cc_subscriptions(channel_id, channel_name):
         })
 
     db = firestore.client()
-    doc = f"tracked_assets/{channel_id}"
+    collection_name = "auto_case_tracker"
+    doc = f"{collection_name}/{channel_id}"
     channel_tracking = db.document(doc).get()
     asset_types = channel_tracking.reference.collections()
     response = []
@@ -57,21 +58,22 @@ def list_asset_auto_cc_subscriptions(channel_id, channel_name):
     for asset_type in asset_types:
         tracked_assets = asset_type.get()
         response.append(
-            f"Auto CC is applied to the following {asset_type.id}"
+            f"Auto tracking is applied to the following {asset_type.id}"
             f" and being tracked in {channel_name}:"
         )
         for asset in tracked_assets:
-            response.append(f"{asset.get('asset_id')}: {asset.get('cc_list')}")
+            response.append(f"{asset.get('asset_id')}:"
+                            f" {asset.get('priority_list')}")
 
     if response:
         client.chat_postMessage(channel=channel_id, text="\n".join(response))
     else:
         client.chat_postMessage(channel=channel_id,
                                 text=("No assets are being tracked in"
-                                      f" {channel_name} for auto CC"))
+                                      f" {channel_name} for auto tracking"))
 
 
 if __name__ == "__main__":
     test_channel_id = os.environ.get("TEST_CHANNEL_ID")
     test_channel_name = os.environ.get("TEST_CHANNEL_NAME")
-    list_asset_auto_cc_subscriptions(test_channel_id, test_channel_name)
+    list_autotrack_all(test_channel_id, test_channel_name)
