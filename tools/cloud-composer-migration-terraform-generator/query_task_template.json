@@ -1,0 +1,4 @@
+{
+    "query": "fetch cloud_composer_environment | metric 'composer.googleapis.com/environment/unfinished_task_instances' | filter (resource.environment_name == '$environment_name' && resource.location == '$location') | group_by 30m, [value_unfinished_task_instances_max: max(value.unfinished_task_instances)] | every 30m"
+  }
+
