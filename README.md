@@ -375,6 +375,9 @@ Platform usage.
 *   [Cloud Composer Backup and Recovery](tools/cloud-composer-backup-restore) - A
     command line tool for applying backup and recovery operations on Cloud
     Composer Airflow environments.
+*   [Cloud Composer Migration Terraform Generator](tools/cloud-composer-migration-terraform-generator) - Analyzes an existing Cloud Composer 1
+    / Airflow 1 environment and generates terraform. Configures new Cloud Composer 2
+    environment to meet your workload demands.
 *   [CUD Prioritized Attribution](tools/cuds-prioritized-attribution) - A tool
     that allows GCP customers who purchased Committed Use Discounts (CUDs) to
     prioritize a specific scope (e.g. project or folder) to attribute CUDs first
