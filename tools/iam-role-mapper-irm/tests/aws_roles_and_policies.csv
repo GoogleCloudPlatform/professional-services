@@ -1,0 +1,5 @@
+Role,Policies
+AWSServiceRoleForOrganizations,AWSOrganizationsServiceTrustPolicy
+AWSServiceRoleForSSO,AWSSSOServiceRolePolicy
+AWSServiceRoleForSupport,AWSSupportServiceRolePolicy
+AWSServiceRoleForTrustedAdvisor,AWSTrustedAdvisorServiceRolePolicy
