@@ -29,9 +29,7 @@ logger = logging.getLogger(__name__)
 def edit_asset_auto_cc(channel_id, channel_name, asset_type, asset_id, user_id,
                        cc_list):
     """
-    Add a Google Cloud support case to the tracked_cases collection in
-    Firestore. If the case can"t be found in the list of active support cases,
-    notify the user.
+    Modify the existing Firestore doc that tracks auto cc'd users on cases.
 
     Parameters
     ----------
@@ -75,9 +73,9 @@ def edit_asset_auto_cc(channel_id, channel_name, asset_type, asset_id, user_id,
             asset.update({"cc_list": cc_list})
             client.chat_postMessage(
                 channel=channel_id,
-                text=
-                (f"{channel_name} is now tracking the {asset_type[:-1]} {asset_id} to"
-                 f" auto CC {cc_list}."))
+                text=(
+                 f"{channel_name} is now tracking the {asset_type[:-1]}"
+                 f" {asset_id} to auto CC {cc_list}."))
             return
         except NotFound as e:
             error_message = f"{e} : {datetime.now()}"
@@ -89,8 +87,8 @@ def edit_asset_auto_cc(channel_id, channel_name, asset_type, asset_id, user_id,
         client.chat_postEphemeral(
             channel=channel_id,
             user=user_id,
-            text=
-            (f"The {asset_type} {asset_id} is not currently being tracked in"
+            text=(
+             f"The {asset_type} {asset_id} is not currently being tracked in"
              f" {channel_name}. Use the following command to create a"
              f" tracking: \n /google-cloud-support auto-subscribe {asset_type}"
              f" {asset_id} [email 1] ... [email n]"))
