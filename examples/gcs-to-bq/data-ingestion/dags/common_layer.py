@@ -17,7 +17,6 @@ from airflow.operators.python import get_current_context
 from airflow.utils.trigger_rule import TriggerRule
 from airflow.decorators import task
 from datetime import datetime
-import json
 import os
 
 ################################ Main Workflow steps below ##################################

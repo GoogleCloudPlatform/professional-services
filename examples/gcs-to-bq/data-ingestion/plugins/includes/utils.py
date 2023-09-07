@@ -5,10 +5,9 @@
 import os
 import glob
 import copy
-from yaml import load, CSafeLoader, SafeLoader, dump
-from jinja2 import Environment, FileSystemLoader
+from yaml import load, CSafeLoader
 from includes.loggers import log_warning
-from includes.entities import ProcessingConfig, SourceConfig, DestinationConfig, FeedConfig, json_encoder
+from includes.entities import ProcessingConfig, SourceConfig, DestinationConfig, FeedConfig
 from includes.exceptions import MissingConfigurationException
 
 
