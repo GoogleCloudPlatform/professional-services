@@ -7,58 +7,68 @@ import traceback
 import irm_migration.main_mig as irm_mig
 
 
-def validate_folder_access(input_folder):
-    if os.access(input_folder, os.F_OK) and os.access(input_folder, os.R_OK) and os.access(input_folder, os.W_OK):
+def validate_folder_access(folder):
+    if (
+        os.access(folder, os.F_OK)
+        and os.access(folder, os.R_OK)
+        and os.access(folder, os.W_OK)
+    ):
         return True
     else:
-        msg = f"The following folder may have invalid permissions or may not exist: {input_folder}"
+        msg = f"The following folder may have invalid permissions or may not exist: {folder}"
         logging.error(msg)
 
 
-def main(gcloud_invoke, gcloud_output, output_folder):
+def main(execute, rules_file, generate_report, output_folder):
     try:
         # check validity of input folders
-        if validate_folder_access(output_folder):
-            irm_mig.run_migration(gcloud_invoke, gcloud_output, output_folder)
+        validate_folder_access(output_folder)
+        # pass the input values to the mig class
+        irm_mig.run_migration(execute, rules_file, generate_report, output_folder)
 
     except:
         logging.error("Oops! Ran into an error. Kindly check the trace log")
         traceback.print_exception(*sys.exc_info())
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # Set up a handler for printing INFO logs to the console
     console = logging.StreamHandler()
     console.setLevel(logging.INFO)
-    formatter = logging.Formatter('%(levelname)-8s %(message)s')
+    formatter = logging.Formatter("%(levelname)-8s %(message)s")
     console.setFormatter(formatter)
-    logging.getLogger('').addHandler(console)
+    logging.getLogger("").addHandler(console)
 
     # initialize the input parameters
     parser = argparse.ArgumentParser(
-        description=__doc__,
-        formatter_class=argparse.RawDescriptionHelpFormatter)
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+    )
 
     parser.add_argument(
-        '--execute-gcloud', dest='gcloud_invoke', default=True,
+        "--execute",
+        dest="execute",
+        default=True,
         required=True,
-        help='[REQUIRED]Boolean value to determine if the tool must execute the gcloud commands,[TYPE]=Boolean',
+        help="[REQUIRED]Boolean value to determine if the tool must execute the gcloud commands at the target gcp org,[TYPE]=Boolean",
     )
     parser.add_argument(
-        '--rules_file', dest='rules_file', default= './master-sheet/rules.csv',
-        help='[OPTIONAL]The service account with which the tool runs gcloud commands on target gcp env, [TYPE]=string'
+        "--rules_file",
+        dest="rules_file",
+        default="./master-sheet/rules.csv",
+        help="[OPTIONAL]Location of the rules file if the user wants to pass a custom rules sheet, [TYPE]=string",
     )
     parser.add_argument(
-        '--generate-gcloud-txt', dest='gcloud_output',
-        help='[OPTIONAL]Boolean value to determine if the tool must generate an output text with all gcloud commands,[TYPE]Boolean',
-        default=True
+        "--generate_report",
+        dest="det_report",
+        default=True,
+        help="[OPTIONAL]Boolean value to determine if the detailed report is to be generated at the target output folder. ,[TYPE]Boolean",
     )
     parser.add_argument(
-        '--output-folder', dest='output_folder',
-        help='[OPTIONAL]The folder location to store the gcloud command file ',
-        default=True
+        "--output_folder",
+        dest="output_folder",
+        default="./outputs",
+        help="[OPTIONAL]Location of the rules file if the user wants to pass a custom rules sheet. If no value is provided the default sheet is used.",
     )
 
     args = parser.parse_args()
-    main(args.gcloud_invoke, args.rules_file, args.gcloud_output,
-         args.output_folder)
+    main(args.execute, args.rules_file, args.det_report, args.output_folder)
