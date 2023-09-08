@@ -41,8 +41,8 @@ def get_aws_roles_and_policies():
 
 class MigrationUtility:
     def __init__(self, gcloud_invoke, rules_file, gcloud_output, output_folder):
-        self.gcp_map = None
-        self.role_map = None
+        self.aws_roles_mapped_to_gcp = None
+        self.aws_roles_unmapped = None
         self.unmatched_roles_map = None
         self.gcloud_invoke = gcloud_invoke
         self.rules_file = rules_file
@@ -64,18 +64,20 @@ class MigrationUtility:
     read_csv_to_map(csv_file)
 
     # Generate the GCP role mapping for the AWS policies that can be mapped to GCP roles.
-    # If there are AWS policies that do not map with GCP roles, then add them to unmatched_roles_map.
+    # If there are AWS policies that do not map with GCP roles, then add them to aws_roles_unmapped.
     def generate_maps(self, aws_map):
-        for email, aws_roles in aws_map.items():
-            for aws_role in aws_roles:
-                if aws_role in self.role_map:
-                    if email not in self.gcp_map:
-                        self.gcp_map[email] = []
-                    self.gcp_map[email].append(self.role_map[aws_role])
+        for aws_role, aws_policies in aws_map.items():
+            for aws_policy in aws_policies:
+                if aws_policy in self.role_map:
+                    if aws_role not in self.aws_roles_mapped_to_gcp:
+                        self.aws_roles_mapped_to_gcp[aws_role] = []
+                    self.aws_roles_mapped_to_gcp[aws_role].append(
+                        self.role_map[aws_policy]
+                    )
                 else:
-                    if email not in self.unmatched_roles_map:
-                        self.unmatched_roles_map[email] = []
-                    self.unmatched_roles_map[email].append(aws_role)
+                    if aws_role not in self.aws_roles_unmapped:
+                        self.aws_roles_unmapped[aws_role] = []
+                    self.aws_roles_unmapped[aws_role].append(aws_policy)
 
     def migrate_roles(self):
         role_permissions_map = get_aws_roles_and_policies()
