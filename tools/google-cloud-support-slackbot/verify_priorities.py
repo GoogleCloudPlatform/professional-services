@@ -17,60 +17,49 @@
 import os
 import slack
 import logging
-from datetime import datetime
-from get_parent import get_parent
-from case_not_found import case_not_found
-from support_service import support_service
+from enum import Enum
 
 logger = logging.getLogger(__name__)
 
 
-def support_close_case(channel_id, case, user_id):
+def verify_priorities(channel_id, priorities, user_id):
     """
-    Add a comment to a Google Cloud support case.
+    Changes the priority of a Google Cloud Support case.
 
     Parameters
     ----------
     channel_id : str
       unique string used to idenify a Slack channel. Used to send messages to
       the channel
-    case : str
-      unique id of the case
+    priorities : str[]
+      the current priority of the case, represented as P1, P2, P3, or P4
     user_id : str
       the Slack user_id of the user who submitted the request. Used to send
       ephemeral messages to the user
+
+    Returns
+    ----------
+    bool
+        Validates whether or not all of the provided priorities are in
+        our enum
     """
-    MAX_RETRIES = 3
-
-    service = support_service()
-
+    valid_priorities = Enum('Priority', ['P1', 'P2', 'P3', 'P4'])
     client = slack.WebClient(token=os.environ.get("SLACK_TOKEN"))
-    client.chat_postEphemeral(channel=channel_id,
-                              user=user_id,
-                              text="Your request is processing ...")
-    parent = get_parent(case)
-
-    if parent == "Case not found":
-        case_not_found(channel_id, user_id, case)
-    else:
-        req = service.cases().close(name=parent)
-        try:
-            req.execute(num_retries=MAX_RETRIES)
-        except BrokenPipeError as e:
-            error_message = f"{e} : {datetime.now()}"
-            logger.error(error_message)
+    for priority in priorities:
+        if priority not in valid_priorities.__members__:
             client.chat_postEphemeral(
                 channel=channel_id,
                 user=user_id,
-                text="Your case may not have closed. Please try again later.")
-        else:
-            client.chat_postEphemeral(channel=channel_id,
-                                      user=user_id,
-                                      text=f"You closed case {case}")
+                text=(f"Your priority `{priority}` was not valid. Please"
+                      " provide a priority of value `P1` | `P2` | `P3`| `P4`")
+                )
+            return False
+    return True
 
 
 if __name__ == "__main__":
     test_channel_id = os.environ.get("TEST_CHANNEL_ID")
-    test_case = os.environ.get("TEST_CASE")
+    test_priority = ['P3']
     test_user_id = os.environ.get("TEST_USER_ID")
-    support_close_case(test_channel_id, test_case, test_user_id)
+    verify_priorities(test_channel_id, test_priority,
+                      test_user_id)

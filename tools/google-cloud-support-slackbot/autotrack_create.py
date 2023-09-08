@@ -22,16 +22,16 @@ import firebase_admin
 from firebase_admin import credentials
 from firebase_admin import firestore
 from verify_asset import verify_asset
+from verify_priorities import verify_priorities
 
 logger = logging.getLogger(__name__)
 
 
-def asset_auto_cc(channel_id, channel_name, asset_type, asset_id, user_id,
-                  cc_list):
+def autotrack_create(channel_id, channel_name, asset_type, asset_id, user_id,
+                     priority_list):
     """
-    Add a subscription on Google Cloud resource (Organization, Folder, Project)
-    to automatically CC a specified list of emails to new Google Cloud support
-    cases that fall under the specified resource
+    Automatically track cases on Google Cloud resource (Organization, Folder,
+    Project).
 
     Parameters
     ----------
@@ -49,15 +49,19 @@ def asset_auto_cc(channel_id, channel_name, asset_type, asset_id, user_id,
     user_id : str
       the Slack user_id of the user who submitted the request. Used to send
       ephemeral messages to the user
-    emails : str[]
-      emails to be subscribed to a new case within the given resource
-      automatically
-  """
+    priority_list : str[]
+      case priorities to automatically be tracked
+    """
+    valid_priority = verify_priorities(channel_id, priority_list, user_id)
+    if valid_priority is False:
+        return
+
     valid_asset = verify_asset(channel_id, asset_type, asset_id, user_id)
     if valid_asset is False:
         return
 
     client = slack.WebClient(token=os.environ.get("SLACK_TOKEN"))
+    collection_name = "auto_case_tracker"
 
     if not firebase_admin._apps:
         PROJECT_ID = os.environ.get("PROJECT_ID")
@@ -67,7 +71,7 @@ def asset_auto_cc(channel_id, channel_name, asset_type, asset_id, user_id,
         })
 
     db = firestore.client()
-    tracked_assets = db.collection("tracked_assets")
+    tracked_assets = db.collection(collection_name)
 
     # Explicitly define the channel document to avoid ghost ancestors
     if not tracked_assets.document(channel_id).get().exists:
@@ -84,14 +88,14 @@ def asset_auto_cc(channel_id, channel_name, asset_type, asset_id, user_id,
             channel=channel_id,
             user=user_id,
             text=(f"The {asset_type[:-1]} {asset_id} is already being tracked"
-                  f" in {channel_name}. Consider updating the pre-existing CC"
-                  " list using the following command: \n"
-                  f"/google-cloud-support edit-auto-subscribe {asset_type}"
+                  f" in {channel_name}. Consider updating the pre-existing "
+                  "priorities list using the following command: \n"
+                  f"/google-cloud-support autotrack-edit {asset_type}"
                   f" {asset_id}"
-                  " [email 1] ... [email n]")
-        )
+                  " P1 ... P4")
+            )
     else:
-        collection = f"tracked_assets/{channel_id}/{asset_type}"
+        collection = f"{collection_name}/{channel_id}/{asset_type}"
 
         firestore_write(
             collection, {
@@ -100,13 +104,13 @@ def asset_auto_cc(channel_id, channel_name, asset_type, asset_id, user_id,
                 "channel_id": channel_id,
                 "channel_name": channel_name,
                 "user_id": user_id,
-                "cc_list": cc_list
+                "priority_list": priority_list
             })
 
         client.chat_postMessage(
             channel=channel_id,
-            text=(f"{channel_name} is now tracking the {asset_type[:-1]}"
-                  f" {asset_id} to auto CC {cc_list}.")
+            text=(f"{channel_name} is now auto tracking the {asset_type[:-1]}"
+                  f" {asset_id} for case priorities {priority_list}.")
         )
 
 
@@ -115,6 +119,8 @@ if __name__ == "__main__":
     test_channel_name = os.environ.get("TEST_CHANNEL_NAME")
     test_case = os.environ.get("TEST_CASE")
     test_user_id = os.environ.get("TEST_USER_ID")
-    test_cc_list = ["test123@gmail.com"]
-    asset_auto_cc(test_channel_id, test_channel_name, "projects",
-                  "slackbot-testing", test_user_id, test_cc_list)
+    test_asset_id = os.environ.get("TEST_ASSET_ID")
+    test_priority_list = ["P1", "P2", "P3", "P4"]
+    test_asset = os.environ.get("TEST_ASSET")
+    autotrack_create(test_channel_id, test_channel_name, test_asset,
+                     test_asset_id, test_user_id, test_priority_list)
