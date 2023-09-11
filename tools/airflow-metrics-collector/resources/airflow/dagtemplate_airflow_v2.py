@@ -18,7 +18,6 @@ from airflow.exceptions import AirflowSkipException
 from airflow.providers.google.cloud.operators.bigquery import \
   BigQueryInsertJobOperator
 from airflow.operators.python import PythonOperator
-from airflow.utils.state import DagRunState
 from airflow.models import TaskInstance
 from airflow.models import DagRun
 from airflow import settings

@@ -1,6 +1,8 @@
 # Airflow Metrics Collector 
 
-Python Version : 3.9
+Python Version : 3.9   
+**This tool aggregates dag run task states and runtime, stores the data into BigQuery and creates a LookerStudio dashboard on top of the data.   
+Both Airflow1 and Airflow2 are supported.** 
 
 ## Install Dependencies
 
@@ -24,8 +26,12 @@ https://cloud.google.com/python/setup
 
    `$ pip install -r requirements.txt`
 
+5) For Client authentication, execute:  
+`gcloud auth application-default login`
+
 Now the environment is ready !
 
+**References:**   
 * pip: https://pip.pypa.io/
 * virtualenv: https://virtualenv.pypa.io/
 * Google Cloud SDK: https://cloud.google.com/sdk/
@@ -50,12 +56,27 @@ airflow_metrics_collector.py [-h] \
 ```
 
 Example: 
+### Airflow 1 
+```
+python airflow_metrics_collector.py \
+   --bq-storage-project-id=nikunjbhartia-test-clients \
+   --airflow-version=1 \
+   --dags-gcs-folder=gs://us-central1-test-278acd57-bucket/dags \
+   --ndays-history=5 \
+   --skip-dagids=''
+   
+```
+
+### Airflow 2
+Below example also skips 2 dags for metrics collection: airflow monitoring and current dag.   
+Same flags can be used in Airflow1 example above as well. 
 ```
 python airflow_metrics_collector.py \
    --bq-storage-project-id=nikunjbhartia-test-clients \
    --airflow-version=2 \
    --dags-gcs-folder=gs://us-central1-test-278acd57-bucket/dags \
    --ndays-history=5 \
-   --skip-dagids=['']
+   --airflow-dagid=airflow-metrics-collector \
+   --skip-dagids='airflow-monitoring,airflow-metrics-collector'
    
 ```
