@@ -52,7 +52,7 @@ SKIP_DAG_LIST = $SKIP_DAG_LIST
 
 def collect_all_stats(**kwargs):
   # https://airflow.apache.org/docs/apache-airflow/2.2.3/templates-ref.html
-  # print(kwargs)
+  print(kwargs)
   prev_success_start_time = kwargs.get(
       "prev_data_interval_start_success") or pendulum.now().subtract(days=LAST_NDAYS)
   curr_start_time = kwargs.get("data_interval_start")

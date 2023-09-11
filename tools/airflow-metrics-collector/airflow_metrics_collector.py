@@ -62,7 +62,7 @@ def create_bigquery_resources(args):
 
 def create_looker_studio_url(args):
   ds_configs = {
-      "ds.ds21.datasourceName" : "airflow_latest_view",
+      "ds.ds21.datasourceName" : "airflow_merged_view",
       "ds.ds21.billingProjectId" : args.bq_billing_project_id or args.bq_storage_project_id,
       "ds.ds21.projectId" : args.bq_storage_project_id,
       "ds.ds21.datasetId" : args.bq_storage_dataset,
