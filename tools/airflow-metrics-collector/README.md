@@ -82,5 +82,5 @@ python airflow_metrics_collector.py \
 ```
 
 ### Sample Dashboard Created 
-![Alt text](resources/readme/images/dashboard_ss1.jpg?raw=true)
-![Alt text](resources/readme/images/dashboard_ss2.jpg?raw=true)
+![plot](resources/readme/images/dashboard_ss1.jpg?raw=true)
+![plot](resources/readme/images/dashboard_ss2.jpg?raw=true)
