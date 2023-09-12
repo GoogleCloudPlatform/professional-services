@@ -24,7 +24,8 @@ def main(execute, rules_file, generate_report, output_folder):
         # check validity of input folders
         validate_folder_access(output_folder)
         # pass the input values to the mig class
-        irm_mig.run_migration(execute, rules_file, generate_report, output_folder)
+        # irm_mig.run_migration(execute, rules_file, generate_report, output_folder)
+        # irm_mig.run_migration()
 
     except:
         logging.error("Oops! Ran into an error. Kindly check the trace log")
