@@ -76,11 +76,6 @@ def metrics_collect_and_store_to_bq(**kwargs):
     prev_success_start_time = pendulum.now().subtract(days=LAST_NDAYS)
     curr_start_time = pendulum.now()
 
-  TaskInstance.get_previous_start_date
-  # prev_success_start_time = kwargs.get(
-  #     "prev_data_interval_start_success") or pendulum.now().subtract(days=LAST_NDAYS)
-  # curr_start_time = kwargs.get("data_interval_start") or pendulum.now()
-
   start_time_filter = prev_success_start_time.subtract(minutes=1)
   end_time_filter = curr_start_time.subtract(minutes=1)
 

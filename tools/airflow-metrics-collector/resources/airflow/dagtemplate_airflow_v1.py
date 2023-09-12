@@ -72,14 +72,19 @@ def metrics_collect_and_store_to_bq(**context):
   current_ti = context.get("task_instance")
 
   if current_ti:
-    prev_success_start_time = pendulum.parse(str(current_ti.previous_start_date_success)) or pendulum.now().subtract(days=LAST_NDAYS)
-    print(f"Previous Success TI Start Date: {prev_success_start_time}, stringified val: {str(prev_success_start_time)}")
-    print(f"Current TI Start Date: {current_ti.start_date}, stringified: {str(current_ti.start_date)}")
-    curr_start_time = pendulum.parse(str(current_ti.start_date)) or pendulum.now()
+    prev_success_start_time_obj = current_ti.previous_start_date_success
+    if prev_success_start_time_obj:
+      prev_success_start_time = pendulum.parse(str(prev_success_start_time_obj))
+    else:
+      prev_success_start_time = pendulum.now().subtract(days=LAST_NDAYS)
+
+    curr_start_time_obj = current_ti.start_date
+    curr_start_time = pendulum.parse(str(curr_start_time_obj)) if curr_start_time_obj else pendulum.now()
+    print(f"Previous Success TI Start Date: {prev_success_start_time}")
+    print(f"Current TI Start Date: {current_ti.start_date}")
   else:
     prev_success_start_time = pendulum.now().subtract(days=LAST_NDAYS)
     curr_start_time = pendulum.now()
-
 
   start_time_filter = prev_success_start_time.subtract(minutes=1)
   end_time_filter = curr_start_time.subtract(minutes=1)
