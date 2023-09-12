@@ -69,17 +69,21 @@ def batch(iterable, n=1):
 def metrics_collect_and_store_to_bq(**context):
   # https://airflow.apache.org/docs/apache-airflow/2.2.3/templates-ref.html
   print(context)
-  prev_success_start_time = context.get(
-      "prev_start_date_success") or (datetime.now() - timedelta(days=LAST_NDAYS))
+  current_ti = context.get("task_instance")
 
-  if context.get("ts"):
-    curr_start_time =  pendulum.parse(context.get("ts"))
+  if current_ti:
+    prev_success_start_time = pendulum.parse(str(current_ti.previous_start_date_success)) or pendulum.now().subtract(days=LAST_NDAYS)
+    print(f"Previous Success TI Start Date: {prev_success_start_time}, stringified val: {str(prev_success_start_time)}")
+    print(f"Current TI Start Date: {current_ti.start_date}, stringified: {str(current_ti.start_date)}")
+    curr_start_time = pendulum.parse(str(current_ti.start_date)) or pendulum.now()
   else:
+    prev_success_start_time = pendulum.now().subtract(days=LAST_NDAYS)
     curr_start_time = pendulum.now()
 
-  start_time_filter = pendulum.instance(prev_success_start_time).subtract(minutes=1)
-  end_time_filter = curr_start_time.subtract(minutes=1)
 
+  start_time_filter = prev_success_start_time.subtract(minutes=1)
+  end_time_filter = curr_start_time.subtract(minutes=1)
+  print(f"Task Instance filters: start_time: {str(start_time_filter)}, end_time: {str(end_time_filter)}")
   session = settings.Session()
   query = session.query(
       DagRun.dag_id,
@@ -117,6 +121,7 @@ def metrics_collect_and_store_to_bq(**context):
 
   query_results = query.all()
   print(f"Query : \n{str(query)}")
+  print(f"Query : \n{query.statement.compile(compile_kwargs={'literal_binds': True})}")
   print(f"Query Results Count = {len(query_results)}")
 
   if len(query_results) == 0:
@@ -181,11 +186,11 @@ with DAG(
 ) as dag:
   # Ref: https://airflow.apache.org/docs/apache-airflow/stable/_api/airflow/sensors/python/index.html
   # https://airflow.apache.org/docs/apache-airflow/2.2.3/_api/airflow/sensors/base/index.html
-  metrics_collect_and_store = PythonOperator(
+  states_collect_and_store = PythonOperator(
       task_id=f"collect_and_store2bq",
       python_callable=metrics_collect_and_store_to_bq,
       provide_context=True,
       dag=dag,
   )
 
-  metrics_collect_and_store
+  states_collect_and_store

@@ -12,6 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+
+# Reason for Deprecation
+# This dag uses two task, one for metrics collection using airflow model classes and other using BQ Operator
+# The former task used to create BQ Insert SQL statement and push to xcome pulled by the next task.
+# During scale tests, it was found that the second job might fail if the historic / delta records are too many
+# Hence merging both the collection and BQ execution is important from scale perspective.
+# There is an option of using Python branching / dynamic task genertion based on input records for batching,
+# but no using this approch because that makes debugging difficult, task logs might be lost etc
+# Sample Error recieved in BQ Operator when number of records were greater than 1500:  google.api_core.exceptions.BadRequest: 400 Resources exceeded during query execution: Not enough resources for query planning - too many subqueries or query is too complex.
+# One of the reasons for this failure is the SQL query length which maxes at 1024K characters
+
+
 import airflow
 import pendulum
 from airflow.exceptions import AirflowSkipException
@@ -49,18 +61,6 @@ SCHEDULE_INTERVAL = "$SCHEDULE_INTERVAL"
 CURRENT_DAG_ID = "$CURRENT_DAG_ID"
 LAST_NDAYS = $LAST_NDAYS
 SKIP_DAG_LIST = $SKIP_DAG_LIST
-
-# Note:
-# Reason for Deprecation
-# This dag uses two task, one for metrics collection using airflow model classes and other using BQ Operator
-# The former task used to create BQ Insert SQL statement and push to xcome pulled by the next task.
-# During scale tests, it was found that the second job might fail if the historic / delta records are too many
-# Hence merging both the collection and BQ execution is important from scale perspective.
-# There is an option of using Python branching / dynamic task genertion based on input records for batching,
-# but no using this approch because that makes debugging difficult, task logs might be lost etc
-# Sample Error recieved in BQ Operator when number of records were greater than 1500:  google.api_core.exceptions.BadRequest: 400 Resources exceeded during query execution: Not enough resources for query planning - too many subqueries or query is too complex.
-# One of the reasons for this failure is the SQL query length which maxes at 1024K characters
-
 def collect_all_stats(**kwargs):
   # https://airflow.apache.org/docs/apache-airflow/2.2.3/templates-ref.html
   print(kwargs)
