@@ -29,6 +29,7 @@ from texttable import Texttable
 warnings.filterwarnings("ignore")
 
 #TODO
+# Change repo name to "Airflow States Collector"
 # Test on airflow 1 and airflow2
 # Add description in every function
 # Add tests
@@ -121,7 +122,7 @@ def gcs_path_validation(gcs_path):
 
   raise argparse.ArgumentTypeError('Invalid GCS Path property --dags-gcs-path. Should be of the form: gs://<bucket-name>/<dag-folder-path>')
 
-def print_final_report(bq_resources, dagfile_locs, report_url):
+def print_final_report(bq_resources, dagid, dagfile_locs, report_url):
   LOGGER.info("Final Report :")
   table = Texttable(max_width=0)
   headers = ["Resource", "Reference"]
@@ -129,6 +130,7 @@ def print_final_report(bq_resources, dagfile_locs, report_url):
   table_rows.append(headers)
   table_rows.append(["Metrics BQ Table Name", f"{bq_resources.get('PROJECT')}.{bq_resources.get('DATASET')}.{bq_resources.get('TABLE_NAME')}"])
   table_rows.append(["Metrics BQ Aggregated View", f"{bq_resources.get('PROJECT')}.{bq_resources.get('DATASET')}.{bq_resources.get('VIEW_NAME')}"])
+  table_rows.append(["Airflow DAG ID", dagid])
   table_rows.append(["GCS DAG Location", dagfile_locs.get('gcs_dag_location')])
   table_rows.append(["GCS DAG Public URL", dagfile_locs.get('gcs_dag_public_url')])
   table_rows.append(["Local DAG Location ( Just for reference )", dagfile_locs.get('local_dag_location')])
@@ -149,7 +151,7 @@ def main(args):
     LOGGER.info("Creating LookerStudio Dashboard")
     report_url = create_looker_studio_url(args)
 
-    print_final_report(bq_resources, dagfile_locs, report_url)
+    print_final_report(bq_resources, args.airflow_dagid, dagfile_locs, report_url)
   except Exception as error:
     LOGGER.error(f"{type(error).__name__} :{os.linesep}{error}")
     raise

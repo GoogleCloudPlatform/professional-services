@@ -64,7 +64,7 @@ def main():
 
   try:
     all_uploaded_files = []
-    for i in range(30,50):
+    for i in range(81,100):
       all_uploaded_files.append(store_dag_file_on_gcs_and_local(AIRFLOW_1_GCS, f"airflow_monitoring_{i}", f"dag_airflow_monitoring_{i}.py"))
       all_uploaded_files.append(store_dag_file_on_gcs_and_local(AIRFLOW_2_GCS, f"airflow_monitoring_{i}", f"dag_airflow_monitoring_{i}.py"))
 
