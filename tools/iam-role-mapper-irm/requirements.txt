@@ -1,2 +1,5 @@
-csv
 boto3
+collections
+pandas
+python-docx
+pyyaml
