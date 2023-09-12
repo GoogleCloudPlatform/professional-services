@@ -11,12 +11,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import os
 
 import airflow
 import pendulum
 from airflow.exceptions import AirflowSkipException
-# from airflow.providers.google.cloud.operators.bigquery import BigQueryInsertJobOperator
 from airflow.providers.google.cloud.hooks.bigquery import  BigQueryHook
 from airflow.operators.python_operator import PythonOperator
 from airflow.models import TaskInstance
@@ -52,9 +50,8 @@ CURRENT_DAG_ID = "$CURRENT_DAG_ID"
 LAST_NDAYS = $LAST_NDAYS
 SKIP_DAG_LIST = $SKIP_DAG_LIST
 
-# Dont increase this value
-# Otherwise Error: The query is too large. The maximum standard SQL query length is 1024.00K characters, including comments and white space characters
-INSERT_QUERY_BATCH_SIZE = 20
+#Decrease this value if your get Error: The query is too large. The maximum standard SQL query length is 1024.00K characters, including comments and white space characters
+INSERT_QUERY_BATCH_SIZE = $INSERT_QUERY_BATCH_SIZE
 
 # Need to batch sqls because xcom query fails when a long text is stored with error:
 # ERROR - (_mysql_exceptions.DataError) (1406, "Data too long for column 'value' at row 1")
@@ -69,7 +66,7 @@ def batch(iterable, n=1):
   for ndx in range(0, l, n):
     yield iterable[ndx:min(ndx + n, l)]
 
-def mertics_collect_and_store_to_bq(**context):
+def metrics_collect_and_store_to_bq(**context):
   # https://airflow.apache.org/docs/apache-airflow/2.2.3/templates-ref.html
   print(context)
   prev_success_start_time = context.get(
@@ -111,6 +108,10 @@ def mertics_collect_and_store_to_bq(**context):
           or_(and_(TaskInstance.start_date >= start_time_filter, TaskInstance.start_date < end_time_filter),
               and_(TaskInstance.end_date >= start_time_filter, TaskInstance.end_date < end_time_filter)),
           DagRun.dag_id == TaskInstance.dag_id,
+          # Since Airflow1 doesn't have TaskIntance.run_id, the below execution date filter is used as proxy.
+          # Refer code for TaskInstance.get_dagrun()
+          # IF not used, this would do a cross join between all dagrun tasks with all dagruns
+          DagRun.execution_date == TaskInstance.execution_date,
           DagRun.dag_id.notin_(SKIP_DAG_LIST))) \
     .group_by(DagRun.dag_id, DagRun.run_id, DagRun.state)
 
@@ -123,15 +124,11 @@ def mertics_collect_and_store_to_bq(**context):
     raise AirflowSkipException
 
   index = 0
-  xcom_query_keylist = []
   for query_results_batch in batch(query_results, INSERT_QUERY_BATCH_SIZE):
-    # xcom_query_key = f"bq_insert_key_{index}"
-    # xcom_query_keylist.append(xcom_query_key)
     index = index + 1
     print(f"Executing Batch: {index}")
     print(f"query batch size: {len(query_results_batch)}")
     print(f"query batch result: {query_results_batch}")
-
 
     insert_sql_prefix = f"INSERT INTO `{BQ_PROJECT}.{BQ_AUDIT_DATASET}.{BQ_AUDIT_TABLE}` VALUES "
     insert_values = []
@@ -157,19 +154,15 @@ def mertics_collect_and_store_to_bq(**context):
 
     # End of Outer for loop
     insert_sql = insert_sql_prefix + ",".join(insert_values)
-    # insert_query_sqls.append(insert_sql)
-    # context.get("ti").xcom_push(xcom_query_key, insert_sql)
 
-    # context.get("ti").xcom_push("xcom_query_keylist", xcom_query_keylist)
     job_config = {
         "jobType": "QUERY",
         "query" : {
-          "query": insert_sql,
+          "query": insert_sql.strip(),
           "useLegacySql": False
         }
     }
     print(f"Executing BQ Query : {insert_sql}")
-    # BigQueryHook().run_query(insert_sql, use_legacy_sql=False)
     BigQueryHook().insert_job(configuration=job_config)
 
   return True
@@ -190,7 +183,7 @@ with DAG(
   # https://airflow.apache.org/docs/apache-airflow/2.2.3/_api/airflow/sensors/base/index.html
   metrics_collect_and_store = PythonOperator(
       task_id=f"collect_and_store2bq",
-      python_callable=mertics_collect_and_store_to_bq,
+      python_callable=metrics_collect_and_store_to_bq,
       provide_context=True,
       dag=dag,
   )

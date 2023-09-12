@@ -93,7 +93,8 @@ def store_dag_file_on_gcs_and_local(args):
     "SCHEDULE_INTERVAL" : args.airflow_dag_schedule,
     "CURRENT_DAG_ID" : args.airflow_dagid,
     "LAST_NDAYS" : args.ndays_history,
-    "SKIP_DAG_LIST" : args.skip_dagids.split(",") or [''] #["airflow_monitoring", AIRFLOW_DAG_ID]
+    "SKIP_DAG_LIST" : args.skip_dagids.split(",") or [''], #["airflow_monitoring", AIRFLOW_DAG_ID],
+    "INSERT_QUERY_BATCH_SIZE" : args.bq_insert_batch_size
   }
   dagcontent = get_dag_from_template(
       f"resources{os.sep}airflow{os.sep}dagtemplate_airflow_v{args.airflow_version}.py",
@@ -174,6 +175,7 @@ if __name__ == "__main__":
   parser.add_argument('--airflow-dag-schedule', default="*/5 * * * *", help="(Optional) Airflow dag schedule. Defaults to every 5 mins i.e. '*/5 * * * *'")
   parser.add_argument('--skip-dagids', default='airflow_monitoring', type=str, help="(Optional) Airflow DagIds (comma-seperated) to be skipped for metrics collection. Defaults to 'airflow_monitoring'")
   parser.add_argument('--report-name', default="Airflow Metrics Dashboard", help="(Optional) LookerStudio dashboard name that will be created. Defaults to 'Airflow Metrics Dashboard'")
+  parser.add_argument('--bq-insert-batch-size', default=150, help="(Optional) Number of records in single BQ Insert Query. Defaults to 150. Decrease this value if you observe BQ Query max length failures")
 
   args = parser.parse_args()
   LOGGER.info(f"All Input Argument values: {vars(args)}")

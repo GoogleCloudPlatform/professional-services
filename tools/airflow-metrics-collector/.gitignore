@@ -18,3 +18,5 @@ venv.bak/
 .cache
 .pytest_cache
 __pycache__/
+
+scratch
