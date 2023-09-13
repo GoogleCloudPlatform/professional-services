@@ -554,6 +554,8 @@ Platform usage.
 *   [Composer DAG Load Generator](tools/cloud-composer-dag-generator) - This is an automatic 
     DAG generator tool which can be used to create test workload on a cloud composer environmnet
     and to test differents airflows configurations or to do fine tune using the composer/airflow metrics.
+*   [Gradio and Generative AI Example](examples/genai-gradio-example) - The example code allows developers 
+    to create rapid Generative AI PoC applications with Gradio and Gen AI agents.
 
 ## Contributing
 
