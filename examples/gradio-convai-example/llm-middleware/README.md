@@ -29,12 +29,15 @@ $ python3 app.py
 
 ## API Endpoint
 1. \predict
+```
 Request Payload:
 {
     "user_input" : "How to?",
     "session_id" : "amdm244"
 }
+```
 
+```
 Response Payload:
 {
     "output": "I'm not sure what you mean. Can you rephrase your question?",
