@@ -41,7 +41,7 @@ def store_dag_file_on_gcs_and_local(dags_gcs_folder, dag_id, file_name):
       "DAG_ID" : dag_id
   }
   dagcontent = get_dag_from_template(
-      f"tests{os.sep}resources{os.sep}airflow{os.sep}dagtemplate_airflow_mon.py",
+      f"resources{os.sep}airflow{os.sep}dagtemplate_airflow_mon.py",
       variables)
 
   output_local_dag_filename = f"output/{file_name}"
@@ -64,7 +64,7 @@ def main():
 
   try:
     all_uploaded_files = []
-    for i in range(81,100):
+    for i in range(1,50):
       all_uploaded_files.append(store_dag_file_on_gcs_and_local(AIRFLOW_1_GCS, f"airflow_monitoring_{i}", f"dag_airflow_monitoring_{i}.py"))
       all_uploaded_files.append(store_dag_file_on_gcs_and_local(AIRFLOW_2_GCS, f"airflow_monitoring_{i}", f"dag_airflow_monitoring_{i}.py"))
 

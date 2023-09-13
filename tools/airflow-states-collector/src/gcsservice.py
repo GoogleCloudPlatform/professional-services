@@ -18,6 +18,9 @@ from src.utils import get_logger
 LOGGER = get_logger('gcs-service')
 
 class GCSService(object):
+  """
+  GCS Service for storing text content on gcs and creating GCS objects
+  """
   def __init__(self,
       project=None,
       location='US',

@@ -19,7 +19,8 @@ LOGGER = get_logger('looker-studio-service')
 
 class LookerStudioService(object):
   """
-  This is a Looker Studio Linking APi generation Service
+  Looker Studio Service for dynamically generating LookerStudio Dashboard
+  This uses lookerStudio Linking APi for generating reports using a template report accessible to all
   """
 
   def __init__(self,

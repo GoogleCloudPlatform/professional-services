@@ -28,20 +28,10 @@ from texttable import Texttable
 
 warnings.filterwarnings("ignore")
 
-#TODO
-# Change repo name to "Airflow States Collector"
-# Test on airflow 1 and airflow2
-# Add description in every function
-# Add tests
-# README
-# Error Handling
-# Asset
-# Add log level in all loggers and add more debug logs
-
-LOGGER = get_logger('airflow-metrics-client')
+LOGGER = get_logger('airflow-states-client')
 
 def create_bigquery_resources(args):
-  bq = BQService(job_name="airflow-metrics-client",
+  bq = BQService(job_name="airflow-states-client",
                  query_project=args.bq_billing_project_id or args.bq_storage_project_id,
                  default_project=args.bq_storage_project_id,
                  default_dataset=args.bq_storage_dataset,
@@ -55,7 +45,8 @@ def create_bigquery_resources(args):
       'PROJECT': args.bq_storage_project_id,
       'DATASET': args.bq_storage_dataset,
       'TABLE_NAME': args.bq_table_name,
-      'VIEW_NAME': args.bq_view_name
+      'VIEW_NAME': args.bq_view_name,
+      'EXPIRY_DAYS': args.bq_partition_expiry_days
   }
   bq.run_queries([f"resources{os.sep}bigquery{os.sep}airflow_states_ddls.sql"],**replacements)
   return replacements
@@ -128,8 +119,8 @@ def print_final_report(bq_resources, dagid, dagfile_locs, report_url):
   headers = ["Resource", "Reference"]
   table_rows = []
   table_rows.append(headers)
-  table_rows.append(["Metrics BQ Table Name", f"{bq_resources.get('PROJECT')}.{bq_resources.get('DATASET')}.{bq_resources.get('TABLE_NAME')}"])
-  table_rows.append(["Metrics BQ Aggregated View", f"{bq_resources.get('PROJECT')}.{bq_resources.get('DATASET')}.{bq_resources.get('VIEW_NAME')}"])
+  table_rows.append(["States BQ Table Name", f"{bq_resources.get('PROJECT')}.{bq_resources.get('DATASET')}.{bq_resources.get('TABLE_NAME')}"])
+  table_rows.append(["States BQ Aggregated View", f"{bq_resources.get('PROJECT')}.{bq_resources.get('DATASET')}.{bq_resources.get('VIEW_NAME')}"])
   table_rows.append(["Airflow DAG ID", dagid])
   table_rows.append(["GCS DAG Location", dagfile_locs.get('gcs_dag_location')])
   table_rows.append(["GCS DAG Public URL", dagfile_locs.get('gcs_dag_public_url')])
@@ -163,21 +154,23 @@ if __name__ == "__main__":
       formatter_class=argparse.RawDescriptionHelpFormatter
   )
 
-  parser.add_argument('--bq-storage-project-id', required=True, help='(Required) BigQuery Project where airflow metrics BQ table and views will be created.')
+  parser.add_argument('--bq-storage-project-id', required=True, help='(Required) BigQuery Project where airflow States BQ table and views will be created.')
   parser.add_argument('--dags-gcs-folder', required=True, help="(Required) Airflow DAG folder GCS path. Eg: gs://<bucket-name>/dags", type=gcs_path_validation)
-  parser.add_argument('--ndays-history', required=True, type=int, help="(Required) Number of days for historic metrics collection of all airflow Dags")
+  parser.add_argument('--ndays-history', required=True, type=int, help="(Required) Number of days for historic States collection of all airflow Dags")
   parser.add_argument('--airflow-version', required=True, type=int, choices=[1,2], help="(Required) Airflow Version. Choose between 1 or 2")
   parser.add_argument('--bq-billing-project-id', help='(Optional) BigQuery Project which will be billed for Dashboard Queries. Defaults to storage project')
-  parser.add_argument('--bq-storage-dataset', default="airflow", help="(Optional) BigQuery Dataset for storing airflow metrics tables. Defaults to 'airflow'")
+  parser.add_argument('--bq-storage-dataset', default="airflow", help="(Optional) BigQuery Dataset for storing airflow States tables. Defaults to 'airflow'")
   parser.add_argument('--bq-dataset-location', default="US", help="(Optional) BigQuery Dataset Location. Ideal if its in the same location as airflow. Defaults to 'US'")
-  parser.add_argument('--bq-table-name', default="airflow_metrics", help="(Optional) BigQuery Airflow Metrics Table Name. Defaults to 'airflow_metrics'")
-  parser.add_argument('--bq-view-name', default="airflow_latest_metrics_view", help="(Optional) BigQuery Airflow Metrics View Name which contains latest record for every dagrun's task. Defaults to 'airflow_latest_metrics_view'")
-  parser.add_argument('--airflow-dag-filename', default="dag_airflow_metrics_collector.py", help="(Optional) Airflow dag file name to be stored in GCS. Defaults to 'dag_airflow_metrics_collector.py'")
-  parser.add_argument('--airflow-dagid', default="airflow_metrics_collector", help="(Optional) Airflow dag ID. Defaults to 'airflow_metrics_collector'")
+  parser.add_argument('--bq-table-name', default="airflow_states", help="(Optional) BigQuery Airflow states Table Name. Defaults to 'airflow_states'")
+  parser.add_argument('--bq-partition-expiry-days', default=30, help="(Optional) Number of latest partitions to keep in the Airflow States table. Default to 30 days")
+  parser.add_argument('--bq-view-name', default="airflow_latest_states_view", help="(Optional) BigQuery Airflow states View Name which contains latest record for every dagrun's task. Defaults to 'airflow_latest_states_view'")
+  parser.add_argument('--airflow-dag-filename', default="dag_airflow_states_collector.py", help="(Optional) Airflow dag file name to be stored in GCS. Defaults to 'dag_airflow_states_collector.py'")
+  parser.add_argument('--airflow-dagid', default="airflow_states_collector", help="(Optional) Airflow dag ID. Defaults to 'airflow_states_collector'")
   parser.add_argument('--airflow-dag-schedule', default="*/5 * * * *", help="(Optional) Airflow dag schedule. Defaults to every 5 mins i.e. '*/5 * * * *'")
-  parser.add_argument('--skip-dagids', default='airflow_monitoring', type=str, help="(Optional) Airflow DagIds (comma-seperated) to be skipped for metrics collection. Defaults to 'airflow_monitoring'")
-  parser.add_argument('--report-name', default="Airflow Metrics Dashboard", help="(Optional) LookerStudio dashboard name that will be created. Defaults to 'Airflow Metrics Dashboard'")
+  parser.add_argument('--skip-dagids', default='airflow_monitoring', type=str, help="(Optional) Airflow DagIds (comma-seperated) to be skipped for states collection. Defaults to 'airflow_monitoring'")
+  parser.add_argument('--report-name', default="Airflow States Dashboard", help="(Optional) LookerStudio dashboard name that will be created. Defaults to 'Airflow States Dashboard'")
   parser.add_argument('--bq-insert-batch-size', default=150, help="(Optional) Number of records in single BQ Insert Query. Defaults to 150. Decrease this value if you observe BQ Query max length failures")
+
 
   args = parser.parse_args()
   LOGGER.info(f"All Input Argument values: {vars(args)}")
