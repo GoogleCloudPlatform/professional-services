@@ -89,7 +89,7 @@ def store_dag_file_on_gcs_and_local(args):
     "INSERT_QUERY_BATCH_SIZE" : args.bq_insert_batch_size
   }
   dagcontent = get_dag_from_template(
-      f"resources{os.sep}airflow{os.sep}dagtemplate_airflow_v{args.airflow_version}.py",
+      f"resources{os.sep}airflow{os.sep}dagtemplate_airflow_v{args.airflow_version}.txt",
       variables)
 
   output_local_dag_filename = f"output/{args.airflow_dag_filename}"
