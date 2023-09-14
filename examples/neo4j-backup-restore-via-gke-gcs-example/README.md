@@ -11,7 +11,7 @@
           ├── backup-cronjob.yaml  #(Cronjob configuration)
           └── deploy-exec.sh  #(Executable for backup deployment)
     └── docker
-          ├── Dockerfile  #(Backup pod docker mage)
+          ├── Dockerfile  #(Backup pod docker image)
           ├── backup-via-admin.sh #(Helper used by docker image)
           └── pod-image-exec.sh #(Executable for build & push docker image)
     ├── neo4j-backup-architecture.png
