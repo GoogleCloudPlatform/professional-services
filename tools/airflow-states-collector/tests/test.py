@@ -28,7 +28,7 @@ class TestMethods(unittest.TestCase):
 
   def test_dag_content(self):
     self.maxDiff = None
-    input_filepath = os.path.dirname(os.path.abspath(__file__)) + f"/resources{os.sep}airflow{os.sep}template{os.sep}dagtemplate_airflow_v1.py"
+    input_filepath = os.path.dirname(os.path.abspath(__file__)) + f"/resources{os.sep}airflow{os.sep}template{os.sep}dagtemplate_airflow_v1.txt"
     expected_outputfilepath = os.path.dirname(os.path.abspath(__file__)) + f"/resources{os.sep}airflow{os.sep}output{os.sep}dag_airflow_states_collector.py"
     dag_variables = {
         "BQ_PROJECT" : "test-project",
