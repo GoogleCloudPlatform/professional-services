@@ -41,7 +41,7 @@ def store_dag_file_on_gcs_and_local(dags_gcs_folder, dag_id, file_name):
       "DAG_ID" : dag_id
   }
   dagcontent = get_dag_from_template(
-      f"resources{os.sep}airflow{os.sep}dagtemplate_airflow_mon.py",
+      f"resources{os.sep}airflow{os.sep}template{os.sep}dagtemplate_airflow_mon.py",
       variables)
 
   output_local_dag_filename = f"output/{file_name}"
