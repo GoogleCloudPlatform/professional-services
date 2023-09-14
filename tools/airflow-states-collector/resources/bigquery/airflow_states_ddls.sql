@@ -33,6 +33,6 @@ FROM (
       t.updated_ts as task_updated_ts,
       created_at,
       ROW_NUMBER() OVER (PARTITION BY dag_id, run_id, t.job_id ORDER BY COALESCE(t.end_ts, t.start_ts, run_end_ts, run_start_ts, created_at) DESC) as task_rk,
-      ROW_NUMBER() OVER (PARTITION BY dag_id, run_id  ORDER BY COALESCE(run_end_ts, run_start_ts, created_at) DESC) as dagrun_rk
+      ROW_NUMBER() OVER (PARTITION BY dag_id, run_id  ORDER BY COALESCE(t.end_ts, t.start_ts) DESC) as dagrun_rk
   FROM `{{ PROJECT }}.{{ DATASET }}.{{ TABLE_NAME }}`, UNNEST(updated_tasks) as t)
 WHERE task_rk = 1 ;
