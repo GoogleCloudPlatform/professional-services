@@ -104,7 +104,7 @@ $ ./restore/restore-exec.sh
 This software uses the following open source packages:
 
 - [GKE Cronjobs](https://cloud.google.com/kubernetes-engine/docs/how-to/cronjobs)
-- [Artifact Registory](https://cloud.google.com/artifact-registry)
+- [Artifact Registry](https://cloud.google.com/artifact-registry)
 - [Dockerfile](https://docs.docker.com/develop/develop-images/dockerfile_best-practices/)
 - [Neo4j Enterprise](https://neo4j.com/licensing/)
 
