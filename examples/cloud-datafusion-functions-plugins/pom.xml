@@ -40,7 +40,7 @@
     <main.basedir>${project.basedir}</main.basedir>
     <google.cloud.bigquery.version>1.72.0</google.cloud.bigquery.version>
     <google.cloud.monitoring.version>1.72.0</google.cloud.monitoring.version>
-    <protobuf.java.version>3.7.1</protobuf.java.version>
+    <protobuf.java.version>3.16.3</protobuf.java.version>
     <google.cloud.storage.version>1.98.0</google.cloud.storage.version>
     <retrofit.version>2.6.0</retrofit.version>
     <okhttp.version>4.2.1</okhttp.version>
@@ -193,7 +193,7 @@
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>
-      <version>2.9.7</version>
+      <version>2.12.7.1</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
