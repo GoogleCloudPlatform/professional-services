@@ -73,10 +73,14 @@ def track_case(channel_id, channel_name, case, user_id):
                 channel=channel_id,
                 text=f"{channel_name} is now tracking case {case}")
         else:
-            client.chat_postEphemeral(
-                channel=channel_id,
-                user=user_id,
-                text=f"Case {case} is already being tracked in {channel_name}")
+            try:
+                client.chat_postEphemeral(
+                    channel=channel_id,
+                    user=user_id,
+                    text=(f"Case {case} is already being"
+                          f" tracked in {channel_name}"))
+            except slack.errors.SlackApiError:
+                pass
 
 
 if __name__ == "__main__":

@@ -16,12 +16,11 @@
 
 import os
 import slack
-import requests
 import logging
 from datetime import datetime
 from get_firestore_cases import get_firestore_cases
 from case_not_found import case_not_found
-from googleapiclient.discovery import build_from_document
+from support_service import support_service
 from googleapiclient.errors import HttpError
 
 logger = logging.getLogger(__name__)
@@ -50,21 +49,17 @@ def support_subscribe_email(channel_id, case, emails, user_id):
         a list of unique emails that have been newly added to the Google
         Cloud Support case
     """
-    API_KEY = os.environ.get("API_KEY")
     MAX_RETRIES = 3
 
-    # Get our discovery doc and build our service
-    r = requests.get(
-        f"https://cloudsupport.googleapis.com/$discovery/rest?key={API_KEY}&labels=V2_TRUSTED_TESTER&version=v2beta",
-        timeout=5)
-    r.raise_for_status()
-    support_service = build_from_document(r.json())
+    service = support_service()
 
     client = slack.WebClient(token=os.environ.get("SLACK_TOKEN"))
-    client.chat_postEphemeral(channel=channel_id,
-                              user=user_id,
-                              text="Your request is processing ...")
-
+    try:
+        client.chat_postEphemeral(channel=channel_id,
+                                  user=user_id,
+                                  text="Your request is processing ...")
+    except slack.errors.SlackApiError:
+        pass
     cases = get_firestore_cases()
     case_found = False
 
@@ -73,7 +68,7 @@ def support_subscribe_email(channel_id, case, emails, user_id):
             case_found = True
             parent = fs_case["resource_name"]
 
-            get_case_req = support_service.cases().get(name=parent)
+            get_case_req = service.cases().get(name=parent)
 
             try:
                 # Retrieve current list of CC'd emails
@@ -81,7 +76,8 @@ def support_subscribe_email(channel_id, case, emails, user_id):
                 new_cc = emails
                 if "subscriberEmailAddresses" in case_details:
                     current_cc = case_details["subscriberEmailAddresses"]
-                    # List of added emails not already in CC list for notifications
+                    # List of added emails not already in CC list for
+                    # notifications
                     new_cc = [x for x in emails if x not in current_cc]
                     # Update list
                     emails.extend(current_cc)
@@ -89,37 +85,44 @@ def support_subscribe_email(channel_id, case, emails, user_id):
                 # Update CC list
                 body = {"subscriberEmailAddresses": [emails]}
                 update_mask = "subscriberEmailAddresses"
-                update_req = support_service.cases().patch(
+                update_req = service.cases().patch(
                     name=parent, updateMask=update_mask, body=body)
                 update_req.execute(num_retries=MAX_RETRIES)
             except BrokenPipeError as e:
                 error_message = f"{e} : {datetime.now()}"
                 logger.error(error_message)
-                client.chat_postEphemeral(
-                    channel=channel_id,
-                    user=user_id,
-                    text=
-                    "Your attempt to change the subscriber email addresses has failed."
-                    + " Please try again later.")
+                try:
+                    client.chat_postEphemeral(
+                        channel=channel_id,
+                        user=user_id,
+                        text=(
+                              "Your attempt to change the subscriber email"
+                              " addresses has failed. Please try again"
+                              " later."))
+                except slack.errors.SlackApiError:
+                    pass
             except HttpError as e:
                 error_message = f"{e} : {datetime.now()}"
                 logger.error(error_message)
-                client.chat_postEphemeral(
-                    channel=channel_id,
-                    user=user_id,
-                    text=
-                    ("Your attempt to change the subscriber email addresses has failed."
-                     " Please confirm that 'Enable case sharing' is on in your"
-                     " project's Support settings. If this setting was off, then for"
-                     " this case you will need to ask support to add the email"
-                     " addresses."))
+                try:
+                    client.chat_postEphemeral(
+                        channel=channel_id,
+                        user=user_id,
+                        text=(
+                              "Your attempt to change the subscriber email"
+                              " addresses has failed. Please confirm that"
+                              " 'Enable case sharing' is on in your project's"
+                              " Support settings. If this setting was off,"
+                              " then for this case you will need to ask"
+                              " support to add the email addresses."))
+                except slack.errors.SlackApiError:
+                    pass
             else:
                 updated_cc_list = list(set(emails))
-                client.chat_postEphemeral(
+                client.chat_postMessage(
                     channel=channel_id,
-                    user=user_id,
-                    text=("You have updated the subcscriber email addreses for"
-                          f"{case} to {updated_cc_list}"))
+                    text=(f"The subcscriber email addresses for {case}"
+                          f" have been updated to {updated_cc_list}"))
 
                 return new_cc
 
