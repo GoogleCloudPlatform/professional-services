@@ -16,12 +16,11 @@
 
 import os
 import slack
-import requests
 import logging
 from datetime import datetime
 from get_parent import get_parent
 from case_not_found import case_not_found
-from googleapiclient.discovery import build_from_document
+from support_service import support_service
 
 logger = logging.getLogger(__name__)
 
@@ -41,15 +40,9 @@ def support_close_case(channel_id, case, user_id):
       the Slack user_id of the user who submitted the request. Used to send
       ephemeral messages to the user
     """
-    API_KEY = os.environ.get("API_KEY")
     MAX_RETRIES = 3
 
-    # Get our discovery doc and build our service
-    r = requests.get(
-        f"https://cloudsupport.googleapis.com/$discovery/rest?key={API_KEY}&labels=V2_TRUSTED_TESTER&version=v2beta",
-        timeout=5)
-    r.raise_for_status()
-    support_service = build_from_document(r.json())
+    service = support_service()
 
     client = slack.WebClient(token=os.environ.get("SLACK_TOKEN"))
     client.chat_postEphemeral(channel=channel_id,
@@ -60,7 +53,7 @@ def support_close_case(channel_id, case, user_id):
     if parent == "Case not found":
         case_not_found(channel_id, user_id, case)
     else:
-        req = support_service.cases().close(name=parent)
+        req = service.cases().close(name=parent)
         try:
             req.execute(num_retries=MAX_RETRIES)
         except BrokenPipeError as e:

@@ -14,13 +14,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
 import re
 import logging
 import time
-import requests
 from datetime import datetime
-from googleapiclient.discovery import build_from_document
+from support_service import support_service
 
 logger = logging.getLogger(__name__)
 
@@ -34,7 +32,8 @@ class SupportCase:
     case_number : str
       a unique string of numbers that is the id for the case
     resource_name : str
-      a unique string including the org or project id and the case id, examples:
+      a unique string including the org or project id and the
+      case id, examples:
       organizations/12345/cases/67890
       projects/12345/cases/67890
     case_title : str
@@ -46,7 +45,7 @@ class SupportCase:
       the response until after a case has been escalated. True means the case
       is escalated
     case_creator : str
-      name of the user that opened the support case
+      name of the user that opened the support case. not a mandatory field
     create_time : str
       timestamp of when the case was created
     update_time : str
@@ -69,14 +68,8 @@ class SupportCase:
             json for an individual case
         """
         MAX_RETRIES = 3
-        API_KEY = os.environ.get("API_KEY")
 
-        # Get our discovery doc and build our service
-        r = requests.get(
-            f"https://cloudsupport.googleapis.com/$discovery/rest?key={API_KEY}&labels=V2_TRUSTED_TESTER&version=v2beta",
-            timeout=5)
-        r.raise_for_status()
-        support_service = build_from_document(r.json())
+        service = support_service()
 
         self.case_number = re.search("(?:cases/)([0-9]+)", caseobj["name"])[1]
         self.resource_name = caseobj["name"]
@@ -86,7 +79,10 @@ class SupportCase:
             self.escalated = caseobj["escalated"]
         else:
             self.escalated = False
-        self.case_creator = caseobj["creator"]["displayName"]
+        try:
+            self.case_creator = caseobj["creator"]["displayName"]
+        except KeyError:
+            self.case_creator = ""
         self.create_time = str(
             datetime.fromisoformat(caseobj["createTime"].replace("Z",
                                                                  "+00:00")))
@@ -96,7 +92,7 @@ class SupportCase:
         self.priority = caseobj["severity"].replace("S", "P")
         self.state = caseobj["state"]
         self.comment_list = []
-        case_comments = support_service.cases().comments()
+        case_comments = service.cases().comments()
         request = case_comments.list(parent=self.resource_name)
         while request is not None:
             try:
