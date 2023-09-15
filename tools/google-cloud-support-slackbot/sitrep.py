@@ -64,8 +64,10 @@ def sitrep(channel_id):
 
         report = report + (
             f"\n{case['case_number']}, {case['priority']},"
-            f" {case['case_title']}, { case['escalated']}, {case['create_time']},"
-            f" {case['update_time']}, {case['state']}, {case['case_creator']}")
+            f" {case['case_title']}, { case['escalated']},"
+            f" {case['create_time']}, {case['update_time']},"
+            f" {case['state']}, {case['case_creator']}"
+        )
 
     report = report + (f"\n\n"
                        f"\n{p1} P1 cases are open"

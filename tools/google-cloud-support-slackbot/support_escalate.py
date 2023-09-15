@@ -20,12 +20,11 @@ we avoid flooding them with false alarms.
 """
 import os
 import slack
-import requests
 import logging
 from datetime import datetime
 from get_parent import get_parent
 from case_not_found import case_not_found
-from googleapiclient.discovery import build_from_document
+from support_service import support_service
 
 logger = logging.getLogger(__name__)
 
@@ -59,14 +58,8 @@ def support_escalate(channel_id, case, user_id, reason, justification,
     """
     client = slack.WebClient(token=os.environ.get("SLACK_TOKEN"))
     MAX_RETRIES = 3
-    API_KEY = os.environ.get("API_KEY")
 
-    # Get our discovery doc and build our service
-    r = requests.get(
-        f"https://cloudsupport.googleapis.com/$discovery/rest?key={API_KEY}&labels=V2_TRUSTED_TESTER&version=v2beta",
-        timeout=5)
-    r.raise_for_status()
-    support_service = build_from_document(r.json())
+    service = support_service()
 
     client.chat_postEphemeral(channel=channel_id,
                               user=user_id,
@@ -76,15 +69,15 @@ def support_escalate(channel_id, case, user_id, reason, justification,
         case_not_found(channel_id, user_id, case)
     else:
         signed_justification = (
-            justification + (f"\n *Sent by {user_name} via Google Cloud Support"
-                             "Slack bot"))
+            justification + (f"\n *Sent by {user_name} via Google Cloud"
+                             " Support Slack bot"))
         body = {
             "escalation": {
                 "reason": reason,
                 "justification": signed_justification
             }
         }
-        req = support_service.cases().escalate(name=parent, body=body)
+        req = service.cases().escalate(name=parent, body=body)
         try:
             req.execute(num_retries=MAX_RETRIES)
         except BrokenPipeError as e:
@@ -93,9 +86,9 @@ def support_escalate(channel_id, case, user_id, reason, justification,
             client.chat_postEphemeral(
                 channel=channel_id,
                 user=user_id,
-                text=
-                ("Your attempt to escalate may have failed. Please contact your"
-                 " account team or try again later."))
+                text=(
+                      "Your attempt to escalate may have failed. Please"
+                      " contact your account team or try again later."))
         else:
             client.chat_postEphemeral(channel=channel_id,
                                       user=user_id,
@@ -103,7 +96,8 @@ def support_escalate(channel_id, case, user_id, reason, justification,
 
 
 if __name__ == "__main__":
-    # Please only test this functionality if the command is failing in production
+    # Please only test this functionality if the command is failing
+    # in production
     are_you_sure_about_that = False
     if are_you_sure_about_that:
         test_channel_id = os.environ.get("TEST_CHANNEL_ID")
