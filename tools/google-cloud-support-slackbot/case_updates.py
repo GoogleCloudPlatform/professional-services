@@ -17,20 +17,23 @@
 import os
 import logging
 import time
-import requests
 import re
 import firebase_admin
 from datetime import datetime
-from googleapiclient.discovery import build_from_document, build
+from support_service import support_service
+from googleapiclient.discovery import build
 from firestore_write import firestore_write
 from get_firestore_cases import get_firestore_cases
 from get_firestore_first_in import get_firestore_first_in
+from get_firestore_tracked_cases import get_firestore_tracked_cases
 from firestore_delete_cases import firestore_delete_cases
 from notify_slack import notify_slack
 from support_case import SupportCase
 from firebase_admin import credentials
 from firebase_admin import firestore
 from get_parent import get_parent
+from track_case import track_case
+from case_details import case_details
 from support_subscribe_email import support_subscribe_email
 from support_add_comment import support_add_comment
 
@@ -52,16 +55,10 @@ def case_updates(is_test):
       flag indicating if we are running the loop a single time for testing
     """
     ORG_ID = os.environ.get("ORG_ID")
-    API_KEY = os.environ.get("API_KEY")
     # Must be double quotes for the query
     query_string = f'organization="organizations/{ORG_ID}" AND state=OPEN'
 
-    # Get our discovery doc and build our service
-    r = requests.get(
-        f"https://cloudsupport.googleapis.com/$discovery/rest?key={API_KEY}&labels=V2_TRUSTED_TESTER&version=v2beta",
-        timeout=5)
-    r.raise_for_status()
-    support_service = build_from_document(r.json())
+    service = support_service()
 
     if not firebase_admin._apps:
         PROJECT_ID = os.environ.get("PROJECT_ID")
@@ -75,7 +72,7 @@ def case_updates(is_test):
         sleep_timer = 10
         closed_cases = []
         cases = get_firestore_cases()
-        req = support_service.cases().search(query=query_string)
+        req = service.cases().search(query=query_string)
         try:
             resp = req.execute(num_retries=MAX_RETRIES).get("cases", [])
         except BrokenPipeError as e:
@@ -121,8 +118,8 @@ def case_updates(is_test):
                         notify_slack(fs_case["case_number"], "closed", "")
                         closed_cases.append(fs_case["case_number"])
 
-        # Check for existing cases that have a new update time. Post their relevant
-        # update to the channels that are tracking those cases.
+        # Check for existing cases that have a new update time. Post their
+        # relevant update to the channels that are tracking those cases.
         for t_case in temp_cases:
             is_new = True
             for fs_case in cases:
@@ -132,7 +129,8 @@ def case_updates(is_test):
                         guid = firestore_write("cases", t_case)
                         first_doc_in = get_firestore_first_in(
                             t_case["case_number"], t_case["update_time"])
-                    if fs_case["comment_list"] != t_case["comment_list"]:
+                    if len(fs_case["comment_list"]) < len(
+                           t_case["comment_list"]):
                         if "googleSupport" in t_case["comment_list"][0][
                                 "creator"]:
                             if guid == first_doc_in["guid"]:
@@ -156,6 +154,7 @@ def case_updates(is_test):
             if is_new:
                 firestore_write("cases", t_case)
                 auto_cc(t_case)
+                auto_track(t_case)
 
         # Wait to try again so we don"t spam the API
         time.sleep(sleep_timer)
@@ -168,8 +167,8 @@ def case_updates(is_test):
 
 
 def auto_cc(case):
-    # Loop through all the Channel IDs and check which ones have the new case in
-    # their auto cc tracking
+    # Loop through all the Channel IDs and check which ones have the new case
+    # in their auto cc tracking
     collection = "tracked_assets"
     db = firestore.client()
     tracked_assets = db.collection(collection).get()
@@ -200,7 +199,8 @@ def auto_cc(case):
 
         project_id = project_id.split("/")[1]
         # 'parent' is either org due to no folders in between project & org
-        # or we've reached the top level folder in hierarchy after folder traversal
+        # or we've reached the top level folder in hierarchy after folder
+        # traversal
         org_id = parent_id
 
     for channel in tracked_assets:
@@ -215,8 +215,8 @@ def auto_cc(case):
             folder_new_emails.extend(
                 tracking_check(channel_doc, "folders", folder, case_num))
         # Project check
-        project_new_emails = tracking_check(channel_doc, "projects", project_id,
-                                            case_num)
+        project_new_emails = tracking_check(channel_doc, "projects",
+                                            project_id, case_num)
         combined_new_emails = []
         for emails in (org_new_emails, folder_new_emails, project_new_emails):
             joined = ", ".join(emails)
@@ -224,29 +224,111 @@ def auto_cc(case):
                 combined_new_emails.append(joined)
 
         if combined_new_emails:
-            response = (
-                "The following emails have been added automatically through"
-                f" asset subscription: {', '.join(combined_new_emails)}")
+            response = ("The following emails have been added automatically"
+                        " through asset subscription:"
+                        f" {', '.join(combined_new_emails)}")
 
-            # Write a comment on the case to notify all newly added emails. Silence
-            # the Slack messages to avoid spam. Can leave user_id blank since we're
-            # silencing the Slack notifications
+            # Write a comment on the case to notify all newly added emails.
+            # Silence the Slack messages to avoid spam. Can leave user_id blank
+            # since we're silencing the Slack notifications
             support_add_comment(channel.id, case_num, response, "",
                                 "Auto Asset Subscription", False)
+
+
+def auto_track(case):
+    # Loop through all the autotracked assets and track our case if it belongs
+    # to any of them
+    collection = "auto_case_tracker"
+    db = firestore.client()
+    tracked_assets = db.collection(collection).get()
+    case_num = case["case_number"]
+    case_priority = case["priority"]
+    case_parent = get_parent(case_num)
+    project_id = re.search("projects\/[^\/]+", case_parent).group()
+
+    with build("cloudresourcemanager", "v3") as service:
+        projects = service.projects()
+        folders = service.folders()
+        try:
+            project_req = projects.get(name=project_id)
+            case_project = project_req.execute(num_retries=MAX_RETRIES)
+            parent = case_project["parent"]
+            parent_type, parent_id = parent.split('/')
+            folder_ids = []
+            while parent_type == "folders":
+                folder_ids.append(parent_id)
+                folder_req = folders.get(name=parent)
+                folder_resp = folder_req.execute(num_retries=MAX_RETRIES)
+                parent = folder_resp["parent"]
+                parent_type, parent_id = parent.split('/')
+
+        except BrokenPipeError as e:
+            error_message = f"{e} : {datetime.now()}"
+            logger.error(error_message)
+            return
+
+        project_id = project_id.split("/")[1]
+        # 'parent' is either org due to no folders in between project & org
+        # or we've reached the top level folder in hierarchy after folder
+        # traversal
+        org_id = parent_id
+
+    for channel in tracked_assets:
+        channel_doc = db.document(f"{collection}/{channel.id}")
+        tracked_cases = get_firestore_tracked_cases()
+        exists = False
+
+        for tc in tracked_cases:
+            if tc["channel_id"] == channel_doc and tc["case"] == case_num:
+                exists = True
+                break
+
+        if exists is True:
+            continue
+
+        # Organization check
+        reported = autotrack_case(channel_doc, "organizations", org_id,
+                                  case_num, case_priority)
+        if reported is True:
+            continue
+        # Folder check
+        for folder in folder_ids:
+            reported = autotrack_case(channel_doc, "folders", folder, case_num,
+                                      case_priority)
+        if reported is True:
+            continue
+        # Project check
+        autotrack_case(channel_doc, "projects", project_id, case_num,
+                       case_priority)
 
 
 def tracking_check(channel, asset_type, asset_id, case_num):
     asset = channel.collection(asset_type).get()
     for item in asset:
         item_dict = item.to_dict()
-
+        print("Item dict: ", item_dict)
         if item_dict["asset_id"] == asset_id:
-            # print(item_dict)
+            # Skipping user_id since to not bombard requester with noise
             new_emails = support_subscribe_email(item_dict["channel_id"],
-                                                 case_num, item_dict["cc_list"],
-                                                 item_dict["user_id"])
+                                                 case_num,
+                                                 item_dict["cc_list"],
+                                                 "")
             return new_emails
     return []
+
+
+def autotrack_case(channel, asset_type, asset_id, case_num, case_priority):
+    asset = channel.collection(asset_type).get()
+    for item in asset:
+        item_dict = item.to_dict()
+        if (item_dict["asset_id"] == asset_id and case_priority
+                in item_dict["priority_list"]):
+            # Skipping user_id to not bombard autotrack requester with noise
+            track_case(item_dict["channel_id"], item_dict["channel_name"],
+                       case_num, "")
+            case_details(item_dict["channel_id"], case_num, "")
+            return True
+    return False
 
 
 if __name__ == "__main__":

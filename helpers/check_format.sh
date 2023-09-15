@@ -50,7 +50,7 @@ validate_bash() {
     then
         for FILE_TO_CHECK in $FILES_TO_CHECK
         do
-            if ! shellcheck "$FILE_TO_CHECK";
+            if ! shellcheck -x "$FILE_TO_CHECK";
             then
                 FILES_TO_LINT+="$FILE_TO_CHECK "
             fi
