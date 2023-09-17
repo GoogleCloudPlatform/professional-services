@@ -33,6 +33,7 @@ resource "azurerm_public_ip" "azure_vpn_gateway_public_ip_1" {
   resource_group_name = var.azure_resource_group
   allocation_method   = "Static"
   sku                 = "Standard"
+  zones               = contains(var.azure_vpn_allowed_az_skus, var.azure_vpn_sku) ? ["1", "2", "3"] : []
 }
 
 resource "azurerm_public_ip" "azure_vpn_gateway_public_ip_2" {
@@ -41,6 +42,7 @@ resource "azurerm_public_ip" "azure_vpn_gateway_public_ip_2" {
   resource_group_name = var.azure_resource_group
   allocation_method   = "Static"
   sku                 = "Standard"
+  zones               = contains(var.azure_vpn_allowed_az_skus, var.azure_vpn_sku) ? ["1", "2", "3"] : []
 }
 
 # Azure VPN Gateway and connections
