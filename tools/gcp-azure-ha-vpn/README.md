@@ -86,6 +86,7 @@ Update `terraform.tfvars` file in the same directory as the Terraform configurat
 | azure_resource_group    | The Azure resource group                | Yes      |         |
 | azure_bgp_asn           | The Azure BGP ASN                       | Yes      |  65515  |
 | azure_vpn_sku           | The Azure VPN Sku                       | Yes      |  VpnGw1 |
+| azure_vpn_allowed_az_skus           | The Azure VPN Availability Zones Allowed SKUs                       | No      |  ["VpnGw1AZ", "VpnGw2AZ", "VpnGw3AZ", "VpnGw4AZ", "VpnGw5AZ"] |
 
 Replace the values as per your need.
 
