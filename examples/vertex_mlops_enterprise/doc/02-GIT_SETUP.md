@@ -10,9 +10,11 @@ cd professional-services/
 
 Setup your new Github repo.
 
-Copy the `vertex_mlops_enterprise` folder to your local folder
+Copy the `vertex_mlops_enterprise` folder to your local folder, including the Github actions:
+
 ```
 cp -R ./examples/vertex_mlops_enterprise/* ./<YOUR LOCAL FOLDER>
+cp -R ./examples/vertex_mlops_enterprise/.github ./<YOUR LOCAL FOLDER>
 ```
 
 Commit the files in the main branch (`main`):
