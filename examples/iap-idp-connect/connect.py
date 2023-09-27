@@ -11,16 +11,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from google.cloud import compute_v1
-from firebase_admin import tenant_mgt
-from google.cloud import iap_v1
-from google.cloud import api_keys_v2
-from exceptions.connector_exception import ConnectorException
-import google.auth
 import sys
 import argparse
 import firebase_admin
-import requests
+import google.auth
+from google.cloud import compute_v1, iap_v1, api_keys_v2
+from firebase_admin import tenant_mgt
+from exceptions.connector_exception import ConnectorException
 from utils.validator import validate_comma_separated_string
 
 """
@@ -41,7 +38,7 @@ from utils.validator import validate_comma_separated_string
 
 
 def update_iap_settings(
-    credentials, project_id, sign_in_url, backend, api_key_arg, tenant_ids
+        credentials, project_id, sign_in_url, backend, api_key_arg, tenant_ids
 ):
     # Initialize the IAP Admin client
     client = iap_v1.IdentityAwareProxyAdminServiceClient(credentials=credentials)
@@ -226,12 +223,12 @@ def validate_tenant_ids(all_tenant_ids, tenant_ids):
 
 
 def run(
-    credentials,
-    project_id,
-    sign_in_url,
-    tenant_ids_arg,
-    backend_services_arg,
-    api_key_arg,
+        credentials,
+        project_id,
+        sign_in_url,
+        tenant_ids_arg,
+        backend_services_arg,
+        api_key_arg,
 ):
     backend_service_names = get_all_backend_service_names(credentials, project_id)
     if backend_services_arg is not None:
@@ -274,20 +271,20 @@ def main(argv):
         "--sign_in_url",
         required=True,
         help="Provide the sign in url for the custom login url page "
-        "or the one created by GCP",
+             "or the one created by GCP",
     )
     parser.add_argument(
         "--tenant_ids",
         required=False,
         help="Provide the tenant ids you want the backend services to "
-        "be updated with",
+             "be updated with",
         default=None,
     )
     parser.add_argument(
         "--backend_services",
         required=False,
         help="Provide the backend service names for which you "
-        "want the IAP resource to be updated",
+             "want the IAP resource to be updated",
         default=None,
     )
     parser.add_argument(
@@ -300,17 +297,18 @@ def main(argv):
     args = parser.parse_args(argv)
 
     if args.tenant_ids is not None and not validate_comma_separated_string(
-        args.tenant_ids
+            args.tenant_ids
     ):
         raise ConnectorException(
             f"Validation failed for input_string {args.tenant_ids} to follow comma separated regex"
         )
 
     if args.backend_services is not None and not validate_comma_separated_string(
-        args.backend_services
+            args.backend_services
     ):
         raise ConnectorException(
-            f"Validation failed for input_string {args.backend_services} to follow comma separated regex"
+            f"Validation failed for input_string {args.backend_services} to follow "
+            f"comma separated regex"
         )
     """
     TODO Write validate function
