@@ -1,12 +1,20 @@
-import json
-
-import firebase_admin
+# Copyright 2023 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
 from connect import (
     update_iap_settings,
     get_firebase_api_key_string,
-    get_all_backend_service_names,
-    get_all_tenant_ids,
     validate_backend_services,
     validate_tenant_ids,
 )
@@ -14,7 +22,6 @@ from exceptions.connector_exception import ConnectorException
 import pytest
 from google.cloud import api_keys_v2
 from unittest.mock import patch, Mock
-import json
 
 
 # Define a test case
