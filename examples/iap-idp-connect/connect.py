@@ -171,7 +171,7 @@ def get_all_backend_service_names(credentials, project_id):
 
 def get_all_tenant_ids():
     valid_tenant_ids = []
-    default_app = firebase_admin.initialize_app()
+    firebase_admin.initialize_app()
     for tenant in tenant_mgt.list_tenants().iterate_all():
         valid_tenant_ids.append(tenant.tenant_id)
     print(f"Valid Tenant Ids={valid_tenant_ids}")

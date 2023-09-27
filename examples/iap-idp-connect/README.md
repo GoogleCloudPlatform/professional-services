@@ -2,8 +2,13 @@
 
 ## Introduction
 
-This service programmatically connect IAP (Identity Aware Proxy) to IdP (Identity Platform) in Google Cloud Platform.
-You can provide parameters like 
+This service programmatically connects IAP (Identity Aware Proxy) to IdP (Identity Platform) in Google Cloud Platform.
+By This program, you connect Identity providers (including multi-tenants) with IAP (Identity Aware Proxy) backend services
+For example, you connect SAML integrations defined under identity platform for tenant A with backend-service-1 in IAP.
+Additionally:
+* You can also configure the sign-in page created automatically or custom developed by developers by providing the sign_in_url.
+* You can also provide the api key attached to the sign-in page
+
 
 ## Pre-requisite and setting up dependencies
 

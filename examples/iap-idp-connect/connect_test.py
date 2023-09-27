@@ -197,4 +197,4 @@ def test_get_firebase_api_key_string_negative():
     # Call the function with mocks
     with patch("connect.api_keys_v2.ApiKeysClient", return_value=mock_key_client):
         with pytest.raises(ConnectorException):
-            response = get_firebase_api_key_string(credentials, project_id)
+            get_firebase_api_key_string(credentials, project_id)
