@@ -15,10 +15,10 @@
  */
 
 # GCP variables
-gcp_project_id           = "<GCP_PROJECT_ID>"
-gcp_region               = "<GCP_REGION>"
-gcp_vpc_name             = "<GCP_VPC_NAME>"
-gcp_router_name          = "<GCP_ROUTER_NAME>"
+gcp_project_id  = "<GCP_PROJECT_ID>"
+gcp_region      = "<GCP_REGION>"
+gcp_vpc_name    = "<GCP_VPC_NAME>"
+gcp_router_name = "<GCP_ROUTER_NAME>"
 
 # Shared secret for VPN Tunnels
 shared_secret = "<SHARED_SECRET>"

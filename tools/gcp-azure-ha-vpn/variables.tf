@@ -37,6 +37,12 @@ variable "azure_bgp_asn" {
   default     = "65515"
 }
 
+variable "azure_vpn_allowed_az_skus" {
+  description = "List of allowed SKU values"
+  type        = list(string)
+  default     = ["VpnGw1AZ", "VpnGw2AZ", "VpnGw3AZ", "VpnGw4AZ", "VpnGw5AZ"]
+}
+
 variable "azure_vpn_sku" {
   type        = string
   default     = "VpnGw1"
