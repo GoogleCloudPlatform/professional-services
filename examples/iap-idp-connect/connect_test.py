@@ -8,7 +8,7 @@ from connect import (
     get_all_backend_service_names,
     get_all_tenant_ids,
     validate_backend_services,
-    validate_tenant_ids
+    validate_tenant_ids,
 )
 from exceptions.connector_exception import ConnectorException
 import pytest
@@ -20,7 +20,7 @@ import json
 # Define a test case
 def test_validate_tenant_ids():
     # Mock the function's external dependencies using patch
-    with patch('connect.set') as mock_set:
+    with patch("connect.set") as mock_set:
         # Mock the behavior of set() for the input data
         mock_set.return_value.issuperset.return_value = True
         mock_set.return_value.__sub__.return_value = set()
@@ -30,7 +30,9 @@ def test_validate_tenant_ids():
         tenant_ids_to_check = [3, 4, 6]
 
         # Call the function
-        is_valid, missing_tenants = validate_tenant_ids(all_tenant_ids, tenant_ids_to_check)
+        is_valid, missing_tenants = validate_tenant_ids(
+            all_tenant_ids, tenant_ids_to_check
+        )
 
     # Assertions
     assert is_valid is True
@@ -39,7 +41,7 @@ def test_validate_tenant_ids():
 
 def test_validate_backend_services():
     # Mock the function's external dependencies using patch
-    with patch('connect.set') as mock_set:
+    with patch("connect.set") as mock_set:
         # Mock the behavior of set() for the input data
         mock_set.return_value.issuperset.return_value = True
         mock_set.return_value.__sub__.return_value = set()
@@ -49,11 +51,15 @@ def test_validate_backend_services():
         tenant_ids_to_check = [3, 4, 6]
 
         # Call the function
-        is_valid, missing_tenants = validate_backend_services(all_tenant_ids, tenant_ids_to_check)
+        is_valid, missing_tenants = validate_backend_services(
+            all_tenant_ids, tenant_ids_to_check
+        )
 
     # Assertions
     assert is_valid is True
     assert missing_tenants == []
+
+
 # Define a test case
 # Define a test case
 def test_update_iap_settings_positive():
@@ -70,7 +76,9 @@ def test_update_iap_settings_positive():
     api_key_arg = "your-api-key"
     tenant_ids = ["tenant1", "tenant2"]
     # Assertions
-    expected_backend_service_resource_name = f"projects/{project_id}/iap_web/compute/services/{backend}"
+    expected_backend_service_resource_name = (
+        f"projects/{project_id}/iap_web/compute/services/{backend}"
+    )
     expected_sign_in_url = f"{sign_in_url}?apiKey={api_key_arg}"
     expected_request = {
         "iap_settings": {
@@ -78,24 +86,31 @@ def test_update_iap_settings_positive():
             "access_settings": {
                 "gcip_settings": {
                     "tenant_ids": tenant_ids,
-                    "login_page_uri": expected_sign_in_url
+                    "login_page_uri": expected_sign_in_url,
                 }
-            }
+            },
         }
     }
 
     mock_update_iap_settings.return_value = expected_request
     # Call the function with mocks
-    with patch('connect.iap_v1.IdentityAwareProxyAdminServiceClient', return_value=mock_client):
-        response = update_iap_settings(credentials, project_id, sign_in_url, backend, api_key_arg, tenant_ids)
+    with patch(
+        "connect.iap_v1.IdentityAwareProxyAdminServiceClient", return_value=mock_client
+    ):
+        response = update_iap_settings(
+            credentials, project_id, sign_in_url, backend, api_key_arg, tenant_ids
+        )
 
     # mock_client.assert_called_once_with(credentials=credentials)
     mock_update_iap_settings.assert_called_once_with(request=expected_request)
-    assert response['iap_settings']['name'] == "projects/your-project-id/iap_web/compute/services/your-backend-service"
-    assert response['iap_settings']['access_settings'] == {
+    assert (
+        response["iap_settings"]["name"]
+        == "projects/your-project-id/iap_web/compute/services/your-backend-service"
+    )
+    assert response["iap_settings"]["access_settings"] == {
         "gcip_settings": {
             "tenant_ids": tenant_ids,
-            "login_page_uri": expected_sign_in_url
+            "login_page_uri": expected_sign_in_url,
         }
     }
 
@@ -111,18 +126,19 @@ def test_update_iap_settings_negative():
 
     # Simulate a scenario where an exception is raised when calling update_iap_settings
     with pytest.raises(ConnectorException):
-        update_iap_settings(credentials, project_id, sign_in_url, backend, api_key_arg, tenant_ids)
+        update_iap_settings(
+            credentials, project_id, sign_in_url, backend, api_key_arg, tenant_ids
+        )
 
 
 def create_pager(display_name="Browser key (auto created by Firebase)"):
     # Your sample data
-    key = api_keys_v2.types.Key(name="projects/dummy/locations/global/keys/dummy",
-                                display_name=display_name)
+    key = api_keys_v2.types.Key(
+        name="projects/dummy/locations/global/keys/dummy", display_name=display_name
+    )
     response = api_keys_v2.types.ListKeysResponse(keys=[key])
     pager = api_keys_v2.services.api_keys.pagers.ListKeysPager(
-        response=response,
-        method=None,
-        request=None
+        response=response, method=None, request=None
     )
     return pager
 
@@ -146,11 +162,11 @@ def test_get_firebase_api_key_string_positive():
     )
 
     # Call the function with mocks
-    with patch('connect.api_keys_v2.ApiKeysClient', return_value=mock_key_client):
+    with patch("connect.api_keys_v2.ApiKeysClient", return_value=mock_key_client):
         response = get_firebase_api_key_string(credentials, project_id)
 
     print(response)
-    assert response == 'dummy'
+    assert response == "dummy"
 
 
 def test_get_firebase_api_key_string_negative():
@@ -172,6 +188,6 @@ def test_get_firebase_api_key_string_negative():
     )
 
     # Call the function with mocks
-    with patch('connect.api_keys_v2.ApiKeysClient', return_value=mock_key_client):
+    with patch("connect.api_keys_v2.ApiKeysClient", return_value=mock_key_client):
         with pytest.raises(ConnectorException):
             response = get_firebase_api_key_string(credentials, project_id)

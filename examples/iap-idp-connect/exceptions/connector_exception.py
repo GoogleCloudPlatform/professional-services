@@ -1,6 +1,6 @@
-'''
+"""
 GreyImageException is an exception class which is used to throw the exception of returning a grey image
-'''
+"""
 
 
 class ConnectorException(Exception):
