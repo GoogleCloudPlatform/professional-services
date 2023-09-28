@@ -102,6 +102,7 @@ export class JobComponent implements OnDestroy {
                 alert(err.message);
               }
               console.log(err);
+              this.logSvc.error(' error on getJobs: ' + err);
             },
             () => {
               this.updatePaginatedJobs(

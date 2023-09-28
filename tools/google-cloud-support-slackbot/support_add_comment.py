@@ -16,12 +16,11 @@
 
 import os
 import slack
-import requests
 import logging
 from datetime import datetime
 from get_parent import get_parent
+from support_service import support_service
 from case_not_found import case_not_found
-from googleapiclient.discovery import build_from_document
 
 logger = logging.getLogger(__name__)
 
@@ -54,15 +53,9 @@ def support_add_comment(channel_id,
     allow_alerts : bool
       flag to determine whether to silent Slack ephemeral message
     """
-    API_KEY = os.environ.get("API_KEY")
     MAX_RETRIES = 3
 
-    # Get our discovery doc and build our service
-    r = requests.get(
-        f"https://cloudsupport.googleapis.com/$discovery/rest?key={API_KEY}&labels=V2_TRUSTED_TESTER&version=v2beta",
-        timeout=5)
-    r.raise_for_status()
-    support_service = build_from_document(r.json())
+    service = support_service()
 
     client = slack.WebClient(token=os.environ.get("SLACK_TOKEN"))
 
@@ -76,8 +69,8 @@ def support_add_comment(channel_id,
                      (f"\n*Comment submitted by {user_name} via Google Cloud"
                       "Support Slack bot*"))
         }
-        req = support_service.cases().comments().create(parent=parent,
-                                                        body=req_body)
+        req = service.cases().comments().create(parent=parent,
+                                                body=req_body)
         slack_response = ""
         try:
             req.execute(num_retries=MAX_RETRIES)
@@ -88,7 +81,8 @@ def support_add_comment(channel_id,
                               " Please try again later.")
 
         else:
-            slack_response = f"You added a new comment on case {case}: {comment}"
+            slack_response = ("You added a new comment on case"
+                              f" {case}: {comment}")
 
         finally:
             if allow_alerts:
@@ -100,9 +94,8 @@ def support_add_comment(channel_id,
 if __name__ == "__main__":
     test_channel_id = os.environ.get("TEST_CHANNEL_ID")
     test_case = os.environ.get("TEST_CASE")
-    test_comment = ("This is a test comment created by the Google Cloud Support"
-                    " Slackbot")
-
+    test_comment = ("This is a test comment created by the Google Cloud"
+                    " Support Slackbot")
     test_user_id = os.environ.get("TEST_USER_ID")
     test_user_name = os.environ.get("TEST_USER_NAME")
     support_add_comment(test_channel_id, test_case, test_comment, test_user_id,

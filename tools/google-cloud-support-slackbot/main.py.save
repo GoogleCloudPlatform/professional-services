@@ -1,0 +1,520 @@
+#!/usr/bin/env python3
+
+# Copyright 2023 Google LLC
+
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import slack
+import os
+import multiprocessing as mp
+from flask import Flask, request, Response
+from slackeventsapi import SlackEventAdapter
+from datetime import datetime
+from gevent.pywsgi import WSGIServer
+from autotrack_create import autotrack_create
+from autotrack_edit import autotrack_edit
+from autotrack_stop import autotrack_stop
+from list_autotrack_all import list_autotrack_all
+from case_details import case_details
+from case_updates import case_updates
+from get_firestore_tracked_cases import get_firestore_tracked_cases
+from list_tracked_cases import list_tracked_cases
+from list_tracked_cases_all import list_tracked_cases_all
+from post_help_message import post_help_message
+from sitrep import sitrep
+from stop_tracking import stop_tracking
+from support_add_comment import support_add_comment
+from support_change_priority import support_change_priority
+from support_close_case import support_close_case
+from support_escalate import support_escalate
+from support_subscribe_email import support_subscribe_email
+from track_case import track_case
+from asset_auto_cc import asset_auto_cc
+from stop_asset_auto_cc import stop_asset_auto_cc
+from edit_asset_auto_cc import edit_asset_auto_cc
+from list_asset_auto_cc_subscriptions import list_asset_auto_cc_subscriptions
+from google.cloud import logging
+
+# To run this on the cheapest possible VM, we will only log Warnings and Errors
+logging_client = logging.Client()
+# The name of the log to write to
+log_name = "my-log"
+# Selects the log to write to
+logger_gcp = logging_client.logger(log_name)
+
+app = Flask(__name__)
+
+client = slack.WebClient(token=os.environ.get("SLACK_TOKEN"))
+ORG_ID = os.environ.get("ORG_ID")
+SLACK_SIGNING_SECRET = os.environ.get("SIGNING_SECRET")
+MAX_RETRIES = 3
+
+slack_events = SlackEventAdapter(SLACK_SIGNING_SECRET, "/slack/events", app)
+
+tracked_cases = get_firestore_tracked_cases()
+
+
+# Handle all calls to the support bot
+@app.route("/", methods=["POST"])
+def gcp_support() -> Response:
+    """
+    Takes a user's slash command from Slack and executes it. Multiprocessing
+    is used on commands that modify the case to prevent Slack timeouts.
+
+    Parameters
+    ----------
+    request : Request
+      message and metadata that was submitted by Slack
+    Returns
+    -------
+    Response
+      tells Slack that the command was received and not to throw a timeout alert
+    200
+      HTTP 200 OK
+    403
+      HTTP 403 Forbidden, received if the request signature can"t be verified
+    """
+    # Verify that the request is coming from our Slack
+    slack_timestamp = request.headers.get("X-Slack-Request-Timestamp")
+    slack_signature = request.headers.get("X-Slack-Signature")
+    result = slack_events.server.verify_signature(slack_timestamp,
+                                                  slack_signature)
+    if result is False:
+        return Response(), 403
+
+    data = request.form
+    channel_id = data.get("channel_id")
+    channel_name = data.get("channel_name")
+    user_id = data.get("user_id")
+    user_name = data.get("user_name")
+    user_inputs = data.get("text").split(" ", 1)
+    command = user_inputs[0]
+
+    if command == "track-case":
+        try:
+            case = user_inputs[1]
+        except IndexError as e:
+            error_message = f"{e} : {datetime.now()}"
+            logger_gcp.log_text(error_message)
+            client.chat_postEphemeral(
+                channel=channel_id,
+                user=user_id,
+                text=
+                ("The track-case command expects argument [case_number]."
+                 " The case number provided did not match with any cases in your org"
+                ))
+        else:
+            track_case(channel_id, channel_name, case, user_id)
+    elif command == "add-comment":
+        try:
+            parameters = user_inputs[1].split(" ", 1)
+            case = parameters[0]
+            comment = parameters[1]
+        except IndexError as e:
+            error_message = f"{e} : {datetime.now()}"
+            logger_gcp.log_text(error_message)
+            client.chat_postEphemeral(
+                channel=channel_id,
+                user=user_id,
+                text=
+                ("The add-comment command expects arguments [case_number] [comment]."
+                 " The comment does not need to be encapsulated in quotes."
+                 " Your case number did not match with any cases in your org."))
+        else:
+            p = mp.Process(target=support_add_comment,
+                           args=(
+                               channel_id,
+                               case,
+                               comment,
+                               user_id,
+                               user_name,
+                           ))
+            p.start()
+    elif command == "change-priority":
+        try:
+            parameters = user_inputs[1].split(" ", 1)
+            case = parameters[0]
+            priority = parameters[1]
+        except IndexError as e:
+            error_message = f"{e} : {datetime.now()}"
+            logger_gcp.log_text(error_message)
+            client.chat_postEphemeral(
+                channel=channel_id,
+                user=user_id,
+                text=(
+                    "The change-priority command expects arguments "
+                    "[case_number] [priority, must be either P1|P2|P3|P4]."
+                    " Your case number did not match with any cases in your org,"
+                    " or the priority did not match the expected values."))
+        else:
+            p = mp.Process(target=support_change_priority,
+                           args=(
+                               channel_id,
+                               case,
+                               priority,
+                               user_id,
+                           ))
+            p.start()
+    elif command == "subscribe":
+        try:
+            parameters = user_inputs[1].split(" ", 1)
+            case = parameters[0]
+            emails = parameters[1].split()
+        except IndexError as e:
+            error_message = f"{e} : {datetime.now()}"
+            logger_gcp.log_text(error_message)
+            client.chat_postEphemeral(
+                channel=channel_id,
+                user=user_id,
+                text=(
+                    "The subscribe command expects arguments "
+                    "[case_number] [email_1] ... [email_n]."
+                    " Your case number did not match with any cases in your org,"
+                    " or your command did not match the expected input format."
+                ))
+        else:
+            p = mp.Process(target=support_subscribe_email,
+                           args=(
+                               channel_id,
+                               case,
+                               emails,
+                               user_id,
+                           ))
+            p.start()
+    elif command == "escalate":
+        try:
+            parameters = user_inputs[1].split(" ", 2)
+            case = parameters[0]
+            reason = parameters[1]
+            justification = parameters[2]
+        except IndexError as e:
+            error_message = f"{e} : {datetime.now()}"
+            logger_gcp.log_text(error_message)
+            client.chat_postEphemeral(
+                channel=channel_id,
+                user=user_id,
+                text=
+                ("The escalate command expects arguments"
+                 "[reason, must be either RESOLUTION_TIME|TECHNICAL_EXPERTISE"
+                 "|BUSINESS_IMPACT] [justification]. The justification does not need"
+                 " to be encapsulated in quotes. Either your case number did not"
+                 " match with any cases in your org, the reason did not match one of"
+                 " the expected values, or the justification was missing"))
+        else:
+            p = mp.Process(target=support_escalate,
+                           args=(
+                               channel_id,
+                               case,
+                               user_id,
+                               reason,
+                               justification,
+                               user_name,
+                           ))
+            p.start()
+    elif command == "close-case":
+        try:
+            case = user_inputs[1]
+        except IndexError as e:
+            error_message = f"{e} : {datetime.now()}"
+            logger_gcp.log_text(error_message)
+            client.chat_postEphemeral(
+                channel=channel_id,
+                user=user_id,
+                text="The close-case command expects arguments [case_number]")
+        else:
+            p = mp.Process(target=support_close_case,
+                           args=(
+                               channel_id,
+                               case,
+                               user_id,
+                           ))
+            p.start()
+    elif command == "stop-tracking":
+        try:
+            case = user_inputs[1]
+        except IndexError as e:
+            error_message = f"{e} : {datetime.now()}"
+            logger_gcp.log_text(error_message)
+            client.chat_postEphemeral(
+                channel=channel_id,
+                user=user_id,
+                text="The stop-tracking command expects arguments [case_number]."
+            )
+        else:
+            p = mp.Process(target=stop_tracking,
+                           args=(
+                               channel_id,
+                               channel_name,
+                               case,
+                               user_id,
+                           ))
+            p.start()
+    elif command == "list-tracked-cases":
+        p = mp.Process(target=list_tracked_cases,
+                       args=(
+                           channel_id,
+                           channel_name,
+                           user_id,
+                       ))
+        p.start()
+    elif command == "list-tracked-cases-all":
+        p = mp.Process(target=list_tracked_cases_all,
+                       args=(
+                           channel_id,
+                           user_id,
+                       ))
+        p.start()
+    elif command == "case-details":
+        case = user_inputs[1]
+        p = mp.Process(target=case_details,
+                       args=(
+                           channel_id,
+                           case,
+                           user_id,
+                       ))
+        p.start()
+    elif command == "sitrep":
+        p = mp.Process(target=sitrep,
+                       args=(
+                           channel_id,
+                       ))
+        p.start()
+    elif command == "help":
+        context = ""
+        post_help_message(channel_id, user_id, context)
+    elif command == "auto-subscribe":
+        try:
+            parameters = user_inputs[1].split(" ", 2)
+            asset_type = parameters[0]
+            asset_id = parameters[1]
+            emails = parameters[2].split()
+
+            if asset_type not in ["organizations", "folders", "projects"]:
+                raise IndexError
+
+        except IndexError as e:
+            error_message = f"{e} : {datetime.now()}"
+            logger_gcp.log_text(error_message)
+            client.chat_postEphemeral(
+                channel=channel_id,
+                user=user_id,
+                text=
+                ("The auto-subscribe command expects arguments "
+                 "[asset_type] [asset_id] [email_1] ... [email_n]. "
+                 "asset_type must be one of the following: organizations, folders,"
+                 " projects "
+                 "Your command did not match the expected input format."))
+        else:
+            p = mp.Process(target=asset_auto_cc,
+                           args=(
+                               channel_id,
+                               channel_name,
+                               asset_type,
+                               asset_id,
+                               user_id,
+                               emails,
+                           ))
+            p.start()
+    elif command == "edit-auto-subscribe":
+        try:
+            parameters = user_inputs[1].split(" ", 2)
+            asset_type = parameters[0]
+            asset_id = parameters[1]
+            emails = parameters[2].split()
+            logger_gcp.log_text(
+                f"type: {asset_type}, id: {asset_id}, emails: {emails}")
+
+            if asset_type not in ["organizations", "folders", "projects"]:
+                raise IndexError
+
+        except IndexError as e:
+            error_message = f"{e} : {datetime.now()}"
+            logger_gcp.log_text(error_message)
+            client.chat_postEphemeral(
+                channel=channel_id,
+                user=user_id,
+                text=
+                ("The edit-subscribe command expects arguments "
+                 "[asset_type] [asset_id] [email_1] ... [email_n]. "
+                 "asset_type must be one of the following: organizations, folders,"
+                 " projects. "
+                 "A pre-existing asset subscribtion must already exist. "
+                 "Your command did not match the expected input format."))
+        else:
+            p = mp.Process(target=edit_asset_auto_cc,
+                           args=(
+                               channel_id,
+                               channel_name,
+                               asset_type,
+                               asset_id,
+                               user_id,
+                               emails,
+                            ))
+            p.start()
+    elif command == "stop-auto-subscribe":
+        try:
+            parameters = user_inputs[1].split(" ", 1)
+            asset_type = parameters[0]
+            asset_id = parameters[1]
+            logger_gcp.log_text(f"type: {asset_type}, id: {asset_id}")
+            if asset_type not in ["organizations", "folders", "projects"]:
+                raise IndexError
+
+        except IndexError as e:
+            error_message = f"{e} : {datetime.now()}"
+            logger_gcp.log_text(error_message)
+            client.chat_postEphemeral(
+                channel=channel_id,
+                user=user_id,
+                text=
+                ("The stop-auto-subscribe command expects arguments [asset_type]"
+                 " [asset_id]."
+                 " asset_type must be one of the following: organizations, folders"
+                 ", projects"))
+        else:
+            p = mp.Process(target=stop_asset_auto_cc,
+                           args=(
+                               channel_id,
+                               channel_name,
+                               asset_type,
+                               asset_id,
+                               use_id,
+                           ))
+            p.start()
+    elif command == "list-auto-subscriptions-all":
+        p = mp.Process(target=list_asset_auto_cc_subscriptions,
+                       args=(
+                           channel_id,
+                           channel_name,
+                       ))
+        p.start()
+    elif command == "autotrack-create":
+        try:
+            parameters = user_inputs[1].split(" ", 2)
+            asset_type = parameters[0]
+            asset_id = parameters[1]
+            priorities = parameters[2].split()
+
+            if asset_type not in ["organizations", "folders", "projects"]:
+                raise IndexError
+
+        except IndexError as e:
+            error_message = f"{e} : {datetime.now()}"
+            logger_gcp.log_text(error_message)
+            client.chat_postEphemeral(
+                channel=channel_id,
+                user=user_id,
+                text=
+                ("The autotrack-create command expects arguments "
+                 "[asset_type] [asset_id] P1 ... P4. "
+                 "asset_type must be one of the following: organizations, folders,"
+                 " projects "
+                 "Your command did not match the expected input format."))
+        else:
+            p = mp.Process(target=autotrack_create,
+                           args=(
+                               channel_id,
+                               channel_name,
+                               asset_type,
+                               asset_id,
+                               user_id,
+                               priorities,
+                           ))
+            p.start()
+    elif command == "autotrack-edit":
+        try:
+            parameters = user_inputs[1].split(" ", 2)
+            asset_type = parameters[0]
+            asset_id = parameters[1]
+            priorities = parameters[2].split()
+            logger_gcp.log_text(
+                f"type: {asset_type}, id: {asset_id}, emails: {emails}")
+
+            if asset_type not in ["organizations", "folders", "projects"]:
+                raise IndexError
+
+        except IndexError as e:
+            error_message = f"{e} : {datetime.now()}"
+            logger_gcp.log_text(error_message)
+            client.chat_postEphemeral(
+                channel=channel_id,
+                user=user_id,
+                text=
+                ("The autotrack-edit command expects arguments "
+                 "[asset_type] [asset_id] P1 ... P4. "
+                 "asset_type must be one of the following: organizations, folders,"
+                 " projects. "
+                 "A pre-existing asset tracker must already exist. "
+                 "Your command did not match the expected input format."))
+        else:
+            p = mp.Process(target=autotrack_edit,
+                           args=(
+                               channel_id,
+                               channel_name,
+                               asset_type,
+                               asset_id,
+                               user_id,
+                               priorities,
+                            ))
+            p.start()
+    elif command == "autotrack-stop":
+        try:
+            parameters = user_inputs[1].split(" ", 1)
+            asset_type = parameters[0]
+            asset_id = parameters[1]
+            logger_gcp.log_text(f"type: {asset_type}, id: {asset_id}")
+            if asset_type not in ["organizations", "folders", "projects"]:
+                raise IndexError
+
+        except IndexError as e:
+            error_message = f"{e} : {datetime.now()}"
+            logger_gcp.log_text(error_message)
+            client.chat_postEphemeral(
+                channel=channel_id,
+                user=user_id,
+                text=
+                ("The autotrack-stop command expects arguments [asset_type]"
+                 " [asset_id]."
+                 " asset_type must be one of the following: organizations, folders"
+                 ", projects"))
+        else:
+            p = mp.Process(target=autotrack_stop,
+                           args=(
+                               channel_id,
+                               channel_name,
+                               asset_type,
+                               asset_id,
+                               use_id,
+                           ))
+            p.start()
+    elif command == "list-autotrack-all":
+        p = mp.Process(target=list_autotrack_all,
+                       args=(
+                           channel_id,
+                           channel_name,
+                       ))
+        p.start()
+    else:
+        context = "Sorry, that wasn't a recognized command. "
+        post_help_message(channel_id, user_id, context)
+
+    return Response(), 200
+
+
+if __name__ == "__main__":
+    mp.set_start_method("spawn")
+    case_updates_process = mp.Process(target=case_updates, args=(False,))
+    case_updates_process.start()
+    http_server = WSGIServer(("", 5000), app)
+    http_server.serve_forever()
+    case_updates_process.join()
