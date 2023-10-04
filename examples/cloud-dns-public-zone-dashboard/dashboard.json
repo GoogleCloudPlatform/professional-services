@@ -1,0 +1,326 @@
+{
+    "dashboardFilters": [],
+    "displayName": "gcloud-custom-dashboard",
+    "labels": {},
+    "mosaicLayout": {
+      "columns": 48,
+      "tiles": [
+        {
+          "height": 16,
+          "widget": {
+            "title": "Query Count for All Public Zones",
+            "xyChart": {
+              "chartOptions": {
+                "mode": "COLOR"
+              },
+              "dataSets": [
+                {
+                  "breakdowns": [],
+                  "dimensions": [],
+                  "measures": [],
+                  "minAlignmentPeriod": "60s",
+                  "plotType": "STACKED_BAR",
+                  "targetAxis": "Y1",
+                  "timeSeriesQuery": {
+                    "timeSeriesFilter": {
+                      "aggregation": {
+                        "alignmentPeriod": "60s",
+                        "crossSeriesReducer": "REDUCE_SUM",
+                        "groupByFields": [],
+                        "perSeriesAligner": "ALIGN_SUM"
+                      },
+                      "filter": "metric.type=\"logging.googleapis.com/user/cloud-dns-log-based-metric\" resource.type=\"dns_query\"",
+                      "secondaryAggregation": {
+                        "alignmentPeriod": "60s",
+                        "perSeriesAligner": "ALIGN_NONE"
+                      }
+                    }
+                  }
+                }
+              ],
+              "thresholds": [],
+              "timeshiftDuration": "0s",
+              "yAxis": {
+                "label": "y1Axis",
+                "scale": "LINEAR"
+              }
+            }
+          },
+          "width": 24
+        },
+        {
+          "height": 16,
+          "widget": {
+            "title": "Query Count per Target Name",
+            "xyChart": {
+              "chartOptions": {
+                "mode": "COLOR"
+              },
+              "dataSets": [
+                {
+                  "breakdowns": [],
+                  "dimensions": [],
+                  "measures": [],
+                  "minAlignmentPeriod": "60s",
+                  "plotType": "STACKED_BAR",
+                  "targetAxis": "Y1",
+                  "timeSeriesQuery": {
+                    "timeSeriesFilter": {
+                      "aggregation": {
+                        "alignmentPeriod": "60s",
+                        "crossSeriesReducer": "REDUCE_SUM",
+                        "groupByFields": [
+                          "metric.label.\"TargetName\""
+                        ],
+                        "perSeriesAligner": "ALIGN_SUM"
+                      },
+                      "filter": "metric.type=\"logging.googleapis.com/user/cloud-dns-log-based-metric\" resource.type=\"dns_query\"",
+                      "secondaryAggregation": {
+                        "alignmentPeriod": "60s",
+                        "perSeriesAligner": "ALIGN_NONE"
+                      }
+                    }
+                  }
+                }
+              ],
+              "thresholds": [],
+              "timeshiftDuration": "0s",
+              "yAxis": {
+                "label": "y1Axis",
+                "scale": "LINEAR"
+              }
+            }
+          },
+          "width": 24,
+          "xPos": 24
+        },
+        {
+          "height": 16,
+          "widget": {
+            "title": "Errors",
+            "xyChart": {
+              "chartOptions": {
+                "mode": "COLOR"
+              },
+              "dataSets": [
+                {
+                  "breakdowns": [],
+                  "dimensions": [],
+                  "measures": [],
+                  "minAlignmentPeriod": "60s",
+                  "plotType": "STACKED_BAR",
+                  "targetAxis": "Y1",
+                  "timeSeriesQuery": {
+                    "timeSeriesFilter": {
+                      "aggregation": {
+                        "alignmentPeriod": "60s",
+                        "crossSeriesReducer": "REDUCE_SUM",
+                        "groupByFields": [
+                          "metric.label.\"ResponseCode\""
+                        ],
+                        "perSeriesAligner": "ALIGN_SUM"
+                      },
+                      "filter": "metric.type=\"logging.googleapis.com/user/cloud-dns-log-based-metric\" resource.type=\"dns_query\" metric.label.\"ResponseCode\"!=\"NOERROR\"",
+                      "secondaryAggregation": {
+                        "alignmentPeriod": "60s",
+                        "perSeriesAligner": "ALIGN_NONE"
+                      }
+                    }
+                  }
+                }
+              ],
+              "thresholds": [],
+              "timeshiftDuration": "0s",
+              "yAxis": {
+                "label": "y1Axis",
+                "scale": "LINEAR"
+              }
+            }
+          },
+          "width": 24,
+          "yPos": 32
+        },
+        {
+          "height": 16,
+          "widget": {
+            "title": "Response Code",
+            "xyChart": {
+              "chartOptions": {
+                "mode": "COLOR"
+              },
+              "dataSets": [
+                {
+                  "breakdowns": [],
+                  "dimensions": [],
+                  "measures": [],
+                  "minAlignmentPeriod": "60s",
+                  "plotType": "STACKED_BAR",
+                  "targetAxis": "Y1",
+                  "timeSeriesQuery": {
+                    "timeSeriesFilter": {
+                      "aggregation": {
+                        "alignmentPeriod": "60s",
+                        "crossSeriesReducer": "REDUCE_SUM",
+                        "groupByFields": [
+                          "metric.label.\"ResponseCode\""
+                        ],
+                        "perSeriesAligner": "ALIGN_SUM"
+                      },
+                      "filter": "metric.type=\"logging.googleapis.com/user/cloud-dns-log-based-metric\" resource.type=\"dns_query\"",
+                      "secondaryAggregation": {
+                        "alignmentPeriod": "60s",
+                        "perSeriesAligner": "ALIGN_NONE"
+                      }
+                    }
+                  }
+                }
+              ],
+              "thresholds": [],
+              "timeshiftDuration": "0s",
+              "yAxis": {
+                "label": "y1Axis",
+                "scale": "LINEAR"
+              }
+            }
+          },
+          "width": 24,
+          "yPos": 16
+        },
+        {
+          "height": 16,
+          "widget": {
+            "title": "Response Code per Target Name",
+            "xyChart": {
+              "chartOptions": {
+                "mode": "COLOR"
+              },
+              "dataSets": [
+                {
+                  "breakdowns": [],
+                  "dimensions": [],
+                  "measures": [],
+                  "minAlignmentPeriod": "60s",
+                  "plotType": "STACKED_BAR",
+                  "targetAxis": "Y1",
+                  "timeSeriesQuery": {
+                    "timeSeriesFilter": {
+                      "aggregation": {
+                        "alignmentPeriod": "60s",
+                        "crossSeriesReducer": "REDUCE_SUM",
+                        "groupByFields": [
+                          "metric.label.\"TargetName\"",
+                          "metric.label.\"ResponseCode\""
+                        ],
+                        "perSeriesAligner": "ALIGN_SUM"
+                      },
+                      "filter": "metric.type=\"logging.googleapis.com/user/cloud-dns-log-based-metric\" resource.type=\"dns_query\"",
+                      "secondaryAggregation": {
+                        "alignmentPeriod": "60s",
+                        "perSeriesAligner": "ALIGN_NONE"
+                      }
+                    }
+                  }
+                }
+              ],
+              "thresholds": [],
+              "timeshiftDuration": "0s",
+              "yAxis": {
+                "label": "y1Axis",
+                "scale": "LINEAR"
+              }
+            }
+          },
+          "width": 24,
+          "xPos": 24,
+          "yPos": 16
+        },
+        {
+          "height": 16,
+          "widget": {
+            "title": "Errors per Target Name",
+            "xyChart": {
+              "chartOptions": {
+                "mode": "COLOR"
+              },
+              "dataSets": [
+                {
+                  "breakdowns": [],
+                  "dimensions": [],
+                  "measures": [],
+                  "minAlignmentPeriod": "60s",
+                  "plotType": "STACKED_BAR",
+                  "targetAxis": "Y1",
+                  "timeSeriesQuery": {
+                    "timeSeriesFilter": {
+                      "aggregation": {
+                        "alignmentPeriod": "60s",
+                        "crossSeriesReducer": "REDUCE_SUM",
+                        "groupByFields": [
+                          "metric.label.\"TargetName\"",
+                          "metric.label.\"ResponseCode\""
+                        ],
+                        "perSeriesAligner": "ALIGN_SUM"
+                      },
+                      "filter": "metric.type=\"logging.googleapis.com/user/cloud-dns-log-based-metric\" resource.type=\"dns_query\" metric.label.\"ResponseCode\"!=\"NOERROR\"",
+                      "secondaryAggregation": {
+                        "alignmentPeriod": "60s",
+                        "perSeriesAligner": "ALIGN_NONE"
+                      }
+                    }
+                  }
+                }
+              ],
+              "thresholds": [],
+              "timeshiftDuration": "0s",
+              "yAxis": {
+                "label": "y1Axis",
+                "scale": "LINEAR"
+              }
+            }
+          },
+          "width": 24,
+          "xPos": 24,
+          "yPos": 32
+        },
+        {
+          "height": 14,
+          "widget": {
+            "title": "Server Latency",
+            "xyChart": {
+              "chartOptions": {
+                "mode": "COLOR"
+              },
+              "dataSets": [
+                {
+                  "breakdowns": [],
+                  "dimensions": [],
+                  "measures": [],
+                  "minAlignmentPeriod": "60s",
+                  "plotType": "HEATMAP",
+                  "targetAxis": "Y1",
+                  "timeSeriesQuery": {
+                    "timeSeriesFilter": {
+                      "aggregation": {
+                        "alignmentPeriod": "60s",
+                        "crossSeriesReducer": "REDUCE_SUM",
+                        "groupByFields": [],
+                        "perSeriesAligner": "ALIGN_DELTA"
+                      },
+                      "filter": "metric.type=\"logging.googleapis.com/user/cloud-dns-latency-log-based-metric\""
+                    }
+                  }
+                }
+              ],
+              "thresholds": [],
+              "yAxis": {
+                "label": "",
+                "scale": "LINEAR"
+              }
+            }
+          },
+          "width": 48,
+          "yPos": 48
+        }
+      ]
+    }
+  }
