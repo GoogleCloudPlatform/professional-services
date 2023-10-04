@@ -380,6 +380,9 @@ Platform usage.
 *   [Cloud Composer Migration Complexity Assessment](tools/cloud-composer-migration-complexity-assessment) - An Airflow DAG that uses a variety
     of tools to analyze a Cloud Composer 1 environment, determine a work estimate, and
     accelerate the conversion of airflow 1 dags to airflow 2 dags.
+*   [Cloud Composer Migration Terraform Generator](tools/cloud-composer-migration-terraform-generator) - Analyzes an existing Cloud Composer 1
+    / Airflow 1 environment and generates terraform. Configures new Cloud Composer 2
+    environment to meet your workload demands.
 *   [CUD Prioritized Attribution](tools/cuds-prioritized-attribution) - A tool
     that allows GCP customers who purchased Committed Use Discounts (CUDs) to
     prioritize a specific scope (e.g. project or folder) to attribute CUDs first
