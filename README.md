@@ -377,6 +377,9 @@ Platform usage.
 *   [Cloud Composer Backup and Recovery](tools/cloud-composer-backup-restore) - A
     command line tool for applying backup and recovery operations on Cloud
     Composer Airflow environments.
+*   [Cloud Composer Migration Complexity Assessment](tools/cloud-composer-migration-complexity-assessment) - An Airflow DAG that uses a variety
+    of tools to analyze a Cloud Composer 1 environment, determine a work estimate, and
+    accelerate the conversion of airflow 1 dags to airflow 2 dags.
 *   [Cloud Composer Migration Terraform Generator](tools/cloud-composer-migration-terraform-generator) - Analyzes an existing Cloud Composer 1
     / Airflow 1 environment and generates terraform. Configures new Cloud Composer 2
     environment to meet your workload demands.
