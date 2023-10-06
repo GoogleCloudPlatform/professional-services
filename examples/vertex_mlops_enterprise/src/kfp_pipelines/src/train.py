@@ -13,16 +13,17 @@ import argparse
 import sys
 import pickle
 
-from config import CLASS_NAMES, IMAGE
+from config import CLASS_NAMES, IMAGE, PRED_CONTAINER
 
 def load_data(dataset_path: str):
     df = pd.read_csv(dataset_path)
-    labels = df.pop("Class").tolist()
+    labels = list(np.rint(df.pop("Class")).astype(np.int64))
+    
     data = df.values.tolist()
 
     # we need to convert it to numpy to avoid
     # 'list' object has no attribute 'shape' errors in xgb.fit()
-    return (np.asarray(data), np.asarray(labels))
+    return (np.asarray(data, dtype=object), labels)
 
 def train(
         train_dataset_path: str, 
@@ -50,6 +51,9 @@ def train(
     classifier.fit(x_train, y_train)
 
     # log metrics
+    print(f"Type y_test {type(y_test[0])}")
+    print(f"Type pred {type(classifier.predict(x_test)[0])}")
+
     score = accuracy_score(y_test, classifier.predict(x_test))
     f1 = f1_score(y_test, classifier.predict(x_test))
     logging.info("accuracy is: %s", score)
@@ -96,7 +100,8 @@ def train(
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
 
-    parser.add_argument("--dataset_path", required=True)
+    parser.add_argument("--train_dataset_path", required=True)
+    parser.add_argument("--test_dataset_path", required=True)
     parser.add_argument("--xgboost_param_max_depth", required=True)
     parser.add_argument("--xgboost_param_learning_rate", required=True)
     parser.add_argument("--xgboost_param_n_estimators", required=True)
@@ -105,11 +110,13 @@ if __name__ == '__main__':
     print(f'Got args: {" ".join(sys.argv)}')
     args = parser.parse_args()
 
-    train(dataset_path=args.dataset_path,
+    train(train_dataset_path=args.train_dataset_path,
+          test_dataset_path=args.test_dataset_path,
           xgboost_param_max_depth=int(args.xgboost_param_max_depth),
           xgboost_param_learning_rate=float(args.xgboost_param_learning_rate),
           xgboost_param_n_estimators=int(args.xgboost_param_n_estimators),
-          model_output_path=args.model_output_path)
+          model_output_path=args.model_output_path,
+          serving_container_image_uri=PRED_CONTAINER)
 
 @dsl.component(base_image=f'{IMAGE}')
 def xgb_train(

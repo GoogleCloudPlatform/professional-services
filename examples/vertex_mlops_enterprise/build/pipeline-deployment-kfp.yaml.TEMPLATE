@@ -43,51 +43,69 @@ steps:
     path: /root/.ssh
   id: 'Clone Repository'
   waitFor: ['Prepare git keys']
+  
 
-# Run the pipeline.
-- name: python:3.9
-  entrypoint: pip
-  args: ["install", "-r", "src/pipeline_triggering/requirements.txt", "--user"]
-  dir: '$_WORKDIR'  
-  id: 'Install python packages'
+# Run datasource_utils unit tests.
+- name: '$_CICD_IMAGE_URI'
+  entrypoint: 'echo'
+  args: ['Running unit tests - dummy build']
+  id: 'Unit Tests'
   waitFor: ['Clone Repository']
 
-- name: python:3.9
-  entrypoint: 'python'
-  args: ['build/utils.py',
-          '--mode', 'run-pipeline',
-          '--project', '$_PROJECT',
-          '--region', '$_REGION',
-          '--pipelines-store', '$_PIPELINES_STORE',
-          '--pipeline-name', '$_PIPELINE_NAME',
-          '--service-account', '$_SERVICE_ACCOUNT',
-          '--parameter-values', '$_PIPELINE_PARAMS',
-          '--labels', '$_LABELS'
-          ]
-  dir: '$_WORKDIR'  
-  id: 'Run Pipeline'
-  waitFor: ['Install python packages']
 
+# Compile the pipeline.
+- name: '$_CICD_IMAGE_URI'
+  entrypoint: 'python'
+  args: ['pipeline.py', '--compile-only']
+  dir: '$_WORKDIR/src/kfp_pipelines/src/'
+  env: 
+  - 'PROJECT_ID=$_PROJECT'  
+  - 'REGION=$_REGION'
+  - 'MODEL_DISPLAY_NAME=$_MODEL_DISPLAY_NAME'
+  - 'SERVICE_ACCOUNT=$_SERVICE_ACCOUNT'
+  - 'NETWORK=$_NETWORK'
+  - 'BQ_DATASET_NAME=$_BQ_DATASET_NAME'
+  - 'ML_TABLE=$_ML_TABLE'
+  - 'MODEL_DISPLAY_NAME=$_MODEL_DISPLAY_NAME'
+  - 'PIPELINE_NAME=$_PIPELINE_NAME'
+  - 'PIPELINES_STORE=$_PIPELINES_STORE'
+  - 'CICD_IMAGE_URI=$_CICD_IMAGE_URI'
+  - 'DATAFLOW_SA=$_SERVICE_ACCOUNT'
+  - 'DATAFLOW_NETWORK=$_DATAFLOW_NETWORK'  
+  id: 'Compile Pipeline'
+  waitFor: ['Unit Tests']
+  
+# Upload compiled pipeline to GCS.
+- name: 'gcr.io/cloud-builders/gsutil'
+  args: ['cp', '$_PIPELINE_NAME.json', '$_PIPELINES_STORE']
+  dir: '$_WORKDIR/src/kfp_pipelines/src/'
+  id:  'Upload Pipeline to GCS'
+  waitFor: ['Compile Pipeline']
+  
 
 serviceAccount: 'projects/$_PROJECT/serviceAccounts/$_SERVICE_ACCOUNT'
 logsBucket: '$_GCS_BUCKET'
-timeout: 3600s
+timeout: 7200s
 substitutions:
-  _REPO_URL: git@github.com:javiergp/mlops-cc-t2
-  _BRANCH: dev
-  _REGION: europe-west4
-  _PROJECT: mlops2-creditcards-dev
-  _GCS_BUCKET: mlops2-creditcards-dev_cloudbuild/logs
-  _PIPELINE_NAME: creditcards-classifier-v02-train-pipeline
-  _SERVICE_ACCOUNT: mlops2-sa-mlops@mlops2-creditcards-dev.iam.gserviceaccount.com
-  _PIPELINES_STORE: gs://mlops2-creditcards-dev/creditcards/compiled_pipelines/
-  _PIPELINE_PARAMS: '{"num_epochs": 7, "learning_rate": 0.0015, "batch_size": 512, "steps_per_epoch": 9, "hidden_units": "256,126"}'
-  _WORKDIR: mlops-cc-t2
-  _LABELS: 'job=1'
+  _REPO_URL: git@github.com:${github_org}/${github_repo}
+  _CICD_IMAGE_URI: '${docker_repo}/cicd-kfp:latest'  
+  _BRANCH: ${github_branch}
+  _REGION: ${region}
+  _PROJECT: ${project_id}
+  _GCS_BUCKET: ${project_id}_cloudbuild/logs
+  _BQ_DATASET_NAME: creditcards
+  _ML_TABLE: creditcards_ml
+  _PIPELINE_NAME: creditcards-classifier-kfp-train
+  _PIPELINES_STORE: gs://${bucket_name}/creditcards/compiled_pipelines/
+  _MODEL_DISPLAY_NAME: creditcards-kfp
+  _NETWORK: ${subnetwork}
+  _DATAFLOW_NETWORK: ${dataflow_network}
+  _SERVICE_ACCOUNT: ${sa_mlops}
+  _WORKDIR: ${github_repo}
 options:
   machineType: 'E2_HIGHCPU_8'
 
 availableSecrets:
   secretManager:
-  - versionName: projects/mlops2-creditcards-dev/secrets/github-key/versions/latest
+  - versionName: projects/${project_id}/secrets/github-key/versions/latest
     env: 'SSH_KEY'

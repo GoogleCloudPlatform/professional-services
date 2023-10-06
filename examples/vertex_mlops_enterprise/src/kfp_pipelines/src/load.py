@@ -28,7 +28,8 @@ def get_dataframe(
     rows = bqclient.list_rows(table)
     dataframe = rows.to_dataframe(create_bqstorage_client=True)
     # Drop the Time column, otherwise the model will just memorize when the fraud cases happened
-    dataframe.drop(columns=['Time'], inplace=True) 
+    # Also drop the ml_use column - we will split here. ML_use just splits in test+rest, and we need a 3-way split.
+    dataframe.drop(columns=['Time', 'ML_use'], inplace=True) 
     logging.info("Data loaded, writing splits")
 
     # 60 / 20 / 20
@@ -85,6 +86,9 @@ def upload_to_bq(
     from collections import namedtuple
     import logging
     import pandas as pd
+    import numpy as np
+    
+    from config import CLASS_NAMES
 
     bq_table.metadata["projectId"] = project
     bq_table.metadata["datasetId"] = dest_dataset_id
@@ -96,6 +100,11 @@ def upload_to_bq(
     logging.info(f"Writing to {dest_table}")
 
     df = pd.read_csv(csv_data.path)
+
+    # Convert Class column to int and map to CLASS_NAMES label
+    df_class = df.pop('Class')
+    df['Class'] = list(map(lambda f: CLASS_NAMES[f], np.rint(df_class).astype(np.int64)))
+
     df.to_gbq(
         destination_table=f"{dest_table}", 
         project_id=project, 

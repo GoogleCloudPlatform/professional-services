@@ -2,6 +2,8 @@ from kfp import dsl
 from kfp import compiler
 from kfp.dsl import Artifact, Input, Model, Output
 
+import argparse
+
 from google.cloud import aiplatform
 
 from google_cloud_pipeline_components.v1.batch_predict_job import ModelBatchPredictOp
@@ -31,6 +33,16 @@ from typing import NamedTuple
 caching = True
 
 TIMESTAMP = datetime.now().strftime("%Y%m%d-%H%M")
+
+parser = argparse.ArgumentParser()
+
+parser.add_argument(
+    '--compile-only', 
+    action='store_true' # default: False
+)
+
+args = parser.parse_args()
+
 
 # Import model and convert to Artifact
 @dsl.component(base_image=IMAGE)
@@ -184,8 +196,8 @@ def pipeline(
         ground_truth_bigquery_source=upload_to_bq_op.outputs['bq_table_uri'],
         predictions_format="bigquery",
         predictions_bigquery_source=reformat_predictions_op.outputs['predictions'],
-        #dataflow_service_account=DATAFLOW_SA,
-        #dataflow_subnetwork=DATAFLOW_NETWORK,
+        dataflow_service_account=DATAFLOW_SA,
+        dataflow_subnetwork=DATAFLOW_NETWORK,
         dataflow_use_public_ips=DATAFLOW_PUBLIC_IPS,
         force_runner_mode='Dataflow'
     ).set_display_name("Model Evaluation")
@@ -203,30 +215,32 @@ aiplatform.init(project=PROJECT_ID, location=REGION, encryption_spec_key_name=KE
 logging.getLogger().setLevel(logging.INFO)
 logging.info(f"Init with project {PROJECT_ID} in region {REGION}. Pipeline root: {PIPELINE_ROOT}")
 
+FORMAT = ".json"
 
-
+logging.info(f"Compiling pipeline to {PIPELINE_NAME + FORMAT}")
 compiler.Compiler().compile(
     pipeline_func=pipeline, 
-    package_path=PIPELINE_NAME + ".yaml"
+    package_path=PIPELINE_NAME + FORMAT
 )
 
-run = aiplatform.PipelineJob(
-    project=PROJECT_ID,
-    location=REGION,
-    display_name=PIPELINE_NAME,
-    template_path=PIPELINE_NAME + ".yaml",
-    job_id=f"{PIPELINE_NAME}-{TIMESTAMP}",
-    pipeline_root=PIPELINE_ROOT,
-    parameter_values={
-        "bq_table": BQ_INPUT_DATA,
-        "xgboost_param_max_depth": 5,
-        "xgboost_param_learning_rate": 0.1,
-        "xgboost_param_n_estimators": 20},
-    enable_caching=caching
-)
+if not args.compile_only:
+    run = aiplatform.PipelineJob(
+        project=PROJECT_ID,
+        location=REGION,
+        display_name=PIPELINE_NAME,
+        template_path=PIPELINE_NAME + FORMAT,
+        job_id=f"{PIPELINE_NAME}-{TIMESTAMP}",
+        pipeline_root=PIPELINE_ROOT,
+        parameter_values={
+            "bq_table": BQ_INPUT_DATA,
+            "xgboost_param_max_depth": 5,
+            "xgboost_param_learning_rate": 0.1,
+            "xgboost_param_n_estimators": 20},
+        enable_caching=caching
+    )
 
-run.submit(service_account=SERVICE_ACCOUNT,
-           network=NETWORK)
+    run.submit(service_account=SERVICE_ACCOUNT,
+            network=NETWORK)
 
 # This can be used to test the online endpoint:
 #

@@ -160,7 +160,10 @@ def run_pipeline(project, region, service_account, pipelines_store, pipeline_nam
         raise ValueError(f"{pipelines_store}/{pipeline_name} does not exist.")
     
     parameter_values_json = json.loads(parameter_values)
-    job = vertex_ai.PipelineJob(display_name = "DISPLAY_NAME",
+    print(f'Input: {parameter_values_json}')
+    print(f'JSON: {parameter_values_json}')
+
+    job = vertex_ai.PipelineJob(display_name = pipeline_name,
                              template_path = gcs_pipeline_file_location,
                              parameter_values = parameter_values_json,
                              project = project,
@@ -169,6 +172,10 @@ def run_pipeline(project, region, service_account, pipelines_store, pipeline_nam
 
     response = job.submit(service_account=service_account,
            network=None)
+           
+    job.wait()
+    print(f'Job finished with state: {job.state}')
+    
     return response
 
 
