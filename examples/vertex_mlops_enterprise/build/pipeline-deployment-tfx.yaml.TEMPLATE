@@ -124,19 +124,19 @@ steps:
 
 serviceAccount: 'projects/$_PROJECT/serviceAccounts/$_SERVICE_ACCOUNT'
 logsBucket: '$_GCS_BUCKET'
-timeout: 3600s
+timeout: 7200s
 substitutions:
-  _REPO_URL: git@github.com:javiergp/mlops-cc-t2
-  _BRANCH: dev
-  _REGION: europe-west4
-  _PROJECT: mlops2-creditcards-dev
-  _GCS_BUCKET: mlops2-creditcards-dev_cloudbuild/logs
-  _CICD_IMAGE_URI: 'europe-west4-docker.pkg.dev/mlops2-creditcards-dev/docker-repo/cicd:latest'
-  _DATAFLOW_IMAGE_URI: 'europe-west4-docker.pkg.dev/mlops2-creditcards-dev/docker-repo/dataflow:latest'
-  _TFX_IMAGE_URI: 'europe-west4-docker.pkg.dev/mlops2-creditcards-dev/docker-repo/vertex:latest'
-  _GCS_LOCATION: 'gs://mlops2-creditcards-dev/creditcards/'
-  _TEST_GCS_LOCATION: 'gs://mlops2-creditcards-dev/creditcards/e2e_tests'
-  _BQ_LOCATION: europe-west4
+  _REPO_URL: git@github.com:${github_org}/${github_repo}
+  _BRANCH: ${github_branch}
+  _REGION: ${region}
+  _PROJECT: ${project_id}
+  _GCS_BUCKET: ${project_id}_cloudbuild/logs
+  _CICD_IMAGE_URI: '${docker_repo}/cicd-tfx:latest'
+  _DATAFLOW_IMAGE_URI: '${docker_repo}/dataflow:latest'
+  _TFX_IMAGE_URI: '${docker_repo}/vertex:latest'
+  _GCS_LOCATION: 'gs://${bucket_name}/creditcards/'
+  _TEST_GCS_LOCATION: 'gs://${bucket_name}/creditcards/e2e_tests'
+  _BQ_LOCATION: ${region}
   _BQ_DATASET_NAME: creditcards
   _ML_TABLE: creditcards_ml
   _VERTEX_DATASET_NAME: creditcards
@@ -148,14 +148,14 @@ substitutions:
   _BEAM_RUNNER: DataflowRunner
   _TRAINING_RUNNER: vertex
   _PIPELINE_NAME: creditcards-classifier-v02-train-pipeline
-  _PIPELINES_STORE: gs://mlops2-creditcards-dev/creditcards/compiled_pipelines/
-  _SUBNETWORK: https://www.googleapis.com/compute/v1/projects/mlops2-creditcards-dev/regions/europe-west4/subnetworks/default
-  _SERVICE_ACCOUNT: mlops2-sa-mlops@mlops2-creditcards-dev.iam.gserviceaccount.com
-  _WORKDIR: mlops-cc-t2
+  _PIPELINES_STORE: gs://${bucket_name}/creditcards/compiled_pipelines/
+  _SUBNETWORK: ${subnetwork}
+  _SERVICE_ACCOUNT: ${sa_mlops}
+  _WORKDIR: ${github_repo}
 options:
   machineType: 'E2_HIGHCPU_8'
 
 availableSecrets:
   secretManager:
-  - versionName: projects/mlops2-creditcards-dev/secrets/github-key/versions/latest
+  - versionName: projects/${project_id}/secrets/github-key/versions/latest
     env: 'SSH_KEY'

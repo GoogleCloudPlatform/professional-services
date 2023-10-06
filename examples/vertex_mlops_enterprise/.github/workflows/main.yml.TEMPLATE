@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name: Compile Vertex AI pipeline
+name: Deploy Vertex AI ${framework} Pipeline
 on:
   workflow_dispatch:
 
@@ -30,8 +30,8 @@ env:
   DOCKER_REPO: ${docker_repo}
   WORKLOAD_ID_PROVIDER: ${wip}
 jobs:
-  run-pipeline:
-    name: 'Build Vertex AI pipeline'
+  deploy-pipeline:
+    name: 'Compile Vertex AI pipeline'
     runs-on: 'ubuntu-latest'
     steps:
     - uses: 'actions/checkout@v3'
@@ -47,5 +47,5 @@ jobs:
         service_account: $${{ env.SERVICE_ACCOUNT }}
         access_token_lifetime: 3600s
 
-    - name: 'Compile Vertex Pipeline'
-      run: gcloud builds submit --no-source --config build/$${{ env.ENVIRONMENT }}/pipeline-deployment.yaml --project $${{ env.PROJECT_ID }} --region $${{ env.REGION }} --machine-type=e2-highcpu-8 --suppress-logs
+    - name: 'Deploy Vertex AI Pipeline'
+      run: gcloud builds submit --no-source --config build/$${{ env.ENVIRONMENT }}/pipeline-deployment-${framework}.yaml --project $${{ env.PROJECT_ID }} --region $${{ env.REGION }} --machine-type=e2-highcpu-8 --suppress-logs

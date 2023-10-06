@@ -1,4 +1,4 @@
-# MLOps with Vertex AI - GIT setup
+# MLOps with Vertex AI - Git setup
 
 ## Introduction
 

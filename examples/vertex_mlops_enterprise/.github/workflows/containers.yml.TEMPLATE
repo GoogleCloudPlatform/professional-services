@@ -33,10 +33,10 @@ env:
   REGION: europe-west4
   DOCKER_REPO: ${docker_repo}
   WORKLOAD_ID_PROVIDER: ${wip}
-  CLOUDBUILD_LOGS: gs://mlops2-creditcards-dev_cloudbuild/logs
+  CLOUDBUILD_LOGS: gs://${project_id}_cloudbuild/logs
 jobs:
-  build-container-cicd:
-    name: 'Build container CICD'
+  build-container-cicd-tfx:
+    name: 'Build container CI/CD TFX'
     runs-on: 'ubuntu-latest'
     steps:
     - uses: 'actions/checkout@v3'
@@ -54,8 +54,30 @@ jobs:
     
     - name: 'Build container'
       run: |
-          cp build/Dockerfile.cicd build/Dockerfile
-          gcloud builds submit --gcs-log-dir=$${{ env.CLOUDBUILD_LOGS }} --project $${{ env.PROJECT_ID }} --region $${{ env.REGION }} --tag $${{ env.DOCKER_REPO }}/cicd:latest build/. --timeout=15m --machine-type=e2-highcpu-8 --suppress-logs
+          cp build/Dockerfile.cicd-tfx build/Dockerfile
+          gcloud builds submit --gcs-log-dir=$${{ env.CLOUDBUILD_LOGS }} --project $${{ env.PROJECT_ID }} --region $${{ env.REGION }} --tag $${{ env.DOCKER_REPO }}/cicd-tfx:latest build/. --timeout=15m --machine-type=e2-highcpu-8 --suppress-logs
+
+  
+  build-container-cicd-kfp:
+    name: 'Build container CI/CD KFP'
+    runs-on: 'ubuntu-latest'
+    steps:
+    - uses: 'actions/checkout@v3'
+      with:
+        token: $${{ github.token }}
+         
+    - id: 'auth'
+      name: 'Authenticate to Google Cloud'
+      uses: 'google-github-actions/auth@v1'
+      with:
+        create_credentials_file: 'true'
+        workload_identity_provider: $${{ env.WORKLOAD_ID_PROVIDER }}
+        service_account: $${{ env.SERVICE_ACCOUNT }}
+        access_token_lifetime: 3600s
+    
+    - name: 'Build container'
+      run: |
+          gcloud builds submit --gcs-log-dir=$${{ env.CLOUDBUILD_LOGS }} --project $${{ env.PROJECT_ID }} --region $${{ env.REGION }} --tag $${{ env.DOCKER_REPO }}/cicd-kfp:latest src/kfp_pipelines/. --timeout=15m --machine-type=e2-highcpu-8 --suppress-logs
 
   
   build-container-vertex:

@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name: Run Vertex AI pipeline
+name: Run Vertex AI ${framework} Pipeline
 on:
   workflow_dispatch:
 
@@ -31,7 +31,7 @@ env:
   WORKLOAD_ID_PROVIDER: ${wip}
 jobs:
   run-pipeline:
-    name: 'Run Vertex AI pipeline'
+    name: 'Run Vertex AI ${framework} pipeline'
     runs-on: 'ubuntu-latest'
     steps:
     - uses: 'actions/checkout@v3'
@@ -45,8 +45,8 @@ jobs:
         create_credentials_file: 'true'
         workload_identity_provider: $${{ env.WORKLOAD_ID_PROVIDER }}
         service_account: $${{ env.SERVICE_ACCOUNT }}
-        access_token_lifetime: 3600s
+        access_token_lifetime: 7200s
 
     - name: 'Run Vertex Pipeline'
-      run: gcloud builds submit --no-source --config build/$${{ env.ENVIRONMENT }}/pipeline-run.yaml --project $${{ env.PROJECT_ID }} --region $${{ env.REGION }} --machine-type=e2-highcpu-8 --suppress-logs
+      run: gcloud builds submit --no-source --config build/$${{ env.ENVIRONMENT }}/pipeline-run-${framework}.yaml --project $${{ env.PROJECT_ID }} --region $${{ env.REGION }} --machine-type=e2-highcpu-8 --suppress-logs
       
