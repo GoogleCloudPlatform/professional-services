@@ -20,4 +20,4 @@ slackclient==2.9.3
 slackeventsapi==2.2.1
 Werkzeug==1.0.1
 google.cloud.logging
-gevent==21.8.0
+gevent==23.9.0
