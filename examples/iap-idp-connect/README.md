@@ -13,7 +13,7 @@ Additionally:
 ## Pre-requisite and setting up dependencies
 
 * Install python 3, pip 3 (Make sure Python version is 3.10)
-* Setup application dependencies ():
+* Setup application dependencies:
 
   * Use your user account
     - Run `gcloud auth application-default login`

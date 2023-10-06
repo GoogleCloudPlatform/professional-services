@@ -108,7 +108,6 @@ def test_update_iap_settings_positive():
             credentials, project_id, sign_in_url, backend, api_key_arg, tenant_ids
         )
 
-    # mock_client.assert_called_once_with(credentials=credentials)
     mock_update_iap_settings.assert_called_once_with(request=expected_request)
     assert (
         response["iap_settings"]["name"]
