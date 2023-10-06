@@ -15,7 +15,7 @@ A terraform script is provided to setup all the required resources:
 - BigQuery Dataset where the training data will be stored
 - Service account `mlops-[env]@` with the minimum permissions required by Vertex and Dataflow
 - Service account `github` to be used by Workload Identity Federation, to federate Github identity.
-- Secret to store the Github SSH key to get access the CICD code repo.
+- Secret to store the Github SSH key to get access the CI/CD code repo (you will set the secret value later, so it can be used).
 
 ![MLOps project description](./images/mlops_projects.png "MLOps project description")
 
