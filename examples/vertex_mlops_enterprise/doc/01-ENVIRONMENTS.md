@@ -34,11 +34,42 @@ These groups are not suitable for production grade environments. You can configu
 
 ### Git environment for the ML Pipelines
 
-Make sure you have ready a Github repo with the ML pipeline code. 
-You can clone the following example for setting up the repo: https://github.com/pbalm/professional-services/tree/vertex-mlops/examples/vertex_mlops_enterprise
-This repo should have at least one of the following branches: `dev`, `staging`, `prod`
+Clone the Google Cloud Professional services [repo](https://github.com/GoogleCloudPlatform/professional-services) to a temp directory: 
+```
+git clone https://github.com/GoogleCloudPlatform/professional-services.git`
+cd professional-services/
+```
 
+Setup your new Github repo using the Github web console or CLI.
+
+Copy the `vertex_mlops_enterprise` folder to your local folder, including the Github actions:
+
+```
+cp -R ./examples/vertex_mlops_enterprise/* ./<YOUR LOCAL FOLDER>
+cp -R ./examples/vertex_mlops_enterprise/.github ./<YOUR LOCAL FOLDER>
+```
+
+Commit the files in the main branch (`main`):
+```
+git init
+git add *
+git commit -m "first commit"
+git branch -M main
+git remote add origin https://github.com/<ORG>/<REPO>.git
+git push -u origin main
+```
 You will need to configure the Github organization and repo name in the `github` variable.
+
+### Branches
+Create the additional branches in Github (`dev`, `staging`, `prod`). This can be also done from the UI (`Create branch: dev from main`).
+
+Pull the remote repo with `git pull`.
+
+Checkout the staging branch with `git checkout dev`.
+
+Review the files `*.yml` files in the `.github/workflows` and modify them if needed. These files should be automatically updated when launched terraform.
+
+Review the files `*.yaml` files in the `build` folder and modify them if needed. These files should be automatically updated when launched terraform.
 
 ##  Instructions
 ###  Deploy the different environments
@@ -65,7 +96,7 @@ project_id          = "creditcards-dev"
 - It is possible that some errors like `googleapi: Error 400: Service account xxxx does not exist.` appears. This is due to some dependencies with the Project IAM authoritative bindings of the service accounts. In this case, re-run again the process with `terraform apply`
 
 ##  What's next?
-Continue [setting up the GIT repo](./02-GIT_SETUP.md) and [launching the MLOps pipeline](./03-MLOPS.md).
+Continue [configuring the GIT integration with Cloud Build](./02-GIT_SETUP.md) and [launching the MLOps pipeline](./03-MLOPS.md).
 
 <!-- BEGIN TFDOC -->
 <!-- END TFDOC -->

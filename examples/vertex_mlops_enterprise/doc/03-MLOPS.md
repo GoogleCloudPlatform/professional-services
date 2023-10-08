@@ -87,7 +87,7 @@ curl -X POST \
 You can test the overall build process from the Github Actions section.
 - **Build Containers**: This action will create the different docker containers that will be used during the Vertex AI pipeline compilation and execution.
 - **Build Vertex AI pipeline**: This action will run the unit tests and if they are executed sucesfull it will compile the Vertex pipeline.
-- **Run Vertex AI pipeline**: This action will execute the Vertex pipeline. 
+- **Run Vertex AI pipeline**: This action will execute the Vertex pipeline. Please note that the first time it is possible that the pipeline fails with `Error: Vertex AI Service Agent`. Just re-run the pipeline and it should work.
 - **Deploy model**: This action will deploy the model to a Vertex AI endpoint.
 
 
