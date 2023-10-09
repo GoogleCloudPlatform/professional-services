@@ -117,6 +117,7 @@ them to fit your particular use case.
     using Cloud Composer, GCP's managed Apache Airflow service.
 *   [Cloud Data Fusion Functions and Plugins](examples/cloud-datafusion-functions-plugins) -
     Examples of Cloud Data Fusion Functions and Plugins.
+*   [Cloud DNS public zone monitoring](examples/cloud-dns-public-zone-dashboard) - Visualizing Cloud DNS public zone query data using log-based metrics and Cloud Monitoring.
 *   [Cloud Function Act As](examples/cloud-function-act-as) - Example of
     executing a Cloud Function on behalf and with IAM permissions of the GitHub
     Workload Identity caller.
@@ -314,6 +315,8 @@ Platform usage.
     application which provides the ability to train and deploy ML models on
     Google Cloud Machine Learning Engine, and visualize the predicted results
     using LIME through simple post request.
+*   [Airfow States Collector](tools/airflow-states-collector) -
+      A tool that creates and uploads an airflow dag to the dags GCS folder. The dag incrementally collect airflow task states and stores to BQ. It also autogenerates a LookerStudio dashboard querying the BQ view. 
 *   [Airpiler](tools/airpiler) - A python script to convert Autosys JIL files to
     dag-factory format to be executed in Cloud Composer (managed airflow
     environment).
@@ -375,6 +378,12 @@ Platform usage.
 *   [Cloud Composer Backup and Recovery](tools/cloud-composer-backup-restore) - A
     command line tool for applying backup and recovery operations on Cloud
     Composer Airflow environments.
+*   [Cloud Composer Migration Complexity Assessment](tools/cloud-composer-migration-complexity-assessment) - An Airflow DAG that uses a variety
+    of tools to analyze a Cloud Composer 1 environment, determine a work estimate, and
+    accelerate the conversion of airflow 1 dags to airflow 2 dags.
+*   [Cloud Composer Migration Terraform Generator](tools/cloud-composer-migration-terraform-generator) - Analyzes an existing Cloud Composer 1
+    / Airflow 1 environment and generates terraform. Configures new Cloud Composer 2
+    environment to meet your workload demands.
 *   [CUD Prioritized Attribution](tools/cuds-prioritized-attribution) - A tool
     that allows GCP customers who purchased Committed Use Discounts (CUDs) to
     prioritize a specific scope (e.g. project or folder) to attribute CUDs first
@@ -554,6 +563,8 @@ Platform usage.
 *   [Composer DAG Load Generator](tools/cloud-composer-dag-generator) - This is an automatic 
     DAG generator tool which can be used to create test workload on a cloud composer environmnet
     and to test differents airflows configurations or to do fine tune using the composer/airflow metrics.
+*   [Gradio and Generative AI Example](examples/genai-gradio-example) - The example code allows developers 
+    to create rapid Generative AI PoC applications with Gradio and Gen AI agents.
 
 ## Contributing
 
