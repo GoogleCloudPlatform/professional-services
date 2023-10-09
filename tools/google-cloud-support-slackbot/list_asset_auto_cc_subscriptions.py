@@ -57,12 +57,18 @@ def list_asset_auto_cc_subscriptions(channel_id, channel_name):
     for asset_type in asset_types:
         tracked_assets = asset_type.get()
         response.append(
-            f"The following {asset_type.id} are being tracked in {channel_name}:"
+            f"Auto CC is applied to the following {asset_type.id}"
+            f" and being tracked in {channel_name}:"
         )
         for asset in tracked_assets:
             response.append(f"{asset.get('asset_id')}: {asset.get('cc_list')}")
 
-    client.chat_postMessage(channel=channel_id, text="\n".join(response))
+    if response:
+        client.chat_postMessage(channel=channel_id, text="\n".join(response))
+    else:
+        client.chat_postMessage(channel=channel_id,
+                                text=("No assets are being tracked in"
+                                      f" {channel_name} for auto CC"))
 
 
 if __name__ == "__main__":

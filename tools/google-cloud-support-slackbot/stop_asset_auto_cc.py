@@ -24,7 +24,8 @@ from firebase_admin import firestore
 logger = logging.getLogger(__name__)
 
 
-def stop_asset_auto_cc(channel_id, channel_name, asset_type, asset_id, user_id):
+def stop_asset_auto_cc(channel_id, channel_name, asset_type, asset_id,
+                       user_id):
     """
     Remove a case from the list of tracked Google Cloud support cases.
 
@@ -66,13 +67,15 @@ def stop_asset_auto_cc(channel_id, channel_name, asset_type, asset_id, user_id):
         db_collection.document(asset_id).delete()
         client.chat_postMessage(
             channel=channel_id,
-            text=f"Asset {asset_id} is no longer being tracked in {channel_name}"
+            text=(f"Asset {asset_id} is no longer being tracked"
+                  f" in {channel_name}")
         )
     else:
         client.chat_postEphemeral(
             channel=channel_id,
             user=user_id,
-            text=f"The tracking for {asset_id} has not found for {channel_name}"
+            text=(f"The tracking for {asset_id} has not found"
+                  f" for {channel_name}")
         )
 
 

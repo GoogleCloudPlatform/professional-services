@@ -1,0 +1,19 @@
+filter: |-
+  resource.type="dns_query"
+  resource.labels.target_type="public-zone"
+labelExtractors:
+  ProjectID: EXTRACT(resource.labels.project_id)
+  QueryName: EXTRACT(jsonPayload.queryName)
+  QueryType: EXTRACT(jsonPayload.queryType)
+  ResponseCode: EXTRACT(jsonPayload.responseCode)
+  TargetName: EXTRACT(resource.labels.target_name)
+metricDescriptor:
+  labels:
+    - key: QueryName
+    - key: TargetName
+    - key: ResponseCode
+    - key: ProjectID
+    - key: QueryType
+  metricKind: DELTA
+  unit: "1"
+  valueType: INT64
