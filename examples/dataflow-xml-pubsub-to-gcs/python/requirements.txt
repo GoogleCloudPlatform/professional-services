@@ -1,6 +1,6 @@
 apache-beam==2.45.0
 cachetools==4.2.4
-certifi==2022.12.7
+certifi==2023.7.22
 charset-normalizer==3.0.1
 cloudpickle==2.2.1
 crcmod==1.7
@@ -56,5 +56,5 @@ rsa==4.9
 six==1.16.0
 sqlparse==0.4.3
 typing_extensions==4.5.0
-urllib3==1.26.14
+urllib3==1.26.17
 zstandard==0.20.0
