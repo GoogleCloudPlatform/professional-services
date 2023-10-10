@@ -450,6 +450,8 @@ Platform usage.
 *   [GCS Usage Recommender](tools/gcs-usage-recommender) - A tool that generates
     bucket-level intelligence and access patterns across all projects for a GCP
     project to generate recommended object lifecycle management.
+*   [GKE AutoPSC Controller](tools/gke-autopsc-controller) - Google Kubernetes Engine
+    controller, to setup PSC ServiceAttachment for Gateway API managed Forwarding Rules.
 *   [Global DNS -> Zonal DNS Project Bulk Migration](tools/gdns-zdns-project-bulk-migration) - 
     A shell script for gDNS-zDNS project bulk migration.
 *   [GKE Billing Export](tools/gke-billing-export) - Google Kubernetes Engine
