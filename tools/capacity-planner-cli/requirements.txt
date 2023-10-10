@@ -24,4 +24,4 @@ six==1.16.0
 toml==0.10.2
 tzdata==2022.4
 tzlocal==4.2
-urllib3==1.26.12
+urllib3==1.26.17
