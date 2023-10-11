@@ -81,6 +81,7 @@ def run_validation(bucket_name,output_path,input_path,validation_output_path,arc
     total_success_object_validation=0
     total_success_function_validation=0
     total_success_statement_validation=0
+    total_success_isNULL_validation=0
     total_files=0
 
     # Iterate over each common file in the input and output directories
@@ -174,7 +175,7 @@ def run_validation(bucket_name,output_path,input_path,validation_output_path,arc
             root.info("Output Column Count for statement " + str(i) + ": " + str(len(col_list_output)))
             if len(col_list_output)==len(col_list_input):
                 status_count = True
-            root.info(f"Columns Count Validation for statement "+ str(i) + ": {status_count}")
+            root.info(f"Columns Count Validation for statement "+ str(i) + f": {status_count}")
             if (col_list_input == col_list_output):
                 status_name = True
             
@@ -223,6 +224,8 @@ def run_validation(bucket_name,output_path,input_path,validation_output_path,arc
             status_count, status_name = False, False
             join_map_input = dict([join_map_input,join_list_input.count(join_map_input)] for join_map_input in set(join_list_input))
             join_map_output = dict([join_map_output,join_list_output.count(join_map_output)] for join_map_output in set(join_list_output))
+            if join_map_input==join_map_output:
+                status_count = True
             jm_input = pprint.pformat(join_map_input)
             jm_output = pprint.pformat(join_map_output)
             root.info(f"Count of Joins in Input in statement {i}: {jm_input}")
@@ -359,7 +362,7 @@ def run_validation(bucket_name,output_path,input_path,validation_output_path,arc
         status_count = all(status_count_list)
         if status_count:
             status_count = "Success"
-            total_success_function_validation+=1
+            total_success_isNULL_validation+=1
         else:
             status_count = "Failure"
         finalValidationResults["is null validation"] = status_count
@@ -429,6 +432,7 @@ def run_validation(bucket_name,output_path,input_path,validation_output_path,arc
     new_summary_file["Successfull_object_validation"]=total_success_object_validation
     new_summary_file["Successfull_function_validation"]=total_success_function_validation
     new_summary_file["Successfull_statement_validation"]=total_success_statement_validation
+    new_summary_file["Successfull_isNULL_validation"]=total_success_isNULL_validation
     df3 = pd.DataFrame.from_dict(new_summary_file,orient='index')
     df3=df3.transpose()
     bucket.blob(f'{validation_output_path}/summary/validation_translation_summary{ct_start}.csv').upload_from_string(df3.to_csv(index=False), 'text/csv')
