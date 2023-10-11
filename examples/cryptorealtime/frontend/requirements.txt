@@ -2,5 +2,5 @@ google-cloud-bigtable==0.31.1
 google-cloud-core==0.28.1
 numpy
 pandas
-Flask==0.12.2
+Flask==2.2.5
 

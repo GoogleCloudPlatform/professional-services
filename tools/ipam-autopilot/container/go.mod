@@ -6,7 +6,6 @@ require (
 	cloud.google.com/go v0.99.0 // indirect
 	cloud.google.com/go/asset v1.0.1
 	cloud.google.com/go/storage v1.18.2
-	github.com/andybalholm/brotli v1.0.4 // indirect
 	github.com/apparentlymart/go-cidr v1.1.0
 	github.com/census-instrumentation/opencensus-proto v0.3.0 // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
@@ -14,7 +13,7 @@ require (
 	github.com/envoyproxy/go-control-plane v0.10.1 // indirect
 	github.com/envoyproxy/protoc-gen-validate v0.6.2 // indirect
 	github.com/go-sql-driver/mysql v1.6.0
-	github.com/gofiber/fiber/v2 v2.23.0
+	github.com/gofiber/fiber/v2 v2.49.2
 	github.com/golang-migrate/migrate/v4 v4.15.1
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
@@ -23,10 +22,8 @@ require (
 	github.com/jackc/pgx/v4 v4.13.0 // indirect
 	github.com/stretchr/testify v1.7.0
 	go.uber.org/atomic v1.9.0 // indirect
-	golang.org/x/net v0.0.0-20211208012354-db4efeb81f4b // indirect
-	golang.org/x/sys v0.0.0-20211205182925-97ca703d548d // indirect
 	google.golang.org/api v0.61.0
 	google.golang.org/genproto v0.0.0-20211207154714-918901c715cf
 	google.golang.org/grpc v1.42.0 // indirect
-	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
+	gopkg.in/yaml.v3 v3.0.0 // indirect
 )

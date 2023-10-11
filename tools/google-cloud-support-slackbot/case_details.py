@@ -49,7 +49,8 @@ def case_details(channel_id, case, user_id):
             pretty_json = json.dumps(fs_case, indent=4, sort_keys=True)
             client.chat_postMessage(
                 channel=channel_id,
-                text=f"Here are the details on case {case}: \n{pretty_json}")
+                text=f"Here are the details on case {case}: \n{pretty_json}"
+            )
             break_flag = True
             break
 

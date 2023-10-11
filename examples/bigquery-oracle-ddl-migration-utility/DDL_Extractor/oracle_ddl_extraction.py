@@ -157,7 +157,7 @@ def main(gcs_config_path, project_id, instant_client_path):
                     WITH cte_sql AS
                     (
                         select  table_name table_name, 0 seq, 'CREATE TABLE ' || rtrim(owner)||'.'||rtrim(table_name) || '(' AS sql_out
-                        from all_tab_columns where owner = upper('{0}') AND table_name  in (upper('{1}')
+                        from all_tab_columns where owner = upper('{row["table_name"].split(".")[0].strip()}') AND table_name  in (upper('{row["table_name"].split(".")[1].strip()}')
                     ) 
                     union
                         select table_name table_name,

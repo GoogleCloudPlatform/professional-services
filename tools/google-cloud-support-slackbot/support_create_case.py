@@ -16,10 +16,9 @@
 
 import os
 import slack
-import requests
 import logging
 from datetime import datetime
-from googleapiclient.discovery import build_from_document
+from support_service import support_service
 
 logger = logging.getLogger(__name__)
 
@@ -69,14 +68,8 @@ def support_create_case(channel_id, user_id, user_name, display_name,
     """
     client = slack.WebClient(token=os.environ.get("SLACK_TOKEN"))
     MAX_RETRIES = 3
-    API_KEY = os.environ.get("API_KEY")
 
-    # Get our discovery doc and build our service
-    r = requests.get(
-        f"https://cloudsupport.googleapis.com/$discovery/rest?key={API_KEY}&labels=V2_TRUSTED_TESTER&version=v2beta",
-        timeout=5)
-    r.raise_for_status()
-    support_service = build_from_document(r.json())
+    service = support_service()
 
     client.chat_postEphemeral(channel=channel_id,
                               user=user_id,
@@ -97,7 +90,7 @@ def support_create_case(channel_id, user_id, user_name, display_name,
         "testCase": test_case
     }
     resource_name = "projects/" + project_number
-    req = support_service.cases().create(parent=resource_name, body=body)
+    req = service.cases().create(parent=resource_name, body=body)
     try:
         resp = req.execute(num_retries=MAX_RETRIES)
     except BrokenPipeError as e:
@@ -127,14 +120,15 @@ if __name__ == "__main__":
         " Support Slackbot. Please delete this case if it is open for"
         " more than 30 minutes")
     test_severity = 4
-    test_class_id = "100H41Q3DTMN0TBKCKD0SGRFDLO7AT35412MSPR9DPII4229DPPN8OBECDIG"
+    test_class_id = ("100H41Q3DTMN0TBKCKD0SGRFDLO7"
+                     "AT35412MSPR9DPII4229DPPN8OBECDIG")
     test_classification_display_name = ("Compute \u003e Compute Engine \u003e"
                                         " Instance")
 
     test_time_zone = "-7:00"
     test_project_number = os.environ.get("TEST_PROJECT_NUMBER")
     print(
-        support_create_case("C04C63CT0QH", "U04BQFE8893", "auelsayed",
+        support_create_case(test_channel_id, test_user_id, test_user_name,
                             test_display_name, test_description, test_severity,
                             test_class_id, test_classification_display_name,
-                            test_time_zone, 283757432980, True))
+                            test_time_zone, test_project_number, True))

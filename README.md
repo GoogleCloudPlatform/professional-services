@@ -87,6 +87,10 @@ them to fit your particular use case.
     BigQuery query and returns the output as an XML string.
 *   [BigQuery Translation Validator](examples/bigquery-translation-validator-utility) - A python utility to compare 2 SQL Files and  point basic differences like column names,
     table names, joins, function names, is-Null and query syntax.
+*   [BigQuery Generic DDL Migration Utility](examples/bigquery-generic-ddl-migration-utility) - 
+    Generic DDL Migration Utility to migrate the tables schema (DDL) from Database(Oracle, Snowflake, MSSQL, Vertica, Neteeza) DB to BigQuery.
+    The utility leverages BigQuery Translation API and offers additional features
+    such as adding partitioning, clustering, metadata columns and prefixes to table names.
 *   [Bigtable Dataflow Cryptocurrencies Exchange RealTime Example](examples/cryptorealtime) -
     Apache Beam example that reads from the Crypto Exchanges WebSocket API as
     Google Cloud Dataflow pipeline and saves the feed in Google Cloud Bigtable.
@@ -113,6 +117,7 @@ them to fit your particular use case.
     using Cloud Composer, GCP's managed Apache Airflow service.
 *   [Cloud Data Fusion Functions and Plugins](examples/cloud-datafusion-functions-plugins) -
     Examples of Cloud Data Fusion Functions and Plugins.
+*   [Cloud DNS public zone monitoring](examples/cloud-dns-public-zone-dashboard) - Visualizing Cloud DNS public zone query data using log-based metrics and Cloud Monitoring.
 *   [Cloud Function Act As](examples/cloud-function-act-as) - Example of
     executing a Cloud Function on behalf and with IAM permissions of the GitHub
     Workload Identity caller.
@@ -163,6 +168,8 @@ them to fit your particular use case.
     from Cloud Pub/Sub, enhancing the document using metadata stored in Cloud
     Bigtable and indexing those documents into
     [Elasticsearch](https://www.elastic.co/).
+*   [Dataflow BigQuery to AlloyDB](examples/dataflow-bigquery-to-alloydb/) -
+    Example that shows how to move data from BigQuery to an AlloyDB table using Dataflow.
 *   [Dataflow Flex Template in Restricted Networking Env](examples/dataflow-flex-python/) -
     Example implements a python flex template which can be run in an environment
     where workers can not download python packages due to egress traffic restrictions.
@@ -221,6 +228,7 @@ them to fit your particular use case.
 *   [Dialogflow Entities Creation and Update](examples/dialogflow-entities-example) -
     Creation and update of entities for Dialogflow in Python.
 *   [DLP API Examples](examples/dlp) - Examples of the DLP API usage.
+*   [Ephemeral Projects](examples/ephemeral-projects) - Creating short lived gcp projects for sandbox purposes.
 *   [GCE Access to Google AdminSDK](examples/gce-to-adminsdk) - Example to help
     manage access to Google's AdminSDK using GCE's service account identity
 *   [GCS Hive External Table File Optimization](examples/gcs-hive-external-table-file-optimization) - 
@@ -309,6 +317,8 @@ Platform usage.
     application which provides the ability to train and deploy ML models on
     Google Cloud Machine Learning Engine, and visualize the predicted results
     using LIME through simple post request.
+*   [Airfow States Collector](tools/airflow-states-collector) -
+      A tool that creates and uploads an airflow dag to the dags GCS folder. The dag incrementally collect airflow task states and stores to BQ. It also autogenerates a LookerStudio dashboard querying the BQ view. 
 *   [Airpiler](tools/airpiler) - A python script to convert Autosys JIL files to
     dag-factory format to be executed in Cloud Composer (managed airflow
     environment).
@@ -370,6 +380,12 @@ Platform usage.
 *   [Cloud Composer Backup and Recovery](tools/cloud-composer-backup-restore) - A
     command line tool for applying backup and recovery operations on Cloud
     Composer Airflow environments.
+*   [Cloud Composer Migration Complexity Assessment](tools/cloud-composer-migration-complexity-assessment) - An Airflow DAG that uses a variety
+    of tools to analyze a Cloud Composer 1 environment, determine a work estimate, and
+    accelerate the conversion of airflow 1 dags to airflow 2 dags.
+*   [Cloud Composer Migration Terraform Generator](tools/cloud-composer-migration-terraform-generator) - Analyzes an existing Cloud Composer 1
+    / Airflow 1 environment and generates terraform. Configures new Cloud Composer 2
+    environment to meet your workload demands.
 *   [CUD Prioritized Attribution](tools/cuds-prioritized-attribution) - A tool
     that allows GCP customers who purchased Committed Use Discounts (CUDs) to
     prioritize a specific scope (e.g. project or folder) to attribute CUDs first
@@ -434,6 +450,8 @@ Platform usage.
 *   [GCS Usage Recommender](tools/gcs-usage-recommender) - A tool that generates
     bucket-level intelligence and access patterns across all projects for a GCP
     project to generate recommended object lifecycle management.
+*   [GKE AutoPSC Controller](tools/gke-autopsc-controller) - Google Kubernetes Engine
+    controller, to setup PSC ServiceAttachment for Gateway API managed Forwarding Rules.
 *   [Global DNS -> Zonal DNS Project Bulk Migration](tools/gdns-zdns-project-bulk-migration) - 
     A shell script for gDNS-zDNS project bulk migration.
 *   [GKE Billing Export](tools/gke-billing-export) - Google Kubernetes Engine
@@ -549,6 +567,8 @@ Platform usage.
 *   [Composer DAG Load Generator](tools/cloud-composer-dag-generator) - This is an automatic 
     DAG generator tool which can be used to create test workload on a cloud composer environmnet
     and to test differents airflows configurations or to do fine tune using the composer/airflow metrics.
+*   [Gradio and Generative AI Example](examples/genai-gradio-example) - The example code allows developers 
+    to create rapid Generative AI PoC applications with Gradio and Gen AI agents.
 
 ## Contributing
 

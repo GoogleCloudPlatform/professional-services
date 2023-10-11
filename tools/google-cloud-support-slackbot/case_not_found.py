@@ -42,11 +42,12 @@ def case_not_found(channel_id, user_id, case):
         client.chat_postEphemeral(
             channel=channel_id,
             user=user_id,
-            text=
-            f"Case {case} could not be found in your org. If this case was recently"
-            " created, please give the system 60 seconds to fetch it. Otherwise,"
-            " double check your case number or confirm the org being tracked"
-            " with your Slack admin.")
+            text=(
+                f"Case {case} could not be found in your org. If this"
+                " case was recently created, please give the system 60"
+                " seconds to fetch it. Otherwise, double check your case"
+                " number or confirm the org being tracked with your Slack"
+                " admin."))
     except slack.errors.SlackApiError as e:
         error_message = f"{e} : {datetime.now()}"
         logger.error(error_message)
