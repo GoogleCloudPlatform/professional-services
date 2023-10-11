@@ -59,3 +59,4 @@ def model_monitoring(
         location=region,
         endpoint=endpoint_uri
     )
+    logging.info("Job: " + job)

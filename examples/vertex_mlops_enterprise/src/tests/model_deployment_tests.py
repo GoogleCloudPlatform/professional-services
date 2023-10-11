@@ -133,10 +133,10 @@ def test_model_artifact():
   assert (SERVING_DEFAULT_SIGNATURE_NAME in saved_model.signatures
          ), f"{SERVING_DEFAULT_SIGNATURE_NAME} not in model signatures!"
 
-  prediction_fn = saved_model.signatures["serving_default"]
-
   #Disabled until function is fixed
 '''
+  prediction_fn = saved_model.signatures["serving_default"]
+
   predictions = prediction_fn(**new_test_instance)
   logging.info("Model produced predictions.")
 

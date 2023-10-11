@@ -16,7 +16,7 @@ from datetime import datetime
 
 from config import (PIPELINE_ROOT, PIPELINE_NAME, BQ_INPUT_DATA, MODEL_CARD_CONFIG, 
                     MODEL_DISPLAY_NAME, PRED_CONTAINER, ENDPOINT_NAME, PARENT_MODEL,
-                    SERVICE_ACCOUNT, NETWORK, KEY_ID, EMAILS,
+                    SERVICE_ACCOUNT, NETWORK, KEY_ID,
                     PROJECT_ID, REGION, IMAGE, CLASS_NAMES, TARGET_COLUMN,
                     DATAFLOW_NETWORK, DATAFLOW_PUBLIC_IPS, DATAFLOW_SA, 
                     BQ_OUTPUT_DATASET_ID)
@@ -24,11 +24,8 @@ from train import xgb_train
 from eval import evaluate_model
 from load import get_dataframe, upload_to_bq
 from model_card import plot_model_card
-from model_monitoring import model_monitoring
 from model_upload import upload_model
 from reformat_preds import reformat_predictions_bq
-
-from typing import NamedTuple
 
 caching = True
 
@@ -127,7 +124,7 @@ def pipeline(
         display_name = ENDPOINT_NAME
     ).set_display_name("Create Vertex AI Endpoint")
 
-    deploy_op = ModelDeployOp(
+    _ = ModelDeployOp(
             model=upload_op.outputs['uploaded_model'],
             endpoint=create_endpoint_op.outputs['endpoint'],
             dedicated_resources_machine_type = 'n1-standard-8',

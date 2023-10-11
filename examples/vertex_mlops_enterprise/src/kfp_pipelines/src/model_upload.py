@@ -15,7 +15,6 @@ def upload_model(
     run_id: str
 ):
     from google.cloud import aiplatform
-    from kfp import dsl
     import logging
 
     logging.info(f"Upload model for run {run} and run ID {run_id}")
