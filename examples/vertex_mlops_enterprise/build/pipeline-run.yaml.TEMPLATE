@@ -71,7 +71,7 @@ steps:
 
 serviceAccount: 'projects/$_PROJECT/serviceAccounts/$_SERVICE_ACCOUNT'
 logsBucket: '$_GCS_BUCKET'
-timeout: 3600s
+timeout: 7200s
 substitutions:
   _REPO_URL: git@github.com:${github_org}/${github_repo}
   _BRANCH: ${github_branch}
