@@ -79,6 +79,27 @@ jobs:
       run: |
           gcloud builds submit --gcs-log-dir=$${{ env.CLOUDBUILD_LOGS }} --project $${{ env.PROJECT_ID }} --region $${{ env.REGION }} --tag $${{ env.DOCKER_REPO }}/cicd-kfp:latest src/kfp_pipelines/. --timeout=15m --machine-type=e2-highcpu-8 --suppress-logs
 
+  build-container-model-card:
+    name: 'Build container for Model Card'
+    runs-on: 'ubuntu-latest'
+    steps:
+    - uses: 'actions/checkout@v3'
+      with:
+        token: $${{ github.token }}
+         
+    - id: 'auth'
+      name: 'Authenticate to Google Cloud'
+      uses: 'google-github-actions/auth@v1'
+      with:
+        create_credentials_file: 'true'
+        workload_identity_provider: $${{ env.WORKLOAD_ID_PROVIDER }}
+        service_account: $${{ env.SERVICE_ACCOUNT }}
+        access_token_lifetime: 3600s
+    
+    - name: 'Build container'
+      run: |
+          cp src/kfp_pipelines/Dockerfile.modelcard Dockerfile
+          gcloud builds submit --gcs-log-dir=$${{ env.CLOUDBUILD_LOGS }} --project $${{ env.PROJECT_ID }} --region $${{ env.REGION }} --tag $${{ env.DOCKER_REPO }}/model-card:latest . --timeout=15m --machine-type=e2-highcpu-8 --suppress-logs
   
   build-container-vertex:
     name: 'Build container Vertex'

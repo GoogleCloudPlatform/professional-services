@@ -1,10 +1,10 @@
 from kfp import dsl
 from kfp.dsl import Input, Output, Dataset, Artifact, HTML
 
-from config import IMAGE
+from config import IMAGE_MODEL_CARD
 
 
-@dsl.component(base_image=IMAGE)
+@dsl.component(base_image=IMAGE_MODEL_CARD)
 def plot_model_card(
     project_id: str,
     region: str,

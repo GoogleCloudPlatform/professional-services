@@ -70,6 +70,7 @@ steps:
   - 'PIPELINE_NAME=$_PIPELINE_NAME'
   - 'PIPELINES_STORE=$_PIPELINES_STORE'
   - 'CICD_IMAGE_URI=$_CICD_IMAGE_URI'
+  - 'CICD_IMAGE_MODEL_CARD=$_CICD_IMAGE_MODEL_CARD'
   - 'DATAFLOW_SA=$_SERVICE_ACCOUNT'
   - 'DATAFLOW_NETWORK=$_DATAFLOW_NETWORK'  
   id: 'Compile Pipeline'
@@ -88,7 +89,8 @@ logsBucket: '$_GCS_BUCKET'
 timeout: 7200s
 substitutions:
   _REPO_URL: git@github.com:${github_org}/${github_repo}
-  _CICD_IMAGE_URI: '${docker_repo}/cicd-kfp:latest'  
+  _CICD_IMAGE_URI: '${docker_repo}/cicd-kfp:latest'
+  _CICD_IMAGE_MODEL_CARD: '${docker_repo}/model-card:latest'  
   _BRANCH: ${github_branch}
   _REGION: ${region}
   _PROJECT: ${project_id}

@@ -4,6 +4,7 @@ PROJECT_ID = os.getenv("PROJECT_ID", "")
 REGION = os.getenv("REGION", "")
 IMAGE=os.getenv("CICD_IMAGE_URI", f'{REGION}-docker.pkg.dev/{PROJECT_ID}/creditcards-kfp/base:latest')
 TRAIN_COMPONENT_IMAGE=f'{REGION}-docker.pkg.dev/{PROJECT_ID}/creditcards-kfp/train-fraud:latest'
+IMAGE_MODEL_CARD=os.getenv("CICD_IMAGE_MODEL_CARD", f'{REGION}-docker.pkg.dev/{PROJECT_ID}/creditcards-kfp/model-card:latest')
 
 CLASS_NAMES = ['OK', 'Fraud']
 TARGET_COLUMN = 'Class'
