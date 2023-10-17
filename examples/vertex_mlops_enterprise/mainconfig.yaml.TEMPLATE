@@ -1,0 +1,26 @@
+creditcards:
+    project: '${project_id}'
+    region: 'europe-west4' 
+    docker_repo: '${docker_repo}'
+    service_account: '${sa_mlops}'
+    vertex_dataset_name: 'creditcards'
+    raw_schema_dir: 'src/raw_schema'
+    bucket: '${project_id}'
+    limit: 5000
+    version: 'v02'
+    cloudfunction_region: '${region}'
+    artifactregistry_region: '${region}'
+    python_pkg_repo: 'pyrepo'
+    bq:
+       dataset: 'creditcards'
+       location: '${region}'
+       source_table: 'creditcards'
+       ml_table: 'creditcards_ml'
+    dataflow:
+        subnet: '${subnetwork}'
+        service_account: '${sa_mlops}'
+    featurestore_id: 'creditcards'
+    git:
+        repo_url: "git@github.com:${github_org}/${github_repo}"
+        branch: "${github_branch}"     
+ 
