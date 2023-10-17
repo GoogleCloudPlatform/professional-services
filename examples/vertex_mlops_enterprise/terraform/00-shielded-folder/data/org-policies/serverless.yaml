@@ -1,0 +1,31 @@
+# skip boilerplate check
+#
+# sample subset of useful organization policies, edit to suit requirements
+
+run.allowedIngress:
+  rules:
+  - allow:
+      values:
+      - is:internal
+
+# run.allowedVPCEgress:
+#   rules:
+#   - allow:
+#       values:
+#       - is:private-ranges-only
+
+# cloudfunctions.allowedIngressSettings:
+#   rules:
+#   - allow:
+#       values:
+#       - is:ALLOW_INTERNAL_ONLY
+
+# cloudfunctions.allowedVpcConnectorEgressSettings:
+#   rules:
+#   - allow:
+#       values:
+#       - is:PRIVATE_RANGES_ONLY
+
+# cloudfunctions.requireVPCConnector:
+#   rules:
+#   - enforce: true

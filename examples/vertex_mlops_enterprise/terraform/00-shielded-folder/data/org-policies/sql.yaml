@@ -1,0 +1,11 @@
+# skip boilerplate check
+#
+# sample subset of useful organization policies, edit to suit requirements
+
+sql.restrictAuthorizedNetworks:
+  rules:
+  - enforce: true
+
+sql.restrictPublicIp:
+  rules:
+  - enforce: true

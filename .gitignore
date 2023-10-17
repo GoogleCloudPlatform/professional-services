@@ -37,6 +37,8 @@ node_modules/
 .coverage
 htmlcov/
 *.iml
+**/target
+
 
 # Terraform
 # See: https://github.com/github/gitignore/blob/master/Terraform.gitignore
