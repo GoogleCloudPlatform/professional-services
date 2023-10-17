@@ -126,6 +126,7 @@ them to fit your particular use case.
     deleted. This solution implements a [Google Cloud Function][gcf]
     [Background Function][gcf-bg] triggered on `compute.instances.delete` events
     published through [Stackdriver Logs Export][logs-export].
+*   [Certificate Authority Service Hierarchy](examples/certificate-authority-service-hierarchy) - Root and Subordinate Certificate Authority Service CA Pools and CAs with examples for domain ownership validation and sample load test script.
 *   [Cloud Run to BQ](examples/cloudrun-to-bq) - Solution to accept events/data
     on HTTP REST Endpoint and insert into BQ.
 *   [Cloud SQL Custom Metric](examples/cloud-sql-custom-metric) - An example of
