@@ -1,0 +1,49 @@
+FROM gcr.io/tfx-oss-public/tfx:1.8.0
+
+
+#RUN pip install keyring keyrings.google-artifactregistry-auth
+
+
+COPY build/pip.conf pip.conf
+ENV PIP_CONFIG_FILE=pip.conf
+
+
+ADD build/pydist pydist
+# These need to go in order so we don't hit unsatisfied deps
+RUN pip install pydist/jeepney-0.8.0-py3-none-any.whl
+RUN pip install pydist/typing_extensions-4.3.0-py3-none-any.whl
+RUN pip install pydist/zipp-3.8.1-py3-none-any.whl
+RUN pip install pydist/importlib_metadata-4.12.0-py3-none-any.whl
+RUN pip install pydist/pycparser-2.21-py2.py3-none-any.whl
+RUN pip install pydist/cffi-1.15.1-cp37-cp37m-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
+RUN pip install pydist/cryptography-37.0.4-cp36-abi3-manylinux_2_24_x86_64.whl
+RUN pip install pydist/SecretStorage-3.3.2-py3-none-any.whl
+RUN pip install pydist/keyring-23.7.0-py3-none-any.whl
+
+RUN pip install pydist/pyasn1-0.4.8-py2.py3-none-any.whl
+RUN pip install pydist/pyasn1_modules-0.2.8-py2.py3-none-any.whl
+RUN pip install pydist/rsa-4.9-py3-none-any.whl
+RUN pip install pydist/cachetools-5.2.0-py3-none-any.whl
+RUN pip install pydist/six-1.16.0-py2.py3-none-any.whl
+RUN pip install pydist/google_auth-2.9.1-py2.py3-none-any.whl
+RUN pip install pydist/certifi-2022.6.15-py3-none-any.whl
+RUN pip install pydist/charset_normalizer-2.1.0-py3-none-any.whl
+RUN pip install pydist/idna-3.3-py3-none-any.whl
+RUN pip install pydist/urllib3-1.26.11-py2.py3-none-any.whl
+RUN pip install pydist/requests-2.28.1-py3-none-any.whl
+RUN pip install pydist/pluggy-1.0.0-py2.py3-none-any.whl
+RUN pip install pydist/keyrings.google_artifactregistry_auth-1.0.0-py3-none-any.whl
+
+
+COPY requirements.txt requirements.txt
+
+RUN pip install -r requirements.txt
+
+# RuntimeError: module compiled against api version 0xe but this version of numpy is 0xd
+# Fixed by below command - see https://stackoverflow.com/questions/33859531/runtimeerror-module-compiled-against-api-version-a-but-this-version-of-numpy-is
+
+RUN pip install -U numpy --ignore-installed
+
+COPY src/ src/
+
+ENV PYTHONPATH="/pipeline:${PYTHONPATH}"
