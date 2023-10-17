@@ -1,7 +1,4 @@
-# Java based Finite Sandbox Projects
 
-
-## Instructions
 Requires folder to put all the projects under
 
 Must provide default location for GCP credentials
