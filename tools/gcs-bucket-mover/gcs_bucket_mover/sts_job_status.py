@@ -13,14 +13,12 @@
 # CONDITIONS OF ANY KIND, and is not intended for production use.
 """Status of the STS job"""
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
 from enum import Enum
 
 
 class StsJobStatus(Enum):
-    """Status of the STS job"""
-    failed = 1
-    in_progress = 2
-    success = 3
+  """Status of the STS job"""
+
+  FAILED = 1
+  IN_PROGRESS = 2
+  SUCCESS = 3

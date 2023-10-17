@@ -38,20 +38,20 @@ export class BqJob {
     }
     this.startTime = this.dateFromTimeString(data.statistics.startTime);
     this.endTime = this.dateFromTimeString(data.statistics.endTime);
-    this.projectId = data.jobReference.projectId;
-    this.jobId = data.jobReference.jobId;
-    this.location = data.jobReference.location;
+    this.projectId = data.jobReference? data.jobReference.projectId: '';
+    this.jobId = data.jobReference? data.jobReference.jobId: '';
+    this.location = data.jobReference? data.jobReference.location: '';
     if (data.configuration && data.configuration.query) {
       this.shortenedJobId = data.configuration.query.query;
     } else {
-      this.shortenedJobId = data.jobReference.jobId;
+      this.shortenedJobId = data.jobReference? data.jobReference.jobId: '';
     }
   }
 
   private dateFromTimeString(timeString: String): Date {
     const aNumber = Number(timeString);
     if (isNaN(aNumber)) {
-      console.log('can\'t parse timeString :' + timeString);
+      //console.log('can\'t parse timeString :' + timeString);
       return undefined;
     }
     return new Date(aNumber);

@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Component, ViewChild} from '@angular/core';
-import {GoogleAuthService} from './google-auth.service';
+import { Component } from '@angular/core';
+import { GoogleAuthService } from './google-auth.service';
+import { LogService } from './log.service';
 
 
 
@@ -24,23 +25,35 @@ import {GoogleAuthService} from './google-auth.service';
   styleUrls: ['./app.component.css']
 })
 export class AppComponent {
+
   title = 'BQ Visualiser';
   isLoggedIn = false;
-  constructor(private googleAuthService: GoogleAuthService) {
+  constructor(private googleAuthService: GoogleAuthService, private logSvc: LogService) {
     this.googleAuthService.loginEvent.subscribe(
-        (isloggedIn: boolean) => this.register_login(isloggedIn));
+      (isloggedIn: boolean) => this.register_login(isloggedIn));
 
     this.isLoggedIn = this.googleAuthService.isLoggedIn();
   }
+
+
+
   /* event handler to recognise a login or logout event has occurred */
   private register_login(what: boolean) {
     this.isLoggedIn = what;
+    //console.log('AppComponent::registered_login: ' + what)
   }
   public login() {
+    //console.log('AppComponent::login calling googleAuthService.login')
     this.googleAuthService.login();
   }
 
   public logout() {
+    console.log('AppComponent::logout calling googleAuthService.logout')
     this.googleAuthService.logout();
   }
+  /*
+  get isLoggedIn() {
+    return this.googleAuthService.isLoggedIn();
+  }
+  */
 }

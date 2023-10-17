@@ -17,6 +17,7 @@ __pycache__/
 *$py.class
 dist/
 lib/
+!examples/terraform-resource-change-policy-library/lib
 *.egg-info/
 .cache
 pytestdebug.log
@@ -36,6 +37,8 @@ node_modules/
 .coverage
 htmlcov/
 *.iml
+**/target
+
 
 # Terraform
 # See: https://github.com/github/gitignore/blob/master/Terraform.gitignore
@@ -59,3 +62,4 @@ tools/ipam-autopilot/container/.vscode/launch.json
 tools/ipam-autopilot/infrastructure/.terraform.lock.hcl
 tools/ipam-autopilot/container/.vscode/launch.json
 tools/ipam-autopilot/examples/.terraform.lock.hcl
+tools/bq-visualizer/.angular

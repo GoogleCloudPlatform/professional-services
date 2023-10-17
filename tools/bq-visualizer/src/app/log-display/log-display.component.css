@@ -17,7 +17,9 @@
  table {
   width: 100%;
 }
-
+tr.mat-row {
+  height: 28px;
+}
 .log_display {
   position: relative;
   padding-top: 60px;

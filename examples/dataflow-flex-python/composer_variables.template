@@ -1,0 +1,13 @@
+{
+    "GCS_TEMPLATE_PATH": "gs://${INPUT_BUCKET_NAME}/dataflow-templates/xml-to-bq.json",
+    "INPUT_DATA_PATH": "gs://${INPUT_BUCKET_NAME}/data/*",
+    "PROJECT_ID": "${PROJECT_ID}",
+    "DATASET_ID": "${BQ_DATASET}",
+    "SDK_DOCKER_IMAGE": "${LOCATION}-docker.pkg.dev/${PROJECT_ID}/${REPO}/dataflow-2.40-base:dev",
+    "DF_WORKER_SA": "${DF_WORKER_SA}",
+    "TEMP_LOCATION": "gs://${STAGING_BUCKET_NAME}/tmp",
+    "STAGING_LOCATION": "gs://${STAGING_BUCKET_NAME}/staging",
+    "NETWORK": "${NETWORK}",
+    "SUBNET": "${SUBNET}",
+    "JOB_LOCATION": "${LOCATION}"
+}

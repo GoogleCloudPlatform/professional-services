@@ -1,0 +1,8 @@
+# Ignore Terragrunt cache files
+.terragrunt-cache
+
+# Ignore Terraform cache files
+.terraform.lock.hcl
+
+# Ignore *.tfvars files
+*.tfvars

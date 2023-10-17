@@ -1,0 +1,4 @@
+Flask
+google-cloud-dialogflow-cx==1.21.0
+gunicorn
+requests
