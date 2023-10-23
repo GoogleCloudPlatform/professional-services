@@ -34,7 +34,7 @@ locals {
   project_config = {
     billing_account_id = var.project_config.billing_account_id
     parent             = var.project_config.parent
-    project_id         = "${var.project_config.project_id}-${var.environment}"
+    project_id         = "${var.project_config.project_id}"
   }
 
 }

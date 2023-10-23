@@ -2,10 +2,10 @@ from kfp import dsl
 from google_cloud_pipeline_components.types.artifact_types import BQTable
 from typing import NamedTuple
 
-from config import IMAGE
+from config import IMAGE_MODEL_CARD, IMAGE
 
 # Load data from BigQuery and save to CSV
-@dsl.component(base_image=IMAGE)
+@dsl.component(base_image=IMAGE_MODEL_CARD)
 def get_dataframe(
     project_id: str,
     bq_table: str,
@@ -44,7 +44,7 @@ def get_dataframe(
         n_fraud = (df.Class == '1').sum()
         n_ok = len(df) - n_fraud
 
-        logging.info(f"Stats for {title}: {n_ok=} {n_fraud=}")
+        logging.info(f"Stats for {title}: n_ok={n_ok} n_fraud={n_fraud}")
 
         ys = [n_ok, n_fraud]
 
