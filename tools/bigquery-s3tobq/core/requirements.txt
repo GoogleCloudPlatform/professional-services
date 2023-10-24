@@ -1,0 +1,10 @@
+Flask==2.1.0
+gunicorn==20.1.0
+google
+google.auth
+requests
+pyyaml
+google-cloud
+google-cloud-storage
+google-cloud-bigquery
+google-cloud-orchestration-airflow
