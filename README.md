@@ -381,6 +381,7 @@ Platform usage.
 *   [Cloud Composer Backup and Recovery](tools/cloud-composer-backup-restore) - A
     command line tool for applying backup and recovery operations on Cloud
     Composer Airflow environments.
+*   [Cloud Composer DAG Validation](tools/cloud-composer-dag-validation) - An automated process for running validation and testing against DAGs in Composer.
 *   [Cloud Composer Migration Complexity Assessment](tools/cloud-composer-migration-complexity-assessment) - An Airflow DAG that uses a variety
     of tools to analyze a Cloud Composer 1 environment, determine a work estimate, and
     accelerate the conversion of airflow 1 dags to airflow 2 dags.
