@@ -276,8 +276,6 @@ func verifyNoOverlap(parentCidr string, subnetRanges []Range, newSubnet *net.IPN
 		return fmt.Errorf("can't parse CIDR %v", err)
 	}
 	log.Printf("Checking Overlap\nparentCidr:\t%s", parentCidr)
-	var subnets []*net.IPNet
-	subnets = append(subnets, newSubnet)
 	log.Printf("newSubnet:\t%s/%d", newSubnet.IP.String(), netMask(newSubnet.Mask))
 	for i := 0; i < len(subnetRanges); i++ {
 		subnetRange := subnetRanges[i]
@@ -286,11 +284,15 @@ func verifyNoOverlap(parentCidr string, subnetRanges []Range, newSubnet *net.IPN
 			return fmt.Errorf("can't parse CIDR %v", err)
 		}
 		if parentNetwork.Contains(netAddr) {
-			subnets = append(subnets, subnetCidr)
+			err = cidr.VerifyNoOverlap([]*net.IPNet{subnetCidr, newSubnet}, parentNetwork)
+
+			if err != nil {
+				return err
+			}
 		}
 	}
 
-	return cidr.VerifyNoOverlap(subnets, parentNetwork)
+	return nil
 }
 
 func netMask(mask net.IPMask) int {
