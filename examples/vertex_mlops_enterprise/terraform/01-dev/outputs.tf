@@ -114,7 +114,7 @@ locals {
     sa_mlops      = module.mlops.github.SA_MLOPS,
     bucket_name   = "${var.prefix}-${var.bucket_name}-${var.environment}",
     pipeline_name = "creditcards-classifier-v02-train-pipeline",
-    pipeline_params = "\"{\\\"num_epochs\\\": 7, \\\"learning_rate\\\": 0.0015, \\\"batch_size\\\": 512, \\\"steps_per_epoch\\\": 9, \\\"hidden_units\\\": \\\"256,126\\\"}\""
+    pipeline_params = "{\"num_epochs\": 7, \"learning_rate\": 0.0015, \"batch_size\": 512, \"steps_per_epoch\": 9, \"hidden_units\": \"256,126\"}"
   })  
   
   pipeline_run_kfp = templatefile("${path.module}/../../build/pipeline-run.yaml.TEMPLATE", {

@@ -1,12 +1,12 @@
 from kfp.v2 import dsl
 from kfp.v2.dsl import Artifact, Dataset, Input, Model, Output
 
-from config import IMAGE
+from config import IMAGE_MODEL_CARD
 
 
 @dsl.component(
     packages_to_install=['shap'],
-    base_image=IMAGE)
+    base_image=IMAGE_MODEL_CARD)
 def evaluate_model(
     test_data: Input[Dataset],
     trained_model: Input[Model],

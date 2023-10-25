@@ -36,7 +36,7 @@ These groups are not suitable for production grade environments. You can configu
 
 Clone the Google Cloud Professional services [repo](https://github.com/GoogleCloudPlatform/professional-services) to a temp directory: 
 ```
-git clone https://github.com/GoogleCloudPlatform/professional-services.git`
+git clone https://github.com/GoogleCloudPlatform/professional-services.git
 cd professional-services/
 ```
 
