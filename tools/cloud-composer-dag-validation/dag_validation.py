@@ -17,9 +17,8 @@ import logging
 import unittest
 import ast
 from airflow.models import DagBag
-from airflow import models
 from airflow.utils.dag_cycle_tester import check_cycle
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
