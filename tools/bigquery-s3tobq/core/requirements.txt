@@ -8,3 +8,4 @@ google-cloud
 google-cloud-storage
 google-cloud-bigquery
 google-cloud-orchestration-airflow
+Werkzeug==2.2.2

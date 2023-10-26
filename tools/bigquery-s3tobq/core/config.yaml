@@ -9,7 +9,7 @@ output:
   table_name: test_final_table
   table_format:
     fields:
-          - { name: "time_of_request", type: "STRING", mode: "REQUIRED"}
-          - { name: "url", type: "STRING"}
+          - { name: "field1", type: "STRING", mode: "REQUIRED"}
+          - { name: "field2", type: "STRING"}
   intermediate_table_name: "test_table"
   load_file: gs://s3tobq_metadata_bucket/loading_example.sql

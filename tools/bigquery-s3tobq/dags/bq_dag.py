@@ -1,5 +1,4 @@
 import datetime
-import base64
 from multiprocessing import context
 
 import airflow

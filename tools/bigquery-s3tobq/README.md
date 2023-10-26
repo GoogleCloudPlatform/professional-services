@@ -104,4 +104,3 @@ $gcloud eventarc triggers create <trigger-name> \
 
 - We only support Cloud Composer 2.
 - This took currently only supports files with 1024.00K characters, including comments and white space characters.
-
