@@ -131,7 +131,7 @@ substitutions:
   _REGION: ${region}
   _PROJECT: ${project_id}
   _GCS_BUCKET: ${project_id}_cloudbuild/logs
-  _CICD_IMAGE_URI: '${docker_repo}/cicd:latest'
+  _CICD_IMAGE_URI: '${docker_repo}/cicd-tfx:latest'
   _DATAFLOW_IMAGE_URI: '${docker_repo}/dataflow:latest'
   _TFX_IMAGE_URI: '${docker_repo}/vertex:latest'
   _GCS_LOCATION: 'gs://${project_id}/creditcards/'
