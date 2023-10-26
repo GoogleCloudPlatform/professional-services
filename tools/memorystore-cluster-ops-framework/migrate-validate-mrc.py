@@ -14,7 +14,10 @@
 # limitations under the License.
 
 
-from mrc_framework import *
+from mrc_framework import redisCluster
+from mrc_framework import replicate_data
+from mrc_framework import validateCounts
+from mrc_framework import deepValidate
 import argparse
 
 def parseArgs():

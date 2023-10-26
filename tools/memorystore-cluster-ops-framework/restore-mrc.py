@@ -14,7 +14,7 @@
 # limitations under the License.
 
 
-from mrc_framework import *
+from mrc_framework import redisCluster
 import argparse
 
 def parseArgs():

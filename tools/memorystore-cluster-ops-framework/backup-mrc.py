@@ -14,7 +14,7 @@
 # limitations under the License.
 
 
-from mrc_framework import *
+from mrc_framework import redisCluster
 import argparse
 
 def parseArgs():
@@ -45,7 +45,7 @@ if __name__ == "__main__":
 
     args = parseArgs()
     cluster = redisCluster(host=args.hostip, port=args.port, password="")
-    write_log(f"host: {args.hostip}, port: {args.port}, cluster: {args.clustername}, bucket: {args.bucket}")
+    print(f"host: {args.hostip}, port: {args.port}, cluster: {args.clustername}, bucket: {args.bucket}")
     
     cluster.backup_cluster(args.clustername, args.bucket)
 
