@@ -107,7 +107,7 @@ substitutions:
   _REGION: ${region}
   _PROJECT: ${project_id}
   _GCS_BUCKET: ${project_id}_cloudbuild/logs
-  _CICD_IMAGE_URI: '${docker_repo}/cicd:latest'
+  _CICD_IMAGE_URI: '${docker_repo}/cicd-tfx:latest'
   _MODEL_DISPLAY_NAME: creditcards-classifier-v02
   _ENDPOINT_DISPLAY_NAME: creditcards-classifier
   _SERVICE_ACCOUNT: ${sa_mlops}
