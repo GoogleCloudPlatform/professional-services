@@ -34,12 +34,12 @@ def parseArgs():
     parser.add_argument("--tgthost", type=str, required=True, help="Redis server host")
     parser.add_argument("--tgtport", type=int, required=True, help="Redis server port")
     parser.add_argument("--tgtpassword", type=str, default="", help="Redis server password")
-    parser.add_argument("--replication_mode", type=str, default='validate' , help="validate, fresh, incremental")
+    parser.add_argument("--replication_mode", type=str, default='validate' , help="validate, replace, incremental")
     parser.add_argument("--sampling_factor", type=float, default=0.3 , help="% of keys to sample")
     
     
     args = parser.parse_args()
-    if args.mode not in ["incremental", "replace", "validate"]:
+    if args.replication_mode not in ["incremental", "replace", "validate"]:
         print("Mode must be incremental or replace or validate")
         exit(1)
     
