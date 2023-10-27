@@ -206,7 +206,7 @@ class redisCluster(redis.cluster.RedisCluster):
             exit(1)
 
         bash_command = f"{riot_path}/riot -h {self.host} -p {self.port} -c dump-import {restore_file}"
-        write_log(f"Executing bash command: {bash_command}")
+        print(f"Executing bash command: {bash_command}")
         
         try:
             # Run the bash command
