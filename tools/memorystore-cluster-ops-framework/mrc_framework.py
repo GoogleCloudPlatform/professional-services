@@ -145,7 +145,7 @@ class redisCluster(redis.cluster.RedisCluster):
             # Add more cases as needed
             return None
         
-    def backup_cluster(self, cluster_name, gcs_bucket):
+    def backup_cluster(self, cluster_name, gcs_bucket, file_type):
         """
         Backup the Redis cluster to a GCS bucket.
 
@@ -159,7 +159,7 @@ class redisCluster(redis.cluster.RedisCluster):
         write_log(f"Exporting Redis data to GCS at {timestamp}")
         prefix = f"{gcs_bucket}/mrc-redis-backups/{cluster_name}"
         # Construct the output filename
-        output_filename = f"export_{timestamp}.json"
+        output_filename = f"export_{timestamp}.{file_type}"
 
         # Construct the path
         path = f"{prefix}/{output_filename}"

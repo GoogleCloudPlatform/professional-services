@@ -30,8 +30,12 @@ def parseArgs():
     parser.add_argument("-c", "--clustername", help="Cluster name", required=True)
     parser.add_argument("-pass", "--password", default="",help="Password ", required=False)
     parser.add_argument("-b", "--bucket", help="GCS bucket name", required=True)
-    
+    parser.add_argument("-t", "--file_type", default="json", help="File type", required=False)
+
     args = parser.parse_args()
+    if args.file_type not in ["json", "csv"]:
+        raise ValueError("File type must be json or csv")
+    
     return args
 
 
@@ -47,5 +51,5 @@ if __name__ == "__main__":
     cluster = redisCluster(host=args.hostip, port=args.port, password=args.password)
     print(f"host: {args.hostip}, port: {args.port}, cluster: {args.clustername}, bucket: {args.bucket}")
     
-    cluster.backup_cluster(args.clustername, args.bucket)
+    cluster.backup_cluster(args.clustername, args.bucket, args.file_type)
 
