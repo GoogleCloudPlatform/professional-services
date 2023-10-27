@@ -165,7 +165,7 @@ class redisCluster(redis.cluster.RedisCluster):
         path = f"{prefix}/{output_filename}"
         write_log(f"File will be placed at {path}")
     
-                
+        # Check if the directory exists in case of local storage. 
         if not os.path.exists(prefix) and not gcs_bucket.startswith("gs://") :
             # Create the directory
             os.makedirs(prefix)

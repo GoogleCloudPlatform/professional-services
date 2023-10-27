@@ -48,5 +48,5 @@ if __name__ == "__main__":
     """
 
     args = parseArgs()
-    cluster = redisCluster(host=args.hostip, port=args.port, password="")
+    cluster = redisCluster(host=args.hostip, port=args.port, password=args.password)
     cluster.restore_cluster(args.bucket, mode=args.mode)

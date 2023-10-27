@@ -44,7 +44,7 @@ if __name__ == "__main__":
     """
 
     args = parseArgs()
-    cluster = redisCluster(host=args.hostip, port=args.port, password="")
+    cluster = redisCluster(host=args.hostip, port=args.port, password=args.password)
     print(f"host: {args.hostip}, port: {args.port}, cluster: {args.clustername}, bucket: {args.bucket}")
     
     cluster.backup_cluster(args.clustername, args.bucket)
