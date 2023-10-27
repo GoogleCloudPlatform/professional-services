@@ -29,7 +29,7 @@ def parseArgs():
     parser.add_argument("-p", "--port", help="Redis port", required=True)
     parser.add_argument("-pass", "--password", default="",help="Password ", required=False)
     parser.add_argument("-b", "--bucket", help="GCS bucket name or local path of the backup file", required=True)
-    parser.add_argument("-m", "--mode", help="append/replace", default="replace", required=False)    
+    parser.add_argument("-m", "--mode", help="append/replace", default="append", required=False)    
     args = parser.parse_args()
     
     if args.mode not in ["append", "replace"]:
