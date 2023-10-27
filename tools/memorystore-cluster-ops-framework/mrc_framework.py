@@ -163,7 +163,7 @@ class redisCluster(redis.cluster.RedisCluster):
 
         # Construct the path
         path = f"{prefix}/{output_filename}"
-        write_log(f"File will be placed at {path}")
+        print(f"File will be placed at {path}")
     
         # Check if the directory exists in case of local storage. 
         if not os.path.exists(prefix) and not gcs_bucket.startswith("gs://") :
@@ -176,7 +176,7 @@ class redisCluster(redis.cluster.RedisCluster):
         does_file_exist(riot_path)
         
         bash_command = f"{riot_path}/riot -h {self.host} -p {self.port} -c file-export {path}"
-        write_log(f"Executing bash command: {bash_command}")
+        print(f"Executing bash command: {bash_command}")
         
         try:
             # Run the bash command
