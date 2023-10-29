@@ -1,0 +1,27 @@
+{
+        "table_config": [
+            {
+                "table_name": "ACCOUNT.ORDER",
+                "clustering_fields": "account_id",
+                "partitioning_field": "insertion_time"
+
+            },
+            {
+                "table_name": "ACCOUNT.ORDER_ITEM",
+                "clustering_fields": "account_id",
+                "partitioning_field": "insertion_time"
+
+            }
+        ],
+        "project_id" : "POC" ,
+        "dataset_location" : "US" ,
+        "target_table_prefix" : "",
+        "gcs_source_path" : "gs://generic-migration/generic_ddl",
+        "target_dataset"  : "trgt_db",
+        "archive_bucket_name" : "generic-migration-archive",
+        "table_create_flag" : "true",
+        "object_name_mapping_path" : "config/object_name_mapping.json",
+        "audit_column_config_path" : "config/metadata_columns.json",
+        "source_bucket_name" : "generic-migration",
+        "default_database" : "POC"
+}

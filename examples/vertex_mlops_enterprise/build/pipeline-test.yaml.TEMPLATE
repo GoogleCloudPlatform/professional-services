@@ -1,0 +1,123 @@
+# Copyright 2023 Google Inc. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#            http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+#############################################################################
+# CI/CD steps for Cloud Build to test and deploy a TFX pipeline to Vertex AI.
+#############################################################################
+
+# Access the id_github file from Secret Manager, and setup SSH
+steps:
+- name: 'gcr.io/cloud-builders/git'
+  secretEnv: ['SSH_KEY']
+  entrypoint: 'bash'
+  args:
+  - -c
+  - |
+    echo "$$SSH_KEY" >> /root/.ssh/id_rsa
+    chmod 400 /root/.ssh/id_rsa
+    ssh-keyscan -t rsa github.com > /root/.ssh/known_hosts
+  volumes:
+  - name: 'ssh'
+    path: /root/.ssh
+  id: 'Prepare git keys'
+
+# Clone the repository.
+- name: 'gcr.io/cloud-builders/git'
+  args: ['clone', '--single-branch', '--branch',
+         '$_BRANCH', '$_REPO_URL',
+         '--depth', '1',
+         '--verbose']
+  volumes:
+  - name: 'ssh'
+    path: /root/.ssh
+  id: 'Clone Repository'
+  waitFor: ['Prepare git keys']
+  
+
+
+# Compile the pipeline.
+- name: '$_CICD_IMAGE_URI'
+  entrypoint: 'python'
+  args: ['build/utils.py',
+          '--mode', 'compile-pipeline',
+          '--pipeline-name', '$_PIPELINE_NAME'
+          ]
+  dir: '$_WORKDIR'
+  env: 
+  - 'PROJECT=$_PROJECT'  
+  - 'REGION=$_REGION'
+  - 'MODEL_DISPLAY_NAME=$_MODEL_DISPLAY_NAME'
+  - 'VERTEX_DATASET_NAME=$_VERTEX_DATASET_NAME'  
+  - 'GCS_LOCATION=$_GCS_LOCATION'
+  - 'DATAFLOW_IMAGE_URI=$_DATAFLOW_IMAGE_URI'
+  - 'TFX_IMAGE_URI=$_DATAFLOW_IMAGE_URI'
+  - 'BEAM_RUNNER=$_BEAM_RUNNER'
+  - 'TRAINING_RUNNER=$_TRAINING_RUNNER'
+  - 'SERVICE_ACCOUNT=$_SERVICE_ACCOUNT'
+  - 'SUBNETWORK=$_SUBNETWORK'
+  - 'ACCURACY_THRESHOLD=$_CI_ACCURACY_THRESHOLD'
+
+  
+  id: 'Compile Pipeline'
+  waitFor: ['Clone Repository']
+  
+  
+# Upload compiled pipeline to GCS.
+- name: 'gcr.io/cloud-builders/gsutil'
+  args: ['cp', '$_PIPELINE_NAME.json', '$_PIPELINES_STORE']
+  dir: '$_WORKDIR'
+  id:  'Upload Pipeline to GCS'
+  waitFor: ['Compile Pipeline']
+  
+  
+serviceAccount: 'projects/$_PROJECT/serviceAccounts/$_SERVICE_ACCOUNT'
+logsBucket: '$_GCS_BUCKET'
+timeout: 3600s
+
+substitutions:
+  _REPO_URL: git@github.com:GITHUB_ORG/GITHUB_REPO
+  _BRANCH: main
+  _REGION: europe-west4
+  _PROJECT: PROJECT_ID-dev
+  _GCS_BUCKET: PROJECT_ID-dev_cloudbuild/logs
+  _CICD_IMAGE_URI: 'europe-west4-docker.pkg.dev/PROJECT_ID-dev/docker-repo/cicd:latest'
+  _DATAFLOW_IMAGE_URI: 'europe-west4-docker.pkg.dev/PROJECT_ID-dev/docker-repo/dataflow:latest'
+  _TFX_IMAGE_URI: 'europe-west4-docker.pkg.dev/PROJECT_ID-dev/docker-repo/vertex:latest'
+  _GCS_LOCATION: 'gs://PROJECT_ID-dev/creditcards/'
+  _TEST_GCS_LOCATION: 'gs://PROJECT_ID-dev/creditcards/e2e_tests'
+  _BQ_LOCATION: EU
+  _BQ_DATASET_NAME: creditcards
+  _ML_TABLE: creditcards_ml
+  _VERTEX_DATASET_NAME: creditcards
+  _MODEL_DISPLAY_NAME: creditcards-classifier-v02
+  _CI_TRAIN_LIMIT: '1000'
+  _CI_TEST_LIMIT: '100'
+  _CI_UPLOAD_MODEL: '0'
+  _CI_ACCURACY_THRESHOLD: '-0.1'
+  _BEAM_RUNNER: DataflowRunner
+  _TRAINING_RUNNER: vertex
+  _PIPELINE_NAME: creditcards-classifier-v02-train-pipeline,
+  _PIPELINES_STORE: gs://PROJECT_ID-dev/creditcards/compiled_pipelines/
+  _SUBNETWORK: https://www.googleapis.com/compute/v1/projects/PROJECT_ID-dev/regions/europe-west4/subnetworks/default
+  _SERVICE_ACCOUNT: sa-mlops-dev@PROJECT_ID-dev.iam.gserviceaccount.com
+  _WORKDIR: GITHUB_REPO
+
+options:
+  machineType: 'E2_HIGHCPU_8'
+  substitution_option: 'ALLOW_LOOSE'
+
+availableSecrets:
+  secretManager:
+  - versionName: projects/PROJECT_ID-dev/secrets/github-key/versions/latest
+    env: 'SSH_KEY'

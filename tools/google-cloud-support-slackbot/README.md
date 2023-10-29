@@ -20,6 +20,10 @@ The app currently supports the following commands:
 * /google-cloud-support edit-auto-subscribe [asset type] [asset name] [email 1] ... [email n] -- edits an existing asset subscription with the provided emails. Warning: this will overwrite the existing emails in the subscription. Asset type must one of the following values: organizations, folders, projects
 * /google-cloud-support stop-auto-subscribe [asset type] [asset name] -- deletes an existing asset subscription. Asset type must one of the following values: organizations, folders, projects
 * /google-cloud-support list-auto-subscriptions-all -- lists all the subscriptions being in the current channel
+* /google-cloud-support autotrack-create [asset type] [asset name] [P1] ... [P4] -- automatically tracks all new cases of matching priority in the specified asset in this channel. asset type must be one of the following values: organizations, folders, projects
+* /google-cloud-support autotrack-edit [asset type] [asset name] [P1] ... [P4] -- edits autotracking of an asset in this channel. This overwrites the existing list of priorities. asset type must be one of the following values: organizations, folders, projects
+* /google-cloud-support autotrack-stop [asset type] [asset_name] -- deletes autotracking against an asset. asset type must be one of the following values: organizations, folders, projects
+* /google-cloud-support list-autotrack-all -- lists all the assets being autotracked in the current channel and the priorities they are configured for
 
 **If you encounter any issues with this application's operations or setup, please file your issue here on GitHub or ping a member of your account team for assistance. This application is not supported by the Google Cloud Support team.**
 
@@ -77,7 +81,7 @@ Go to [Google Cloud](https://console.cloud.google.com/) to do the following:
 ```
 SIGNING_SECRET=SIGNING_SECRET
 SLACK_TOKEN=SLACK_TOKEN
-TAG=2.1
+TAG=2.2
 alias gcurl='curl -H "Authorization: Bearer $(gcloud auth print-access-token)" -H "Content-Type: application/json"';
 ORG_ID=$(gcurl -X POST https://cloudresourcemanager.googleapis.com/v1/projects/$DEVSHELL_PROJECT_ID:getAncestry | jq '.ancestor[] | select(.resourceId.type == "organization")' | jq '.resourceId.id' | sed 's/"//g');
 PROJECT_NUMBER=`gcloud projects list --filter="${DEVSHELL_PROJECT_ID}" --format="value(PROJECT_NUMBER)"`;
@@ -102,6 +106,9 @@ gcloud organizations add-iam-policy-binding $ORG_ID \
 gcloud organizations add-iam-policy-binding $ORG_ID \
     --member="serviceAccount:support-slackbot@$DEVSHELL_PROJECT_ID.iam.gserviceaccount.com" \
     --role="roles/resourcemanager.folderEditor";
+gcloud organizations add-iam-policy-binding $ORG_ID \
+    --member="serviceAccount:support-slackbot@$DEVSHELL_PROJECT_ID.iam.gserviceaccount.com" \
+    --role="roles/logging.logWriter";
 gcloud auth configure-docker us-central1-docker.pkg.dev
 gcloud artifacts repositories create google-cloud-support-slackbot \
     --repository-format=Docker \
@@ -134,15 +141,13 @@ gcurl https://apikeys.googleapis.com/v2/projects/$PROJECT_NUMBER/locations/globa
       ]
     },
   }';
-KEY_ID=`gcloud services api-keys list --filter=displayName:'Support Slackbot' --format='value(uid)' --limit 1`;
-API_KEY=`gcloud beta services api-keys get-key-string $KEY_ID --format='value(keyString)'`;
 gcloud run deploy google-cloud-support-slackbot \
 --image=us-central1-docker.pkg.dev/$DEVSHELL_PROJECT_ID/google-cloud-support-slackbot/google-cloud-support-slackbot:$TAG \
 --allow-unauthenticated \
 --service-account=support-slackbot@$DEVSHELL_PROJECT_ID.iam.gserviceaccount.com \
 --min-instances=1 \
 --max-instances=3 \
---set-env-vars=TEST_CHANNEL_ID=$TEST_CHANNEL_ID,TEST_CHANNEL_NAME=$TEST_CHANNEL_NAME,TEST_USER_ID=$TEST_USER_ID,TEST_USER_NAME=$TEST_USER_NAME,ORG_ID=$ORG_ID,SLACK_TOKEN=$SLACK_TOKEN,SIGNING_SECRET=$SIGNING_SECRET,API_KEY=$API_KEY,PROJECT_ID=$DEVSHELL_PROJECT_ID,TEST_PROJECT_NUMBER=$PROJECT_NUMBER \
+--set-env-vars=TEST_CHANNEL_ID=$TEST_CHANNEL_ID,TEST_CHANNEL_NAME=$TEST_CHANNEL_NAME,TEST_USER_ID=$TEST_USER_ID,TEST_USER_NAME=$TEST_USER_NAME,ORG_ID=$ORG_ID,SLACK_TOKEN=$SLACK_TOKEN,SIGNING_SECRET=$SIGNING_SECRET,PROJECT_ID=$DEVSHELL_PROJECT_ID,TEST_PROJECT_NUMBER=$PROJECT_NUMBER,TEST_ASSET=$TEST_ASSET,TEST_ASSET_ID=$TEST_ASSET_ID \
 --no-use-http2 \
 --no-cpu-throttling \
 --platform=managed \

@@ -8,7 +8,7 @@ attrs==21.4.0
     # via gcs_bucket_mover (setup.py)
 cachetools==3.1.1
     # via google-auth
-certifi==2021.10.8
+certifi==2023.7.22
     # via requests
 chardet==4.0.0
     # via requests
@@ -142,7 +142,7 @@ text-unidecode==1.3
     # via faker
 uritemplate==3.0.1
     # via google-api-python-client
-urllib3==1.26.12
+urllib3==1.26.18
     # via requests
 yaspin==1.5.0
     # via gcs_bucket_mover (setup.py)
