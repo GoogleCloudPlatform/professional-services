@@ -53,6 +53,15 @@ locals {
     environment = var.environment,
     framework   = "kfp"
   })
+  
+  gh_main_bqml_yaml = templatefile("${path.module}/../../.github/workflows/main.yml.TEMPLATE", {
+    wip         = module.mlops.github.WORKLOAD_ID_PROVIDER,
+    project_id  = module.mlops.github.PROJECT_ID,
+    sa          = module.mlops.github.SERVICE_ACCOUNT,
+    docker_repo = module.mlops.github.DOCKER_REPO,
+    environment = var.environment,
+    framework   = "bqml"
+  })
 
   gh_run_tfx_yaml = templatefile("${path.module}/../../.github/workflows/run.yml.TEMPLATE", {
     wip         = module.mlops.github.WORKLOAD_ID_PROVIDER,
@@ -71,6 +80,16 @@ locals {
     environment = var.environment,
     framework   = "kfp"
   })
+
+  gh_run_bqml_yaml = templatefile("${path.module}/../../.github/workflows/run.yml.TEMPLATE", {
+    wip         = module.mlops.github.WORKLOAD_ID_PROVIDER,
+    project_id  = module.mlops.github.PROJECT_ID,
+    sa          = module.mlops.github.SERVICE_ACCOUNT,
+    docker_repo = module.mlops.github.DOCKER_REPO,
+    environment = var.environment,
+    framework   = "bqml"
+  })
+
 
   gh_deploy_yaml = templatefile("${path.module}/../../.github/workflows/deploy.yml.TEMPLATE", {
     wip         = module.mlops.github.WORKLOAD_ID_PROVIDER,
@@ -93,6 +112,19 @@ locals {
   })
 
   pipeline_deploy_kfp = templatefile("${path.module}/../../build/pipeline-deployment-kfp.yaml.TEMPLATE", {
+    project_id    = module.mlops.github.PROJECT_ID,
+    region        = var.region,
+    github_org    = try(var.github.organization, null),
+    github_repo   = try(var.github.repo, null),
+    github_branch = try(local.github.branch, null),
+    docker_repo   = module.mlops.github.DOCKER_REPO,
+    sa_mlops      = module.mlops.github.SA_MLOPS,
+    dataflow_network = "regions/europe-west4/subnetworks/subnet-europe-west4",
+    subnetwork    = module.mlops.github.SUBNETWORK,
+    bucket_name   = "${var.prefix}-${var.bucket_name}-${var.environment}"
+  })
+
+  pipeline_deploy_bqml = templatefile("${path.module}/../../build/pipeline-deployment-bqml.yaml.TEMPLATE", {
     project_id    = module.mlops.github.PROJECT_ID,
     region        = var.region,
     github_org    = try(var.github.organization, null),
@@ -128,7 +160,18 @@ locals {
     pipeline_name = "creditcards-classifier-kfp-train",
     pipeline_params = "{\"bq_table\": \"${module.mlops.github.PROJECT_ID}.${var.dataset_name}.creditcards_ml\", \"xgboost_param_max_depth\": 5, \"xgboost_param_learning_rate\": 0.1, \"xgboost_param_n_estimators\": 20}"
   })
-
+  
+  pipeline_run_bqml = templatefile("${path.module}/../../build/pipeline-run.yaml.TEMPLATE", {
+    project_id    = module.mlops.github.PROJECT_ID,
+    region        = var.region,
+    github_org    = try(var.github.organization, null),
+    github_repo   = try(var.github.repo, null),
+    github_branch = try(local.github.branch, null),
+    sa_mlops      = module.mlops.github.SA_MLOPS,
+    bucket_name   = "${var.prefix}-${var.bucket_name}-${var.environment}",
+    pipeline_name = "creditcards-classifier-bqml-train",
+    pipeline_params = "{\"bq_table\": \"${module.mlops.github.PROJECT_ID}.${var.dataset_name}.creditcards_ml\"}"
+  })
 
   model_deployment = templatefile("${path.module}/../../build/model-deployment.yaml.TEMPLATE", {
     project_id    = module.mlops.github.PROJECT_ID,
@@ -162,6 +205,11 @@ resource "local_file" "main_kfp_yml" {
   content  = local.gh_main_kfp_yaml
 }
 
+resource "local_file" "main_bqml_yml" {
+  filename = "${path.module}/../../.github/workflows/main-bqml.yml"
+  content  = local.gh_main_bqml_yaml
+}
+
 resource "local_file" "run_tfx_yml" {
   filename = "${path.module}/../../.github/workflows/run-tfx.yml"
   content  = local.gh_run_tfx_yaml
@@ -170,6 +218,11 @@ resource "local_file" "run_tfx_yml" {
 resource "local_file" "run_kfp_yml" {
   filename = "${path.module}/../../.github/workflows/run-kfp.yml"
   content  = local.gh_run_kfp_yaml
+}
+
+resource "local_file" "run_bqml_yml" {
+  filename = "${path.module}/../../.github/workflows/run-bqml.yml"
+  content  = local.gh_run_bqml_yaml
 }
 
 resource "local_file" "deploy_yml" {
@@ -187,6 +240,11 @@ resource "local_file" "deployment_kfp_yml" {
   content  = local.pipeline_deploy_kfp
 }
 
+resource "local_file" "deployment_bqml_yml" {
+  filename = "${path.module}/../../build/${var.environment}/pipeline-deployment-bqml.yaml"
+  content  = local.pipeline_deploy_kfp
+}
+
 resource "local_file" "pipeline_run_tfx_ml" {
   filename = "${path.module}/../../build/${var.environment}/pipeline-run-tfx.yaml"
   content  = local.pipeline_run_tfx
@@ -194,6 +252,11 @@ resource "local_file" "pipeline_run_tfx_ml" {
 
 resource "local_file" "pipeline_run_kfp_ml" {
   filename = "${path.module}/../../build/${var.environment}/pipeline-run-kfp.yaml"
+  content  = local.pipeline_run_kfp
+}
+
+resource "local_file" "pipeline_run_bqml_ml" {
+  filename = "${path.module}/../../build/${var.environment}/pipeline-run-bqml.yaml"
   content  = local.pipeline_run_kfp
 }
 

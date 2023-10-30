@@ -31,7 +31,7 @@ env:
   WORKLOAD_ID_PROVIDER: ${wip}
 jobs:
   deploy-model:
-    name: 'Deploy model to endpoint'
+    name: 'Deploy TFX model to endpoint'
     runs-on: 'ubuntu-latest'
     steps:
     - uses: 'actions/checkout@v3'
