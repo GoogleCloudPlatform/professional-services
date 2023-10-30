@@ -1,0 +1,13 @@
+google-api-core==2.11.0
+google-api-python-client==2.77.0
+google-auth==2.16.0
+google-auth-httplib2==0.1.0
+google-auth-oauthlib==0.4.6
+google-cloud-bigquery==3.5.0
+google-cloud-core==2.3.2
+google-cloud-logging==3.5.0
+google-cloud-resource-manager==1.8.1
+google-cloud-storage==2.7.0
+googleapis-common-protos==1.58.0
+grpc-google-iam-v1==0.12.6
+oauth2client==4.1.3
