@@ -259,7 +259,7 @@ func main() {
 		flag.PrintDefaults()
 		os.Exit(1)
 	}
-	audience = fmt.Sprintf("https://iam.googleapis.com/projects/%s/locations/global/workloadIdentityPools/%s/providers/%s", *projectNumber, *poolId, *providerId)
+	audience = fmt.Sprintf("//iam.googleapis.com/projects/%s/locations/global/workloadIdentityPools/%s/providers/%s", *projectNumber, *poolId, *providerId)
 
 	http.HandleFunc("/computeMetadata/v1/instance/service-accounts/default/token", getToken)
 	http.HandleFunc(fmt.Sprintf("/computeMetadata/v1/instance/service-accounts/%s/token", *serviceAccount), getToken)

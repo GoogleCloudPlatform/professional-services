@@ -1,0 +1,24 @@
+{
+    "model_name": "ULB - Credit Card Fraud Public Dataset", 
+    "model_overview":
+    "The dataset contains a set of transactions, all of which have been labeled as fraudulent or legit. 
+    The fraudulent transaction are by far the smaller class (0.172% or the total), so this is a highly 
+    imbalanced dataset. It contains labeled transaction from 2013 from European cardholders and it
+    was published by the Université Libre de Bruxelles (Brussels Free University, ULB).
+
+    <P>The features comprised in this dataset are the result of applying PCA to the original dataset
+    and therefore cannot be interpreted. There are 31 features, labeled V1 to V31 in this dataset,
+    plus Amount and Time.", 
+    "model_owners": [{"name": "Paul Balm", "contact": "abcdef@google.com"}], 
+    "model_references": ["https://www.kaggle.com/datasets/mlg-ulb/creditcardfraud"], 
+    "model_ethical_consideration_risks": [
+        {
+            "name": "The dataset contains a small number of fraud cases that makes it difficult to verify that models trained on this data will generalize to unseen data.", 
+            "mitigation_strategy": "Verify that the model generalizes to the data for the use case at hand, before using it for any decision making."}, 
+        {
+            "name": "Classifying a transaction as fraudulent can be highly impactful for the person responsible for the transaction.", 
+            "mitigation_strategy": "Any classification as fraudulent and implication thereof needs to be treated with caution and requires a very high level of certainty."}], 
+        "model_ethical_limitations": [{"description": "Using this model requires knowledge of the PCA transformation that was applied to the training data."}], 
+    "model_considerations_use_cases": [{"description": "Fraud detection and prevention (ML technology demo only)"}], 
+    "model_considerations_users": [{"description": "Data Scientists"}]
+}

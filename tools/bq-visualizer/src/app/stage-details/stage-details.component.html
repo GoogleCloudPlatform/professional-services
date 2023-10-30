@@ -21,7 +21,23 @@
       <mat-card-title>Stage Details</mat-card-title>
     </mat-card-header>
     <mat-card-content>
-      <pre>{{ details }}</pre>
+      <!--pre>{{ details }}</pre-->
+      <mat-table [dataSource]="details" class="mat-elevation-z8">
+        <!-- Position Column -->
+      <ng-container matColumnDef="key">
+        <mat-header-cell *matHeaderCellDef>Key </mat-header-cell>
+        <mat-cell *matCellDef="let element"> {{element.key}} </mat-cell>
+      </ng-container>
+    
+      <!-- Name Column -->
+      <ng-container matColumnDef="value">
+        <mat-header-cell *matHeaderCellDef> Value </mat-header-cell>
+        <mat-cell *matCellDef="let element"> {{element.value}} </mat-cell>
+      </ng-container>    
+    
+      <!--tr mat-header-row *matHeaderRowDef="displayedColumns"></tr-->
+      <mat-row *matRowDef="let row; columns: displayedColumns;"></mat-row>
+      </mat-table>
     </mat-card-content>
   </mat-card>
 </div>

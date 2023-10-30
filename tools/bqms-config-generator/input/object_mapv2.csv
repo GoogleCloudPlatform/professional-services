@@ -1,0 +1,9 @@
+type,src_db,src_schema,src_relation,src_attribute,bq_project,bq_dataset,bq_table,bq_column
+RELATION,,dataset2,table2,,bq_project,bq_dataset2,bq_table2,
+SCHEMA,,mySchema,,,bq_project,bq_dataset,
+DATABASE,finance,,,,bq_project_finance,,,
+RELATION_ALIAS,,,t,,,,t_alias,
+RELATION_ALIAS,,,table1,,,,table1_alias,
+ATTRIBUTE,,dataset2,table2,field1,bq_project,bq_dataset2,bq_table2,bq_column
+ATTRIBUTE_ALIAS,,dataset2,table2,field1,bq_project,bq_dataset2,bq_table2,bq_column
+FUNCTION,mydb,myschema,myprocedure,,bq_project,myschema,procedure1

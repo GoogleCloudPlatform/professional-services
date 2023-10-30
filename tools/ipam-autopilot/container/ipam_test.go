@@ -94,3 +94,24 @@ func TestRangeCreationWithExisting4(t *testing.T) {
 	assert.NotNil(t, err)
 	assert.Equal(t, err, fmt.Errorf("no_address_range_available_in_parent"))
 }
+
+func TestRangeCreationWithExisting5(t *testing.T) {
+	existingRanges := []Range{
+		Range{
+			Cidr: "10.0.0.0/22",
+		},
+		Range{
+			Cidr: "10.0.4.0/22",
+		},
+		Range{
+			Cidr: "10.0.4.0/22",
+		},
+	}
+	subnet, subnet_ones, err := findNextSubnet(24, "10.0.0.0/8", existingRanges)
+
+	log.Printf("new subnet lease %s/%d", subnet.IP.String(), subnet_ones)
+	assert.Nil(t, err)
+	_, network, _ := net.ParseCIDR("10.0.8.0/24")
+	assert.Equal(t, network, subnet)
+	assert.Equal(t, 24, subnet_ones)
+}
