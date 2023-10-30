@@ -1,29 +1,24 @@
-import json
-from typing import NamedTuple, Optional
-from datetime import datetime, timedelta
+from typing import NamedTuple
+from datetime import datetime
 import argparse
 
 import google.cloud.aiplatform as vertex_ai
 # kfp and cloud components
 import logging
-from google.cloud import bigquery
 from google_cloud_pipeline_components.types import artifact_types
 from google_cloud_pipeline_components.v1.bigquery import (
     BigqueryCreateModelJobOp, BigqueryEvaluateModelJobOp,
-    BigqueryExplainPredictModelJobOp, BigqueryExportModelJobOp,
-    BigqueryPredictModelJobOp, BigqueryQueryJobOp)
-from google_cloud_pipeline_components.v1.endpoint import (EndpointCreateOp,
-                                                          ModelDeployOp)
+    BigqueryExplainPredictModelJobOp)
+
 from kfp import dsl
 from kfp.v2 import compiler
-from kfp.v2.dsl import HTML, Artifact, Condition, Input, Output, component
+from kfp.v2.dsl import Artifact, Input, component
 
-from config import (PIPELINE_ROOT, PIPELINE_NAME, BQ_INPUT_DATA, MODEL_CARD_CONFIG, 
-                    MODEL_DISPLAY_NAME, PRED_CONTAINER, ENDPOINT_NAME, PARENT_MODEL,
+from config import (PIPELINE_ROOT, PIPELINE_NAME, BQ_INPUT_DATA, 
+                    MODEL_DISPLAY_NAME, ENDPOINT_NAME,
                     SERVICE_ACCOUNT, NETWORK, KEY_ID,
-                    PROJECT_ID, REGION, IMAGE, CLASS_NAMES, TARGET_COLUMN,
-                    DATAFLOW_NETWORK, DATAFLOW_PUBLIC_IPS, DATAFLOW_SA, 
-                    BQ_OUTPUT_DATASET_ID, BQ_DATASET_NAME)
+                    PROJECT_ID, REGION, TARGET_COLUMN,
+                    BQ_DATASET_NAME)
 
 caching = True
 TIMESTAMP = datetime.now().strftime("%Y%m%d-%H%M")
@@ -156,7 +151,7 @@ def bqml_pipeline(
             query=f"""CREATE OR REPLACE MODEL `{BQ_DATASET_NAME}.{model}`
             OPTIONS (
                 MODEL_TYPE='LOGISTIC_REG',
-                INPUT_LABEL_COLS=['Class'],
+                INPUT_LABEL_COLS=['{TARGET_COLUMN}'],
                 EARLY_STOP=TRUE,
                 model_registry='vertex_ai',
                 vertex_ai_model_id='{model}',
