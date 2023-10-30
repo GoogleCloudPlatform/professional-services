@@ -20,7 +20,7 @@
 # function definition
 def dataset_list(client):
     """
-    Accepts the project id as the input,
+    Accepts the BigQuery Client object as the input,
     returns the list of datasets in the project. 
     """
 

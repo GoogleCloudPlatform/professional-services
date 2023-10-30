@@ -53,12 +53,14 @@ def list_projects(creds_file, org_id):
     parent="organizations/"+ORGANIZATION_ID
     folders_under_org = rm_v2_client.folders().list(parent=parent).execute()
 
+    # Creating regular expression matcher
+    matcher = re.compile('sys-[0-9]')
+
     # Are there are actually folders under the org? 
     # if not we can return the list of projects now. 
     if not folders_under_org:
         # filter the projects starting with sys-<long-number>. 
         # these seems to be programmatically created hence can be ignored. 
-        matcher = re.compile('sys-[0-9]')
         final_list_of_projects = [ project for project in all_projects if not matcher.match(project) ]
         return (final_list_of_projects)
 
@@ -92,7 +94,6 @@ def list_projects(creds_file, org_id):
 
     # Lastly, we filter the projects starting with sys-<long-number>. 
     # these seems to be programmatically created hence can be ignored. 
-    matcher = re.compile('sys-[0-9]')
     final_list_of_projects = [ project for project in all_projects if not matcher.match(project) ]
     
     # Finally, return all the projects
