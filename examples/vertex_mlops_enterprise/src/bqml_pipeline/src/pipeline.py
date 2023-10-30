@@ -5,7 +5,6 @@ import argparse
 import google.cloud.aiplatform as vertex_ai
 # kfp and cloud components
 import logging
-from google_cloud_pipeline_components.types import artifact_types
 from google_cloud_pipeline_components.v1.bigquery import (
     BigqueryCreateModelJobOp, BigqueryEvaluateModelJobOp,
     BigqueryExplainPredictModelJobOp)
@@ -77,16 +76,6 @@ def get_model_evaluation_metrics(
     metrics = pd.DataFrame.from_records(records, columns=columns).astype(float).round(3)
 
     metrics = metrics.reset_index()
-
-    # Create the HTML artifact used for the metrics
-    pretty_columns = list(
-        map(
-            lambda h: get_column_names(h)
-            if h != columns[0]
-            else h.replace("_", " ").capitalize(),
-            columns,
-        )
-    )
 
     # Create metrics dictionary for the model
     accuracy = round(float(metrics.accuracy), 3)
@@ -167,8 +156,8 @@ def bqml_pipeline(
             table_name=f"{bq_table}",
             model=bq_model_op.outputs["model"],
         )
-
-        bq_evaluate_model_op = BigqueryEvaluateModelJobOp(
+        
+        _ = BigqueryEvaluateModelJobOp(
             project=project, location=region, model=bq_model_op.outputs["model"]
         ).after(bq_model_op)
 
