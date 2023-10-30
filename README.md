@@ -71,7 +71,9 @@ them to fit your particular use case.
     services or libraries in languages other than SQL or Javascript which are not part of UDFs.
     The utility contains sample string format Java code to deploy cloud run gen2 instance and invoke 
     the service from BigQuery using remote function.
-*   [BigQuery Snowflake Table Migration Tool](examples/bigquery-snowflake-tables-migration-utility) - 
+*   [BigQuery Amazon S3 Migration Tool](tools/bigquery-s3tobq) - Bigquery Migration Tool to transfer data
+    from files in Amazon S3 to BigQuery Tables based on configuration provided.
+*   [BigQuery Snowflake TabRle Migration Tool](examples/bigquery-snowflake-tables-migration-utility) -
     BigQuery Snowflake Table Migration Tool helps to migrate the table DDL's from Snowflake to BigQuery.
     The utility leverages BigQuery Translation API and offers additional features
     such as adding partitioning, clustering, metadata columns and prefixes to table names.
@@ -452,6 +454,8 @@ Platform usage.
 *   [GCS Usage Recommender](tools/gcs-usage-recommender) - A tool that generates
     bucket-level intelligence and access patterns across all projects for a GCP
     project to generate recommended object lifecycle management.
+*   [GCVE2BQ](tools/gcve2bq) - A tool for scheduled exports of VM, datastore and ESXi
+    utilization data from vCenter to BigQuery for billing and reporting use cases.
 *   [GKE AutoPSC Controller](tools/gke-autopsc-controller) - Google Kubernetes Engine
     controller, to setup PSC ServiceAttachment for Gateway API managed Forwarding Rules.
 *   [Global DNS -> Zonal DNS Project Bulk Migration](tools/gdns-zdns-project-bulk-migration) - 
