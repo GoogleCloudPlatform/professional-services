@@ -161,27 +161,6 @@ def bqml_pipeline(
             project=project, location=region, model=bq_model_op.outputs["model"]
         ).after(bq_model_op)
 
-#        get_evaluation_model_metrics_op = (
-#            get_model_evaluation_metrics(bq_evaluate_model_op.outputs["evaluation_metrics"])
-#            .after(bq_evaluate_model_op)
-#            .set_display_name("plot evaluation metrics")
-#        )
-
-#        # Check the model performance.
-#        with Condition(
-#            get_evaluation_model_metrics_op.outputs["accuracy"] > perf_threshold,
-#            name="accuracy is above threshold",
-#        ):
-
-#            endpoint_create_op = EndpointCreateOp(
-#                project=project, location=region, display_name=ENDPOINT_NAME
-#            )
-
-#            _ = upload_model_enpoint(
-#                project=project, location=region, bq_model_name=model
-#            ).after(endpoint_create_op)
-
-
 
 # Compile and run the pipeline
 vertex_ai.init(project=PROJECT_ID, location=REGION, encryption_spec_key_name=KEY_ID)
