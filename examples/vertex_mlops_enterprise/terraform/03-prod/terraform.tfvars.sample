@@ -1,4 +1,4 @@
-bucket_name  = "creditcards-dev"
+bucket_name  = "creditcards" # -env will be added as suffix
 dataset_name = "creditcards"
 environment  = "prd"
 groups = {

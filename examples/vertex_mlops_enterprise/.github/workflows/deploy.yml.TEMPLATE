@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name: Deploy tfx model
+name: Deploy Vertex AI tfx model
 on:
   workflow_dispatch:
 
@@ -31,7 +31,7 @@ env:
   WORKLOAD_ID_PROVIDER: ${wip}
 jobs:
   deploy-model:
-    name: 'Deploy model to endpoint'
+    name: 'Deploy TFX model to endpoint'
     runs-on: 'ubuntu-latest'
     steps:
     - uses: 'actions/checkout@v3'
@@ -47,6 +47,6 @@ jobs:
         service_account: $${{ env.SERVICE_ACCOUNT }}
         access_token_lifetime: 3600s
 
-    - name: 'Deploy model'
-      run: gcloud builds submit --no-source --config build/$${{ env.ENVIRONMENT }}/model-deployment.yaml --project $${{ env.PROJECT_ID }} --region $${{ env.REGION }} --machine-type=e2-highcpu-8 --suppress-logs
+    - name: 'Deploy TFX model'
+      run: gcloud builds submit --no-source --config build/$${{ env.ENVIRONMENT }}/model-deployment-tfx.yaml --project $${{ env.PROJECT_ID }} --region $${{ env.REGION }} --machine-type=e2-highcpu-8 --suppress-logs
       

@@ -1,5 +1,5 @@
 /**
- * Copyright 2022 Google LLC
+ * Copyright 2023 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,7 +34,7 @@ locals {
   project_config = {
     billing_account_id = var.project_config.billing_account_id
     parent             = var.project_config.parent
-    project_id         = "${var.project_config.project_id}-${var.environment}"
+    project_id         = "${var.project_config.project_id}"
   }
 
 }
