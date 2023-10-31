@@ -42,10 +42,9 @@ cd professional-services/
 
 Setup your new Github repo using the Github web console or CLI.
 
-Copy the `vertex_mlops_enterprise` folder to your local folder, including the Github actions:
+Copy the `vertex_mlops_enterprise` folder to your local folder, including the Github actions, hidden dirs and files:
 
 ```
-# Copy base directory from git repo, including hidden dirs and files
 cp -r ./examples/vertex_mlops_enterprise/  <YOUR LOCAL FOLDER>
 ```
 
