@@ -14,7 +14,7 @@
 # limitations under the License.
 
 
-from mrc_framework import redisCluster
+from mrc_framework import redisCluster, send_slack_message
 import argparse
 
 def parseArgs():
@@ -53,3 +53,4 @@ if __name__ == "__main__":
     
     cluster.backup_cluster(args.clustername, args.bucket, args.file_type)
 
+    

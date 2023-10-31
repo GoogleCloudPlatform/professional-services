@@ -20,7 +20,7 @@ import time
 from google.cloud import logging
 import os
 import json
-
+import requests
 
 
 class redisCluster(redis.cluster.RedisCluster):
@@ -183,6 +183,9 @@ class redisCluster(redis.cluster.RedisCluster):
             subprocess.run(bash_command, shell=True, check=True)
             print(f"Export successful. File uploaded to: {path}")
             write_log(f"Export successful. File uploaded to: {path}")
+            send_slack_message(
+            webhook_url=os.environ.get("SLACK_WEBHOOK_URL"),
+            message=f"Backup successful for cluster {cluster_name} on {timestamp}")
         except subprocess.CalledProcessError as e:
             print(f"Error: {e}")
             write_log(f"Error: {e}")
@@ -337,3 +340,19 @@ def deepValidate(sampling_factor, src, tgt):
         print("Deep validation failed")
     
     return validationPassed
+
+def send_slack_message(webhook_url, message):
+    payload = {
+        "text": message
+    }
+
+    headers = {
+        "Content-Type": "application/json"
+    }
+
+    response = requests.post(webhook_url, data=json.dumps(payload), headers=headers)
+
+    if response.status_code == 200:
+        print("Message sent successfully!")
+    else:
+        print(f"Failed to send message. Status code: {response.status_code}, Response: {response.text}")

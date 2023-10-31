@@ -1,2 +1,4 @@
 google-cloud-logging
 argparse
+redis
+requests
