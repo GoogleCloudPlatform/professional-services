@@ -259,7 +259,7 @@ def write_log(message):
         logger = client.logger('ms-validation-framework-logs') 
         logger.log_text(message)
         
-def replicate_data(source , target):
+def replicate_data(source , target, replication_mode = 'snapshot', verification_mode = ''):
     """
     Replicate data from one Redis cluster to another.
 
@@ -272,13 +272,16 @@ def replicate_data(source , target):
     sourceport = source.port
     tgthost = target.host
     tgtport = target.port
-   
+    verificiation_mode = verification_mode
+    replication_mode = replication_mode
+
     # Construct the bash command
 
     riot_path = read_config()['riot_bin_path']
     does_file_exist(riot_path)
     
-    bash_command = f"{riot_path}/riot -h {sourcehost} -p {sourceport} --cluster replicate -h {tgthost} -p {tgtport} --cluster"
+   
+    bash_command = f"{riot_path}/riot -h {sourcehost} -p {sourceport} --cluster replicate --mode={replication_mode} -h {tgthost} -p {tgtport}  --cluster {verificiation_mode}"
     print(f"Executing bash command: {bash_command}")
     
     try:

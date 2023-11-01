@@ -34,13 +34,27 @@ def parseArgs():
     parser.add_argument("--tgthost", type=str, required=True, help="Redis server host")
     parser.add_argument("--tgtport", type=int, required=True, help="Redis server port")
     parser.add_argument("--tgtpassword", type=str, default="", help="Redis server password")
-    parser.add_argument("--replication_mode", type=str, default='validate' , help="validate, replace, incremental")
+    parser.add_argument(
+    "--replication_mode",
+    type=str,
+    default="validate",
+    help=(
+        "Replication mode: compare, snapshot, live, liveonly, append.\n"
+        "  - Snapshot: Initial replication using key scan. Flushes the target cluster before replication.\n"
+        "  - Live: Initial and continuous replication using key scan and keyspace notifications in parallel.\n"
+        "  - Liveonly: Continuous replication using keyspace notifications. Only changed keys are replicated.\n"
+        "  - Compare: Compare source and target keys.\n"
+        "  - Append: Similar to snapshot but appends to existing keys."
+    )
+)
+
     parser.add_argument("--sampling_factor", type=float, default=0.0 , help="% of keys to sample. Setting this to 0 will disable RIOT verification and do deep validation on all keys through the framework. ")
     
     
     args = parser.parse_args()
-    if args.replication_mode not in ["incremental", "replace", "validate"]:
-        print("Mode must be incremental or replace or validate")
+    if args.replication_mode not in ['compare', 'snapshot', 'live', 'liveonly', 'append']:
+        print("compare, snapshot, live, liveonly, append")
+        parser.print_help()
         exit(1)
     
     if args.sampling_factor < 0 or args.sampling_factor > 1:
@@ -62,32 +76,44 @@ if __name__ == '__main__':
     tgt = redisCluster(host=args.tgthost, port=args.tgtport, password=args.tgtpassword)
     src = redisCluster(host=args.sourcehost, port=args.sourceport, password=args.sourcepassword)
     
-    if args.replication_mode == 'replace':
+    if args.replication_mode == 'snapshot':
         """
         If the replication type is 'replace', then delete all of the keys from the target cluster.
         """
         tgt.delAllKeys()
-
-    if args.replication_mode != 'validate':
-        """
-        If the replication type is not 'validate', then replicate the data from the source cluster to the target cluster.
-        """
-        replicate_data(src, tgt)
     
-    if validateCounts(src, tgt) == False:
+    if args.replication_mode == 'append':
         """
-        If the counts of the two clusters do not match, then exit the program.
+        If the replication type is 'append', then set the replication mode to 'snapshot' as append is a special case of snapshot without the flushing of the target cluster.
         """
-        print("Source & Target counts do not match. Exiting program")
-        exit(1)
-    
-    if deepValidate(args.sampling_factor, src, tgt) == False:
-        """
-        If the data in the two clusters does not match, then exit the program.
-        """
-        print("Source & Target data do not match. Exiting program")
-        exit(1)
+        args.replication_mode = 'snapshot'
 
+    if args.sampling_factor > 0:
+        """
+        If the sampling factor is > 0, then set the replication mode to 'compare' as RIOT'S full validation will be used.
+        """
+        verification_mode = "--no-verify"
+    else:
+        verification_mode = ""
+
+
+    if args.replication_mode != 'compare':
+        """
+        If the replication type is not 'compare', then replicate the data from the source cluster to the target cluster. If the sampling factor is > 0, then RIOT'S full validation will be used. Otherwise, custom deep validation will be used.
+        """
+        replicate_data(src, tgt, replication_mode=args.replication_mode, verification_mode = verification_mode)
+    
+    
+    if args.sampling_factor > 0:
+        """
+        If the sampling factor is > 0, then validate the data between the two clusters using RIOT'S full validation.
+        """
+        do_counts_match = validateCounts(src, tgt)
+        print("Source & Target counts do not match. Exiting program"); exit(1) if do_counts_match == False else print("Source & Target counts match. Continuing program")
+        
+        does_data_match = deepValidate(args.sampling_factor, src, tgt)
+        print("Source & Target data do not match. Exiting program"); exit(1) if does_data_match == False else print("Source & Target data match. Continuing program")
+    
     
 
 
