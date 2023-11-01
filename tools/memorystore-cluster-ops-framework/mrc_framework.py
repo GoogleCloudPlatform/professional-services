@@ -310,7 +310,7 @@ def replicate_data(source , target, replication_mode = 'snapshot', verification_
     write_log(f"Executing bash command: {bash_command}", target=OUTPUT_LOGS)
     
     try:
-        subprocess.run(bash_command, shell=True, check=True,capture_output = True, text = True)
+        subprocess.run(bash_command, shell=True, check=True)
     except subprocess.CalledProcessError as e:
         write_log(f"Error: {e.stderr}", target=OUTPUT_LOGS)
         exit(1)
