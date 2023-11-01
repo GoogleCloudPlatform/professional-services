@@ -14,7 +14,7 @@
 # limitations under the License.
 
 
-from mrc_framework import redisCluster
+from mrc_framework import redisCluster, write_log
 from mrc_framework import replicate_data
 from mrc_framework import validateCounts
 from mrc_framework import deepValidate
@@ -51,11 +51,11 @@ def parseArgs():
     
     args = parser.parse_args()
     if args.replication_mode not in ['compare', 'snapshot', 'live', 'liveonly', 'append']:
-        print("replication_mode must be one of: compare, snapshot, live, liveonly, append")
+        write_log("replication_mode must be one of: compare, snapshot, live, liveonly, append", target = "both")
         exit(1)
     
     if args.sampling_factor < 0 or args.sampling_factor > 1:
-        print("Sampling factor must be between 0 and 1")
+        write_log("Sampling factor must be between 0 and 1", target = "both")
         exit(1)
 
     
@@ -89,10 +89,10 @@ if __name__ == '__main__':
         """
         If the sampling factor is > 0, then set the replication mode to 'compare' as RIOT'S full validation will be used.
         """
-        print("Setting verification mode to --no-verify")
+        write_log("Setting verification mode to --no-verify", target = "both")
         verification_mode = "--no-verify"
     else:
-        print("Using RIOT verification mode")
+        write_log("Using RIOT verification mode", target = "both")
         verification_mode = ""
 
     
@@ -107,10 +107,10 @@ if __name__ == '__main__':
         If the sampling factor is > 0, then validate the data between the two clusters using RIOT'S full validation.
         """
         do_counts_match = validateCounts(src, tgt)
-        exit(1) if do_counts_match == False else print("Source & Target counts match. Continuing program")
+        exit(1) if do_counts_match == False else write_log("Source & Target counts match. Continuing program", target = "both")
         
         does_data_match = deepValidate(args.sampling_factor, src, tgt)
-        exit(1) if does_data_match == False else print("Source & Target data match. Continuing program")
+        exit(1) if does_data_match == False else write_log("Source & Target data match. Continuing program", target = "both")
     
     
 

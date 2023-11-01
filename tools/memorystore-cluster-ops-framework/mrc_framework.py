@@ -22,6 +22,7 @@ import os
 import json
 import requests
 
+OUTPUT_LOGS = "both"
 
 class redisCluster(redis.cluster.RedisCluster):
     """
@@ -115,9 +116,11 @@ class redisCluster(redis.cluster.RedisCluster):
             node_port = node.split(':')[1]
             node_ip = node.split(':')[0]
             node_client = redis.cluster.RedisCluster(host=node_ip, port=int(node_port), decode_responses=True)
+
             node_client.flushdb()
-            print("DB successfully flushed")
+            write_log(f"DB successfully flushed", target=OUTPUT_LOGS)
         
+
     def getVal(self, key):
         """
         Get the value of a key from the Redis cluster.
@@ -141,7 +144,7 @@ class redisCluster(redis.cluster.RedisCluster):
         elif key_type == b'zset':
             return redis_client.zrange(key, 0, -1)
         else:
-            print("Key type not supported")
+            write_log(f"Key type not supported", target=OUTPUT_LOGS)
             # Add more cases as needed
             return None
         
@@ -156,14 +159,14 @@ class redisCluster(redis.cluster.RedisCluster):
 
         # Generate timestamp
         timestamp = time.strftime("%Y%m%d%H%M%S")
-        write_log(f"Exporting Redis data to GCS at {timestamp}")
+        write_log(f"Exporting Redis data to GCS at {timestamp}",target=OUTPUT_LOGS)
         prefix = f"{gcs_bucket}/mrc-redis-backups/{cluster_name}"
         # Construct the output filename
         output_filename = f"export_{timestamp}.{file_type}"
 
         # Construct the path
         path = f"{prefix}/{output_filename}"
-        print(f"File will be placed at {path}")
+        write_log(f"File will be placed at {path}", target=OUTPUT_LOGS)
     
         # Check if the directory exists in case of local storage. 
         if not os.path.exists(prefix) and not gcs_bucket.startswith("gs://") :
@@ -176,19 +179,19 @@ class redisCluster(redis.cluster.RedisCluster):
         does_file_exist(riot_path)
         
         bash_command = f"{riot_path}/riot -h {self.host} -p {self.port} -c file-export {path}"
-        print(f"Executing bash command: {bash_command}")
+        write_log(f"Executing bash command: {bash_command}", target=OUTPUT_LOGS)
         
+        webhook_url = read_config()['SLACK_WEBHOOK_URL']
+
         try:
             # Run the bash command
             subprocess.run(bash_command, shell=True, check=True)
-            print(f"Export successful. File uploaded to: {path}")
-            write_log(f"Export successful. File uploaded to: {path}")
+            write_log(f"Export successful. File uploaded to: {path}", target=OUTPUT_LOGS)
             send_slack_message(
-            webhook_url=os.environ.get("SLACK_WEBHOOK_URL"),
+            webhook_url=webhook_url,
             message=f"Backup successful for cluster {cluster_name} on {timestamp}")
         except subprocess.CalledProcessError as e:
-            print(f"Error: {e}")
-            write_log(f"Error: {e}")
+            write_log(f"Error: {e}", target=OUTPUT_LOGS)
 
     def restore_cluster(self, restore_file, mode = 'append'):
         """
@@ -205,19 +208,19 @@ class redisCluster(redis.cluster.RedisCluster):
         elif mode == 'replace':
             self.delAllKeys()
         else:
-            print("Invalid mode")
+            write_log(f"Invalid mode", target=OUTPUT_LOGS)
             exit(1)
 
         bash_command = f"{riot_path}/riot -h {self.host} -p {self.port} -c dump-import {restore_file}"
-        print(f"Executing bash command: {bash_command}")
+        write_log(f"Executing bash command: {bash_command}", target=OUTPUT_LOGS)
         
         try:
             # Run the bash command
             subprocess.run(bash_command, shell=True, check=True)
-            print(f"Import successful.")
+            write_log(f"Import successful.", target=OUTPUT_LOGS)
            
         except subprocess.CalledProcessError as e:
-            print(f"Error: {e}")
+            write_log(f"Error: {e}", target=OUTPUT_LOGS)
 
         
 def does_file_exist(file):
@@ -233,7 +236,8 @@ def does_file_exist(file):
     if os.path.exists(file):
         return True
     else:
-        write_log(f"Error: {file} does not exist.")
+        write_log(f"Error: {file} does not exist.",target=OUTPUT_LOGS)
+        write_log(f"Error: {file} does not exist.",target=OUTPUT_LOGS)
         exit(1)
 
 def read_config():
@@ -248,17 +252,25 @@ def read_config():
         return config
     
 # Write to the log
-def write_log(message):
+def write_log(message, target = "console"):
         """
         Write a message to the log.
 
         Args:
             message (str): The message to write to the log.
         """
-        client = logging.Client()
-        logger = client.logger('ms-validation-framework-logs') 
-        logger.log_text(message)
-        
+        if target == "console":
+            print(message)
+        elif target == "cloud-logging":    
+            client = logging.Client()
+            logger = client.logger('ms-validation-framework-logs') 
+            logger.log_text(message)
+        else:
+            print(message)
+            client = logging.Client()
+            logger = client.logger('ms-validation-framework-logs') 
+            logger.log_text(message)
+            
 def replicate_data(source , target, replication_mode = 'snapshot', verification_mode = ''):
     """
     Replicate data from one Redis cluster to another.
@@ -282,14 +294,14 @@ def replicate_data(source , target, replication_mode = 'snapshot', verification_
     
    
     bash_command = f"{riot_path}/riot -h {sourcehost} -p {sourceport} --cluster replicate --mode={replication_mode} -h {tgthost} -p {tgtport}  --cluster {verificiation_mode}"
-    print(f"Executing bash command: {bash_command}")
+    write_log(f"Executing bash command: {bash_command}", target=OUTPUT_LOGS)
     
     try:
         # Run the bash command
         subprocess.run(bash_command, shell=True, check=True)
-        print(f"Replication successful")
+        write_log(f"Replication successful", target=OUTPUT_LOGS)
     except subprocess.CalledProcessError as e:
-        print(f"Error: {e}")
+        write_log(f"Error: {e}", target=OUTPUT_LOGS)
 
 def validateCounts(source, target):
     """
@@ -303,10 +315,10 @@ def validateCounts(source, target):
     target_size = target.getDBSize()
     
     if source_size == target_size:
-        print(f"Source and target DB sizes match: {source_size}. Count validation successful")
+        write_log(f"Source and target DB sizes match: {source_size}. Count validation successful", target=OUTPUT_LOGS)
         return True
     else:
-        print(f"Source and target DB sizes do not match: {source_size} != {target_size}")
+        write_log(f"Source and target DB sizes do not match: {source_size} != {target_size}", target=OUTPUT_LOGS)
         return False
 
 def deepValidate(sampling_factor, src, tgt):
@@ -330,18 +342,18 @@ def deepValidate(sampling_factor, src, tgt):
             tgtVal = tgt.getVal(key)
 
             if srcVal != tgtVal:
-                print(f"Invalid Value for key '{key}':\n {tgtVal} \n {srcVal}") 
+                write_log(f"Invalid Value for key '{key}':\n {tgtVal} \n {srcVal}", target=OUTPUT_LOGS) 
                 validationPassed = False
             else:
                 pass
         else:
-            print(f"Key '{key}' is NOT present in Redis.")
+            write_log(f"Key '{key}' is NOT present in Redis.", target=OUTPUT_LOGS)
             validationPassed = False
     
     if validationPassed:
-        print("Deep validation successful")
+        write_log(f"Deep validation successful", target=OUTPUT_LOGS)
     else:
-        print("Deep validation failed")
+        write_log(f"Deep validation failed", target=OUTPUT_LOGS)
     
     return validationPassed
 
@@ -357,6 +369,6 @@ def send_slack_message(webhook_url, message):
     response = requests.post(webhook_url, data=json.dumps(payload), headers=headers)
 
     if response.status_code == 200:
-        print("Message sent successfully!")
+        write_log(f"Message sent successfully!", target=OUTPUT_LOGS)
     else:
-        print(f"Failed to send message. Status code: {response.status_code}, Response: {response.text}")
+        write_log(f"Message failed to send to SLACK", target=OUTPUT_LOGS)

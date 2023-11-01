@@ -14,7 +14,7 @@
 # limitations under the License.
 
 
-from mrc_framework import redisCluster, send_slack_message
+from mrc_framework import redisCluster, send_slack_message, write_log
 import argparse
 
 def parseArgs():
@@ -49,7 +49,7 @@ if __name__ == "__main__":
 
     args = parseArgs()
     cluster = redisCluster(host=args.hostip, port=args.port, password=args.password)
-    print(f"host: {args.hostip}, port: {args.port}, cluster: {args.clustername}, bucket: {args.bucket}")
+    write_log(f"host: {args.hostip}, port: {args.port}, cluster: {args.clustername}, bucket: {args.bucket}", target="console")
     
     cluster.backup_cluster(args.clustername, args.bucket, args.file_type)
 
