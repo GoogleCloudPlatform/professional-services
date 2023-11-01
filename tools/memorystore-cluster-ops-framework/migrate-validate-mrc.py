@@ -92,8 +92,10 @@ if __name__ == '__main__':
         """
         If the sampling factor is > 0, then set the replication mode to 'compare' as RIOT'S full validation will be used.
         """
+        print("Setting verification mode to --no-verify")
         verification_mode = "--no-verify"
     else:
+        print("Using RIOT verification mode")
         verification_mode = ""
 
 
