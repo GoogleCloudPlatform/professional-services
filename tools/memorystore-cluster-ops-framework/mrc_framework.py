@@ -309,7 +309,11 @@ def replicate_data(source , target, replication_mode = 'snapshot', verification_
     bash_command = f"{riot_path}/riot -h {sourcehost} -p {sourceport} --cluster replicate --mode={replication_mode} -h {tgthost} -p {tgtport}  --cluster {verificiation_mode}"
     write_log(f"Executing bash command: {bash_command}", target=OUTPUT_LOGS)
     
-    exec_subprocess(bash_command)
+    try:
+        subprocess.run(bash_command, shell=True, check=True,capture_output = True, text = True)
+    except subprocess.CalledProcessError as e:
+        write_log(f"Error: {e.stderr}", target=OUTPUT_LOGS)
+        exit(1)
     write_log(f"Replication successful", target=OUTPUT_LOGS)
 
 def validateCounts(source, target):
