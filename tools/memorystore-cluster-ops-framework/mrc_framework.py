@@ -194,17 +194,14 @@ class redisCluster(redis.cluster.RedisCluster):
         
         webhook_url = read_config()['SLACK_WEBHOOK_URL']
 
-        try:
-            # Run the bash command
-            result = subprocess.run(bash_command, shell=True, check=True,capture_output = True, text = True)
-            write_log(f"{result.stdout}", target=OUTPUT_LOGS)
-            write_log(f"{result.stderr}", target=OUTPUT_LOGS)
-            write_log(f"Export successful. File uploaded to: {path}", target=OUTPUT_LOGS)
-            send_slack_message(
-            webhook_url=webhook_url,
-            message=f"Backup successful for cluster {cluster_name} on {timestamp}")
-        except subprocess.CalledProcessError as e:
-            write_log(f"Error: {e}", target=OUTPUT_LOGS)
+       
+        # Run the bash command
+        exec_subprocess(bash_command)
+        write_log(f"Export successful. File uploaded to: {path}", target=OUTPUT_LOGS)
+        send_slack_message(
+        webhook_url=webhook_url,
+        message=f"Backup successful for cluster {cluster_name} on {timestamp}")
+    
 
     def restore_cluster(self, restore_file, mode = 'append'):
         """
@@ -227,15 +224,16 @@ class redisCluster(redis.cluster.RedisCluster):
         bash_command = f"{riot_path}/riot -h {self.host} -p {self.port} -c dump-import {restore_file}"
         write_log(f"Executing bash command: {bash_command}", target=OUTPUT_LOGS)
         
-        try:
-            # Run the bash command
-            result = subprocess.run(bash_command, shell=True, check=True,capture_output = True, text = True)
-            write_log(f"{result.stdout}", target=OUTPUT_LOGS)
-            write_log(f"{result.stderr}", target=OUTPUT_LOGS)
-            write_log(f"Import successful.", target=OUTPUT_LOGS)
-           
-        except subprocess.CalledProcessError as e:
+        exec_subprocess(bash_command)
+        write_log(f"Import successful.", target=OUTPUT_LOGS)
+
+def exec_subprocess(bash_command):
+    try:
+        result = subprocess.run(bash_command, shell=True, check=True,capture_output = True, text = True)
+        write_log(f"{result.stdout}", target=OUTPUT_LOGS)
+    except subprocess.CalledProcessError as e:
             write_log(f"Error: {e}", target=OUTPUT_LOGS)
+            write_log(f"{result.stderr}", target=OUTPUT_LOGS)
 
         
 def does_file_exist(file):
@@ -301,15 +299,9 @@ def replicate_data(source , target, replication_mode = 'snapshot', verification_
     bash_command = f"{riot_path}/riot -h {sourcehost} -p {sourceport} --cluster replicate --mode={replication_mode} -h {tgthost} -p {tgtport}  --cluster {verificiation_mode}"
     write_log(f"Executing bash command: {bash_command}", target=OUTPUT_LOGS)
     
-    try:
-        # Run the bash command
-        result = subprocess.run(bash_command, shell=True, check=True,capture_output = True, text = True)
-        write_log(f"{result.stdout}", target=OUTPUT_LOGS)
-        write_log(f"{result.stderr}", target=OUTPUT_LOGS)
-        write_log(f"Replication successful", target=OUTPUT_LOGS)
-    except subprocess.CalledProcessError as e:
-        write_log(f"Error: {e}", target=OUTPUT_LOGS)
-
+    exec_subprocess(bash_command)
+    write_log(f"Replication successful", target=OUTPUT_LOGS)
+    
 def validateCounts(source, target):
     """
     Validate that the number of keys in two Redis clusters are the same.
