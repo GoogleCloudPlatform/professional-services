@@ -196,7 +196,9 @@ class redisCluster(redis.cluster.RedisCluster):
 
         try:
             # Run the bash command
-            subprocess.run(bash_command, shell=True, check=True)
+            result = subprocess.run(bash_command, shell=True, check=True,capture_output = True, text = True)
+            write_log(f"{result.stdout}", target=OUTPUT_LOGS)
+            write_log(f"{result.stderr}", target=OUTPUT_LOGS)
             write_log(f"Export successful. File uploaded to: {path}", target=OUTPUT_LOGS)
             send_slack_message(
             webhook_url=webhook_url,
@@ -227,7 +229,9 @@ class redisCluster(redis.cluster.RedisCluster):
         
         try:
             # Run the bash command
-            subprocess.run(bash_command, shell=True, check=True)
+            result = subprocess.run(bash_command, shell=True, check=True,capture_output = True, text = True)
+            write_log(f"{result.stdout}", target=OUTPUT_LOGS)
+            write_log(f"{result.stderr}", target=OUTPUT_LOGS)
             write_log(f"Import successful.", target=OUTPUT_LOGS)
            
         except subprocess.CalledProcessError as e:
@@ -247,7 +251,6 @@ def does_file_exist(file):
     if os.path.exists(file):
         return True
     else:
-        write_log(f"Error: {file} does not exist.",target=OUTPUT_LOGS)
         write_log(f"Error: {file} does not exist.",target=OUTPUT_LOGS)
         exit(1)
 
@@ -300,7 +303,9 @@ def replicate_data(source , target, replication_mode = 'snapshot', verification_
     
     try:
         # Run the bash command
-        subprocess.run(bash_command, shell=True, check=True)
+        result = subprocess.run(bash_command, shell=True, check=True,capture_output = True, text = True)
+        write_log(f"{result.stdout}", target=OUTPUT_LOGS)
+        write_log(f"{result.stderr}", target=OUTPUT_LOGS)
         write_log(f"Replication successful", target=OUTPUT_LOGS)
     except subprocess.CalledProcessError as e:
         write_log(f"Error: {e}", target=OUTPUT_LOGS)
