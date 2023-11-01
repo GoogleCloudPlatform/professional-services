@@ -95,8 +95,11 @@ if __name__ == '__main__':
         print("Using RIOT verification mode")
         verification_mode = ""
 
-
-    replicate_data(src, tgt, replication_mode=args.replication_mode, verification_mode = verification_mode)
+    
+    if args.replication_mode == 'compare'  and args.sampling_factor > 0:
+        pass
+    else:
+        replicate_data(src, tgt, replication_mode=args.replication_mode, verification_mode = verification_mode) 
     
     
     if args.sampling_factor > 0:
