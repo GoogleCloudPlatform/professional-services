@@ -39,7 +39,7 @@ def parseArgs():
     parser.add_argument(
     "--replication_mode",
     type=str,
-    default="validate",
+    default="compare",
     help="""Replication mode: compare, snapshot, live, liveonly, append.\n
           - Snapshot: Initial replication using key scan. Flushes the target cluster before replication.\n
           - Live: Initial and continuous replication using key scan and keyspace notifications in parallel.\n
