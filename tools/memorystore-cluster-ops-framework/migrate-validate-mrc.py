@@ -35,7 +35,7 @@ def parseArgs():
     parser.add_argument("--tgtport", type=int, required=True, help="Redis server port")
     parser.add_argument("--tgtpassword", type=str, default="", help="Redis server password")
     parser.add_argument("--replication_mode", type=str, default='validate' , help="validate, replace, incremental")
-    parser.add_argument("--sampling_factor", type=float, default=0.3 , help="% of keys to sample")
+    parser.add_argument("--sampling_factor", type=float, default=0.0 , help="% of keys to sample. Setting this to 0 will disable RIOT verification and do deep validation on all keys through the framework. ")
     
     
     args = parser.parse_args()
