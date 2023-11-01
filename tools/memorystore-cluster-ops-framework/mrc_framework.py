@@ -22,7 +22,18 @@ import os
 import json
 import requests
 
-OUTPUT_LOGS = "both"
+def read_config():
+    """
+    Read the configuration file.
+
+    Returns:
+        dict: The configuration dictionary.
+    """
+    with open('config.json', 'r') as config_file:
+        config = json.load(config_file)
+        return config
+
+OUTPUT_LOGS = read_config()['OUTPUT_LOGS']
 
 class redisCluster(redis.cluster.RedisCluster):
     """
@@ -240,16 +251,7 @@ def does_file_exist(file):
         write_log(f"Error: {file} does not exist.",target=OUTPUT_LOGS)
         exit(1)
 
-def read_config():
-    """
-    Read the configuration file.
 
-    Returns:
-        dict: The configuration dictionary.
-    """
-    with open('config.json', 'r') as config_file:
-        config = json.load(config_file)
-        return config
     
 # Write to the log
 def write_log(message, target = "console"):
