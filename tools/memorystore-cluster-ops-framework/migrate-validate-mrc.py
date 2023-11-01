@@ -51,8 +51,7 @@ def parseArgs():
     
     args = parser.parse_args()
     if args.replication_mode not in ['compare', 'snapshot', 'live', 'liveonly', 'append']:
-        print("compare, snapshot, live, liveonly, append")
-        parser.print_help()
+        print("replication_mode must be one of: compare, snapshot, live, liveonly, append")
         exit(1)
     
     if args.sampling_factor < 0 or args.sampling_factor > 1:
