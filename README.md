@@ -581,6 +581,10 @@ Platform usage.
     and to test differents airflows configurations or to do fine tune using the composer/airflow metrics.
 *   [Gradio and Generative AI Example](examples/genai-gradio-example) - The example code allows developers 
     to create rapid Generative AI PoC applications with Gradio and Gen AI agents.
+*   [Memorystore Cluster Ops Framework](tools/memorystore-cluster-ops-framework) - This is a framework that 
+    provides the tools to apply cluster level operations that enable capabilities like cluster backups, migration & validation, etc. 
+    The framework can be extended for other use cases as required. 
+    The framework uses RIOT to bridge current product gaps with Memorystore Clusters
 
 ## Contributing
 
