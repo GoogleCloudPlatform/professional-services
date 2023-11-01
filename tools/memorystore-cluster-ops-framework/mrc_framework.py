@@ -228,13 +228,15 @@ class redisCluster(redis.cluster.RedisCluster):
         write_log(f"Import successful.", target=OUTPUT_LOGS)
 
 def exec_subprocess(bash_command):
-    result = subprocess.run(bash_command, shell=True, check=True,capture_output = True, text = True)
-    write_log(f"STDOUT: {result.stdout}", target=OUTPUT_LOGS)
-    write_log(f"STDERR: {result.stderr}", target=OUTPUT_LOGS)
-    #except subprocess.CalledProcessError as e:
-    #    write_log(f"Error: {e}", target=OUTPUT_LOGS)
-    
-            
+    try:
+        result = subprocess.run(bash_command, shell=True, check=True,capture_output = True, text = True)
+        write_log(f"{result.stdout}", target=OUTPUT_LOGS)
+        write_log(f"{result.stderr}", target=OUTPUT_LOGS)
+    except subprocess.CalledProcessError as e:
+        write_log(f"Error: {e.output}", target=OUTPUT_LOGS)
+        #write_log(f"{result.stderr}", target=OUTPUT_LOGS)
+        
+        
 
         
 def does_file_exist(file):
