@@ -99,11 +99,7 @@ if __name__ == '__main__':
         verification_mode = ""
 
 
-    if args.replication_mode != 'compare':
-        """
-        If the replication type is not 'compare', then replicate the data from the source cluster to the target cluster. If the sampling factor is > 0, then RIOT'S full validation will be used. Otherwise, custom deep validation will be used.
-        """
-        replicate_data(src, tgt, replication_mode=args.replication_mode, verification_mode = verification_mode)
+    replicate_data(src, tgt, replication_mode=args.replication_mode, verification_mode = verification_mode)
     
     
     if args.sampling_factor > 0:
@@ -111,10 +107,10 @@ if __name__ == '__main__':
         If the sampling factor is > 0, then validate the data between the two clusters using RIOT'S full validation.
         """
         do_counts_match = validateCounts(src, tgt)
-        print("Source & Target counts do not match. Exiting program"); exit(1) if do_counts_match == False else print("Source & Target counts match. Continuing program")
+        exit(1) if do_counts_match == False else print("Source & Target counts match. Continuing program")
         
         does_data_match = deepValidate(args.sampling_factor, src, tgt)
-        print("Source & Target data do not match. Exiting program"); exit(1) if does_data_match == False else print("Source & Target data match. Continuing program")
+        exit(1) if does_data_match == False else print("Source & Target data match. Continuing program")
     
     
 
