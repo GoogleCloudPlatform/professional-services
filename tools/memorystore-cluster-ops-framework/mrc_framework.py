@@ -307,6 +307,7 @@ def validateCounts(source, target):
         return True
     else:
         print(f"Source and target DB sizes do not match: {source_size} != {target_size}")
+        return False
 
 def deepValidate(sampling_factor, src, tgt):
     """
