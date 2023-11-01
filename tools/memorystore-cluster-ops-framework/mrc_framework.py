@@ -14,7 +14,7 @@
 # limitations under the License.
 
 
-import pickle
+
 import redis
 import subprocess
 import time

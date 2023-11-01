@@ -14,7 +14,7 @@
 # limitations under the License.
 
 
-from mrc_framework import redisCluster, send_slack_message, write_log
+from mrc_framework import redisCluster, write_log
 import argparse
 
 def parseArgs():
