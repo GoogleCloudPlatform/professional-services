@@ -14,6 +14,7 @@
 # limitations under the License.
 
 
+
 from mrc_framework import redisCluster, write_log
 from mrc_framework import replicate_data
 from mrc_framework import validateCounts
@@ -34,6 +35,7 @@ def parseArgs():
     parser.add_argument("--tgthost", type=str, required=True, help="Redis server host")
     parser.add_argument("--tgtport", type=int, required=True, help="Redis server port")
     parser.add_argument("--tgtpassword", type=str, default="", help="Redis server password")
+
     parser.add_argument(
     "--replication_mode",
     type=str,
@@ -73,7 +75,9 @@ if __name__ == '__main__':
     tgt = redisCluster(host=args.tgthost, port=args.tgtport, password=args.tgtpassword)
     src = redisCluster(host=args.sourcehost, port=args.sourceport, password=args.sourcepassword)
     
+
     if args.replication_mode == 'snapshot':
+
         """
         If the replication type is 'replace', then delete all of the keys from the target cluster.
         """
@@ -111,7 +115,7 @@ if __name__ == '__main__':
         
         does_data_match = deepValidate(args.sampling_factor, src, tgt)
         exit(1) if does_data_match == False else write_log("Source & Target data match. Continuing program", target = "both")
-    
+  
     
 
 

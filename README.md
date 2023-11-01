@@ -29,7 +29,8 @@ them to fit your particular use case.
     builds a pipeline to scale the process of moderating audio files for
     inappropriate content using machine learning APIs.
 *   [Bigdata generator](tools/bigdata-generator/) - 
-    Solution that generates large amounts of data for stress-testing bigdata solutions (e.g BigQuery). For each of the fields you want to generate, you can specify rules for generating their values. The generated data can stored in BigQuery or GCS (Avro, CSV).
+    Solution that generates large amounts of data for stress-testing bigdata solutions (e.g BigQuery). 
+    For each of the fields you want to generate, you can specify rules for generating their values. The generated data can stored in BigQuery or GCS (Avro, CSV).
 *   [BigQuery Analyze Realtime Reddit Data](examples/bigquery-analyze-realtime-reddit-data/) - 
     Solution to deploy a ([reddit](https://www.reddit.com)) social media data collection
     architecture on Google Cloud Platform.  Analyzes reddit comments in realtime and
@@ -54,8 +55,13 @@ them to fit your particular use case.
 *   [BigQuery Cross Project Slot Monitoring](examples/bigquery-cross-project-slot-monitoring) -
     Solution to help monitoring slot utilization across multiple projects, while
     breaking down allocation per project.
-    [BigQuery DDL Validator](examples/bigquery-ddl-validator) -
-    A utility that will read the Legacy DDL and compare it against the previously extracted DDL and produce an output with the name of the objects where the DDL is no longer matching.
+*   [BigQuery Data Consolidator](tools/bigquery-data-consolidator) - Solution to
+    consolidate data within an organization from multiple projects into one target
+    Dataset/Table where all Source tables are of same schema (like Billing Exports!); specifically
+    useful for data consolidation and further reporting in Cloud FinOps engagements.
+*   [BigQuery DDL Validator](examples/bigquery-ddl-validator) -
+    A utility that will read the Legacy DDL and compare it against the previously extracted DDL and 
+    produce an output with the name of the objects where the DDL is no longer matching.
 *   [BigQuery Group Sync For Row Level Access](examples/bigquery-row-access-groups) -
     Sample code to synchronize group membership from G Suite/Cloud Identity into
     BigQuery and join that with your data to control access at row level.
@@ -71,7 +77,9 @@ them to fit your particular use case.
     services or libraries in languages other than SQL or Javascript which are not part of UDFs.
     The utility contains sample string format Java code to deploy cloud run gen2 instance and invoke 
     the service from BigQuery using remote function.
-*   [BigQuery Snowflake Table Migration Tool](examples/bigquery-snowflake-tables-migration-utility) - 
+*   [BigQuery Amazon S3 Migration Tool](tools/bigquery-s3tobq) - Bigquery Migration Tool to transfer data
+    from files in Amazon S3 to BigQuery Tables based on configuration provided.
+*   [BigQuery Snowflake TabRle Migration Tool](examples/bigquery-snowflake-tables-migration-utility) -
     BigQuery Snowflake Table Migration Tool helps to migrate the table DDL's from Snowflake to BigQuery.
     The utility leverages BigQuery Translation API and offers additional features
     such as adding partitioning, clustering, metadata columns and prefixes to table names.

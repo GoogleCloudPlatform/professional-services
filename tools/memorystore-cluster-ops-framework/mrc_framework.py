@@ -14,7 +14,6 @@
 # limitations under the License.
 
 
-
 import redis
 import subprocess
 import time
@@ -35,6 +34,7 @@ def read_config():
         return config
 
 OUTPUT_LOGS = read_config()['OUTPUT_LOGS']
+
 
 class redisCluster(redis.cluster.RedisCluster):
     """
@@ -128,10 +128,8 @@ class redisCluster(redis.cluster.RedisCluster):
             node_port = node.split(':')[1]
             node_ip = node.split(':')[0]
             node_client = redis.cluster.RedisCluster(host=node_ip, port=int(node_port), decode_responses=True)
-
             node_client.flushdb()
             write_log(f"DB successfully flushed", target=OUTPUT_LOGS)
-        
 
     def getVal(self, key):
         """
@@ -156,7 +154,9 @@ class redisCluster(redis.cluster.RedisCluster):
         elif key_type == b'zset':
             return redis_client.zrange(key, 0, -1)
         else:
+
             write_log(f"Key type not supported", target=OUTPUT_LOGS)
+
             # Add more cases as needed
             return None
         
@@ -171,14 +171,18 @@ class redisCluster(redis.cluster.RedisCluster):
 
         # Generate timestamp
         timestamp = time.strftime("%Y%m%d%H%M%S")
+
         write_log(f"Exporting Redis data to GCS at {timestamp}",target=OUTPUT_LOGS)
+
         prefix = f"{gcs_bucket}/mrc-redis-backups/{cluster_name}"
         # Construct the output filename
         output_filename = f"export_{timestamp}.{file_type}"
 
         # Construct the path
         path = f"{prefix}/{output_filename}"
+
         write_log(f"File will be placed at {path}", target=OUTPUT_LOGS)
+
     
         # Check if the directory exists in case of local storage. 
         if not os.path.exists(prefix) and not gcs_bucket.startswith("gs://") :
@@ -191,6 +195,7 @@ class redisCluster(redis.cluster.RedisCluster):
         does_file_exist(riot_path)
         
         bash_command = f"{riot_path}/riot -h {self.host} -p {self.port} -c file-export {path}"
+
         write_log(f"Executing bash command: {bash_command}", target=OUTPUT_LOGS)
         
         webhook_url = read_config()['SLACK_WEBHOOK_URL']
@@ -202,7 +207,7 @@ class redisCluster(redis.cluster.RedisCluster):
         send_slack_message(
         webhook_url=webhook_url,
         message=f"Backup successful for cluster {cluster_name} on {timestamp}")
-    
+
 
     def restore_cluster(self, restore_file, mode = 'append'):
         """
@@ -238,6 +243,7 @@ def exec_subprocess(bash_command):
         exit(1)
         
         
+
 
         
 def does_file_exist(file):
@@ -291,6 +297,7 @@ def replicate_data(source , target, replication_mode = 'snapshot', verification_
     sourceport = source.port
     tgthost = target.host
     tgtport = target.port
+
     verificiation_mode = verification_mode
     replication_mode = replication_mode
 
@@ -298,14 +305,13 @@ def replicate_data(source , target, replication_mode = 'snapshot', verification_
 
     riot_path = read_config()['riot_bin_path']
     does_file_exist(riot_path)
-    
    
     bash_command = f"{riot_path}/riot -h {sourcehost} -p {sourceport} --cluster replicate --mode={replication_mode} -h {tgthost} -p {tgtport}  --cluster {verificiation_mode}"
     write_log(f"Executing bash command: {bash_command}", target=OUTPUT_LOGS)
     
     exec_subprocess(bash_command)
     write_log(f"Replication successful", target=OUTPUT_LOGS)
-    
+
 def validateCounts(source, target):
     """
     Validate that the number of keys in two Redis clusters are the same.
@@ -323,6 +329,7 @@ def validateCounts(source, target):
     else:
         write_log(f"Source and target DB sizes do not match: {source_size} != {target_size}", target=OUTPUT_LOGS)
         return False
+
 
 def deepValidate(sampling_factor, src, tgt):
     """
@@ -343,8 +350,10 @@ def deepValidate(sampling_factor, src, tgt):
         if key_exists:
             srcVal = src.getVal(key)
             tgtVal = tgt.getVal(key)
+
             if srcVal != tgtVal:
                 write_log(f"Invalid Value for key '{key}':\n {tgtVal} \n {srcVal}", target=OUTPUT_LOGS) 
+
                 validationPassed = False
             else:
                 pass
@@ -374,3 +383,4 @@ def send_slack_message(webhook_url, message):
         write_log(f"Message sent successfully!", target=OUTPUT_LOGS)
     else:
         write_log(f"Message failed to send to SLACK", target=OUTPUT_LOGS)
+
