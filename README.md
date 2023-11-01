@@ -452,6 +452,8 @@ Platform usage.
 *   [GCS Usage Recommender](tools/gcs-usage-recommender) - A tool that generates
     bucket-level intelligence and access patterns across all projects for a GCP
     project to generate recommended object lifecycle management.
+*   [GCVE2BQ](tools/gcve2bq) - A tool for scheduled exports of VM, datastore and ESXi
+    utilization data from vCenter to BigQuery for billing and reporting use cases.
 *   [GKE AutoPSC Controller](tools/gke-autopsc-controller) - Google Kubernetes Engine
     controller, to setup PSC ServiceAttachment for Gateway API managed Forwarding Rules.
 *   [Global DNS -> Zonal DNS Project Bulk Migration](tools/gdns-zdns-project-bulk-migration) - 
