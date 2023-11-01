@@ -230,11 +230,11 @@ class redisCluster(redis.cluster.RedisCluster):
 def exec_subprocess(bash_command):
     try:
         result = subprocess.run(bash_command, shell=True, check=True,capture_output = True, text = True)
-        write_log(f"{result.stdout}", target=OUTPUT_LOGS)
-        
+        #write_log(f"{result.stdout}", target=OUTPUT_LOGS)
+        write_log(f"{result.stderr}", target=OUTPUT_LOGS)
     except subprocess.CalledProcessError as e:
         write_log(f"Error: {e}", target=OUTPUT_LOGS)
-        write_log(f"{result.stderr}", target=OUTPUT_LOGS)
+        
         
 
         
