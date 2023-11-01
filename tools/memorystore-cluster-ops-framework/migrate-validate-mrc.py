@@ -38,14 +38,12 @@ def parseArgs():
     "--replication_mode",
     type=str,
     default="validate",
-    help=(
-        "Replication mode: compare, snapshot, live, liveonly, append.\n"
+    help="Replication mode: compare, snapshot, live, liveonly, append.\n"
         "  - Snapshot: Initial replication using key scan. Flushes the target cluster before replication.\n"
         "  - Live: Initial and continuous replication using key scan and keyspace notifications in parallel.\n"
         "  - Liveonly: Continuous replication using keyspace notifications. Only changed keys are replicated.\n"
         "  - Compare: Compare source and target keys.\n"
         "  - Append: Similar to snapshot but appends to existing keys."
-    )
 )
 
     parser.add_argument("--sampling_factor", type=float, default=0.0 , help="% of keys to sample. Setting this to 0 will disable RIOT verification and do deep validation on all keys through the framework. ")
