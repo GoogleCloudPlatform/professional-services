@@ -1,5 +1,5 @@
 # An Operational Framework For Memorystore Redis Clusters
-This script is a framework that provides the tools to apply cluster level operations that enable capabilities like cluster backups, migration & validation, etc. The framework can be extended for other use cases as required. The framework uses RIOT to bridge current product gaps with Memorystore Clusters
+This is a framework that provides the tools to apply cluster level operations that enable capabilities like cluster backups, migration & validation, etc. The framework can be extended for other use cases as required. The framework uses RIOT to bridge current product gaps with Memorystore Clusters
 
 ## Prerequisites
 
