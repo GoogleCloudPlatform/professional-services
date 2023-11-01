@@ -14,6 +14,7 @@
 # limitations under the License.
 
 
+import pickle
 import redis
 import subprocess
 import time
@@ -342,8 +343,8 @@ def deepValidate(sampling_factor, src, tgt):
         if key_exists:
             srcVal = src.getVal(key)
             tgtVal = tgt.getVal(key)
-
-            if srcVal != tgtVal:
+            if pickle.dumps(srcVal) == pickle.dumps(tgtVal):
+            #if srcVal != tgtVal:
                 write_log(f"Invalid Value for key '{key}':\n {tgtVal} \n {srcVal}", target=OUTPUT_LOGS) 
                 validationPassed = False
             else:
