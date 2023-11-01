@@ -234,6 +234,7 @@ def exec_subprocess(bash_command):
         write_log(f"{result.stderr}", target=OUTPUT_LOGS)
     except subprocess.CalledProcessError as e:
         write_log(f"Error: {e}", target=OUTPUT_LOGS)
+        write_log(f"{result.stderr}", target=OUTPUT_LOGS)
         
         
 
