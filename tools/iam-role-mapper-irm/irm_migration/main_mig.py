@@ -45,16 +45,17 @@ def get_aws_roles_and_policies_with_actions():
                     # Extract actions from the policy document
                     actions = set()
                     for statement in policy_document.get("Statement", []):
-                        if "Action" in statement:
-                            if isinstance(statement["Action"], str):
-                                actions.add(
-                                    statement["Action"]
-                                )  # If 'a' is a string, add it to the set
-                            elif isinstance(statement["Action"], list):
-                                actions.update(
-                                    statement["Action"]
-                                )  # If 'a' is a list of strings, add each string to the set
-                            # actions.add(statement["Action"])
+                        if statement["Effect"] == "Allow":
+                            if "Action" in statement:
+                                if isinstance(statement["Action"], str):
+                                    actions.add(
+                                        statement["Action"]
+                                    )  # If 'a' is a string, add it to the set
+                                elif isinstance(statement["Action"], list):
+                                    actions.update(
+                                        statement["Action"]
+                                    )  # If 'a' is a list of strings, add each string to the set
+                                # actions.add(statement["Action"])
 
                     # Store policy actions in the dictionary
                     policies_with_actions[policy_name] = list(actions)
