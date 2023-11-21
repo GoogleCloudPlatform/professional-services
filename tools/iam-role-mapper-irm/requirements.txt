@@ -3,3 +3,4 @@ collections
 pandas
 python-docx
 pyyaml
+google-api-python-client

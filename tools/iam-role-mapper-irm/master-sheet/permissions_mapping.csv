@@ -1,0 +1,16 @@
+ec2:RunInstances,compute.instances.create
+ec2:TerminateInstances,compute.instances.delete
+ec2:DescribeInstances,compute.instances.list
+ec2:StartInstances,compute.instances.start
+ec2:StopInstances,compute.instances.stop
+ec2:RebootInstances,compute.instances.reset
+ec2:StartInstances,compute.instances.resume
+ec2:CreateTags,compute.instances.setLabels
+ec2:ModifyInstanceAttribute,compute.instances.setMachineResources
+ec2:ModifyInstanceAttribute,compute.instances.setMachineType
+ec2:ModifyInstanceAttribute,compute.instances.setMetadata
+ec2:ModifyInstanceAttribute,compute.instances.setMinCpuPlatform
+ec2:ModifyInstanceAttribute,compute.instances.setName
+ec2:ModifyInstanceAttribute,compute.instances.setScheduling
+ec2:ModifyInstanceAttribute,compute.instances.setSecurityPolicy
+iam:LinkRoleToInstanceProfile,compute.instances.setServiceAccount

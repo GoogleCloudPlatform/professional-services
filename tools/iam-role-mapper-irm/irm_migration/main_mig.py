@@ -8,21 +8,28 @@ from collections import defaultdict
 import pandas as pd
 import docx
 from docx import Document
+import re
+
 
 class MigrationUtility:
     def __init__(self):
              
-        #Master sheet mapping 
+        #Master sheet mapping for policies
         self.master_role_mapping = defaultdict(list)
+
+        self.master_permission_mapping = {}
         
         #Retrieves existing AWS Roles and Policies
-        self.aws_roles_policies_with_actions = defaultdict(list)
+        self.aws_roles_policies_with_actions = {}
 
         #Store mappings from aws (roles relevant to this user) to gcp 
         self.aws_roles_mapped_to_gcp = defaultdict(list)
 
         #Store unmapped roles and policies
         self.unmapped_aws_roles_and_policies = defaultdict(list)
+
+        #permission based mapping
+        self.aws_to_gcp_permission = defaultdict(list)
         
     '''
     Returns policies and the permissions under each policy for every AWS Role
@@ -39,7 +46,7 @@ class MigrationUtility:
         try:
             # List IAM roles 
             roles = iam_client.list_roles()
-
+            
             # Iterate through IAM roles
             for role in roles["Roles"]:
                 role_name = role["RoleName"]
@@ -54,7 +61,6 @@ class MigrationUtility:
                     policy["PolicyName"]
                     for policy in attached_policies.get("AttachedPolicies", [])
                 ]
-
                 #  Iterate through attached policies to retrieve their actions
                 for policy_name in policy_names:
                     try:
@@ -66,6 +72,7 @@ class MigrationUtility:
                         # Extract actions from the policy document
                         actions = set()
                         for statement in policy_document.get("Statement", []):
+
                             if "Action" in statement:
                                 if isinstance(statement["Action"], str):
                                     actions.add(
@@ -99,20 +106,46 @@ class MigrationUtility:
             print(f"Error: {e}")
             return aws_roles_policies
         return self.aws_roles_policies_with_actions
-        
     
+    '''
+    Creates a mapping for permissions that are in our user's AWS account
+    '''
+    def generatePermissionMappingForRole(self,users_permissions):
+        
+        for aws_permission in users_permissions:
+            # print('\n see permission', aws_permission)
+            # Checking for * regex
+            match = re.match(r'([^*]+)\*', aws_permission)
+            if match:
+                product = match.group(1)
+                print('PRODUCT',product)
+                for awsP, gcpP in self.master_permission_mapping.items():
+                    if awsP.startswith(product):
+                        self.aws_to_gcp_permission[aws_permission].append(self.master_permission_mapping[aws_permission])
+
+
+            if aws_permission in self.master_permission_mapping:
+                self.aws_to_gcp_permission[aws_permission] = self.master_permission_mapping[aws_permission]
+        # print('my final permissions mapping\n')
+        # print(self.aws_to_gcp_permission)
+        return self.aws_to_gcp_permission
+
+    '''
+    Modifying to map permissions
+    '''
     def read_csv_to_map(self,filename):
         with open(filename, "r") as csvfile:
             reader = csv.reader(csvfile)
             next(reader)  # Skip the header row
             for row in reader:
-                aws_role = row[0]
-                gcp_role = row[1]
-                self.master_role_mapping[aws_role] = gcp_role
+                aws_permission = row[0]
+                gcp_permission = row[1]
+                self.master_permission_mapping[aws_permission] = gcp_permission
 
     '''
     Generates the GCP predefined roles mapped to AWS policies
     Policies that do not have equivalent mappings are stored separately
+    '''
     '''
     def generate_maps(self, aws_map):
         
@@ -131,10 +164,11 @@ class MigrationUtility:
                     )
                    
         return (self.aws_roles_mapped_to_gcp, self.unmapped_aws_roles_and_policies)
-    
+    '''
 '''
 Creates a pandas dataframe, a tabular representation 
 of the mapping between AWS policies and GCP roles
+'''
 '''
 def create_pandas_dataframes(aws_map,mappedToGCP,unmapped):
     awsDF = pd.DataFrame([(role,policy) for role,policy_list in aws_map.items() for policy in policy_list], \
@@ -150,9 +184,11 @@ def create_pandas_dataframes(aws_map,mappedToGCP,unmapped):
     df = df.sort_values(by=['AWS Role'])
     df = df.fillna('Not Found')
     return df
+'''
 
 '''
 Exports the tabular data into word doc
+'''
 '''
 def export_table_to_doc(df, filename):
 
@@ -203,7 +239,7 @@ def export_table_to_doc(df, filename):
             mapping_table.cell(i+1,j).text = str(df.values[i,j])
 
     doc.save(filename)
-
+'''
 
 def run_migration():
     migration_utility = MigrationUtility()
@@ -212,16 +248,40 @@ def run_migration():
     csv_file = "./master-sheet/aws-to-gcp.csv"
     migration_utility.read_csv_to_map(csv_file)
 
-    aws_map = migration_utility.get_aws_roles_and_policies_with_actions()
-    mappedToGCP, unmapped = migration_utility.generate_maps(aws_map)
+    aws_roles_policies = migration_utility.get_aws_roles_and_policies_with_actions()
+    
+    for role, policy in aws_roles_policies.items():
+        role_list = []
+        for policy,permission_list in aws_roles_policies[role].items():
+            # print('\npolicy',':',policy,',permissions list :', permission_list)
+            # all permissions into one single list
+            for permission in permission_list:
+                role_list.append(permission)
+            
+            mappedToGCP = migration_utility.generatePermissionMappingForRole(role_list)
+            print('\n mapped to gcp')
+            print(mappedToGCP)
 
+    '''
     df = create_pandas_dataframes(aws_map,mappedToGCP,unmapped)
 
     filename = input("Please enter a filename to save the report: \n")
     export_table_to_doc(df, filename)
+    '''
 
 run_migration()
 
+'''
+1. do a regex match.. all ec2 things will get populated
+2. gcp permissions list 
 
+CAN CREATE CUSTOM ROLE WITH SAME TITLE AS THE EC2 ROLE, JUST SUFFIXED WITH '-GCP-'
+check if create_role() with the permissions run in cloud shell
+------
+
+3. put in Python script 
+    look into authentication from gcp side 
+4. execute and verify if role created in joonix acc
+'''
 
 
