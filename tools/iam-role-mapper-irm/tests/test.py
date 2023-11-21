@@ -47,6 +47,7 @@ def convert_to_csv(aws_roles_policies, output_file):
         print(f"Error: {e}")
 
 def main():
+    
     # Call the first function to retrieve AWS IAM roles and their attached policies
     roles_and_policies = get_aws_roles_and_policies()
 
