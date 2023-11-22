@@ -1,13 +1,14 @@
-import yaml
+# import yaml
 import os
 import csv
 import boto3, botocore
 from botocore.exceptions import ClientError
-import collections
+# import collections
 from collections import defaultdict
 import pandas as pd
-import docx
+# import docx
 from docx import Document
+import re
 
 class MigrationUtility:
     def __init__(self):
@@ -107,31 +108,59 @@ class MigrationUtility:
             reader = csv.reader(csvfile)
             next(reader)  # Skip the header row
             for row in reader:
-                aws_role = row[0]
-                gcp_role = row[1]
-                self.master_role_mapping[aws_role] = gcp_role
+                aws_action = row[0]
+                gcp_permission = row[1]
+                self.master_role_mapping[aws_action] = gcp_permission
 
     '''
-    Generates the GCP predefined roles mapped to AWS policies
+    Generates the GCP roles mapped to AWS policies
     Policies that do not have equivalent mappings are stored separately
+
+    aws_map that is returned is a nested dictionary representing AWS roles, policies, and corresponding GCP permissions.
+    It follows the format:
+    {
+        'AWS_Role1': {
+            'AWS_Policy1': {
+                'AWS_Action1': ['GCP_Permission1', 'GCP_Permission2', ...],
+                'AWS_Action2': ['GCP_Permission3', 'GCP_Permission4', ...],
+                ...
+            },
+            'AWS_Policy2': {
+                'AWS_Action3': ['GCP_Permission5', 'GCP_Permission6', ...],
+                ...
+            },
+            ...
+        },
+        'AWS_Role2': {
+            ...
+        },
+        ...
+    }
+
     '''
     def generate_maps(self, aws_map):
-        
         for aws_role, aws_policies in aws_map.items():
+            for aws_policy, aws_actions in aws_policies.items():
+                aws_action_to_gcp_permission_map = {}
+                for aws_action in aws_actions:
+                    if aws_action.endswith('*'):
+                        gcp_permissions = []
+                        # If aws_action ends with '*', perform regex check
+                        aws_action_pattern = re.escape(aws_action[:-1])  # Escape special characters
+                        for aws_permission_pattern, gcp_permission in self.master_role_mapping.items():
+                            if re.match(aws_action_pattern, aws_permission_pattern):
+                                gcp_permissions.append(gcp_permission)
+                        aws_action_to_gcp_permission_map[aws_action] = gcp_permissions
+                    else:
+                        # If aws_action does not end with '*', search for an exact match
+                        if aws_action in self.master_role_mapping:
+                            aws_action_to_gcp_permission_map[aws_action] = [self.master_role_mapping[aws_action]]
 
-            for aws_policy in aws_policies:
-                
-                if aws_policy in self.master_role_mapping:
-  
-                    self.aws_roles_mapped_to_gcp[aws_policy].append(
-                        self.master_role_mapping[aws_policy]
-                    )
-                else:
-                    self.unmapped_aws_roles_and_policies[aws_role].append(
-                        aws_policy
-                    )
-                   
-        return (self.aws_roles_mapped_to_gcp, self.unmapped_aws_roles_and_policies)
+                # Update aws_map with the dictionary
+                aws_map[aws_role][aws_policy] = aws_action_to_gcp_permission_map
+
+        return aws_map
+
     
 '''
 Creates a pandas dataframe, a tabular representation 
@@ -210,19 +239,15 @@ def run_migration():
     migration_utility = MigrationUtility()
     
     # Read the CSV and create a map
-    csv_file = "./master-sheet/aws-to-gcp.csv"
+    csv_file = "./master-sheet/actions_to_permissions.csv"
     migration_utility.read_csv_to_map(csv_file)
 
     aws_map = migration_utility.get_aws_roles_and_policies_with_actions()
-    mappedToGCP, unmapped = migration_utility.generate_maps(aws_map)
+    aws_map = migration_utility.generate_maps(aws_map)
 
-    df = create_pandas_dataframes(aws_map,mappedToGCP,unmapped)
+    df = create_pandas_dataframes(aws_map,mappedToGCP,unmapped) # This function has to be updated as the generate_maps no longer returns mappedToGCP and unmapped
 
     filename = input("Please enter a filename to save the report: \n")
     export_table_to_doc(df, filename)
 
 run_migration()
-
-
-
-
