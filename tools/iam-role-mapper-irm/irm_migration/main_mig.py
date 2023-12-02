@@ -4,18 +4,14 @@ import boto3, botocore
 from botocore.exceptions import ClientError
 from collections import defaultdict
 import pandas as pd
-from docx import Document
+#from docx import Document
 import re
 import itertools
+#import google
 from google.oauth2 import service_account 
 import googleapiclient.discovery 
 
 
-credentials = service_account.Credentials.from_service_account_file(
-   filename= "./terraform-sa-key.json",
-   scopes=["https://www.googleapis.com/auth/cloud-platform"],
-)
-service = googleapiclient.discovery.build("iam", "v1", credentials=credentials)
 
 
 class MigrationUtility:
@@ -290,6 +286,11 @@ def export_table_to_doc(df, filename):
 '''
 Create a GCP Custom Role with extracted permissions from generate_maps function
 '''
+credentials = service_account.Credentials.from_service_account_file(
+   filename= "./terraform-sa-key.json",
+   scopes=["https://www.googleapis.com/auth/cloud-platform"],
+)
+service = googleapiclient.discovery.build("iam", "v1", credentials=credentials)
 
 
 def create_role(
@@ -313,17 +314,18 @@ def create_role(
        )
        .execute()
    )
+   print("Updated role: " + role["name"])
    return role
 
 
 
 
-def run_migration():
+def run_migration(execute, rules_file, generate_report, output_folder):
+   
    migration_utility = MigrationUtility()
   
    # Read the CSV and create a map
-   csv_file = "./master-sheet/actions_to_permissions.csv"
-   migration_utility.read_csv_to_map(csv_file)
+   migration_utility.read_csv_to_map(rules_file)
 
 
    aws_map = migration_utility.get_aws_roles_and_policies_with_actions()
@@ -334,7 +336,7 @@ def run_migration():
       
        gcp_permissions = [permission for permission in gcp_permissions if permission!= ""]
       
-       create_role(aws_role, "foundations-trial", aws_role, "from AWS", gcp_permissions)
+       create_role(aws_role + "ex", "testgcp-harish-env", aws_role, "from AWS", gcp_permissions)
 
 
        '''
@@ -345,4 +347,4 @@ def run_migration():
        filename = input("Please enter a filename to save the report: \n")
        export_table_to_doc(df, filename)
        '''
-run_migration()
+
