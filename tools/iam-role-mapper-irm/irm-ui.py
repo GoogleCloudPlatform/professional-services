@@ -22,9 +22,9 @@ def validate_folder_access(folder):
 def main(execute, rules_file, generate_report, output_folder):
     try:
         # check validity of input folders
-        validate_folder_access(output_folder)
+        #validate_folder_access(output_folder)
         # pass the input values to the mig class
-        # irm_mig.run_migration(execute, rules_file, generate_report, output_folder)
+        irm_mig.run_migration(execute, rules_file, generate_report, output_folder)
         # irm_mig.run_migration()
 
     except:
@@ -55,7 +55,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--rules_file",
         dest="rules_file",
-        default="./master-sheet/rules.csv",
+        default="./master-sheet/actions_to_permissions.csv",
         help="[OPTIONAL]Location of the rules file if the user wants to pass a custom rules sheet, [TYPE]=string",
     )
     parser.add_argument(
@@ -71,5 +71,7 @@ if __name__ == "__main__":
         help="[OPTIONAL]Location of the rules file if the user wants to pass a custom rules sheet. If no value is provided the default sheet is used.",
     )
 
+
+    ## projectid
     args = parser.parse_args()
     main(args.execute, args.rules_file, args.det_report, args.output_folder)
