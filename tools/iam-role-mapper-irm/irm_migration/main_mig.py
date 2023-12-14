@@ -4,12 +4,10 @@ import boto3, botocore
 from botocore.exceptions import ClientError
 from collections import defaultdict
 import pandas as pd
-#from docx import Document
 import re
 import itertools
-#import google
-from google.oauth2 import service_account 
 import googleapiclient.discovery 
+import google.auth.transport.requests
 
 
 
@@ -286,11 +284,10 @@ def export_table_to_doc(df, filename):
 '''
 Create a GCP Custom Role with extracted permissions from generate_maps function
 '''
-credentials = service_account.Credentials.from_service_account_file(
-   filename= "./terraform-sa-key.json",
-   scopes=["https://www.googleapis.com/auth/cloud-platform"],
-)
-service = googleapiclient.discovery.build("iam", "v1", credentials=credentials)
+credentials, _ = google.auth.default(
+scopes=['https://www.googleapis.com/auth/cloud-platform'])
+access_token = credentials.token
+service = googleapiclient.discovery.build("iam", "v1", credentials=access_token)
 
 
 def create_role(
@@ -336,7 +333,7 @@ def run_migration(execute, rules_file, generate_report, output_folder):
       
        gcp_permissions = [permission for permission in gcp_permissions if permission!= ""]
       
-       create_role(aws_role + "ex", "testgcp-harish-env", aws_role, "from AWS", gcp_permissions)
+       create_role(aws_role + "eo", "testgcp-harish-env", aws_role, "from AWS", gcp_permissions)
 
 
        '''
