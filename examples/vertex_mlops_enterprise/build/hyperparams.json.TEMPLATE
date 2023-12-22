@@ -1,0 +1,7 @@
+{
+    "num_epochs": ${num_epochs},
+    "learning_rate": ${learning_rate},
+    "batch_size": ${batch_size},
+    "steps_per_epoch": ${steps_per_epoch},
+    "hidden_units": ${steps_per_epoch}
+}

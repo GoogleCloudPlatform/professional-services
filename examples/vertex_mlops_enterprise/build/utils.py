@@ -31,57 +31,58 @@ sys.path.append(os.path.normpath(os.path.join(SCRIPT_DIR, "..")))
 
 SERVING_SPEC_FILEPATH = 'build/serving_resources_spec.json'
 
+
 def get_args():
     parser = argparse.ArgumentParser()
 
     parser.add_argument(
-        '--mode', 
+        '--mode',
         type=str,
         required=True
     )
 
     parser.add_argument(
-        '--project',  
-        type=str,
-    )
-    
-    parser.add_argument(
-        '--region',  
-        type=str,
-    )
-    
-    parser.add_argument(
-        '--endpoint-display-name', 
+        '--project',
         type=str,
     )
 
     parser.add_argument(
-        '--model-display-name', 
-        type=str,
-    )
-    
-    parser.add_argument(
-        '--pipeline-name', 
-        type=str,
-    )
-    
-    parser.add_argument(
-        '--pipelines-store', 
+        '--region',
         type=str,
     )
 
     parser.add_argument(
-        '--service-account', 
+        '--endpoint-display-name',
         type=str,
     )
 
     parser.add_argument(
-        '--parameter-values', 
+        '--model-display-name',
         type=str,
     )
 
     parser.add_argument(
-        '--labels', 
+        '--pipeline-name',
+        type=str,
+    )
+
+    parser.add_argument(
+        '--pipelines-store',
+        type=str,
+    )
+
+    parser.add_argument(
+        '--service-account',
+        type=str,
+    )
+
+    parser.add_argument(
+        '--parameter-values',
+        type=str,
+    )
+
+    parser.add_argument(
+        '--labels',
         type=str,
     )
 
@@ -94,11 +95,11 @@ def create_endpoint(project, region, endpoint_display_name):
         project=project,
         location=region
     )
-    
+
     endpoints = vertex_ai.Endpoint.list(
-        filter=f'display_name={endpoint_display_name}', 
+        filter=f'display_name={endpoint_display_name}',
         order_by="update_time")
-    
+
     if len(endpoints) > 0:
         logging.info(f"Endpoint {endpoint_display_name} already exists.")
         endpoint = endpoints[-1]
@@ -115,12 +116,12 @@ def deploy_model(project, region, endpoint_display_name, model_display_name, ser
         project=project,
         location=region
     )
-    
+
     model = vertex_ai.Model.list(
         filter=f'display_name={model_display_name}',
         order_by="update_time"
     )[-1]
-    
+
     endpoint = vertex_ai.Endpoint.list(
         filter=f'display_name={endpoint_display_name}',
         order_by="update_time"
@@ -138,17 +139,26 @@ def compile_pipeline(pipeline_name):
     pipeline_definition = runner.compile_training_pipeline(pipeline_definition_file)
     return pipeline_definition
 
-def run_pipeline(project, region, service_account, pipelines_store, pipeline_name, parameter_values, labels_str):
+
+def run_pipeline(
+        project: str,
+        region: str,
+        service_account: str,
+        pipelines_store: str,
+        pipeline_name: str,
+        parameter_values: str,
+        labels_str: str
+):
+    labels = {}
     if labels_str:
         # Converting string into dictionary using dict comprehension
         labels = dict(item.split("=") for item in labels_str.split(","))
-        #labels=json.loads(labels_str)
 
     storage_client = storage.Client()
-    
+
     gcs_pipeline_file_location = pipelines_store if pipelines_store.endswith("/") else pipelines_store + "/"
     gcs_pipeline_file_location = gcs_pipeline_file_location + pipeline_name + ".json"
-    
+
     path_parts = gcs_pipeline_file_location.replace("gs://", "").split("/")
     bucket_name = path_parts[0]
     blob_name = "/".join(path_parts[1:])
@@ -158,25 +168,23 @@ def run_pipeline(project, region, service_account, pipelines_store, pipeline_nam
 
     if not blob.exists(storage_client):
         raise ValueError(f"{pipelines_store}/{pipeline_name} does not exist.")
-    
-    parameter_values_json = json.loads(parameter_values)
+
+    with open(parameter_values) as f:
+        parameter_values_json = json.load(f)
+
     print(f'Input: {parameter_values_json}')
-    print(f'JSON: {parameter_values_json}')
 
-    job = vertex_ai.PipelineJob(display_name = pipeline_name,
-                             template_path = gcs_pipeline_file_location,
-                             parameter_values = parameter_values_json,
-                             project = project,
-                             location = region,
-                             labels = labels)
+    job = vertex_ai.PipelineJob(display_name=pipeline_name,
+                                template_path=gcs_pipeline_file_location,
+                                parameter_values=parameter_values_json,
+                                project=project,
+                                location=region,
+                                labels=labels)
 
-    response = job.submit(service_account=service_account,
-           network=None)
-           
+    job.submit(service_account=service_account, network=None)
+
     job.wait()
     print(f'Job finished with state: {job.state}')
-    
-    return response
 
 
 def main():
@@ -189,13 +197,13 @@ def main():
             raise ValueError("region must be supplied.")
         if not args.endpoint_display_name:
             raise ValueError("endpoint_display_name must be supplied.")
-            
-        result = create_endpoint(
-            args.project, 
-            args.region, 
+
+        create_endpoint(
+            args.project,
+            args.region,
             args.endpoint_display_name
         )
-        
+
     elif args.mode == 'deploy-model':
         if not args.project:
             raise ValueError("project must be supplied.")
@@ -205,22 +213,23 @@ def main():
             raise ValueError("endpoint-display-name must be supplied.")
         if not args.model_display_name:
             raise ValueError("model-display-name must be supplied.")
-            
+
         with open(SERVING_SPEC_FILEPATH) as json_file:
             serving_resources_spec = json.load(json_file)
         logging.info(f"serving resources: {serving_resources_spec}")
-        result = deploy_model(
-            args.project, 
-            args.region, 
-            args.endpoint_display_name, 
+        deploy_model(
+            args.project,
+            args.region,
+            args.endpoint_display_name,
             args.model_display_name,
             serving_resources_spec
         )
-        
+
     elif args.mode == 'compile-pipeline':
         if not args.pipeline_name:
-            raise ValueError("pipeline-name must be supplied.")            
-        result = compile_pipeline(args.pipeline_name)
+            raise ValueError("pipeline-name must be supplied.")
+        compile_pipeline(args.pipeline_name)
+
     elif args.mode == 'run-pipeline':
         if not args.project:
             raise ValueError("project must be supplied.")
@@ -235,7 +244,7 @@ def main():
         if not args.parameter_values:
             raise ValueError("parameter-values must be supplied.")
 
-        result = run_pipeline(
+        run_pipeline(
             args.project,
             args.region,
             args.service_account,
@@ -245,10 +254,8 @@ def main():
             args.labels)
     else:
         raise ValueError(f"Invalid mode {args.mode}.")
-        
-    logging.info(result)
-        
-    
+
+
 if __name__ == "__main__":
     main()
     

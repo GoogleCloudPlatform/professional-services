@@ -146,8 +146,16 @@ locals {
     sa_mlops      = module.mlops.github.SA_MLOPS,
     bucket_name   = "${var.prefix}-${var.bucket_name}-${var.environment}",
     pipeline_name = "creditcards-classifier-v02-train-pipeline",
-    pipeline_params = "{\"num_epochs\": 7, \"learning_rate\": 0.0015, \"batch_size\": 512, \"steps_per_epoch\": 9, \"hidden_units\": \"256,126\"}"
-  })  
+    pipeline_params = "build/${var.environment}/hyperparams_tfx.json"
+  })
+
+  pipeline_hparams_tfx = templatefile("${path.module}/../../build/hyperparams.json.TEMPLATE", {
+    num_epochs      = 7,
+    learning_rate   = 0.0015,
+    batch_size      = 512,
+    steps_per_epoch = 9,
+    hidden_units    = "256,126"
+  })
   
   pipeline_run_kfp = templatefile("${path.module}/../../build/pipeline-run.yaml.TEMPLATE", {
     project_id    = module.mlops.github.PROJECT_ID,
@@ -245,17 +253,22 @@ resource "local_file" "deployment_bqml_yml" {
   content  = local.pipeline_deploy_kfp
 }
 
-resource "local_file" "pipeline_run_tfx_ml" {
+resource "local_file" "hyperparameters_tfx_json" {
+  filename = "${path.module}/../../build/${var.environment}/hyperparameters_tfx.json"
+  content  = local.pipeline_hparams_tfx
+}
+
+resource "local_file" "pipeline_run_tfx_yml" {
   filename = "${path.module}/../../build/${var.environment}/pipeline-run-tfx.yaml"
   content  = local.pipeline_run_tfx
 }
 
-resource "local_file" "pipeline_run_kfp_ml" {
+resource "local_file" "pipeline_run_kfp_yml" {
   filename = "${path.module}/../../build/${var.environment}/pipeline-run-kfp.yaml"
   content  = local.pipeline_run_kfp
 }
 
-resource "local_file" "pipeline_run_bqml_ml" {
+resource "local_file" "pipeline_run_bqml_yml" {
   filename = "${path.module}/../../build/${var.environment}/pipeline-run-bqml.yaml"
   content  = local.pipeline_run_kfp
 }
