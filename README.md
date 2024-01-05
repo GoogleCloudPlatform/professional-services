@@ -29,7 +29,8 @@ them to fit your particular use case.
     builds a pipeline to scale the process of moderating audio files for
     inappropriate content using machine learning APIs.
 *   [Bigdata generator](tools/bigdata-generator/) - 
-    Solution that generates large amounts of data for stress-testing bigdata solutions (e.g BigQuery). For each of the fields you want to generate, you can specify rules for generating their values. The generated data can stored in BigQuery or GCS (Avro, CSV).
+    Solution that generates large amounts of data for stress-testing bigdata solutions (e.g BigQuery). 
+    For each of the fields you want to generate, you can specify rules for generating their values. The generated data can stored in BigQuery or GCS (Avro, CSV).
 *   [BigQuery Analyze Realtime Reddit Data](examples/bigquery-analyze-realtime-reddit-data/) - 
     Solution to deploy a ([reddit](https://www.reddit.com)) social media data collection
     architecture on Google Cloud Platform.  Analyzes reddit comments in realtime and
@@ -54,8 +55,13 @@ them to fit your particular use case.
 *   [BigQuery Cross Project Slot Monitoring](examples/bigquery-cross-project-slot-monitoring) -
     Solution to help monitoring slot utilization across multiple projects, while
     breaking down allocation per project.
-    [BigQuery DDL Validator](examples/bigquery-ddl-validator) -
-    A utility that will read the Legacy DDL and compare it against the previously extracted DDL and produce an output with the name of the objects where the DDL is no longer matching.
+*   [BigQuery Data Consolidator](tools/bigquery-data-consolidator) - Solution to
+    consolidate data within an organization from multiple projects into one target
+    Dataset/Table where all Source tables are of same schema (like Billing Exports!); specifically
+    useful for data consolidation and further reporting in Cloud FinOps engagements.
+*   [BigQuery DDL Validator](examples/bigquery-ddl-validator) -
+    A utility that will read the Legacy DDL and compare it against the previously extracted DDL and 
+    produce an output with the name of the objects where the DDL is no longer matching.
 *   [BigQuery Group Sync For Row Level Access](examples/bigquery-row-access-groups) -
     Sample code to synchronize group membership from G Suite/Cloud Identity into
     BigQuery and join that with your data to control access at row level.
@@ -71,7 +77,9 @@ them to fit your particular use case.
     services or libraries in languages other than SQL or Javascript which are not part of UDFs.
     The utility contains sample string format Java code to deploy cloud run gen2 instance and invoke 
     the service from BigQuery using remote function.
-*   [BigQuery Snowflake Table Migration Tool](examples/bigquery-snowflake-tables-migration-utility) - 
+*   [BigQuery Amazon S3 Migration Tool](tools/bigquery-s3tobq) - Bigquery Migration Tool to transfer data
+    from files in Amazon S3 to BigQuery Tables based on configuration provided.
+*   [BigQuery Snowflake TabRle Migration Tool](examples/bigquery-snowflake-tables-migration-utility) -
     BigQuery Snowflake Table Migration Tool helps to migrate the table DDL's from Snowflake to BigQuery.
     The utility leverages BigQuery Translation API and offers additional features
     such as adding partitioning, clustering, metadata columns and prefixes to table names.
@@ -117,6 +125,7 @@ them to fit your particular use case.
     using Cloud Composer, GCP's managed Apache Airflow service.
 *   [Cloud Data Fusion Functions and Plugins](examples/cloud-datafusion-functions-plugins) -
     Examples of Cloud Data Fusion Functions and Plugins.
+*   [Cloud DNS public zone monitoring](examples/cloud-dns-public-zone-dashboard) - Visualizing Cloud DNS public zone query data using log-based metrics and Cloud Monitoring.
 *   [Cloud Function Act As](examples/cloud-function-act-as) - Example of
     executing a Cloud Function on behalf and with IAM permissions of the GitHub
     Workload Identity caller.
@@ -125,6 +134,7 @@ them to fit your particular use case.
     deleted. This solution implements a [Google Cloud Function][gcf]
     [Background Function][gcf-bg] triggered on `compute.instances.delete` events
     published through [Stackdriver Logs Export][logs-export].
+*   [Certificate Authority Service Hierarchy](examples/certificate-authority-service-hierarchy) - Root and Subordinate Certificate Authority Service CA Pools and CAs with examples for domain ownership validation and sample load test script.
 *   [Cloud Run to BQ](examples/cloudrun-to-bq) - Solution to accept events/data
     on HTTP REST Endpoint and insert into BQ.
 *   [Cloud SQL Custom Metric](examples/cloud-sql-custom-metric) - An example of
@@ -167,6 +177,8 @@ them to fit your particular use case.
     from Cloud Pub/Sub, enhancing the document using metadata stored in Cloud
     Bigtable and indexing those documents into
     [Elasticsearch](https://www.elastic.co/).
+*   [Dataflow BigQuery to AlloyDB](examples/dataflow-bigquery-to-alloydb/) -
+    Example that shows how to move data from BigQuery to an AlloyDB table using Dataflow.
 *   [Dataflow Flex Template in Restricted Networking Env](examples/dataflow-flex-python/) -
     Example implements a python flex template which can be run in an environment
     where workers can not download python packages due to egress traffic restrictions.
@@ -377,6 +389,13 @@ Platform usage.
 *   [Cloud Composer Backup and Recovery](tools/cloud-composer-backup-restore) - A
     command line tool for applying backup and recovery operations on Cloud
     Composer Airflow environments.
+*   [Cloud Composer DAG Validation](tools/cloud-composer-dag-validation) - An automated process for running validation and testing against DAGs in Composer.
+*   [Cloud Composer Migration Complexity Assessment](tools/cloud-composer-migration-complexity-assessment) - An Airflow DAG that uses a variety
+    of tools to analyze a Cloud Composer 1 environment, determine a work estimate, and
+    accelerate the conversion of airflow 1 dags to airflow 2 dags.
+*   [Cloud Composer Migration Terraform Generator](tools/cloud-composer-migration-terraform-generator) - Analyzes an existing Cloud Composer 1
+    / Airflow 1 environment and generates terraform. Configures new Cloud Composer 2
+    environment to meet your workload demands.
 *   [CUD Prioritized Attribution](tools/cuds-prioritized-attribution) - A tool
     that allows GCP customers who purchased Committed Use Discounts (CUDs) to
     prioritize a specific scope (e.g. project or folder) to attribute CUDs first
@@ -442,6 +461,10 @@ Platform usage.
 *   [GCS Usage Recommender](tools/gcs-usage-recommender) - A tool that generates
     bucket-level intelligence and access patterns across all projects for a GCP
     project to generate recommended object lifecycle management.
+*   [GCVE2BQ](tools/gcve2bq) - A tool for scheduled exports of VM, datastore and ESXi
+    utilization data from vCenter to BigQuery for billing and reporting use cases.
+*   [GKE AutoPSC Controller](tools/gke-autopsc-controller) - Google Kubernetes Engine
+    controller, to setup PSC ServiceAttachment for Gateway API managed Forwarding Rules.
 *   [Global DNS -> Zonal DNS Project Bulk Migration](tools/gdns-zdns-project-bulk-migration) - 
     A shell script for gDNS-zDNS project bulk migration.
 *   [GKE Billing Export](tools/gke-billing-export) - Google Kubernetes Engine
@@ -559,6 +582,10 @@ Platform usage.
     and to test differents airflows configurations or to do fine tune using the composer/airflow metrics.
 *   [Gradio and Generative AI Example](examples/genai-gradio-example) - The example code allows developers 
     to create rapid Generative AI PoC applications with Gradio and Gen AI agents.
+*   [Memorystore Cluster Ops Framework](tools/memorystore-cluster-ops-framework) - This is a framework that 
+    provides the tools to apply cluster level operations that enable capabilities like cluster backups, migration & validation, etc. 
+    The framework can be extended for other use cases as required. 
+    The framework uses RIOT to bridge current product gaps with Memorystore Clusters
 
 ## Contributing
 

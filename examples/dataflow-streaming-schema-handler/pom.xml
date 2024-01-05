@@ -40,7 +40,7 @@
     <maven-source-plugin.version>3.0.1</maven-source-plugin.version>
     <mockito-core.version>3.8.0</mockito-core.version>
     <os-maven-plugin.version>1.5.0.Final</os-maven-plugin.version>
-    <json.version>20200518</json.version>
+    <json.version>20231013</json.version>
     <re2j.version>1.4</re2j.version>
     <google-cloud-bigquery.version>1.108.0</google-cloud-bigquery.version>
     <mvn-target-dir>${basedir}/target</mvn-target-dir>

@@ -1,0 +1,46 @@
+# Copyright 2023 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+kind: Gateway
+apiVersion: gateway.networking.k8s.io/v1beta1
+metadata:
+  name: internal-gw
+  annotations:
+    controller.autonpsc.dev/psc-serviceattachment: hello-example
+    controller.autonpsc.dev/psc-serviceattachment-natsubnets: /projects/PROJECT_ID/regions/REGION/subnetworks/psc-subnet
+spec:
+  gatewayClassName: gke-l7-rilb
+  listeners:
+  - name: https
+    protocol: HTTPS
+    port: 443
+    tls:
+      mode: Terminate
+      certificateRefs:
+      - name: hello-example-com # Needs to be a K8S TLS Secret
+  addresses:
+  - type: NamedAddress
+    value: gw-ip # Needs to be a purpose=GCE_ENDPOINT in a subnet with purpose=PRIVATE
+---
+apiVersion: networking.gke.io/v1
+kind: GCPGatewayPolicy
+metadata:
+  name: my-gateway-policy
+  namespace: default
+spec:
+  default:
+    allowGlobalAccess: true
+  targetRef:
+    group: gateway.networking.k8s.io
+    kind: Gateway
+    name: internal-gw

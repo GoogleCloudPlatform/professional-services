@@ -42,7 +42,7 @@ overrides==6.5.0
 packaging==21.3
 proto-plus==1.22.2
 protobuf==3.19.4
-pyarrow==9.0.0
+pyarrow==14.0.1
 pyasn1==0.4.8
 pyasn1-modules==0.2.8
 pydot==1.4.2
@@ -56,5 +56,5 @@ rsa==4.9
 six==1.16.0
 sqlparse==0.4.3
 typing_extensions==4.5.0
-urllib3==1.26.14
+urllib3==1.26.18
 zstandard==0.20.0
