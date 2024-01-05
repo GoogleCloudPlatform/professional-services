@@ -400,6 +400,7 @@ Platform usage.
 *   [DataStream Deployment Automation](tools/datastream-deployment-python-automation) -
     Python script to automate the deployment of Google Cloud DataStream. This
     script will create connection profiles, create stream and start stream.
+*   [DLP to Data Catalog](tools/dlp-to-data-catalog/) - Inspect your tables using Data Loss  Prevention for PII data and automatically tag it on Data Catalog using Python.
 *   [DNS Sync](tools/dns-sync) - Sync a Cloud DNS zone with GCE resources.
     Instances and load balancers are added to the cloud DNS zone as they start
     from compute_engine_activity log events sent from a pub/sub push
