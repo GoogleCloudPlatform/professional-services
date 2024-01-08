@@ -56,9 +56,8 @@ echo
 
 #Check If namespace exists
 
-kubectl get namespace "${tenant}" > /dev/null 2>&1
 
-if [[ $? -eq 0 ]]
+if ! hash kubectl get namespace "${tenant}" > /dev/null 2>&1
 then
 
   echo "Namespace ${tenant} already exists, please select a unique name"
