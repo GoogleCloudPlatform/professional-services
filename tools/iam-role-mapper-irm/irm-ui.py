@@ -3,6 +3,7 @@ import logging
 import os
 import sys
 import traceback
+import random
 
 import irm_migration.main_mig as irm_mig
 
@@ -19,12 +20,12 @@ def validate_folder_access(folder):
         logging.error(msg)
 
 
-def main(execute, rules_file, generate_report, output_folder):
+def main(execute, project_id, rules_file, generate_report, output_folder, suffix):
     try:
         # check validity of input folders
         #validate_folder_access(output_folder)
         # pass the input values to the mig class
-        irm_mig.run_migration(execute, rules_file, generate_report, output_folder)
+        irm_mig.run_migration(execute, project_id, rules_file, generate_report, output_folder, suffix)
         # irm_mig.run_migration()
 
     except:
@@ -48,9 +49,17 @@ if __name__ == "__main__":
     parser.add_argument(
         "--execute",
         dest="execute",
-        default=True,
+        choices=["TRUE","FALSE"],
+        default="TRUE",
         required=True,
         help="[REQUIRED]Boolean value to determine if the tool must execute the gcloud commands at the target gcp org,[TYPE]=Boolean",
+    )
+    parser.add_argument(
+        "--project-id",
+        dest="project_id",
+        default=True,
+        required=True,
+        help="[REQUIRED]Project_id of the target GCP project where the custom roles are to be deployed,[TYPE]=Boolean",
     )
     parser.add_argument(
         "--rules_file",
@@ -61,7 +70,8 @@ if __name__ == "__main__":
     parser.add_argument(
         "--generate_report",
         dest="det_report",
-        default=True,
+        choices=["TRUE","FALSE"],
+        default="TRUE",
         help="[OPTIONAL]Boolean value to determine if the detailed report is to be generated at the target output folder. ,[TYPE]Boolean",
     )
     parser.add_argument(
@@ -70,8 +80,13 @@ if __name__ == "__main__":
         default="./outputs",
         help="[OPTIONAL]Location of the rules file if the user wants to pass a custom rules sheet. If no value is provided the default sheet is used.",
     )
+    parser.add_argument(
+        "--suffix",
+        dest="suffix",
+        default= "v1", 
+        help="[REQUIRED]Project_id of the target GCP project where the custom roles are to be deployed,[TYPE]=Boolean",
+    )
 
 
-    ## projectid
     args = parser.parse_args()
-    main(args.execute, args.rules_file, args.det_report, args.output_folder)
+    main(args.execute, args.project_id, args.rules_file, args.det_report, args.output_folder, args.suffix)

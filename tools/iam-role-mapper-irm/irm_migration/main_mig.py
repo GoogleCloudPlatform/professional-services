@@ -317,7 +317,7 @@ def create_role(
 
 
 
-def run_migration(execute, rules_file, generate_report, output_folder):
+def run_migration(execute, project_id, rules_file, generate_report, output_folder, suffix):
    
    migration_utility = MigrationUtility()
   
@@ -333,7 +333,7 @@ def run_migration(execute, rules_file, generate_report, output_folder):
       
        gcp_permissions = [permission for permission in gcp_permissions if permission!= ""]
       
-       create_role(aws_role + "eo", "testgcp-harish-env", aws_role, "from AWS", gcp_permissions)
+       create_role(aws_role + suffix, project_id, aws_role, "from AWS", gcp_permissions)
 
 
        '''
