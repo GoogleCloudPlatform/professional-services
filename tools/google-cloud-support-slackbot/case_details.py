@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Copyright 2022 Google LLC
+# Copyright 2023 Google LLC
 
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -26,28 +26,31 @@ logger = logging.getLogger(__name__)
 
 def case_details(channel_id, case, user_id):
     """
-    Sends the data of a single case as json to the channel where the request originated.
+    Sends the data of a single case as json to the channel where the request
+    originated.
 
     Parameters
     ----------
     channel_id : str
-        unique string used to idenify a Slack channel. Used to send messages to the channel
+      unique string used to idenify a Slack channel. Used to send messages to
+      the channel
     case : str
-        unique id of the case
+      unique id of the case
     user_id : str
-        the Slack user_id of the user who submitted the request. Used to send ephemeral
-        messages to the user
+      the Slack user_id of the user who submitted the request. Used to send
+      ephemeral messages to the user
     """
-    client = slack.WebClient(token=os.environ.get('SLACK_TOKEN'))
+    client = slack.WebClient(token=os.environ.get("SLACK_TOKEN"))
     cases = get_firestore_cases()
     break_flag = False
 
     for fs_case in cases:
-        if case == fs_case['case_number']:
+        if case == fs_case["case_number"]:
             pretty_json = json.dumps(fs_case, indent=4, sort_keys=True)
             client.chat_postMessage(
                 channel=channel_id,
-                text=f"Here are the details on case {case}: \n{pretty_json}")
+                text=f"Here are the details on case {case}: \n{pretty_json}"
+            )
             break_flag = True
             break
 
@@ -56,9 +59,7 @@ def case_details(channel_id, case, user_id):
 
 
 if __name__ == "__main__":
-    channel_id = os.environ.get('TEST_CHANNEL_ID')
-    case = 'xxxxxxxx'
-    user_id = os.environ.get('TEST_USER_ID')
-    case_details(channel_id, case, user_id)
-    case = os.environ.get('TEST_CASE')
-    case_details(channel_id, case, user_id)
+    test_channel_id = os.environ.get("TEST_CHANNEL_ID")
+    test_case = "xxxxxxxx"
+    test_user_id = os.environ.get("TEST_USER_ID")
+    case_details(test_channel_id, test_case, test_user_id)

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import {HttpClientTestingModule, HttpTestingController} from '@angular/common/http/testing';
-import {async, inject, TestBed} from '@angular/core/testing';
+import {TestBed} from '@angular/core/testing';
 import {OAuthModule, OAuthService, UrlHelperService} from 'angular-oauth2-oidc';
 import {of} from 'rxjs';
 import {take} from 'rxjs/operators';

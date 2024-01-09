@@ -1,0 +1,17 @@
+steps:
+# _COMPOSER_BUCKET_NAME is the GCS Bucket that will store the dags
+- name: gcr.io/cloud-builders/gsutil
+  id: Copy dag definition (with its dependencies) to the Composer folder (dags and plugins folders included)
+  dir: 'data-ingestion'
+  args:
+  - -m
+  - rsync
+  - -r
+  - -c
+  - -x
+  - .dockerignore|.gitignore|cloudbuild.yaml|README.md|.git|imgs|tests|deps|deploy|dbt|config|sql|terraform
+  - .
+  - gs://${_COMPOSER_BUCKET_NAME}
+
+options:
+  logging: CLOUD_LOGGING_ONLY

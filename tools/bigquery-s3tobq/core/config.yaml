@@ -1,0 +1,15 @@
+input:
+  source: s3://s3-to-bq-testing/*
+cloud_composer:
+  environment_name: cc-s3tobq
+output:
+  project_id: s3tobq-395313
+  dataset_name: test_dataset
+  dataset_location: asia-northeast1
+  table_name: test_final_table
+  table_format:
+    fields:
+          - { name: "field1", type: "STRING", mode: "REQUIRED"}
+          - { name: "field2", type: "STRING"}
+  intermediate_table_name: "test_table"
+  load_file: gs://s3tobq_metadata_bucket/loading_example.sql

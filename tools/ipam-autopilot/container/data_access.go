@@ -276,8 +276,6 @@ func verifyNoOverlap(parentCidr string, subnetRanges []Range, newSubnet *net.IPN
 		return fmt.Errorf("can't parse CIDR %v", err)
 	}
 	log.Printf("Checking Overlap\nparentCidr:\t%s", parentCidr)
-	var subnets []*net.IPNet
-	subnets = append(subnets, newSubnet)
 	log.Printf("newSubnet:\t%s/%d", newSubnet.IP.String(), netMask(newSubnet.Mask))
 	for i := 0; i < len(subnetRanges); i++ {
 		subnetRange := subnetRanges[i]
@@ -286,11 +284,15 @@ func verifyNoOverlap(parentCidr string, subnetRanges []Range, newSubnet *net.IPN
 			return fmt.Errorf("can't parse CIDR %v", err)
 		}
 		if parentNetwork.Contains(netAddr) {
-			subnets = append(subnets, subnetCidr)
+			err = cidr.VerifyNoOverlap([]*net.IPNet{subnetCidr, newSubnet}, parentNetwork)
+
+			if err != nil {
+				return err
+			}
 		}
 	}
 
-	return cidr.VerifyNoOverlap(subnets, parentNetwork)
+	return nil
 }
 
 func netMask(mask net.IPMask) int {
@@ -357,17 +359,17 @@ func GetRoutingDomainFromDB(id int64) (*RoutingDomain, error) {
 
 func UpdateRoutingDomainOnDb(id int64, name JSONString, vpcs JSONStringArray) error {
 	if name.Set && vpcs.Set {
-		_, err := db.Query("UPDATE routing_domains SET name = ?, vpcs = ? WHERE routing_domain_id = ?", id, name.Value, strings.Join(vpcs.Value, ","))
+		_, err := db.Query("UPDATE routing_domains SET name = ?, vpcs = ? WHERE routing_domain_id = ?", name.Value, strings.Join(vpcs.Value, ","), id)
 		if err != nil {
 			return err
 		}
 	} else if vpcs.Set {
-		_, err := db.Query("UPDATE routing_domains SET vpcs = ? WHERE routing_domain_id = ?", id, strings.Join(vpcs.Value, ","))
+		_, err := db.Query("UPDATE routing_domains SET vpcs = ? WHERE routing_domain_id = ?", strings.Join(vpcs.Value, ","), id)
 		if err != nil {
 			return err
 		}
 	} else if name.Set {
-		_, err := db.Query("UPDATE routing_domains SET name = ? WHERE routing_domain_id = ?", id, name.Value)
+		_, err := db.Query("UPDATE routing_domains SET name = ? WHERE routing_domain_id = ?", name.Value, id)
 		if err != nil {
 			return err
 		}

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Copyright 2022 Google LLC
+# Copyright 2023 Google LLC
 
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,12 +16,11 @@
 
 import os
 import slack
-import requests
 import logging
 from datetime import datetime
 from get_parent import get_parent
 from case_not_found import case_not_found
-from googleapiclient.discovery import build_from_document
+from support_service import support_service
 
 logger = logging.getLogger(__name__)
 
@@ -33,53 +32,45 @@ def support_close_case(channel_id, case, user_id):
     Parameters
     ----------
     channel_id : str
-        unique string used to idenify a Slack channel. Used to send messages to the channel
+      unique string used to idenify a Slack channel. Used to send messages to
+      the channel
     case : str
-        unique id of the case
+      unique id of the case
     user_id : str
-        the Slack user_id of the user who submitted the request. Used to send ephemeral
-        messages to the user
+      the Slack user_id of the user who submitted the request. Used to send
+      ephemeral messages to the user
     """
-    API_KEY = os.environ.get('API_KEY')
     MAX_RETRIES = 3
 
-    # Get our discovery doc and build our service
-    r = requests.get('https://cloudsupport.googleapis.com/$discovery/rest'
-                     '?key={}&labels=V2_TRUSTED_TESTER&version=v2beta'.format(API_KEY))
-    r.raise_for_status()
-    support_service = build_from_document(r.json())
+    service = support_service()
 
-    client = slack.WebClient(token=os.environ.get('SLACK_TOKEN'))
-    client.chat_postEphemeral(
-        channel=channel_id,
-        user=user_id,
-        text="Your request is processing ...")
+    client = slack.WebClient(token=os.environ.get("SLACK_TOKEN"))
+    client.chat_postEphemeral(channel=channel_id,
+                              user=user_id,
+                              text="Your request is processing ...")
     parent = get_parent(case)
 
-    if parent == 'Case not found':
+    if parent == "Case not found":
         case_not_found(channel_id, user_id, case)
     else:
-        req = support_service.cases().close(name=parent)
+        req = service.cases().close(name=parent)
         try:
             req.execute(num_retries=MAX_RETRIES)
         except BrokenPipeError as e:
-            error_message = str(e) + ' : {}'.format(datetime.now())
+            error_message = f"{e} : {datetime.now()}"
             logger.error(error_message)
             client.chat_postEphemeral(
                 channel=channel_id,
                 user=user_id,
                 text="Your case may not have closed. Please try again later.")
         else:
-            client.chat_postEphemeral(
-                channel=channel_id,
-                user=user_id,
-                text=f"You closed case {case}")
+            client.chat_postEphemeral(channel=channel_id,
+                                      user=user_id,
+                                      text=f"You closed case {case}")
 
 
 if __name__ == "__main__":
-    channel_id = os.environ.get('TEST_CHANNEL_ID')
-    case = 'xxxxxxxx'
-    user_id = os.environ.get('TEST_USER_ID')
-    support_close_case(channel_id, case, user_id)
-    case = os.environ.get('TEST_CASE')
-    support_close_case(channel_id, case, user_id)
+    test_channel_id = os.environ.get("TEST_CHANNEL_ID")
+    test_case = os.environ.get("TEST_CASE")
+    test_user_id = os.environ.get("TEST_USER_ID")
+    support_close_case(test_channel_id, test_case, test_user_id)

@@ -15,6 +15,8 @@
  */
 /** The interface to the return of the API call list jobs in BQ */
 
+import { Dictionary } from "lodash";
+
 export interface QueryStep {
   kind: string;
   substeps: string[];
@@ -51,13 +53,15 @@ export interface QueryStage {
   waitMsAvg: string;
   waitRatioMax: string;
   waitMsMax: string;
+  performanceInsights?:StagePerformanceStandaloneInsight[];
 }
 
 interface Status {
   state: string;
+  errors?:Record<string,string>[];
 }
 
-interface ReferencedTables {
+interface ReferencedTable {
   datasetId: string;
   projectId: string;
   tableId: string;
@@ -69,12 +73,13 @@ interface Timeline {
   elapsedMs: string;
   pendingUnits: string;
   totalSlotMs: string;
+  estimatedRunnableUnits: string;
 }
 
 interface Query {
   billingTier: number;
   cacheHit: boolean;
-  referencedTables: ReferencedTables[];
+  referencedTables: ReferencedTable[];
   statementType: string;
   totalBytesBilled: number;
   totalBytesProcessed: number;
@@ -85,6 +90,8 @@ interface Query {
   useQueryCache?: string;
   queryPlan?: QueryStage[];
   timeline: Timeline[];
+  metadataCacheStatistics?: MetadataCacheStatistics;
+  performanceInsights?: PerformanceInsights;
 }
 
 interface ReservationUsage {
@@ -92,13 +99,47 @@ interface ReservationUsage {
   slotMs: string;
 }
 
+interface MetadataCacheStatistics {
+  tableMetadataCacheUsage?: TableMetadataCacheUsage[];
+}
+
+
+interface TableMetadataCacheUsage {
+  tableReference: ReferencedTable;
+  unusedReason?: string;
+  explanation?: string;
+}
+
+interface StagePerformanceStandaloneInsight {
+  stageId: string;
+  slotContention: boolean;
+  insufficientShuffleQuota: boolean;
+}
+
+interface InputDataChange {
+  recordsReadDiffPercentage: number;
+}
+
+interface StagePerformanceChangeInsight {
+  stageId: string;
+  inputDataChange: InputDataChange;
+}
+
+interface PerformanceInsights {
+  avgPreviousExecutionMs: string;
+  stagePerformanceStandaloneInsights: StagePerformanceStandaloneInsight[];
+  stagePerformanceChangeInsights : StagePerformanceChangeInsight[];
+}
+
 interface Statistics {
   creationTime: string;
   endTime: string;
   startTime: string;
   totalBytesProcessed: string;
+  reservation_id: string;
   reservationUsage: ReservationUsage[];
   query?: Query;
+  finalExecutionDurationMs?: string;
 }
 
 interface JobReference {
@@ -124,7 +165,9 @@ interface ConfigurationQuery {
 }
 
 interface Configuration {
+  jobType: string;
   query?: ConfigurationQuery;
+  labels: Record<string,string>;
 }
 
 interface ErrorResult {
@@ -137,8 +180,10 @@ interface ErrorResult {
 export interface Job {
   id: string;
   etag: string;
-  jobReference: JobReference;
+  jobReference?: JobReference;
   kind: string;
+  principal_subject?: string;
+  user_email: string;
   state: string;
   status: Status;
   errorResult?: ErrorResult;
@@ -165,8 +210,8 @@ export interface Project {
   projectId: string;
   lifecycleState: LifeCycleState;
   name: string;
-  labels: any;
-  parent?: Object;
+  labels?: Record<string,string>;
+  parent?: object;
 }
 
 export interface GcpProjectListResponse {
@@ -189,7 +234,7 @@ export interface BqProject {
 export interface BqProjectListResponse {
   kind: string;
   etag: string;
-  nextPageToken?: string;
+  nextPageToken: string;
   projects: BqProject[];
   totalItems: number;
 }

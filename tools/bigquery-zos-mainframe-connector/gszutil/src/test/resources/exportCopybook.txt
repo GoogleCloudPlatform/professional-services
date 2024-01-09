@@ -1,6 +1,0 @@
-01  TEST-LAYOUT-FIVE.
-        03  A                    PIC S9(4) COMP.
-        03  B                    PIC X(8).
-        03  C                    PIC S9(9)V99 COMP-3.
-        03  D                    PIC 9(01)
-        03  E                    PIC T(8).

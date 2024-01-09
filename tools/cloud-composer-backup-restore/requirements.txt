@@ -1,6 +1,6 @@
 astroid==2.9.3
 cachetools==4.2.4
-certifi==2021.10.8
+certifi==2023.7.22
 charset-normalizer==2.0.10
 google-api-core==2.3.2
 google-api-python-client==2.36.0
@@ -43,7 +43,7 @@ six==1.16.0
 toml==0.10.2
 typing-extensions==4.0.1
 uritemplate==4.1.1
-urllib3==1.26.8
+urllib3==1.26.18
 websocket-client==1.2.3
 wrapt==1.13.3
 yapf==0.32.0

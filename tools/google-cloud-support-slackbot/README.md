@@ -16,13 +16,21 @@ The app currently supports the following commands:
 * /google-cloud-support list-tracked-cases-all -- lists all cases being tracked in the workspace
 * /google-cloud-support case-details [case_number] -- pull all of the case data as json
 * /google-cloud-support sitrep -- report of all active cases in the org
+* /google-cloud-support auto-subscribe [asset type] [asset name] [email 1] ... [email n] -- creates a subscription to a specific asset that will automatically add the provided emails as CC on any new cases under the asset. Asset type must one of the following values: organizations, folders, projects
+* /google-cloud-support edit-auto-subscribe [asset type] [asset name] [email 1] ... [email n] -- edits an existing asset subscription with the provided emails. Warning: this will overwrite the existing emails in the subscription. Asset type must one of the following values: organizations, folders, projects
+* /google-cloud-support stop-auto-subscribe [asset type] [asset name] -- deletes an existing asset subscription. Asset type must one of the following values: organizations, folders, projects
+* /google-cloud-support list-auto-subscriptions-all -- lists all the subscriptions being in the current channel
+* /google-cloud-support autotrack-create [asset type] [asset name] [P1] ... [P4] -- automatically tracks all new cases of matching priority in the specified asset in this channel. asset type must be one of the following values: organizations, folders, projects
+* /google-cloud-support autotrack-edit [asset type] [asset name] [P1] ... [P4] -- edits autotracking of an asset in this channel. This overwrites the existing list of priorities. asset type must be one of the following values: organizations, folders, projects
+* /google-cloud-support autotrack-stop [asset type] [asset_name] -- deletes autotracking against an asset. asset type must be one of the following values: organizations, folders, projects
+* /google-cloud-support list-autotrack-all -- lists all the assets being autotracked in the current channel and the priorities they are configured for
 
 **If you encounter any issues with this application's operations or setup, please file your issue here on GitHub or ping a member of your account team for assistance. This application is not supported by the Google Cloud Support team.**
 
 # Setup Guide
 
-**Before proceeding, you will need Premium Support to use the Cloud Support API and by association the slackbot**  
-Setting up your first Slack app can be a daunting task, which is why we are providing a step-by-step guide.
+**Before proceeding, you will need Premium Support to use the Cloud Support API and by association the slackbot**
+Setting up your first Slack app can be a difficult task, which is why we are providing a step-by-step guide.
 
 ## Setup Part 1 - Slack App Phase 1
 
@@ -40,7 +48,7 @@ features:
     always_online: false
   slash_commands:
     - command: /google-cloud-support
-      url: https://CLOUDRUN_SERVICE_URL/google-cloud-support
+      url: https://CLOUDRUN_SERVICE_URL
       description: Track and manage your Google Cloud support cases in Slack. Use /google-cloud-support help for the list of commands
       usage_hint: "[command] [parameter 1] [parameter 2]"
       should_escape: false
@@ -56,7 +64,7 @@ settings:
   token_rotation_enabled: false
 ```
 4. Click **Create**
-5. Under **Settings > Basic Information**, scroll down to **Display Information** and upload the [google_cloud_support_buddy_big.png](google_cloud_sup$
+5. Under **Settings > Basic Information**, scroll down to **Display Information** and upload the [google_cloud_support_slackbot_icon_big.png](google_cloud_support_slackbot_icon_big.png)
 6. Go to **Settings > Basic Information** and under **Building Apps for Slack > Install your app**, click **Install to Workspace**. On the next screen click **Allow**. You may need Slack admin approval to install the app
 7. Go to **Settings > Basic Information** and under **App Credentials** copy the `Signing Secret`. You will need this for **Setup Part 2**
 8. Go to  the **Features > OAuth & Permissions** page, under **OAuth Tokens for Your Workspace**. Copy the `Bot User OAuth Token`. You will need this for **Setup Part 2**
@@ -65,14 +73,15 @@ settings:
 
 Go to [Google Cloud](https://console.cloud.google.com/) to do the following:
 
-1. Go to the project dropdown at the top of the page and select it. From the list, select the project where you want to host the app, or create a new project for it. After completing the rest of the steps, the app will have support ticket access for all projects in your org
+1. Go to the project dropdown at the top of the page and select it. From the list, select the project where you want to host the app, or create a new project for it. **After completing the rest of the steps, the app will have support ticket access for all projects in your org**. We recommend either hosting this app in a new project, or in a project that hosts other apps for Slack 
 2. Click the **Activate Cloud Shell** button to open the Cloud Shell Terminal. Confirm the Cloud Shell is set to the project where you want to host the app. If it isn't, set it using the `gcloud config set project PROJECT_ID` command. Authorize the command if prompted.
-3. **WARNING**: Running step 4 will delete the default VPC and its associated firewall rules as they aren't needed by our app when it operates in Cloud Run. If you dont want to do this, delete lines 8-12 in the step 4's code block 
-4. Update the following code block with your `SIGNING_SECRET` and `SLACK_TOKEN` from **Setup Part 1**, and then run it in your **Cloud Shell**:
+3. **WARNING**: Running step 4 will delete some of the default firewall rules as they aren't needed by our app. If you dont want to do this, delete lines 8-12 in the step 5's code block 
+4. **NOTICE**: Google Cloud Support Bot uses **Cloud Firestore** in **Native mode** to keep track of cases, channels, subscriber lists, etc. If you attempt to deploy the application in a project that is actively using Cloud Firestore in Datastore mode, the application will fail to deploy. If this happens, we recommend deploying the Google Cloud Support Bot to a new project 
+5. Update the following code block with your `SIGNING_SECRET` and `SLACK_TOKEN` from **Setup Part 1**, and then run it in your **Cloud Shell**:
 ```
 SIGNING_SECRET=SIGNING_SECRET
 SLACK_TOKEN=SLACK_TOKEN
-TAG=2.0
+TAG=2.2
 alias gcurl='curl -H "Authorization: Bearer $(gcloud auth print-access-token)" -H "Content-Type: application/json"';
 ORG_ID=$(gcurl -X POST https://cloudresourcemanager.googleapis.com/v1/projects/$DEVSHELL_PROJECT_ID:getAncestry | jq '.ancestor[] | select(.resourceId.type == "organization")' | jq '.resourceId.id' | sed 's/"//g');
 PROJECT_NUMBER=`gcloud projects list --filter="${DEVSHELL_PROJECT_ID}" --format="value(PROJECT_NUMBER)"`;
@@ -94,16 +103,23 @@ gcloud organizations add-iam-policy-binding $ORG_ID \
 gcloud organizations add-iam-policy-binding $ORG_ID \
     --member="serviceAccount:support-slackbot@$DEVSHELL_PROJECT_ID.iam.gserviceaccount.com" \
     --role="roles/resourcemanager.organizationViewer";
+gcloud organizations add-iam-policy-binding $ORG_ID \
+    --member="serviceAccount:support-slackbot@$DEVSHELL_PROJECT_ID.iam.gserviceaccount.com" \
+    --role="roles/resourcemanager.folderEditor";
+gcloud organizations add-iam-policy-binding $ORG_ID \
+    --member="serviceAccount:support-slackbot@$DEVSHELL_PROJECT_ID.iam.gserviceaccount.com" \
+    --role="roles/logging.logWriter";
 gcloud auth configure-docker us-central1-docker.pkg.dev
 gcloud artifacts repositories create google-cloud-support-slackbot \
     --repository-format=Docker \
     --location=us-central1 \
     --description="Docker images for the Google Cloud Support Slackbot";
+gcloud firestore databases create --location=nam5;
 gcloud app create --region=us-central;
-gcloud alpha firestore databases create --region=us-central;
-docker pull thelancelord/google-cloud-support-slackbot:2.0;
-docker tag thelancelord/google-cloud-support-slackbot:2.0 us-central1-docker.pkg.dev/$DEVSHELL_PROJECT_ID/google-cloud-support-slackbot/google-cloud-support-slackbot:2.0;
-docker push us-central1-docker.pkg.dev/$DEVSHELL_PROJECT_ID/google-cloud-support-slackbot/google-cloud-support-slackbot:2.0;
+gcloud alpha firestore databases update --type=firestore-native
+docker pull thelancelord/google-cloud-support-slackbot:$TAG;
+docker tag thelancelord/google-cloud-support-slackbot:$TAG us-central1-docker.pkg.dev/$DEVSHELL_PROJECT_ID/google-cloud-support-slackbot/google-cloud-support-slackbot:$TAG;
+docker push us-central1-docker.pkg.dev/$DEVSHELL_PROJECT_ID/google-cloud-support-slackbot/google-cloud-support-slackbot:$TAG;
 gcurl https://apikeys.googleapis.com/v2/projects/$PROJECT_NUMBER/locations/global/keys \
   --request POST \
   --data '{
@@ -125,15 +141,13 @@ gcurl https://apikeys.googleapis.com/v2/projects/$PROJECT_NUMBER/locations/globa
       ]
     },
   }';
-KEY_PATH=$(gcurl https://apikeys.googleapis.com/v2/projects/$PROJECT_NUMBER/locations/global/keys | jq ".keys[].name" | sed 's/"//g' | sed -n '([^\/]+$)');
-API_KEY="${KEY_PATH##*/}";
 gcloud run deploy google-cloud-support-slackbot \
 --image=us-central1-docker.pkg.dev/$DEVSHELL_PROJECT_ID/google-cloud-support-slackbot/google-cloud-support-slackbot:$TAG \
 --allow-unauthenticated \
 --service-account=support-slackbot@$DEVSHELL_PROJECT_ID.iam.gserviceaccount.com \
 --min-instances=1 \
 --max-instances=3 \
---set-env-vars=TEST_CHANNEL_ID=$TEST_CHANNEL_ID,TEST_CHANNEL_NAME=$TEST_CHANNEL_NAME,TEST_USER_ID=$TEST_USER_ID,TEST_USER_NAME=$TEST_USER_NAME,ORG_ID=$ORG_ID,SLACK_TOKEN=$SLACK_TOKEN,SIGNING_SECRET=$SIGNING_SECRET,API_KEY=$API_KEY,PROJECT_ID=$DEVSHELL_PROJECT_ID,TEST_PROJECT_NUMBER=$PROJECT_NUMBER \
+--set-env-vars=TEST_CHANNEL_ID=$TEST_CHANNEL_ID,TEST_CHANNEL_NAME=$TEST_CHANNEL_NAME,TEST_USER_ID=$TEST_USER_ID,TEST_USER_NAME=$TEST_USER_NAME,ORG_ID=$ORG_ID,SLACK_TOKEN=$SLACK_TOKEN,SIGNING_SECRET=$SIGNING_SECRET,PROJECT_ID=$DEVSHELL_PROJECT_ID,TEST_PROJECT_NUMBER=$PROJECT_NUMBER,TEST_ASSET=$TEST_ASSET,TEST_ASSET_ID=$TEST_ASSET_ID \
 --no-use-http2 \
 --no-cpu-throttling \
 --platform=managed \
@@ -148,7 +162,7 @@ This will output a URL. Copy this URL to use in **Setup Part 3**. If you need to
 Return to [Slack Apps](http://api.slack.com/apps) to do the following:
 
 1. Go to **Features > Slash Commands** and click the **pencil icon**:
-	1. Update the `Request URL`'s `CLOUDRUN_SERVICE_URL` placeholder with the url generated in **Setup Part 2** and then click **Save**
+	1. Update the `Request URL` with your `CLOUDRUN_SERVICE_URL` generated in **Setup Part 2** and then click **Save**
  
 ## Testing
 
