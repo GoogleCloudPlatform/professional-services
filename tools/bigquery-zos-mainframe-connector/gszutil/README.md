@@ -10,6 +10,9 @@ The utility is deployed as a cataloged procedure called by
 the [JCL EXEC statement](https://www.ibm.com/support/knowledgecenter/en/SSLTBW_2.3.0/com.ibm.zos.v2r3.ieab100/execst.htm)
 .
 
+## Note
+Mainframe Connector is actively being developed and maintained by the Google Cloud Engineering team. if you like to get the latest Mainframe Connector release, need some help, like to learn more about the latest updates or anything else related to Mainframe Connector, please contact us at mainframe@google.com
+
 ## Usage
 
 Users can make multiple calls in a single step by entering commands on separate lines or delimited by a semicolon (`;`).
@@ -252,7 +255,3 @@ sbt assemblyPackageDependency
 The current COBOL Copy Book parser may not support all possible PIC strings. Not all gsutil and bq functionality is
 implemented by the emulators included in this utility. Command-line argument compatibility is made on a best-effort
 basis.
-
-## Disclaimer
-
-This is not an official Google product.

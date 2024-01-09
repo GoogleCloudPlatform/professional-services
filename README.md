@@ -112,8 +112,11 @@ them to fit your particular use case.
 *   [Carbon Footprint Reporting](examples/carbon-foortprint-dashboard) - Example of 
     using the prebuilt Data studio & Looker template for analysing GCP Carbon Footprint Estimates.
 *   [Cloud Audit Log Samples](examples/audit-log-examples/) - A sample
-*   collection of Audit Logs for Users and Customers to better the structure,
+    collection of Audit Logs for Users and Customers to better the structure,
     contents, and values contained in various log events.
+*   [Cloud Build Application CICD Examples](examples/cloudbuild-application-cicd) - 
+    Cloud Build CI/CD Examples for Applications like containerization &
+    deployment to Cloud Run.
 *   [Cloud Build with Proxy Running in Background](examples/cloudbuild-with-tcp-proxy) -
     Examples of cloudbuild with docker-compose running tcp proxy in the
     background for all build steps.
