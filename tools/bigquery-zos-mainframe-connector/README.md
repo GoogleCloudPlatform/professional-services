@@ -15,6 +15,10 @@ The Mainframe Connector consists of two main componets:
 
 * gszutil: provides gsutil and bq equivalent utilities for IBM mainframes running z/OS.
 
+## Note
+Mainframe Connector is actively being developed and maintained by the Google Cloud Engineering team. 
+If you like to get the latest Mainframe Connector release, need some help, like to learn more about the latest updates or anything else related to Mainframe Connector, 
+please contact us at mainframe@google.com
 
 ## Usage
 ### Using BQSH from JCL
@@ -216,3 +220,5 @@ Common LOAD_STATISTIC columns include:
 - timestamp
 - job_id
 - job_type
+
+**Note**: If you want  more infromation related to Mainframe Connector or need any help, please contact us at mainframe@google.com

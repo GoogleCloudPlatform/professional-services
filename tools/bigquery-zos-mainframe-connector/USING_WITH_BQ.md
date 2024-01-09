@@ -6,9 +6,14 @@ Typical flow involves the following steps:
 4. Running a MERGE DML statement to load new incremental of data into target 
 table 
 
-*Note: if dataset does not require further modifications after loading, then 
+**Note**: if dataset does not require further modifications after loading, then 
 loading into a native table is a better option than loading into an external
 table
+
+## Note
+Mainframe Connector is actively being developed and maintained by the Google Cloud Engineering team. 
+If you like to get the latest Mainframe Connector release, need some help, like to learn more about the latest updates or anything else related to Mainframe Connector, 
+please contact us at mainframe@google.com
 
 ## bq query
 
