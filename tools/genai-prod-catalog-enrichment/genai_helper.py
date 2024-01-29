@@ -1,4 +1,4 @@
-## gen AI helper
+# gen AI helper
 
 import io
 import os
@@ -14,6 +14,7 @@ from google.cloud import storage
 from PIL import Image
 from pdf_helper import *
 
+
 def get_blocked_response_template():
     blocked_response = {
         "response_error": {
@@ -23,6 +24,7 @@ def get_blocked_response_template():
         }
     }
     return blocked_response
+
 
 def get_failed_faq_template():
 
@@ -35,6 +37,7 @@ def get_failed_faq_template():
         ]
     }
     return failed_faq
+
 
 def get_model_response(prompt,project):
     """API request to PaLM 2 LLM"""
@@ -54,9 +57,9 @@ def get_model_response(prompt,project):
     response = model.predict(prompt, **parameters)
     return response
 
+
 def get_prompt(context, task, error = "", product_name = ""):
     """Gets the prompt for the given task."""
-
 
     # FAQ's, ISQ's constants
 
@@ -247,7 +250,6 @@ def get_prompt(context, task, error = "", product_name = ""):
 
     failed_faq = get_failed_faq_template()
 
-
     check_faq_prompt = f"""For the following text, examine if it contains a description, product specifications or features. If found, return a boolean response True. If not found, return a boolean response False.
 
     {context}"""
@@ -342,6 +344,7 @@ def get_prompt(context, task, error = "", product_name = ""):
     else:
         return check_faq_prompt
 
+
 def fix_json(error, context, project):
 
     try:
@@ -374,6 +377,7 @@ def fix_json(error, context, project):
         response["response_error"]["message"] = f"""{fix_json_response.text.strip().replace('null', 'None')}"""
         return response
 
+
 def generate_tags_and_labels(context, products, project):
 
     try:
@@ -400,6 +404,7 @@ def generate_tags_and_labels(context, products, project):
         print(f"[ERROR]: Unknown error during Tags and Label generation. \n{e}")
         print(tags_and_labels_response.text.strip())
         return {}
+
 
 def generate_isqs(context, project):
     try:
@@ -429,6 +434,7 @@ def generate_isqs(context, project):
         isq_response["response_error"]["message"] = f"""{product_isqs.text.strip().replace('null', 'None')}"""
         return isq_response
 
+
 def generate_faqs(context, project):
     try:
         get_faq_prompt = get_prompt(context, "faq")
@@ -457,6 +463,7 @@ def generate_faqs(context, project):
         response["catalogue_faqs"][0]["llm_response"] = f"{faq_response.text.strip().replace('null', 'None')}"
         return response
 
+
 def generate_company_details(company_text, project):
     try:
         response = {}
@@ -482,6 +489,7 @@ def generate_company_details(company_text, project):
         print(f"[ERROR]: Unknown error during company details extraction. \n{e}\n")
         print(company_details_response.text.strip())
         return {}
+
 
 def fix_faq_json(error, context):
     try:
@@ -514,6 +522,7 @@ def fix_faq_json(error, context):
         response["catalogue_faqs"][0]["llm_response"] = f"{fix_json_response.text.strip().replace('null', 'None')}"
         return response
 
+
 def vertex_ai_llm(prompt):
     try:
         parameters = {
@@ -530,7 +539,8 @@ def vertex_ai_llm(prompt):
         print(f"[ERROR]: Vertex AI LLM API failed - {str(traceback.format_exc())}")
         return ''
 
-def visual_question(image,question):
+
+def visual_question(image, question):
     from vertexai.vision_models import ImageTextModel, Image
     try:
         model = ImageTextModel.from_pretrained("imagetext@001")
@@ -546,6 +556,7 @@ def visual_question(image,question):
         print(f"[ERROR]: Vertex AI VQA API failed - {str(traceback.format_exc())}")
         return ['','','']
 
+
 def image_caption(image):
     from vertexai.vision_models import ImageTextModel, Image
     try:
@@ -560,7 +571,8 @@ def image_caption(image):
         return captions
     except Exception:
         print(f"[ERROR]: Vertex AI Image caption API failed - {str(traceback.format_exc())}")
-        return ['','','']
+        return ['', '', '']
+
 
 def get_options(products, product_descriptions = False):
     options=""
@@ -573,6 +585,7 @@ def get_options(products, product_descriptions = False):
         #     products_image_map[product] = []
         options = options + f"{str(product_no+1)}. {product}\n"
     return options
+
 
 def product_description_from_text_prompt(text,products):
     options=get_options(products)
@@ -604,6 +617,7 @@ Input products:
 """
     return prompt
 
+
 def product_tags_from_text_prompt(text,products):
     options=get_options(products)
     prompt = f"""
@@ -633,6 +647,7 @@ Input products:
 {options}
 """
     return prompt
+
 
 def product_category_from_text_prompt(text,products):
     options=get_options(products)
@@ -665,6 +680,7 @@ Input products:
 """
     return prompt
 
+
 def map_product_and_image(images, products,product_description):
     example_json = {"Product_A":"Image 3", "Product_B": "Image 7", "Product_C":"", "Product_D": "Image 2" }
     images_str = ""
@@ -684,8 +700,6 @@ def map_product_and_image(images, products,product_description):
             product = product.replace('"',"")
             product = product.replace("\n","")
             product_description_str = product_description_str + f"{product}: {str(product_desc)}\n"
-
-
 
     prompt = f"""
 You need to map products with images.
@@ -748,6 +762,7 @@ def llm_json_to_dict(llm_json_text):
         answer_dict = json.loads(answers)
         return answer_dict
 
+
 def get_specific_caption(pdf_json):
     try:
         pdf_gcs_uri = pdf_json["file_url"]
@@ -756,44 +771,45 @@ def get_specific_caption(pdf_json):
         filename = pdf_gcs_path.replace(f"{input_gcs_bucket}/","")
         bucket_object = storage.Client().bucket(input_gcs_bucket)
         blob = bucket_object.blob(filename)
-        zoom = 1 # to increase the resolution
+        zoom = 1
         mat = fitz.Matrix(zoom, zoom)
-        k=0
+        k = 0
         all_done = False
         max_images =0
         while not all_done:
-            #print(max_images,k)
+            # print(max_images,k)
             pdf_file = fitz.open("pdf", blob.download_as_bytes())
-            for page_index,page in enumerate(pdf_file):
-                images_info= pdf_json["pages"][page_index]["images"]
+            for page_index, page in enumerate(pdf_file):
+                images_info = pdf_json["pages"][page_index]["images"]
                 no_of_images = len(images_info)
-                if no_of_images>max_images:
+                if no_of_images > max_images:
                     max_images = no_of_images
-                if no_of_images >k:
+                if no_of_images > k:
                     images_info_left = images_info[k:]
-                    for i,image_info in enumerate(images_info_left,start=k+1):
+                    for i, image_info in enumerate(images_info_left,start=k+1):
                         bbox = image_info["bbox"]
                         width = bbox[2] - bbox[0]
                         height = bbox[3] - bbox[1]
-                        #print(width,height)
+                        # print(width,height)
                         page.draw_rect([bbox[0]-2,bbox[1]-2,bbox[2]+2,bbox[3]+2],  color = (1, 0, 0), width = 3)
                         pix = page.get_pixmap(matrix = mat)
                         pix.save("img.png")
                         with open("img.png", "rb") as image:
                             img = image.read()
-                        #display(Img(img))
+                        # display(Img(img))
                         question = "What is there in the image which is highlighted by a red bounding box?"
                         captions = visual_question(img,question)
-                        #print(captions)
+                        # print(captions)
                         pdf_json["pages"][page_index]["images"][k]["specific_captions"]=captions
                         break
             k=k+1
-            #print(max_images,k)
+            # print(max_images,k)
             if k>=max_images:
                 all_done = True
     except Exception:
         print(f"[ERROR]: Specific caption generation failed - {str(traceback.format_exc())}")
     return pdf_json
+
 
 def parse_prod_name(products,product_description):
     product_description_int = {}
@@ -809,41 +825,44 @@ def parse_prod_name(products,product_description):
             product_description_final[product] = product_description_int[x]
     return product_description_final
 
+
 def generate_tags_json(context,products):
     product_tags_prompt = product_tags_from_text_prompt(context,products)
-    #print(product_tags_prompt)
+    # print(product_tags_prompt)
     product_tags = vertex_ai_llm(product_tags_prompt)
     product_tags = llm_json_to_dict(product_tags)
     product_tags = parse_prod_name(products,product_tags)
     return product_tags
 
+
 def generate_category_json(context,products):
     product_category_prompt = product_category_from_text_prompt(context,products)
-    #print(product_category_prompt)
+    # print(product_category_prompt)
     product_category = vertex_ai_llm(product_category_prompt)
     product_category = llm_json_to_dict(product_category)
     product_category = parse_prod_name(products,product_category)
     return product_category
 
+
 def generate_images_json(page,products,product_tags,bucket_name):
     products_image_map = {}
-    #product_descriptions = {}
+    # product_descriptions = {}
     images = page["images"]
     text = page["texts"]["full_text"]
     if len(products)>0:
         images_captions=[]
         for image_no,image in enumerate(images):
             url = image['image_url']
-            #print(url)
+            # print(url)
             filename = url.replace(f"gs://{bucket_name}/","")
-            #print(filename)
+            # print(filename)
             bucket = storage.Client().bucket(bucket_name)
             blob = bucket.get_blob(filename)
             img = blob.download_as_bytes()
             captions = image_caption(img)
             images[image_no]["captions"] = captions
-            #display(Img(img))
-            #print(captions)
+            # display(Img(img))
+            # print(captions)
             try:
                 specific_captions = image["specific_captions"]
             except Exception:
@@ -856,16 +875,16 @@ def generate_images_json(page,products,product_tags,bucket_name):
                 caption1 = '\n'
             images_captions.append({"image":image,"caption1":caption1,"caption2":str(specific_captions)})
         prompt = map_product_and_image(images_captions, products,product_tags)
-        #print(prompt)
+        # print(prompt)
         response = vertex_ai_llm(prompt)
-        #print(response)
+        # print(response)
         products_image_map = llm_json_to_dict(response)
-        #print(products_image_map)
+        # print(products_image_map)
     product_images = {}
     for product in products_image_map:
-        #print(product)
+        # print(product)
         try:
-            image_no = int(re.sub("\D","",products_image_map[product]))
+            image_no = int(re.sub("\D", "", products_image_map[product]))
             image = images[image_no-1]
             generic_caption = image["captions"]
             specific_caption = image["specific_captions"]
@@ -873,11 +892,11 @@ def generate_images_json(page,products,product_tags,bucket_name):
             filename = url.replace(f"gs://{bucket_name}/","")
             blob = bucket.get_blob(filename)
             img = blob.download_as_bytes()
-            #display(Img(img))
-            product_images[product]={"image_url":url, "generic_caption":generic_caption,"specific_caption":specific_caption}
+            # display(Img(img))
+            product_images[product]={"image_url": url, "generic_caption": generic_caption, "specific_caption": specific_caption}
         except Exception:
-            product_images[product]="No image found"
-            #print("No image found for this product")
-        #print("\n\n")
+            product_images[product] = "No image found"
+            # print("No image found for this product")
+        # print("\n\n")
     return product_images
 

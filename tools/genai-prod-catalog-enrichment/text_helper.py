@@ -17,10 +17,12 @@ def load_json(path):
         data = json.load(f)
     return data
 
+
 def write_json(data, path):
     """Writes a JSON dictionary to the given path."""
     with open(path, 'w') as f:
         json.dump(data, f)
+
 
 def clean_text(pdf_json):
     try:
@@ -76,7 +78,7 @@ def order_text(page):
                                     para.append(span['text'])
                         except:
                             print("problem",block)
-            #print(page_dict['blocks'][bno]['lines'][0])
+            # print(page_dict['blocks'][bno]['lines'][0])
         para_list.append(para)
 
     ordered_text = "\n".join(para_list)

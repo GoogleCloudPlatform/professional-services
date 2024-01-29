@@ -18,10 +18,12 @@ from genai_helper import *
 from text_helper import *
 import concurrent.futures
 
+
 def get_todays_date():
     """Returns today's date in 'DD_MM_YYYY' format."""
     today = datetime.date.today()
     return today.strftime('%d_%m_%Y')
+
 
 def download_blob(bucket_name, source_blob_name, destination_file_name, prefix, csv_folder):
     """Downloads a blob from the bucket."""
@@ -36,6 +38,7 @@ def download_blob(bucket_name, source_blob_name, destination_file_name, prefix, 
         )
     )
 
+
 def upload_blob(bucket_name, source_file_name, destination_blob_name, prefix, date_):
     """Uploads a file to the bucket."""
     
@@ -45,7 +48,8 @@ def upload_blob(bucket_name, source_file_name, destination_blob_name, prefix, da
     blob.upload_from_filename(source_file_name)
 
     print(f"[INFO]: File {source_file_name} uploaded to {destination_blob_name}.")
-    
+
+
 def get_csv_info(csv_gcs_uri, bucket_name, csv_folder):
     download_blob(bucket_name, csv_gcs_uri.split('/')[-1], csv_gcs_uri.split("/")[-1], csv_gcs_uri.split('/')[-2], csv_folder)
     
@@ -54,12 +58,12 @@ def get_csv_info(csv_gcs_uri, bucket_name, csv_folder):
         csv_data = list(reader)
     return csv_data[1:]
 
+
 def download_pdf(url, filename):
     response = requests.get(url)
     with open(filename, 'wb') as f:
         f.write(response.content)
         
-
 
 def update_output_json(json_output_response, faq_json, isq_json,product_images,product_category,product_tags,error_ws2_message):
     todays_date = get_todays_date()
@@ -88,7 +92,6 @@ def update_output_json(json_output_response, faq_json, isq_json,product_images,p
         if "response_error" not in products_output_response[0] and error_ws2_message!='':
             response_error = {"message": error_ws2_message}
             products_output_response[0]["response_error"] = response_error
-            
 
         if "response_error" not in faq_json:     
             json_output_response["catalogue_faqs"].extend(faq_json[list(faq_json.keys())[0]])
@@ -100,7 +103,8 @@ def update_output_json(json_output_response, faq_json, isq_json,product_images,p
     except Exception as e:
         print(f"[ERROR]: Error while updating output JSON - {e}")
         return {}
-        
+
+
 def get_output_template():
 
     products_output_response = [
@@ -160,6 +164,7 @@ def get_output_template():
       ]
     return products_output_response
 
+
 def create_json_from_dict(json_path,dict_,gcs_bucket=None):
     if gcs_bucket:
         bucket_object = storage.Client().get_bucket(gcs_bucket)
@@ -169,7 +174,8 @@ def create_json_from_dict(json_path,dict_,gcs_bucket=None):
     else:
         with open(json_path, "w") as outfile: 
             json.dump(dict_,outfile)
-            
+
+
 def check_pdf_type(filename,input_gcs_bucket=None):
     Scanned = False
     Tables = False
@@ -343,4 +349,3 @@ def end_to_end_pipeline(input_pdf_uri, output_gcs_bucket, project_id):
         return json_output_response
     except Exception as e:
         print(f"[ERROR]: Error for filename: {filename} - {str(traceback.format_exc())}")
-        # break
