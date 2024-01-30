@@ -79,7 +79,7 @@ def order_text(page):
                                 for span in line['spans']:
                                     print(span['text'])
                                     para.append(span['text'])
-                        except:
+                        except Exception:
                             print("problem", block)
             # print(page_dict['blocks'][bno]['lines'][0])
         para_list.append(para)
