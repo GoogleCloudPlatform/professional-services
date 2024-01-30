@@ -1,14 +1,5 @@
-import io
-import os
 import re
 import json
-import ast
-import traceback
-import datetime
-import fitz
-import vertexai
-from vertexai.language_models import TextGenerationModel
-from google.cloud import storage
 
 
 def load_json(path):
@@ -29,8 +20,16 @@ def clean_text(pdf_json):
         for page in pdf_json['pages']:
             text = page['texts']['full_text']
             unicode_pattern = r"[\u0080-\uFFFF]"
-            filtered_text = re.sub('\\s{2,}', ' ', re.sub(unicode_pattern, '', text))
-            page['texts']['full_text'] = filtered_text.replace(":", "").replace("\n", " ").replace("{", "(").replace("[", "(").replace("}", ")").replace("]", ")").replace("(", "").replace(")", "").strip()
+            filtered_text = re.sub('\\s{2,}', ' ',
+                                   re.sub(unicode_pattern, '', text))
+            page['texts']['full_text'] = filtered_text.\
+                replace(":", "").replace("\n", " ").\
+                replace("{", "(").\
+                replace("[", "(").\
+                replace("}", ")").\
+                replace("]", ")").\
+                replace("(", "").\
+                replace(")", "").strip()
         print("[INFO]: Text cleaning completed successfully.")
         return pdf_json
     except Exception as e:
@@ -43,9 +42,13 @@ def get_company_text(text_list):
         if len(text_list) == 1:
             return text_list[0]["texts"]["full_text"]
         elif len(text_list) > 4:
-            return f"""{text_list[0]['texts']['full_text']} {text_list[1]['texts']['full_text']} {text_list[-2]['texts']['full_text']} {text_list[-1]['texts']['full_text']}"""
+            return f"""{text_list[0]['texts']['full_text']} \
+            {text_list[1]['texts']['full_text']} \
+            {text_list[-2]['texts']['full_text']} \
+            {text_list[-1]['texts']['full_text']}"""
         else:
-            return f"""{text_list[0]['texts']['full_text']} {text_list[-1]['texts']['full_text']}"""
+            return f"""{text_list[0]['texts']['full_text']}\
+                       {text_list[-1]['texts']['full_text']}"""
     except IndexError as e:
         print(f"[ERROR]: Found an empty list in PDF JSON - {e}")
         return ""
@@ -65,7 +68,7 @@ def order_text(page):
             paragraphs[x_coordinate] = [block['number']]
 
     para_list = []
-    for x_coord,block_numbers in paragraphs.items() :
+    for x_coord, block_numbers in paragraphs.items():
         para = []
         for bno in block_numbers:
             for block in page_dict['blocks']:
@@ -77,7 +80,7 @@ def order_text(page):
                                     print(span['text'])
                                     para.append(span['text'])
                         except:
-                            print("problem",block)
+                            print("problem", block)
             # print(page_dict['blocks'][bno]['lines'][0])
         para_list.append(para)
 

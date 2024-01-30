@@ -1,12 +1,8 @@
 # gen AI helper
-
-import io
-import os
 import re
 import json
 import ast
 import traceback
-import datetime
 import fitz
 import vertexai
 from vertexai.language_models import TextGenerationModel
@@ -27,7 +23,6 @@ def get_blocked_response_template():
 
 
 def get_failed_faq_template():
-
     failed_faq = {
         "catalogue_faqs": [
             {
@@ -39,7 +34,7 @@ def get_failed_faq_template():
     return failed_faq
 
 
-def get_model_response(prompt,project):
+def get_model_response(prompt, project):
     """API request to PaLM 2 LLM"""
 
     vertexai.init(project=project, location="us-central1")
@@ -58,7 +53,7 @@ def get_model_response(prompt,project):
     return response
 
 
-def get_prompt(context, task, error = "", product_name = ""):
+def get_prompt(context, task, error="", product_name=""):
     """Gets the prompt for the given task."""
 
     # FAQ's, ISQ's constants
@@ -113,8 +108,8 @@ def get_prompt(context, task, error = "", product_name = ""):
             "company_email": "globalconversionmachines@gmail.com",
             "company_website": "",
             "company_social_handles": {
-                "twitter":"@globalcmachines",
-                "instagram":"@globalconversionmachines",
+                "twitter": "@globalcmachines",
+                "instagram": "@globalconversionmachines",
                 "youtube": "Global Conversion Machines"
             },
             "company_address": ""
@@ -199,14 +194,14 @@ def get_prompt(context, task, error = "", product_name = ""):
     """
 
     non_woven_bag = {
-            "tags": ["Industrial Machine", "Bag Making Machine"],
-            "suggested_category": "Non Woven Bag Making Machine"
-        }
+        "tags": ["Industrial Machine", "Bag Making Machine"],
+        "suggested_category": "Non Woven Bag Making Machine"
+    }
 
     toilet_roll_machine = {
-            "tags": ["Industrial Machine", "Paper Roll Machine", "Toilet Roll Machine"],
-            "suggested_category": "Toilet Roll Making Machine"
-        }
+        "tags": ["Industrial Machine", "Paper Roll Machine", "Toilet Roll Machine"],
+        "suggested_category": "Toilet Roll Making Machine"
+    }
 
     malformed_faq = """
     {
@@ -327,29 +322,28 @@ def get_prompt(context, task, error = "", product_name = ""):
     output:
     """
 
-    if task=="faq":
+    if task == "faq":
         return faq_prompt
-    elif task=="specs":
+    elif task == "specs":
         return product_specs_prompt
-    elif task=="check_specs":
+    elif task == "check_specs":
         return check_specs_prompt
-    elif task=="company_details":
+    elif task == "company_details":
         return company_details_prompt
-    elif task=="image_tags_and_labels":
+    elif task == "image_tags_and_labels":
         return tags_and_label_prompt
-    elif task=="fix_json":
+    elif task == "fix_json":
         return fix_json_prompt
-    elif task=="fix_faq_json":
+    elif task == "fix_faq_json":
         return fix_faq_json_prompt
     else:
         return check_faq_prompt
 
 
 def fix_json(error, context, project):
-
     try:
         fix_json_prompt = get_prompt(context, "fix_json", error)
-        fix_json_response = get_model_response(fix_json_prompt,project)
+        fix_json_response = get_model_response(fix_json_prompt, project)
         if not fix_json_response.is_blocked:
             response = ast.literal_eval(fix_json_response.text.strip().replace('null', 'None'))
             print("[INFO]: JSON fixed successfully!")
@@ -366,7 +360,8 @@ def fix_json(error, context, project):
         print(fix_json_response.text.strip())
         response = get_blocked_response_template()
         response["response_error"]["is_blocked"] = False
-        response["response_error"]["message"] = f"""The LLM repeatedly returned malformed JSON's! \n{fix_json_response.text.strip().replace('null', 'None')}"""
+        response["response_error"][
+            "message"] = f"""The LLM repeatedly returned malformed JSON's! \n{fix_json_response.text.strip().replace('null', 'None')}"""
         return response
 
     except Exception as e:
@@ -379,12 +374,11 @@ def fix_json(error, context, project):
 
 
 def generate_tags_and_labels(context, products, project):
-
     try:
-        tags_and_labels={}
+        tags_and_labels = {}
         for product in products:
             tags_and_labels_prompt = get_prompt(context, "image_tags_and_labels", product_name=product)
-            tags_and_labels_response = get_model_response(tags_and_labels_prompt,project)
+            tags_and_labels_response = get_model_response(tags_and_labels_prompt, project)
             if not tags_and_labels_response.is_blocked:
                 response = ast.literal_eval(tags_and_labels_response.text.strip())
                 tags_and_labels[product] = response
@@ -396,7 +390,8 @@ def generate_tags_and_labels(context, products, project):
             return tags_and_labels
 
     except SyntaxError as e:
-        print(f"[ERROR]: SyntaxError during Tags and Label generation. The LLM may have returned a malformed JSON! \n{e}")
+        print(
+            f"[ERROR]: SyntaxError during Tags and Label generation. The LLM may have returned a malformed JSON! \n{e}")
         print(tags_and_labels_response.text.strip())
         return {}
 
@@ -409,7 +404,7 @@ def generate_tags_and_labels(context, products, project):
 def generate_isqs(context, project):
     try:
         product_specs_prompt = get_prompt(context, "specs")
-        product_isqs = get_model_response(product_specs_prompt,project)
+        product_isqs = get_model_response(product_specs_prompt, project)
         if not product_isqs.is_blocked:
             isq_response = ast.literal_eval(product_isqs.text.strip().replace('null', "None"))
         else:
@@ -473,7 +468,8 @@ def generate_company_details(company_text, project):
             response = ast.literal_eval(company_details_response.text.strip().replace('null', 'None'))
             print("[INFO]: Company Details Extraction Completed")
         else:
-            print(f"[WARNING]: Company Details Extraction Response blocked by LLM. {company_details_response.safety_attributes}")
+            print(
+                f"[WARNING]: Company Details Extraction Response blocked by LLM. {company_details_response.safety_attributes}")
             response = get_blocked_response_template()
             response["response_error"]["safety_attributes"] = company_details_response.safety_attributes
             return response
@@ -481,7 +477,8 @@ def generate_company_details(company_text, project):
         return response
 
     except SyntaxError as e:
-        print(f"[ERROR]: SyntaxError during company details extraction. The LLM may have returned a malformed JSON! \n{e}\n")
+        print(
+            f"[ERROR]: SyntaxError during company details extraction. The LLM may have returned a malformed JSON! \n{e}\n")
         print(company_details_response.text.strip())
         return {}
 
@@ -554,7 +551,7 @@ def visual_question(image, question):
         return answers
     except Exception:
         print(f"[ERROR]: Vertex AI VQA API failed - {str(traceback.format_exc())}")
-        return ['','','']
+        return ['', '', '']
 
 
 def image_caption(image):
@@ -574,21 +571,21 @@ def image_caption(image):
         return ['', '', '']
 
 
-def get_options(products, product_descriptions = False):
-    options=""
-    for product_no,product in enumerate(products):
-        product = product.replace("'","")
-        product = product.replace('"',"")
-        product = product.replace("\n","")
-        #product = product.replace("\n","")
+def get_options(products, product_descriptions=False):
+    options = ""
+    for product_no, product in enumerate(products):
+        product = product.replace("'", "")
+        product = product.replace('"', "")
+        product = product.replace("\n", "")
+        # product = product.replace("\n","")
         # if product not in products_image_map:
         #     products_image_map[product] = []
-        options = options + f"{str(product_no+1)}. {product}\n"
+        options = options + f"{str(product_no + 1)}. {product}\n"
     return options
 
 
-def product_description_from_text_prompt(text,products):
-    options=get_options(products)
+def product_description_from_text_prompt(text, products):
+    options = get_options(products)
     prompt = f"""
 This is the extracted text from pdf page. As it is extracted using OCR, the order of the words and spellings might not be completely correct.\
 you need to provide short product caption based on the extracted text in json format
@@ -603,13 +600,13 @@ Example Input products:
 Example Output format:
 ```
 json
-{str({"Product A": "it is a white colored bench", "Product B":"It is a machine which is used to make toilet rolls."})}
+{str({"Product A": "it is a white colored bench", "Product B": "It is a machine which is used to make toilet rolls."})}
 ```
 
 
 Extarcted Text:
 ```
-{text.replace("'","").replace('"',"")}
+{text.replace("'", "").replace('"', "")}
 ```
 
 Input products:
@@ -618,8 +615,8 @@ Input products:
     return prompt
 
 
-def product_tags_from_text_prompt(text,products):
-    options=get_options(products)
+def product_tags_from_text_prompt(text, products):
+    options = get_options(products)
     prompt = f"""
 This is the extracted text from pdf page. As it is extracted using OCR, the order of the words and spellings might not be completely correct.\
 you need to provide 3 tags for each of the products based on the extracted text in json format
@@ -634,13 +631,13 @@ Example Input products:
 Example Output format:
 ```
 json
-{str({"Toilet Roll Machine": ["machine","industrial machine","tool"], "Contly":["capsule","medicine","tablet"]})}
+{str({"Toilet Roll Machine": ["machine", "industrial machine", "tool"], "Contly": ["capsule", "medicine", "tablet"]})}
 ```
 
 
 Extarcted Text:
 ```
-{text.replace("'","").replace('"',"")}
+{text.replace("'", "").replace('"', "")}
 ```
 
 Input products:
@@ -649,8 +646,8 @@ Input products:
     return prompt
 
 
-def product_category_from_text_prompt(text,products):
-    options=get_options(products)
+def product_category_from_text_prompt(text, products):
+    options = get_options(products)
     prompt = f"""
 This is the extracted text from pdf page. As it is extracted using OCR, the order of the words and spellings might not be completely correct.\
 you need to provide product category for each of the products based on the extracted text in json format
@@ -665,14 +662,14 @@ Example Input products:
 Example Output format:
 ```
 json
-{str({"Toilet Roll Machine": "toilet roll making machine", "Contly":"liver medicine"})}
+{str({"Toilet Roll Machine": "toilet roll making machine", "Contly": "liver medicine"})}
 ```
 ```
 
 
 Extarcted Text:
 ```
-{text.replace("'","").replace('"',"")}
+{text.replace("'", "").replace('"', "")}
 ```
 
 Input products:
@@ -681,24 +678,24 @@ Input products:
     return prompt
 
 
-def map_product_and_image(images, products,product_description):
-    example_json = {"Product_A":"Image 3", "Product_B": "Image 7", "Product_C":"", "Product_D": "Image 2" }
+def map_product_and_image(images, products, product_description):
+    example_json = {"Product_A": "Image 3", "Product_B": "Image 7", "Product_C": "", "Product_D": "Image 2"}
     images_str = ""
-    for image_no,image in enumerate(images,start=1):
+    for image_no, image in enumerate(images, start=1):
         image_name = f"Image {str(image_no)}\n"
-        caption1 = image["caption1"].replace('"','').replace("'","")
-        caption2 = image["caption2"].replace('"','').replace("'","")
+        caption1 = image["caption1"].replace('"', '').replace("'", "")
+        caption2 = image["caption2"].replace('"', '').replace("'", "")
         images_str = images_str + f"{image_name}\nMain Caption - reliable and correct:\n{caption1}\n\nSpecific Caption Guesses which can be incorrect:\n{caption2}\n\n"
 
     products_str = get_options(products)
 
     product_description_str = ""
-    for product_no,product in enumerate(products,start=1):
+    for product_no, product in enumerate(products, start=1):
         if product in product_description:
             product_desc = product_description[product]
-            product = product.replace("'","")
-            product = product.replace('"',"")
-            product = product.replace("\n","")
+            product = product.replace("'", "")
+            product = product.replace('"', "")
+            product = product.replace("\n", "")
             product_description_str = product_description_str + f"{product}: {str(product_desc)}\n"
 
     prompt = f"""
@@ -752,13 +749,13 @@ def llm_json_to_dict(llm_json_text):
     try:
         start = llm_json_text.rfind('{')
         end = llm_json_text.rfind('}')
-        answers = llm_json_text[start:end+1]
+        answers = llm_json_text[start:end + 1]
         answer_dict = json.loads(answers)
         return answer_dict
     except Exception:
         start = llm_json_text.rfind('{')
         end = llm_json_text.rfind('}')
-        answers = llm_json_text[start:end+1].replace("'",'"')
+        answers = llm_json_text[start:end + 1].replace("'", '"')
         answer_dict = json.loads(answers)
         return answer_dict
 
@@ -766,16 +763,16 @@ def llm_json_to_dict(llm_json_text):
 def get_specific_caption(pdf_json):
     try:
         pdf_gcs_uri = pdf_json["file_url"]
-        pdf_gcs_path = pdf_gcs_uri.replace("gs://","")
+        pdf_gcs_path = pdf_gcs_uri.replace("gs://", "")
         input_gcs_bucket = pdf_gcs_path.split("/")[0]
-        filename = pdf_gcs_path.replace(f"{input_gcs_bucket}/","")
+        filename = pdf_gcs_path.replace(f"{input_gcs_bucket}/", "")
         bucket_object = storage.Client().bucket(input_gcs_bucket)
         blob = bucket_object.blob(filename)
         zoom = 1
         mat = fitz.Matrix(zoom, zoom)
         k = 0
         all_done = False
-        max_images =0
+        max_images = 0
         while not all_done:
             # print(max_images,k)
             pdf_file = fitz.open("pdf", blob.download_as_bytes())
@@ -786,32 +783,32 @@ def get_specific_caption(pdf_json):
                     max_images = no_of_images
                 if no_of_images > k:
                     images_info_left = images_info[k:]
-                    for i, image_info in enumerate(images_info_left,start=k+1):
+                    for i, image_info in enumerate(images_info_left, start=k + 1):
                         bbox = image_info["bbox"]
                         width = bbox[2] - bbox[0]
                         height = bbox[3] - bbox[1]
                         # print(width,height)
-                        page.draw_rect([bbox[0]-2,bbox[1]-2,bbox[2]+2,bbox[3]+2],  color = (1, 0, 0), width = 3)
-                        pix = page.get_pixmap(matrix = mat)
+                        page.draw_rect([bbox[0] - 2, bbox[1] - 2, bbox[2] + 2, bbox[3] + 2], color=(1, 0, 0), width=3)
+                        pix = page.get_pixmap(matrix=mat)
                         pix.save("img.png")
                         with open("img.png", "rb") as image:
                             img = image.read()
                         # display(Img(img))
                         question = "What is there in the image which is highlighted by a red bounding box?"
-                        captions = visual_question(img,question)
+                        captions = visual_question(img, question)
                         # print(captions)
-                        pdf_json["pages"][page_index]["images"][k]["specific_captions"]=captions
+                        pdf_json["pages"][page_index]["images"][k]["specific_captions"] = captions
                         break
-            k=k+1
+            k = k + 1
             # print(max_images,k)
-            if k>=max_images:
+            if k >= max_images:
                 all_done = True
     except Exception:
         print(f"[ERROR]: Specific caption generation failed - {str(traceback.format_exc())}")
     return pdf_json
 
 
-def parse_prod_name(products,product_description):
+def parse_prod_name(products, product_description):
     product_description_int = {}
     for product in product_description:
         x = re.sub(r'\W+', '', product)
@@ -826,35 +823,35 @@ def parse_prod_name(products,product_description):
     return product_description_final
 
 
-def generate_tags_json(context,products):
-    product_tags_prompt = product_tags_from_text_prompt(context,products)
+def generate_tags_json(context, products):
+    product_tags_prompt = product_tags_from_text_prompt(context, products)
     # print(product_tags_prompt)
     product_tags = vertex_ai_llm(product_tags_prompt)
     product_tags = llm_json_to_dict(product_tags)
-    product_tags = parse_prod_name(products,product_tags)
+    product_tags = parse_prod_name(products, product_tags)
     return product_tags
 
 
-def generate_category_json(context,products):
-    product_category_prompt = product_category_from_text_prompt(context,products)
+def generate_category_json(context, products):
+    product_category_prompt = product_category_from_text_prompt(context, products)
     # print(product_category_prompt)
     product_category = vertex_ai_llm(product_category_prompt)
     product_category = llm_json_to_dict(product_category)
-    product_category = parse_prod_name(products,product_category)
+    product_category = parse_prod_name(products, product_category)
     return product_category
 
 
-def generate_images_json(page,products,product_tags,bucket_name):
+def generate_images_json(page, products, product_tags, bucket_name):
     products_image_map = {}
     # product_descriptions = {}
     images = page["images"]
     text = page["texts"]["full_text"]
-    if len(products)>0:
-        images_captions=[]
-        for image_no,image in enumerate(images):
+    if len(products) > 0:
+        images_captions = []
+        for image_no, image in enumerate(images):
             url = image['image_url']
             # print(url)
-            filename = url.replace(f"gs://{bucket_name}/","")
+            filename = url.replace(f"gs://{bucket_name}/", "")
             # print(filename)
             bucket = storage.Client().bucket(bucket_name)
             blob = bucket.get_blob(filename)
@@ -867,14 +864,14 @@ def generate_images_json(page,products,product_tags,bucket_name):
                 specific_captions = image["specific_captions"]
             except Exception:
                 print(f"[ERROR]: No specific caption generated")
-                specific_captions = ['','','']
+                specific_captions = ['', '', '']
             try:
                 caption1 = captions[0]
             except:
                 print(f"[ERROR]: No generic caption generated")
                 caption1 = '\n'
-            images_captions.append({"image":image,"caption1":caption1,"caption2":str(specific_captions)})
-        prompt = map_product_and_image(images_captions, products,product_tags)
+            images_captions.append({"image": image, "caption1": caption1, "caption2": str(specific_captions)})
+        prompt = map_product_and_image(images_captions, products, product_tags)
         # print(prompt)
         response = vertex_ai_llm(prompt)
         # print(response)
@@ -885,18 +882,18 @@ def generate_images_json(page,products,product_tags,bucket_name):
         # print(product)
         try:
             image_no = int(re.sub("\D", "", products_image_map[product]))
-            image = images[image_no-1]
+            image = images[image_no - 1]
             generic_caption = image["captions"]
             specific_caption = image["specific_captions"]
             url = image['image_url']
-            filename = url.replace(f"gs://{bucket_name}/","")
+            filename = url.replace(f"gs://{bucket_name}/", "")
             blob = bucket.get_blob(filename)
             img = blob.download_as_bytes()
             # display(Img(img))
-            product_images[product]={"image_url": url, "generic_caption": generic_caption, "specific_caption": specific_caption}
+            product_images[product] = {"image_url": url, "generic_caption": generic_caption,
+                                       "specific_caption": specific_caption}
         except Exception:
             product_images[product] = "No image found"
             # print("No image found for this product")
         # print("\n\n")
     return product_images
-
