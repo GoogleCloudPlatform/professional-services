@@ -7,7 +7,6 @@ import fitz
 import vertexai
 from vertexai.language_models import TextGenerationModel
 from google.cloud import storage
-from PIL import Image
 # from pdf_helper import *
 
 
@@ -732,7 +731,7 @@ def visual_question(image, question):
 
 
 def image_caption(image):
-    from vertexai.vision_models import ImageTextModel
+    from vertexai.vision_models import ImageTextModel, Image
     try:
         model = ImageTextModel.from_pretrained("imagetext@001")
         source_image = Image(image)
@@ -1017,8 +1016,9 @@ def get_specific_caption(pdf_json):
                                    "by a red bounding box?"
                         captions = visual_question(img, question)
                         # print(captions)
-                        pdf_json["pages"][page_index]["images"]
-                        [k]["specific_captions"] = captions
+                        temp = pdf_json["pages"][page_index]
+                        temp["images"][k]["specific_captions"] \
+                            = captions
                         break
             k = k + 1
             # print(max_images,k)
