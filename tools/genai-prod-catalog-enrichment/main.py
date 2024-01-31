@@ -67,57 +67,42 @@ def download_pdf(url, filename):
 
 
 def update_output_json(json_output_response, faq_json, isq_json,
-                       product_images, product_category,
-                       product_tags, error_ws2_message):
+                       product_images, product_category, product_tags, error_ws2_message):
     todays_date = get_todays_date()
     products_output_response = get_output_template()
-    products_output_response[0]["product_name_citation"]
-    [0]["created_date"] = todays_date
-    products_output_response[0]["specification_citation"]
-    [0]["created_date"] = todays_date
-    products_output_response[0]["product_image_citation"]
-    [0]["created_date"] = todays_date
-    products_output_response[0]["product_category_citation"]
-    [0]["created_date"] = todays_date
+    products_output_response[0]["product_name_citation"][0]["created_date"] = todays_date
+    products_output_response[0]["specification_citation"][0]["created_date"] = todays_date
+    products_output_response[0]["product_image_citation"][0]["created_date"] = todays_date
+    products_output_response[0]["product_category_citation"][0]["created_date"] = todays_date
+
     try:
         products_output_response[0]["product_images"] = product_images
         products_output_response[0]["product_category"] = product_category
         products_output_response[0]["product_tags"] = product_tags
         if "response_error" not in isq_json:
             if "product_name" in isq_json:
-                products_output_response
-                [0]["product_name"] = isq_json["product_name"]
+                products_output_response[0]["product_name"] = isq_json["product_name"]
             if "confidence_score" in isq_json:
-                products_output_response[0]
-                ["product_name_citation"][0]["confidence_score"] = \
-                    isq_json["confidence_score"]
-                products_output_response[0]
-                ["specification_citation"][0]["confidence_score"] = \
-                    isq_json["confidence_score"]
+                products_output_response[0]["product_name_citation"][0]["confidence_score"] = isq_json["confidence_score"]
+                products_output_response[0]["specification_citation"][0]["confidence_score"] = isq_json["confidence_score"]
             if "specifications" in isq_json:
-                products_output_response
-                [0]["specification"] = isq_json["specifications"]
-            json_output_response["products"]. \
-                extend(products_output_response)
-        else:
-            products_output_response[0] = \
-                {**products_output_response[0], **isq_json}
+                products_output_response[0]["specification"] = isq_json["specifications"]
             json_output_response["products"].extend(products_output_response)
-        if "response_error" not in \
-                products_output_response[0] \
-                and error_ws2_message != '':
-            response_error = {"message": error_ws2_message}
-            products_output_response
-            [0]["response_error"] = response_error
-        if "response_error" not in faq_json:
-            json_output_response["catalogue_faqs"]. \
-                extend(faq_json[list(faq_json.keys())[0]])
         else:
-            json_output_response["catalogue_faqs"]. \
-                append(faq_json)
+            products_output_response[0] = {**products_output_response[0], **isq_json}
+            json_output_response["products"].extend(products_output_response)
+        if "response_error" not in products_output_response[0] and error_ws2_message != '':
+            response_error = {"message": error_ws2_message}
+            products_output_response[0]["response_error"] = response_error
+        if "response_error" not in faq_json:
+            json_output_response["catalogue_faqs"].extend(faq_json[list(faq_json.keys())[0]])
+        else:
+            json_output_response["catalogue_faqs"].append(faq_json)
+
         return json_output_response
-    except Exception as error:
-        print(f"[ERROR]: Error while updating output JSON - {error}")
+
+    except Exception as e:
+        print(f"[ERROR]: Error while updating output JSON - {e}")
         return {}
 
 
@@ -237,9 +222,7 @@ def end_to_end_pipeline(input_pdf_uri, output_gcs_bucket, project_id):
     pdf_folder = "pdf_files"
     # date_ = get_todays_date()
     # os.makedirs(csv_folder, exist_ok=True)
-    print('trying to makedir')
     os.makedirs(pdf_folder, exist_ok=True)
-    print('done trying to makedir')
 
     try:
         start = time.time()
