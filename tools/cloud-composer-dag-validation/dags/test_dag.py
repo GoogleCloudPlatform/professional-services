@@ -20,14 +20,6 @@ from airflow.models.dag import DAG
 from airflow.operators.bash import BashOperator
 from airflow.operators.empty import EmptyOperator
 
-def sum(a,b):
-    return a+b
-
-a = 3
-b = 4
-
-print(sum(a,b))
-
 with DAG(
     dag_id="example_bash_operator",
     schedule="0 0 * * *",
