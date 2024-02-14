@@ -67,4 +67,4 @@ this_will_skip = BashOperator(
 this_will_skip >> run_this_last
 
 if __name__ == "__main__":
-    dag.test()
+    dag.test() 
