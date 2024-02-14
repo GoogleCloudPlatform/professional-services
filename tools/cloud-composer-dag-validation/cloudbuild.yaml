@@ -29,6 +29,6 @@ steps:
     args:
     - '-c'
     - |
-      gsutil -m cp -r 'dags/' '${_COMPOSER_BUCKET}/test_dags'
+      gsutil -m cp -r 'dags/' '${_COMPOSER_BUCKET}/dags_export'
 options:
   logging: CLOUD_LOGGING_ONLY

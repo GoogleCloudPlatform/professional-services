@@ -14,14 +14,17 @@
 
 """Example DAG demonstrating the usage of the BashOperator."""
 from __future__ import annotations
-
 import datetime
-
 import pendulum
-
 from airflow.models.dag import DAG
 from airflow.operators.bash import BashOperator
 from airflow.operators.empty import EmptyOperator
+
+def expensive_api_call():
+    print("Hello from Airflow!")
+    sleep(1000)
+
+my_expensive_response = expensive_api_call()
 
 with DAG(
     dag_id="example_bash_operator",
