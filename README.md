@@ -319,6 +319,7 @@ them to fit your particular use case.
     [Signed URL](https://cloud.google.com/storage/docs/access-control/signed-urls).
 *   [TSOP object transfer Log prosessor](examples/tsop-log-processor/) - This example shows
     how to log object transfer logs by TSOP to Cloud Logging.
+*   [GCS CSV files to BigQuery](https://github.com/GoogleCloudPlatform/DataflowTemplates/blob/main/v1/README_GCS_CSV_to_BigQuery.md) - This example shows how to load files in CSV format stored in GCS to load to BigQuery tables. The files can be uncompressed or be compressed in formats such as Bzip2, GZIP and etc. See https://beam.apache.org/releases/javadoc/current/org/apache/beam/sdk/io/Compression.html for the list of support compression method.
 
 ## Tools
 
