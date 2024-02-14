@@ -20,11 +20,10 @@ from airflow.models.dag import DAG
 from airflow.operators.bash import BashOperator
 from airflow.operators.empty import EmptyOperator
 
-def expensive_api_call():
+def top_level_function():
     print("Hello from Airflow!")
-    sleep(1000)
 
-my_expensive_response = expensive_api_call()
+top_level_code = top_level_function()
 
 with DAG(
     dag_id="example_bash_operator",
