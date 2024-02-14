@@ -14,13 +14,16 @@
 
 steps:
   - id: docker-build
+    dir: cloud-composer-dag-validation
     name: 'gcr.io/cloud-builders/docker'
     args: ['build', '-t', 'gcr.io/${PROJECT_ID}/cicd:${SHORT_SHA}', '.'] # tag docker image with commit sha
   - id: 'airflow-test'
+    dir: cloud-composer-dag-validation
     name: 'gcr.io/cloud-builders/docker'
     args: ['run', 'gcr.io/${PROJECT_ID}/cicd:${SHORT_SHA}']
     dir: /workspace
   - id: deploy-dags
+    dir: cloud-composer-dag-validation
     name: 'gcr.io/cloud-builders/gsutil'
     entrypoint: bash
     args:
