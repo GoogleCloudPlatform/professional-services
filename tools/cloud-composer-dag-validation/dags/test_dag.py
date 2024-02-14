@@ -20,10 +20,13 @@ from airflow.models.dag import DAG
 from airflow.operators.bash import BashOperator
 from airflow.operators.empty import EmptyOperator
 
-def top_level_function():
-    print("Hello from Airflow!")
+def sum(a,b):
+    return a+b
 
-top_level_code = top_level_function()
+a = 3
+b = 4
+
+print(sum(a,b))
 
 with DAG(
     dag_id="example_bash_operator",
