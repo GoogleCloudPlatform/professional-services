@@ -14,11 +14,8 @@
 
 """Example DAG demonstrating the usage of the BashOperator."""
 from __future__ import annotations
-
 import datetime
-
 import pendulum
-
 from airflow.models.dag import DAG
 from airflow.operators.bash import BashOperator
 from airflow.operators.empty import EmptyOperator
