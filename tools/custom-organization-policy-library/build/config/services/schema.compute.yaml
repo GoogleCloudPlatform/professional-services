@@ -1,0 +1,19 @@
+#@ load("@ytt:overlay", "overlay")
+#@data/values-schema
+---
+#@overlay/match missing_ok=True
+compute:
+  computeAllowedInstanceMachineTypes:
+    enabled: ""
+    params:
+      regex: '^(allow|deny)-(ingress|egress)-[a-zA-Z0-9-]*-(dev|uat|prd)$'
+    bundles:
+      pci-dss: true
+      cis: false
+  computeAllowedInstanceLabels:
+    enabled: ""
+    params:
+      regex: '^(allow|deny)-(ingress|egress)-[a-zA-Z0-9-]*-(dev|uat|prd)$'
+    bundles:
+      pci-dss: false
+      cis: true

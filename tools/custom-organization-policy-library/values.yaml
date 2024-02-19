@@ -1,0 +1,18 @@
+#@data/values
+---
+organization: '3333334'
+bundles:
+  pci-dss: false
+  cis: false
+compute:
+  computeAllowedInstanceLabels: 
+    enabled: include
+  computeAllowedInstanceMachineTypes: 
+    enabled: include
+    params:
+      regex: '^(allow|deny)-(ingress|egress)-[a-zA-Z0-9-]*-(dev|uat|prd)$ AAA'
+firewall:
+  firewallEnforceNamingConvention: 
+    enabled: include
+  firewallRestrictRule: 
+    enabled: skip

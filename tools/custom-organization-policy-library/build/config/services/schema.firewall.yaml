@@ -1,0 +1,15 @@
+#@ load("@ytt:overlay", "overlay")
+#@data/values-schema
+---
+#@overlay/match missing_ok=True
+firewall:
+  firewallEnforceNamingConvention:
+    enabled: ""
+    params:
+      regex: '^(allow|deny)-(ingress|egress)-[a-zA-Z0-9-]*-(dev|uat|prd)$' 
+    bundles: 
+    - "ss"
+  firewallRestrictRule:
+    enabled: ""
+    params:
+      regex: '^(allow|deny)-(ingress|egress)-[a-zA-Z0-9-]*-(dev|uat|prd)$'
