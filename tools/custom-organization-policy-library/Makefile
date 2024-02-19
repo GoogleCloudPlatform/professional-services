@@ -1,6 +1,6 @@
 # Make will use bash instead of sh
 SHELL 	:= /usr/bin/env bash
-CONFIG 	:= -f build/config/schema.yaml -f build/config/services/ -f values.yaml -f build/lib/
+CONFIG 	:= -f build/config/schema.yaml -f build/config/services/ -f values.yaml -f build/ytt_lib/
 OUTPUT 	:= samples
 
 .PHONY: constraints
