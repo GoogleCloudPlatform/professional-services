@@ -6,13 +6,13 @@ bundles:
   cis: false
 compute:
   computeAllowedInstanceLabels: 
-    enabled: include
+    generation: include
   computeAllowedInstanceMachineTypes: 
-    enabled: include
+    generation: include
     params:
       regex: '^(allow|deny)-(ingress|egress)-[a-zA-Z0-9-]*-(dev|uat|prd)$ AAA'
 firewall:
   firewallEnforceNamingConvention: 
-    enabled: include
+    generation: include
   firewallRestrictRule: 
-    enabled: skip
+    generation: skip

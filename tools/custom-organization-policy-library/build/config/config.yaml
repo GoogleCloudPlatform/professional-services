@@ -1,17 +1,8 @@
 #@ load("@ytt:data", "data")
-#@ load("/config.lib.star", "include")
-
-#@ config = {}
-
-#@ for name in data.values.compute:
-  #@ constraint = data.values.compute[name]
-  #@ if include(constraint, data.values.bundles):
-  #@   config[name] = constraint  
-  #@ end
-#@ end
+#@ load("/config.lib.star", "generate_config")
 
 organization: #@ data.values.organization
 bundles: #@ data.values.bundles
-compute: #@ config
----
-! values: #@ data.values
+policies: #@ generate_config()
+#! ---
+#! values: #@ data.values

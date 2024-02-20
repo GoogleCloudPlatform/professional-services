@@ -4,12 +4,12 @@
 #@overlay/match missing_ok=True
 firewall:
   firewallEnforceNamingConvention:
-    enabled: ""
+    generation: ""
     params:
       regex: '^(allow|deny)-(ingress|egress)-[a-zA-Z0-9-]*-(dev|uat|prd)$' 
     bundles: 
     - "ss"
   firewallRestrictRule:
-    enabled: ""
+    generation: ""
     params:
       regex: '^(allow|deny)-(ingress|egress)-[a-zA-Z0-9-]*-(dev|uat|prd)$'

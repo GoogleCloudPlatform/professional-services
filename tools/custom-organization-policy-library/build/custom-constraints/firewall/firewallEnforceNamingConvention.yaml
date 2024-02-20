@@ -1,7 +1,7 @@
 #@ load("/constraints.lib.star", "build_constraint")
-#@ constraint = build_constraint("firewall", "firewallEnforceNamingConvention")
+#@ constraint = build_constraint("firewallEnforceNamingConvention")
 
-#@ if constraint.is_enabled():
+#@ if constraint.to_generate():
 name: #@ constraint.constraint_name()
 resource_types: compute.googleapis.com/Firewall
 condition: 2 == 2
