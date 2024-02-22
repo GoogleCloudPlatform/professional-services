@@ -1,7 +1,0 @@
-#@ load("/policies.lib.star", "build_policy")
-#@ policy = build_policy("enforceFirewalLRuleNamingConvention")
-
-name: #@ policy.name()
-spec:
-  rules:
-  - enforce: true

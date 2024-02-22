@@ -4,12 +4,20 @@
 #@overlay/match missing_ok=True
 firewall:
   firewallEnforceNamingConvention:
-    generation: ""
+    #@schema/validation one_of=["default", "skip", "include"]
+    generation: "default"
     params:
-      regex: '^(allow|deny)-(ingress|egress)-[a-zA-Z0-9-]*-(dev|uat|prd)$' 
-    bundles: 
-    - "ss"
-  firewallRestrictRule:
-    generation: ""
-    params:
+      #@schema/validation min_len=1
       regex: '^(allow|deny)-(ingress|egress)-[a-zA-Z0-9-]*-(dev|uat|prd)$'
+    bundles:
+      pci-dss: false
+      cis: false
+  firewallRestrictRule:
+    #@schema/validation one_of=["default", "skip", "include"]
+    generation: "default"
+    params:
+      #@schema/validation min_len=1
+      regex: '^(allow|deny)-(ingress|egress)-[a-zA-Z0-9-]*-(dev|uat|prd)$'
+    bundles:
+      pci-dss: false
+      cis: false

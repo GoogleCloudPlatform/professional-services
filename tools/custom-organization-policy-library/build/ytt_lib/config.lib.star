@@ -1,8 +1,11 @@
 load("@ytt:data", "data")
 load("@ytt:struct", "struct")
 
-services = ["compute", "firewall", "gke", "network", "storage" , "dataproc"]
+services = ["compute", "firewall"] #, "gke", "network", "storage" , "dataproc"]
 
+# Retrieve the service associated with the constraint
+# computeAllowedInstanceLabels -> compute
+# firewallEnforceNamingConvention -> firewall
 def get_service(constraint):
   for service in services:
       if constraint.startswith(service):
@@ -12,6 +15,47 @@ def get_service(constraint):
   return "not-found"
 end
 
+# Check if at least one of the bundles is enabled
+def has_bundle(bundles):
+  for bundle in bundles:
+    if bundles[bundle]:
+       return True
+     end
+   end
+   return False
+end
+
+# Check if the constraint the and the policy should be included in the generation
+# Behavior is:
+# - No bundle definied, constraint is generated except if specifically "skip"
+# - Bundle definied, constraint is not generated except if specifically "include" or part of the bundle
+def include(constraint, bundles):
+  if not has_bundle(bundles):
+    return constraint["generation"] == "default" or constraint["generation"] == "include" 
+  end
+
+  # Bundle defined
+  if constraint["generation"] == "include":
+    return True
+  end
+  if constraint["generation"] == "skip":
+    return False
+  end
+
+  # Default value, checking if constraint is include in bundle
+  for bundle in bundles:
+    if not bundles[bundle]:
+      continue
+     end
+     if constraint.bundles[bundle]:
+       return True
+     end
+  end
+  return False
+end
+
+# Generate final config that has been used to generate the constraint and policies
+# This can be used as file to know what is included and what is excluded
 def generate_config():
   config = {}
   values = struct.decode(data.values)
@@ -21,49 +65,20 @@ def generate_config():
       continue
     end
 
-    service_config = {}
+    config[service] = {}
     for name in values[service]:
-      constraint = values[service][name]
-      
+      constraint = values[service][name] 
+
       if include(constraint, values["bundles"]):
-        constraint.pop("generation")
+        # Remove information not relevant for endusers
+        constraint.pop("generation") 
         constraint.pop("bundles")
-        service_config[name] = constraint  
+        config[service][name] = constraint  
       end
     end
-
-    config[service] = service_config
   end
   return config
 end
 
 
-def has_bundle(bundles):
-  for bundle in bundles:
-    if bundles[bundle] == True:
-       return True
-     end
-   end
-end
 
-def include(constraint, bundles):
-  if has_bundle(bundles) == False:
-    return constraint.generation == "" or constraint.generation == "include" 
-  end
-
-  if constraint.generation == "include":
-    return True
-  end
-  if constraint.generation == "skip":
-    return False
-  end
-  for bundle in bundles:
-    if bundles[bundle] == False:
-      continue
-     end
-     if constraint.bundles[bundle] == True:
-       return True
-     end
-  end
-  return False
-end

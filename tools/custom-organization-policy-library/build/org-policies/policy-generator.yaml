@@ -1,0 +1,17 @@
+#@ load("@ytt:data", "data")
+#@ load("@ytt:template", "template")
+
+#@ load("/policies.lib.star", "build_policy")
+#@ load("/policies.lib.yaml", "generate_policy")
+#@ load("/config.lib.star", "services")
+
+#@ policies = []
+#@ for service in services:
+  #@ for value in data.values[service]:
+    #@ policies.append(value)
+  #@ end
+#@ end
+
+#@ for/end value in policies:
+--- #@ template.replace(generate_policy(build_policy(value)))
+

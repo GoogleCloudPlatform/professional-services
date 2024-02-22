@@ -1,8 +1,9 @@
 #@ load("@ytt:data", "data")
+#@ load("@ytt:template", "template")
 #@ load("/config.lib.star", "generate_config")
 
 organization: #@ data.values.organization
 bundles: #@ data.values.bundles
-policies: #@ generate_config()
-#! ---
-#! values: #@ data.values
+policies:
+#@ template.replace(generate_config())
+values: #@ data.values

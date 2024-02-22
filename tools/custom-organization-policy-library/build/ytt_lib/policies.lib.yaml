@@ -1,0 +1,9 @@
+
+#@ def generate_policy(policy):
+---
+name: #@ policy.name()
+spec:
+  rules:
+  - enforce: true
+#@ end
+

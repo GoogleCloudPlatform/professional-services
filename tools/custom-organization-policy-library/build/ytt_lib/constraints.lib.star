@@ -6,7 +6,6 @@ def _constraint_name(self):
    return "organizations/" + data.values.organization + "/customConstraints/custom." + self.constraint
 end
 
-
 def _to_generate(self):
   return include(data.values[self.service][self.constraint], data.values.bundles)
 end
