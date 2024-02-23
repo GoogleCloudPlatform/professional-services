@@ -1,0 +1,7 @@
+{%- if cookiecutter.gcp_project_id != "OPTIONAL" -%}
+project_id: {{cookiecutter.gcp_project_id}}
+{% endif %}
+
+{%- if cookiecutter.gcp_project_location != "OPTIONAL" -%}
+location: {{cookiecutter.gcp_project_location}}
+{% endif %}

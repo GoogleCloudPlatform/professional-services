@@ -590,6 +590,7 @@ Platform usage.
     provides the tools to apply cluster level operations that enable capabilities like cluster backups, migration & validation, etc. 
     The framework can be extended for other use cases as required. 
     The framework uses RIOT to bridge current product gaps with Memorystore Clusters
+*   [ML Project Generator](tools/ml-project-generator) - A utility to create a Production grade ML project template with the best productivity tools installed like auto-formatting, license checks, linting, etc.
 
 ## Contributing
 
