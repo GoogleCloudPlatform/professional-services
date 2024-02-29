@@ -11,10 +11,22 @@ constraints:
 .PHONY: policies
 policies: 
 	rm -rf $(OUTPUT)/policies
-	ytt $(CONFIG) -f build/org-policies/  --output-files  $(OUTPUT)/policies
+	ytt $(CONFIG) -f build/org-policies/  --output-files $(OUTPUT)/policies
+	sh scripts/format-policies.sh $(OUTPUT)/policies
 
 .PHONY: build
 build: clean constraints policies
+
+.PHONY: deploy-constraint
+deploy-constraint:
+	sh scripts/deploy.sh constraint $(OUTPUT)/constraints
+
+.PHONY: deploy-policy
+deploy-policy:
+	sh scripts/deploy.sh policy $(OUTPUT)/policies
+
+.PHONY: deploy
+deploy: deploy-constraint deploy-policy
 
 .PHONY: config
 config: 

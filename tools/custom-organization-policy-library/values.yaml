@@ -1,8 +1,6 @@
 #@data/values
 ---
-organization: '3333334'
+organization: '741724935092'
 bundles:
   pci-dss: false
   cis: false
-compute: {}
-firewall: {}

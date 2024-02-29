@@ -1,6 +1,6 @@
-name: organizations/3333334/customConstraints/custom.computeAllowedInstanceMachineTypes
+name: organizations/741724935092/customConstraints/custom.computeAllowedInstanceMachineTypes
 resource_types: compute.googleapis.com/Firewall
-condition: resource.name.matches("^(allow|deny)-(ingress|egress)-[a-zA-Z0-9-]*-(dev|uat|prd)$ == false
+condition: 2 == 2
 action_type: DENY
 method_types: CREATE
 display_name: Enforce Compute Instance Rule naming Convention 1

@@ -1,0 +1,4 @@
+name: organizations/741724935092/policies/custom.computeAllowedInstanceMachineTypes
+spec:
+  rules:
+    - enforce: true

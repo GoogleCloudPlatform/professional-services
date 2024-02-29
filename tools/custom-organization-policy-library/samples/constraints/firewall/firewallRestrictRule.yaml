@@ -1,4 +1,4 @@
-name: organizations/3333334/customConstraints/custom.firewallRestrictRule
+name: organizations/741724935092/customConstraints/custom.firewallRestrictRule
 resource_types: compute.googleapis.com/Firewall
 condition: 2 == 2
 action_type: DENY

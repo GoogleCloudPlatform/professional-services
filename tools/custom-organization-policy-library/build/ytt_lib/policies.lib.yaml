@@ -1,6 +1,8 @@
 
 #@ def generate_policy(policy):
 ---
+service: #@ policy.service()
+filename: #@ policy.filename()
 name: #@ policy.name()
 spec:
   rules:
