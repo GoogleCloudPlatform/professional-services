@@ -1,4 +1,4 @@
-# Copyright 2023 Google LLC
+# Copyright 2024 Google LLC
 
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,20 +14,31 @@
 
 """Example DAG demonstrating the usage of the BashOperator."""
 from __future__ import annotations
-import datetime
 import pendulum
+from datetime import timedelta
 from airflow.models.dag import DAG
 from airflow.operators.bash import BashOperator
 from airflow.operators.empty import EmptyOperator
 
+
+default_args = {
+    "owner": "google-pso",
+    "retries": 2,
+    "retry_delay": timedelta(minutes=3),
+    "sla": timedelta(minutes=50),
+}
+
 with DAG(
-    dag_id="example_bash_operator",
+    dag_id="test_success_dag",
     schedule="0 0 * * *",
     start_date=pendulum.datetime(2021, 1, 1, tz="UTC"),
     catchup=False,
-    dagrun_timeout=datetime.timedelta(minutes=60),
+    dagrun_timeout=timedelta(minutes=60),
     tags=["example", "example2"],
     params={"example_key": "example_value"},
+    is_paused_upon_creation=True,
+    description="example dag for testing",
+    default_args=default_args,
 ) as dag:
     run_this_last = EmptyOperator(
         task_id="run_this_last",
@@ -56,6 +67,7 @@ with DAG(
     )
     # [END howto_operator_bash_template]
     also_run_this >> run_this_last
+
 
 # [START howto_operator_bash_skip]
 this_will_skip = BashOperator(
