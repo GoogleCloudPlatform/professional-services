@@ -7,7 +7,7 @@
 		"service_worker":"scripts/background.js"
 	},
 	"oauth2": {
-		"client_id": "Replace-WITH-YOUR-Client-ID",
+		"client_id": "Replace-YOUR-Client-ID-here",
 		"scopes":["https://www.googleapis.com/auth/cloud-platform"]
 	},
 	"host_permissions": [
