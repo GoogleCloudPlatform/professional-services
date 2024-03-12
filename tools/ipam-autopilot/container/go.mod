@@ -12,8 +12,8 @@ require (
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
-	github.com/jackc/pgtype v1.9.1
-	github.com/jackc/pgx/v4 v4.13.0 // indirect
+	github.com/jackc/pgtype v1.14.0
+	github.com/jackc/pgx/v4 v4.18.2 // indirect
 	github.com/stretchr/testify v1.8.3
 	go.uber.org/atomic v1.9.0 // indirect
 	google.golang.org/api v0.114.0
