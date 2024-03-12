@@ -102,7 +102,7 @@ public class RunThePipeline {
     };
 
     /**
-     * Main entry point // see readme.md on how to run the code
+     * Main entry point // see README.md on how to run the code
      * @param args - see run.sh for more info
      */
     public static void main(String[] args) {
