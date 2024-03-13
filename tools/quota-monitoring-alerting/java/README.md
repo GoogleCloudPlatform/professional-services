@@ -1,6 +1,27 @@
 # Quota Monitoring and Alerting 
 > An easy-to-deploy Data Studio Dashboard with alerting capabilities, showing usage and quota limits in an organization or folder.
 
+## Release Notes
+
+
+> Last Updated on May 24, 2023
+
+### The latest version of the Quota Monitoring Solution code is now available at https://github.com/google/quota-monitoring-solution. 
+This version includes a number of new features and improvements, including support for new quota metrics, application-level monitoring and alerting, and peak quota metric consumption in the last 7 days.
+
+We highly recommend that you upgrade to the latest version of the Quota Monitoring Solution. The new features and improvements will help you to better manage your quota usage and avoid disruption.
+
+To upgrade, simply follow the instructions in the README file. Once you have upgraded, you can start monitoring your quota usage by following the instructions in the documentation.
+
+For any comments, issues or feedback, please reach out to us at quota-monitoring-solution@google.com
+
+</br></br>
+
+> Last Updated on Jun 21, 2022
+
+### New features will be released in Java version. Python version will not be supported after July 31. 
+
+
 Google Cloud enforces [quotas](https://cloud.google.com/docs/quota) on resource usage for project owners, setting a limit on how much of a particular Google Cloud resource your project can use. Each quota limit represents a specific countable resource, such as the number of API requests made per day to the number of load balancers used concurrently by your application.
 Quotas are enforced for a variety of reasons:
 - To protect the community of Google Cloud users by preventing unforeseen spikes in usage.
@@ -427,25 +448,8 @@ To configure notifications to be sent to a Slack channel, you must have the Moni
 
 You should now receive alerts in your Slack channel whenever a quota reaches the specified threshold limit.
 
-## 4. Release Note
-
-### 4.1 V4: Quota Monitoring across GCP services
-
-#### New
-- The new version provides visibility into Quotas across various GCP services beyond the original GCE (Compute). 
-- New Data Studio Dashboard template reporting metrics across GCP services
-
-#### Known Limitations
-- The records are grouped by hour. Scheduler need to be configured to start running preferably at the beginning of the hour. 
-- Out of the box solution is configured to scan quotas ‘once every day’. The SQL query to build the dashboard uses current date to filter the records. If you change the frequency, make changes to the query to rightly reflect the latest data. 
-
-## 5. What is Next?
-1. Graphs (Quota utilization over a period of time)
-2. Search project, folder, org, region
-3. Threshold configurable for each metric
-
-## 5. Contact Us
-For any comments, issues or feedback, please reach out to us at pso-quota-monitoring@google.com
+## 4. Contact Us
+For any comments, issues or feedback, please reach out to us at quota-monitoring-solution@google.com
 
 
 
