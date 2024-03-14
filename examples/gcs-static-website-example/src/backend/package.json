@@ -1,0 +1,8 @@
+{
+    "name": "simple-webserver",
+    "main": "backend.js",
+    "scripts": {
+      "start": "node backend.js"
+    }
+  }
+  
