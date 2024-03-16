@@ -27,54 +27,68 @@ from pprint import pformat
 RATE_LIMIT = RateLimit(max_count=2000, per=100)
 
 
+_LOGGER = logging.getLogger(__name__)
+
+
 # machineImage
 def machine_image(compute, project, target_region, source_instance, name):
     """
     This method creates machine image for an instance.
     """
-    config = {'name': name, 'storageLocations': target_region}
-    return compute.machineImages().insert(
-        project=project,
-        body=config,
-        requestId=None,
-        sourceInstance=source_instance).execute()
+    config = {"name": name, "storageLocations": target_region}
+    return (
+        compute.machineImages()
+        .insert(
+            project=project, body=config, requestId=None, sourceInstance=source_instance
+        )
+        .execute()
+    )
 
 
 def get(project, name):
     compute = get_compute()
-    logging.info('looking for machine image %s', name)
+    _LOGGER.info('Looking for machine image "%s" in "%s"', name, project)
     try:
-        result = compute.machineImages().get(project=project,
-                                             machineImage=name).execute()
-        if result['selfLink']:
+        result = (
+            compute.machineImages().get(project=project, machineImage=name).execute()
+        )
+        if result["selfLink"]:
             return result
-    except Exception:
+    except Exception as ex:
+        _LOGGER.warning(
+            'Could not find machine image "%s" in "%s". Error: %s', name, project, ex
+        )
         return None
 
 
 def wait_for_operation(compute, project, name):
     """
-    This methods waits untill the operation is complete.
+    This method waits until the operation is complete.
     """
-    logging.info('Waiting for machine image creation to finish...')
+    _LOGGER.info(
+        'Waiting for machine image "%s" in "%s" creation to finish', name, project
+    )
     while True:
-        result = compute.machineImages().get(project=project,
-                                             machineImage=name).execute()
-
-        if result['status'] == 'READY':
-            if 'error' in result:
-                raise GCPOperationException(result['error'])
+        result = (
+            compute.machineImages().get(project=project, machineImage=name).execute()
+        )
+        if result["status"] == "READY":
+            if "error" in result:
+                _LOGGER.error(
+                    'Machine image "%s" in "%s" could not be created. Result: %s',
+                    name,
+                    project,
+                    result,
+                )
+                raise GCPOperationException(result["error"])
             return result
 
         time.sleep(30)
 
 
 def get_compute():
-    compute = googleapiclient.discovery.build('compute',
-                                              'beta',
-                                              cache_discovery=False)
-    logging.getLogger('googleapiclient.discovery_cache').setLevel(
-        logging.ERROR)
+    compute = googleapiclient.discovery.build("compute", "beta", cache_discovery=False)
+    logging.getLogger("googleapiclient.discovery_cache").setLevel(logging.ERROR)
     return compute
 
 
@@ -82,46 +96,60 @@ def get_compute():
 def create(project, target_region, source_instance, name, wait=True):
     try:
         waited_time = RATE_LIMIT.wait()  # wait before starting the task
-        logging.info('  task: waited for %s secs', waited_time)
-        logging.info('Creating Machine Image %s from source %s', name,
-                     source_instance)
+        _LOGGER.info("  task: waited for %s secs", waited_time)
+        _LOGGER.info(
+            'Creating Machine Image "%s" from source "%s" in project "%s" and region "%s"',
+            name,
+            source_instance,
+            project,
+            target_region,
+        )
         compute = get_compute()
         machine_image(compute, project, target_region, source_instance, name)
         if wait:
             wait_for_operation(compute, project, name)
-        logging.info('Machine Image %s Created', name)
+        _LOGGER.info('Machine Image "%s" in project "%s" created', name, project)
         return name
     except Exception as exc:
-        logging.error(exc)
+        _LOGGER.error(
+            'Could not create machine image "%s" in "%s". Error: %s', name, project, exc
+        )
         raise exc
 
 
 def add_iam_policy(source_project, name, target_service_account) -> bool:
     compute = get_compute()
     machine_image_uri = uri.MachineImage(source_project, name)
-    body = compute.machineImages().getIamPolicy(project=source_project,
-                                                resource=name).execute()
+    body = (
+        compute.machineImages()
+        .getIamPolicy(project=source_project, resource=name)
+        .execute()
+    )
     new_binding = {
-        'role': 'roles/compute.admin',
-        'members': [
-            'serviceAccount:{}'.format(target_service_account),
+        "role": "roles/compute.admin",
+        "members": [
+            "serviceAccount:{}".format(target_service_account),
         ],
     }
     add = True
-    if 'bindings' not in body:
-        body['bindings'] = []
-    for binding in body['bindings']:
-        if binding['role'] == new_binding['role'] and \
-           set(new_binding['members']).issubset(binding['members']):
-            logging.info('Binding already exists: {}'.format(pformat(binding)))
+    if "bindings" not in body:
+        body["bindings"] = []
+    for binding in body["bindings"]:
+        if binding["role"] == new_binding["role"] and set(
+            new_binding["members"]
+        ).issubset(binding["members"]):
+            _LOGGER.info("Binding already exists: {}".format(pformat(binding)))
             add = False
             break
     if add:
-        body['bindings'].append(new_binding)
-        logging.info('Setting IAM policy for machine image %s',
-                     machine_image_uri)
+        body["bindings"].append(new_binding)
+        _LOGGER.info(
+            'Setting IAM policy for machine image "%s" and service account "%s"',
+            machine_image_uri,
+            target_service_account,
+        )
         # TODO: does this throw an exception on a outdated eTag?
-        compute.machineImages().setIamPolicy(project=source_project,
-                                             resource=name,
-                                             body=body).execute()
+        compute.machineImages().setIamPolicy(
+            project=source_project, resource=name, body=body
+        ).execute()
     return machine_image_uri

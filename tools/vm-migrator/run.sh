@@ -20,8 +20,15 @@ make STEP=prepare_inventory migrate-subnet
 make STEP=filter_inventory migrate-subnet
 make STEP=shutdown_instances migrate-subnet
 make STEP=create_machine_images migrate-subnet
+make STEP=add_machineimage_iampolicies migrate-subnet
+make STEP=backup_instances migrate-subnet
+# make STEP=disable_deletionprotection_instances migrate-subnet
 make STEP=delete_instances migrate-subnet
 make STEP=release_ip migrate-subnet
 make STEP=release_ip_for_subnet migrate-subnet
 make STEP=clone_subnet migrate-subnet
 make STEP=create_instances migrate-subnet
+# rollback
+# make STEP=prepare_rollback migrate-subnet
+# make STEP=rollback_instances migrate-subnet
+# make STEP=start_instances migrate-subnet

@@ -1,3 +1,5 @@
+*.json
 *.pyc
 *.log
+*.csv
 .vscode/
