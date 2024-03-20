@@ -63,26 +63,26 @@ let’s use the above design to create the boilerplate template for composer tas
 
 Tagging utility helps to attach tags to resources such as tables, views & columns as well as delete tags.It supports attaching and deleting tags of column that is present in a specific table as well as column that is present in multiple tables with the same name. Below scripts are essential for Tagging : 
 
-**insert_landing.py**
-    - This is a script used to truncate and load the json file consisting of table and column level tag attributes and values to the landing table of Enterprise Data Catalog master table in bigquery .
-**upsert_staging.py**
-    - This is a script used to upsert into the staging table of Enterprise Data Catalog master table in bigquery from landing table.
-    - Enterprise Data Catalog master table is a SCD2 table with all the historical data along with Latest records
-    - This script inserts and updates the records with relevant flags to identify the records either to Tag or delete the tag.
-**attach_delete_tag_to_table_column.py** 
-    - This is a script used for fetching the tables and columns to be tagged from Enterprise Data Catalog master table in bigquery assigning and deleting the tags based on the flag value. 
-    - This script segregates the records fetched from Bigquery master table , assigns the precedence of execution and executes tagger.py to attach and delete the tags
-**tag_util.py**
-    - This is a script used for assigning tags. Resources fetched as results of the provided search string will be tagged using provided tag values from Json. 
-    - Deletion process uses this script to search the relevant resource to be deleted.
+1. **insert_landing.py**
+- This is a script used to truncate and load the json file consisting of table and column level tag attributes and values to the landing table of Enterprise Data Catalog master table in bigquery .
+2. **upsert_staging.py**
+- This is a script used to upsert into the staging table of Enterprise Data Catalog master table in bigquery from landing table.
+- Enterprise Data Catalog master table is a SCD2 table with all the historical data along with Latest records
+- This script inserts and updates the records with relevant flags to identify the records either to Tag or delete the tag.
+3. **attach_delete_tag_to_table_column.py** 
+- This is a script used for fetching the tables and columns to be tagged from Enterprise Data Catalog master table in bigquery assigning and deleting the tags based on the flag value. 
+- This script segregates the records fetched from Bigquery master table , assigns the precedence of execution and executes tagger.py to attach and delete the tags
+4. **tag_util.py**
+- This is a script used for assigning tags. Resources fetched as results of the provided search string will be tagged using provided tag values from Json. 
+- Deletion process uses this script to search the relevant resource to be deleted.
 
 ## Prerequisites
 
-    - The Data Catalog API needs to be enabled in the project, enable it by visiting the home page in the Cloud Console 
-    - Service_account of composer with below permissions created in the project
-        - Dataplex Administrator
-        - DataCatalog Entry Owner
-    - Create config tables in BigQuery that contain information regarding respective resources and tags.Bigquery will have landing and staging table which will be Enterprise Data Catalog master table.
+- The Data Catalog API needs to be enabled in the project, enable it by visiting the home page in the Cloud Console 
+- Service_account of composer with below permissions created in the project
+    - Dataplex Administrator
+    - DataCatalog Entry Owner
+- Create config tables in BigQuery that contain information regarding respective resources and tags.Bigquery will have landing and staging table which will be Enterprise Data Catalog master table.
 
 ## Inputs for Data Catalog tagging
 
@@ -210,7 +210,7 @@ Below is the format of JSON file for table tagging :
         - Script identifies the records to be deleted and flags MODE as DELETE. Active flag and tagflag will be made false
         - It identifies the updated records and Merges the changes and flags MODE as HISTORICAL.active flag will be made false. But tagflag remains the same as tag still exists.
         - It identifies new records and flags it as LATEST as well the updated records which need to be updated in the data catalog as LATEST. tagFlag will be flagged as false .
-    - Script Attach_tag_table_column.py is segregated as 4 different task as below
+    - Script attach_delete_tag_to_table_column.py is segregated as 4 different task as below
         - Task1 is to filter and  fetch the records from master table in bigquery and tag all the tables 
         - Task2 is to filter and fetch the records from master table in bigquery and tag all the columns which should be tagged globally 
         - Task3 is to filter and fetch the records from master table in bigquery and tag all the columns which should be tagged specifically in a  table 
