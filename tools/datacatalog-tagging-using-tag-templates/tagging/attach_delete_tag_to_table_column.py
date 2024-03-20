@@ -16,19 +16,14 @@ Copyright 2023 Google LLC
 """
 
 
-import os
+
 import re
 from google.cloud import datacatalog_v1
-import csv
-import argparse
+
 import subprocess
 import google.cloud.bigquery as bigquery
-from datetime import timezone
-import datetime
 import tag_util
 from collections import defaultdict
-import time
-import json
 import sys
 
 
@@ -131,7 +126,7 @@ def delete_tag(config_table):
                update_query = """UPDATE `test-datahub.test1.Enterprise_Data_Catalog_Master` set tagflag=false,activeflag=false,mode='DELETED' WHERE id = '{0}'
                                AND activeflag is true and mode='DELETE'""".format(id)
                query_job = client.query(update_query) 
-               results = query_job.result()
+               query_job.result()
 
 
  
@@ -234,7 +229,7 @@ def attach_column_tags_to_all(taggingList):
            update_query = """UPDATE `test-datahub.test1.Enterprise_Data_Catalog_Master` set tagflag=true WHERE id = '{0}' AND activeflag is true""".format(id)
            #print(update_query)
            query_job = client.query(update_query) 
-           results = query_job.result()
+           query_job.result()
        
  return tagged_resources
 
@@ -271,7 +266,7 @@ def attach_table_tags(taggingList):
                update_query = """UPDATE `test-datahub.test1.Enterprise_Data_Catalog_Master` set tagflag=true WHERE id = '{0}'
                                AND activeflag is true""".format(id)
                query_job = client.query(update_query) 
-               results = query_job.result()
+               query_job.result()
 
 
    return tagged_resources
@@ -308,7 +303,7 @@ def attach_column_tags_to_specific(taggingList):
                {tagged_resources[column].append(column_dict)}
            update_query = """UPDATE `test-datahub.test1.Enterprise_Data_Catalog_Master` set tagflag=true WHERE id = '{0}' AND activeflag is true""".format(id)
            query_job = client.query(update_query) 
-           results = query_job.result()
+           query_job.result()
        
  return tagged_resources
 

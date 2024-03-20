@@ -20,7 +20,6 @@ from google.cloud import datacatalog_v1
 datacatalog = datacatalog_v1.DataCatalogClient()
 from google.cloud import bigquery
 import argparse
-import os
 import re
 
 import sys
@@ -94,7 +93,6 @@ def tag_entries(dataplex_project_id, location_id, result, level, tag_template_id
  tag = datacatalog_v1.types.Tag()
  tag.template = client.tag_template_path(dataplex_project_id, location_id, tag_template_id)
  request = datacatalog_v1.GetTagTemplateRequest(name=tag.template)
- tag_exists=''
  if level == 'column':
    tag.column=search_string.split('=')[1]
                   

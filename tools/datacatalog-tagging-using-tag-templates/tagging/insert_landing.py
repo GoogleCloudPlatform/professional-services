@@ -90,7 +90,7 @@ def truncate_landing():
            Truncate table `test-datahub.test1.Enterprise_Data_Catalog_Master_Landing`
            """
    query_job = client.query(query1) 
-   results = query_job.result()
+   query_job.result()
   
    return "success"
 
@@ -111,14 +111,15 @@ if __name__ == '__main__':
 
    for i in range(max_tries):
        try:
-           result = insert_landing()
-           print("insert into landing done : " + str(result))
-           break  # Success, exit the loop
+        result = insert_landing()
+        print("insert into landing done : " + str(result))
+        break  # Success, exit the loop
        except Exception as e:
-           if i == max_tries - 1:
-               raise  # Re-raise the exception if max_tries reached
+        print(f"Caught error: {repr(e)}")
+        if i == max_tries - 1:
+           raise   # Re-raise the exception if max_tries reached
           
-           delay_time = delay * backoff
-           jitter = random.uniform(0, 1) * delay_time  # jitter for randomness
-           time.sleep(delay_time + jitter)
-           print(f"Retrying after {delay_time} seconds...")
+        delay_time = delay * backoff
+        jitter = random.uniform(0, 1) * delay_time  # jitter for randomness
+        time.sleep(delay_time + jitter)
+        print(f"Retrying after {delay_time} seconds...")
