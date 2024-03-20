@@ -111,7 +111,7 @@ def tag_entries(dataplex_project_id, location_id, result, level, tag_template_id
  for response in result :
    if response.template == tag.template and response.column == tag.column :
        tag=response
-       tag_exists=True
+       #tag_exists=True
 
 
  tags_list=tag_attributes.split(",")
