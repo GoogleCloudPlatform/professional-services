@@ -1,0 +1,10 @@
+name: organizations/[ORGANIZATIONID]/customConstraints/custom.gkeLegacyEndpoints
+resourceTypes:
+- container.googleapis.com/NodePool
+methodTypes:
+- CREATE
+- UPDATE
+condition: ('disable-legacy-endpoints' in resource.config.metadata && resource.config.metadata['disable-legacy-endpoints']== 'true')
+actionType: ALLOW
+displayName: gkeLegacyEndpoints
+description: 6.4.1 - Custom Constraint to ensure legacy Compute Engine instance metadata APIs are Disabled

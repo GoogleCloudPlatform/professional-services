@@ -1,0 +1,10 @@
+name: organizations/[ORGANIZATIONID]/customConstraints/custom.googlegroups
+resourceTypes:
+- container.googleapis.com/Cluster
+methodTypes:
+- CREATE
+- UPDATE
+condition: resource.authenticatorGroupsConfig.enabled == false
+actionType: DENY
+displayName: googlegroups
+description: Custom Constraint to enable Google Groups for RBAC

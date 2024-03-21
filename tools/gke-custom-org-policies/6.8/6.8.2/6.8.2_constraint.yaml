@@ -1,0 +1,10 @@
+name: organizations/[ORGANIZATIONID]/customConstraints/custom.issueclientcertificate
+resourceTypes:
+- container.googleapis.com/Cluster
+methodTypes:
+- CREATE
+- UPDATE
+condition: resource.masterAuth.clientCertificateConfig.issueClientCertificate == true
+actionType: DENY
+displayName: issueclientcertificate
+description: Custom Constraint to Ensure authentication using Client Certificates is Disabled

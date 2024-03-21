@@ -1,0 +1,10 @@
+name: organizations/[ORGANIZATIONID]/customConstraints/custom.gkeprivatenodes
+resourceTypes:
+- container.googleapis.com/Cluster
+methodTypes:
+- CREATE
+- UPDATE
+condition: resource.privateClusterConfig.enablePrivateNodes == false
+actionType: DENY
+displayName: enforcegkeprivatenodes
+description: Custom Constraint to enforce GKE private nodes

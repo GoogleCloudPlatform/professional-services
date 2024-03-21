@@ -1,0 +1,4 @@
+name: \[RESOURCE_HIERARCHY]/policies/custom.gkeEncryptKeysKms
+spec:
+ rules:
+ - enforce: true

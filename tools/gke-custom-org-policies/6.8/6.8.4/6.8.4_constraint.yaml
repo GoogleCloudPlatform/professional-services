@@ -1,0 +1,10 @@
+name: organizations/[ORGANIZATIONID]/customConstraints/custom.legacyAbac
+resourceTypes:
+- container.googleapis.com/Cluster
+methodTypes:
+- CREATE
+- UPDATE
+condition: resource.legacyAbac.enabled == true
+actionType: DENY
+displayName: gkelegacyauthorization
+description: Custom Constraint to prevent GKE legacy authorization enabling

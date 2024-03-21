@@ -1,0 +1,10 @@
+name: organizations/[ORGANIZATIONID]/customConstraints/custom.autoupgrade
+resourceTypes:
+- container.googleapis.com/NodePool
+methodTypes:
+- CREATE
+- UPDATE
+condition: resource.management.autoUpgrade == false
+actionType: DENY
+displayName: autoupgrade
+description: Custom Constraint to ensure Node Auto-Upgrade is enabled for GKE nodes

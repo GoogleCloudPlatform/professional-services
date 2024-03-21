@@ -1,0 +1,10 @@
+name: organizations/[ORGANIZATIONID]/customConstraints/custom.stackdrivermonitoring
+resourceTypes:
+- container.googleapis.com/Cluster
+methodTypes:
+- CREATE
+- UPDATE
+condition: resource.loggingService != 'logging.googleapis.com/kubernetes' || resource.monitoringService != 'monitoring.googleapis.com/kubernetes'
+actionType: DENY
+displayName: stackdrivermonitoring
+description: Custom Constraint to Ensure Stackdriver Kubernetes Logging and Monitoring is Enabled

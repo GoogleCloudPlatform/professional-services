@@ -1,0 +1,4 @@
+name: \[RESOURCE_HIERARCHY]/policies/custom.gkeSandBox
+spec:
+ rules:
+ - enforce: true

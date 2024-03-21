@@ -1,0 +1,10 @@
+name: organizations/[ORGANIZATIONID]/customConstraints/custom.secureboot
+resourceTypes:
+- container.googleapis.com/NodePool
+methodTypes:
+- CREATE
+- UPDATE
+condition: resource.config.shieldedInstanceConfig.enableSecureBoot == false
+actionType: DENY
+displayName: secureboot
+description: Custom Constraint to enforce shielded options with secureboot enabled

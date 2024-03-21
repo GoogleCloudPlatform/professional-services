@@ -1,0 +1,10 @@
+name: organizations/[ORGANIZATIONID]/customConstraints/custom.autorepair
+resourceTypes:
+- container.googleapis.com/NodePool
+methodTypes:
+- CREATE
+- UPDATE
+condition: resource.management.autoRepair == false
+actionType: DENY
+displayName: autorepair
+description: Custom Constraint to ensure Node Auto-Repair is enabled for GKE nodes

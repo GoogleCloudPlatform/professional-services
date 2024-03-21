@@ -1,0 +1,10 @@
+name: organizations/[ORGANIZATIONID]/customConstraints/custom.gkePrivateEndPoint
+resourceTypes:
+- container.googleapis.com/Cluster
+methodTypes:
+- CREATE
+- UPDATE
+condition: resource.privateClusterConfig.enablePrivateEndpoint == false
+actionType: DENY
+displayName: gkePrivateEndPoint
+description: 6.6.4 - Custom Constraint to ensure clusters are created with Private Endpoint Enabled and Public Access Disabled

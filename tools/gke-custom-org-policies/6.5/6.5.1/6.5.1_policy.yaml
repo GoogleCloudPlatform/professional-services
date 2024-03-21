@@ -1,0 +1,4 @@
+name: \[RESOURCE_HIERARCHY]/policies/custom.imagetype
+spec:
+ rules:
+ - enforce: true

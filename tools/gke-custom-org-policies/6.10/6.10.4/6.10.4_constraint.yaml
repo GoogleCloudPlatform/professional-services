@@ -1,0 +1,10 @@
+name: organizations/[ORGANIZATIONID]/customConstraints/custom.gkeSandBox
+resourceTypes:
+- container.googleapis.com/NodePool
+methodTypes:
+- CREATE
+- UPDATE
+condition: has(resource.config.sandboxConfig) && resource.config.sandboxConfig.type == 'GVISOR'
+actionType: ALLOW
+displayName: gkeSandBox
+description: 6.10.4 - Custom Constraint to enforce GKE Sandbox for running untrusted workloads

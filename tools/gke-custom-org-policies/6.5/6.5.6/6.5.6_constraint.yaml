@@ -1,0 +1,10 @@
+name: organizations/[ORGANIZATIONID]/customConstraints/custom.integritymonitoring
+resourceTypes:
+- container.googleapis.com/NodePool
+methodTypes:
+- CREATE
+- UPDATE
+condition: resource.config.shieldedInstanceConfig.enableIntegrityMonitoring == false
+actionType: DENY
+displayName: integritymonitoring
+description: Custom Constraint to enforce shielded options with integrity monitoring enabled

@@ -1,0 +1,10 @@
+name: organizations/[ORGANIZATIONID]/customConstraints/custom.releasechannel
+resourceTypes:
+- container.googleapis.com/Cluster
+methodTypes:
+- CREATE
+- UPDATE
+condition: resource.releaseChannel.channel != "REGULAR"
+actionType: DENY
+displayName: releasechannel
+description: Custom Constraint for automating GKE version management using Release Channels

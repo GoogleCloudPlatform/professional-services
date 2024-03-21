@@ -1,0 +1,10 @@
+name: organizations/[ORGANIZATIONID]/customConstraints/custom.masterauthnetworks
+resourceTypes:
+- container.googleapis.com/Cluster
+methodTypes:
+- CREATE
+- UPDATE
+condition: resource.masterAuthorizedNetworksConfig.enabled == false
+actionType: DENY
+displayName: masterauthnetworks
+description: Custom Constraint to require Control Plane (Master) Authorized Networks to be enabled

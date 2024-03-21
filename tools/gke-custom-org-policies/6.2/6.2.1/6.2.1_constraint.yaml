@@ -1,0 +1,10 @@
+name: organizations/[ORGANIZATIONID]/customConstraints/custom.gkeIdentityDefaults
+resourceTypes:
+- container.googleapis.com/NodePool
+methodTypes:
+- CREATE
+- UPDATE
+condition: resource.config.serviceAccount == "default"
+actionType: DENY
+displayName: gkeIdentityDefaults
+description: 6.2.1 - Custom Constraint to require a non-default service account to be assigned to the GKE Node
