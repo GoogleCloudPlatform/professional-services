@@ -23,7 +23,7 @@ client = bigquery.Client()
 
 
 # Soft delete sql
-query1 = """
+QUERY1 = """
        update `test-datahub.test1.Enterprise_Data_Catalog_Master` set mode='DELETE' , UpdateTimestamp = current_timestamp()
        where id in (
        SELECT  a.id
@@ -32,14 +32,12 @@ query1 = """
           ON a.id = b.id WHERE b.id IS NULL
        and a.activeflag = TRUE) and activeflag = TRUE
        """
-query_job = client.query(query1) 
+query_job = client.query(QUERY1)
 results = query_job.result()
 
 
-
-
 # SCD2 - merge
-query2 = """
+QUERY2 = """
        MERGE `test-datahub.test1.Enterprise_Data_Catalog_Master` target
        USING
        (
@@ -74,12 +72,12 @@ query2 = """
        target.mode = 'HISTORICAL',
        target.UpdateTimestamp = current_timestamp()
        """
-query_job = client.query(query2) 
+query_job = client.query(QUERY2)
 results = query_job.result()
 
 
 # Insert sql
-query3 = """
+QUERY3 = """
        INSERT INTO `test-datahub.test1.Enterprise_Data_Catalog_Master` (projectname,datasetname,tablename,columnname,level,tagtemplate,tag,id,createtimestamp,tagflag,activeflag,mode)
        select source.projectname,source.datasetname,source.tablename,source.columnname,source.level,source.tagtemplate,source.tag,source.id,source.createtimestamp,source.tagflag,source.activeflag,'LATEST'
        from
@@ -89,6 +87,6 @@ query3 = """
 
 
        """
-query_job = client.query(query3) 
+query_job = client.query(QUERY3)
 results = query_job.result()
 print("done")
