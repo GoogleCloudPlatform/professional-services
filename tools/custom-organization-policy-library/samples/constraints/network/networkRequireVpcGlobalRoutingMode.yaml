@@ -1,0 +1,11 @@
+name: organizations/11111111/customConstraints/custom.networkRequireVpcGlobalRoutingMode
+resource_types:
+- container.googleapis.com/Cluster
+- container.googleapis.com/NodePool
+condition: 1 == 0
+action_type: DENY
+method_types:
+- CREATE
+- UPDATE
+display_name: Require VPC with global routing mode
+description: Enforce that a VPC is configured in global routing mode

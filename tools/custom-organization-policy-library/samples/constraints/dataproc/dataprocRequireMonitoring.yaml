@@ -1,0 +1,10 @@
+name: organizations/11111111/customConstraints/custom.dataprocRequireMonitoring
+resource_types:
+- dataproc.googleapis.com/Cluster
+condition: 1 == 0
+action_type: DENY
+method_types:
+- CREATE
+- UPDATE
+display_name: Enable Cloud Monitoring Agent for Dataproc
+description: Enforce that the Dataproc cluster is configured with Cloud Monitoring Agent enabled

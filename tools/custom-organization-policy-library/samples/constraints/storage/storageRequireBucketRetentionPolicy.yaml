@@ -1,0 +1,10 @@
+name: organizations/11111111/customConstraints/custom.storageRequireBucketRetentionPolicy
+resource_types:
+- storage.googleapis.com/Bucket
+condition: 1 == 0
+action_type: DENY
+method_types:
+- CREATE
+- UPDATE
+display_name: Require rentention policy
+description: Enforce Cloud Storage bucket retention policy to be configured

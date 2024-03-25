@@ -1,0 +1,9 @@
+name: organizations/11111111/customConstraints/custom.firewallRestrictOpenWorldRule
+resource_types:
+- compute.googleapis.com/Firewall
+condition: 1 == 0
+action_type: DENY
+method_types:
+- CREATE
+display_name: Restrict VPC Firewall rule creation that are open to the world
+description: Prevent the creation of VPC firewall rule with source or destination any IP address (0.0.0.0/0)

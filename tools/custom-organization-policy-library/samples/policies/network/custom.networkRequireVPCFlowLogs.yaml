@@ -1,0 +1,4 @@
+name: organizations/11111111/policies/custom.networkRequireVPCFlowLogs
+spec:
+  rules:
+    - enforce: true

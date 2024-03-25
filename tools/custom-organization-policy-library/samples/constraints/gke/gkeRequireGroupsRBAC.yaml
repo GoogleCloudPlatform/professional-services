@@ -1,0 +1,11 @@
+name: organizations/11111111/customConstraints/custom.gkeRequireGroupsRBAC
+resource_types:
+- container.googleapis.com/Cluster
+- container.googleapis.com/NodePool
+condition: 1 == 0
+action_type: DENY
+method_types:
+- CREATE
+- UPDATE
+display_name: Enable Google Groups usage with RBAC
+description: Enforce that GKE is configured so Google Groups can be used with RBAC

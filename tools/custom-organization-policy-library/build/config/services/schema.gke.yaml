@@ -1,0 +1,209 @@
+#@ load("@ytt:overlay", "overlay")
+#@data/values-schema
+---
+#@overlay/match missing_ok=True
+gke:
+  gkeAllowedAddons:
+    #@schema/validation one_of=["default", "skip", "include"]
+    generation: "default"
+    bundles:
+      pci-dss: false
+      cis: true
+  gkeAllowedGKEVersions:
+    #@schema/validation one_of=["default", "skip", "include"]
+    generation: "default"
+    bundles:
+      pci-dss: false
+      cis: true
+  gkeRequireConfidentialNodes:
+    #@schema/validation one_of=["default", "skip", "include"]
+    generation: "default"
+    bundles:
+      pci-dss: false
+      cis: true
+  gkeRequireDataplaneV2:
+    #@schema/validation one_of=["default", "skip", "include"]
+    generation: "default"
+    bundles:
+      pci-dss: false
+      cis: true
+  gkeRequireRegionalClusters:
+    #@schema/validation one_of=["default", "skip", "include"]
+    generation: "default"
+    bundles:
+      pci-dss: false
+      cis: true
+  gkeRequireBinaryAuthorization:
+    #@schema/validation one_of=["default", "skip", "include"]
+    generation: "default"
+    bundles:
+      pci-dss: true
+      cis: true
+  gkeDisableNodePoolDefaultServiceAccount:
+    #@schema/validation one_of=["default", "skip", "include"]
+    generation: "default"
+    bundles:
+      pci-dss: true
+      cis: true
+  gkeRequireWorkloadIdentity:
+    #@schema/validation one_of=["default", "skip", "include"]
+    generation: "default"
+    bundles:
+      pci-dss: false
+      cis: true
+  gkeRequireDatabaseEncryption:
+    #@schema/validation one_of=["default", "skip", "include"]
+    generation: "default"
+    bundles:
+      pci-dss: true
+      cis: true
+  gkeDisableLegacyMetadataEndpoints:
+    #@schema/validation one_of=["default", "skip", "include"]
+    generation: "default"
+    bundles:
+      pci-dss: false
+      cis: true
+  gkeRequireGKEMetadataServer:
+    #@schema/validation one_of=["default", "skip", "include"]
+    generation: "default"
+    bundles:
+      pci-dss: false
+      cis: true
+  gkeAllowedNodePoolImages:
+    #@schema/validation one_of=["default", "skip", "include"]
+    generation: "default"
+    bundles:
+      pci-dss: false
+      cis: true
+  gkeRequireNodePoolAutoRepair:
+    #@schema/validation one_of=["default", "skip", "include"]
+    generation: "default"
+    bundles:
+      pci-dss: true
+      cis: true
+  gkeRequireNodePoolAutoUpgrade:
+    #@schema/validation one_of=["default", "skip", "include"]
+    generation: "default"
+    bundles:
+      pci-dss: true
+      cis: true
+  gkeAllowedReleaseChannels:
+    #@schema/validation one_of=["default", "skip", "include"]
+    generation: "default"
+    bundles:
+      pci-dss: false
+      cis: true
+  gkeRequireShieldedNodes:
+    #@schema/validation one_of=["default", "skip", "include"]
+    generation: "default"
+    bundles:
+      pci-dss: false
+      cis: true
+  gkeRequireIntegrityMonitoring:
+    #@schema/validation one_of=["default", "skip", "include"]
+    generation: "default"
+    bundles:
+      pci-dss: false
+      cis: true
+  gkeRequireSecureBoot:
+    #@schema/validation one_of=["default", "skip", "include"]
+    generation: "default"
+    bundles:
+      pci-dss: false
+      cis: true
+  gkeRequireIntraNodeVisibility:
+    #@schema/validation one_of=["default", "skip", "include"]
+    generation: "default"
+    bundles:
+      pci-dss: true
+      cis: true
+  gkeRequireVPCNativeCluster:
+    #@schema/validation one_of=["default", "skip", "include"]
+    generation: "default"
+    bundles:
+      pci-dss: true
+      cis: true
+  gkeRequireMasterAuthorizedNetworks:
+    #@schema/validation one_of=["default", "skip", "include"]
+    generation: "default"
+    bundles:
+      pci-dss: true
+      cis: true
+  gkeRequirePrivateEndpoint:
+    #@schema/validation one_of=["default", "skip", "include"]
+    generation: "default"
+    bundles:
+      pci-dss: true
+      cis: true
+  gkeRequirePrivateNodes:
+    #@schema/validation one_of=["default", "skip", "include"]
+    generation: "default"
+    bundles:
+      pci-dss: true
+      cis: true
+  gkeRequireNetworkPolicy:
+    #@schema/validation one_of=["default", "skip", "include"]
+    generation: "default"
+    bundles:
+      pci-dss: true
+      cis: true
+  gkeRequireLogging:
+    #@schema/validation one_of=["default", "skip", "include"]
+    generation: "default"
+    bundles:
+      pci-dss: true
+      cis: true
+  gkeRequireMonitoring:
+    #@schema/validation one_of=["default", "skip", "include"]
+    generation: "default"
+    bundles:
+      pci-dss: true
+      cis: true
+  gkeDisableClientCertificateAuthentication:
+    #@schema/validation one_of=["default", "skip", "include"]
+    generation: "default"
+    bundles:
+      pci-dss: true
+      cis: true
+  gkeRequireGroupsRBAC:
+    #@schema/validation one_of=["default", "skip", "include"]
+    generation: "default"
+    bundles:
+      pci-dss: true
+      cis: true
+  gkeDisableLegacyAbac:
+    #@schema/validation one_of=["default", "skip", "include"]
+    generation: "default"
+    bundles:
+      pci-dss: true
+      cis: true
+  gkeDisableKubernetesDashboard:
+    #@schema/validation one_of=["default", "skip", "include"]
+    generation: "default"
+    bundles:
+      pci-dss: true
+      cis: true
+  gkeDisableAlphaCluster:
+    #@schema/validation one_of=["default", "skip", "include"]
+    generation: "default"
+    bundles:
+      pci-dss: false
+      cis: true
+  gkeRequireNodePoolSandbox:
+    #@schema/validation one_of=["default", "skip", "include"]
+    generation: "default"
+    bundles:
+      pci-dss: true
+      cis: true
+  gkeRequireNodePoolCMEKEncryption:
+    #@schema/validation one_of=["default", "skip", "include"]
+    generation: "default"
+    bundles:
+      pci-dss: false
+      cis: true
+  gkeRequireCOSImage:
+    #@schema/validation one_of=["default", "skip", "include"]
+    generation: "default"
+    bundles:
+      pci-dss: true
+      cis: false

@@ -6,18 +6,24 @@ firewall:
   firewallEnforceNamingConvention:
     #@schema/validation one_of=["default", "skip", "include"]
     generation: "default"
-    params:
-      #@schema/validation min_len=1
-      regex: '^(allow|deny)-(ingress|egress)-[a-zA-Z0-9-]*-(dev|uat|prd)$'
     bundles:
       pci-dss: false
       cis: false
   firewallRestrictRule:
     #@schema/validation one_of=["default", "skip", "include"]
     generation: "default"
-    params:
-      #@schema/validation min_len=1
-      regex: '^(allow|deny)-(ingress|egress)-[a-zA-Z0-9-]*-(dev|uat|prd)$'
+    bundles:
+      pci-dss: false
+      cis: false
+  firewallRestrictOpenWorldRule:
+    #@schema/validation one_of=["default", "skip", "include"]
+    generation: "default"
+    bundles:
+      pci-dss: false
+      cis: false
+  firewallRequireDescription:
+    #@schema/validation one_of=["default", "skip", "include"]
+    generation: "default"
     bundles:
       pci-dss: false
       cis: false

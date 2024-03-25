@@ -1,7 +1,7 @@
 load("@ytt:data", "data")
 load("@ytt:struct", "struct")
 
-services = ["compute", "firewall"] #, "gke", "network", "storage" , "dataproc"]
+services = ["compute", "firewall", "gke", "network", "storage" , "dataproc"]
 
 # Retrieve the service associated with the constraint
 # computeAllowedInstanceLabels -> compute

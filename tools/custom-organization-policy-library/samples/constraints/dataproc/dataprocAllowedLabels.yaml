@@ -1,0 +1,10 @@
+name: organizations/11111111/customConstraints/custom.dataprocAllowedLabels
+resource_types:
+- dataproc.googleapis.com/Cluster
+condition: 1 == 0
+action_type: DENY
+method_types:
+- CREATE
+- UPDATE
+display_name: Allow only specific labels for Dataproc
+description: Prevent the creation of Dataproc cluster not having the labels that are expected

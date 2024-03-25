@@ -1,0 +1,16 @@
+#@ load("/constraints.lib.star", "build_constraint")
+#@ constraint = build_constraint("gkeRequireGKEMetadataServer")
+
+#@ if constraint.to_generate():
+name: #@ constraint.constraint_name()
+resource_types: 
+- container.googleapis.com/Cluster
+- container.googleapis.com/NodePool 
+condition: 1 == 0
+action_type: DENY
+method_types: 
+- CREATE
+- UPDATE 
+display_name: Require GKE metadata server
+description:  Enforce that GKE clusters are configured with GKE metadata server enabled
+#@ end

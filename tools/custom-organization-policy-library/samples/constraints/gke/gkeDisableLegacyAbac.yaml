@@ -1,0 +1,11 @@
+name: organizations/11111111/customConstraints/custom.gkeDisableLegacyAbac
+resource_types:
+- container.googleapis.com/Cluster
+- container.googleapis.com/NodePool
+condition: 1 == 0
+action_type: DENY
+method_types:
+- CREATE
+- UPDATE
+display_name: Disable legacy ABAC
+description: Enforce that GKE clusters is configured with no legacy ABAC enabled

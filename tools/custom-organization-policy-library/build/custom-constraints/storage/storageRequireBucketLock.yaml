@@ -1,0 +1,15 @@
+#@ load("/constraints.lib.star", "build_constraint")
+#@ constraint = build_constraint("storageRequireBucketLock")
+
+#@ if constraint.to_generate():
+name: #@ constraint.constraint_name()
+resource_types: 
+- storage.googleapis.com/Bucket 
+condition: 1 == 0
+action_type: DENY
+method_types: 
+- CREATE
+- UPDATE 
+display_name: Require bucket lock 
+description:  Enforce Cloud Storage bucket lock to be configured
+#@ end

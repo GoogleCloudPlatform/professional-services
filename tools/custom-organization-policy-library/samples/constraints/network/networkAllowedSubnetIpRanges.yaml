@@ -1,0 +1,11 @@
+name: organizations/11111111/customConstraints/custom.networkAllowedSubnetIpRanges
+resource_types:
+- container.googleapis.com/Cluster
+- container.googleapis.com/NodePool
+condition: 1 == 0
+action_type: DENY
+method_types:
+- CREATE
+- UPDATE
+display_name: Allow only specific subnet IP ranges
+description: Enforce that the subnets configured at part of a specific subnet IP ranges

@@ -1,0 +1,11 @@
+name: organizations/11111111/customConstraints/custom.gkeRequireMasterAuthorizedNetworks
+resource_types:
+- container.googleapis.com/Cluster
+- container.googleapis.com/NodePool
+condition: 1 == 0
+action_type: DENY
+method_types:
+- CREATE
+- UPDATE
+display_name: Require master authorized network with authorized CIDR IP ranges
+description: Enforce that GKE clusters restrict network access to the control planes by configuring master authorized networks with authorized CIDR IP ranges

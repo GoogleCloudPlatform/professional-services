@@ -1,0 +1,41 @@
+#@ load("@ytt:overlay", "overlay")
+#@data/values-schema
+---
+#@overlay/match missing_ok=True
+storage:
+  storageRequireBucketCmekEncryption:
+    #@schema/validation one_of=["default", "skip", "include"]
+    generation: "default"
+    bundles:
+      pci-dss: false
+      cis: false
+  storageRequireBucketObjectVersionning:
+    #@schema/validation one_of=["default", "skip", "include"]
+    generation: "default"
+    bundles:
+      pci-dss: false
+      cis: false
+  storageRequireBucketRetentionPolicy:
+    #@schema/validation one_of=["default", "skip", "include"]
+    generation: "default"
+    bundles:
+      pci-dss: false
+      cis: false
+  storageRequireBucketLock:
+    #@schema/validation one_of=["default", "skip", "include"]
+    generation: "default"
+    bundles:
+      pci-dss: false
+      cis: false
+  storageAllowedBucketLabels:
+    #@schema/validation one_of=["default", "skip", "include"]
+    generation: "default"
+    bundles:
+      pci-dss: false
+      cis: false
+  storageBucketEnforceNamingConvention:
+    #@schema/validation one_of=["default", "skip", "include"]
+    generation: "default"
+    bundles:
+      pci-dss: false
+      cis: false

@@ -1,0 +1,47 @@
+#@ load("@ytt:overlay", "overlay")
+#@data/values-schema
+---
+#@overlay/match missing_ok=True
+network:
+  networkRequireInternalIpv6Ranges:
+    #@schema/validation one_of=["default", "skip", "include"]
+    generation: "default"
+    bundles:
+      pci-dss: false
+      cis: false
+  networkAllowedSubnetIpRanges:
+    #@schema/validation one_of=["default", "skip", "include"]
+    generation: "default"
+    bundles:
+      pci-dss: false
+      cis: false
+  networkEnforceNamingConvention:
+    #@schema/validation one_of=["default", "skip", "include"]
+    generation: "default"
+    bundles:
+      pci-dss: false
+      cis: false
+  networkRequireCustomModeVpc:
+    #@schema/validation one_of=["default", "skip", "include"]
+    generation: "default"
+    bundles:
+      pci-dss: false
+      cis: true
+  networkRequireVPCFlowLogs:
+    #@schema/validation one_of=["default", "skip", "include"]
+    generation: "default"
+    bundles:
+      pci-dss: false
+      cis: true
+  networkRequireSubnetPrivateGoogleAccess:
+    #@schema/validation one_of=["default", "skip", "include"]
+    generation: "default"
+    bundles:
+      pci-dss: false
+      cis: false
+  networkRequireVpcGlobalRoutingMode:
+    #@schema/validation one_of=["default", "skip", "include"]
+    generation: "default"
+    bundles:
+      pci-dss: false
+      cis: false

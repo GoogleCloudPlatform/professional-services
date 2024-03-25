@@ -63,3 +63,5 @@ tools/ipam-autopilot/infrastructure/.terraform.lock.hcl
 tools/ipam-autopilot/container/.vscode/launch.json
 tools/ipam-autopilot/examples/.terraform.lock.hcl
 tools/bq-visualizer/.angular
+tools/custom-organization-policy-library/scripts/catalog/
+tools/custom-organization-policy-library/scripts/output/
