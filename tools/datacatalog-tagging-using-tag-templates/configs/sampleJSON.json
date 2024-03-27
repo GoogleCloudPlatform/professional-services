@@ -1,0 +1,49 @@
+[
+    {
+      "projectname": "test-datahub",
+      "datasetname": "dataset1",
+      "tablename": "",
+      "tagtemplate": "bq_table_template",
+      "level": "table",
+      "tag": [
+        {"key": "Attribute_Name", "value": ""},
+        {"key": "Physical_Data_Cloud_Table_Name", "value": ""},
+        {"key": "Physical_Data_Cloud_Column_Name", "value": ""},
+        {"key": "Description", "value": ""},
+        {"key": "Source_System", "value": ""},
+        {"key": "Target_System", "value": ""},
+        {"key": "Interface_Name", "value": ""},
+        {"key": "Contract_ID", "value": ""},
+        {"key": "Mandatory_for_Source", "value": ""},
+        {"key": "Mandatory_for_Target_System", "value": ""},
+        {"key": "Technical_Requirement", "value": ""},
+        {"key": "Business_Process_Requirement", "value": ""},
+        {"key": "Business_Justification", "value": ""},
+        {"key": "Global__or_Local", "value": ""}
+        ]
+    },
+    {
+        "projectname": "test-datahub",
+        "datasetname": "dataset1",
+        "tablename": "",
+        "tagtemplate": "bq_table_template",
+        "level": "table",
+        "tag": [
+          {"key": "Attribute_Name", "value": ""},
+          {"key": "Physical_Data_Cloud_Table_Name", "value": ""},
+          {"key": "Physical_Data_Cloud_Column_Name", "value": ""},
+          {"key": "Description", "value": ""},
+          {"key": "Source_System", "value": ""},
+          {"key": "Target_System", "value": ""},
+          {"key": "Interface_Name", "value": ""},
+          {"key": "Contract_ID", "value": ""},
+          {"key": "Mandatory_for_Source", "value": ""},
+          {"key": "Mandatory_for_Target_System", "value": ""},
+          {"key": "Technical_Requirement", "value": ""},
+          {"key": "Business_Process_Requirement", "value": ""},
+          {"key": "Business_Justification", "value": ""},
+          {"key": "Global__or_Local", "value": ""}
+          ]
+      }
+ ]
+ 
