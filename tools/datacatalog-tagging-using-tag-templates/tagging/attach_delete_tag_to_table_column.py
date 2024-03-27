@@ -22,6 +22,16 @@ import sys
 import tag_util
 from google.cloud import datacatalog_v1
 import google.cloud as bigquery
+from google.api_core import exceptions
+
+class CustomError(Exception):
+    """custom exception"""
+    # Constructor or Initializer
+    def __init__(self, value):
+        self.value = value
+    # __str__ is to print() the value
+    def __str__(self):
+        return repr(self.value)
 
 
 class COLUMNTAGS:
@@ -167,10 +177,9 @@ def delete_tag(config_table):
                                 AND activeflag is true and mode='DELETE'"""
                 query_job = client.query(update_query)
                 query_job.result()
-    except Exception as exception:
-        print(
-            f"Exception Name: {type(exception).__name__} Exception Message: {exception}"
-        )
+    except (exceptions.BadRequest,exceptions.PermissionDenied,exceptions.NotFound) as exception:
+        print(f"A {type(exception).__name__} has occurred.")
+        print(f"Caught  error: {repr(exception)}")
 
 
 def attach_config(config_table):
@@ -243,10 +252,9 @@ def attach_config(config_table):
                         tag_str[1:],
                     )
                 )
-    except Exception as exception:
-        print(
-            f"Exception Name: {type(exception).__name__} Exception Message: {exception}"
-        )
+    except (exceptions.BadRequest,exceptions.PermissionDenied,exceptions.NotFound) as exception:
+        print(f"A {type(exception).__name__} has occurred.")
+        print(f"Caught  error: {repr(exception)}")
     return specificcolumn1, allcolumn1, tbllist1
 
 
@@ -445,10 +453,10 @@ def execute_tagger(search, level, search_projects, tag_template, tag_fields, tag
         )
         exit_code = process.wait()
         if exit_code != 0:
-            raise Exception("Failed to call tagger script.")
+            raise CustomError("Failed to call tagger script.")
         return process.communicate()
-    except Exception as exception:
-        print(exception)
+    except CustomError as error:
+        print(error.value)
         stderr = process.communicate()
         print(stderr.decode("utf-8"))
         sys.exit(1)
@@ -475,10 +483,10 @@ def execute_tagger_specific(
         )
         exit_code = process.wait()
         if exit_code != 0:
-            raise Exception("Failed to call tagger script.")
+            raise CustomError("Failed to call tagger script.")
         return process.communicate()
-    except Exception as exception:
-        print(exception)
+    except CustomError as error:
+        print(error.value)
         stderr = process.communicate()
         print(stderr.decode("utf-8"))
         sys.exit(1)

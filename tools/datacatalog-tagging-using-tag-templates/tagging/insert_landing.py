@@ -21,6 +21,7 @@ import hashlib
 import time
 import random
 from google.cloud import bigquery
+from google.api_core import exceptions
 
 
 # Create a global declared BigQuery client
@@ -91,19 +92,20 @@ def truncate_landing():
     return "success"
 
 
-if __name__ == "__main__":
-    TRUNC = truncate_landing()
-    print("Truncate landing done : " + str(TRUNC))
+if __name__ == '__main__':
     MAX_TRIES = 5
     DELAY = 10
     BACKOFF = 2
     for i in range(MAX_TRIES):
         try:
+            TRUNC = truncate_landing()
+            print("Truncate landing done : " + str(TRUNC))
             RESULT = insert_landing()
             print("insert into landing done : " + str(RESULT))
             break  # Success, exit the loop
-        except Exception as e:
-            print(f"Caught error: {repr(e)}")
+        except (exceptions.BadRequest,exceptions.PermissionDenied,exceptions.NotFound) as e:
+            print(f"A {type(e).__name__} has occurred.")
+            print(f"Caught  error: {repr(e)}")
             if i == MAX_TRIES - 1:
                 raise  # Re-raise the exception if MAX_TRIES reached
             DELAY_TIME = DELAY * BACKOFF

@@ -20,10 +20,10 @@ import re
 import sys
 import multiprocessing
 from google.cloud import datacatalog_v1
+from google.cloud import bigquery
+from google.api_core import exceptions
 
 datacatalog = datacatalog_v1.DataCatalogClient()
-from google.cloud import bigquery
-
 client = datacatalog_v1.DataCatalogClient()
 
 
@@ -97,10 +97,9 @@ def tag_entries(
 
     try:
         tag_template = client1.get_tag_template(request)
-    except Exception as exception:
-        print(
-            f"Exception Name: {type(exception).__name__} Exception Message: {exception}"
-        )
+    except (exceptions.BadRequest,exceptions.PermissionDenied,exceptions.NotFound) as exception:
+        print(f"A {type(exception).__name__} has occurred.")
+        print(f"Caught  error: {repr(exception)}")
         return exception
     for field_id, field_value in tag_template.fields.items():
         created_tags.update({field_id: field_value.type_.primitive_type})
@@ -113,7 +112,7 @@ def tag_entries(
     for tags in tags_list:
         field_id = tags.split("=")[0].strip().lower()
         field_value = tags.split("=")[1].strip()
-        if field_id in created_tags.keys():
+        if field_id in created_tags:
             if (
                 created_tags[field_id]
                 == datacatalog_v1.types.FieldType.PrimitiveType.PRIMITIVE_TYPE_UNSPECIFIED
@@ -169,10 +168,9 @@ def tag_entries(
                 request = datacatalog_v1.CreateTagRequest(parent=entry, tag=tag)
                 tag = client1.create_tag(request=request)
                 print(f"Created tag : {tag_template_id} for {level} {linked_resource}")
-    except Exception as exception:
-        print(
-            f"Exception Name: {type(exception).__name__} Exception Message: {exception}"
-        )
+    except (exceptions.BadRequest,exceptions.PermissionDenied,exceptions.NotFound) as exception:
+        print(f"A {type(exception).__name__} has occurred.")
+        print(f"Caught  error: {repr(exception)}")
 
 
 if __name__ == "__main__":
