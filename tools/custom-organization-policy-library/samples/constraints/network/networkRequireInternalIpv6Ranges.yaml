@@ -1,11 +1,9 @@
 name: organizations/11111111/customConstraints/custom.networkRequireInternalIpv6Ranges
 resource_types:
-- container.googleapis.com/Cluster
-- container.googleapis.com/NodePool
-condition: 1 == 0
+- compute.googleapis.com/Network
+condition: resource.internalIpv6Range.contains ('Enabled') == false
 action_type: DENY
 method_types:
 - CREATE
-- UPDATE
 display_name: Require internal IPv6 ranges on VPC
 description: Enforce that a VPC is configured to have an internal IPv6 range
