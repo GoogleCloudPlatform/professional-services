@@ -4,13 +4,11 @@
 #@ if constraint.to_generate():
 name: #@ constraint.constraint_name()
 resource_types: 
-- container.googleapis.com/Cluster
-- container.googleapis.com/NodePool 
-condition: 1 == 0
+- compute.googleapis.com/Network 
+condition: resource.routingConfig.routingMode.contains ('Global') == false
 action_type: DENY
 method_types: 
 - CREATE
-- UPDATE 
 display_name: Require VPC with global routing mode
 description:  Enforce that a VPC is configured in global routing mode
 #@ end
