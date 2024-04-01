@@ -1,8 +1,7 @@
 name: organizations/11111111/customConstraints/custom.networkRequireCustomModeVpc
 resource_types:
-- container.googleapis.com/Cluster
-- container.googleapis.com/NodePool
-condition: 1 == 0
+- compute.googleapis.com/Network
+condition: resource.autoCreateSubnetworks == true
 action_type: DENY
 method_types:
 - CREATE
