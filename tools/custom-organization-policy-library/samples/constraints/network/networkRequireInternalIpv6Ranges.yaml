@@ -1,7 +1,7 @@
 name: organizations/11111111/customConstraints/custom.networkRequireInternalIpv6Ranges
 resource_types:
 - compute.googleapis.com/Network
-condition: resource.internalIpv6Range.contains ('Enabled') == false
+condition: resource.enableUlaInternalIpv6 == false
 action_type: DENY
 method_types:
 - CREATE
