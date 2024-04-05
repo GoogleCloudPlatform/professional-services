@@ -4,3 +4,9 @@ organization: '11111111'
 bundles:
   pci-dss: false
   cis: false
+compute:
+  computeAllowedInstanceLabels:
+    params:
+      labels:
+      - "label1"
+      - "label2"
