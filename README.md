@@ -330,6 +330,8 @@ Platform usage.
     application which provides the ability to train and deploy ML models on
     Google Cloud Machine Learning Engine, and visualize the predicted results
     using LIME through simple post request.
+*   [Airflow DAG AI Documenter](tools/airflow-dag-ai-documenter) - Use Google's
+    generative models to analyze Airflow DAGs and supplement them with generated `doc_md` values.      
 *   [Airflow States Collector](tools/airflow-states-collector) -
       A tool that creates and uploads an airflow dag to the dags GCS folder. The dag incrementally collect airflow task states and stores to BQ. It also autogenerates a LookerStudio dashboard querying the BQ view. 
 *   [Airpiler](tools/airpiler) - A python script to convert Autosys JIL files to
