@@ -49,5 +49,5 @@ fi
 echo "Source path: $SRC_PATH"
 echo "Target path: $TGT_PATH"
 
-python3 scripts/airflow_dag_documenter.py --src="$SRC_PATH" --tgt="$TGT_PATH"
+python3 scripts/generate_docs.py --src="$SRC_PATH" --tgt="$TGT_PATH"
 black "$TGT_PATH" --preview
