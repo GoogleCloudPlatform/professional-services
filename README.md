@@ -330,7 +330,7 @@ Platform usage.
     application which provides the ability to train and deploy ML models on
     Google Cloud Machine Learning Engine, and visualize the predicted results
     using LIME through simple post request.
-*   [Airflow DAG AI Documenter](tools/airflow-dag-ai-documenter) - Use Google's
+*   [Airflow DAG Metadata Generator](tools/airflow-dag-metadata-generator) - Use Google's
     generative models to analyze Airflow DAGs and supplement them with generated `description`,
     `tags`, and `doc_md` values.      
 *   [Airflow States Collector](tools/airflow-states-collector) -
