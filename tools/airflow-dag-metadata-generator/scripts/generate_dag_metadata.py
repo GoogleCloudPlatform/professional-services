@@ -29,6 +29,7 @@ from vertexai.generative_models import (
 logging.basicConfig(level=logging.INFO)
 BASE_PROMPT = "You're a Senior Data Engineer and an Apache Airflow expert."
 
+
 def generate_tags(description: str):
     """
     Use Google Gemini Pro model to generate airflow tags list.
@@ -38,12 +39,12 @@ def generate_tags(description: str):
 
     response = model.generate_content(
         [
-            f"{BASE_PROMPT} I will give you an Airflow DAG Description. Your task is to create a list of tags that categorize the DAG. The list must have at least 3 tags and you must respond in the following format: ['','','']", #pylint:
+            f"{BASE_PROMPT} I will give you an Airflow DAG Description. Your task is to create a list of tags that categorize the DAG. The list must have at least 3 tags and you must respond in the following format: ['','','']",  # pylint: disable=line-too-long
             description,
         ]
     )
     if len(response.candidates[0].content.parts) > 0:
-        list_start_index = response.text.find('[')
+        list_start_index = response.text.find("[")
         tags = response.text[list_start_index:]
         print(tags)
 
@@ -51,8 +52,8 @@ def generate_tags(description: str):
 
         logging.info(str(tags))
         return tags
-    else:
-        return ""
+    return ""
+
 
 def generate_desc(file_contents: str):
     """
@@ -63,7 +64,7 @@ def generate_desc(file_contents: str):
 
     response = model.generate_content(
         [
-            f"{BASE_PROMPT} Generate a single sentence description for this Airflow DAG:", #pylint:
+            f"{BASE_PROMPT} Generate a single sentence description for this Airflow DAG:",
             file_contents,
         ]
     )
@@ -71,8 +72,9 @@ def generate_desc(file_contents: str):
     if len(response.candidates[0].content.parts) > 0:
         logging.info(response.text)
         return response.text
-    else:
-        return ""
+
+    return ""
+
 
 def generate_docs(file_contents: str):
     """
@@ -83,13 +85,12 @@ def generate_docs(file_contents: str):
 
     response = model.generate_content(
         [
-            f"{BASE_PROMPT} Create a detailed markdown description of the following Airflow DAG and what it does:", #pylint:
+            f"{BASE_PROMPT} Create a detailed markdown description of the following Airflow DAG and what it does:",  # pylint: disable=line-too-long
             file_contents,
         ]
     )
 
     if len(response.candidates[0].content.parts) > 0:
-
 
         docs = """
 {doc}
@@ -104,12 +105,12 @@ def generate_docs(file_contents: str):
         )
         docs = docs.replace("{", "")
         docs = docs.replace("}", "")
-        
-        return docs
-    else:
-        return ""
 
-def generate_dag_metadata(src_dir, tgt_dir):
+        return docs
+    return ""
+
+
+def generate_dag_metadata(src_dir, tgt_dir): #pylint: disable=too-many-locals
     """
     Loop though a DAG folder. Supplement DAGs with Generative AI for doc_md, tags, and description
     attributes. Will only supplement if DAG does not have existing values. Write supplemented
@@ -118,7 +119,7 @@ def generate_dag_metadata(src_dir, tgt_dir):
 
     for file in os.listdir(src_dir):  # pylint: disable=too-many-nested-blocks
         if ".py" in file:
-            
+
             file_path = src_dir + file
             logging.info("Generating metadata for: %s", file_path)
             file_contents = open(file_path).read()
@@ -126,7 +127,6 @@ def generate_dag_metadata(src_dir, tgt_dir):
             docs = generate_docs(file_contents)
             desc = generate_desc(file_contents)
             tags = generate_tags(desc)
-            
 
             tree = ast.parse(open(file_path).read())
 
@@ -137,7 +137,7 @@ def generate_dag_metadata(src_dir, tgt_dir):
                     ) or (isinstance(node.func, ast.Name) and node.func.id == "DAG"):
                         doc_found = False
                         tag_found = False
-                        desc_found = False 
+                        desc_found = False
 
                         for keyword in node.keywords:
                             if keyword.arg == "doc_md":
