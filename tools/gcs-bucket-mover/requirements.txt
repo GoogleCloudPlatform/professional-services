@@ -75,7 +75,7 @@ httplib2==0.20.4
     #   google-api-python-client
     #   google-auth-httplib2
     #   oauth2client
-idna==2.10
+idna==3.7
     # via requests
 ipaddress==1.0.23
     # via faker
