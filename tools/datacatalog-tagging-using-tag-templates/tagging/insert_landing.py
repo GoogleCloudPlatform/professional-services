@@ -1,5 +1,5 @@
 """
-Copyright 2023 Google LLC
+Copyright 2024 Google LLC
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@ Copyright 2023 Google LLC
    limitations under the License.
 
 """
-
+import argparse
 import json
 from datetime import datetime
 import hashlib
@@ -25,7 +25,7 @@ from google.api_core import exceptions
 
 
 # Create a global declared BigQuery client
-client = bigquery.Client()
+BQ_CLIENT = bigquery.Client()
 
 
 def generate_hash(row):
@@ -49,16 +49,15 @@ def generate_hash(row):
     return hashlib.md5(concatenated_string.encode()).hexdigest()
 
 
-def insert_landing():
-    """Specify BigQuery project ID, dataset ID, and table ID"""
-    dataset_id = "test1"
-    table_id = "Enterprise_Data_Catalog_Master_Landing"
-
+def insert_landing(dataset_id,table_id):
+    """
+    insert landing table
+    """
     # Load schema from BigQuery table (ensures correct mapping)
-    table_ref = client.dataset(dataset_id).table(table_id)
-    table = client.get_table(table_ref)
+    table_ref = BQ_CLIENT.dataset(dataset_id).table(table_id)
+    table = BQ_CLIENT.get_table(table_ref)
     # Load data from JSON file
-    with open("data1.json", "r", encoding="utf-8") as f:
+    with open("data1.json", "r", encoding="utf-8") as f:  # input the JSON file here
         data = json.load(f)
     if len(data) == 0:
         return "no data"
@@ -71,7 +70,7 @@ def insert_landing():
         row["id"] = md5_hash
 
     # Insert rows into BigQuery table
-    errors = client.insert_rows_json(table, data)
+    errors = BQ_CLIENT.insert_rows_json(table, data)
 
     if errors == []:
         print("New rows have been added.")
@@ -80,27 +79,39 @@ def insert_landing():
     return "success"
 
 
-def truncate_landing():
-    """Construct a BigQuery client object."""
-    client1 = bigquery.Client()
+def truncate_landing(table):
+    """
+    Truncate landing table
+    """
     # truncate sql
-    query1 = """
-            Truncate table `test-datahub.test1.Enterprise_Data_Catalog_Master_Landing`
+    query1 = f"""
+            Truncate table {table}
             """
-    query_job = client1.query(query1)
+    query_job = BQ_CLIENT.query(query1)
     query_job.result()
     return "success"
 
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description="insert tag details to BQ")
+    parser.add_argument(
+        "--project", dest="project", help="project name", required=True
+    )
+    parser.add_argument(
+        "--dataset", dest="dataset", help="dataset name", required=True
+    )
+    parser.add_argument(
+        "--table", dest="table", help="table name", required=True
+    )
+    args = parser.parse_args()
     MAX_TRIES = 5
     DELAY = 10
     BACKOFF = 2
     for i in range(MAX_TRIES):
         try:
-            TRUNC = truncate_landing()
+            TRUNC = truncate_landing(args.project+'.'+args.dataset+'.'+args.table)
             print("Truncate landing done : " + str(TRUNC))
-            RESULT = insert_landing()
+            RESULT = insert_landing(args.dataset,args.table)
             print("insert into landing done : " + str(RESULT))
             break  # Success, exit the loop
         except (exceptions.BadRequest,exceptions.PermissionDenied,exceptions.NotFound) as e:

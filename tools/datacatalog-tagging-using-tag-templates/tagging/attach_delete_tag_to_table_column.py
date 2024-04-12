@@ -1,5 +1,5 @@
 """
-Copyright 2023 Google LLC
+Copyright 2024 Google LLC
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -15,13 +15,14 @@ Copyright 2023 Google LLC
 
 """
 
+import argparse
 import re
 import subprocess
 from collections import defaultdict
 import sys
 import tag_util
 from google.cloud import datacatalog_v1
-import google.cloud as bigquery
+from google.cloud import bigquery
 from google.api_core import exceptions
 
 class CustomError(Exception):
@@ -29,7 +30,6 @@ class CustomError(Exception):
     # Constructor or Initializer
     def __init__(self, value):
         self.value = value
-    # __str__ is to print() the value
     def __str__(self):
         return repr(self.value)
 
@@ -75,16 +75,15 @@ class TABLETAGS:
 
 def delete_tag(config_table):
     """function for deletion of tags"""
-    # Opening  table
     try:
         catalogclient = datacatalog_v1.DataCatalogClient()
-        client = bigquery.Client()
+        bqclient = bigquery.Client()
         job_config = bigquery.QueryJobConfig(use_query_cache=False)
         query = f"""
                 SELECT id,projectname,datasetname,tablename,columnname,tagtemplate,level,tag
                 FROM {config_table} where upper(mode)="DELETE"
                 """
-        results = client.query(query, job_config=job_config).result()
+        results = bqclient.query(query, job_config=job_config).result()
         if results.total_rows == 0:
             print("No tags to delete")
         else:
@@ -117,9 +116,10 @@ def delete_tag(config_table):
                         )
                         colquery = f"""
                                 SELECT tablename
-                                FROM {config_table} where columnname = '{colname}' and tablename != ''
+                                FROM {config_table} where
+                                columnname = '{colname}' and tablename != ''
                                 """
-                        col_results = client.query(
+                        col_results = bqclient.query(
                             colquery, job_config=job_config
                         ).result()
                         if col_results.total_rows != 0:
@@ -172,10 +172,10 @@ def delete_tag(config_table):
                                         + str(response.column)
                                     )
 
-                update_query = f"""UPDATE `test-datahub.test1.Enterprise_Data_Catalog_Master`
+                update_query = f"""UPDATE {config_table}
                 set tagflag=false,activeflag=false,mode='DELETED' WHERE id = '{id1}'
                                 AND activeflag is true and mode='DELETE'"""
-                query_job = client.query(update_query)
+                query_job = bqclient.query(update_query)
                 query_job.result()
     except (exceptions.BadRequest,exceptions.PermissionDenied,exceptions.NotFound) as exception:
         print(f"A {type(exception).__name__} has occurred.")
@@ -187,15 +187,14 @@ def attach_config(config_table):
     allcolumn1 = []
     tbllist1 = []
     specificcolumn1= []
-    # Opening  table
     try:
-        client = bigquery.Client()
+        bqclient = bigquery.Client()
         job_config = bigquery.QueryJobConfig(use_query_cache=False)
         query = f"""
                 SELECT id,projectname,datasetname,tablename,columnname,tagtemplate,level,tag
                 FROM {config_table} where activeflag is true and tagflag is false
                 """
-        results = client.query(query, job_config=job_config).result()
+        results = bqclient.query(query, job_config=job_config).result()
         if results.total_rows == 0:
             print("Query gave no results , nothing to tag")
         for row in results:
@@ -258,7 +257,7 @@ def attach_config(config_table):
     return specificcolumn1, allcolumn1, tbllist1
 
 
-def attach_column_tags_to_all(tagging_list):
+def attach_column_tags_to_all(tagging_list,mastertable,dataplexprojectid,dataplexprojectregion):
     """
     Use:
         Iterates the Tagging List and  attach a tag to each BigQuery column.
@@ -269,7 +268,7 @@ def attach_column_tags_to_all(tagging_list):
         Returns:
            None; the response from the API is printed to the terminal.
     """
-    client = bigquery.Client()
+    bqclient = bigquery.Client()
     tagged_resources = defaultdict(list)
     for record in tagging_list:
         column = record.column
@@ -282,8 +281,9 @@ def attach_column_tags_to_all(tagging_list):
             search_projects = record.projectname
             tags = record.tag
             print("Tagging for input " + column + " for level " + level)
-            stdout, stderr = execute_tagger(
-                search, level, search_projects, template_name, record.tag_fields, tags
+            stdout, stderr = execute_tag_util(
+                search, level, search_projects, template_name,
+                record.tag_fields, tags , dataplexprojectid, dataplexprojectregion , mastertable
             )
             if len(stderr.decode("utf-8")) != 0:
                 print(stderr.decode("utf-8"))
@@ -309,24 +309,22 @@ def attach_column_tags_to_all(tagging_list):
                         "tagged": True,
                     }
                     tagged_resources[column].append(column_dict)
-                update_query = f"""UPDATE `test-datahub.test1.Enterprise_Data_Catalog_Master`
+                update_query = f"""UPDATE {mastertable}
                 set tagflag=true WHERE id = '{id1}' AND activeflag is true"""
-                # print(update_query)
-                query_job = client.query(update_query)
+                query_job = bqclient.query(update_query)
                 query_job.result()
     return tagged_resources
 
 
-def attach_table_tags(tagging_list):
+def attach_table_tags(tagging_list,mastertable,dataplexprojectid,dataplexprojectregion):
     """function to attach tags to table"""
-    client = bigquery.Client()
+    bqclient = bigquery.Client()
     tagged_resources = defaultdict(list)
 
     for record in tagging_list:
         id1 = record.id
         table = record.projectname + "." + record.datasetname + "." + record.table
         template_name = record.tag_template
-        # search_results=tagger.search_entries(search_projects,search,level,mode)
         if table not in tagged_resources:
             # Steps to tag table
             search = f"{table}"
@@ -334,9 +332,9 @@ def attach_table_tags(tagging_list):
             search_projects = record.projectname
             tags = record.tag
             print("Tagging for input " + table + " for level " + level)
-            # search_results=tagger.search_entries(search_projects,search,level,mode)
-            stdout, stderr = execute_tagger(
-                search, level, search_projects, template_name, record.tag_fields, tags
+            stdout, stderr = execute_tag_util(
+                search, level, search_projects, template_name, record.tag_fields,
+                tags , dataplexprojectid, dataplexprojectregion , mastertable
             )
             if len(stderr.decode("utf-8")) != 0:
                 print(stderr.decode("utf-8"))
@@ -362,18 +360,18 @@ def attach_table_tags(tagging_list):
                         "tagged": True,
                     }
                     tagged_resources[table].append(column_dict)
-                update_query = f"""UPDATE `test-datahub.test1.Enterprise_Data_Catalog_Master`
+                update_query = f"""UPDATE {mastertable}
                 set tagflag=true WHERE id = '{id1}'
                 AND activeflag is true"""
-                query_job = client.query(update_query)
+                query_job = bqclient.query(update_query)
                 query_job.result()
 
     return tagged_resources
 
 
-def attach_column_tags_to_specific(tagging_list):
+def attach_column_tags_to_specific(tagging_list,mastertbl,dataplexprojectid,dataplexprojectregion):
     """function to tag column to specific column"""
-    client = bigquery.Client()
+    bqclient = bigquery.Client()
     tagged_resources = defaultdict(list)
     for record in tagging_list:
         id1 = record.id
@@ -394,7 +392,7 @@ def attach_column_tags_to_specific(tagging_list):
                 + " for table "
                 + table
             )
-            stdout, stderr = execute_tagger_specific(
+            stdout, stderr = execute_tag_util_specific(
                 search,
                 table,
                 level,
@@ -402,6 +400,9 @@ def attach_column_tags_to_specific(tagging_list):
                 template_name,
                 record.tag_fields,
                 tags,
+                dataplexprojectid,
+                dataplexprojectregion,
+                mastertbl
             )
             if len(stderr.decode("utf-8")) != 0:
                 print(stderr.decode("utf-8"))
@@ -427,26 +428,29 @@ def attach_column_tags_to_specific(tagging_list):
                         "tagged": True,
                     }
                     tagged_resources[column].append(column_dict)
-                update_query = f"""UPDATE `test-datahub.test1.Enterprise_Data_Catalog_Master`
-                set tagflag=true WHERE id = '{id1}' 
+                update_query = f"""UPDATE {mastertbl}
+                set tagflag=true WHERE id = '{id1}'
                 AND activeflag is true"""
-                query_job = client.query(update_query)
+                query_job = bqclient.query(update_query)
                 query_job.result()
     return tagged_resources
 
 
-def execute_tagger(search, level, search_projects, tag_template, tag_fields, tags):
+def execute_tag_util(search,level,search_projects,tag_template,tag_fields,
+                    tags,dataplexprojectid,dataplexprojectregion,mastertable):
     """executes tag util"""
     try:
+        str_dataplex = dataplexprojectid+','+dataplexprojectregion+','+ mastertable
         command = [
             "python3",
             "tag_util.py",
+            f"--str_dataplex={str_dataplex}",
             f"--search={search}",
             f"--level={level}",
             f"--search_projects={search_projects}",
             f"--tag_template={tag_template}",
             f"--tag_fields={tag_fields}",
-            f"--tags={tags}",
+            f"--tags={tags}"
         ]
         process = subprocess.Popen(
             command, stdout=subprocess.PIPE, stderr=subprocess.PIPE
@@ -458,25 +462,27 @@ def execute_tagger(search, level, search_projects, tag_template, tag_fields, tag
     except CustomError as error:
         print(error.value)
         stderr = process.communicate()
-        print(stderr.decode("utf-8"))
+        print(stderr)
         sys.exit(1)
 
 
-def execute_tagger_specific(
-    search, table, level, search_projects, tag_template, tag_fields, tags
-):
+def execute_tag_util_specific(
+    search, table, level, search_projects, tag_template, tag_fields,
+    tags,dataplexprojectid,dataplexprojectregion,mastertable):
     """executes tag util"""
     try:
+        str_dataplex = dataplexprojectid+','+dataplexprojectregion+','+ mastertable
         command = [
             "python3",
             "tag_util.py",
+            f"--str_dataplex={str_dataplex}",
             f"--search={search}",
             f"--table={table}",
             f"--level={level}",
             f"--search_projects={search_projects}",
             f"--tag_template={tag_template}",
             f"--tag_fields={tag_fields}",
-            f"--tags={tags}",
+            f"--tags={tags}"
         ]
         process = subprocess.Popen(
             command, stdout=subprocess.PIPE, stderr=subprocess.PIPE
@@ -493,10 +499,32 @@ def execute_tagger_specific(
 
 
 if __name__ == "__main__":
-    TBL = "test-datahub.test1.Enterprise_Data_Catalog_Master"
-    specificColumn, allColumn, tbllist = attach_config(TBL)
-    all_column_tagged_resources = attach_column_tags_to_all(allColumn)
-    table_tagged_resources = attach_table_tags(tbllist)
-    specific_column_tagged_resources = attach_column_tags_to_specific(specificColumn)
-    delete_tag(TBL)
+    parser = argparse.ArgumentParser(description="Attach or delete the tag")
+    parser.add_argument(
+        "--mastertable", dest="mastertable", help="mastertable name", required=True
+    )
+    parser.add_argument(
+        "--dataplexprojectid", dest="dataplexprojectid", help="dataplex project id", required=True
+    )
+    parser.add_argument(
+        "--dataplexprojectregion", dest="dataplexprojectregion", help="dataplex project region",
+        required=True
+    )
+    args = parser.parse_args()
+    specificColumn, allColumn, tbllist = attach_config(args.mastertable)
+    all_column_tagged_resources = attach_column_tags_to_all(
+        allColumn,args.mastertable,
+        args.dataplexprojectid,
+        args.dataplexprojectregion)
+    table_tagged_resources = attach_table_tags(
+        tbllist,
+        args.mastertable,
+        args.dataplexprojectid,
+        args.dataplexprojectregion)
+    specific_column_tagged_resources = attach_column_tags_to_specific(
+        specificColumn,
+        args.mastertable,
+        args.dataplexprojectid,
+        args.dataplexprojectregion)
+    delete_tag(args.mastertable)
     print("done")

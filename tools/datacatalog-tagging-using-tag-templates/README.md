@@ -65,13 +65,25 @@ Tagging utility helps to attach tags to resources such as tables, views & column
 
 1. **insert_landing.py**
 - This is a script used to truncate and load the json file consisting of table and column level tag attributes and values to the landing table of Enterprise Data Catalog master table in bigquery .
+- Test the script in cloud shell using command like below
+  ```python
+  python insert_landing.py --project <projectname> --dataset <datasetname> --table <tablename>
+  ```
 2. **upsert_staging.py**
 - This is a script used to upsert into the staging table of Enterprise Data Catalog master table in bigquery from landing table.
 - Enterprise Data Catalog master table is a SCD2 table with all the historical data along with Latest records
 - This script inserts and updates the records with relevant flags to identify the records either to Tag or delete the tag.
+- Test the script in cloud shell using command like below
+  ```python
+  python upsert_staging.py --landingtable <prjname.datasetname.tablename> --mastertable <prjname.datasetname.tablename>
+  ```
 3. **attach_delete_tag_to_table_column.py** 
 - This is a script used for fetching the tables and columns to be tagged from Enterprise Data Catalog master table in bigquery assigning and deleting the tags based on the flag value. 
 - This script segregates the records fetched from Bigquery master table , assigns the precedence of execution and executes tagger.py to attach and delete the tags
+- Test the script in cloud shell using command like below
+  ```python
+  python attach_delete_tag_to_table_column.py --mastertable <prjname.datasetname.tablename> --dataplexprojectid <prjname> --dataplexprojectregion <region> 
+  ```
 4. **tag_util.py**
 - This is a script used for assigning tags. Resources fetched as results of the provided search string will be tagged using provided tag values from Json. 
 - Deletion process uses this script to search the relevant resource to be deleted.
