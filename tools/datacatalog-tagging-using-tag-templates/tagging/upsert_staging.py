@@ -36,7 +36,7 @@ def upsert_function(landingtable,mastertable):
            and a.activeflag = TRUE) and activeflag = TRUE
            """
     query_job = BQ_CLIENT.query(query1)
-    results = query_job.result()
+    query_job.result()
     # SCD2 - merge
     query2 = f"""
            MERGE {mastertable} target
@@ -74,7 +74,7 @@ def upsert_function(landingtable,mastertable):
            target.UpdateTimestamp = current_timestamp()
            """
     query_job = BQ_CLIENT.query(query2)
-    results = query_job.result()
+    query_job.result()
     # Insert sql
     query3 = f"""
            INSERT INTO {mastertable} (projectname,datasetname,tablename,columnname,level,
