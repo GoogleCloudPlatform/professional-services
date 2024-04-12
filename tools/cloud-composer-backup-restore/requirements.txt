@@ -19,7 +19,7 @@ grpc-google-iam-v1==0.12.3
 grpcio==1.43.0
 grpcio-status==1.43.0
 httplib2==0.20.2
-idna==3.3
+idna==3.7
 isort==5.10.1
 kubernetes==21.7.0
 lazy-object-proxy==1.7.1
