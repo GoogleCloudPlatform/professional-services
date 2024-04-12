@@ -8,7 +8,7 @@ google-cloud-monitoring==2.11.1
 googleapis-common-protos==1.56.4
 grpcio==1.49.1
 grpcio-status==1.49.1
-idna==3.4
+idna==3.7
 numpy==1.23.3
 pandas==1.5.0
 proto-plus==1.22.1
