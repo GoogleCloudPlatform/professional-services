@@ -3,14 +3,13 @@
 
 #@ if constraint.to_generate():
 name: #@ constraint.constraint_name()
-resource_types: 
+resourceTypes:
 - container.googleapis.com/Cluster
-- container.googleapis.com/NodePool 
-condition: 1 == 0
-action_type: DENY
-method_types: 
+methodTypes:
 - CREATE
-- UPDATE 
+- UPDATE
+condition: resource.monitoringService != 'monitoring.googleapis.com/kubernetes'
+actionType: DENY
 display_name: Enable monitoring 
 description:  Enforce that GKE clusters monitoring is enabled
 #@ end
