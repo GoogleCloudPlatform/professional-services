@@ -4,7 +4,7 @@ resourceTypes:
 methodTypes:
 - CREATE
 - UPDATE
-condition: ('disable-legacy-endpoints' in resource.config.metadata && resource.config.metadata['disable-legacy-endpoints']== 'false')
+condition: ('disable-legacy-endpoints' in resource.config.metadata && resource.config.metadata['disable-legacy-endpoints'] == 'false')
 actionType: DENY
 display_name: Disable legacy metadata endpoints
 description: Enforce that GKE clusters are created with legacy metadata endpoints disabled
