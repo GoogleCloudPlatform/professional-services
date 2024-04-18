@@ -128,6 +128,7 @@ them to fit your particular use case.
     using Cloud Composer, GCP's managed Apache Airflow service.
 *   [Cloud Data Fusion Functions and Plugins](examples/cloud-datafusion-functions-plugins) -
     Examples of Cloud Data Fusion Functions and Plugins.
+*   [Cloud DNS load balancing](examples/cloud-dns-load-balancing) - Multi-region HA setup for GCE VMs and Cloud Run based applications utilizing Cloud DNS load balancing and multiple Google Cloud load balancer types.
 *   [Cloud DNS public zone monitoring](examples/cloud-dns-public-zone-dashboard) - Visualizing Cloud DNS public zone query data using log-based metrics and Cloud Monitoring.
 *   [Cloud Function Act As](examples/cloud-function-act-as) - Example of
     executing a Cloud Function on behalf and with IAM permissions of the GitHub
