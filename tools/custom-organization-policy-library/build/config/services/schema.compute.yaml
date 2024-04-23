@@ -17,4 +17,13 @@ compute:
     generation: "default"
     bundles:
       pci-dss: false
-      cis: true
+      cis: false
+  computeRestrictDiskSize:
+    #@schema/validation one_of=["default", "skip", "include"]
+    generation: "default"
+    bundles:
+      pci-dss: false
+      cis: false
+    params:
+      #@schema/validation min=1
+      max_disksize: 0
