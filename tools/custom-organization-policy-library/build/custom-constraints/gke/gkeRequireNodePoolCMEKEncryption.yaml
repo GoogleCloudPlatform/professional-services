@@ -3,14 +3,13 @@
 
 #@ if constraint.to_generate():
 name: #@ constraint.constraint_name()
-resource_types: 
-- container.googleapis.com/Cluster
-- container.googleapis.com/NodePool 
-condition: 1 == 0
-action_type: DENY
-method_types: 
+resourceTypes:
+- container.googleapis.com/NodePool
+methodTypes:
 - CREATE
-- UPDATE 
+- UPDATE
+condition: has(resource.config.bootDiskKmsKey) == false
+actionType: DENY
 display_name: Require NodePool CMEK Encryption
 description:  Enforce that GKE nodes are configured with CMEK Encryption
 #@ end
