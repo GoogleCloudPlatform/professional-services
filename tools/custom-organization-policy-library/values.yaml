@@ -5,6 +5,9 @@ bundles:
   pci-dss: false
   cis: false
 compute:
+  computeRestrictDiskSize:
+    params:
+      max_disksize: 100
   computeAllowedInstanceLabels:
     params:
       labels:

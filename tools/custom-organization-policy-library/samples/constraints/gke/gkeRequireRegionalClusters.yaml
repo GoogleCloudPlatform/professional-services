@@ -1,8 +1,7 @@
 name: organizations/11111111/customConstraints/custom.gkeRequireRegionalClusters
 resource_types:
 - container.googleapis.com/Cluster
-- container.googleapis.com/NodePool
-condition: 1 == 0
+condition: resource.location.matches("^[a-z]+(-[a-z, 1-9]+)$") == false
 action_type: DENY
 method_types:
 - CREATE
