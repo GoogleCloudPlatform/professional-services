@@ -33,6 +33,10 @@ storage:
     bundles:
       pci-dss: false
       cis: false
+    params:
+      #@schema/validation min_len=1
+      labels:
+      - ""
   storageBucketEnforceNamingConvention:
     #@schema/validation one_of=["default", "skip", "include"]
     generation: "default"
