@@ -1,11 +1,10 @@
 name: organizations/11111111/customConstraints/custom.gkeRequireNodePoolCMEKEncryption
-resource_types:
-- container.googleapis.com/Cluster
+resourceTypes:
 - container.googleapis.com/NodePool
-condition: 1 == 0
-action_type: DENY
-method_types:
+methodTypes:
 - CREATE
 - UPDATE
+condition: has(resource.config.bootDiskKmsKey) == false
+actionType: DENY
 display_name: Require NodePool CMEK Encryption
 description: Enforce that GKE nodes are configured with CMEK Encryption
