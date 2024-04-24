@@ -5,7 +5,7 @@
 name: #@ constraint.constraint_name()
 resource_types: 
 - container.googleapis.com/Cluster
-condition: resource.addonsConfig.networkPolicyConfig.disabled == true
+condition: resource.networkConfig.datapathProvider != 'ADVANCED_DATAPATH' && resource.addonsConfig.networkPolicyConfig.disabled == true
 action_type: DENY
 method_types: 
 - CREATE
