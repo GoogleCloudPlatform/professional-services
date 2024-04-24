@@ -8,3 +8,9 @@ compute:
   computeRestrictDiskSize:
     params:
       max_disksize: 100
+  computeAllowedInstanceLabels:
+    params:
+      labels:
+      - "label1"
+      - "label2"
+
