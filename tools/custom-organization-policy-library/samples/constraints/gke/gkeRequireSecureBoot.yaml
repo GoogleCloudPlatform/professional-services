@@ -1,8 +1,7 @@
 name: organizations/11111111/customConstraints/custom.gkeRequireSecureBoot
 resource_types:
-- container.googleapis.com/Cluster
 - container.googleapis.com/NodePool
-condition: 1 == 0
+condition: resource.config.shieldedInstanceConfig.enableSecureBoot == false
 action_type: DENY
 method_types:
 - CREATE

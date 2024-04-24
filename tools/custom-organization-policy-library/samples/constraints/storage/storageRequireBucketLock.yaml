@@ -2,7 +2,7 @@ name: organizations/11111111/customConstraints/custom.storageRequireBucketLock
 resource_types:
 - storage.googleapis.com/Bucket
 condition: 1 == 0
-action_type: DENY
+action_type: ALLOW
 method_types:
 - CREATE
 - UPDATE

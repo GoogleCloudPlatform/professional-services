@@ -1,8 +1,7 @@
 name: organizations/11111111/customConstraints/custom.gkeRequireBinaryAuthorization
 resource_types:
 - container.googleapis.com/Cluster
-- container.googleapis.com/NodePool
-condition: 1 == 0
+condition: resource.binaryAuthorization.evaluationMode == 'DISABLED'
 action_type: DENY
 method_types:
 - CREATE
