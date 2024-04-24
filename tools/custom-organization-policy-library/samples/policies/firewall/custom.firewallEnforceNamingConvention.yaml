@@ -1,0 +1,4 @@
+name: organizations/11111111/policies/custom.firewallEnforceNamingConvention
+spec:
+  rules:
+    - enforce: true
