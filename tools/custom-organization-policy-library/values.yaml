@@ -25,3 +25,6 @@ storage:
       labels:
       - "label-0"
       - "label-1"
+  storageBucketEnforceNamingConvention:
+    params:
+      nameRegex: "^(sin|cgk)"
