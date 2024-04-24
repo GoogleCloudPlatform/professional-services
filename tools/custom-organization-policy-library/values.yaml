@@ -10,3 +10,9 @@ compute:
       labels:
       - "label1"
       - "label2"
+storage:
+  storageAllowedBucketLabels:
+    params:
+      labels:
+      - "label-0"
+      - "label-1"

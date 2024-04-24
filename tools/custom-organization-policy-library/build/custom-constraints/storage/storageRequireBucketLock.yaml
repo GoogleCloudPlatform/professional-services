@@ -6,7 +6,8 @@ name: #@ constraint.constraint_name()
 resource_types: 
 - storage.googleapis.com/Bucket 
 condition: 1 == 0
-action_type: DENY
+#! condition: has(resource.retentionPolicy.isLocked) # This is not working, no option to lock on create using console/gcloud.
+action_type: ALLOW
 method_types: 
 - CREATE
 - UPDATE 
