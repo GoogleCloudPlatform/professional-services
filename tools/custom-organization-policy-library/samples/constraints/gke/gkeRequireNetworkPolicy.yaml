@@ -1,8 +1,7 @@
 name: organizations/11111111/customConstraints/custom.gkeRequireNetworkPolicy
 resource_types:
 - container.googleapis.com/Cluster
-- container.googleapis.com/NodePool
-condition: 1 == 0
+condition: resource.networkConfig.datapathProvider != 'ADVANCED_DATAPATH' && resource.addonsConfig.networkPolicyConfig.disabled == true
 action_type: DENY
 method_types:
 - CREATE
