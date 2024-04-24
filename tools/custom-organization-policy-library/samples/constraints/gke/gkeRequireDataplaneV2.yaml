@@ -1,7 +1,7 @@
 name: organizations/11111111/customConstraints/custom.gkeRequireDataplaneV2
 resource_types:
 - container.googleapis.com/Cluster
-condition: resource.networkConfig.datapathProvider != 'ADVANCED_DATAPATH' && resource.addonsConfig.networkPolicyConfig.disabled == true
+condition: resource.networkConfig.datapathProvider != 'ADVANCED_DATAPATH'
 action_type: DENY
 method_types:
 - CREATE
