@@ -9,6 +9,10 @@ dataproc:
     bundles:
       pci-dss: false
       cis: false
+    params:
+      #@schema/validation min_len=1
+      labels:
+      - ""
   dataprocRequireDiskCmekEncryption:
     #@schema/validation one_of=["default", "skip", "include"]
     generation: "default"
@@ -39,6 +43,10 @@ dataproc:
     bundles:
       pci-dss: false
       cis: false
+    params:
+      #@schema/validation min_len=1
+      vpcNetworkUri:
+      - ""
   dataprocRequireInternalIp:
     #@schema/validation one_of=["default", "skip", "include"]
     generation: "default"

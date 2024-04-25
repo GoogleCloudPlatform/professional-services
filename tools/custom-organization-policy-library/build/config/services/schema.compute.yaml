@@ -18,7 +18,7 @@ compute:
     bundles:
       pci-dss: false
       cis: false
-     params:
+    params:
       #@schema/validation min_len=1
       labels:
       - ""

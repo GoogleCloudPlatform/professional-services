@@ -13,6 +13,16 @@ compute:
       labels:
       - "label1"
       - "label2"
+dataproc:
+  dataprocAllowedLabels:
+    params:
+      labels:
+      - "label-0"
+      - "label-1"
+  dataprocAllowedVpcNetwork:
+    params:
+      vpcNetworkUri:
+      - "network/mynet"
 storage:
   storageAllowedBucketLabels:
     params:
