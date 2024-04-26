@@ -1,6 +1,6 @@
 name: organizations/11111111/customConstraints/custom.computeAllowedInstanceLabels
 resource_types: compute.googleapis.com/Instance
-condition: resource.labels.all(label, (label in ["label1", "label2"])) == false
+condition: resource.labels.all(label, (label in ["label-0", "label-1"])) == false
 action_type: DENY
 method_types: CREATE
 display_name: Allow only specific labels
