@@ -27,4 +27,4 @@ storage:
       - "label-1"
   storageBucketEnforceNamingConvention:
     params:
-      nameRegex: "^(sin|cgk)"
+      name_regex: "^(sin|cgk)"
