@@ -45,7 +45,7 @@ dataproc:
       cis: false
     params:
       #@schema/validation min_len=1
-      vpcNetworkUri:
+      vpc_network_uri:
       - ""
   dataprocRequireInternalIp:
     #@schema/validation one_of=["default", "skip", "include"]

@@ -21,7 +21,7 @@ dataproc:
       - "label-1"
   dataprocAllowedVpcNetwork:
     params:
-      vpcNetworkUri:
+      vpc_network_uri:
       - "network/mynet"
 storage:
   storageAllowedBucketLabels:
