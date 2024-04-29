@@ -1,16 +1,11 @@
 #@ load("/constraints.lib.star", "build_constraint")
 #@ constraint = build_constraint("dataprocAllowedVpcNetwork")
 
-#@ def condition(vpc_network_uri):
-#@    return "(resource.config.gceClusterConfig.networkUri in " + str(vpc_network_uri) + ") == false"
-#@ end
-
 #@ if constraint.to_generate():
 name: #@ constraint.constraint_name()
 resource_types: 
 - dataproc.googleapis.com/Cluster 
-#! this is not working yet, exclusive network/subnetwork config issue, shared vpc permutation and network/subnetwork string not matching.
-condition: #@ condition(constraint.params().vpc_network_uri)
+condition: 1 == 0
 action_type: DENY
 method_types: 
 - CREATE
