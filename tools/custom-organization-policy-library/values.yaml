@@ -31,27 +31,9 @@ compute:
 dataproc:
   dataprocAllowedLabels:
     params:
-      machine_types:
-      - "n2"
-      - "n2d"
-  computeAllowedInstanceLabels:
-    params:
       labels:
       - "label-0"
       - "label-1"
-  computeAllowedDiskTypes:
-    params:
-      disk_types:
-      - "pd-ssd"
-      - "pd-standard"
-  computeRestrictDiskSize:
-    params:
-      max_disksize: 100
-  computeAllowedInstanceVpcs:
-    params:
-      networks:
-      - "network-1"
-      - "network-2"
 storage:
   storageAllowedBucketLabels:
     params:
