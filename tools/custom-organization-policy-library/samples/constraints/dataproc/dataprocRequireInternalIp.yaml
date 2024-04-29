@@ -1,7 +1,7 @@
 name: organizations/11111111/customConstraints/custom.dataprocRequireInternalIp
 resource_types:
 - dataproc.googleapis.com/Cluster
-condition: 1 == 0
+condition: resource.config.gceClusterConfig.internalIpOnly == false
 action_type: DENY
 method_types:
 - CREATE

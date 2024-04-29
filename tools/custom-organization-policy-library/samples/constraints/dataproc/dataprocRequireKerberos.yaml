@@ -1,7 +1,7 @@
 name: organizations/11111111/customConstraints/custom.dataprocRequireKerberos
 resource_types:
 - dataproc.googleapis.com/Cluster
-condition: 1 == 0
+condition: resource.config.securityConfig.kerberosConfig.enableKerberos == false
 action_type: DENY
 method_types:
 - CREATE
