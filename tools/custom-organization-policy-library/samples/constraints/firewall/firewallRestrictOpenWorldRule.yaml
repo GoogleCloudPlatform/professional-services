@@ -1,7 +1,7 @@
 name: organizations/11111111/customConstraints/custom.firewallRestrictOpenWorldRule
 resource_types:
 - compute.googleapis.com/Firewall
-condition: 1 == 0
+condition: (size(resource.allowed) > 0) && (resource.sourceRanges.exists(range, range == '0.0.0.0/0') || resource.destinationRanges.exists(range, range == '0.0.0.0/0'))
 action_type: DENY
 method_types:
 - CREATE

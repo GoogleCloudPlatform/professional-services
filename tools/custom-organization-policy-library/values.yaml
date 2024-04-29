@@ -34,6 +34,10 @@ dataproc:
       labels:
       - "label-0"
       - "label-1"
+firewall:
+  firewallEnforceNamingConvention:
+    params:
+      name_regex: "^(allow|deny)-(all|rdp|ssh|tcp|udp|icmp|custom)[a-z0-9-]*"
 storage:
   storageAllowedBucketLabels:
     params:
