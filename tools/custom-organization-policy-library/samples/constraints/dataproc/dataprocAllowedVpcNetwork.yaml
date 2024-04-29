@@ -1,7 +1,7 @@
 name: organizations/11111111/customConstraints/custom.dataprocAllowedVpcNetwork
 resource_types:
 - dataproc.googleapis.com/Cluster
-condition: 1 == 0
+condition: (resource.config.gceClusterConfig.networkUri in ["network/mynet"]) == false
 action_type: DENY
 method_types:
 - CREATE
