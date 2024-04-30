@@ -1,9 +1,8 @@
 name: organizations/11111111/customConstraints/custom.gkeRequireNodePoolSandbox
 resource_types:
-- container.googleapis.com/Cluster
 - container.googleapis.com/NodePool
-condition: 1 == 0
-action_type: DENY
+condition: has(resource.config.sandboxConfig) == false && resource.config.sandboxConfig.type != 'GVISOR'
+actionType: DENY
 method_types:
 - CREATE
 - UPDATE
