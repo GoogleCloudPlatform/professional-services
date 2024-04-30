@@ -9,12 +9,20 @@ gke:
     bundles:
       pci-dss: false
       cis: true
+    params:
+      #@schema/validation min_len=1
+      addons:
+      - ""
   gkeAllowedGKEVersions:
     #@schema/validation one_of=["default", "skip", "include"]
     generation: "default"
     bundles:
       pci-dss: false
       cis: true
+    params:
+      #@schema/validation min_len=1
+      versions:
+      - ""
   gkeRequireConfidentialNodes:
     #@schema/validation one_of=["default", "skip", "include"]
     generation: "default"
@@ -75,6 +83,10 @@ gke:
     bundles:
       pci-dss: false
       cis: true
+    params:
+      #@schema/validation min_len=1
+      images:
+      - ""
   gkeRequireNodePoolAutoRepair:
     #@schema/validation one_of=["default", "skip", "include"]
     generation: "default"
@@ -93,6 +105,10 @@ gke:
     bundles:
       pci-dss: false
       cis: true
+    params:
+      #@schema/validation min_len=1
+      release_channels:
+      - ""
   gkeRequireShieldedNodes:
     #@schema/validation one_of=["default", "skip", "include"]
     generation: "default"
