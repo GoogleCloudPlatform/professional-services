@@ -43,3 +43,6 @@ storage:
     bundles:
       pci-dss: false
       cis: false
+    params:
+      #@schema/validation min_len=1
+      name_regex: ""
