@@ -2,7 +2,7 @@
 #@ constraint = build_constraint("gkeAllowedReleaseChannels")
 
 #@ def condition(release_channels):
-#@   return 'resource.releaseChannel.channel in' +  str(release_channels) + " == false"
+#@   return 'resource.releaseChannel.channel in ' +  str(release_channels) + " == false"
 #@ end
 
 #@ if constraint.to_generate():
