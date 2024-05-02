@@ -62,7 +62,7 @@ gke:
   gkeAllowedNodePoolImages:
     params:
       images:
-      - "cos_containerd"
+      - "COS_CONTAINERD"
   gkeAllowedReleaseChannels:
     params:
       release_channels: 
