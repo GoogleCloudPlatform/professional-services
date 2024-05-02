@@ -65,4 +65,6 @@ gke:
       - "cos_containerd"
   gkeAllowedReleaseChannels:
     params:
-      release_channels: "REGULAR"
+      release_channels: 
+      - "REGULAR"
+      - "STABLE"
