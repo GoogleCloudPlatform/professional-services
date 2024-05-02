@@ -1,8 +1,7 @@
 name: organizations/11111111/customConstraints/custom.gkeAllowedReleaseChannels
 resource_types:
 - container.googleapis.com/Cluster
-- container.googleapis.com/NodePool
-condition: 1 == 0
+condition: resource.releaseChannel.channel in ["REGULAR", "STABLE"] == false
 action_type: DENY
 method_types:
 - CREATE
