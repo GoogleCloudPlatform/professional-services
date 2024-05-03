@@ -38,6 +38,15 @@ firewall:
   firewallEnforceNamingConvention:
     params:
       name_regex: "^(allow|deny)-(all|rdp|ssh|tcp|udp|icmp|custom)[a-z0-9-]*"
+  firewallRestrictRule:
+    params:
+      direction: "INGRESS"
+      source_ranges:
+      - "192.168.32.0/24"
+      - "10.16.0.0/16"
+      destination_ranges:
+      - "192.168.32.0/24"
+      - "10.16.0.0/16"
 storage:
   storageAllowedBucketLabels:
     params:

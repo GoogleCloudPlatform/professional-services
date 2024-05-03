@@ -1,7 +1,7 @@
 name: organizations/11111111/customConstraints/custom.firewallRestrictRule
 resource_types:
 - compute.googleapis.com/Firewall
-condition: 1 == 0
+condition: resource.direction == "INGRESS" && (!resource.sourceRanges.all(range, range in ["192.168.32.0/24", "10.16.0.0/16"]) || !resource.destinationRanges.all(range, range in ["192.168.32.0/24", "10.16.0.0/16"]))
 action_type: DENY
 method_types:
 - CREATE
