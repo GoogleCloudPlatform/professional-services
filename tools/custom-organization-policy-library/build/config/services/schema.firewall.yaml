@@ -18,6 +18,16 @@ firewall:
     bundles:
       pci-dss: false
       cis: false
+    params:
+      direction: ""
+      source_ranges:
+      - ""
+      destination_ranges:
+      - ""
+      allowed:
+      - protocol: ""
+        ports:
+        - ""
   firewallRestrictOpenWorldRule:
     #@schema/validation one_of=["default", "skip", "include"]
     generation: "default"
