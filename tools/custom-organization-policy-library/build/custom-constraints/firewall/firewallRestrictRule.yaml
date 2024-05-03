@@ -1,7 +1,7 @@
 #@ load("/constraints.lib.star", "build_constraint")
 #@ constraint = build_constraint("firewallRestrictRule")
 
-#@ def condition(direction, source_ranges, destination_ranges, allowed):
+#@ def condition(direction, source_ranges, destination_ranges):
 #@    cond_components = []
 #@    if direction:
 #@        cond_components.append('resource.direction == "' + str(direction) + '"')
@@ -24,7 +24,7 @@
 name: #@ constraint.constraint_name()
 resource_types: 
 - compute.googleapis.com/Firewall 
-condition: #@ condition(constraint.params().direction, constraint.params().source_ranges, constraint.params().destination_ranges, constraint.params().allowed)
+condition: #@ condition(constraint.params().direction, constraint.params().source_ranges, constraint.params().destination_ranges)
 action_type: DENY
 method_types: 
 - CREATE 
