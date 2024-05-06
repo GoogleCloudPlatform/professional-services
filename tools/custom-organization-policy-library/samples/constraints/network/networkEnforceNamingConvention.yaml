@@ -1,11 +1,9 @@
 name: organizations/11111111/customConstraints/custom.networkEnforceNamingConvention
 resource_types:
-- container.googleapis.com/Cluster
-- container.googleapis.com/NodePool
-condition: 1 == 0
+- compute.googleapis.com/Network
+condition: resource.name.matches("^(vpc)-(dev|prd|uat)-[a-z0-9-]*") == false
 action_type: DENY
 method_types:
 - CREATE
-- UPDATE
 display_name: Enforce VPC naming convention
 description: Prevent the creation of VPC that are not following the naming convention

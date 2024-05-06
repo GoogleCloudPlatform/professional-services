@@ -77,3 +77,7 @@ gke:
       release_channels: 
       - "REGULAR"
       - "STABLE"
+network:
+  networkEnforceNamingConvention:
+    params:
+      vpc_name_regex: "^(vpc)-(dev|prd|uat)-[a-z0-9-]*"
