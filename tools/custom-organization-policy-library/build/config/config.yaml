@@ -4,6 +4,7 @@
 
 organization: #@ data.values.organization
 bundles: #@ data.values.bundles
+dryrun: #@ data.values.dryrun
 policies:
 #@ template.replace(generate_config())
 values: #@ data.values

@@ -4,6 +4,7 @@ organization: '11111111'
 bundles:
   pci-dss: false
   cis: false
+dryrun: false
 compute:
   computeAllowedInstanceMachineTypes:
     params:
