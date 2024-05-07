@@ -3,6 +3,7 @@
 
 #@ load("/policies.lib.star", "build_policy")
 #@ load("/policies.lib.yaml", "generate_policy")
+#@ load("/policies-dryrun.lib.yaml", "generate_policy_dryrun")
 #@ load("/config.lib.star", "services")
 
 #@ policies = []
@@ -12,6 +13,11 @@
   #@ end
 #@ end
 
-#@ for/end value in policies:
---- #@ template.replace(generate_policy(build_policy(value)))
-
+#@ for value in policies:
+---
+  #@ if data.values.dryrun == True:
+    #@ template.replace(generate_policy_dryrun(build_policy(value)))
+  #@ else:
+    #@ template.replace(generate_policy(build_policy(value)))
+  #@ end
+#@ end

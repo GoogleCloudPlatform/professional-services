@@ -1,0 +1,11 @@
+
+#@ def generate_policy_dryrun(policy):
+---
+service: #@ policy.service()
+filename: #@ policy.filename()
+name: #@ policy.name()
+dryRunSpec:
+  rules:
+  - enforce: true
+#@ end
+
