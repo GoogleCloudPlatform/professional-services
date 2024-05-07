@@ -81,3 +81,8 @@ network:
   networkEnforceNamingConvention:
     params:
       vpc_name_regex: "^(vpc)-(dev|prd|uat)-[a-z0-9-]*"
+  networkAllowedSubnetIpRanges:
+    params:
+      ip_ranges:
+      - "10.0.0.0/24"
+      - "192.168.0.0/16"
