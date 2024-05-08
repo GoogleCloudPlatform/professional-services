@@ -8,8 +8,8 @@ compute:
   computeAllowedInstanceMachineTypes:
     params:
       machine_types:
-      - "n2"
-      - "n2d"
+      - "n2-standard-1"
+      - "n2-standard-2"
   computeAllowedInstanceLabels:
     params:
       labels:
