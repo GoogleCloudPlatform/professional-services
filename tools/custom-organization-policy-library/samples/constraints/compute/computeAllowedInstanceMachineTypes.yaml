@@ -1,7 +1,7 @@
 name: organizations/11111111/customConstraints/custom.computeAllowedInstanceMachineTypes
-resource_types: compute.googleapis.com/Firewall
-condition: 2 == 2
+resource_types: compute.googleapis.com/Instance
+condition: (["n2-standard-1", "n2-standard-2"].exists(type, resource.machineType.contains(type))) == false
 action_type: DENY
 method_types: CREATE
-display_name: Enforce Compute Instance Rule naming Convention 1
-description: Enforce that every Firewall Rule created are named according to regular expression pattern
+display_name: Allow only specific machine types
+description: Prevent the creation of VMs not using specific machine types
