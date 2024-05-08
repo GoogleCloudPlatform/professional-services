@@ -12,7 +12,7 @@ constraints:
 policies: 
 	rm -rf $(OUTPUT)/policies
 	ytt $(CONFIG) -f build/org-policies/  --output-files $(OUTPUT)/policies
-	sh scripts/format-policies.sh $(OUTPUT)/policies
+	python3 scripts/format-policies.py $(OUTPUT)/policies/policies.yaml $(OUTPUT)/policies
 
 .PHONY: build
 build: clean constraints policies

@@ -15,12 +15,19 @@ network:
     bundles:
       pci-dss: false
       cis: false
+    params:
+      #@schema/validation min_len=1
+      ip_ranges: 
+      - ""
   networkEnforceNamingConvention:
     #@schema/validation one_of=["default", "skip", "include"]
     generation: "default"
     bundles:
       pci-dss: false
       cis: false
+    params:
+      #@schema/validation min_len=1
+      vpc_name_regex: ""
   networkRequireCustomModeVpc:
     #@schema/validation one_of=["default", "skip", "include"]
     generation: "default"

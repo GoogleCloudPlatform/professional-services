@@ -4,6 +4,7 @@ organization: '11111111'
 bundles:
   pci-dss: false
   cis: false
+dryrun: false
 compute:
   computeAllowedInstanceMachineTypes:
     params:
@@ -38,6 +39,15 @@ firewall:
   firewallEnforceNamingConvention:
     params:
       name_regex: "^(allow|deny)-(all|rdp|ssh|tcp|udp|icmp|custom)[a-z0-9-]*"
+  firewallRestrictRule:
+    params:
+      direction: "INGRESS"
+      source_ranges:
+      - "192.168.32.0/24"
+      - "10.16.0.0/16"
+      destination_ranges:
+      - "192.168.32.0/24"
+      - "10.16.0.0/16"
 storage:
   storageAllowedBucketLabels:
     params:
@@ -62,8 +72,18 @@ gke:
   gkeAllowedNodePoolImages:
     params:
       images:
-      - "cos_containerd"
+      - "COS_CONTAINERD"
   gkeAllowedReleaseChannels:
     params:
-      release_channels:
+      release_channels: 
       - "REGULAR"
+      - "STABLE"
+network:
+  networkEnforceNamingConvention:
+    params:
+      vpc_name_regex: "^(vpc)-(dev|prd|uat)-[a-z0-9-]*"
+  networkAllowedSubnetIpRanges:
+    params:
+      ip_ranges:
+      - "10.0.0.0/24"
+      - "192.168.0.0/16"
