@@ -1,0 +1,8 @@
+steps:
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['build', '--tag=gcr.io/$PROJECT_ID/composer', '.']
+- name: "gcr.io/${PROJECT_ID}/composer"
+  args: ["--help"]
+
+images: ['gcr.io/$PROJECT_ID/composer']
+tags: ['cloud-builders-community']

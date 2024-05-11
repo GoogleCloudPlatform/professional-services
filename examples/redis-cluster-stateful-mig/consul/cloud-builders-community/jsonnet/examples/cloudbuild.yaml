@@ -1,0 +1,22 @@
+# In this directory, run the following command to build this builder.
+# $ gcloud builds submit . --config=cloudbuild.yaml
+
+steps:
+# Use the wget builder to retrieve the example.jsonnet file from the GitHub repo
+- name: gcr.io/cloud-builders/wget
+  args: [
+    '-O',
+    'example.jsonnet',
+    'https://raw.githubusercontent.com/GoogleCloudPlatform/cloud-builders-community/master/jsonnet/examples/example.jsonnet'
+  ]
+# Transform the example.jsonnet using the Jsonnet builder into example.yaml
+- name: gcr.io/${PROJECT_ID}/jsonnet
+  args: [
+    "eval",
+    "--output-file","./example.yaml",
+    "./example.jsonnet"
+  ]
+# Use busybox to more the example.yaml to the Cloud Builder logs
+- name: busybox
+  args: ["more","./example.yaml"]
+tags: ['cloud-builders-community']

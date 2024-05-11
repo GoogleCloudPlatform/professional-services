@@ -1,0 +1,15 @@
+steps:
+- name: 'gcr.io/cloud-builders/go'
+  args: ['get', './src/upload/...']
+  env: ['GOPATH=.']
+- name: 'gcr.io/cloud-builders/go'
+  args: ['run', 'src/upload/main.go']
+  env: ['DATASTORE_PROJECT_ID=$PROJECT_ID', 'GOPATH=.']
+- name: 'gcr.io/cloud-builders/go'
+  args: ['get', '-d', './appengine/...']
+  env: ['GOPATH=.']
+- name: 'gcr.io/cloud-builders/gcloud'
+  args: ['-q', 'app', 'deploy', 'appengine/app.yaml']
+  env: ['GOPATH=.']
+- name: 'gcr.io/cloud-builders/gcloud'
+  args: ['-q', 'app', 'deploy', 'appengine/cron.yaml']

@@ -1,0 +1,5 @@
+ARG INSPEC_VERSION=3.2.6
+
+FROM chef/inspec:${INSPEC_VERSION}
+
+ENTRYPOINT ["inspec"]

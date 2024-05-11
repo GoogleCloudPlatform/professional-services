@@ -1,0 +1,9 @@
+steps:
+- name: gcr.io/cloud-builders/docker
+  args: ['build', '--tag=gcr.io/$PROJECT_ID/pulumi-node', '.']
+
+# Print version information.
+- name: gcr.io/$PROJECT_ID/pulumi-node
+
+images: ['gcr.io/$PROJECT_ID/pulumi-node']
+tags: ['cloud-builders-community']

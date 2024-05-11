@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package v1;
+
+message Person {
+    // The name of this person.
+    string name = 1;
+    // The age of this person iu years.
+    int32 age = 2;
+    // Whether this person is a robot.
+    bool is_robot = 3;
+}

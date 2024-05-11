@@ -1,0 +1,28 @@
+# In this directory, run the following command to build this builder.
+# $ gcloud builds submit . --config=cloudbuild.yaml
+
+steps:
+# Build the 'glide' tool builder.
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['build', '--tag=gcr.io/$PROJECT_ID/glide', '.']
+
+# Clone the glide source with git, run 'glide install' to get the latest
+# versions of source dependencies, and build the glide binary again from
+# source.
+- name: 'gcr.io/cloud-builders/git'
+  args: ['clone', 'https://github.com/Masterminds/glide']
+  dir: 'examples/build-glide'
+- name: 'gcr.io/$PROJECT_ID/glide'
+  env: ['PROJECT_ROOT=github.com/Masterminds/glide']
+  args: ['install']
+  dir: 'examples/build-glide/glide'
+- name: 'gcr.io/cloud-builders/go:debian'
+  env: ['PROJECT_ROOT=github.com/Masterminds/glide']
+  args: ['install', '.']
+  dir: 'examples/build-glide/glide'
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['build', '--tag=build-glide', '.']
+  dir: 'examples/build-glide'
+
+images: ['gcr.io/$PROJECT_ID/glide']
+tags: ['cloud-builders-community']

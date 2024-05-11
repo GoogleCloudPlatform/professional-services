@@ -1,0 +1,9 @@
+steps:
+
+  - name: 'gcr.io/$PROJECT_ID/replicated-lint'
+    id: 'Lint replicated yaml'
+    args: ['validate', '-f', 'replicated.yaml']
+
+  - name: 'gcr.io/$PROJECT_ID/replicated-lint'
+    id: 'Lint replicated yaml with warnings'
+    args: ['validate', '-t', 'warn', '-f', 'replicated.yaml']

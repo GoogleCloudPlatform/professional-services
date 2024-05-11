@@ -1,0 +1,5 @@
+steps:
+- name: 'gcr.io/$PROJECT_ID/windows-builder'
+  args: [ '--command', 'powershell.exe -file build.ps1' ]
+timeout: 1200s
+tags: ['cloud-builders-community']

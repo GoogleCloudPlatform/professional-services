@@ -1,0 +1,10 @@
+version: 1
+type: maven
+resolver:
+  snapshotRepo: maven-snapshot-virtual
+  releaseRepo: maven-release-virtual
+  serverID: rt-mvn-repo
+deployer:
+  snapshotRepo: maven-snapshot-virtual
+  releaseRepo: maven-release-virtual
+  serverID: rt-mvn-repo

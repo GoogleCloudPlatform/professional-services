@@ -1,0 +1,20 @@
+# In this directory, run the following command to build this builder.
+# $ gcloud container builds submit . --config=cloudbuild.yaml
+
+steps:
+# Build the docker image.
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['build', '--tag=gcr.io/$PROJECT_ID/dep', '.']
+
+# Run version to make sure that everything is working properly.
+- name: 'gcr.io/$PROJECT_ID/dep'
+  args: ['version']
+  env: ['PROJECT_ROOT=workspace']
+
+- name: 'gcr.io/$PROJECT_ID/dep'
+  args: ['ensure', '-v']
+  env: ['PROJECT_ROOT=hello']
+
+images:
+- 'gcr.io/$PROJECT_ID/dep'
+tags: ['cloud-builders-community']

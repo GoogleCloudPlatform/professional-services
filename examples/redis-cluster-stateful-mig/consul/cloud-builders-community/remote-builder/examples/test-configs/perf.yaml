@@ -1,0 +1,10 @@
+steps:
+- name: gcr.io/cloud-solutions-images/remote-builder:v0.3.1
+  env:
+    # Use Container Optimized OS
+    # https://cloud.google.com/container-optimized-os/docs/
+    - INSTANCE_ARGS=--image-project cos-cloud --image-family cos-stable
+               --boot-disk-type=pd-ssd --machine-type n1-standard-8
+    - USERNAME=cloud-user
+    # Run a script from the local build context in a Docker container
+    - COMMAND=docker run -v /home/cloud-user/workspace:/workspace ubuntu:16.04 bash -xe /workspace/test-scripts/no-op.sh

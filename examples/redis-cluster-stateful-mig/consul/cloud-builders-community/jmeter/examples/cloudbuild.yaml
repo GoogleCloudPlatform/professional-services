@@ -1,0 +1,7 @@
+steps:
+  - name: 'gcr.io/$PROJECT_ID/jmeter:latest'
+    args:
+    - '-n'
+    - '-t'
+    - 'sample.jmx'
+tags: ['cloud-builders-community']

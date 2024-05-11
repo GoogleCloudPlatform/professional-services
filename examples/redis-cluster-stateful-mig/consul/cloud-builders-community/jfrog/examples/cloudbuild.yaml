@@ -1,0 +1,37 @@
+# Sample cloudbuild.yaml that can containerize a Java app with JFrog Artifactory as a source of truth. 
+# NOTE: JFrog cloud builder image should exist. cloudbuild.yaml to build JFrog cloud builder image exists one level up.
+
+# In this directory, run the following command to build this builder.
+# $ gcloud builds submit . --config=cloudbuild.yaml
+
+
+steps:
+
+# Configure JFrog CLI to point to JFrog Artifactory
+- name: 'jfrog-docker-reg2.bintray.io/google-cloud-builder/java/jfrog:0.1'
+  entrypoint: 'bash'
+  args: ['-c', 'jfrog rt c rt-mvn-repo --url=https://[ARTIFACTORY-URL]/artifactory --user=[ARTIFACTORY-USER] --password=$$APIKEY']
+  secretEnv: ['APIKEY']
+  dir: 'maven-example'
+
+# Build a sample maven project
+- name: 'gcr.io/$PROJECT_ID/java/jfrog'
+  args: ['rt', 'mvn', "clean install", 'config.yaml', '--build-name=mybuild', '--build-number=$BUILD_ID']
+  dir: 'maven-example'
+
+# Containerize java app
+- name: 'gcr.io/cloud-builders/docker'
+  args:
+  - 'build'
+  - '--tag=gcr.io/$PROJECT_ID/java-app:${BUILD_ID}'
+  - '.'
+  dir: 'maven-example'
+
+secrets:
+- kmsKeyName: projects/[PROJECT-ID]/locations/global/keyRings/[KEYRING-NAME]/cryptoKeys/[KEY-NAME]
+  secretEnv:
+    APIKEY: [ENCRYPTED_API_KEY] 
+
+images:
+- 'gcr.io/$PROJECT_ID/java-app:${BUILD_ID}'
+tags: ['cloud-builders-community']

@@ -1,0 +1,67 @@
+# In this directory, run the following command to build this builder.
+# $ gcloud builds submit . --config=cloudbuild.yaml
+#
+
+steps:
+# Build all supported versions.
+- name: 'gcr.io/cloud-builders/docker'
+  args:
+  - 'build'
+  - '--build-arg=NODE_VERSION=12.14.1'
+  - '--tag=gcr.io/$PROJECT_ID/yarn-puppeteer:node-12.14.1'
+  - '--tag=gcr.io/$PROJECT_ID/nodejs/yarn-puppeteer'
+  - '.'
+- name: 'gcr.io/cloud-builders/docker'
+  args:
+  - 'build'
+  - '--build-arg=NODE_VERSION=13.6.0'
+  - '--tag=gcr.io/$PROJECT_ID/yarn-puppeteer:node-13.6.0'
+  - '.'
+- name: 'gcr.io/cloud-builders/docker'
+  args:
+  - 'build'
+  - '--build-arg=NODE_VERSION=14.15.4'
+  - '--tag=gcr.io/$PROJECT_ID/yarn-puppeteer:node-14.15.4'
+  # 14.15.4 is tagged :current and :latest
+  - '--tag=gcr.io/$PROJECT_ID/yarn-puppeteer:current'
+  - '--tag=gcr.io/$PROJECT_ID/yarn-puppeteer:latest'
+  - '.'
+# Print for each version
+- name: 'gcr.io/$PROJECT_ID/yarn-puppeteer:node-12.14.1'
+  args: ['--version']
+- name: 'gcr.io/$PROJECT_ID/yarn-puppeteer:node-13.6.0'
+  args: ['--version']
+- name: 'gcr.io/$PROJECT_ID/yarn-puppeteer:node-14.15.4'
+  args: ['--version']
+
+# Test the cloud builder on the example
+- name: 'gcr.io/$PROJECT_ID/yarn-puppeteer:node-12.14.1'
+  args: ['install']
+  dir: 'examples/hello_world'
+
+- name: 'gcr.io/$PROJECT_ID/yarn-puppeteer:node-12.14.1'
+  args: ['test:puppeteer']
+  dir: 'examples/hello_world'
+
+- name: 'gcr.io/$PROJECT_ID/yarn-puppeteer:node-13.6.0'
+  args: ['install']
+  dir: 'examples/hello_world'
+- name: 'gcr.io/$PROJECT_ID/yarn-puppeteer:node-13.6.0'
+  args: ['test:puppeteer']
+  dir: 'examples/hello_world'
+
+- name: 'gcr.io/$PROJECT_ID/yarn-puppeteer:node-14.15.4'
+  args: ['install']
+  dir: 'examples/hello_world'
+- name: 'gcr.io/$PROJECT_ID/yarn-puppeteer:node-14.15.4'
+  args: ['test:puppeteer']
+  dir: 'examples/hello_world'
+
+images:
+- 'gcr.io/$PROJECT_ID/yarn-puppeteer:latest'
+- 'gcr.io/$PROJECT_ID/yarn-puppeteer:current'
+- 'gcr.io/$PROJECT_ID/yarn-puppeteer:node-12.14.1'
+- 'gcr.io/$PROJECT_ID/yarn-puppeteer:node-13.6.0'
+- 'gcr.io/$PROJECT_ID/yarn-puppeteer:node-14.15.4'
+- 'gcr.io/$PROJECT_ID/nodejs/yarn-puppeteer'
+tags: ['cloud-builders-community']

@@ -1,0 +1,17 @@
+steps:
+  - name: 'gcr.io/$PROJECT_ID/ng:v1'
+    args: ['version']
+  - name: 'gcr.io/$PROJECT_ID/ng:v6'
+    args: ['version']
+  - name: 'gcr.io/$PROJECT_ID/ng:v7'
+    args: ['version']
+  - name: 'gcr.io/$PROJECT_ID/ng:v8'
+    args: ['version']
+  - name: 'gcr.io/$PROJECT_ID/ng:latest'
+    args: ['version']
+  - name: 'gcr.io/$PROJECT_ID/ng'
+    args: ['version']
+  - name: 'gcr.io/$PROJECT_ID/ng:next'
+    args: ['version']
+
+tags: ['cloud-builders-community']

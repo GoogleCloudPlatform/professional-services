@@ -1,0 +1,17 @@
+# Perform a Packer build based on the `build.pkr.hcl` configuration
+# and user variables from variables.pkrvars.hcl file. This Packer
+# build creates a GCE image.
+#
+# See README.md for invocation instructions.
+steps:
+- name: 'gcr.io/$PROJECT_ID/packer'
+  args:
+  - init
+  - -var-file=variables.pkrvars.hcl
+  - build.pkr.hcl
+- name: 'gcr.io/$PROJECT_ID/packer'
+  args:
+  - build
+  - -var-file=variables.pkrvars.hcl
+  - build.pkr.hcl
+tags: ['cloud-builders-community']

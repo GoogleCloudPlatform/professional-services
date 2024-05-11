@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+#
+# Runs the arguments as if they were passed directly to bash if the
+# BRANCH_NAME environment variable matches the branch argument in the
+# first position.
+
+branch=$1
+
+shift
+
+if [[ $BRANCH_NAME =~ $branch ]]; then
+  "$@"
+else
+  echo "Skipping task due to branch name mismatch: wanted $branch, got $BRANCH_NAME."
+fi

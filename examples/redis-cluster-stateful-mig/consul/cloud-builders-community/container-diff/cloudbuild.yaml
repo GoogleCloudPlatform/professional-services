@@ -1,0 +1,18 @@
+steps:
+# Build image.
+- name: 'gcr.io/cloud-builders/bazel'
+  args: ['run', '//:container-diff', '--verbose_failures']
+
+# Retag to desired image name.
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['tag', 'bazel:container-diff', 'gcr.io/$PROJECT_ID/container-diff']
+
+# Sanity check.
+- name: 'gcr.io/$PROJECT_ID/container-diff'
+  args: ['help']
+- name: 'gcr.io/$PROJECT_ID/container-diff'
+  args: ['diff', '--type=file', 'remote://launcher.gcr.io/google/ubuntu16_04', 'daemon://gcr.io/$PROJECT_ID/container-diff']
+
+images:
+- 'gcr.io/$PROJECT_ID/container-diff'
+tags: ['cloud-builders-community']

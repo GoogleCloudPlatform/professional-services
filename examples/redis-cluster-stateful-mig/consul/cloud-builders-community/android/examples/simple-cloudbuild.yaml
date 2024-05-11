@@ -1,0 +1,78 @@
+steps:
+
+#
+# Extract the cache
+#
+# The gradle build cache is stored as a tarball in Google Cloud Storage to
+# make builds faster.
+#
+# After extracting the cache to the /build_cache directory, we need to supply
+# that to gradle, and include the volume in steps that require the cache.
+#
+- name: 'gcr.io/cloud-builders/gsutil'
+  id: copy_build_cache
+  # we use rsync and not cp so that this step doesn't fail the first time it's run
+  args: ['rsync', 'gs://${_CACHE_BUCKET}/', '/build_cache']
+  volumes:
+  - name: 'build_cache'
+    path: '/build_cache'
+
+- name: 'gcr.io/$PROJECT_ID/tar'
+  id: extract_build_cache
+  waitFor: ['copy_build_cache']
+  # This might fail the first time, but that's okay
+  entrypoint: 'bash'
+  args:
+  - '-c'
+  - |
+    tar xpzf /build_cache/cache.tgz -C /build_cache || echo "No cache found."
+  volumes:
+  - name: 'build_cache'
+    path: '/build_cache'
+
+#
+# Build the project
+#
+- name: 'gcr.io/$PROJECT_ID/android:28'
+  id: build
+  args: ["./gradlew", "assembleDebug"]
+  env:
+  - 'TERM=dumb'
+  - 'JAVA_TOOL_OPTIONS="-Xmx3g"'
+  - 'GRADLE_USER_HOME=/build_cache/.gradle'
+  - 'GRADLE_OPTS="-Dorg.gradle.daemon=false -Dorg.gradle.parallel=true -Dorg.gradle.workers.max=8 -Dkotlin.incremental=false"'
+  - 'BRANCH_NAME=$BRANCH_NAME'
+  waitFor: ['extract_build_cache']
+  volumes:
+  - name: 'build_cache'
+    path: '/build_cache'
+
+#
+# Save the APKs
+#
+- name: 'gcr.io/cloud-builders/gsutil'
+  args: ['-q', 'cp', '-r', 'app/build/outputs/apk', 'gs://${_ARTIFACT_BUCKET}/$BRANCH_NAME-$BUILD_ID/']
+  waitFor: ['build']
+
+#
+# Cleanup
+#
+
+# Compress the gradle build cache
+- name: 'gcr.io/$PROJECT_ID/tar'
+  id: compress_cache
+  args: ['cpvzf', '/build_cache/cache.tgz', '-C', '/build_cache', '/build_cache/.gradle']
+  waitFor: ['build']
+  volumes:
+  - name: 'build_cache'
+    path: '/build_cache'
+
+# Store the build cache
+- name: gcr.io/cloud-builders/gsutil
+  args: ['cp', '/build_cache/cache.tgz', 'gs://${_CACHE_BUCKET}/cache.tgz']
+  waitFor: ['compress_cache']
+  volumes:
+  - name: 'build_cache'
+    path: '/build_cache'
+
+timeout: 1800s

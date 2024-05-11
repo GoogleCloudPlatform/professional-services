@@ -1,0 +1,17 @@
+steps:
+- name: 'gcr.io/cloud-builders/docker'
+  args: 
+  - 'build'
+  - '--build-arg'
+  - 'COMPODOC_VER=1.1.8'
+  - '-t'
+  - 'gcr.io/$PROJECT_ID/compodoc:latest'
+  - '-t'
+  - 'gcr.io/$PROJECT_ID/compodoc:1.1.8'
+  - '.'
+
+images: 
+- 'gcr.io/$PROJECT_ID/compodoc:latest'
+- 'gcr.io/$PROJECT_ID/compodoc:1.1.8'
+
+tags: ['cloud-builders-community']

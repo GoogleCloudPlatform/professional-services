@@ -1,0 +1,7 @@
+steps:
+- name: 'gcr.io/$PROJECT_ID/mortar'
+  args: ['list']
+  env:
+  - 'CLOUDSDK_COMPUTE_ZONE=us-east4-b'
+  - 'CLOUDSDK_CONTAINER_CLUSTER=your-cluster'
+tags: ['cloud-builders-community']

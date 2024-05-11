@@ -1,0 +1,31 @@
+# In this directory, run the following command to build this builder.
+# $ gcloud builds submit . --config=cloudbuild.yaml
+substitutions:
+  _VELERO_VERSION: v1.1.0
+  _VELERO_VERSION_SHA256SUM: e87e25488eea87717187ea1091dd0e5e322f3291040613c3c8bc85b60df28f2d
+steps:
+  - name: "gcr.io/cloud-builders/wget"
+    args:
+      [
+        "--quiet",
+        "https://github.com/vmware-tanzu/velero/releases/download/${_VELERO_VERSION}/velero-${_VELERO_VERSION}-linux-amd64.tar.gz",
+      ]
+  - name: "gcr.io/cloud-builders/docker"
+    env:
+      - "VELERO_VERSION=${_VELERO_VERSION}"
+      - "VELERO_VERSION_SHA256SUM=${_VELERO_VERSION_SHA256SUM}"
+    args:
+      - build
+      - --build-arg
+      - VELERO_VERSION=${_VELERO_VERSION}
+      - --build-arg
+      - VELERO_VERSION_SHA256SUM=${_VELERO_VERSION_SHA256SUM}
+      - --tag
+      - gcr.io/${PROJECT_ID}/velero:${_VELERO_VERSION}
+      - --tag
+      - gcr.io/${PROJECT_ID}/velero:latest
+      - .
+images:
+  - "gcr.io/${PROJECT_ID}/velero:${_VELERO_VERSION}"
+  - "gcr.io/${PROJECT_ID}/velero:latest"
+tags: ["cloud-builders-community"]

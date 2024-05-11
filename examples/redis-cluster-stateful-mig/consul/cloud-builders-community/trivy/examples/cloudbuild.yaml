@@ -1,0 +1,9 @@
+steps:
+
+- name: 'gcr.io/$PROJECT_ID/trivy'
+  id: 'Scan with default table output'
+  args: ['python:3.4-alpine']
+
+- name: 'gcr.io/$PROJECT_ID/trivy'
+  id: 'Scan with json report'
+  args: ['--format', 'json', '--output', 'scan_report.json', 'python:3.4-alpine']

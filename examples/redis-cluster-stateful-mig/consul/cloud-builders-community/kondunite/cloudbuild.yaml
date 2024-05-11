@@ -1,0 +1,7 @@
+steps:
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'Docker build'
+    args: ['build', '-t', 'gcr.io/$PROJECT_ID/kondunite', '.']
+
+images: ['gcr.io/$PROJECT_ID/kondunite']
+tags: ['cloud-builders-community']

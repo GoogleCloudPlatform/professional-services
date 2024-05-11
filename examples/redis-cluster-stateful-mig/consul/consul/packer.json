@@ -1,0 +1,70 @@
+{
+    "min_packer_version": "1.9.1",
+    "variables": {
+      "project_id": "kwbt-stateful-redis-cluster",
+      "zone": "asia-south1-a",
+      "consul_version": "1.17.3"
+    },
+    "builders": [
+      {
+        "name": "ubuntu-22-image",
+        "type": "googlecompute",
+        "image_name": "consul-ubuntu22-{{uuid | clean_resource_name}}",
+        "image_family": "consul",
+        "project_id": "{{user `project_id`}}",
+        "source_image_family": "ubuntu-2204-lts",
+        "zone": "{{user `zone`}}",
+        "ssh_username": "ubuntu"
+      }
+    ],
+    "provisioners": [
+      {
+        "type": "shell",
+        "inline": [
+          "sudo mkdir -p /opt/gruntwork",
+          "git clone --branch v0.1.9 https://github.com/gruntwork-io/bash-commons.git /tmp/bash-commons",
+          "sudo cp -r /tmp/bash-commons/modules/bash-commons/src /opt/gruntwork/bash-commons"
+        ]
+      },
+      {
+        "type": "shell",
+        "inline": [
+          "git clone --branch v0.5.0 https://github.com/hashicorp/terraform-google-consul.git /tmp/terraform-google-consul",
+          "/tmp/terraform-google-consul/modules/install-consul/install-consul --version {{user `consul_version`}}",
+          "/tmp/terraform-google-consul/modules/install-dnsmasq/install-dnsmasq"
+        ],
+        "pause_before": "10s"
+      },
+      {
+        "type": "shell",
+        "inline": [
+          "sudo sed -i 's/$instance_id/$instance_name/' /opt/consul/bin/run-consul",
+          "grep 'node_name' /opt/consul/bin/run-consul"
+        ],
+        "pause_before": "10s"
+      },
+      {
+        "type": "shell",
+        "inline": [
+          "sudo apt install nftables -y"
+        ],
+        "pause_before": "10s"
+      },
+      {
+        "type": "file",
+        "source": "nftables.conf",
+        "destination": "/tmp/nftables.conf",
+        "pause_before": "10s"
+      },
+      {
+        "type": "shell",
+        "inline": [
+          "sudo cp /tmp/nftables.conf /etc/",
+          "sudo nft 'list ruleset'",
+          "sudo nft 'add table clouddns'",
+          "sudo nft 'add chain clouddns postrouting {type filter hook postrouting priority 300;}'"
+        ],
+        "pause_before": "10s"
+      }
+    ]
+  }

@@ -1,0 +1,14 @@
+steps:
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['build', '-t', 'gcr.io/$PROJECT_ID/esy:${_ESY_VERSION}',
+        '-t', 'gcr.io/$PROJECT_ID/esy',
+        '--build-arg', 'ESY_VERSION=${_ESY_VERSION}',
+        '.']
+
+substitutions:
+  _ESY_VERSION: 0.5.8
+
+images:
+- 'gcr.io/$PROJECT_ID/esy:latest'
+- 'gcr.io/$PROJECT_ID/esy:$_ESY_VERSION'
+tags: ['cloud-builders-community']

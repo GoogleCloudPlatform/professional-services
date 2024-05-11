@@ -1,0 +1,9 @@
+steps:
+
+  - name: 'gcr.io/$PROJECT_ID/kondunite'
+    id: 'Build unified gke k8s yaml'
+    args: ['--target', 'gke', '-o', 'gke.yaml', './manifests']
+
+  - name: 'gcr.io/$PROJECT_ID/kondunite'
+    id: 'Build unified replicated yaml'
+    args: ['--target', 'repl', '-o', 'replicated.yaml', '--repl', '--repl-registry', 'gcr.io/$PROJECT_ID', '--repl-base', './manifests/replicated_base.yaml', './manifests']

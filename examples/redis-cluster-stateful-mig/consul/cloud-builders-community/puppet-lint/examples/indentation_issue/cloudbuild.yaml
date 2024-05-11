@@ -1,0 +1,6 @@
+# gcloud builds submit . --config=cloudbuild.yaml
+---
+steps:
+  - name: 'gcr.io/${PROJECT_ID}/puppet-lint'
+    args: ['example.pp']
+tags: ['cloud-builders-community']

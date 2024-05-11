@@ -1,0 +1,19 @@
+substitutions:
+  _VERS: "3.12.4"
+  _ARCH: linux-x86_64
+
+steps:
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+    - build
+    - "--build-arg=VERS=${_VERS}"
+    - "--build-arg=ARCH=${_ARCH}"
+    - --tag=gcr.io/${PROJECT_ID}/protoc:${_VERS}-${_ARCH}
+    - --tag=gcr.io/${PROJECT_ID}/protoc:latest
+    - "."
+
+images:
+  - "gcr.io/${PROJECT_ID}/protoc:${_VERS}-${_ARCH}"
+  - "gcr.io/${PROJECT_ID}/protoc:latest"
+
+tags: ['cloud-builders-community']

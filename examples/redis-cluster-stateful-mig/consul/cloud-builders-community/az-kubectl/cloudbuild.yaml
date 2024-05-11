@@ -1,0 +1,11 @@
+steps:
+- name: gcr.io/cloud-builders/docker
+  args: ['build', '--tag=gcr.io/$PROJECT_ID/az-kubectl', '.']
+
+# Print version information.
+- name: gcr.io/$PROJECT_ID/az-kubectl
+  args: ['version']
+  env:  ["RESOURCE_GROUP=aks-test-rg", "CLUSTER_NAME=aks-cluster", "SERVICE_PRINCIPAL=http://azure-cli-service-princial-display", "PRINCIPAL_PASSWORD=generated-password","TENANT_ID=my-tenant-id"]
+
+images: ['gcr.io/$PROJECT_ID/az-kubectl']
+

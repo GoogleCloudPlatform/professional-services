@@ -1,0 +1,9 @@
+This is a multistage build example, which pushes its intermediate image to the
+container registry. When used in this manner, the container registry acts as a
+content-addressable storage for intermediate images where the address of each
+image is a function of the sources that comprise that particular image. In a
+way, this achieves an effect similar to Docker layer caching, but on a global,
+repository-wide scale.
+
+This example demonstrates how this technique can be implemented by "chaining"
+docker-reuse invocations.

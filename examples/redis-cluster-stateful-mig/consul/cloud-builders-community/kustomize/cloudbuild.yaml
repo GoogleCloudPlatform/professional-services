@@ -1,0 +1,30 @@
+steps:
+  - name: "gcr.io/cloud-builders/docker"
+    dir: ${_BUILD_DIRECTORY}
+    env: 'KUSTOMIZE_VERSION=${_KUSTOMIZE_VERSION}'
+    args:
+      - build
+      - --build-arg
+      - KUSTOMIZE_VERSION=${_KUSTOMIZE_VERSION}
+      - --tag=gcr.io/$PROJECT_ID/kustomize:${_LATEST_TAG}
+      - --tag=gcr.io/$PROJECT_ID/kustomize:${_KUSTOMIZE_VERSION}
+      - .
+
+  - # Verify kustomize has been built correctly
+    name: "gcr.io/$PROJECT_ID/kustomize:${_LATEST_TAG}"
+    entrypoint: "kustomize"
+    args:
+      - version
+
+images:
+  - gcr.io/$PROJECT_ID/kustomize:${_LATEST_TAG}
+  - gcr.io/$PROJECT_ID/kustomize:${_KUSTOMIZE_VERSION}
+
+substitutions:
+  _BUILD_DIRECTORY: "./" #set to kustomize to run in a trigger
+  _KUSTOMIZE_VERSION: v3.8.9
+  _LATEST_TAG: latest
+
+tags:
+  - cloud-builders-community
+  - kustomize

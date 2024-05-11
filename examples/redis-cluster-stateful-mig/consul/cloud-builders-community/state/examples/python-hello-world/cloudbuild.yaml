@@ -1,0 +1,8 @@
+# Run Hello-World using an ActiveState Platform Runtime Environment
+#
+# See README.md for invocation instructions.
+steps:
+- name: 'gcr.io/$PROJECT_ID/state'
+  args:
+  - python3
+  - hello.py

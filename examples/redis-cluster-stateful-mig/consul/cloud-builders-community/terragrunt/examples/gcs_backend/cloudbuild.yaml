@@ -1,0 +1,25 @@
+# In this directory, run the following command to build this builder.
+# $ gcloud builds submit . --config=cloudbuild.yaml
+steps:
+  - name: 'gcr.io/${PROJECT_ID}/terragrunt'
+    args: ['plan-all']
+    env:
+      - "TF_IN_AUTOMATION=1"
+      - "TF_INPUT=false"
+      - "TF_VAR_project_id=${PROJECT_ID}"
+    dir: env
+  - name: 'gcr.io/${PROJECT_ID}/terragrunt'
+    args: ['apply-all', '-auto-approve']
+    env:
+      - "TF_IN_AUTOMATION=1"
+      - "TF_INPUT=false"
+      - "TF_VAR_project_id=${PROJECT_ID}"
+    dir: env
+  - name: 'gcr.io/${PROJECT_ID}/terragrunt'
+    args: ['destroy-all', '-auto-approve']
+    env:
+      - "TF_IN_AUTOMATION=1"
+      - "TF_INPUT=false"
+      - "TF_VAR_project_id=${PROJECT_ID}"
+    dir: env
+tags: ['cloud-builders-community']

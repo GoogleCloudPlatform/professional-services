@@ -1,0 +1,18 @@
+steps:
+- name: 'gcr.io/$PROJECT_ID/dataflow-python'
+  entrypoint: '/bin/bash'
+  args: [ '-c',
+          'source /venv/bin/activate' ]
+- name: 'gcr.io/$PROJECT_ID/dataflow-python'
+  entrypoint: 'python'
+  args: [ '-m',
+          'apache_beam.examples.wordcount', 
+          '--input',
+         '/etc/hosts', 
+         '--output', 
+         'counts', 
+         '--runner=DataflowRunner',
+         '--temp_location=gs://cloudbuild-dataflow-$PROJECT_ID/',
+         '--staging_location=gs://cloudbuild-dataflow-$PROJECT_ID/',
+         '--project=$PROJECT_ID' ]
+tags: ['cloud-builders-community']

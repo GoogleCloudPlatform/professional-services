@@ -1,0 +1,10 @@
+steps:
+  - name: "gcr.io/cloud-builders/docker"
+    args: ["build", "-t", "gcr.io/$PROJECT_ID/webdev", "."]
+
+  # simple sanity check
+  - name: "gcr.io/$PROJECT_ID/webdev"
+    args: ["--version"]
+
+images: ["gcr.io/$PROJECT_ID/webdev"]
+tags: ["cloud-builders-community"]

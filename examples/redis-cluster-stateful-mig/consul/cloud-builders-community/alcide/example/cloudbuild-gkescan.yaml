@@ -1,0 +1,51 @@
+#
+#
+#  gcloud builds submit --config cloudbuild-gkescan.yaml --substitutions _GKE_CLUSTER_ZONE=us-east1-d,_GKE_CLUSTER=demo-cluster
+#
+#
+
+steps:
+
+#
+# This step takes care of fetching cluster credentials (kubeconfig)
+# DO NOT REMOVE THIS STEP
+#
+- name: 'gcr.io/cloud-builders/kubectl'
+  args:
+  - 'get'
+  - 'pods'
+  - '--all-namespaces'
+  env:
+  - 'CLOUDSDK_COMPUTE_ZONE=${_GKE_CLUSTER_ZONE}'
+  - 'CLOUDSDK_CONTAINER_CLUSTER=${_GKE_CLUSTER}'  
+
+#
+# Scan the target cluster.
+# kubeconfig fetched by previous step
+#
+# To use profile based scan, please create a free account at www.alcide.io/advisor-free-trial
+#
+- name: 'gcr.io/$PROJECT_ID/advisor'
+  args:
+  - --eula-sign
+  - validate
+  - cluster
+  - --cluster-context
+  - gke_${PROJECT_ID}_${_GKE_CLUSTER_ZONE}_${_GKE_CLUSTER}
+  - '--namespace-include=*'
+  - '--namespace-exclude=-'
+  - '--outfile'
+  - 'scan.html'
+  #- '--policy-profile=gold.yaml'
+  #- '--alcide-api-key=${_ALCIDE_APIKEY}'
+  #- '--alcide-api-server=${_ALCIDE_API_SERVER}'
+  env:
+  - 'CLOUDSDK_COMPUTE_ZONE=${_GKE_CLUSTER_ZONE}'
+  - 'CLOUDSDK_CONTAINER_CLUSTER=${_GKE_CLUSTER}'
+  #- 'ALCIDE_APIKEY=${_ALCIDE_APIKEY}'
+  #- 'ALCIDE_API_SERVER=${_ALCIDE_API_SERVER}'
+
+# artifacts:
+#   objects:
+#     location: 'gs://[STORAGE_LOCATION]/'
+#     paths: ['scan.html']

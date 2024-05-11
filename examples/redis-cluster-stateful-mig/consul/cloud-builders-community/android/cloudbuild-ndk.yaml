@@ -1,0 +1,41 @@
+steps:
+
+- name: 'gcr.io/cloud-builders/docker'
+  args:
+  - 'build'
+  - '--tag=gcr.io/$PROJECT_ID/android:base'
+  - '--file=Dockerfile-base'
+  - '.'
+
+- name: 'gcr.io/cloud-builders/docker'
+  args:
+  - 'build'
+  - '--tag=gcr.io/$PROJECT_ID/android:${_ANDROID_VERSION}'
+  - '--build-arg'
+  - 'android_version=${_ANDROID_VERSION}'
+  - '--build-arg'
+  - 'project_id=$PROJECT_ID'
+  - '--file=Dockerfile-sdk'
+  - '.'
+  - '--cache-from'
+  - 'gcr.io/$PROJECT_ID/android:base'
+
+- name: 'gcr.io/cloud-builders/docker'
+  args:
+  - 'build'
+  - '--tag=gcr.io/$PROJECT_ID/android:${_ANDROID_VERSION}-ndk-r25'
+  - '--build-arg'
+  - 'android_version=${_ANDROID_VERSION}'
+  - '--build-arg'
+  - 'project_id=$PROJECT_ID'
+  - '--file=Dockerfile-ndk'
+  - '.'
+  - '--cache-from'
+  - 'gcr.io/$PROJECT_ID/android:${_ANDROID_VERSION}'
+
+images: 
+  - 'gcr.io/$PROJECT_ID/android:base'
+  - 'gcr.io/$PROJECT_ID/android:${_ANDROID_VERSION}'
+  - 'gcr.io/$PROJECT_ID/android:${_ANDROID_VERSION}-ndk-r25'
+
+timeout: 2000s

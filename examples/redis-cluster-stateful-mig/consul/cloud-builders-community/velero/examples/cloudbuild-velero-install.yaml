@@ -1,0 +1,12 @@
+steps:
+  - name: "gcr.io/$PROJECT_ID/velero"
+    args:
+      - "install"
+      - "--provider=gcp"
+      - "--bucket=velero-backups"
+      - "--secret-file=credentials.json"
+      - "--wait"
+    env:
+      - "CLOUDSDK_COMPUTE_REGION=europe-west1"
+      - "CLOUDSDK_CONTAINER_CLUSTER=cluster-1"
+tags: ["cloud-builders-community"]

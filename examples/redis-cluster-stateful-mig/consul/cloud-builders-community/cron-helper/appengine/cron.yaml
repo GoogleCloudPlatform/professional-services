@@ -1,0 +1,4 @@
+cron:
+- description: "Daily build"
+  url: /
+  schedule: every 24 hours

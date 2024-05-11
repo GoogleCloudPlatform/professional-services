@@ -1,0 +1,10 @@
+steps:
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['build', '--tag=gcr.io/$PROJECT_ID/mortar', '.']
+- # Verify mortar has been built correctly
+  name: 'gcr.io/$PROJECT_ID/mortar'
+  entrypoint: 'mortar'
+  args: ['-v']
+
+images: ['gcr.io/$PROJECT_ID/mortar']
+tags: ['cloud-builders-community']

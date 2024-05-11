@@ -1,0 +1,28 @@
+steps:
+
+- name: 'gcr.io/cloud-builders/docker'
+  args:
+  - 'build'
+  - '--tag=gcr.io/$PROJECT_ID/android:base'
+  - '--file=Dockerfile-base'
+  - '.'
+
+- name: 'gcr.io/cloud-builders/docker'
+  args:
+  - 'build'
+  - '--tag=gcr.io/$PROJECT_ID/android:${_ANDROID_VERSION}'
+  - '--build-arg'
+  - 'android_version=${_ANDROID_VERSION}'
+  - '--build-arg'
+  - 'project_id=$PROJECT_ID'
+  - '--file=Dockerfile-sdk'
+  - '.'
+  - '--cache-from'
+  - 'gcr.io/$PROJECT_ID/android:base'
+
+images:
+  - 'gcr.io/$PROJECT_ID/android:base'
+  - 'gcr.io/$PROJECT_ID/android:${_ANDROID_VERSION}'
+
+timeout: 2000s
+tags: ['cloud-builders-community']

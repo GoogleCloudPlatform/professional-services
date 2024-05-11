@@ -1,0 +1,7 @@
+project: https://platform.activestate.com/owner/projectName # Replace with your own namespace
+scripts:
+  - name: example
+    standalone: true
+    value: |
+      echo "Your super secret childhood crush: ${secrets.user.crush}" # Every user has their own value
+      echo "Your secret greeting: ${secrets.project.greeting}"        # Every user on the project shares the value

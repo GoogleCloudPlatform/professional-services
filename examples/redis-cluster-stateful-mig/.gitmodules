@@ -1,0 +1,3 @@
+[submodule "consul/cloud-builders-community"]
+	path = consul/cloud-builders-community
+	url = https://github.com/GoogleCloudPlatform/cloud-builders-community

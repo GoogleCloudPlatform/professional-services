@@ -1,0 +1,12 @@
+steps:
+- name: "gcr.io/cloud-builders/docker"
+  args:
+  - build
+  - --tag=gcr.io/$PROJECT_ID/state
+  - .
+- name: "gcr.io/${PROJECT_ID}/state"
+  args:
+  - state
+  - --version
+images: ["gcr.io/$PROJECT_ID/state"]
+tags: ["cloud-builders-community"]

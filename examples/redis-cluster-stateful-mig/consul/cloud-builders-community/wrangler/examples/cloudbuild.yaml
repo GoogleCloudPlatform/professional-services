@@ -1,0 +1,6 @@
+steps:
+- name: 'gcr.io/$PROJECT_ID/wrangler'
+  args: ['help']
+# images:
+# - 'gcr.io/$PROJECT_ID/wrangler-help'
+tags: ['cloud-builders-community']

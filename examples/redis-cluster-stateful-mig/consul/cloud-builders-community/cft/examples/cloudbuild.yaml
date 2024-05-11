@@ -1,0 +1,11 @@
+# Perform a cft command execution based on the `instance.yaml` configuration. This template
+# build creates a GCE image.
+#
+# See README.md for invocation instructions.
+steps:
+- name: 'gcr.io/$PROJECT_ID/cft'
+  args:
+  - --project=$PROJECT_ID
+  - apply
+  - instance.yaml
+tags: ['cloud-builders-community']

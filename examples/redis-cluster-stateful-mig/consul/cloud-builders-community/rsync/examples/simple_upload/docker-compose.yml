@@ -1,0 +1,13 @@
+version: '2'
+
+services:
+  server:
+    image: axiom/rsync-server
+    container_name: server
+    volumes:
+    - ./id_rsa.pub:/root/.ssh/authorized_keys
+
+networks:
+  default:
+    external:
+      name: cloudbuild

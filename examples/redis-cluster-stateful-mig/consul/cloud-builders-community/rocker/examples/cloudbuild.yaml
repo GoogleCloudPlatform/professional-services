@@ -1,0 +1,21 @@
+# This example uses rocker to build a rocker builder. Notice that we call
+# `rocker build`, not `docker build`.
+#
+# Note that we assume you have previously built and pushed image
+# `gcr.io/$PROJECT_ID/rocker`; if you haven't done that, walk up one level from
+# here and build that before running this example.
+#
+# In this directory, run the following command to build this example:
+# $ gcloud builds submit --config=cloudbuild.yaml .
+
+steps:
+# Use Rockerfile to Build the image 'rocker:latest'; note that this TAG is
+# defined in the Rockerfile.
+- name: 'gcr.io/$PROJECT_ID/rocker'
+  args: ['build', '-f', 'Rockerfile', '.']
+# If we were successful, the rocker-built rocker image will work:
+- name: 'rocker:latest'
+  args: ['info']
+
+# Note that we don't push this image.
+tags: ['cloud-builders-community']

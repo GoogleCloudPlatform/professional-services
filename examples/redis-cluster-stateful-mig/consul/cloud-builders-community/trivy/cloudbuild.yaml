@@ -1,0 +1,8 @@
+steps:
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['build', '--tag=gcr.io/$PROJECT_ID/trivy', '.']
+- name: "gcr.io/${PROJECT_ID}/trivy"
+  args: ["--help"]
+
+images: ['gcr.io/$PROJECT_ID/trivy']
+tags: ['cloud-builders-community']

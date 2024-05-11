@@ -1,0 +1,29 @@
+steps:
+  - name: 'gcr.io/$PROJECT_ID/terraform'
+    entrypoint: 'bash'
+    args: [
+        '-c',
+        'terraform init && terraform plan -no-color > plan.txt'
+    ]
+  - name: 'gcr.io/$PROJECT_ID/octokit'
+    env:
+      - "APP_ID=<github-app-id>"
+      - "INSTALLATION_ID=<github-app-installation-id>"
+      - "INSTALLATION_PK=sm://<your-secret-id>/latest"
+    args:
+      - |-
+        const planContent = fs.readFileSync('./plan.txt', 'utf-8', 'r+');
+        await octokit.pulls.createReview({
+          owner: '$_GITHUB_USER',
+          repo: '$REPO_NAME',
+          pull_number: '$_PR_NUMBER',
+          event: 'COMMENT',
+          body: `<details>
+            <summary>Terraform Plan Results</summary>
+          \`\`\`
+          $${planContent}
+          \`\`\`
+          </details>`
+        });
+substitutions:
+  _GITHUB_USER: <your-user>

@@ -1,0 +1,9 @@
+steps:
+  - name: 'gcr.io/$PROJECT_ID/sonar-scanner:latest'
+    args:
+    - '-Dsonar.host.url=https://sonarcloud.io'
+    - '-Dsonar.login={specify}'
+    - '-Dsonar.projectKey={specify}'
+    - '-Dsonar.organization={specify}'
+    - '-Dsonar.sources=.'
+tags: ['cloud-builders-community']

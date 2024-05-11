@@ -1,0 +1,21 @@
+# In this directory, run the following command to build this builder.
+# $ gcloud builds submit . --config=cloudbuild.yaml
+
+steps:
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['build', '--tag=gcr.io/$PROJECT_ID/ansible', '-f', 'Dockerfile', '.']
+
+# Simple sanity check: check that ansible-playbook has not errors
+- name: 'gcr.io/$PROJECT_ID/ansible'
+  args: ['--version']
+
+# Run some ansible commands for check
+- name: 'gcr.io/$PROJECT_ID/ansible'
+  entrypoint: '/usr/bin/ansible'
+  args: ['all', '-i', 'localhost,', '-c', 'local', '-e', 'ansible_python_interpreter=python3', '-m', 'setup', '-a', 'filter=ansible_hostname']
+
+images:
+- 'gcr.io/$PROJECT_ID/ansible'
+
+timeout: 1200s
+tags: ['cloud-builders-community']

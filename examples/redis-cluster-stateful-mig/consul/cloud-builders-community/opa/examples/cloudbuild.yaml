@@ -1,0 +1,14 @@
+# Perform an inspec command execution
+#
+# See README.md for invocation instructions.
+steps:
+- name: 'gcr.io/$PROJECT_ID/opa'
+  args:
+  - eval
+  - --data
+  - resource
+  - --data
+  - rego
+  - data.policy.deny
+  - --fail-defined
+tags: ['cloud-builders-community']

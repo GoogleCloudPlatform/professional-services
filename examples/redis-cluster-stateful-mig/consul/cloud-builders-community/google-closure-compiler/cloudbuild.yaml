@@ -1,0 +1,12 @@
+# In this directory, run the following command to build this builder.
+# $ gcloud builds submit . --config=cloudbuild.yaml
+
+steps:
+# Build the Closure Compiler builder (Java) then run it and output its help
+- name: "gcr.io/cloud-builders/docker"
+  args: ["build", "--tag=gcr.io/${PROJECT_ID}/google-closure-compiler", "."]
+- name: "gcr.io/${PROJECT_ID}/google-closure-compiler"
+  args: ["--help"]
+
+images: ["gcr.io/${PROJECT_ID}/google-closure-compiler"]
+tags: ['cloud-builders-community']

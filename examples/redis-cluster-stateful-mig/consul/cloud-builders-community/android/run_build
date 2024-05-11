@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+#
+# Runs the arguments as if they were passed directly to bash, but first
+# sources an optional `.buildenv` script, allowing other build steps
+# to easily supplement the build environment.
+
+if [ -f .buildenv ];then
+  . .buildenv
+else
+  echo "No .buildenv file found at `pwd`"
+fi
+
+"$@"

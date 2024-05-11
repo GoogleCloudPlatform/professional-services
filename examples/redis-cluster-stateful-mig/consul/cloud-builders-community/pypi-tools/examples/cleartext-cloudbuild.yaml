@@ -1,0 +1,29 @@
+steps:
+
+  - name: 'gcr.io/$PROJECT_ID/pypi-tools'
+    id: 'push to test.pypi'
+    entrypoint: 'twine'
+    dir: 'example-package'
+    env:
+      - 'PYPI_USERNAME=foo'
+      - 'PYPI_PASSWORD=XXX'
+    args: ['upload', '--repository-url', 'https://test.pypi.org/legacy/', 'dist/*', '-u', '$PYPI_USERNAME', '-p', '$PYPI_PASSWORD']
+
+  - name: 'gcr.io/$PROJECT_ID/pypi-tools:3.7'
+    id: 'push to pypi'
+    entrypoint: 'twine'
+    dir: 'example-package'
+    env:
+      - 'PYPI_USERNAME=foo'
+      - 'PYPI_PASSWORD=XXX'
+    args: ['upload', 'dist/*', '-u', '$PYPI_USERNAME', '-p', '$PYPI_PASSWORD']
+
+  - name: 'gcr.io/$PROJECT_ID/pypi-tools:3.7'
+    id: 'push to pypi if has a new version'
+    dir: 'example-package'
+    args:
+      - '-c'
+      - |
+        code_version=$(python setup.py --version) && \
+        pip_version=$(yolk -V kondunite | cut -d" " -f2) && \
+        ([ "$code_version" != "$pip_version" ] && twine upload dist/* -u $PYPI_USERNAME -p $PYPI_PASSWORD || echo "No new version")

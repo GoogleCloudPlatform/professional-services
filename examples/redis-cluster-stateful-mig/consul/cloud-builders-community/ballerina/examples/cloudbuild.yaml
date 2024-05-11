@@ -1,0 +1,31 @@
+steps:
+  - name: "gcr.io/$PROJECT_ID/ballerina:latest"
+    args: ["version"]
+  - name: "gcr.io/$PROJECT_ID/ballerina:v1.2.7"
+    args: ["version"]
+  - name: "gcr.io/$PROJECT_ID/ballerina:v1.2.6"
+    args: ["version"]
+  - name: "gcr.io/$PROJECT_ID/ballerina:v1.2.5"
+    args: ["version"]
+  - name: "gcr.io/$PROJECT_ID/ballerina:v1.2.4"
+    args: ["version"]
+  - name: "gcr.io/$PROJECT_ID/ballerina:v1.2.3"
+    args: ["version"]
+  - name: "gcr.io/$PROJECT_ID/ballerina:v1.2.2"
+    args: ["version"]
+  - name: "gcr.io/$PROJECT_ID/ballerina:v1.2.1"
+    args: ["version"]
+  - name: "gcr.io/$PROJECT_ID/ballerina:v1.2.0"
+    args: ["version"]
+  - name: "gcr.io/$PROJECT_ID/ballerina:v1.1.4"
+    args: ["version"]
+  - name: "gcr.io/$PROJECT_ID/ballerina:v1.1.3"
+    args: ["version"]
+  - name: "gcr.io/$PROJECT_ID/ballerina:v1.1.2"
+    args: ["version"]
+  - name: "gcr.io/$PROJECT_ID/ballerina:v1.1.1"
+    args: ["version"]
+  - name: "gcr.io/$PROJECT_ID/ballerina:v1.1.0"
+    args: ["version"]
+
+tags: ["cloud-builders-community"]

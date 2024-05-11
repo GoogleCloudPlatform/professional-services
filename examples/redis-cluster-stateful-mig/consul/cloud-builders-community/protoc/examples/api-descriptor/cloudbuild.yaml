@@ -1,0 +1,13 @@
+steps:
+  - name: 'gcr.io/$PROJECT_ID/protoc'
+    args:
+      [
+        '--include_imports',
+        '--include_source_info',
+        '--proto_path',
+        '.',
+        '--descriptor_set_out',
+        'api_descriptor.pb',
+        'person.proto',
+      ]
+tags: ['cloud-builders-community']
