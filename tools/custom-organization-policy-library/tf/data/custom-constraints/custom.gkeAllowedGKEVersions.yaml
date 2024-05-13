@@ -1,0 +1,11 @@
+custom.gkeAllowedGKEVersions:
+  action_type: DENY
+  condition: 1 == 0
+  description: Enforce that GKE nodes are using authorized GKE versions
+  display_name: Allow only authorized GKE versions
+  method_types:
+  - CREATE
+  - UPDATE
+  resource_types:
+  - container.googleapis.com/Cluster
+  - container.googleapis.com/NodePool

@@ -1,0 +1,10 @@
+custom.gkeRequireNodePoolAutoUpgrade:
+  actionType: DENY
+  condition: resource.management.autoUpgrade == false
+  description: Enforce that GKE clusters are configured with node auto-upgrade enabled
+  display_name: Enable node auto-upgrade
+  methodTypes:
+  - CREATE
+  - UPDATE
+  resourceTypes:
+  - container.googleapis.com/NodePool
