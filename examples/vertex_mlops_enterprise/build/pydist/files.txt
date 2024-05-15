@@ -1,0 +1,23 @@
+# Packages required to get access to Artifact Registry without Internet Access
+cachetools-5.2.0-py3-none-any.whl
+certifi-2022.6.15-py3-none-any.whl
+cffi-1.15.1-cp37-cp37m-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
+charset_normalizer-2.1.0-py3-none-any.whl
+cryptography-37.0.4-cp36-abi3-manylinux_2_24_x86_64.whl
+google_auth-2.9.1-py2.py3-none-any.whl
+idna-3.3-py3-none-any.whl
+importlib_metadata-4.12.0-py3-none-any.whl
+jeepney-0.8.0-py3-none-any.whl
+keyring-23.7.0-py3-none-any.whl
+keyrings.google_artifactregistry_auth-1.0.0-py3-none-any.whl
+pluggy-1.0.0-py2.py3-none-any.whl
+pyasn1-0.4.8-py2.py3-none-any.whl
+pyasn1_modules-0.2.8-py2.py3-none-any.whl
+pycparser-2.21-py2.py3-none-any.whl
+requests-2.28.1-py3-none-any.whl
+rsa-4.9-py3-none-any.whl
+six-1.16.0-py2.py3-none-any.whl
+SecretStorage-3.3.2-py3-none-any.whl
+typing_extensions-4.3.0-py3-none-any.whl
+urllib3-1.26.11-py2.py3-none-any.whl
+zipp-3.8.1-py3-none-any.whl

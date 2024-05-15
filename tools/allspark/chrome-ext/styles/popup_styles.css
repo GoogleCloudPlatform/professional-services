@@ -1,0 +1,20 @@
+.container {
+    width: 400px;
+    height: 200px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+    align-items: center;
+
+    background-color: #1e1e1e;
+}
+
+select, button {
+    font-size: 25px;
+}
+
+.search_engine_choice {
+    font-size: 30px;
+    opacity: 0.3;
+    color: white;
+}

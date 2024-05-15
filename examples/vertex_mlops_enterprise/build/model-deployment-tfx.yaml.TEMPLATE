@@ -1,0 +1,121 @@
+# Copyright 2023 Google Inc. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#            http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+######################################################################
+# CI/CD steps for Cloud Build to test and deploy a model to Vertex AI.
+######################################################################
+
+steps:
+
+# Clone the repository.
+- name: 'gcr.io/cloud-builders/git'
+  secretEnv: ['SSH_KEY']
+  entrypoint: 'bash'
+  args:
+  - -c
+  - |
+    echo "$$SSH_KEY" >> /root/.ssh/id_rsa
+    chmod 400 /root/.ssh/id_rsa
+    ssh-keyscan -t rsa github.com > /root/.ssh/known_hosts
+  volumes:
+  - name: 'ssh'
+    path: /root/.ssh
+  id: 'Prepare git keys'
+
+# Clone the repository.
+- name: 'gcr.io/cloud-builders/git'
+  args: ['clone', '--single-branch', '--branch',
+         '$_BRANCH', '$_REPO_URL',
+         '--depth', '1',
+         '--verbose']
+  volumes:
+  - name: 'ssh'
+    path: /root/.ssh
+  id: 'Clone Repository'
+  waitFor: ['Prepare git keys']
+
+  
+# Test uploaded model artifact.
+- name: '$_CICD_IMAGE_URI'
+  entrypoint: 'pytest'
+  args: ['src/tests/model_deployment_tests.py::test_model_artifact']
+  dir: '$_WORKDIR'
+  env: 
+  - 'PROJECT=$_PROJECT'  
+  - 'REGION=$_REGION'
+  - 'MODEL_DISPLAY_NAME=$_MODEL_DISPLAY_NAME'
+  id: 'Test Model Artifact'
+  waitFor: ['Clone Repository']
+  
+# Create an endpoint.
+- name: '$_CICD_IMAGE_URI'
+  entrypoint: 'python'
+  args: ['build/utils.py',
+          '--mode', 'create-endpoint',
+          '--project', '$_PROJECT',
+          '--region', '$_REGION',
+          '--endpoint-display-name', '$_ENDPOINT_DISPLAY_NAME']
+  dir: '$_WORKDIR'
+  id: 'Create Endpoint'
+  waitFor: ['Test Model Artifact']
+  
+# Deploy the model.
+- name: '$_CICD_IMAGE_URI'
+  entrypoint: 'python'
+  args: ['build/utils.py',
+          '--mode', 'deploy-model',
+          '--project', '$_PROJECT',
+          '--region', '$_REGION',
+          '--endpoint-display-name', '$_ENDPOINT_DISPLAY_NAME',
+          '--model-display-name', '$_MODEL_DISPLAY_NAME'
+          ]
+  dir: '$_WORKDIR'
+  id: 'Deploy Model'
+  waitFor: ['Create Endpoint']
+  
+# Test deployed model endpoint.
+- name: '$_CICD_IMAGE_URI'
+  entrypoint: 'pytest'
+  args: ['src/tests/model_deployment_tests.py::test_model_endpoint']
+  dir: '$_WORKDIR'
+  env: 
+  - 'PROJECT=$_PROJECT'  
+  - 'REGION=$_REGION'
+  - 'MODEL_DISPLAY_NAME=$_MODEL_DISPLAY_NAME'
+  - 'ENDPOINT_DISPLAY_NAME=$_ENDPOINT_DISPLAY_NAME'
+  id: 'Test Model Endpoint'
+  waitFor: ['Deploy Model']
+
+serviceAccount: 'projects/$_PROJECT/serviceAccounts/$_SERVICE_ACCOUNT'
+timeout: 1800s
+logsBucket: '$_GCS_BUCKET'
+
+substitutions:
+  _REPO_URL: git@github.com:${github_org}/${github_repo}
+  _BRANCH: ${github_branch}
+  _REGION: ${region}
+  _PROJECT: ${project_id}
+  _GCS_BUCKET: ${project_id}_cloudbuild/logs
+  _CICD_IMAGE_URI: '${docker_repo}/cicd-tfx:latest'
+  _MODEL_DISPLAY_NAME: creditcards-classifier-v02
+  _ENDPOINT_DISPLAY_NAME: creditcards-classifier
+  _SERVICE_ACCOUNT: ${sa_mlops}
+  _WORKDIR: ${github_repo}
+options:
+  machineType: 'E2_HIGHCPU_8'
+
+availableSecrets:
+  secretManager:
+  - versionName: projects/${project_id}/secrets/github-key/versions/latest
+    env: 'SSH_KEY'

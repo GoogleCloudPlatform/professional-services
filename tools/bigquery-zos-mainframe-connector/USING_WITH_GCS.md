@@ -9,6 +9,11 @@ The [gRPC server](./gszutil/grecv/environment/README.md) allows the connector to
 run on a server the transcoding of binary files to ORC. This significantly reduces
 the level of MIPs consumed by this tool.
 
+## Note
+Mainframe Connector is actively being developed and maintained by the Google Cloud Engineering team. 
+If you like to get the latest Mainframe Connector release, need some help, like to learn more about the latest updates or anything else related to Mainframe Connector, 
+please contact us at mainframe@google.com
+
 ## gsutil cp
 
 This command is the only one which differs significantly from the non-mainframe version of the utility.

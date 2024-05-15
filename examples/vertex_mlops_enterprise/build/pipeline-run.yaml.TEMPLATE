@@ -1,0 +1,93 @@
+# Copyright 2023 Google Inc. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#            http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+#############################################################################
+# CI/CD steps for Cloud Build to test and deploy a TFX pipeline to Vertex AI.
+#############################################################################
+
+# Access the id_github file from Secret Manager, and setup SSH
+steps:
+- name: 'gcr.io/cloud-builders/git'
+  secretEnv: ['SSH_KEY']
+  entrypoint: 'bash'
+  args:
+  - -c
+  - |
+    echo "$$SSH_KEY" >> /root/.ssh/id_rsa
+    chmod 400 /root/.ssh/id_rsa
+    ssh-keyscan -t rsa github.com > /root/.ssh/known_hosts
+  volumes:
+  - name: 'ssh'
+    path: /root/.ssh
+  id: 'Prepare git keys'
+
+# Clone the repository.
+- name: 'gcr.io/cloud-builders/git'
+  args: ['clone', '--single-branch', '--branch',
+         '$_BRANCH', '$_REPO_URL',
+         '--depth', '1',
+         '--verbose']
+  volumes:
+  - name: 'ssh'
+    path: /root/.ssh
+  id: 'Clone Repository'
+  waitFor: ['Prepare git keys']
+
+# Run the pipeline.
+- name: python:3.9
+  entrypoint: pip
+  args: ["install", "-r", "src/pipeline_triggering/requirements.txt", "--user"]
+  dir: '$_WORKDIR'  
+  id: 'Install python packages'
+  waitFor: ['Clone Repository']
+
+- name: python:3.9
+  entrypoint: 'python'
+  args: ['build/utils.py',
+          '--mode', 'run-pipeline',
+          '--project', '$_PROJECT',
+          '--region', '$_REGION',
+          '--pipelines-store', '$_PIPELINES_STORE',
+          '--pipeline-name', '$_PIPELINE_NAME',
+          '--service-account', '$_SERVICE_ACCOUNT',
+          '--parameter-values', '$_PIPELINE_PARAMS',
+          '--labels', '$_LABELS'
+          ]
+  dir: '$_WORKDIR'  
+  id: 'Run Pipeline'
+  waitFor: ['Install python packages']
+
+
+serviceAccount: 'projects/$_PROJECT/serviceAccounts/$_SERVICE_ACCOUNT'
+logsBucket: '$_GCS_BUCKET'
+timeout: 7200s
+substitutions:
+  _REPO_URL: git@github.com:${github_org}/${github_repo}
+  _BRANCH: ${github_branch}
+  _REGION: ${region}
+  _PROJECT: ${project_id}
+  _GCS_BUCKET: ${project_id}_cloudbuild/logs
+  _PIPELINE_NAME: ${pipeline_name}
+  _PIPELINE_PARAMS: '${pipeline_params}'
+  _SERVICE_ACCOUNT: ${sa_mlops}
+  _PIPELINES_STORE: gs://${bucket_name}/creditcards/compiled_pipelines/
+  _WORKDIR: ${github_repo}
+  _LABELS: 'job=1'
+options:
+  machineType: 'E2_HIGHCPU_8'
+
+availableSecrets:
+  secretManager:
+  - versionName: projects/${project_id}/secrets/github-key/versions/latest
+    env: 'SSH_KEY'

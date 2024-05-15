@@ -15,4 +15,4 @@
 Flask==2.0.2
 google-api-python-client==2.24.0
 Bootstrap-Flask==1.8.0
-gunicorn==20.1.0
+gunicorn==22.0.0
