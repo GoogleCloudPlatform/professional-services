@@ -1,5 +1,5 @@
 # These are used by the docker image that validates the DAG syntax,
 # they are already included in Cloud Composer by default.
 # If you any other dependencies here, you must also ensure separately cloud composer has them.
-werkzeug==3.0.1 # needed for airflow 1.10.3
+werkzeug==3.0.3 # needed for airflow 1.10.3
 apache-airflow[gcp]==1.10.3
