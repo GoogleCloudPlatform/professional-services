@@ -6,4 +6,4 @@
 *.bak
 
 */**/terraform.tfstate*
-tf/
+terraform/
