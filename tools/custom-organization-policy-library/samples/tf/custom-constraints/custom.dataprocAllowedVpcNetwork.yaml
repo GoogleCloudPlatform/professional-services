@@ -1,0 +1,11 @@
+custom.dataprocAllowedVpcNetwork:
+  action_type: DENY
+  condition: 1 == 0
+  description: Enforce that the Dataproc cluster is created with in an authorized
+    VPC network
+  display_name: Allow only authorized VPC network for Dataproc
+  method_types:
+  - CREATE
+  - UPDATE
+  resource_types:
+  - dataproc.googleapis.com/Cluster

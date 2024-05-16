@@ -1,0 +1,11 @@
+custom.gkeAllowedAddons:
+  action_type: DENY
+  condition: 1 == 0
+  description: Enforce that GKE clusters is using the authorized add-ons
+  display_name: Allow only authorized GKE add-ons
+  method_types:
+  - CREATE
+  - UPDATE
+  resource_types:
+  - container.googleapis.com/Cluster
+  - container.googleapis.com/NodePool
