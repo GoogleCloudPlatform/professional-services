@@ -1,0 +1,10 @@
+custom.dataprocAllowedComponents:
+  action_type: DENY
+  condition: 1 == 0
+  description: Enforce that the Dataproc cluster is configured using authorized components
+  display_name: Require authorized components for Dataproc
+  method_types:
+  - CREATE
+  - UPDATE
+  resource_types:
+  - dataproc.googleapis.com/Cluster
