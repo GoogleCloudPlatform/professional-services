@@ -5,8 +5,4 @@ custom.computeAllowedDiskTypes:
   description: Prevent the creation of VMs not using specific disk type
   display_name: Allow only specific disk types
   method_types: CREATE
-<<<<<<< HEAD
   resource_types: compute.googleapis.com/Disk
-=======
-  resource_types: compute.googleapis.com/Instance
->>>>>>> 448553c3 (feat: add terraform factory and yaml factory generator)
