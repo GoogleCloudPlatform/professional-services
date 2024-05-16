@@ -1,3 +1,0 @@
-custom.gkeRequireRegionalClusters:
-  rules:
-  - enforce: true

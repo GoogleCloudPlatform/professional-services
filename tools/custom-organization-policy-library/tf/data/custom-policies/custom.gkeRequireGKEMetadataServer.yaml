@@ -1,3 +1,0 @@
-custom.gkeRequireGKEMetadataServer:
-  rules:
-  - enforce: true

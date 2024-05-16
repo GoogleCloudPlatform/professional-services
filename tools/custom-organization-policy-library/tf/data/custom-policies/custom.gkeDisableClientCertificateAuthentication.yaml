@@ -1,3 +1,0 @@
-custom.gkeDisableClientCertificateAuthentication:
-  rules:
-  - enforce: true

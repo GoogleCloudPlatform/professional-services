@@ -1,3 +1,0 @@
-custom.gkeRequireMasterAuthorizedNetworks:
-  rules:
-  - enforce: true

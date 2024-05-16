@@ -1,3 +1,0 @@
-custom.gkeRequireCOSImage:
-  rules:
-  - enforce: true

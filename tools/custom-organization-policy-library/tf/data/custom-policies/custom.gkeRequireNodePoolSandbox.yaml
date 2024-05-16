@@ -1,3 +1,0 @@
-custom.gkeRequireNodePoolSandbox:
-  rules:
-  - enforce: true

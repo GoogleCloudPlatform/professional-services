@@ -1,3 +1,0 @@
-custom.networkRequireInternalIpv6Ranges:
-  rules:
-  - enforce: true
