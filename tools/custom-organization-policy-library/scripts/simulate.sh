@@ -92,7 +92,7 @@ constraints_folder=$1
 policies_folder=$2
 output_folder=$3
 organization_id=$( get_organization_id )
-output_file=$output_folder/simulation-results-$(date -d "today" +"%Y%m%d%H%M").txt
+output_file=$output_folder/simulation-results-$(date +"%Y%m%d%H%M").txt
 
 [ -d $output_folder ] || mkdir -p $output_folder
 [ ! -f $output_file ] || rm $output_file
