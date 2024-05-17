@@ -154,6 +154,7 @@ Here is the list of the different modules than can be used:
 In those modules, organization policies can be loaded from a directory containing YAML files where each file defines one or more constraints. 
 The example below deploys a few organization policies using YAML files for definitions.
 
+```
 module "project" {
   source          = "./fabric/modules/project"
   billing_account = var.billing_account_id
@@ -164,10 +165,10 @@ module "project" {
     org_policies = " samples/tf/custom-policies"
   }
 }
-
+```
 Organization policy custom constraints can be loaded from a directory containing YAML files where each file defines one or more custom constraints. 
 The example below deploys a few organization policies using YAML files for definitions.
-
+```
 module "org" {
   source          = "./fabric/modules/organization"
   organization_id = var.organization_id
@@ -175,7 +176,7 @@ module "org" {
     org_policy_custom_constraints = "samples/tf/custom-constraints"
   }
 }
-
+```
 ```
 make build-tf
 ```
