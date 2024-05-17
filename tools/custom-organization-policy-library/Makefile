@@ -34,16 +34,16 @@ build-tf: clean constraints-tf policies-tf
 simulate: clean constraints policies
 	bash scripts/simulate.sh $(OUTPUT_GCLOUD)/constraints $(OUTPUT_GCLOUD)/policies $(OUTPUT_GCLOUD)/simulation
 
-.PHONY: deploy-constraint
-deploy-constraint:
+.PHONY: deploy-constraints
+deploy-constraints:
 	sh scripts/deploy.sh constraint $(OUTPUT_GCLOUD)/constraints
 
-.PHONY: deploy-policy
-deploy-policy:
+.PHONY: deploy-policies
+deploy-policies:
 	sh scripts/deploy.sh policy $(OUTPUT_GCLOUD)/policies
 
 .PHONY: deploy
-deploy: deploy-constraint deploy-policy
+deploy: deploy-constraints deploy-policies
 
 .PHONY: config
 config: 

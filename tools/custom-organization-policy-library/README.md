@@ -5,66 +5,155 @@ This repo contains a library of Custom Urganization Policies constraints and sam
 For information on Custom Organization Policies (CuOP), to secure your environment, see the [Google Cloud documentation](./https://cloud.google.com/resource-manager/docs/organization-policy/creating-managing-custom-constraints).
 
 ## Setting up environment 
-You can easily set up a new CuOP library matching various by using [ytt](https://carvel.dev/ytt/). 
+You can easily setting up your environment to manage CuOP library using [ytt](https://carvel.dev/ytt/). 
 
-Install binaries via Homebrew (macOS or Linux) 
+### Install via script (macOS or Linux)
+Install ytt into specific directory. Note that install.sh script installs other Carvel tools as well.
+```
+$ mkdir local-bin/
+$ curl -L https://carvel.dev/install.sh | K14SIO_INSTALL_BIN_DIR=local-bin bash
+$ export PATH=$PWD/local-bin/:$PATH
+$ ytt version
+```
 
+### Install binaries via Homebrew (macOS or Linux) 
 Require Homebrew to be installed
 ```
 $ brew tap carvel-dev/carvel
 $ brew install ytt
 $ ytt version
 ```
+For more details about other type of installation, please refer to official documentation [here](https://carvel.dev/ytt/docs/latest/install/)
 
-For other type of installation, please refer to official documentation [here](https://carvel.dev/ytt/docs/latest/install/)
+## Organization of the repository
+Here is a summary of the organization of the repository. It is divised in various folders:
+- `build` contains the various configuration files, and ytt library used to generate final constraints and policies.
+- `docs` contains documents on the tool.
+- `samples` contains the final constraints and policies generated.
+- `scripts` contains various scripts used for the generations.
+```
+$ tree -d -L 4
+.
+├── build
+│   ├── config
+│   │   └── services
+│   ├── custom-constraints
+│   │   ├── compute
+│   │   ├── dataproc
+│   │   ├── firewall
+│   │   ├── gke
+│   │   ├── network
+│   │   └── storage
+│   ├── org-policies
+│   └── ytt_lib
+├── docs
+├── samples
+│   ├── gcloud
+│   │   ├── constraints
+│   │   │   ├── compute
+│   │   │   ├── dataproc
+│   │   │   ├── firewall
+│   │   │   ├── gke
+│   │   │   ├── network
+│   │   │   └── storage
+│   │   └── policies
+│   │       ├── compute
+│   │       ├── dataproc
+│   │       ├── firewall
+│   │       ├── gke
+│   │       ├── network
+│   │       └── storage
+│   └── tf
+│       ├── custom-constraints
+│       └── custom-policies
+└── scripts
+```
 
-## Generating 
+## Generating Constraint and Policies
+ytt is a command-line tool used to template and patch YAML files. It simplifies generation of YAML files to create constraints and also policies.
+With the usage of the different scripts in this folder, the generation of constraints for various kind of organization is simplified. 
+Here are the various steps required to do the generation:
+1. Configure generation settings
+2. Generate the constraints and policies
+3. Provision the constraints and policies
 
-### 1. Set configuration 
 
-Configuration specific to an organization such as organization id, bundles to enabled, custom parameters to use for constraints can be defined in the `values.yaml` file.
- - **organization**
-   - this refers to the **organization ID** in GCP
- - **pci-dss**
-   - stands for **Payment Card Industry Data Security Standard**
- - **cis**
-   - stands for **Center for Internet Security**
+### 1. Configure generation settings
+To generate constraints and policies, it is expected to provide the good configuration values.
+Those configuration settings are specific to an organization such as organization id, bundles to be enabled, custom constraints parameters (when needed) to use.
+
+Those settings needs to be defined in the `values.yaml` file.
+
+#### General settings
+
+| Settings                      | Defaut value | Description                                                                           |
+|-------------------------------|--------------|---------------------------------------------------------------------------------------|
+| organization                  | 111111       | Organization ID used for the generation of constraints and policies                   |
+| bundles                       |              | Represents whether only constraint of a specific bundles have to be generated         |
+| bundles.pci_dss               | false        | Generate only constraints that are part of PCI-DSS 4.0 recommendations for GKE        |
+| bundles.cis                   | false        | Generate only constraints that are part of CIS Benchmark v1.5 for GKE recommendations |
+| dryrun                        | false        | Generate policies with mode dryrun enabled                                            |
 
 Example of values.yaml
 ```
 organization: '11111111'
 bundles:
  pci-dss: false
- cis: false
+ cis: true
 dryrun: false
 ```
 
+#### Constraint parameters settings
+Times to times, it happens that some constraints might required some parameters (e.g. allowed disk types, allowed machine types). For those specific constraints, it is expected to provide the settings in `values.yaml` file.
+
+Example of values.yaml with 
+```
+organization: '11111111'
+bundles:
+  pci-dss: false
+  cis: false
+dryrun: false
+compute:
+  computeAllowedInstanceMachineTypes:
+    params:
+      machine_types:
+      - "n2-standard-1"
+      - "n2-standard-2"
+  computeAllowedInstanceLabels:
+    params:
+      labels:
+      - "label-0"
+      - "label-1"
+  computeAllowedDiskTypes:
+    params:
+      disk_types:
+      - "pd-ssd"
+      - "pd-standard"
+```
 
 
-### 2. Generate policies and constraints
+### 2. Generate the constraints and policies
 
-To generate Policies and Constraints use the following command
+To generate policies and constraints, use the following command which will generated both constraints and policies.
 ```
 make build
 ```
+The different configurations files are generated in the `samples/` folder.
 
-## Provisionning
-
-
-### Available Commands
+However, for more precise controls on what to be generated, you can use of the following commands defined in the Makefile.
+#### Available Commands
 
 ```
-make constraints                    Build constraints based on input configuration
-make policies                       Build policies based on input configuration
-make build                          Build constraint and policies based on input configuration
-make deploy-constraint              Build deploy constraint based on input configuration
-make deploy-policy                  Build deploy policy based on input configuration
-make deploy                         Build deploy based on input configuration
-make clean                          Get rid of object and execuatable files
-make config                         Inline Rego rules into constraint templates
-make format                         Format yaml and starlark files
-make help                           Prints help for targets with comments
-make test                           Test custom organization policies
+make constraints                    Build constraints based on input configuration using gcloud format
+make constraints-tf                 Build constraints based on input configuration using Terraform Cloud Foundation Fabric module factory 
+make policies                       Build policies based on input configuration using gcloud format
+make policies-tf                    Build policies based on input configuration using Terraform Cloud Foundation Fabric module factory 
+make build                          Build constraint and policies based on input configuration using gcloud format
+make build                          Build constraint and policies based on input configuration using Terraform Cloud Foundation Fabric module factory
+make deploy-constraints             Deploy constraints based on input configuration using gcloud format
+make deploy-policies                Deploy policies based on input configuration using gcloud format
+make deploy                         Deploy both constraints and policies based on input configuration using gcloud format
+make config                         Generate to standard output the list of values used to generate constraints and policies
 ```
 
 ## Using dry-run mode
@@ -82,8 +171,20 @@ bundles:
 dryrun: true
 ```
 
+## Troubleshooting
+### Too many constraints per resource type
+In case you are getting the following errors, this is because you the number of constraints created are more than 20. 
+Current workaround is to merge logic of multiples constraints in a single constraint to limit the number of constraints.
+```
+ERROR: (gcloud.org-policies.set-custom-constraint) INVALID_ARGUMENT: Cannot create a new custom constraint for resource type container.googleapis.com/Cluster. Only 20 custom constraints can be created for a specific resource type.
+- '@type': type.googleapis.com/google.rpc.DebugInfo
+  detail: '[ORIGINAL ERROR] generic::invalid_argument: com.google.apps.framework.request.BadRequestException:
+    Cannot create a new custom constraint for resource type container.googleapis.com/Cluster.
+    Only 20 custom constraints can be created for a specific resource type. [google.rpc.error_details_ext]
+    { message: "Cannot create a new custom constraint for resource type container.googleapis.com/Cluster.
+    Only 20 custom constraints can be created for a specific resource type." }'
+```
 
-    
 ## Developing a CuOP constraint
 
 If this library doesn't contain a constraint that matches your use case, you can develop a new one using the [Constraint Template Authoring Guide](./docs/adding_cuop.md).
