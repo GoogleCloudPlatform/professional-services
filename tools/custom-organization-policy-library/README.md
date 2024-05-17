@@ -133,31 +133,102 @@ compute:
 
 
 ### 2. Generate the constraints and policies
-
 To generate policies and constraints, use the following command which will generated both constraints and policies.
+By default, generation of constraints and policies is done to be executed with gcloud command. Integration with Terraform is shared below
+
+#### Gcloud format
 ```
 make build
 ```
-The different configurations files are generated in the `samples/` folder.
+The different configurations files are generated in the `samples/gcloud` folder.
 
 However, for more precise controls on what to be generated, you can use of the following commands defined in the Makefile.
+
+#### Terraform with Cloud Foundation Fabric module format
+This is possible to generate constraints and policies in a format that is understandable by Cloud Foundation Fabric module.
+Here is the list of the different modules than can be used:
+- Organization module: https://github.com/GoogleCloudPlatform/cloud-foundation-fabric/tree/master/modules/organization
+- Folder module: https://github.com/GoogleCloudPlatform/cloud-foundation-fabric/tree/master/modules/folder
+- Project module: https://github.com/GoogleCloudPlatform/cloud-foundation-fabric/tree/master/modules/project
+
+In those modules, organization policies can be loaded from a directory containing YAML files where each file defines one or more constraints. 
+The example below deploys a few organization policies using YAML files for definitions.
+
+module "project" {
+  source          = "./fabric/modules/project"
+  billing_account = var.billing_account_id
+  name            = "project"
+  parent          = var.folder_id
+  prefix          = var.prefix
+  factories_config = {
+    org_policies = " samples/tf/custom-policies"
+  }
+}
+
+Organization policy custom constraints can be loaded from a directory containing YAML files where each file defines one or more custom constraints. 
+The example below deploys a few organization policies using YAML files for definitions.
+
+module "org" {
+  source          = "./fabric/modules/organization"
+  organization_id = var.organization_id
+  factories_config = {
+    org_policy_custom_constraints = "samples/tf/custom-constraints"
+  }
+}
+
+```
+make build-tf
+```
+The different configurations files are generated in the `samples/tf` folder.
+
 #### Available Commands
 
 ```
-make constraints                    Build constraints based on input configuration using gcloud format
-make constraints-tf                 Build constraints based on input configuration using Terraform Cloud Foundation Fabric module factory 
-make policies                       Build policies based on input configuration using gcloud format
-make policies-tf                    Build policies based on input configuration using Terraform Cloud Foundation Fabric module factory 
-make build                          Build constraint and policies based on input configuration using gcloud format
-make build                          Build constraint and policies based on input configuration using Terraform Cloud Foundation Fabric module factory
-make deploy-constraints             Deploy constraints based on input configuration using gcloud format
-make deploy-policies                Deploy policies based on input configuration using gcloud format
-make deploy                         Deploy both constraints and policies based on input configuration using gcloud format
+make constraints                    Build constraints based using gcloud format
+make constraints-tf                 Build constraints based using Terraform Cloud Foundation Fabric module factory 
+make policies                       Build policies based using gcloud format
+make policies-tf                    Build policies based using Terraform Cloud Foundation Fabric module factory 
+make build                          Build constraint and policies using gcloud format
+make build-tf                       Build constraint and policies using Terraform Cloud Foundation Fabric module factory
+make deploy-constraints             Deploy constraints based using gcloud format
+make deploy-policies                Deploy policies based using gcloud format
+make deploy                         Deploy both constraints and policies based using gcloud format
 make config                         Generate to standard output the list of values used to generate constraints and policies
 ```
 
-## Using dry-run mode
+### 3. Provision the constraints and policies
+After the policies and generations has been done, this is possible to deploy those constraints and policies to the organizations.
+For provisionning using gcloud command, this can be done by using following commands.
 
+Provisionning the constraints
+```
+$ make deploy-constraints
+...
+---------------
+Processing file: samples/gcloud/constraints/gke/gkeRequireRegionalClusters.yaml
+Constraint samples/gcloud/constraints/gke/gkeRequireRegionalClusters.yaml set successfully.
+---------------
+Processing file: samples/gcloud/constraints/gke/gkeRequireSecureBoot.yaml
+Constraint samples/gcloud/constraints/gke/gkeRequireSecureBoot.yaml set successfully.
+---------------
+...
+```
+
+Provisionning the policies
+```
+$ make deploy-policies
+...
+---------------
+Processing file: samples/gcloud/policies/gke/custom.gkeRequireRegionalClusters.yaml
+Policy samples/gcloud/policies/gke/custom.gkeRequireRegionalClusters.yaml set successfully.
+---------------
+Processing file: samples/gcloud/policies/gke/custom.gkeRequireSecureBoot.yaml
+Policy samples/gcloud/policies/gke/custom.gkeRequireSecureBoot.yaml set successfully.
+---------------
+...
+```
+
+#### Using dry-run mode
 To use dry-run mode set the boolean for dryrun in **values.yaml** file to true and regenerate the policy. 
 
 Example of how to set dryrun to true
