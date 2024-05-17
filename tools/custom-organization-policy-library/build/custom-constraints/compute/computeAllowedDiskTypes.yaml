@@ -2,7 +2,7 @@
 #@ constraint = build_constraint("computeAllowedDiskTypes")
 
 #@ def condition(disk_types):
-#@   return "([" + str(disk_types) + "].exists(disktype, resource.type.contains(disktype))) == false"
+#@   return "(" + str(disk_types) + ".exists(disktype, resource.type.contains(disktype))) == false"
 #@ end
 
 #@ if constraint.to_generate():
