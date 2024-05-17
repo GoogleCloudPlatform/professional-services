@@ -5,6 +5,5 @@ custom.networkRequireCustomModeVpc:
   display_name: Require custom mode VPC network
   method_types:
   - CREATE
-  - UPDATE
   resource_types:
   - compute.googleapis.com/Network
