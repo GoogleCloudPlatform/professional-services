@@ -1,11 +1,11 @@
 # Custom Organization Policy Library
-## [Sample Constraints](./docs/index.md#sample-constraints)
+## Overview
 
-This repo contains a library of Custom Urganization Policies constraints and samples. It contains tools to easily generate policies for further provisionning for organization using Gcloud or Terraform.
-For information on Custom Organization Policies (CuOP), to secure your environment, see the [Google Cloud documentation](./https://cloud.google.com/resource-manager/docs/organization-policy/creating-managing-custom-constraints).
+This repository provides a library of custom organization policy constraints and samples. It includes tools to easily generate policies for provisioning across your organization using either Google Cloud (gcloud) or Terraform.
+For more information on how Custom Organization Policies (CuOP) can help secure your environment, please refer to the  [Google Cloud documentation](./https://cloud.google.com/resource-manager/docs/organization-policy/creating-managing-custom-constraints).
 
 ## Setting up environment 
-You can easily setting up your environment to manage CuOP library using [ytt](https://carvel.dev/ytt/). 
+You can quickly set up your environment to manage the CuOP library using [ytt](https://carvel.dev/ytt/).
 
 ### Install via script (macOS or Linux)
 Install ytt into specific directory. Note that install.sh script installs other Carvel tools as well.
@@ -26,11 +26,13 @@ $ ytt version
 For more details about other type of installation, please refer to official documentation [here](https://carvel.dev/ytt/docs/latest/install/)
 
 ## Organization of the repository
-Here is a summary of the organization of the repository. It is divised in various folders:
-- `build` contains the various configuration files, and ytt library used to generate final constraints and policies.
-- `docs` contains documents on the tool.
-- `samples` contains the final constraints and policies generated.
-- `scripts` contains various scripts used for the generations.
+The repository is organized as follows:
+- `build`: Contains configuration files and the ytt library used to generate final constraints and policies.
+- `docs`: Contains documentation related to this tool.
+- `samples`: Contains the generated constraints and policies.
+- `scripts`: Contains scripts used for policy generation.
+
+Here's a visual representation:
 ```
 $ tree -d -L 4
 .
@@ -70,18 +72,24 @@ $ tree -d -L 4
 ```
 
 ## Generating Constraint and Policies
-ytt is a command-line tool used to template and patch YAML files. It simplifies generation of YAML files to create constraints and also policies.
-With the usage of the different scripts in this folder, the generation of constraints for various kind of organization is simplified. 
-Here are the various steps required to do the generation:
-1. Configure generation settings
-2. Generate the constraints and policies
-3. Provision the constraints and policies
+`ytt` is a command-line tool for templating and patching YAML files. It simplifies the creation of YAML files for constraints and policies.  
+The scripts in this repository further streamline the process for various organization structures.
 
+Steps to Generate:
 
-### 1. Configure generation settings
+**1. Configure Generation Settings**
+- Define organization-specific settings (organization ID, bundles to enable, custom constraint parameters) in the values.yaml file.
+  
+**2. Generate Constraints and Policies**
+- Use `make build` for gcloud format.
+- Use `make build-tf` for Terraform Cloud Foundation Fabric module format.
+  
+**3. Provision Constraints and Policies**
+- Use `make deploy-constraints` and `make deploy-policies` (or `make deploy` for both) to apply the generated files to your organization.
+
+### 1. Configure Generation Settings
 To generate constraints and policies, it is expected to provide the good configuration values.
 Those configuration settings are specific to an organization such as organization id, bundles to be enabled, custom constraints parameters (when needed) to use.
-
 Those settings needs to be defined in the `values.yaml` file.
 
 #### General settings
@@ -104,9 +112,9 @@ dryrun: false
 ```
 
 #### Constraint parameters settings
-Times to times, it happens that some constraints might required some parameters (e.g. allowed disk types, allowed machine types). For those specific constraints, it is expected to provide the settings in `values.yaml` file.
+It might happens that some constraints might required some parameters (e.g. allowed disk types, allowed machine types). For those specific constraints, it is expected to provide the settings in the `values.yaml` file.
 
-Example of values.yaml with 
+Example of values.yaml with parameters provided for generation
 ```
 organization: '11111111'
 bundles:
@@ -134,15 +142,14 @@ compute:
 
 ### 2. Generate the constraints and policies
 To generate policies and constraints, use the following command which will generated both constraints and policies.
-By default, generation of constraints and policies is done to be executed with gcloud command. Integration with Terraform is shared below
+By default, generation of constraints and policies requires to be executed with gcloud command. 
+Integration with Terraform is also possible and shared below.
 
 #### Gcloud format
 ```
 make build
 ```
 The different configurations files are generated in the `samples/gcloud` folder.
-
-However, for more precise controls on what to be generated, you can use of the following commands defined in the Makefile.
 
 #### Terraform with Cloud Foundation Fabric module format
 This is possible to generate constraints and policies in a format that is understandable by Cloud Foundation Fabric module.
@@ -167,7 +174,7 @@ module "project" {
 }
 ```
 Organization policy custom constraints can be loaded from a directory containing YAML files where each file defines one or more custom constraints. 
-The example below deploys a few organization policies using YAML files for definitions.
+The example below deploys a few organization policy constraints using YAML files for definitions.
 ```
 module "org" {
   source          = "./fabric/modules/organization"
@@ -183,6 +190,7 @@ make build-tf
 The different configurations files are generated in the `samples/tf` folder.
 
 #### Available Commands
+For more precise controls on what to be generated, you can use of the following commands defined in the Makefile.
 
 ```
 make constraints                    Build constraints based using gcloud format
@@ -194,14 +202,15 @@ make build-tf                       Build constraint and policies using Terrafor
 make deploy-constraints             Deploy constraints based using gcloud format
 make deploy-policies                Deploy policies based using gcloud format
 make deploy                         Deploy both constraints and policies based using gcloud format
+make simulate                       Run a script to detect violations of Custom Organization Policies with exiting infrastructure
 make config                         Generate to standard output the list of values used to generate constraints and policies
 ```
 
 ### 3. Provision the constraints and policies
-After the policies and generations has been done, this is possible to deploy those constraints and policies to the organizations.
-For provisionning using gcloud command, this can be done by using following commands.
+Once the policies and constraints generation is done, this is possible to deploy those constraints and policies to the organization infrastructure.
+Provisionning with `gcloud` command can be done by using following commands.
 
-Provisionning the constraints
+**Provisionning the constraints**
 ```
 $ make deploy-constraints
 ...
@@ -215,7 +224,7 @@ Constraint samples/gcloud/constraints/gke/gkeRequireSecureBoot.yaml set successf
 ...
 ```
 
-Provisionning the policies
+**Provisionning the policies**
 ```
 $ make deploy-policies
 ...
@@ -259,4 +268,4 @@ ERROR: (gcloud.org-policies.set-custom-constraint) INVALID_ARGUMENT: Cannot crea
 
 ## Developing a CuOP constraint
 
-If this library doesn't contain a constraint that matches your use case, you can develop a new one using the [Constraint Template Authoring Guide](./docs/adding_cuop.md).
+If this library doesn't contain a constraint that matches your use case, you can develop a new one using the [Adding Custom Organization Policy Guide](./docs/adding_cuop.md).
