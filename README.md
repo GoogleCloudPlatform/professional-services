@@ -525,7 +525,7 @@ Platform usage.
 *   [Permission Discrepancy Finder](tools/permission-discrepancy-finder) - A
     tool to find the principals with missing permissions on a resource within a
     project, subsequently, grants them the missing permissions.
-*   [Pubsub2Inbox](tools/pubsub2inbox) - A generic Cloud Function-based tool
+*   [Pubsub2Inbox](https://github.com/GoogleCloudPlatform/pubsub2inbox) - A generic Cloud Function-based tool
     that takes input from Pub/Sub messages and turns them into email, webhooks
     or GCS objects.
 *   [Quota Manager](tools/quota-manager) - A python module to programmatically
