@@ -1,4 +1,4 @@
-# Triton on TPU PoC
+# Triton and JetStream on Google Cloud TPU
 
 This repo contains reference code and deployment instructions for an experimental
 triton backend enabling tpu-based inference for llama 2 and gemma models.
