@@ -4,7 +4,7 @@
 
 This document guides you through creating and implementing custom organization policies in GCP to enforce specific configurations across your projects. These policies ensure adherence to security best practices, resource management guidelines, and other organizational requirements.
 
-### Why we need constraints and policies
+### Why we add constraints and policies
 
 #### 1. Enforce Security Best Practices:
 Constraints and policies allow you to define mandatory security configurations across your organization. This ensures all projects and resources adhere to a baseline level of security, reducing the risk of vulnerabilities and breaches. For example, you can create a custom organization policy that enforces encryption of all disks by default, preventing accidental exposure of sensitive data.
@@ -20,18 +20,11 @@ By automating configuration enforcement, constraints and policies minimize the r
 Many industries are subject to compliance regulations that dictate specific data security and resource management practices. Constraints and policies can be used to ensure your GCP environment adheres to these regulations.
 For example, a healthcare organization might have a policy requiring all patient data to be stored in specific regions with stringent access controls.
 
-#### 5. Promote Collaboration and Governance:
-Policies create a clear set of rules for resource usage within your organization, fostering better collaboration and governance. Everyone involved in GCP projects understands the expectations and limitations.
-This can be especially helpful for new team members or those unfamiliar with specific resource types or configurations.
 
 In summary, constraints and policies act as a guardrail for your GCP environment, ensuring security, consistency, efficiency, and compliance. They provide a foundation for building a well-managed and secure cloud infrastructure.
 
 
 ## Prerequisites
-
-An active GCP project with the Resource Manager API enabled.
-The gcloud command-line tool installed and configured with your GCP project.
-Understanding Custom Organization Policies
 
 Custom organization policies consist of two components:
 
@@ -43,21 +36,21 @@ Bind a constraint to specific projects or folders within your GCP organization, 
 
 ## Steps
 
-### 1. Define the Constraint (YAML file):
+### - 1. Define the Constraint (YAML file):
 
-#### Create a new YAML file 
+#### Create a new YAML file in Visual Studio code at the resource subfolder that you want to restrict. 
 
 If a relevant constraint doesn't exist, create a new .yaml file within an appropriate subfolder (gke, compute, firewall, etc.) under the custom_constraints directory in your local repository.
 
-Copy an existing constraint (optional): For guidance, copy an existing constraint file and modify it for your specific requirements.
+Copy an existing constraint (optional): For guidance, copy an existing constraint file and modify it for your specific requirements. Example: https://cloud.google.com/compute/docs/access/custom-constraints#vm-instance
 
 #### Edit the constraint file
 
 Update the following properties within the .yaml file:
 
-- *resource_types*: Specify the GCP resource types the constraint applies to (example: “container.googleapis.com/Cluster”)
+- *resource_types*: Specify the GCP resource types the constraint applies to (example: ```“container.googleapis.com/Cluster”```)
 
-- *condition*: Define the condition that must be met for the constraint to be satisfied (Example: resource.binaryAuthorization.evaluationMode == 'DISABLE')
+- *condition*: Define the condition that must be met for the constraint to be satisfied (Example: ```resource.binaryAuthorization.evaluationMode == 'DISABLE'```)
 
 - *action_type*: Indicate the enforcement action (e.g., DENY, AUDIT).
 - *method_types*: Define the methods affected by the constraint (Example: CREATE or UPDATE).
@@ -100,15 +93,16 @@ Check if the name of your constraint yaml file is available in the schema.resour
 
 ##### Schema File:
 
-Depending on the constraint, open the related schema file. ( schema.compute.yaml, schema.gke.yaml, etc.)
+- Depending on the constraint, open the related schema file. ( schema.compute.yaml, schema.gke.yaml, etc.)
 
-Check if the name of your constraint yaml file is available in the schema.resource.yaml. Otherwise, add your constraint name in the schema file and follow the example below 
+- Check if the name of your constraint yaml file is available in the schema.resource.yaml. Otherwise, add your constraint name in the schema file and follow the example below 
 Locate the schema file corresponding to the constraint service (example: schema.compute.yaml or schema.gke.yaml) within the services directory.
 
-Ensure your constraint YAML file name is listed in the schema.resource.yaml file. If not, add it using the appropriate format (refer to the existing schema for guidance).
-Add Validations:
+- Ensure your constraint YAML file name is listed in the schema.resource.yaml file. If not, add it using the appropriate format (refer to the existing schema for guidance).
+- 
+- Add Validations:
 
-Edit the schema file and define validations for your constraint parameters. For example, to enforce a minimum length of 1 character for a parameter named allowedDiskType.
+- Edit the schema file and define validations for your constraint parameters. For example, to enforce a minimum length of 1 character for a parameter named allowedDiskType.
 
 ```
 Example: 
@@ -192,4 +186,3 @@ In the Organization policies page, select Add policy, specify the policy details
 
 #### Commit and push changes: 
 Once you've defined the constraints and policies in your local repository, stage the changes and commit them to your version control system (e.g., Git). Push the changes to your remote repository on GitHub.
-
