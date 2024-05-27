@@ -170,12 +170,12 @@ Include the following properties in the policy file:
 Ensure that the rules are set to true to enforce the policies in your GCP. 
 
 Example of a policy
-'''
+```
 name: organizations/11111111/policies/custom.gkeAllowedReleaseChannels
 spec:
   rules:
   - enforce: true
-'''
+```
 
 ### 3. Generate and Set Constraints and Policies (Optional):
 
