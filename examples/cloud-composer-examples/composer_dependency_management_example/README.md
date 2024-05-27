@@ -1,4 +1,5 @@
 # Composer Dependency Management
+
 ##### This repo contains an example Cloud Composer workflow that provides a solution for managing varying dependencies between Composer Airflow DAGs, specifically focusing on DAGs with yearly, monthly, and weekly frequencies acting as parent jobs. The solution ensures that child DAGs are triggered appropriately based on their parent's schedule.
 
 The goal of this example is to provide a common pattern to automatically trigger and implement the composer dependency management. The primary challenge addressed is the need to handle complex dependencies between DAGs with different frequencies. The solution leverages Airflow's dependency management capabilities to create a hierarchical relationship between the parent and child DAGs.
@@ -7,7 +8,7 @@ The goal of this example is to provide a common pattern to automatically trigger
 
 ***
 
-![Alt text](../img/composer_management_usecase_lineage.png "Workflow Overview")
+![Alt text](../img/composer_mgmt_usecase.png "Workflow Overview")
 
 The workflow involves the following steps:
 
