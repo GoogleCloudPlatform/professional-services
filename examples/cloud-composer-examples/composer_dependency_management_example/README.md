@@ -44,7 +44,7 @@ In the bustling city of San Francisco, a dynamic e-commerce company named "Symph
 Symphony Goods relied on a sophisticated data orchestration system powered by Apache Airflow to automate and streamline their data workflows. This system consisted of a series of interconnected data pipelines, each designed to perform specific tasks and produce valuable insights.
 
 #### Yearly Refresh: Company Calendar
-Once a year, Symphony Goods executed a critical process known as "Company_cal_refresh." This workflow ensured that the company's internal calendars were synchronized across all departments and systems. It involved extracting data from various sources, such as employee schedules, project timelines, and public holidays, and consolidating it into a centralized repository. The updated calendar served as a single source of truth, enabling efficient planning, resource allocation, and communication within the organization.
+Once a year, Symphony Goods executed a critical process known as ["Company_cal_refresh"](company_cal_refresh.py). This workflow ensured that the company's internal calendars were synchronized across all departments and systems. It involved extracting data from various sources, such as employee schedules, project timelines, and public holidays, and consolidating it into a centralized repository. The updated calendar served as a single source of truth, enabling efficient planning, resource allocation, and communication within the organization.
 
 #### Monthly Refresh: Product Catalog
 Every month, Symphony Goods performed a "Product_catalog_refresh" workflow to keep its product catalog up-to-date. This process involved ingesting data from multiple channels, including supplier feeds, internal databases, and customer feedback. The workflow validated, transformed, and enriched the product information, ensuring that customers had access to accurate and comprehensive product details.
@@ -53,15 +53,15 @@ Every month, Symphony Goods performed a "Product_catalog_refresh" workflow to ke
 Symphony Goods generated a "Weekly_summary_report" every week to monitor key performance indicators (KPIs) and track business growth. The workflow aggregated data from various sources, such as sales figures, customer engagement metrics, and website traffic analytics. It then presented the data in visually appealing dashboards and reports, enabling stakeholders to make informed decisions.
 
 #### Daily Refresh: Product Inventory
-To ensure optimal inventory management, Symphony Goods ran a "Product_inventory_refresh" workflow on a daily basis. This workflow extracted inventory data from warehouses, distribution centers, and point-of-sale systems. It calculated available stock levels, identified potential stockouts, and provided recommendations for replenishment. The workflow ensured that Symphony Goods could fulfill customer orders promptly and maintain high levels of customer satisfaction.
+To ensure optimal inventory management, Symphony Goods ran a ["Product_inventory_refresh"](product_catalog_refresh.py) workflow on a daily basis. This workflow extracted inventory data from warehouses, distribution centers, and point-of-sale systems. It calculated available stock levels, identified potential stockouts, and provided recommendations for replenishment. The workflow ensured that Symphony Goods could fulfill customer orders promptly and maintain high levels of customer satisfaction.
 
 The symphony of data orchestration at Symphony Goods was a testament to the power of automation and integration. By leveraging Apache Airflow, the company was able to streamline its data operations, improve data quality, and gain valuable insights to drive business growth. As Symphony Goods continued to scale its operations, the data orchestration system served as the backbone, ensuring that data was always available, accurate, and actionable.
 
 ### Workflow Frequencies
-1. **Yearly**: Company_cal_refresh 
-2. **Monthly**: Product_catalog_refresh
-3. **Weekly**: Weekly_summary_report
-4. **Daily**: Product_inventory_refresh
+1. **Yearly**: [Company_cal_refresh](company_cal_refresh.py) 
+2. **Monthly**: [Product_catalog_refresh](product_catalog_refresh.py)
+3. **Weekly**: [Weekly_summary_report](weekly_summary_report.py)
+4. **Daily**: [Product_inventory_refresh](product_inventory_refresh.py)
 
 ## Use-case Lineage: Summary of Lineage and Dependencies
 The provided context describes the data orchestration system used by Symphony Goods, an e-commerce company in San Francisco. The system is powered by Apache Airflow and consists of four main workflows:
