@@ -31,7 +31,7 @@ function process_file() {
   echo "Processing file: $file"
 
   if [[ $action == "constraint" ]]; then
-    if ! output=$(gcloud org-policies set-custom-constraint $file 2>&1); then
+    if ! output=$(gcloud org-policies set-custom-constraint "$file" 2>&1); then
         echo "Error occurred during constraint setup:"
         echo "$output"
     else
@@ -39,7 +39,7 @@ function process_file() {
     fi
     # gcloud org-policies set-custom-constraint $file    
   elif [[ $action == "policy" ]]; then
-    if ! output=$(gcloud org-policies set-policy $file --update-mask=* 2>&1); then
+    if ! output=$(gcloud org-policies set-policy "$file" --update-mask=* 2>&1); then
         echo "Error occurred during policy update:"
         echo "$output"
     else

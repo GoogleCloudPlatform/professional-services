@@ -21,12 +21,12 @@ function install_gcloud() {
 # Function get organization id from values.yaml for gcloud parameter
 function get_organization_id() {
   organization_id=$( yq -r .organization values.yaml )
-  if [ -z $organization_id ]; then
+  if [ -z "$organization_id" ]; then
     echo "[$0][ERROR] Invalid organization in values.yaml"
     return 1
   fi
 
-  echo $organization_id
+  echo "$organization_id"
 }
 
 
@@ -37,9 +37,9 @@ function process_file() {
 
   echo "[$0] Processing constraint: $constraint_file, policy: $policy_file"
   gcloud beta policy-intelligence simulate orgpolicy \
-    --organization=$organization_id \
-    --custom-constraints=$constraint_file \
-    --policies=$policy_file >> $output_file
+    --organization="$organization_id" \
+    --custom-constraints="$constraint_file" \
+    --policies="$policy_file" >> "$output_file"
 
 }
 
@@ -54,7 +54,7 @@ function construct_policy_item() {
     policy_item=$policies_folder/${constraint_item##*/}
   fi
 
-  echo $policy_item
+  echo "$policy_item"
 }
 
 # Recursive function to traverse the file structure 
@@ -94,8 +94,8 @@ output_folder=$3
 organization_id=$( get_organization_id )
 output_file=$output_folder/simulation-results-$(date +"%Y%m%d%H%M").txt
 
-[ -d $output_folder ] || mkdir -p $output_folder
-[ ! -f $output_file ] || rm $output_file
+[ -d "$output_folder" ] || mkdir -p "$output_folder"
+[ ! -f "$output_file" ] || rm "$output_file"
 
 traverse_folder "$constraints_folder" "$policies_folder"
 
