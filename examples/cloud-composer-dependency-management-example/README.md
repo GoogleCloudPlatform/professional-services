@@ -8,7 +8,7 @@ The goal of this example is to provide a common pattern to automatically trigger
 
 ***
 
-![Alt text](../img/composer_mgmt_usecase.png "Workflow Overview")
+![Alt text](/img/composer_mgmt_usecase.png "Workflow Overview")
 
 The workflow involves the following steps:
 
