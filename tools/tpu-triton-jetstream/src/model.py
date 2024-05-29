@@ -93,7 +93,7 @@ class TritonPythonModel:
         # JetStream engine for max throughtput.
         auto_complete_model_config.set_model_transaction_policy(dict(decoupled=True))
 
-        # Disabling batching in Triton, let vLLM handle the batching on its own.
+        # Disabling batching in Triton, let JetStream handle the batching on its own.
         auto_complete_model_config.set_max_batch_size(0)
 
         return auto_complete_model_config
@@ -228,7 +228,7 @@ class TritonPythonModel:
 
     def create_response(self, jetstream_output):
         """
-        Parses the output from the vLLM engine into Triton
+        Parses the output from the JetStream engine into Triton
         response.
         """
         prompt = jetstream_output.prompt
@@ -274,8 +274,6 @@ class TritonPythonModel:
             )
 
             # Current implementation returns non-streaming response
-            # JetStream does provide streaming inferencing
-            # Can implementation in phase 2
             nonstreaming_output = self.RequestOutput()
             nonstreaming_output.prompt = prompt
             str_buffer = []
