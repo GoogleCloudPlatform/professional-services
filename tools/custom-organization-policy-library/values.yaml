@@ -58,17 +58,6 @@ storage:
     params:
       name_regex: "^(sin|cgk)"
 gke:
-  gkeAllowedAddons:
-    params:
-      addons:
-      - "httpLoadBalancing"
-      - "gcePersistentDiskCsiDriverConfig"
-      - "horizontalPodAutoscaling"
-  gkeAllowedGKEVersions:
-    params:
-      versions:
-      - "1.29.4-gke.1043000"
-      - "1.28.9-gke.1000000"
   gkeAllowedNodePoolImages:
     params:
       images:

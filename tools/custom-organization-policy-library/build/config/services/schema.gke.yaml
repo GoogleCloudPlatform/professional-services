@@ -3,44 +3,24 @@
 ---
 #@overlay/match missing_ok=True
 gke:
-  gkeAllowedAddons:
-    #@schema/validation one_of=["default", "skip", "include"]
-    generation: "default"
-    bundles:
-      pci-dss: false
-      cis: true
-    params:
-      #@schema/validation min_len=1
-      addons:
-      - ""
-  gkeAllowedGKEVersions:
-    #@schema/validation one_of=["default", "skip", "include"]
-    generation: "default"
-    bundles:
-      pci-dss: false
-      cis: true
-    params:
-      #@schema/validation min_len=1
-      versions:
-      - ""
   gkeRequireConfidentialNodes:
     #@schema/validation one_of=["default", "skip", "include"]
     generation: "default"
     bundles:
       pci-dss: false
-      cis: true
+      cis: false
   gkeRequireDataplaneV2:
     #@schema/validation one_of=["default", "skip", "include"]
     generation: "default"
     bundles:
       pci-dss: false
-      cis: true
+      cis: false
   gkeRequireRegionalClusters:
     #@schema/validation one_of=["default", "skip", "include"]
     generation: "default"
     bundles:
       pci-dss: false
-      cis: true
+      cis: false
   gkeRequireBinaryAuthorization:
     #@schema/validation one_of=["default", "skip", "include"]
     generation: "default"
@@ -57,7 +37,7 @@ gke:
     #@schema/validation one_of=["default", "skip", "include"]
     generation: "default"
     bundles:
-      pci-dss: false
+      pci-dss: true
       cis: true
   gkeRequireDatabaseEncryption:
     #@schema/validation one_of=["default", "skip", "include"]
@@ -81,7 +61,7 @@ gke:
     #@schema/validation one_of=["default", "skip", "include"]
     generation: "default"
     bundles:
-      pci-dss: false
+      pci-dss: true
       cis: true
     params:
       #@schema/validation min_len=1
@@ -215,7 +195,7 @@ gke:
     #@schema/validation one_of=["default", "skip", "include"]
     generation: "default"
     bundles:
-      pci-dss: false
+      pci-dss: true
       cis: true
   gkeRequireCOSImage:
     #@schema/validation one_of=["default", "skip", "include"]
