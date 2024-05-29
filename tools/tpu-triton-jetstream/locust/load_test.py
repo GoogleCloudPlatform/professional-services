@@ -15,11 +15,6 @@ import time
 import orjson
 import threading
 
-try:
-    import locust_plugins
-except ImportError:
-    print("locust-plugins is not installed, Grafana won't work")
-
 
 def add_custom_metric(name, value, length_value=0):
     events.request.fire(
@@ -229,16 +224,13 @@ class BaseProvider(abc.ABC):
         self.parsed_options = parsed_options
 
     @abc.abstractmethod
-    def get_url(self):
-        ...
+    def get_url(self): ...
 
     @abc.abstractmethod
-    def format_payload(self, prompt, max_tokens):
-        ...
+    def format_payload(self, prompt, max_tokens): ...
 
     @abc.abstractmethod
-    def parse_output_json(self, json, prompt):
-        ...
+    def parse_output_json(self, json, prompt): ...
 
 
 class OpenAIProvider(BaseProvider):
@@ -458,12 +450,12 @@ class TgiProvider(BaseProvider):
             # non-streaming response
             return ChunkMetadata(
                 text=data["generated_text"],
-                logprob_tokens=len(data["details"]["tokens"])
-                if "details" in data
-                else None,
-                usage_tokens=data["details"]["generated_tokens"]
-                if "details" in data
-                else None,
+                logprob_tokens=(
+                    len(data["details"]["tokens"]) if "details" in data else None
+                ),
+                usage_tokens=(
+                    data["details"]["generated_tokens"] if "details" in data else None
+                ),
                 prompt_usage_tokens=None,
             )
 
@@ -944,9 +936,9 @@ def _(environment, **kw):
 
     entries = copy.copy(InitTracker.logging_params)
     if environment.parsed_options.qps is not None:
-        entries[
-            "concurrency"
-        ] = f"QPS {environment.parsed_options.qps} {environment.parsed_options.qps_distribution}"
+        entries["concurrency"] = (
+            f"QPS {environment.parsed_options.qps} {environment.parsed_options.qps_distribution}"
+        )
     else:
         entries["concurrency"] = InitTracker.users
     for metric_name in [

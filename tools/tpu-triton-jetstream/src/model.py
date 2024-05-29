@@ -30,11 +30,10 @@ import json
 import logging
 import os
 import threading
-from typing import AsyncGenerator
-import numpy as np 
+import numpy as np
 import triton_python_backend_utils as pb_utils
 
-from jetstream.core import config_lib 
+from jetstream.core import config_lib
 from jetstream.core import orchestrator
 from jetstream.core import server_lib
 from jetstream.core.proto import jetstream_pb2
@@ -45,6 +44,7 @@ _JETSTREAM_ENGINE_ARGS_FILENAME = "model.json"
 
 root = logging.getLogger()
 root.setLevel(logging.INFO)
+
 
 class TritonPythonModel:
     @staticmethod
@@ -98,48 +98,52 @@ class TritonPythonModel:
 
         return auto_complete_model_config
 
-    def _setup_driver(self, **engine_args): 
-      # Create a JetStream generate engine
-    
-      # del argv
-      os.environ['XLA_FLAGS'] = '--xla_dump_to=/tmp/xla_logs --xla_dump_hlo_as_text'
-      # No devices for local cpu test. A None for prefill and a None for generate.
-      devices = server_lib.get_devices()
+    def _setup_driver(self, **engine_args):
+        # Create a JetStream generate engine
 
-      # reading model configuration
-      quantize_weight_param = True if engine_args['quantize_weights'] == "True" else False
-      quantize_kv_param = True if engine_args['quantize_kv_cache'] == "True" else False
-      engine = je.create_pytorch_engine(
+        # del argv
+        os.environ["XLA_FLAGS"] = "--xla_dump_to=/tmp/xla_logs --xla_dump_hlo_as_text"
+        # No devices for local cpu test. A None for prefill and a None for generate.
+        devices = server_lib.get_devices()
+
+        # reading model configuration
+        quantize_weight_param = (
+            True if engine_args["quantize_weights"] == "True" else False
+        )
+        quantize_kv_param = (
+            True if engine_args["quantize_kv_cache"] == "True" else False
+        )
+        engine = je.create_pytorch_engine(
             devices=devices,
-            tokenizer_path=engine_args['tokenizer_path'],
-            ckpt_path=engine_args['checkpoint_path'],
+            tokenizer_path=engine_args["tokenizer_path"],
+            ckpt_path=engine_args["checkpoint_path"],
             bf16_enable=True,
-            param_size=engine_args['param_size'],
-            context_length=engine_args['context_size'],
-            batch_size=engine_args['batch_size'],
+            param_size=engine_args["param_size"],
+            context_length=engine_args["context_size"],
+            batch_size=engine_args["batch_size"],
             quantize_weights=quantize_weight_param,
             quantize_kv=quantize_kv_param,
-            max_cache_length = engine_args['max_cache_length'],
-      )
-      server_config = ServerConfig(
-            interleaved_slices=(engine_args['platform'], ),
-            interleaved_engine_create_fns=(lambda a: engine, ),
-      )
+            max_cache_length=engine_args["max_cache_length"],
+        )
+        server_config = ServerConfig(
+            interleaved_slices=(engine_args["platform"],),
+            interleaved_engine_create_fns=(lambda a: engine,),
+        )
 
-      engines = config_lib.get_engines(server_config, devices=devices)
-      prefill_params = [pe.load_params() for pe in engines.prefill_engines]
-      generate_params = [ge.load_params() for ge in engines.generate_engines]
-      shared_params = [ie.load_params() for ie in engines.interleaved_engines]
-      logging.info('JetStream Engine Iniatialization Completes.')
-      driver = orchestrator.Driver(
-        prefill_engines=engines.prefill_engines + engines.interleaved_engines,
-        generate_engines=engines.generate_engines + engines.interleaved_engines,
-        prefill_params=prefill_params + shared_params,
-        generate_params=generate_params + shared_params,
-      )
-      
-      return driver
-    
+        engines = config_lib.get_engines(server_config, devices=devices)
+        prefill_params = [pe.load_params() for pe in engines.prefill_engines]
+        generate_params = [ge.load_params() for ge in engines.generate_engines]
+        shared_params = [ie.load_params() for ie in engines.interleaved_engines]
+        logging.info("JetStream Engine Iniatialization Completes.")
+        driver = orchestrator.Driver(
+            prefill_engines=engines.prefill_engines + engines.interleaved_engines,
+            generate_engines=engines.generate_engines + engines.interleaved_engines,
+            prefill_params=prefill_params + shared_params,
+            generate_params=generate_params + shared_params,
+        )
+
+        return driver
+
     def initialize(self, args):
         self.logger = pb_utils.Logger
         self.model_config = json.loads(args["model_config"])
@@ -232,9 +236,7 @@ class TritonPythonModel:
         response.
         """
         prompt = jetstream_output.prompt
-        text_outputs = [
-            (prompt + jetstream_output.output).encode("utf-8")
-        ]
+        text_outputs = [(prompt + jetstream_output.output).encode("utf-8")]
         triton_output_tensor = pb_utils.Tensor(
             "text_output", np.asarray(text_outputs, dtype=self.output_dtype)
         )
@@ -264,10 +266,10 @@ class TritonPythonModel:
             if in_max_tokens:
                 in_max_tokens = in_max_tokens.as_numpy()[0]
             else:
-                in_max_tokens = 100    
+                in_max_tokens = 100
 
             request = jetstream_pb2.DecodeRequest(
-                session_cache='',
+                session_cache="",
                 additional_text=prompt,
                 priority=1,
                 max_tokens=in_max_tokens,
@@ -280,10 +282,14 @@ class TritonPythonModel:
 
             async for item in self.jetengine.Decode(request):
                 if response_sender.is_cancelled():
-                    self.logger.log_info("[jetstream] Successfully cancelled the request")
+                    self.logger.log_info(
+                        "[jetstream] Successfully cancelled the request"
+                    )
                     break
                 if stream:
-                    self.logger.log_info(f"[jetstream] JetEngine stream output: {bytes(item.response[0], encoding='utf-8').decode()}")
+                    self.logger.log_info(
+                        f"[jetstream] JetEngine stream output: {bytes(item.response[0], encoding='utf-8').decode()}"
+                    )
                     if item.finished:
                         response_sender.send(
                             self.create_response(item),
@@ -297,7 +303,9 @@ class TritonPythonModel:
             if not stream:
                 # fix extra whitespace bug
                 nonstreaming_output.output = "".join(str_buffer)
-                self.logger.log_info(f"[vllm] JetEngine Non-stream output: {nonstreaming_output.output}")
+                self.logger.log_info(
+                    f"[vllm] JetEngine Non-stream output: {nonstreaming_output.output}"
+                )
                 response_sender.send(
                     self.create_response(nonstreaming_output),
                     flags=pb_utils.TRITONSERVER_RESPONSE_COMPLETE_FINAL,
@@ -322,14 +330,14 @@ class TritonPythonModel:
     async def to_async_iterator(self, generator):
         for item in generator:
             yield item
-    
+
     def execute(self, requests):
         """
         Triton core issues requests to the backend via this method.
 
         When this method returns, new requests can be issued to the backend. Blocking
         this function would prevent the backend from pulling additional requests from
-        Triton into the JetStream engine. This can be done if the kv cache within 
+        Triton into the JetStream engine. This can be done if the kv cache within
         JetStream engine is too loaded.
         We are pushing all the requests on JetStream and let it handle the full traffic.
         """
@@ -347,11 +355,10 @@ class TritonPythonModel:
             self._loop_thread.join()
             self._loop_thread = None
 
-
     # Utility class to convert JetStream response to vLLm compatibel response object
     class RequestOutput:
         def __init__(self):
-            self.prompt = "" 
+            self.prompt = ""
             # self.output = bytearray()
             # string
             self.output = ""
