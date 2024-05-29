@@ -8,7 +8,7 @@ resource_types:
 condition: resource.autoCreateSubnetworks == true
 action_type: DENY
 method_types: 
-- CREATE 
+- CREATE
 display_name: Require custom mode VPC network
 description:  Enforce that the subnets creation is using custom mode for a VPC network
 #@ end

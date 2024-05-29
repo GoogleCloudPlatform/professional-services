@@ -405,6 +405,8 @@ Platform usage.
     prioritize a specific scope (e.g. project or folder) to attribute CUDs first
     before letting any unconsumed discount float to other parts of an
     organization.
+*   [Custom Organization Policy Library](tools/custom-organization-policy-library) - A library 
+    of custom organization policy constraints and samples. It includes tools to easily generate policies for provisioning across your organization using either Google Cloud (gcloud) or Terraform.
 *   [Custom Role Analyzer](tools/custom-roles-analyzer) - This tool will provide
     useful insights with respect to custom roles at organization level as well
     as project level to find predefined roles from which the custom role is
