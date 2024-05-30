@@ -1,0 +1,10 @@
+name: organizations/11111111/customConstraints/custom.gkeRequireBinaryAuthorization
+resource_types:
+- container.googleapis.com/Cluster
+condition: resource.binaryAuthorization.evaluationMode == 'DISABLED'
+action_type: DENY
+method_types:
+- CREATE
+- UPDATE
+display_name: Require binary authorization
+description: Enforce that GKE clusters have binary authorization enabled
