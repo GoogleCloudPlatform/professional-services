@@ -13,7 +13,7 @@ This repo contains the following examples of using Cloud Composer, Google Cloud 
 
 3. [Composer Dependency Management]( ../cloud-composer-dependency-management-example/README.md)
    
-	a. [Composer Dependency Management](../cloud-composer-dependency-management-example/): provides a common pattern to automatically trigger and implement the composer dependency management. The primary challenge addressed is the need to handle complex dependencies between DAGs with different frequencies. The solution leverages Airflow's dependency management capabilities to create a hierarchical relationship between the parent and child DAGs.
+	a. [Composer Dependency Management](../cloud-composer-dependency-management-example/): provides a common pattern to automatically trigger and implement the composer dependency management. The primary challenge addressed is the need to handle **complex dependencies between DAGs with different frequencies**. The solution leverages Airflow's dependency management capabilities to create a hierarchical relationship between the parent and child DAGs.
 ![Alt text](../cloud-composer-dependency-management-example/img/composer_mgmt_usecase.png "Composer Management Lineage Overview")
 
 
