@@ -28,7 +28,6 @@ default_dag_args = {
    "retry_delay": timedelta(minutes=30),
 }
 with airflow.DAG('company_cal_refresh',
-                 template_searchpath=['/home/airflow/gcs/data/bq_data_replication'],
                  default_args=default_dag_args,
                  max_active_runs=2,
                  schedule_interval="@yearly",
