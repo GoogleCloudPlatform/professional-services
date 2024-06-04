@@ -58,7 +58,6 @@ def execution_delta_dependency(logical_date, **kwargs):
     return parent_dag_poke
 
 with airflow.DAG('weekly_summary_report',
-template_searchpath=['/home/airflow/gcs/data/bq_data_replication'],
                  default_args=default_dag_args,
                  max_active_runs=2,
                  schedule_interval="@weekly",
