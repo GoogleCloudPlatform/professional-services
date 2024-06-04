@@ -13,12 +13,11 @@
 # limitations under the License.
 
 
-"""Cloud Composer DAG to generate stock monthly snapshot update."""
+"""Cloud Composer DAG Dependency Management Example"""
 
 import airflow
 from datetime import datetime, timedelta
 from airflow.operators.dummy_operator import DummyOperator
-from airflow.contrib.operators.bigquery_operator import BigQueryOperator
 from airflow.version import version as AIRFLOW_VERSION
 from airflow.sensors.external_task_sensor import ExternalTaskSensor
 
