@@ -1,9 +1,56 @@
 # Composer Dependency Management
 
-##### This repo contains an example Cloud Composer workflow that provides a solution for managing varying dependencies between Composer Airflow DAGs, specifically focusing on DAGs with yearly, monthly, and weekly frequencies acting as parent jobs. The solution ensures that child DAGs are triggered appropriately based on their parent's schedule.
+##### TL;DR: This repo contains an example Cloud Composer workflow that provides a solution for managing varying dependencies between Composer Airflow DAGs, specifically focusing on DAGs with yearly, monthly, and weekly frequencies acting as parent jobs. The solution ensures that child DAGs are triggered appropriately based on their parent's schedule.
 
-The goal of this example is to provide a common pattern to automatically trigger and implement the composer dependency management. The primary challenge addressed is the need to handle complex dependencies between DAGs with different frequencies. The solution leverages Airflow's dependency management capabilities to create a hierarchical relationship between the parent and child DAGs.
+The goal of this example is to provide a common pattern to automatically trigger and implement the composer dependency management. The primary challenge addressed is the need to handle complex dependencies between DAGs with different frequencies. 
 
+The solution leverages Airflow's dependency management capabilities by dynamically configuring the external_date_fn parameter in the airflow external task sensor (https://airflow.apache.org/docs/apache-airflow/stable/_api/airflow/sensors/external_task/index.html) to create a hierarchical relationship between the parent and child DAGs.
+
+Solution Snippet for Depedency Management using external_task_sensor with yearly schedule frequency:
+```
+# Define parent task IDs and external DAG IDs
+parent_tasks = [
+    {"task_id": "parent_task_1", "dag_id": "company_cal_refresh", "schedule_frequency":"yearly"}
+]
+
+def execution_delta_dependency(logical_date, **kwargs):
+    dt = logical_date
+    task_instance_id=str(kwargs['task_instance']).split(':')[1].split(' ')[1].split('.')[1]
+    res = None
+    for sub in parent_tasks:
+        if sub['task_id'] == task_instance_id:
+            res = sub
+            break
+
+    schedule_frequency=res['schedule_frequency']
+    parent_dag_poke = ''
+    if schedule_frequency == "monthly":
+        parent_dag_poke = dt.replace(day=1).replace(hour=0, minute=0, second=0, microsecond=0)
+    elif schedule_frequency == "weekly":
+        parent_dag_poke = (dt - timedelta(days=dt.isoweekday() % 7)).replace(hour=0, minute=0, second=0, microsecond=0)
+    elif schedule_frequency == "yearly":
+        parent_dag_poke = dt.replace(day=1, month=1, hour=0, minute=0, second=0, microsecond=0)
+    elif schedule_frequency == "daily":
+        parent_dag_poke = (dt).replace(hour=0, minute=0, second=0, microsecond=0)    
+    print(parent_dag_poke)
+    return parent_dag_poke
+
+    # Create external task sensors dynamically
+    external_task_sensors = []
+    for parent_task in parent_tasks:
+        external_task_sensor = ExternalTaskSensor(
+            task_id=parent_task["task_id"],
+            external_dag_id=parent_task["dag_id"],
+            timeout=900,
+            execution_date_fn=execution_delta_dependency,
+            poke_interval=60,  # Check every 60 seconds
+            mode="reschedule",  # Reschedule task if external task fails
+            check_existence=True
+        )
+        external_task_sensors.append(external_task_sensor)
+```
+
+### Hypothetical use case
 ### Workflow Overview
 
 ***
