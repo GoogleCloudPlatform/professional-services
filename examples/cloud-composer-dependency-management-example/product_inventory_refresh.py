@@ -17,7 +17,6 @@
 import airflow
 from datetime import datetime, timedelta
 from airflow.operators.dummy_operator import DummyOperator
-from airflow.version import version as AIRFLOW_VERSION
 from airflow.sensors.external_task_sensor import ExternalTaskSensor
 
 default_dag_args = {

@@ -19,7 +19,6 @@
 import airflow
 from datetime import datetime, timedelta
 from airflow.operators.dummy_operator import DummyOperator
-from airflow.version import version as AIRFLOW_VERSION
 
 default_dag_args = {
    "depends_on_past": False,
