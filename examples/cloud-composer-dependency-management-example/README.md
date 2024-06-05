@@ -6,7 +6,7 @@ The goal of this example is to provide a common pattern to automatically trigger
 
 The solution leverages Airflow's dependency management capabilities by dynamically configuring the external_date_fn parameter in the airflow external task sensor (https://airflow.apache.org/docs/apache-airflow/stable/_api/airflow/sensors/external_task/index.html) to create a hierarchical relationship between the parent and child DAGs.
 
-Solution Snippet for Depedency Management using external_task_sensor with yearly schedule frequency:
+***Solution Snippet for Depedency Management using external_task_sensor with yearly schedule frequency:***
 ```
 # Define parent task IDs and external DAG IDs
 parent_tasks = [
