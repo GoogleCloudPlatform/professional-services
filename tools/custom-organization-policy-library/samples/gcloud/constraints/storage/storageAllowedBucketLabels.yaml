@@ -1,0 +1,10 @@
+name: organizations/11111111/customConstraints/custom.storageAllowedBucketLabels
+resource_types:
+- storage.googleapis.com/Bucket
+condition: resource.labels.all(label, (label in ["label-0", "label-1"])) == false
+action_type: DENY
+method_types:
+- CREATE
+- UPDATE
+display_name: Allow only specific bucket labels
+description: Enforce Cloud Storage bucket labels

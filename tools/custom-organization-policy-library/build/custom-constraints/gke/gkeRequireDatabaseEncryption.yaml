@@ -1,0 +1,15 @@
+#@ load("/constraints.lib.star", "build_constraint")
+#@ constraint = build_constraint("gkeRequireDatabaseEncryption")
+
+#@ if constraint.to_generate():
+name: #@ constraint.constraint_name()
+resourceTypes:
+- container.googleapis.com/Cluster
+methodTypes:
+- CREATE
+- UPDATE
+condition: resource.databaseEncryption.state != 'ENCRYPTED'
+actionType: DENY
+display_name: Require secret encryption in etcd
+description:  Enforce that the GKE clusters is configured to encrypt secret in etcd
+#@ end

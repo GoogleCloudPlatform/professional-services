@@ -1,0 +1,14 @@
+#@ load("/constraints.lib.star", "build_constraint")
+#@ constraint = build_constraint("networkRequireInternalIpv6Ranges")
+
+#@ if constraint.to_generate():
+name: #@ constraint.constraint_name()
+resource_types: 
+- compute.googleapis.com/Network
+condition: resource.enableUlaInternalIpv6 == false
+action_type: DENY
+method_types: 
+- CREATE
+display_name: Require internal IPv6 ranges on VPC
+description:  Enforce that a VPC is configured to have an internal IPv6 range
+#@ end

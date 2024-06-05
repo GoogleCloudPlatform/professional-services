@@ -1,0 +1,18 @@
+#@ load("/constraints.lib.star", "build_constraint")
+#@ constraint = build_constraint("networkAllowedSubnetIpRanges")
+
+#@ def condition(ip_ranges):
+#@    return "resource.ipCidrRange in " + str(ip_ranges) + " == false"
+#@ end
+
+#@ if constraint.to_generate():
+name: #@ constraint.constraint_name()
+resource_types: 
+- compute.googleapis.com/Subnetwork
+condition: #@  condition(constraint.params().ip_ranges)
+action_type: DENY
+method_types: 
+- CREATE
+display_name: Allow only specific subnet IP ranges
+description:  Enforce that the subnets configured at part of a specific subnet IP ranges
+#@ end
