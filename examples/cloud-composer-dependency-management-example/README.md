@@ -2,7 +2,7 @@
 
 ### TL;DR: This repository presents a Cloud Composer workflow designed to orchestrate complex task dependencies within Apache Airflow. The solution specifically addresses the challenge of managing parent-child DAG relationships across varying temporal frequencies (yearly, monthly, weekly). By implementing similar framework, data engineers can ensure reliable and timely triggering of child DAGs in accordance with their respective parent DAG's schedule, enhancing overall workflow efficiency and maintainability.
 
-The goal of this use-case is to provide a common pattern to automatically trigger and implement the composer dependency management. The primary challenge addressed is the need to handle complex dependencies between DAGs with different frequencies. 
+The goal of this use-case is to provide a common pattern to automatically trigger and implement the composer dependency management.The primary challenge addressed is the need to handle complex dependencies between DAGs with different frequencies. 
 
 The solution leverages Airflow's dependency management capabilities by dynamically configuring the external_date_fn parameter in the [Airflow External Task Sensor](https://airflow.apache.org/docs/apache-airflow/stable/_api/airflow/sensors/external_task/index.html) to create a hierarchical relationship between the parent and child DAGs.
 
