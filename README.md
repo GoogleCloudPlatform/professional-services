@@ -124,6 +124,8 @@ them to fit your particular use case.
     Cloud Build to deploy airflow DAGs to Cloud Composer.
 *   [Cloud Composer Deployment in Shared VPC](examples/composer-shared-vpc) -
     Terraform code to deploy cloud composer in shared VPC environment.
+*   [Cloud Composer Dependency Management](examples/cloud-composer-dependency-management-example) - Example of
+    Cloud Composer Dependency Management designed to orchestrate complex task dependencies within Apache Airflow which addresses the challenge of managing parent-child DAG relationships across varying temporal frequencies (yearly, monthly, weekly etc)
 *   [Cloud Composer Examples](examples/cloud-composer-examples) - Examples of
     using Cloud Composer, GCP's managed Apache Airflow service.
 *   [Cloud Data Fusion Functions and Plugins](examples/cloud-datafusion-functions-plugins) -
