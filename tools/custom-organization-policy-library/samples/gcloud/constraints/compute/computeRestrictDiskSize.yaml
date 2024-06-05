@@ -1,0 +1,7 @@
+name: organizations/11111111/customConstraints/custom.computeRestrictDiskSize
+resource_types: compute.googleapis.com/Disk
+condition: resource.sizeGb >= 100
+action_type: DENY
+method_types: CREATE
+display_name: Require specific disk size
+description: Prevent the creation of VMs having a disk size that are greater than what is specified

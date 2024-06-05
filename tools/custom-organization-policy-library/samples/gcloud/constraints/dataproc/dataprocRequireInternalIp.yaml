@@ -1,0 +1,10 @@
+name: organizations/11111111/customConstraints/custom.dataprocRequireInternalIp
+resource_types:
+- dataproc.googleapis.com/Cluster
+condition: resource.config.gceClusterConfig.internalIpOnly == false
+action_type: DENY
+method_types:
+- CREATE
+- UPDATE
+display_name: Require Dataproc with internal IPs
+description: Enforce that the Dataproc cluster is created with Internal IPs only

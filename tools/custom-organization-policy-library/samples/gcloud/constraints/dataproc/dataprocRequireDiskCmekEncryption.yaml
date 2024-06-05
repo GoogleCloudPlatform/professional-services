@@ -1,0 +1,10 @@
+name: organizations/11111111/customConstraints/custom.dataprocRequireDiskCmekEncryption
+resource_types:
+- dataproc.googleapis.com/Cluster
+condition: has(resource.config.encryptionConfig.gcePdKmsKeyName) == false
+action_type: DENY
+method_types:
+- CREATE
+- UPDATE
+display_name: Enable Dataproc CMEK encryption
+description: Enforce that the Dataproc cluster is created with the encryption key using a customer-managed key stored in Cloud KMS

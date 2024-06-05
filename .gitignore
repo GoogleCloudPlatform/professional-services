@@ -63,6 +63,4 @@ tools/ipam-autopilot/infrastructure/.terraform.lock.hcl
 tools/ipam-autopilot/container/.vscode/launch.json
 tools/ipam-autopilot/examples/.terraform.lock.hcl
 tools/bq-visualizer/.angular
-
 terraform.tfvars
-

@@ -1,0 +1,11 @@
+custom.dataprocRequireKerberos:
+  action_type: DENY
+  condition: resource.config.securityConfig.kerberosConfig.enableKerberos == false
+  description: Enforce that Dataproc cluster is configured using secure mode via Kerberos
+    for authentication
+  display_name: Require Dataproc with Kerberos authentication
+  method_types:
+  - CREATE
+  - UPDATE
+  resource_types:
+  - dataproc.googleapis.com/Cluster

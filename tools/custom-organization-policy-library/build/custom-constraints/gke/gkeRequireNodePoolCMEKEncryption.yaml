@@ -1,0 +1,15 @@
+#@ load("/constraints.lib.star", "build_constraint")
+#@ constraint = build_constraint("gkeRequireNodePoolCMEKEncryption")
+
+#@ if constraint.to_generate():
+name: #@ constraint.constraint_name()
+resourceTypes:
+- container.googleapis.com/NodePool
+methodTypes:
+- CREATE
+- UPDATE
+condition: has(resource.config.bootDiskKmsKey) == false
+actionType: DENY
+display_name: Require NodePool CMEK Encryption
+description:  Enforce that GKE nodes are configured with CMEK Encryption
+#@ end
