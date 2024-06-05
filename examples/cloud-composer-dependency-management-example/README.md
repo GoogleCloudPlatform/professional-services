@@ -1,12 +1,12 @@
 # Composer Dependency Management
 
-### *TL;DR: This repo contains an example Cloud Composer workflow that provides a solution for managing varying dependencies between Composer Airflow DAGs, specifically focusing on DAGs with yearly, monthly, and weekly frequencies acting as parent jobs. The solution ensures that child DAGs are triggered appropriately based on their parent's schedule
+### TL;DR: This repository presents a Cloud Composer workflow designed to orchestrate complex task dependencies within Apache Airflow. The solution specifically addresses the challenge of managing parent-child DAG relationships across varying temporal frequencies (yearly, monthly, weekly). By implementing similar framework, data engineers can ensure reliable and timely triggering of child DAGs in accordance with their respective parent DAG's schedule, enhancing overall workflow efficiency and maintainability.
 
 The goal of this use-case is to provide a common pattern to automatically trigger and implement the composer dependency management. The primary challenge addressed is the need to handle complex dependencies between DAGs with different frequencies. 
 
 The solution leverages Airflow's dependency management capabilities by dynamically configuring the external_date_fn parameter in the [Airflow External Task Sensor](https://airflow.apache.org/docs/apache-airflow/stable/_api/airflow/sensors/external_task/index.html) to create a hierarchical relationship between the parent and child DAGs.
 
-***Solution Snippet for Depedency Management using external_task_sensor with yearly schedule frequency:***
+***Solution DAG code-snippet for Depedency-Management using [external_task_sensor](https://airflow.apache.org/docs/apache-airflow/stable/_api/airflow/sensors/external_task/index.html) with yearly schedule frequency:***
 ```
 # Define parent task IDs and external DAG IDs
 parent_tasks = [
@@ -51,7 +51,8 @@ def execution_delta_dependency(logical_date, **kwargs):
 ```
 
 ### Hypothetical use case
-### Workflow Overview
+
+#### Workflow Overview
 
 ***
 
