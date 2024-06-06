@@ -16,19 +16,21 @@ A LLM based utility tool to identify any translation errors between any database
 4. This tool is generic and can be used to compare any SQL from any database to Bigquery SQL.
 
 ## Instructions to Run:
- 1. Create a new dataset
- 2. Create a new bigquery connection of type Cloud Resource
+ 1. Create a new dataset in the region of your choice eg) gemini_sql_validator
+ 2. Create a new bigquery connection type Cloud Resource in the same region eg)poc-env-aks-bq-admin.us.gemini-sql-validator-connection
+ 3. Create a cloud storage location to keep the input files eg) gs://gemini-validator/td/
+ 4. Place all the input files in the input cloud storage path
+ 5. Create a cloud storage location to store the output files eg) gs://gemini-validator/bq/
+ 6. Deploy the two stored procedure run_sql_validator and call_llm by executing run_sql_validator.sql and call_llm.sql in the same dataset
  3. Call the run_sql_validator stored procedure with the required input
- 4. Sample Procedure call is as below
+ 4. Sample run_sql_validator Procedure call is as below
 
-        DECLARE var_Dataset_name STRING DEFAULT 'gemini_sql_validator';
-        DECLARE var_connection_name STRING DEFAULT 'bq-data-project.us.gemini-sql-validator-connection';
+        DECLARE var_dataset_name STRING DEFAULT 'gemini_sql_validator';
+        DECLARE var_connection_name STRING DEFAULT 'poc-env-aks-bq-admin.us.gemini-sql-validator-connection';
         DECLARE var_source_database STRING DEFAULT 'Teradata';
-        DECLARE var_source_gcs_path STRING DEFAULT 'gs://gemini-sql-validator/td/*'; 
-        DECLARE var_target_gcs_path STRING DEFAULT 'gs://gemini-sql-validator/bq/*';
-        CALL `dataset_name.run_sql_validator`(var_connection_name, var_source_database, var_source_gcs_path, var_target_gcs_path, var_Dataset_name); 
-
-where var_Dataset_name is the dataset created in step1 and var_connection_name is the connection created in step2.
+        DECLARE var_source_gcs_path STRING DEFAULT 'gs://gemini-validator/td/*'; 
+        DECLARE var_target_gcs_path STRING DEFAULT 'gs://gemini-validator/bq/*';
+        CALL `poc-env-aks-bq-admin.gemini_sql_validator.run_sql_validator`(var_dataset_name,var_connection_name, var_source_database, var_source_gcs_path, var_target_gcs_path);
 
 5. See the output by quering the "validation_report" view.
 
