@@ -1,4 +1,4 @@
-CREATE OR REPLACE PROCEDURE `poc-env-aks-bq-admin.gemini_sql_validator.call_llm`(var_dataset_name STRING, var_Batch_Id STRING, var_Source_File STRING, var_Target_File STRING, var_Source_database STRING, var_Insert_Time TIMESTAMP, var_Model_Name STRING, var_Source_Data BYTES, var_Target_Data BYTES, Var_Prompt STRING)
+CREATE OR REPLACE PROCEDURE `<my-project>.gemini_sql_validator.call_llm`(var_dataset_name STRING, var_Batch_Id STRING, var_Source_File STRING, var_Target_File STRING, var_Source_database STRING, var_Insert_Time TIMESTAMP, var_Model_Name STRING, var_Source_Data BYTES, var_Target_Data BYTES, Var_Prompt STRING)
 BEGIN
 
 --Copyright 2024 Google. This software is provided as-is, 
