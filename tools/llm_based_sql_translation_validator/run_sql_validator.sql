@@ -24,7 +24,7 @@ DECLARE var_Model_Name STRING;
 DECLARE Var_Prompt STRING;
 
 SET @@dataset_id ="gemini_sql_validator";
-SET var_Model_Name = "sql-validator-model";
+SET var_model_name = "sql-validator-model";
 SET var_Batch_Id = GENERATE_UUID();
 SET var_Insert_Time=current_timestamp();
 
