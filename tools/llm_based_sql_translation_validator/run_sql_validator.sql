@@ -12,7 +12,7 @@ BEGIN
 
 --Sample Input
 /*
-DECLARE var_connection_name STRING DEFAULT 'poc-env-aks-bq-admin.us.gemini-sql-validator-connection';
+DECLARE var_connection_name STRING DEFAULT '<my-project>.us.gemini-sql-validator-connection';
 DECLARE var_source_database STRING DEFAULT 'Teradata';
 DECLARE var_source_gcs_path STRING DEFAULT 'gs://gemini-validator/td/*'; 
 DECLARE var_target_gcs_path STRING DEFAULT 'gs://gemini-validator/bq/*';
