@@ -26,7 +26,7 @@ A LLM based utility tool to identify any translation errors between any database
  4. Sample run_sql_validator Procedure call is as below
 
         DECLARE var_dataset_name STRING DEFAULT 'gemini_sql_validator';
-        DECLARE var_connection_name STRING DEFAULT 'poc-env-aks-bq-admin.us.gemini-sql-validator-connection';
+        DECLARE var_connection_name STRING DEFAULT '<my-project>.us.gemini-sql-validator-connection';
         DECLARE var_source_database STRING DEFAULT 'Teradata';
         DECLARE var_source_gcs_path STRING DEFAULT 'gs://gemini-validator/td/*'; 
         DECLARE var_target_gcs_path STRING DEFAULT 'gs://gemini-validator/bq/*';
