@@ -30,7 +30,7 @@ A LLM based utility tool to identify any translation errors between any database
         DECLARE var_source_database STRING DEFAULT 'Teradata';
         DECLARE var_source_gcs_path STRING DEFAULT 'gs://gemini-validator/td/*'; 
         DECLARE var_target_gcs_path STRING DEFAULT 'gs://gemini-validator/bq/*';
-        CALL `poc-env-aks-bq-admin.gemini_sql_validator.run_sql_validator`(var_dataset_name,var_connection_name, var_source_database, var_source_gcs_path, var_target_gcs_path);
+        CALL `<my-project>.gemini_sql_validator.run_sql_validator`(var_dataset_name,var_connection_name, var_source_database, var_source_gcs_path, var_target_gcs_path);
 
 5. See the output by quering the "validation_report" view.
 
