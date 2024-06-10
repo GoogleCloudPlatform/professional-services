@@ -1,4 +1,4 @@
-CREATE OR REPLACE PROCEDURE `poc-env-aks-bq-admin.gemini_sql_validator.run_sql_validator`(var_dataset_name STRING, var_connection_name STRING, var_source_database STRING, var_source_gcs_path STRING, var_target_gcs_path STRING)
+CREATE OR REPLACE PROCEDURE `<my-project>.gemini_sql_validator.run_sql_validator`(var_dataset_name STRING, var_connection_name STRING, var_source_database STRING, var_source_gcs_path STRING, var_target_gcs_path STRING)
 BEGIN
 
 
