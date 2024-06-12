@@ -1,0 +1,10 @@
+name: organizations/11111111/customConstraints/custom.gkeRequireVPCNativeCluster
+resource_types:
+- container.googleapis.com/Cluster
+condition: resource.ipAllocationPolicy.useIpAliases == false
+action_type: DENY
+method_types:
+- CREATE
+- UPDATE
+display_name: Require VPC-native
+description: Enforce that GKE clusters are created with VPC-native

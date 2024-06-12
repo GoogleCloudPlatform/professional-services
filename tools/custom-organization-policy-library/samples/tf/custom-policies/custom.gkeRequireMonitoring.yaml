@@ -1,0 +1,3 @@
+custom.gkeRequireMonitoring:
+  rules:
+  - enforce: true

@@ -1,0 +1,15 @@
+#@ load("/constraints.lib.star", "build_constraint")
+#@ constraint = build_constraint("gkeRequireNodePoolAutoUpgrade")
+
+#@ if constraint.to_generate():
+name: #@ constraint.constraint_name()
+resourceTypes:
+- container.googleapis.com/NodePool
+methodTypes:
+- CREATE
+- UPDATE
+condition: resource.management.autoUpgrade == false
+actionType: DENY
+display_name: Enable node auto-upgrade
+description:  Enforce that GKE clusters are configured with node auto-upgrade enabled 
+#@ end

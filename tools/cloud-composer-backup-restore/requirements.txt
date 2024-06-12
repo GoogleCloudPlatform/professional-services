@@ -19,7 +19,7 @@ grpc-google-iam-v1==0.12.3
 grpcio==1.43.0
 grpcio-status==1.43.0
 httplib2==0.20.2
-idna==3.3
+idna==3.7
 isort==5.10.1
 kubernetes==21.7.0
 lazy-object-proxy==1.7.1
@@ -43,7 +43,7 @@ six==1.16.0
 toml==0.10.2
 typing-extensions==4.0.1
 uritemplate==4.1.1
-urllib3==1.26.17
+urllib3==1.26.18
 websocket-client==1.2.3
 wrapt==1.13.3
 yapf==0.32.0

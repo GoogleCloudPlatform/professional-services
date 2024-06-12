@@ -47,12 +47,13 @@ func (i *arrayFlags) Set(value string) error {
 }
 
 func main() {
-	modePtr := flag.String("mode", "", "mode of operation (generate, visualize)")
+	modePtr := flag.String("mode", "", "mode of operation (generate, visualize, export)")
 	relationsFilePtr := flag.String("relations-file", "relations.yaml", "location of relations file")
 	styleFilePtr := flag.String("style-file", "style.yaml", "location of graph style file")
 	labelsFilePtr := flag.String("labels-file", "labels.yaml", "location of node/edge labels file")
 	queryFilePtr := flag.String("query-file", "query.js", "location of Gizmo query file")
 	graphFilePtr := flag.String("graph-file", "graph.db", "location of Graph & Asset database file")
+	exportFilePtr := flag.String("export-file", "graph.json", "location of JSON export file")
 	resourceInventoryFilePtr := flag.String("resource-inventory-file", "resource_inventory.json", "location of resource inventory file from Cloud Asset Inventory")
 	resourceDataPtr := flag.Bool("resource-data", false, "adds resource data to graph under `data` predicate")
 	graphTitlePtr := flag.String("graph-title", "", "Title for the graph")
@@ -180,7 +181,30 @@ func main() {
 		}
 		waitGroup.Wait()
 	}
-	if *modePtr != "visualize" && *modePtr != "generate" {
+
+	if *modePtr == "export" {
+		err = viz.Load(*graphFilePtr)
+		if err != nil {
+			log.Fatalf("Failed to load graph file: %v", err)
+		}
+
+		f, err := os.Create(*exportFilePtr)
+		if err != nil {
+			log.Fatal("Could not create export file: ", err)
+		}
+		defer f.Close()
+
+		waitGroup := sync.WaitGroup{}
+		ctx := context.Background()
+		waitGroup.Add(1)
+		err = viz.ExportNodes(&waitGroup, ctx, f)
+		if err != nil {
+			log.Fatalf("Failed to export graph: %v", err)
+		}
+		waitGroup.Wait()
+	}
+
+	if *modePtr != "visualize" && *modePtr != "generate" && *modePtr != "export" {
 		log.Fatal("invalid mode specified, specify either generate or visualize")
 	}
 }

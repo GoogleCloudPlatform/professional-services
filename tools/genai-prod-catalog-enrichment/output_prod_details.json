@@ -1,0 +1,101 @@
+{
+    "pdf_name": "hepasky-herbal-liver-tablets.pdf",
+    "pdf_url": "gs://test-sl/hepasky-herbal-liver-tablets.pdf",
+    "company_details": {
+        "company_name": "Hepasky",
+        "company_description": "Hepasky is a herbal formula that supports normal liver function and acts as a hepatoprotectant with potential antiviral agents against Hepatitis viruses, hepato-tonic which helps normalize increased enzyme levels after liver damage. Hepasky exhibits antioxidant activity through correction of oxidative stress and helps in liver detoxification.",
+        "company_phone_number": {},
+        "company_email": "",
+        "company_website": "",
+        "company_social_handles": {},
+        "company_address": ""
+    },
+    "products": [
+        {
+            "product_name": [
+                "HEPASKY"
+            ],
+            "product_name_citation": [
+                {
+                    "pdf_name": "",
+                    "url": "",
+                    "page": 0,
+                    "startIndex": [],
+                    "endIndex": [],
+                    "confidence_score": 0.8,
+                    "created_date": "31_01_2024"
+                }
+            ],
+            "specification": [
+                {
+                    "HEPASKY": {
+                        "COMPOSITION": "Each 1000 mg tablet contains extract of Caper Bush 200 mg, Makoy 100 mg, Chicory Seeds 200 mg, Arjuna Chaal 200 mg, Kasamarda 200 mg, Yarrow 50 mg, Tamarisk 50 mg",
+                        "USES": "HEPASKY is herbal formula that supports norml liver function and acts as Hepatoprotectant with potential antiviral agents against Hepatitis viruses, hepato-tonic which helps normalize increased enzyme levels after liver damage. Hepasky exhibits antioxidant activity through correction of oxidative stress and helps in liver detoxification.",
+                        "PACKING": "28 Tablets / Bottle"
+                    }
+                }
+            ],
+            "specification_citation": [
+                {
+                    "attribute": "",
+                    "pdf_name": "",
+                    "url": "",
+                    "page": 0,
+                    "startIndex": [],
+                    "endIndex": [],
+                    "confidence_score": 0.8,
+                    "created_date": "31_01_2024"
+                }
+            ],
+            "product_images": {
+                "HEPASKY": "No image found"
+            },
+            "product_image_citation": [
+                {
+                    "pdf_name": "",
+                    "url": "",
+                    "page": 0,
+                    "startIndex": [],
+                    "endIndex": [],
+                    "confidence_score": 0.0,
+                    "created_date": "31_01_2024"
+                }
+            ],
+            "product_category": {
+                "HEPASKY": "liver medicine"
+            },
+            "product_tags": {
+                "HEPASKY": [
+                    "herbal medicine",
+                    "tablet",
+                    "antioxidant"
+                ]
+            },
+            "product_category_citation": [
+                {
+                    "pdf_name": "",
+                    "url": "",
+                    "page": 0,
+                    "startIndex": [],
+                    "endIndex": [],
+                    "confidence_score": 0.0,
+                    "created_date": "31_01_2024"
+                }
+            ]
+        }
+    ],
+    "catalogue_faqs": [
+        {
+            "question": "What is the composition of Hepasky?",
+            "answer": "Each 1000 mg tablet contains extract of Caper Bush 200 mg, Makoy 100 mg, Chicory Seeds 200 mg, Arjuna Chaal 200 mg, Kasamarda 200 mg, Yarrow 50 mg, Tamarisk 50 mg."
+        },
+        {
+            "question": "What is Hepasky used for?",
+            "answer": "Hepasky is a herbal formula that supports normal liver function and acts as a hepatoprotectant with potential antiviral agents against Hepatitis viruses. It is also a hepato-tonic which helps normalize increased enzyme levels after liver damage. Hepasky exhibits antioxidant activity through correction of oxidative stress and helps in liver detoxification."
+        },
+        {
+            "question": "What is the packing size of Hepasky?",
+            "answer": "Hepasky comes in a pack of 28 tablets per bottle."
+        }
+    ]
+}

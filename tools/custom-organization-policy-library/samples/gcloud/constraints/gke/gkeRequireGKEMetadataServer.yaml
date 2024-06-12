@@ -1,0 +1,10 @@
+name: organizations/11111111/customConstraints/custom.gkeRequireGKEMetadataServer
+resourceTypes:
+- container.googleapis.com/NodePool
+methodTypes:
+- CREATE
+- UPDATE
+condition: resource.config.workloadMetadataConfig.mode != 'GKE_METADATA'
+actionType: DENY
+display_name: Require GKE metadata server
+description: Enforce that GKE clusters are configured with GKE metadata server enabled

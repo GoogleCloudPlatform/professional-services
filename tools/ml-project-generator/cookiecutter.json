@@ -1,0 +1,18 @@
+{
+    "project_name": "Project Name",
+    "version": "0.1",
+    "repo_name": "{{ cookiecutter.project_name.lower().replace(' ', '_') }}",
+    "author_name": "Your name (or your organization/company/team)",
+    "author_email": "Email Id to reach out",
+    "description": "A short description of the project.",
+    "virtual_env": ".localenv",
+    "generate_google_licence": [
+        "Yes",
+        "No"
+    ],
+    "gcp_project_id": "OPTIONAL",
+    "gcp_project_location": "OPTIONAL",
+    "_copy_without_render": [
+        "{{ cookiecutter.repo_name }}/scripts/license_check.sh"
+    ]
+}

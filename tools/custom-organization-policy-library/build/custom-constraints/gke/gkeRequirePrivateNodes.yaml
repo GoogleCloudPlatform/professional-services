@@ -1,0 +1,15 @@
+#@ load("/constraints.lib.star", "build_constraint")
+#@ constraint = build_constraint("gkeRequirePrivateNodes")
+
+#@ if constraint.to_generate():
+name: #@ constraint.constraint_name()
+resource_types: 
+- container.googleapis.com/Cluster
+condition: resource.privateClusterConfig.enablePrivateNodes == false
+action_type: DENY
+method_types: 
+- CREATE
+- UPDATE 
+display_name: Require GKE private nodes 
+description:  Enforce that GKE clusters are created as private clusters with private nodes
+#@ end

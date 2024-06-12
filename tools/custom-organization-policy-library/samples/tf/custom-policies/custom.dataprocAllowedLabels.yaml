@@ -1,0 +1,3 @@
+custom.dataprocAllowedLabels:
+  rules:
+  - enforce: true

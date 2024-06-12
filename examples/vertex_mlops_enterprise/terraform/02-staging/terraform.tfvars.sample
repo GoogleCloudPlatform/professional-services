@@ -1,0 +1,37 @@
+bucket_name  = "creditcards" # -env will be added as suffix
+dataset_name = "creditcards"
+environment  = "stg"
+groups = {
+  gcp-ml-ds     = null
+  gcp-ml-eng    = null
+  gcp-ml-viewer = null
+}
+
+# env will be added as branch name
+github = {
+  organization = "GITHUB_ORG"
+  repo         = "GITHUB_REPO"
+}
+
+# Additional labels. env label will be added automatically
+labels = {
+  "team" : "ml"
+}
+
+prefix = "myprefix"
+project_config = {
+  billing_account_id = "000000-111111-222222" # Use only billing BA if it is required to create the project
+  parent             = "folders/123456789012"
+  project_id         = "creditcards" # -env will be added as suffix
+}
+region = "europe-west4"
+
+
+service_encryption_keys = {
+  aiplatform    = "projects/CMEK_PROJECT_ID/locations/europe-west4/keyRings/europe-west4/cryptoKeys/storage"
+  bq            = "projects/CMEK_PROJECT_ID/locations/europe-west4/keyRings/europe-west4/cryptoKeys/bq"
+  notebooks     = "projects/CMEK_PROJECT_ID/locations/europe-west4/keyRings/europe-west4/cryptoKeys/storage"
+  secretmanager = "projects/CMEK_PROJECT_ID/locations/europe-west4/keyRings/europe-west4/cryptoKeys/storage"
+  storage       = "projects/CMEK_PROJECT_ID/locations/europe-west4/keyRings/europe-west4/cryptoKeys/storage"
+}
+

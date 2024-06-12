@@ -1,0 +1,535 @@
+{
+  "pipelineSpec": {
+    "components": {
+      "comp-bigquery-create-model-job": {
+        "executorLabel": "exec-bigquery-create-model-job",
+        "inputDefinitions": {
+          "parameters": {
+            "job_configuration_query": {
+              "type": "STRING"
+            },
+            "labels": {
+              "type": "STRING"
+            },
+            "location": {
+              "type": "STRING"
+            },
+            "project": {
+              "type": "STRING"
+            },
+            "query": {
+              "type": "STRING"
+            },
+            "query_parameters": {
+              "type": "STRING"
+            }
+          }
+        },
+        "outputDefinitions": {
+          "artifacts": {
+            "model": {
+              "artifactType": {
+                "schemaTitle": "google.BQMLModel",
+                "schemaVersion": "0.0.1"
+              }
+            }
+          },
+          "parameters": {
+            "gcp_resources": {
+              "type": "STRING"
+            }
+          }
+        }
+      },
+      "comp-bigquery-evaluate-model-job": {
+        "executorLabel": "exec-bigquery-evaluate-model-job",
+        "inputDefinitions": {
+          "artifacts": {
+            "model": {
+              "artifactType": {
+                "schemaTitle": "google.BQMLModel",
+                "schemaVersion": "0.0.1"
+              }
+            }
+          },
+          "parameters": {
+            "job_configuration_query": {
+              "type": "STRING"
+            },
+            "labels": {
+              "type": "STRING"
+            },
+            "location": {
+              "type": "STRING"
+            },
+            "project": {
+              "type": "STRING"
+            },
+            "query_parameters": {
+              "type": "STRING"
+            },
+            "query_statement": {
+              "type": "STRING"
+            },
+            "table_name": {
+              "type": "STRING"
+            },
+            "threshold": {
+              "type": "DOUBLE"
+            }
+          }
+        },
+        "outputDefinitions": {
+          "artifacts": {
+            "evaluation_metrics": {
+              "artifactType": {
+                "schemaTitle": "system.Artifact",
+                "schemaVersion": "0.0.1"
+              }
+            }
+          },
+          "parameters": {
+            "gcp_resources": {
+              "type": "STRING"
+            }
+          }
+        }
+      },
+      "comp-bigquery-explain-predict-model-job": {
+        "executorLabel": "exec-bigquery-explain-predict-model-job",
+        "inputDefinitions": {
+          "artifacts": {
+            "model": {
+              "artifactType": {
+                "schemaTitle": "google.BQMLModel",
+                "schemaVersion": "0.0.1"
+              }
+            }
+          },
+          "parameters": {
+            "job_configuration_query": {
+              "type": "STRING"
+            },
+            "labels": {
+              "type": "STRING"
+            },
+            "location": {
+              "type": "STRING"
+            },
+            "num_integral_steps": {
+              "type": "INT"
+            },
+            "project": {
+              "type": "STRING"
+            },
+            "query_parameters": {
+              "type": "STRING"
+            },
+            "query_statement": {
+              "type": "STRING"
+            },
+            "table_name": {
+              "type": "STRING"
+            },
+            "threshold": {
+              "type": "DOUBLE"
+            },
+            "top_k_features": {
+              "type": "INT"
+            }
+          }
+        },
+        "outputDefinitions": {
+          "artifacts": {
+            "destination_table": {
+              "artifactType": {
+                "schemaTitle": "google.BQTable",
+                "schemaVersion": "0.0.1"
+              }
+            }
+          },
+          "parameters": {
+            "gcp_resources": {
+              "type": "STRING"
+            }
+          }
+        }
+      }
+    },
+    "deploymentSpec": {
+      "executors": {
+        "exec-bigquery-create-model-job": {
+          "container": {
+            "args": [
+              "--type",
+              "BigqueryCreateModelJob",
+              "--project",
+              "{{$.inputs.parameters['project']}}",
+              "--location",
+              "{{$.inputs.parameters['location']}}",
+              "--payload",
+              "{\"configuration\": {\"query\": {{$.inputs.parameters['job_configuration_query']}}, \"labels\": {{$.inputs.parameters['labels']}}}}",
+              "--job_configuration_query_override",
+              "{\"query\": \"{{$.inputs.parameters['query']}}\", \"query_parameters\": {{$.inputs.parameters['query_parameters']}}}",
+              "--gcp_resources",
+              "{{$.outputs.parameters['gcp_resources'].output_file}}",
+              "--executor_input",
+              "{{$}}"
+            ],
+            "command": [
+              "python3",
+              "-u",
+              "-m",
+              "google_cloud_pipeline_components.container.v1.bigquery.create_model.launcher"
+            ],
+            "image": "gcr.io/ml-pipeline/google-cloud-pipeline-components:1.0.44"
+          }
+        },
+        "exec-bigquery-evaluate-model-job": {
+          "container": {
+            "args": [
+              "--type",
+              "BigqueryEvaluateModelJob",
+              "--project",
+              "{{$.inputs.parameters['project']}}",
+              "--location",
+              "{{$.inputs.parameters['location']}}",
+              "--model_name",
+              "{{$.inputs.artifacts['model'].metadata['projectId']}}.{{$.inputs.artifacts['model'].metadata['datasetId']}}.{{$.inputs.artifacts['model'].metadata['modelId']}}",
+              "--table_name",
+              "{{$.inputs.parameters['table_name']}}",
+              "--query_statement",
+              "{{$.inputs.parameters['query_statement']}}",
+              "--threshold",
+              "{{$.inputs.parameters['threshold']}}",
+              "--payload",
+              "{\"configuration\": {\"query\": {{$.inputs.parameters['job_configuration_query']}}, \"labels\": {{$.inputs.parameters['labels']}}}}",
+              "--job_configuration_query_override",
+              "{\"query_parameters\": {{$.inputs.parameters['query_parameters']}}, \"destination_encryption_configuration\": {\"kmsKeyName\": \"\"}}",
+              "--gcp_resources",
+              "{{$.outputs.parameters['gcp_resources'].output_file}}",
+              "--executor_input",
+              "{{$}}"
+            ],
+            "command": [
+              "python3",
+              "-u",
+              "-m",
+              "google_cloud_pipeline_components.container.v1.bigquery.evaluate_model.launcher"
+            ],
+            "image": "gcr.io/ml-pipeline/google-cloud-pipeline-components:1.0.44"
+          }
+        },
+        "exec-bigquery-explain-predict-model-job": {
+          "container": {
+            "args": [
+              "--type",
+              "BigqueryExplainPredictModelJob",
+              "--project",
+              "{{$.inputs.parameters['project']}}",
+              "--location",
+              "{{$.inputs.parameters['location']}}",
+              "--model_name",
+              "{{$.inputs.artifacts['model'].metadata['projectId']}}.{{$.inputs.artifacts['model'].metadata['datasetId']}}.{{$.inputs.artifacts['model'].metadata['modelId']}}",
+              "--table_name",
+              "{{$.inputs.parameters['table_name']}}",
+              "--query_statement",
+              "{{$.inputs.parameters['query_statement']}}",
+              "--top_k_features",
+              "{{$.inputs.parameters['top_k_features']}}",
+              "--threshold",
+              "{{$.inputs.parameters['threshold']}}",
+              "--num_integral_steps",
+              "{{$.inputs.parameters['num_integral_steps']}}",
+              "--payload",
+              "{\"configuration\": {\"query\": {{$.inputs.parameters['job_configuration_query']}}, \"labels\": {{$.inputs.parameters['labels']}}}}",
+              "--job_configuration_query_override",
+              "{\"query_parameters\": {{$.inputs.parameters['query_parameters']}}, \"destination_encryption_configuration\": {\"kmsKeyName\": \"\"}}",
+              "--gcp_resources",
+              "{{$.outputs.parameters['gcp_resources'].output_file}}",
+              "--executor_input",
+              "{{$}}"
+            ],
+            "command": [
+              "python3",
+              "-u",
+              "-m",
+              "google_cloud_pipeline_components.container.v1.bigquery.explain_predict_model.launcher"
+            ],
+            "image": "gcr.io/ml-pipeline/google-cloud-pipeline-components:1.0.44"
+          }
+        }
+      }
+    },
+    "pipelineInfo": {
+      "name": "bqml-pipeline"
+    },
+    "root": {
+      "dag": {
+        "tasks": {
+          "bigquery-create-model-job": {
+            "cachingOptions": {
+              "enableCache": true
+            },
+            "componentRef": {
+              "name": "comp-bigquery-create-model-job"
+            },
+            "inputs": {
+              "parameters": {
+                "job_configuration_query": {
+                  "runtimeValue": {
+                    "constantValue": {
+                      "stringValue": "{}"
+                    }
+                  }
+                },
+                "labels": {
+                  "runtimeValue": {
+                    "constantValue": {
+                      "stringValue": "{}"
+                    }
+                  }
+                },
+                "location": {
+                  "componentInputParameter": "region"
+                },
+                "pipelineparam--bq_table": {
+                  "componentInputParameter": "bq_table"
+                },
+                "pipelineparam--model": {
+                  "componentInputParameter": "model"
+                },
+                "project": {
+                  "componentInputParameter": "project"
+                },
+                "query": {
+                  "runtimeValue": {
+                    "constantValue": {
+                      "stringValue": "CREATE OR REPLACE MODEL `None.{{$.inputs.parameters['pipelineparam--model']}}`\n            OPTIONS (\n                MODEL_TYPE='LOGISTIC_REG',\n                INPUT_LABEL_COLS=['tx_fraud'],\n                EARLY_STOP=TRUE,\n                model_registry='vertex_ai',\n                vertex_ai_model_id='bqml_fraud_classifier_pipeline',\n                vertex_ai_model_version_aliases=['logit', 'experimental']\n            )\n            AS SELECT * FROM `{{$.inputs.parameters['pipelineparam--bq_table']}}`"
+                    }
+                  }
+                },
+                "query_parameters": {
+                  "runtimeValue": {
+                    "constantValue": {
+                      "stringValue": "[]"
+                    }
+                  }
+                }
+              }
+            },
+            "taskInfo": {
+              "name": "bigquery-create-model-job"
+            }
+          },
+          "bigquery-evaluate-model-job": {
+            "cachingOptions": {
+              "enableCache": true
+            },
+            "componentRef": {
+              "name": "comp-bigquery-evaluate-model-job"
+            },
+            "dependentTasks": [
+              "bigquery-create-model-job"
+            ],
+            "inputs": {
+              "artifacts": {
+                "model": {
+                  "taskOutputArtifact": {
+                    "outputArtifactKey": "model",
+                    "producerTask": "bigquery-create-model-job"
+                  }
+                }
+              },
+              "parameters": {
+                "job_configuration_query": {
+                  "runtimeValue": {
+                    "constantValue": {
+                      "stringValue": "{}"
+                    }
+                  }
+                },
+                "labels": {
+                  "runtimeValue": {
+                    "constantValue": {
+                      "stringValue": "[]"
+                    }
+                  }
+                },
+                "location": {
+                  "componentInputParameter": "region"
+                },
+                "project": {
+                  "componentInputParameter": "project"
+                },
+                "query_parameters": {
+                  "runtimeValue": {
+                    "constantValue": {
+                      "stringValue": "[]"
+                    }
+                  }
+                },
+                "query_statement": {
+                  "runtimeValue": {
+                    "constantValue": {
+                      "stringValue": ""
+                    }
+                  }
+                },
+                "table_name": {
+                  "runtimeValue": {
+                    "constantValue": {
+                      "stringValue": ""
+                    }
+                  }
+                },
+                "threshold": {
+                  "runtimeValue": {
+                    "constantValue": {
+                      "doubleValue": -1.0
+                    }
+                  }
+                }
+              }
+            },
+            "taskInfo": {
+              "name": "bigquery-evaluate-model-job"
+            }
+          },
+          "bigquery-explain-predict-model-job": {
+            "cachingOptions": {
+              "enableCache": true
+            },
+            "componentRef": {
+              "name": "comp-bigquery-explain-predict-model-job"
+            },
+            "dependentTasks": [
+              "bigquery-create-model-job"
+            ],
+            "inputs": {
+              "artifacts": {
+                "model": {
+                  "taskOutputArtifact": {
+                    "outputArtifactKey": "model",
+                    "producerTask": "bigquery-create-model-job"
+                  }
+                }
+              },
+              "parameters": {
+                "job_configuration_query": {
+                  "runtimeValue": {
+                    "constantValue": {
+                      "stringValue": "{}"
+                    }
+                  }
+                },
+                "labels": {
+                  "runtimeValue": {
+                    "constantValue": {
+                      "stringValue": "{}"
+                    }
+                  }
+                },
+                "location": {
+                  "componentInputParameter": "region"
+                },
+                "num_integral_steps": {
+                  "runtimeValue": {
+                    "constantValue": {
+                      "intValue": "-1"
+                    }
+                  }
+                },
+                "pipelineparam--bq_table": {
+                  "componentInputParameter": "bq_table"
+                },
+                "project": {
+                  "componentInputParameter": "project"
+                },
+                "query_parameters": {
+                  "runtimeValue": {
+                    "constantValue": {
+                      "stringValue": "[]"
+                    }
+                  }
+                },
+                "query_statement": {
+                  "runtimeValue": {
+                    "constantValue": {
+                      "stringValue": ""
+                    }
+                  }
+                },
+                "table_name": {
+                  "runtimeValue": {
+                    "constantValue": {
+                      "stringValue": "{{$.inputs.parameters['pipelineparam--bq_table']}}"
+                    }
+                  }
+                },
+                "threshold": {
+                  "runtimeValue": {
+                    "constantValue": {
+                      "doubleValue": -1.0
+                    }
+                  }
+                },
+                "top_k_features": {
+                  "runtimeValue": {
+                    "constantValue": {
+                      "intValue": "-1"
+                    }
+                  }
+                }
+              }
+            },
+            "taskInfo": {
+              "name": "bigquery-explain-predict-model-job"
+            }
+          }
+        }
+      },
+      "inputDefinitions": {
+        "parameters": {
+          "bq_table": {
+            "type": "STRING"
+          },
+          "endpoint_name": {
+            "type": "STRING"
+          },
+          "model": {
+            "type": "STRING"
+          },
+          "project": {
+            "type": "STRING"
+          },
+          "region": {
+            "type": "STRING"
+          }
+        }
+      }
+    },
+    "schemaVersion": "2.0.0",
+    "sdkVersion": "kfp-1.8.22"
+  },
+  "runtimeConfig": {
+    "gcsOutputDirectory": "gs:///pipeline_root/xgb-creditcards",
+    "parameters": {
+      "bq_table": {
+        "stringValue": ".None.None"
+      },
+      "endpoint_name": {
+        "stringValue": "xgb-creditcards"
+      },
+      "model": {
+        "stringValue": "creditcards-kfp"
+      },
+      "project": {
+        "stringValue": ""
+      },
+      "region": {
+        "stringValue": ""
+      }
+    }
+  }
+}
