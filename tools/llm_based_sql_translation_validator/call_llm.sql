@@ -1,4 +1,4 @@
-CREATE OR REPLACE PROCEDURE `bq-data-project.bq_dataset_name.call_llm`(var_dataset_name STRING, var_Batch_Id STRING, var_Source_File STRING, var_Target_File STRING, var_Source_database STRING, var_Insert_Time TIMESTAMP, var_Model_Name STRING, var_Source_Data BYTES, var_Target_Data BYTES, Var_Prompt STRING)
+CREATE OR REPLACE PROCEDURE `<my-project>.gemini_sql_validator.call_llm`(var_dataset_name STRING, var_Batch_Id STRING, var_Source_File STRING, var_Target_File STRING, var_Source_database STRING, var_Insert_Time TIMESTAMP, var_Model_Name STRING, var_Source_Data BYTES, var_Target_Data BYTES, Var_Prompt STRING)
 BEGIN
 
 --Copyright 2024 Google. This software is provided as-is, 
@@ -17,7 +17,7 @@ ml_generate_text_llm_result as Validation_Result,'"""||var_Source_database||"""'
 'Bigquery' as Target_Database,CAST('"""||var_Insert_Time||"""' AS TIMESTAMP) as Insert_Time
 FROM
   ML.GENERATE_TEXT(
-    MODEL  `"""||var_Model_Name||"""`,
+    MODEL  `"""||var_dataset_name||"""."""||var_Model_Name||"""`,
     (SELECT '''"""||Var_Prompt||"""\n"""||var_Source_database||""" SQL:"""||SAFE_CONVERT_BYTES_TO_STRING(var_Source_Data)||""",Bigquery SQL:"""||SAFE_CONVERT_BYTES_TO_STRING(var_Target_Data)||""" ''' AS prompt
 ),
     STRUCT(
