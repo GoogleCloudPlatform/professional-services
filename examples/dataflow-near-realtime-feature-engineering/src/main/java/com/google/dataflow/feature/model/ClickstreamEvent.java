@@ -41,86 +41,82 @@ import org.joda.time.format.DateTimeFormatter;
 @JsonDeserialize(builder = ClickstreamEvent.Builder.class)
 public abstract class ClickstreamEvent {
 
-    public static ClickstreamEvent.Builder newBuilder() {
-        return new AutoValue_ClickstreamEvent.Builder();
+  public static ClickstreamEvent.Builder newBuilder() {
+    return new AutoValue_ClickstreamEvent.Builder();
+  }
+
+  @AutoValue.Builder
+  public abstract static class Builder {
+
+    public abstract ClickstreamEvent build();
+
+    @JsonCreator
+    public static ClickstreamEvent.Builder builder() {
+      return new AutoValue_ClickstreamEvent.Builder();
     }
 
-    @AutoValue.Builder
-    public abstract static class Builder {
+    public static class CustomDateSerializer extends JsonDeserializer<Instant> {
 
-        public abstract ClickstreamEvent build();
+      DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss");
+      JacksonJodaDateFormat JACKSON_JODA_DATE_FORMAT =
+          new JacksonJodaDateFormat(DATE_TIME_FORMATTER);
 
-        @JsonCreator
-        public static ClickstreamEvent.Builder builder() {
-            return new AutoValue_ClickstreamEvent.Builder();
-        }
-
-        public static class CustomDateSerializer extends JsonDeserializer<Instant> {
-
-            DateTimeFormatter DATE_TIME_FORMATTER =
-                    DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss");
-            JacksonJodaDateFormat JACKSON_JODA_DATE_FORMAT =
-                    new JacksonJodaDateFormat(DATE_TIME_FORMATTER);
-
-            @Override
-            public Instant deserialize(
-                    JsonParser jsonParser, DeserializationContext deserializationContext)
-                    throws IOException, JacksonException {
-                String s = jsonParser.getValueAsString();
-                final long l =
-                        JACKSON_JODA_DATE_FORMAT
-                                .createParser(deserializationContext)
-                                .parseMillis(s);
-                return Instant.ofEpochMilli(l);
-            }
-        }
-
-        @JsonProperty("personId")
-        public abstract Builder setPersonId(String personId);
-
-        @JsonProperty("sessionStarted")
-        @JsonDeserialize(using = CustomDateSerializer.class)
-        public abstract Builder setSessionStarted(Instant sessionStarted);
-
-        @JsonDeserialize(using = CustomDateSerializer.class)
-        public abstract Builder setSessionEnded(Instant sessionEnded);
-
-        public abstract Builder setBasket(List<String> basket);
-
-        public abstract Builder setEvents(List<String> events);
-
-        public abstract Builder setProducts(List<String> products);
-
-        @JsonProperty("eventKind")
-        public abstract Builder setEventKind(String eventKind);
+      @Override
+      public Instant deserialize(
+          JsonParser jsonParser, DeserializationContext deserializationContext)
+          throws IOException, JacksonException {
+        String s = jsonParser.getValueAsString();
+        final long l = JACKSON_JODA_DATE_FORMAT.createParser(deserializationContext).parseMillis(s);
+        return Instant.ofEpochMilli(l);
+      }
     }
 
-    @JsonProperty("person_id")
-    @SchemaFieldName("personId")
-    public abstract String getPersonId();
-
-    // click, view, journey, session start, end, key event
-    @JsonProperty("eventKind")
-    @SchemaFieldName("eventKind")
-    public abstract String getEventKind();
-
-    @JsonProperty("products")
-    @SchemaFieldName("products")
-    public abstract @Nullable List<String> getProducts();
+    @JsonProperty("personId")
+    public abstract Builder setPersonId(String personId);
 
     @JsonProperty("sessionStarted")
-    @SchemaFieldName("sessionStarted")
-    public abstract Instant getSessionStarted();
+    @JsonDeserialize(using = CustomDateSerializer.class)
+    public abstract Builder setSessionStarted(Instant sessionStarted);
 
-    @JsonProperty("sessionEnded")
-    @SchemaFieldName("sessionEnded")
-    public abstract @Nullable Instant getSessionEnded();
+    @JsonDeserialize(using = CustomDateSerializer.class)
+    public abstract Builder setSessionEnded(Instant sessionEnded);
 
-    @JsonProperty("events")
-    @SchemaFieldName("events")
-    public abstract @Nullable List<String> getEvents();
+    public abstract Builder setBasket(List<String> basket);
 
-    @JsonProperty("basket")
-    @SchemaFieldName("basket")
-    public abstract @Nullable List<String> getBasket();
+    public abstract Builder setEvents(List<String> events);
+
+    public abstract Builder setProducts(List<String> products);
+
+    @JsonProperty("eventKind")
+    public abstract Builder setEventKind(String eventKind);
+  }
+
+  @JsonProperty("person_id")
+  @SchemaFieldName("personId")
+  public abstract String getPersonId();
+
+  // click, view, journey, session start, end, key event
+  @JsonProperty("eventKind")
+  @SchemaFieldName("eventKind")
+  public abstract String getEventKind();
+
+  @JsonProperty("products")
+  @SchemaFieldName("products")
+  public abstract @Nullable List<String> getProducts();
+
+  @JsonProperty("sessionStarted")
+  @SchemaFieldName("sessionStarted")
+  public abstract Instant getSessionStarted();
+
+  @JsonProperty("sessionEnded")
+  @SchemaFieldName("sessionEnded")
+  public abstract @Nullable Instant getSessionEnded();
+
+  @JsonProperty("events")
+  @SchemaFieldName("events")
+  public abstract @Nullable List<String> getEvents();
+
+  @JsonProperty("basket")
+  @SchemaFieldName("basket")
+  public abstract @Nullable List<String> getBasket();
 }

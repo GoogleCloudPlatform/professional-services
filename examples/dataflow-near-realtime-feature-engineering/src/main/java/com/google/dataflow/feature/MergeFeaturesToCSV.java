@@ -25,28 +25,28 @@ import org.joda.time.Instant;
 
 public class MergeFeaturesToCSV extends DoFn<KV<String, CoGbkResult>, String> {
 
-    public static final TupleTag<Long> T1 = new TupleTag<>();
-    public static final TupleTag<Long> T2 = new TupleTag<>();
+  public static final TupleTag<Long> T1 = new TupleTag<>();
+  public static final TupleTag<Long> T2 = new TupleTag<>();
 
-    @ProcessElement
-    public void processElement(ProcessContext c, @Timestamp Instant ts) {
-        KV<String, CoGbkResult> e = c.element();
-        CoGbkResult result = e.getValue();
-        Iterable<Long> allF1 = result.getAll(T1);
-        Iterable<Long> allF2 = result.getAll(T2);
+  @ProcessElement
+  public void processElement(ProcessContext c, @Timestamp Instant ts) {
+    KV<String, CoGbkResult> e = c.element();
+    CoGbkResult result = e.getValue();
+    Iterable<Long> allF1 = result.getAll(T1);
+    Iterable<Long> allF2 = result.getAll(T2);
 
-        Long f1 =
-                StreamSupport.stream(allF1.spliterator(), false)
-                        .filter(Objects::nonNull)
-                        .findFirst()
-                        .orElse(null);
-        Long f2 =
-                StreamSupport.stream(allF2.spliterator(), false)
-                        .filter(Objects::nonNull)
-                        .findFirst()
-                        .orElse(null);
+    Long f1 =
+        StreamSupport.stream(allF1.spliterator(), false)
+            .filter(Objects::nonNull)
+            .findFirst()
+            .orElse(null);
+    Long f2 =
+        StreamSupport.stream(allF2.spliterator(), false)
+            .filter(Objects::nonNull)
+            .findFirst()
+            .orElse(null);
 
-        String personId = e.getKey();
-        c.output(personId + "," + f1 + "," + f2 + "," + ts.toString());
-    }
+    String personId = e.getKey();
+    c.output(personId + "," + f1 + "," + f2 + "," + ts.toString());
+  }
 }

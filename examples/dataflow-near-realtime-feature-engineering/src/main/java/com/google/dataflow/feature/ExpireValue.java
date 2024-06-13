@@ -31,38 +31,39 @@ import org.joda.time.Instant;
 
 public class ExpireValue<String, Y> extends DoFn<KV<String, Y>, KV<String, Y>> {
 
-    private final Y defaultValue;
+  private final Y defaultValue;
 
-    @TimerId("reset")
-    private final TimerSpec timer = TimerSpecs.timer(TimeDomain.EVENT_TIME);
+  @TimerId("reset")
+  private final TimerSpec timer = TimerSpecs.timer(TimeDomain.EVENT_TIME);
 
-    @StateId("state")
-    private final StateSpec<ValueState<String>> state =
-            StateSpecs.value((Coder<String>) StringUtf8Coder.of());
+  @StateId("state")
+  private final StateSpec<ValueState<String>> state =
+      StateSpecs.value((Coder<String>) StringUtf8Coder.of());
 
-    public ExpireValue(Y defaultValue) {
-        this.defaultValue = defaultValue;
-    }
+  public ExpireValue(Y defaultValue) {
+    this.defaultValue = defaultValue;
+  }
 
-    @ProcessElement
-    public void processElement(
-            ProcessContext pc,
-            @Timestamp Instant ts,
-            @Element KV<String, Y> elem,
-            @StateId("state") ValueState<String> state,
-            @TimerId("reset") Timer timer,
-            OutputReceiver<KV<String, Y>> or) {
-        timer.withOutputTimestamp(ts.plus(Duration.standardSeconds(30)))
-                .set(ts.plus(Duration.standardSeconds(30)));
-        state.write(elem.getKey());
-        or.output(elem);
-    }
+  @ProcessElement
+  public void processElement(
+      ProcessContext pc,
+      @Timestamp Instant ts,
+      @Element KV<String, Y> elem,
+      @StateId("state") ValueState<String> state,
+      @TimerId("reset") Timer timer,
+      OutputReceiver<KV<String, Y>> or) {
+    timer
+        .withOutputTimestamp(ts.plus(Duration.standardSeconds(30)))
+        .set(ts.plus(Duration.standardSeconds(30)));
+    state.write(elem.getKey());
+    or.output(elem);
+  }
 
-    @OnTimer("reset")
-    public void expire(
-            OutputReceiver<KV<String, Y>> output, @StateId("state") ValueState<String> state) {
-        final String read = state.read();
-        state.clear();
-        output.output(KV.of(read, defaultValue));
-    }
+  @OnTimer("reset")
+  public void expire(
+      OutputReceiver<KV<String, Y>> output, @StateId("state") ValueState<String> state) {
+    final String read = state.read();
+    state.clear();
+    output.output(KV.of(read, defaultValue));
+  }
 }

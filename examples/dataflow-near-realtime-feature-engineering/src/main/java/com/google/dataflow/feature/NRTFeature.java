@@ -33,71 +33,61 @@ import org.joda.time.Duration;
 
 public class NRTFeature<T> extends PTransform<PCollection<Row>, PCollection<KV<String, T>>> {
 
-    TypeDescriptor<T> typeDescriptor;
-    private final String key;
-    private final String aggregateSql;
-    private final Duration slidingWindowSize;
-    private final Duration period;
-    private final T defaultValue;
+  TypeDescriptor<T> typeDescriptor;
+  private final String key;
+  private final String aggregateSql;
+  private final Duration slidingWindowSize;
+  private final Duration period;
+  private final T defaultValue;
 
-    public NRTFeature(
-            TypeDescriptor<T> typeDescriptor,
-            String key,
-            String aggregateSql,
-            Duration slidingWindowSize,
-            Duration period,
-            T defaultValue) {
-        this.typeDescriptor = typeDescriptor;
-        this.key = key;
-        this.aggregateSql = aggregateSql;
-        this.slidingWindowSize = slidingWindowSize;
-        this.period = period;
-        this.defaultValue = defaultValue;
-    }
+  public NRTFeature(
+      TypeDescriptor<T> typeDescriptor,
+      String key,
+      String aggregateSql,
+      Duration slidingWindowSize,
+      Duration period,
+      T defaultValue) {
+    this.typeDescriptor = typeDescriptor;
+    this.key = key;
+    this.aggregateSql = aggregateSql;
+    this.slidingWindowSize = slidingWindowSize;
+    this.period = period;
+    this.defaultValue = defaultValue;
+  }
 
-    @Override
-    public PCollection<KV<String, T>> expand(PCollection<Row> input) {
-        final PCollection<Row> windowed =
-                input.apply(
-                        "Sliding window",
-                        Window.<Row>into(SlidingWindows.of(slidingWindowSize).every(period))
-                                .triggering(AfterWatermark.pastEndOfWindow())
-                                .withAllowedLateness(Duration.ZERO)
-                                .accumulatingFiredPanes());
+  @Override
+  public PCollection<KV<String, T>> expand(PCollection<Row> input) {
+    final PCollection<Row> windowed =
+        input.apply(
+            "Sliding window",
+            Window.<Row>into(SlidingWindows.of(slidingWindowSize).every(period))
+                .triggering(AfterWatermark.pastEndOfWindow())
+                .withAllowedLateness(Duration.ZERO)
+                .accumulatingFiredPanes());
 
-        final PCollection<Row> sqlResult =
-                windowed.apply(
-                        "SQL",
-                        SqlTransform.query(
-                                "select "
-                                        + key
-                                        + ", "
-                                        + aggregateSql
-                                        + " as f from PCOLLECTION group by "
-                                        + key));
-        final PCollection<KV<String, T>> project =
-                sqlResult.apply(
-                        "Project",
-                        MapElements.into(
-                                        TypeDescriptors.kvs(
-                                                TypeDescriptors.strings(), typeDescriptor))
-                                .via(
-                                        row ->
-                                                KV.of(
-                                                        ((Row) row).getString(this.key),
-                                                        (T) ((Row) row).getBaseValue("f"))));
+    final PCollection<Row> sqlResult =
+        windowed.apply(
+            "SQL",
+            SqlTransform.query(
+                "select " + key + ", " + aggregateSql + " as f from PCOLLECTION group by " + key));
+    final PCollection<KV<String, T>> project =
+        sqlResult.apply(
+            "Project",
+            MapElements.into(TypeDescriptors.kvs(TypeDescriptors.strings(), typeDescriptor))
+                .via(
+                    row ->
+                        KV.of(((Row) row).getString(this.key), (T) ((Row) row).getBaseValue("f"))));
 
-        final PCollection<KV<String, T>> feature =
-                project.apply(
-                                "reset window for stateful processing",
-                                Window.into(new GlobalWindows()))
-                        .apply("Expire", ParDo.of(new ExpireValue<String, T>(defaultValue)))
-                        .apply(
-                                "reWindow",
-                                Window.<KV<String, T>>into(FixedWindows.of(period))
-                                        .triggering(AfterWatermark.pastEndOfWindow())
-                                        .withAllowedLateness(Duration.ZERO)
-                                        .accumulatingFiredPanes());
-        return feature;
-    }
+    final PCollection<KV<String, T>> feature =
+        project
+            .apply("reset window for stateful processing", Window.into(new GlobalWindows()))
+            .apply("Expire", ParDo.of(new ExpireValue<String, T>(defaultValue)))
+            .apply(
+                "reWindow",
+                Window.<KV<String, T>>into(FixedWindows.of(period))
+                    .triggering(AfterWatermark.pastEndOfWindow())
+                    .withAllowedLateness(Duration.ZERO)
+                    .accumulatingFiredPanes());
+    return feature;
+  }
 }
