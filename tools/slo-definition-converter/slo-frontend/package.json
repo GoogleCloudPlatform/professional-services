@@ -53,11 +53,15 @@
   },
   "overrides": {
     "postcss": "^8.4.38",
-    "css-select": "^5.1.0"
+    "css-select": "^5.1.0",
+    "typescript": "^5.1.6"
   },
   "devDependencies": {
-    "@types/node": "20.12.7",
+    "typescript": "^5.4.3",
     "gts": "^5.3.1",
-    "typescript": "^5.4.3"
+    "@types/node": "20.12.7"
+  },
+  "resolutions": {
+    "typescript": "^5.1.6"
   }
 }
