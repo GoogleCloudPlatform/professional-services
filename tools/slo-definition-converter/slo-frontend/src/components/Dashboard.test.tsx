@@ -1,7 +1,6 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import {render, screen} from '@testing-library/react';
 import Dashboard from './Dashboard';
-
 
 test('renders SLO Tools Heading', () => {
   render(<Dashboard />);
@@ -17,8 +16,8 @@ test('renders JSON Definition to TF Converter Heading', () => {
 
 test('renders Convert Button', () => {
   render(<Dashboard />);
-  const buttonElement = document.querySelector('.MuiButton-containedPrimary[type="button"]');
+  const buttonElement = document.querySelector(
+    '.MuiButton-containedPrimary[type="button"]'
+  );
   expect(buttonElement).toBeInTheDocument();
 });
-
-

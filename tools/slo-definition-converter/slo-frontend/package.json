@@ -14,19 +14,27 @@
     "@types/node": "^16.18.98",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
+    "gts": "^5.3.1",
     "msw": "^2.3.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.23.1",
-    "react-scripts": "5.0.1",
+    "react-scripts": "^3.0.1",
     "typescript": "^4.9.5",
     "web-vitals": "^2.1.4"
   },
   "scripts": {
-    "start": "react-scripts start",
+    "start": "react-scripts --openssl-legacy-provider start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "lint": "gts lint",
+    "clean": "gts clean",
+    "compile": "tsc",
+    "fix": "gts fix",
+    "prepare": "npm run compile",
+    "pretest": "npm run compile",
+    "posttest": "npm run lint"
   },
   "eslintConfig": {
     "extends": [
@@ -47,6 +55,11 @@
     ]
   },
   "devDependencies": {
-    "@types/material-ui": "^0.21.17"
+    "@types/material-ui": "^0.21.17",
+    "@types/node": "20.12.7",
+    "@typescript-eslint/eslint-plugin": "^7.13.0",
+    "eslint-plugin-ft-flow": "^3.0.9",
+    "gts": "^5.3.1",
+    "typescript": "^5.4.3"
   }
 }
