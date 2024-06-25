@@ -1,0 +1,13 @@
+steps:
+# Query and write the results to a destination table.
+- name: 'gcr.io/community-builders/bq'
+  args:
+  - query
+  - --use_legacy_sql=false
+  - --destination_table=test_dataset.bobs_from_builder
+  - >
+    SELECT SUM(number) AS total_bobs, year
+    FROM `bigquery-public-data.usa_names.usa_1910_current`
+    WHERE name = 'Bob'
+    GROUP BY year
+tags: ['cloud-builders-community']

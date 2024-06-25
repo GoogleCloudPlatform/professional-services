@@ -1,0 +1,17 @@
+steps:
+  - name: "gcr.io/$PROJECT_ID/cdxgen"
+    id: "Generate bom.xml"
+    args: ["--output", "bom.xml", "src"]
+
+  - name: "gcr.io/$PROJECT_ID/cdxgen"
+    id: "Generate bom.xml and submit to dependency track/AppThreat server"
+    args:
+      [
+        "--output",
+        "bom.xml",
+        "--serverUrl",
+        "https://deptrack.appthreat.io",
+        "--apiKey",
+        "CHANGEME",
+        "src",
+      ]

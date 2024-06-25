@@ -1,0 +1,6 @@
+steps:
+- name: 'gcr.io/$PROJECT_ID/zola'
+  args: ['build']
+- name: busybox
+  args: ["cat", "public/index.html"]
+tags: ['cloud-builders-community']

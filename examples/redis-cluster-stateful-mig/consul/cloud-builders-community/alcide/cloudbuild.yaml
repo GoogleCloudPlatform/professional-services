@@ -1,0 +1,11 @@
+# In this directory, run the following command to build this builder.
+# $ gcloud builds submit . --config=cloudbuild.yaml
+
+steps:
+#
+# Build the Alcide Advisor Image
+#
+- name: gcr.io/cloud-builders/docker
+  args: ['build', '--tag=gcr.io/$PROJECT_ID/advisor', '.']
+
+images: ["gcr.io/${PROJECT_ID}/advisor"]

@@ -1,0 +1,64 @@
+steps:
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      [
+        'build', '.',
+        '--tag=gcr.io/$PROJECT_ID/ng:v1',
+        '--file=Dockerfile',
+        '--build-arg', 'ng_version=1.*',
+      ]
+
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      [
+        'build', '.',
+        '--tag=gcr.io/$PROJECT_ID/ng:v6',
+        '--file=Dockerfile',
+        '--build-arg', 'ng_version=6.*',
+      ]
+
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      [
+        'build', '.',
+        '--tag=gcr.io/$PROJECT_ID/ng:v7',
+        '--file=Dockerfile',
+        '--build-arg', 'ng_version=7.*',
+      ]
+
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      [
+        'build', '.',
+        '--tag=gcr.io/$PROJECT_ID/ng:v8',
+        '--file=Dockerfile',
+        '--build-arg', 'ng_version=8.*',
+      ]
+
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      [
+        'build', '.',
+        '--tag=gcr.io/$PROJECT_ID/ng:latest',
+        '--file=Dockerfile',
+        '--build-arg', 'ng_version=latest',
+      ]
+
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      [
+        'build', '.',
+        '--tag=gcr.io/$PROJECT_ID/ng:next',
+        '--file=Dockerfile',
+        '--build-arg', 'ng_version=next',
+      ]
+
+images:
+  - 'gcr.io/$PROJECT_ID/ng:v1'
+  - 'gcr.io/$PROJECT_ID/ng:v6'
+  - 'gcr.io/$PROJECT_ID/ng:v7'
+  - 'gcr.io/$PROJECT_ID/ng:v8'
+  - 'gcr.io/$PROJECT_ID/ng:latest'
+  - 'gcr.io/$PROJECT_ID/ng:next'
+
+tags: ['cloud-builders-community']

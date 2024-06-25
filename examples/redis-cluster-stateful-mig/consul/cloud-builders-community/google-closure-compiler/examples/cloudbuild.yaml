@@ -1,0 +1,22 @@
+# In this directory, run the following command to build this builder.
+# $ gcloud builds submit . --config=cloudbuild.yaml
+
+steps:
+# Use the wget builder to retrieve the helloworld.js file from the GitHub repo
+- name: gcr.io/cloud-builders/wget
+  args: [
+    "--output-document", "helloworld.js",
+    "https://raw.githubusercontent.com/GoogleCloudPlatform/cloud-builders-community/master/google-closure-compiler/examples/helloworld.js"
+  ]
+# Apply Google Closure Compiler to helloworld.js producing an optimized helloworld.out.js
+- name: gcr.io/${PROJECT_ID}/google-closure-compiler
+  args: [
+    "--js_output_file=helloworld.out.js",
+    "helloworld.js"
+  ]
+# Use busybox to 'more' the helloworld.out.js to the Cloud Builder logs
+- name: busybox
+  args: [
+    "more", "helloworld.out.js"
+  ]
+tags: ['cloud-builders-community']

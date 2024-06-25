@@ -1,0 +1,5 @@
+steps:
+- name: 'gcr.io/$PROJECT_ID/bookdown'
+- name: busybox
+  args: ["cat", "_book/index.html"]
+tags: ['cloud-builders-community']

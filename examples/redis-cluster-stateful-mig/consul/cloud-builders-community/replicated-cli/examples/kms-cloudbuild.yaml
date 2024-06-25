@@ -1,0 +1,23 @@
+steps:
+
+  - name: 'gcr.io/$PROJECT_ID/replicated-cli'
+    id: 'List Replicated releases'
+    secretEnv: ['REPLICATED_API_TOKEN']
+    entrypoint: '/bin/sh'
+    args:
+      - '-c'
+      - 'replicated release ls --app my-app --token $$REPLICATED_API_TOKEN'
+
+  - name: 'gcr.io/$PROJECT_ID/replicated-cli'
+    id: 'Create a new replicated release'
+    secretEnv: ['REPLICATED_API_TOKEN']
+    entrypoint: '/bin/sh'
+    args:
+      - '-c'
+      - 'replicated release create --promote "Unstable" --required --yaml-file replicated.yaml --app my-app --token $$REPLICATED_API_TOKEN'
+
+# note to change your key-ring and key if you adapt this example and use different names
+secrets:
+  - kmsKeyName: 'projects/$PROJECT_ID/locations/global/keyRings/cloud-build/cryptoKeys/replicated-token'
+    secretEnv:
+      REPLICATED_API_TOKEN: '3FEcZWmqN71XvayW3MmQpT7EMnNKspymVga2PR184KJzWft7qO3tvKGk17hMBv3XPFjbSLlY8h1wD8sx0Y+4AMRI5uXbV/VjcUZHyTTaxFk+JHOGB3Mp6ClqwrwEmFhF+jVzhT3Vmajx4ymOWFqe6Q4gNIXpjCBWl/TEjihsfdmgcAR/p4QPU6U9SeM+tXF9Yg+0eYrwRVVfZURb7w2B4bg5lgBzCLqN1ADmhJllkLAU9tT7bpPTpKlCgvZbNsh3WO3OiA=='

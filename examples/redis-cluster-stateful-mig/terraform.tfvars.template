@@ -1,0 +1,24 @@
+# Copyright 2024 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+project_id                      = "your-project-id"
+region                          = "asia-south1"
+redis_host_name                 = "example-redis"
+redis_distribution_policy_zones = ["asia-south1-a", "asia-south1-b", "asia-south1-c"]
+redis_service_account_name      = "example-redis"
+redis_subnetwork                = "projects/your-project-id/regions/asia-south1/subnetworks/default"
+consul_instance_group_id        = "projects/your-project-id/regions/asia-south1/instanceGroups/consul-cluster-ig"
+consul_network                  = "projects/your-project-id/global/networks/default"
+consul_subnetwork               = "projects/your-project-id/regions/asia-south1/subnetworks/default"
+consul_lb_static_ip             = "10.160.0.45"

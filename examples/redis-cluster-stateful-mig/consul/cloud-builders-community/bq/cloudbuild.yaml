@@ -1,0 +1,17 @@
+# In this directory, run the following command to build this builder.
+# $ gcloud builds submit . --config=cloudbuild.yaml
+
+steps:
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['build', '--pull', '--tag=gcr.io/$PROJECT_ID/bq', '.']
+- name: 'gcr.io/$PROJECT_ID/bq'
+  args: ['version']
+
+# Invoke a command that requires auth, to check that it gets piped through
+# correctly. Requires that the Container Builder service account has at
+# least the BigQuery User IAM role.
+- name: 'gcr.io/$PROJECT_ID/bq'
+  args: ['query', '--use_legacy_sql=false', 'SELECT AVG(weight_pounds) FROM `bigquery-public-data.samples.natality`']
+
+images: ['gcr.io/$PROJECT_ID/bq']
+tags: ['cloud-builders-community']

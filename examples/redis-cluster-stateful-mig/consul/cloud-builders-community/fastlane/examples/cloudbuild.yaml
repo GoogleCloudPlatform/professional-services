@@ -1,0 +1,11 @@
+steps:
+# build with android
+- name: 'gcr.io/$PROJECT_ID/android:28'
+  id: build
+  args: ["./gradlew", "assembleDebug"]
+# deploy with fastlane
+- name: 'gcr.io/$PROJECT_ID/fastlane'
+  args: ['YOUR-LANE-NAME-HERE']
+  waitFor:
+    - build
+tags: ['cloud-builders-community']

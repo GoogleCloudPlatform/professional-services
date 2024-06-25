@@ -1,0 +1,4 @@
+steps:
+- name: 'gcr.io/$PROJECT_ID/singularity'
+  args: ['build','lolcow.sif','lolcow.def']
+tags: ['cloud-builders-community']

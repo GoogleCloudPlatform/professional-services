@@ -1,0 +1,3 @@
+FROM composer
+
+ENTRYPOINT ["composer"]

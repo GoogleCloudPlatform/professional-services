@@ -1,0 +1,14 @@
+steps:
+
+- name: 'gcr.io/$PROJECT_ID/docker-compose'
+  args:
+  - up
+  - -d
+
+- name: 'gcr.io/$PROJECT_ID/rsync'
+  args:
+  - -e
+  - 'ssh -i ./id_rsa -o StrictHostKeyChecking=no -l root'
+  - --verbose
+  - test.txt
+  - server:/data

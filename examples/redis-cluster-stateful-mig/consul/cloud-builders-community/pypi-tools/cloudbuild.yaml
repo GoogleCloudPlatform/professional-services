@@ -1,0 +1,33 @@
+---
+steps:
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'Docker build for Python 2.7'
+    args: [
+      'build', '.',
+      '--tag=gcr.io/$PROJECT_ID/pypi-tools:2.7',
+      '--build-arg', 'PY_VERSION=2.7'
+    ]
+
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'Docker build for Python 3.6'
+    args: [
+      'build', '.',
+      '--tag=gcr.io/$PROJECT_ID/pypi-tools:3.6',
+      '--build-arg', 'PY_VERSION=3.6'
+    ]
+
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'Docker build for Python 3.7 (latest)'
+    args: [
+      'build', '.',
+      '--tag=gcr.io/$PROJECT_ID/pypi-tools:3.7',
+      '--tag=gcr.io/$PROJECT_ID/pypi-tools:latest'
+    ]
+
+images: [
+  'gcr.io/$PROJECT_ID/pypi-tools:2.7',
+  'gcr.io/$PROJECT_ID/pypi-tools:3.6',
+  'gcr.io/$PROJECT_ID/pypi-tools:3.7',
+  'gcr.io/$PROJECT_ID/pypi-tools:latest'
+]
+tags: ['cloud-builders-community']

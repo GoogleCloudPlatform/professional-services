@@ -1,0 +1,18 @@
+steps:
+- name: gcr.io/cloud-builders/docker
+  args: ['build', '-t', 'gcr.io/$PROJECT_ID/buildah', '.']
+
+- name: gcr.io/$PROJECT_ID/buildah
+  args: ['bud', '-t', 'image', '-f', 'Dockerfile.sample', '--format=docker', '.']
+  volumes:
+  - name: varlibcontainers
+    path: '/var/lib/containers'
+
+- name: gcr.io/$PROJECT_ID/buildah
+  args: ['push', 'image', 'docker://gcr.io/$PROJECT_ID/pushed-by-buildah']
+  volumes:
+  - name: varlibcontainers
+    path: '/var/lib/containers'
+
+images: ['gcr.io/$PROJECT_ID/buildah']
+tags: ['cloud-builders-community']

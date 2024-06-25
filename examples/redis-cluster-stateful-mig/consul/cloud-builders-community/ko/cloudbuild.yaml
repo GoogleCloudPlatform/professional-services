@@ -1,0 +1,9 @@
+substitutions:
+    _KO_GIT_TAG: 'main'
+steps:
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['build', '--build-arg', 'KO_GIT_TAG=${_KO_GIT_TAG}', '--tag=gcr.io/$PROJECT_ID/ko', '.']
+- name: 'gcr.io/$PROJECT_ID/ko'
+  args: ['version']
+
+images: ['gcr.io/$PROJECT_ID/ko']

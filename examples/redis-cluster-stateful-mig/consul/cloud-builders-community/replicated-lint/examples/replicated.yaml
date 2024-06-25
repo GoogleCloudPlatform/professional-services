@@ -1,0 +1,97 @@
+---
+# kind: replicated
+
+replicated_api_version: 2.29.0
+name: "Kubernetes Nginx Example"
+
+properties:
+  app_url: http://{{repl ConfigOption "hostname" }}
+  console_title: "Kubernetes Nginx Example"
+
+host_requirements:
+  replicated_version: ">=2.29.0"
+
+kubernetes:
+  requirements:
+    total_cores: "2"
+    total_memory: 8GB
+
+config:
+- name: basic_config
+  title: Basics
+  description: Please enter the hostname or IP of this serrver.
+  items:
+  - name: hostname
+    title: Hostname
+    value: '{{repl ConsoleSetting "tls.hostname" }}'
+    type: text
+    test_proc:
+      display_name: Check DNS
+      command: resolve_host
+- name: server
+  title: Server Config
+  items:
+  - name: num_replicas
+    title: Number of instances to run
+    default: 1
+    type: text
+  - name: db_url
+    title: Database URL
+    type: text
+    required: true
+    default: postgres://pg.somebigbank.com/my_database?username=xxx&password=yyy
+
+images:
+# this section needs to be included for airgap installs
+- name: k8s.gcr.io/echoserver
+  source: public
+  tag: "1.4"
+---
+# kind: scheduler-kubernetes
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: echoheaders
+spec:
+  selector:
+    matchLabels:
+      app: echoheaders
+  replicas: {{repl ConfigOption "num_replicas"}}
+  template:
+    metadata:
+      labels:
+        app: echoheaders
+    spec:
+      containers:
+      - image: k8s.gcr.io/echoserver:1.4
+        name: echoheaders
+        ports:
+        - containerPort: 8080
+---
+# kind: scheduler-kubernetes
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: echoheaders
+  name: echoheaders
+spec:
+  ports:
+  - name: http
+    port: 8080
+    protocol: TCP
+    targetPort: 8080
+  selector:
+    app: echoheaders
+  type: ClusterIP
+
+---
+# kind: scheduler-kubernetes
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: echoheaders-ingress
+spec:
+  backend:
+    serviceName: echoheaders
+    servicePort: 8080

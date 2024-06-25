@@ -1,0 +1,12 @@
+# In this directory, run the following command to build this builder.
+# $ gcloud builds submit . --config=cloudbuild.yaml
+
+steps:
+# Build the Jsonnet builder then run it and output its help
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['build', '--tag=gcr.io/${PROJECT_ID}/jsonnet', '.']
+- name: 'gcr.io/${PROJECT_ID}/jsonnet'
+  args: ['--help']
+
+images: ['gcr.io/${PROJECT_ID}/jsonnet']
+tags: ['cloud-builders-community']

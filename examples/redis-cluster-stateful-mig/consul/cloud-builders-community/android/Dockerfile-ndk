@@ -1,0 +1,16 @@
+ARG project_id
+ARG android_version
+FROM gcr.io/${project_id}/android:${android_version}
+
+ARG ndk_version=android-ndk-r25
+ARG android_ndk_home=/opt/android/${ndk_version}
+
+# If we're using the NDK we likely want cmake
+RUN sdkmanager "cmake;3.10.2.4988404"
+
+# Install the NDK
+RUN curl --silent --show-error --location --fail --retry 3 --output /tmp/${ndk_version}.zip https://dl.google.com/android/repository/${ndk_version}-linux.zip && \
+    sudo unzip -q /tmp/${ndk_version}.zip -d /opt/android && \
+    rm /tmp/${ndk_version}.zip
+
+ENV ANDROID_NDK_HOME ${android_ndk_home}

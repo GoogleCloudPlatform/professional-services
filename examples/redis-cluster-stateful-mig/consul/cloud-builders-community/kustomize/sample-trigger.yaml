@@ -1,0 +1,13 @@
+# gcloud beta builds import --source=<filename>
+description: 'Kustomize Image Build: Push to ^master$ branch'
+filename: kustomize/cloudbuild.yaml
+includedFiles:
+- kustomize/*
+name: kustomize-image-build
+github:
+  name: cloud-builders-community
+  owner: <GITHUB_ORG> #TODO
+  push:
+    branch: ^master$
+substitutions:
+  _BUILD_DIRECTORY: kustomize

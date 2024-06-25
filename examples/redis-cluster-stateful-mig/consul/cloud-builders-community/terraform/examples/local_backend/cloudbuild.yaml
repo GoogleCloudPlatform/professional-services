@@ -1,0 +1,16 @@
+# In this directory, run the following command to build this builder.
+# $ gcloud builds submit . --config=cloudbuild.yaml
+steps:
+- name: 'gcr.io/${PROJECT_ID}/terraform'
+  args: ['init']
+  env:
+    - "TF_VAR_project-name=${PROJECT_ID}"
+- name: 'gcr.io/${PROJECT_ID}/terraform'
+  args: ['refresh']
+  env:
+    - "TF_VAR_project-name=${PROJECT_ID}"
+- name: 'gcr.io/${PROJECT_ID}/terraform'
+  args: ['plan']
+  env:
+    - "TF_VAR_project-name=${PROJECT_ID}"
+tags: ['cloud-builders-community']

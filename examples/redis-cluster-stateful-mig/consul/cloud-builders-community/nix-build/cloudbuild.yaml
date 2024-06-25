@@ -1,0 +1,23 @@
+steps:
+# Build the nix-build builder image.
+- name: gcr.io/cloud-builders/docker
+  args: ['build', '-t', 'gcr.io/$PROJECT_ID/nix-build', '.']
+ 
+# Use the image to build the Nix build cript.
+- name: gcr.io/$PROJECT_ID/nix-build
+  args: ['default.nix', '--argstr', 'imageName', 'gcr.io/$PROJECT_ID/nix-built-mysql']
+  volumes:
+  - name: nix-store
+    path: /nix/
+# docker-load the built image.
+- name: gcr.io/cloud-builders/docker
+  args: ['load', '-i', './result']
+  volumes:
+  - name: nix-store
+    path: /nix/
+
+images:
+- gcr.io/$PROJECT_ID/nix-build
+- gcr.io/$PROJECT_ID/nix-built-mysql
+
+tags: ['cloud-builders-community']

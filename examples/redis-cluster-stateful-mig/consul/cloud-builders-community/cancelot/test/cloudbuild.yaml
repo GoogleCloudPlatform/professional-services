@@ -1,0 +1,21 @@
+steps:
+# cancels ongoing builds targeting $BRANCH_NAME regardless of which trigger triggered it
+- name: 'gcr.io/$PROJECT_ID/cancelot'
+  args: [
+    '--current_build_id', '$BUILD_ID',
+    '--branch_name', "$BRANCH_NAME"
+  ]
+
+- name: 'gcr.io/cloud-builders/gcloud'
+  args: ['echo', 'done']
+
+# cancels ongoing builds targeting $BRANCH_NAME only if they were triggered by the same trigger as $BUILD_ID
+- name: 'gcr.io/$PROJECT_ID/cancelot'
+  args: [
+    '--current_build_id', '$BUILD_ID',
+    '--branch_name', "$BRANCH_NAME",
+    '--same_trigger_only'
+  ]
+
+- name: 'gcr.io/cloud-builders/gcloud'
+  args: ['echo', 'done']

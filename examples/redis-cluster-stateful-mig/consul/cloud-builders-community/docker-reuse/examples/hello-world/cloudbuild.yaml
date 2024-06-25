@@ -1,0 +1,25 @@
+steps:
+  # Build and push the image to the registry only if the image has not been
+  # built yet.
+  - id: build-and-push
+    name: gcr.io/$PROJECT_ID/docker-reuse
+    args: [
+        "-f",
+        "deployment/Dockerfile",
+        "-p",
+        "IMAGE_PLACEHOLDER",
+        ".",
+        "gcr.io/$PROJECT_ID/hello-world",
+        "deployment/deploy.sh", # the file to update
+        "GREETING=Hello Earthlings!", # build-arg value is provided
+        "PORT", # build-arg value is taken from the environment
+      ]
+    env:
+      - "PORT=8080"
+    timeout: 900s
+
+  # The image is now ready to be deployed. The script below prints a simulated
+  # Kubernetes Deployment resource.
+  - id: deploy
+    name: bash
+    args: ["deployment/deploy.sh"]

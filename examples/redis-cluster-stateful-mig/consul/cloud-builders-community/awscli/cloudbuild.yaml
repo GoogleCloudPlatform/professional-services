@@ -1,0 +1,10 @@
+steps:
+- name: gcr.io/cloud-builders/docker
+  args: ['build', '--tag=gcr.io/$PROJECT_ID/awscli', '.']
+
+# Print version information.
+- name: gcr.io/$PROJECT_ID/awscli
+  args: ['s3', 'help']
+
+images: ['gcr.io/$PROJECT_ID/awscli']
+tags: ['cloud-builders-community']

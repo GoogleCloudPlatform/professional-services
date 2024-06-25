@@ -1,0 +1,4 @@
+steps:
+- name: 'gcr.io/$PROJECT_ID/windows-builder'
+  args: [ '--command', 'C:\workspace\hello.bat' ]
+tags: ['cloud-builders-community']

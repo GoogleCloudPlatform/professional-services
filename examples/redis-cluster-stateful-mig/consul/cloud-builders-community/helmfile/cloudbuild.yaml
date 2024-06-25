@@ -1,0 +1,15 @@
+steps:
+  - name: "gcr.io/cloud-builders/docker"
+    args:
+      [
+        "build",
+        "--tag=gcr.io/$PROJECT_ID/helmfile",
+        "--build-arg",
+        "HELM_VERSION=v3.6.3",
+        "--build-arg",
+        "HELMFILE_VERSION=v0.140.0",
+        ".",
+      ]
+
+images: ["gcr.io/$PROJECT_ID/helmfile"]
+tags: ["cloud-builders-community"]

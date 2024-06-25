@@ -1,0 +1,30 @@
+steps:
+
+  - name: 'gcr.io/$PROJECT_ID/pypi-tools'
+    id: 'push to pypi'
+    entrypoint: 'twine'
+    dir: 'example-package'
+    secretEnv: ['PYPI_PASSWORD']
+    env: ['PYPI_USERNAME=foo']
+    args:
+      - '-c'
+      - |
+        twine upload dist/* -u $PYPI_USERNAME -p $$PYPI_PASSWORD
+
+  - name: 'gcr.io/$PROJECT_ID/pypi-tools:3.7'
+    id: 'push to pypi if has a new version'
+    dir: 'example-package'
+    secretEnv: ['PYPI_PASSWORD']
+    env: ['PYPI_USERNAME=foo']
+    args:
+      - '-c'
+      - |
+        code_version=$(python setup.py --version) && \
+        pip_version=$(yolk -V kondunite | cut -d" " -f2) && \
+        ([ "$code_version" != "$pip_version" ] && twine upload dist/* -u $PYPI_USERNAME -p $$PYPI_PASSWORD || echo "No new version")
+
+# note to change your key-ring and key if you adapt this example and use different names
+secrets:
+  - kmsKeyName: 'projects/$PROJECT_ID/locations/global/keyRings/cloud-build/cryptoKeys/pypi-password'
+    secretEnv:
+      PYPI_PASSWORD: '3FEcZWmqN71XvayW3MmQpT7EMnNKspymVga2PR184KJzWft7qO3tvKGk17hMBv3XPFjbSLlY8h1wD8sx0Y+4AMRI5uXbV/VjcUZHyTTaxFk+JHOGB3Mp6ClqwrwEmFhF+jVzhT3Vmajx4ymOWFqe6Q4gNIXpjCBWl/TEjihsfdmgcAR/p4QPU6U9SeM+tXF9Yg+0eYrwRVVfZURb7w2B4bg5lgBzCLqN1ADmhJllkLAU9tT7bpPTpKlCgvZbNsh3WO3OiA=='

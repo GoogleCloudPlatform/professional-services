@@ -1,0 +1,29 @@
+# In this directory, run the following command to build this builder.
+# $ gcloud builds submit . --config=cloudbuild.yaml
+substitutions:
+  _TERRAFORM_VERSION: 1.0.9
+  _TERRAFORM_VERSION_SHA256SUM: f06ac64c6a14ed6a923d255788e4a5daefa2b50e35f32d7a3b5a2f9a5a91e255
+steps:
+- name: 'gcr.io/cloud-builders/wget'
+  args: ["https://releases.hashicorp.com/terraform/${_TERRAFORM_VERSION}/terraform_${_TERRAFORM_VERSION}_linux_amd64.zip"]
+- name: 'gcr.io/cloud-builders/docker'
+  env:
+  - 'TERRAFORM_VERSION=${_TERRAFORM_VERSION}'
+  - 'TERRAFORM_VERSION_SHA256SUM=${_TERRAFORM_VERSION_SHA256SUM}'
+  args:
+  - build
+  - --build-arg
+  - TERRAFORM_VERSION=${_TERRAFORM_VERSION}
+  - --build-arg
+  - TERRAFORM_VERSION_SHA256SUM=${_TERRAFORM_VERSION_SHA256SUM}
+  - --tag
+  - gcr.io/${PROJECT_ID}/terraform:${_TERRAFORM_VERSION}
+  - --tag
+  - gcr.io/${PROJECT_ID}/terraform:latest
+  - .
+- name: 'gcr.io/${PROJECT_ID}/terraform:${_TERRAFORM_VERSION}'
+  args: ['version']
+images:
+  - 'gcr.io/${PROJECT_ID}/terraform:${_TERRAFORM_VERSION}'
+  - 'gcr.io/${PROJECT_ID}/terraform:latest'
+tags: ['cloud-builders-community']

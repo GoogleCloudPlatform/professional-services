@@ -1,0 +1,13 @@
+# Perform an inspec command execution
+#
+# See README.md for invocation instructions.
+steps:
+- name: 'gcr.io/$PROJECT_ID/inspec'
+  args:
+  - exec
+  - test-profile
+  - -t
+  - gcp://
+  - --attrs
+  - test-profile/attributes.yml
+tags: ['cloud-builders-community']

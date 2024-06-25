@@ -1,0 +1,8 @@
+steps:
+
+#
+# Test that Alcide Kubernetes Advisor builder exist in your project
+#
+- name: "gcr.io/${PROJECT_ID}/advisor"
+  args: ["validate", "cluster", "--help"]
+  

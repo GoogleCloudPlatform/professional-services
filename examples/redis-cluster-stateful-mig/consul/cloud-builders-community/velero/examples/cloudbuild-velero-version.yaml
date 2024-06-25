@@ -1,0 +1,8 @@
+steps:
+  - name: "gcr.io/$PROJECT_ID/velero"
+   args:
+     - "version"
+   env:
+     - "CLOUDSDK_COMPUTE_REGION=europe-west1"
+     - "CLOUDSDK_CONTAINER_CLUSTER=cluster-1"
+tags: ["cloud-builders-community"]

@@ -1,0 +1,23 @@
+steps:
+  #renew token 
+  - name: 'gcr.io/${PROJECT_ID}/vault:1.2.3'
+    args: [
+      'token',
+      'renew',
+      '-increment=${VAULT_INCR}'
+    ]
+    env:
+     - "VAULT_ADDR=${_VAULT_ADDR}"
+     - "VAULT_INCR=${_VAULT_INCR}"
+    secretEnv:
+      - "VAULT_TOKEN"    
+    timeout: 60s
+secrets:
+  - kmsKeyName: projects/example/locations/global/keyRings/default/cryptoKeys/default 
+    secretEnv:
+      VAULT_TOKEN: BASE64_ENCODED_KMS_SECRET
+substitutions:
+  _VAULT_ADDR: "https://vault.example.com"
+  _VAULT_INCR: "43200m" #30 days
+tags: ['vault_token_renew']
+timeout: 60s
