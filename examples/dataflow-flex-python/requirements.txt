@@ -21,7 +21,7 @@
 
 apache-beam==2.40.0
 cachetools==4.2.4
-certifi==2023.7.22
+certifi==2024.7.4
 charset-normalizer==2.1.1
 cloudpickle==2.2.0
 crcmod==1.7
