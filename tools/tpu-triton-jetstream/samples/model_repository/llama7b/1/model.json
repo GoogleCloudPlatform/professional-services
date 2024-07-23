@@ -1,0 +1,11 @@
+{
+    "checkpoint_path":"/data/jet-llama2-7b/model.safetensors",
+    "tokenizer_path":"/data/jet-llama2-7b/tokenizer.model",
+    "param_size": "7b",
+    "batch_size": 40,
+    "max_cache_length": 2408,
+    "quantize_weights": "False",
+    "quantize_kv_cache": "False",
+    "context_size": 1024,
+    "platform": "tpu=8"
+}

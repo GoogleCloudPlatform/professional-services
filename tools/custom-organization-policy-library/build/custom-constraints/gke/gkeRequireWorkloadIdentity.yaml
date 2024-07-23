@@ -1,0 +1,15 @@
+#@ load("/constraints.lib.star", "build_constraint")
+#@ constraint = build_constraint("gkeRequireWorkloadIdentity")
+
+#@ if constraint.to_generate():
+name: #@ constraint.constraint_name()
+resourceTypes:
+- container.googleapis.com/Cluster
+methodTypes:
+- CREATE
+- UPDATE
+condition: resource.workloadIdentityConfig.workloadPool == ""
+actionType: DENY
+display_name: Enable Workload Identity
+description:  Enforce that GKE clusters are enabled with Workload Identity 
+#@ end

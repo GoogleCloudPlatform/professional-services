@@ -699,6 +699,97 @@ func (v *GcpViz) GenerateNodes(wg *sync.WaitGroup, ctx context.Context, gizmoQue
 	return nil
 }
 
+func (v *GcpViz) ExportNodes(wg *sync.WaitGroup, ctx context.Context, out io.Writer) error {
+	defer wg.Done()
+
+	tx, err := v.AssetDatabase.Begin(false)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	// Iterate assets in BoltDB
+	b := tx.Bucket([]byte("Assets"))
+	c := b.Cursor()
+
+	fmt.Fprintf(os.Stderr, "Reading assets...")
+
+	var assets map[string]interface{}
+	assets = make(map[string]interface{}, 0)
+	for k, v := c.First(); k != nil; k, v = c.Next() {
+		var asset map[string]interface{}
+		err = json.Unmarshal(v, &asset)
+		if err != nil {
+			return err
+		}
+		assetMap := make(map[string]interface{}, 0)
+		assetMap["id"] = string(k)
+		assetMap["asset"] = asset
+		assets[string(k)] = assetMap
+	}
+	fmt.Fprintf(os.Stderr, "done.\n")
+
+	fmt.Fprintf(os.Stderr, "Reading edges...")
+
+	// Iterate graph in BoltDB
+	gb := tx.Bucket([]byte("Graph"))
+	gc := gb.Cursor()
+	for k, v := gc.First(); k != nil; k, v = gc.Next() {
+		var q cquad.Quad
+
+		dec := gob.NewDecoder(bytes.NewReader(v))
+		for true {
+			err = dec.Decode(&q)
+			if err != nil {
+				break
+			}
+			subject := q.Subject.String()
+			if len(subject) > 2 {
+				subject = subject[1 : len(subject)-1]
+				if _, ok := assets[subject]; ok {
+					var asset map[string]interface{}
+					asset = assets[subject].(map[string]interface{})
+					if _, ok := asset["edges"]; !ok {
+						asset["edges"] = make(map[string]interface{}, 0)
+					}
+
+					var edgeMap map[string]interface{} = asset["edges"].(map[string]interface{})
+					predicate := q.Predicate.String()
+					predicate = predicate[1 : len(predicate)-1]
+					if predicate != "data" {
+						if _, ok := edgeMap[predicate]; !ok {
+							edgeMap[predicate] = make([]string, 0)
+						}
+
+						var predList []string
+						predList = edgeMap[predicate].([]string)
+
+						object := q.Object.String()
+						object = object[1 : len(object)-1]
+						predList = append(predList, object)
+
+						edgeMap[predicate] = predList
+					}
+				}
+			}
+		}
+	}
+	fmt.Fprintf(os.Stderr, " done.\n")
+
+	fmt.Fprintf(os.Stderr, "Exporting...")
+	for _, v := range assets {
+		assetBlob, err := json.Marshal(v)
+		if err != nil {
+			return err
+		}
+		out.Write(assetBlob)
+		out.Write([]byte("\n"))
+	}
+	fmt.Fprintf(os.Stderr, " done.\n")
+
+	return nil
+}
+
 // Private methods
 func (v *GcpViz) loadRelationsMap(fileName string) error {
 	yamlFile, err := ioutil.ReadFile(fileName)

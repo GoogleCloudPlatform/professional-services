@@ -1,0 +1,15 @@
+#@ load("/constraints.lib.star", "build_constraint")
+#@ constraint = build_constraint("dataprocRequireKerberos")
+
+#@ if constraint.to_generate():
+name: #@ constraint.constraint_name()
+resource_types: 
+- dataproc.googleapis.com/Cluster 
+condition: resource.config.securityConfig.kerberosConfig.enableKerberos == false
+action_type: DENY
+method_types: 
+- CREATE
+- UPDATE 
+display_name: Require Dataproc with Kerberos authentication 
+description:  Enforce that Dataproc cluster is configured using secure mode via Kerberos for authentication
+#@ end

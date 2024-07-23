@@ -124,10 +124,13 @@ them to fit your particular use case.
     Cloud Build to deploy airflow DAGs to Cloud Composer.
 *   [Cloud Composer Deployment in Shared VPC](examples/composer-shared-vpc) -
     Terraform code to deploy cloud composer in shared VPC environment.
+*   [Cloud Composer Dependency Management](examples/cloud-composer-dependency-management-example) - Example of
+    Cloud Composer Dependency Management designed to orchestrate complex task dependencies within Apache Airflow which addresses the challenge of managing parent-child DAG relationships across varying temporal frequencies (yearly, monthly, weekly etc)
 *   [Cloud Composer Examples](examples/cloud-composer-examples) - Examples of
     using Cloud Composer, GCP's managed Apache Airflow service.
 *   [Cloud Data Fusion Functions and Plugins](examples/cloud-datafusion-functions-plugins) -
     Examples of Cloud Data Fusion Functions and Plugins.
+*   [Cloud DNS load balancing](examples/cloud-dns-load-balancing) - Multi-region HA setup for GCE VMs and Cloud Run based applications utilizing Cloud DNS load balancing and multiple Google Cloud load balancer types.
 *   [Cloud DNS public zone monitoring](examples/cloud-dns-public-zone-dashboard) - Visualizing Cloud DNS public zone query data using log-based metrics and Cloud Monitoring.
 *   [Cloud Function Act As](examples/cloud-function-act-as) - Example of
     executing a Cloud Function on behalf and with IAM permissions of the GitHub
@@ -330,6 +333,9 @@ Platform usage.
     application which provides the ability to train and deploy ML models on
     Google Cloud Machine Learning Engine, and visualize the predicted results
     using LIME through simple post request.
+*   [Airflow DAG Metadata Generator](tools/airflow-dag-metadata-generator) - Use Google's
+    generative models to analyze Airflow DAGs and supplement them with generated `description`,
+    `tags`, and `doc_md` values.      
 *   [Airflow States Collector](tools/airflow-states-collector) -
       A tool that creates and uploads an airflow dag to the dags GCS folder. The dag incrementally collect airflow task states and stores to BQ. It also autogenerates a LookerStudio dashboard querying the BQ view. 
 *   [Airpiler](tools/airpiler) - A python script to convert Autosys JIL files to
@@ -405,6 +411,8 @@ Platform usage.
     prioritize a specific scope (e.g. project or folder) to attribute CUDs first
     before letting any unconsumed discount float to other parts of an
     organization.
+*   [Custom Organization Policy Library](tools/custom-organization-policy-library) - A library 
+    of custom organization policy constraints and samples. It includes tools to easily generate policies for provisioning across your organization using either Google Cloud (gcloud) or Terraform.
 *   [Custom Role Analyzer](tools/custom-roles-analyzer) - This tool will provide
     useful insights with respect to custom roles at organization level as well
     as project level to find predefined roles from which the custom role is
