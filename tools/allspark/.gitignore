@@ -1,0 +1,8 @@
+.vscode
+sheetsvenv/
+venv
+=======
+/.idea/**
+vscode-ext/out/
+vscode-ext/node_modules/
+training_data/consolidated_training_data.jsonl

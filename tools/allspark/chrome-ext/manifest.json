@@ -7,7 +7,7 @@
 		"service_worker":"scripts/background.js"
 	},
 	"oauth2": {
-		"client_id": "Replace-YOUR-Client-ID-here",
+		"client_id": "731656201036-maqn4pib1c8e9jgqbbgj4j1cjigj726k.apps.googleusercontent.com",
 		"scopes":["https://www.googleapis.com/auth/cloud-platform"]
 	},
 	"host_permissions": [
@@ -16,6 +16,7 @@
 	"icons": {
 		"128": "./logo128.png"
 	},
+	"key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAnx6xVBx1SxE2ZZLcs1QSxAJ7wqhfqEENyzdGtnqSX+4DMMCY+7IR7hLCtFt0jL4ks7uDh5rSCM3Dn6q+q1Aw4D2/IXVhVN5EdwcKgQInV3xcEh8+XXzuQ3pbGdflKcsbZnEhIE5ufLVxurGvmrIkDItRmvjaZ+mCOMMVBZ2MRttQT8UdX0KrNu1MYOLbOSPJxaAIlgITWHgQYbxaYPqJw6mEWb6rggk5qclr4kg1GWT4jPUlU0EjEuYUtlhdlHG7bPYTu/UK8Hi47/nWPxWg8fJSzXjW6fWaSrYRsALORqYc9sk/UniVGROiWYHS4WUIPf8E0uphSxcZiZ3A8TSpGwIDAQAB",
 	"permissions": [
 		"tabs",
 		"identity",

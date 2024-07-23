@@ -1,0 +1,8 @@
+vertexai
+google-cloud-aiplatform[pipelines]
+gspread
+google-api-python-client
+google-auth-httplib2
+google-auth-oauthlib
+urllib3==1.26.6
+google-cloud

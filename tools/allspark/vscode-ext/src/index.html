@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ALL Sparks</title>
+    <style>
+        button[type="submit"] {
+            display: block;
+            width: 10%;
+            padding: 10px;
+            background-color: #4da848;
+            color: #121914;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        button[type="submit"]:hover, #executeCommandButton:hover {
+            background-color: #4da848;
+        }
+        form {
+            background-color: #0d0c003c;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            /* Background image */
+            background-image: url('path-to-your-background-image.jpg');
+            background-size: cover;
+            background-position: center;
+        }
+        img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>All Sparks</h1>
+    <button id="executeCommandButton">Execute gcloud command</button>
+    <div id="authStatus"></div>
+    <div id="output"></div>
+    <h2>Conversion</h2>
+    <form id="myForm">
+        <table border="1">
+            <tr>
+                <td><label for="language">Programming Language:</label></td>
+                <td>
+                    <select id="language" name="language">
+                        <option value="DDL">DDL</option>
+                        <option value="Java">Java</option>
+                        <option value="Java Script">Java Script</option>
+                        <option value="Type Script">Type Script</option>
+                        <option value="Python">Python</option>
+                        <option value="Go">Go</option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td><label for="source">Source Database:</label></td>
+                <td>
+                    <select id="source" name="source">
+                        <option value="MSSQL">MSSQL</option>
+                        <option value="Oracle">Oracle</option>
+                        <option value="MYSQL">MYSQL</option>
+                        <option value="PostgreSQL">PostgreSQL</option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td><label for="target">Target Language:</label></td>
+                <td>
+                    <select id="target" name="target">
+                        <option value="Postgresql">Postgresql</option>
+                        <option value="Spanner">Spanner</option>
+                        <option value="Oracle">Oracle</option>
+                        <option value="MSSQL">MSSQL</option>
+                        <option value="MYSQL">MYSQL</option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td><label for="projectId">Project ID:</label></td>
+                <td><input type="text" id="projectId" name="projectId" placeholder="Enter your Project ID"></td>
+            </tr>
+            <tr>
+                <td><label for="location">Location:</label></td>
+                <td>
+                    <select id="location" name="location">
+                        <option value="us-central1">us-central1</option>
+                        <option value="asia-southeast1">asia-southeast1</option>
+                        <option value="us-east5">us-east5</option>
+                        <option value="us-south1">us-south1</option>
+                        <option value="us-west4">us-west4</option>
+                        <option value="us-west2">us-west2</option>
+                        <option value="us-west1">us-west1</option>
+                        <option value="us-east1">us-east1</option>
+                        <option value="us-east4">us-east4</option>
+                        <option value="us-west3">us-west3</option>
+                        <option value="northamerica-northeast1">northamerica-northeast1</option>
+                        <option value="northamerica-northeast2">northamerica-northeast2</option>
+                        <option value="southamerica-west1">southamerica-west1</option>
+                        <option value="southamerica-east1">southamerica-east1</option>
+                        <option value="africa-south1">africa-south1</option>
+                        <option value="europe-west1">europe-west1</option>
+                        <option value="europe-west2">europe-west2</option>
+                        <option value="europe-west3">europe-west3</option>
+                        <option value="europe-west4">europe-west4</option>
+                        <option value="europe-west6">europe-west6</option>
+                        <option value="europe-west8">europe-west8</option>
+                        <option value="europe-west9">europe-west9</option>
+                        <option value="europe-west12">europe-west12</option>
+                        <option value="europe-north1">europe-north1</option>
+                        <option value="europe-southwest1">europe-southwest1</option>
+                        <option value="europe-central2">europe-central2</option>
+                        <option value="asia-east2">asia-east2</option>
+                        <option value="asia-southeast2">asia-southeast2</option>
+                        <option value="australia-southeast2">australia-southeast2</option>
+                        <option value="asia-south1">asia-south1</option>
+                        <option value="asia-northeast2">asia-northeast2</option>
+                        <option value="asia-northeast3">asia-northeast3</option>
+                        <option value="australia-southeast1">australia-southeast1</option>
+                        <option value="asia-east1">asia-east1</option>
+                        <option value="asia-northeast1">asia-northeast1</option>
+                        <option value="me-central2">me-central2</option>
+                        <option value="me-central1">me-central1</option>
+                        <option value="me-west1">me-west1</option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td><label for="code">Code:</label></td>
+                <td><textarea id="code" rows="14" cols="50" placeholder="Copy code here...">Convert this source to this target</textarea></td>
+            </tr>
+        </table>
+        <br>
+        <button type="submit" id="submitButton">Submit</button>
+    </form>
+
+    <div id="output" style="border: 1px solid #000; padding: 10px; margin-top: 20px;">
+        <h2>Output:</h2>
+        <div id="outputContent">Your results will appear here...</div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/showdown/dist/showdown.min.js"></script>
+    <script>
+        let vscode;
+        if (typeof acquireVsCodeApi === 'function') {
+            vscode = acquireVsCodeApi();
+        }
+
+        let accessToken = "";
+
+        function updateCodeTextarea() {
+            const sourceValue = document.getElementById("source").value;
+            const targetValue = document.getElementById("target").value;
+            const codeTextarea = document.getElementById("code");
+            codeTextarea.value = `Convert ${sourceValue} to ${targetValue}`;
+        }
+
+        document.getElementById("source").addEventListener("change", updateCodeTextarea);
+        document.getElementById("target").addEventListener("change", updateCodeTextarea);
+
+        document.getElementById("executeCommandButton").addEventListener("click", () => {
+            if (vscode) {
+                vscode.postMessage({ command: 'executeCommand' });
+            } else {
+                alert("VS Code API not available");
+            }
+        });
+
+        window.addEventListener('message', event => {
+            const message = event.data;
+            if (message.command === 'fileContent') {
+                document.getElementById('output').innerText = 'Token: ' + message.token + ', Project ID: ' + message.projectId;
+            } else if (message.command === 'accessToken') {
+                accessToken = message.token;
+            } else if (message.command === 'authStatus') {
+                document.getElementById('authStatus').innerText = message.status;
+            }
+        });
+
+        document.getElementById("myForm").addEventListener("submit", function (event) {
+            event.preventDefault();
+            const language = document.getElementById("language").value;
+            const source = document.getElementById("source").value;
+            const target = document.getElementById("target").value;
+            const code = document.getElementById("code").value;
+            const projectId = document.getElementById("projectId").value;
+            const location = document.getElementById("location").value;
+
+            const genAIUrl = `https://${location}-aiplatform.googleapis.com/v1/projects/${projectId}/locations/${location}/publishers/google/models/code-bison-32k:predict`;
+
+            const requestData = {
+                "instances": [{ "prefix": code }],
+                "parameters": {
+                    "candidateCount": 1,
+                    "maxOutputTokens": 8192,
+                    "temperature": 0.1,
+                    "topP": 1
+                }
+            };
+
+            fetch(genAIUrl, {
+                method: "POST",
+                headers: {
+                    "Authorization": "Bearer " + accessToken,
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(requestData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                const content = data.predictions[0].content;
+                const converter = new showdown.Converter();
+                document.getElementById('outputContent').innerHTML = converter.makeHtml(content);
+            })
+            .catch(error => console.error('Error:', error));
+        });
+    </script>
+</body>
+</html>
