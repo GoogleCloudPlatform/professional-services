@@ -8,7 +8,7 @@ attrs==21.4.0
     # via gcs_bucket_mover (setup.py)
 cachetools==3.1.1
     # via google-auth
-certifi==2023.7.22
+certifi==2024.7.4
     # via requests
 chardet==4.0.0
     # via requests
@@ -65,7 +65,7 @@ googleapis-common-protos[grpc]==1.52.0
     #   grpc-google-iam-v1
 grpc-google-iam-v1==0.12.3
     # via google-cloud-pubsub
-grpcio==1.41.1
+grpcio==1.53.2
     # via
     #   google-api-core
     #   googleapis-common-protos
