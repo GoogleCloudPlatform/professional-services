@@ -37,7 +37,7 @@ def generate_chunks(config, audio, chunk_size):
   yield StreamingVoiceRequest(streaming_config=config)
 
   # Send audio content
-  while chunk := audio.readframes(chunk_size):
+  while chunk := audio.readframes(chunk_size): # NOQA
     yield StreamingVoiceRequest(audio_content=chunk)
 
 def run(role, call_id):

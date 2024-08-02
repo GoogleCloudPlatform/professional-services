@@ -19,7 +19,6 @@ from voice_pb2 import StreamingStatus, StreamingVoiceResponse
 from voice_pb2_grpc import VoiceServicer
 import utils.conversation_management as conversation_management
 import utils.participant_management as participant_management
-from configparser import ConfigParser
 import logging
 from six.moves import queue
 import pyaudio

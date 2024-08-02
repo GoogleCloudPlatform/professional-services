@@ -20,7 +20,7 @@ import logging
 import sys
 import os
 from dotenv import load_dotenv
-import sounddevice
+import sounddevice # noqa: F401
 
 sys.path.append("..")
 sys.path.append("../proto")
