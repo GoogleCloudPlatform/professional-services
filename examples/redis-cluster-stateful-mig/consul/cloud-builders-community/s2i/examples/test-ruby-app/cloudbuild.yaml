@@ -1,0 +1,7 @@
+steps:
+- name: 'gcr.io/$PROJECT_ID/s2i'
+  args: ['build', 'https://github.com/openshift/ruby-hello-world', 'centos/ruby-23-centos7', 'gcr.io/$PROJECT_ID/s2i-test-ruby-app']
+
+images:
+- 'gcr.io/$PROJECT_ID/s2i-test-ruby-app'
+tags: ['cloud-builders-community']

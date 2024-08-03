@@ -1,0 +1,51 @@
+---
+# kind: replicated
+
+replicated_api_version: 2.9.2
+name: "Wordpress-Demo"
+
+properties:
+  app_url: http://{{repl ConfigOption "hostname" }}
+  console_title: "Wordpress-Demo"
+  logo_url: "https://s.w.org/style/images/about/WordPress-logotype-wmark.png"
+
+host_requirements:
+  replicated_version: ">=2.9.2"
+
+kubernetes:
+  requirements:
+    total_cores: "2"
+    total_memory: 8GB
+  shared_fs:
+    enabled: true
+
+cmds:
+  - name: gen_mysql_password
+    cmd: random
+    args:
+      - "16"
+
+config:
+
+  - name: hostname
+    title: Hostname
+    description: Ensure this domain name is routable on your network.
+    items:
+      - name: hostname
+        title: Hostname
+      value: '{{repl ConsoleSetting "tls.hostname" }}'
+        type: text
+        test_proc:
+          display_name: Check DNS
+          command: resolve_host
+
+  - name: generated
+    title: Generetad passwords
+    items:
+      - name: mysql_password
+        title: MYSql-Password
+        type: password
+        hidden: true
+        value_cmd:
+          name: gen_mysql_password
+          value_at: 0

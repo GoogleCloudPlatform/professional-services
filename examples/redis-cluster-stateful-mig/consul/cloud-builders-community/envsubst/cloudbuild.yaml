@@ -1,0 +1,45 @@
+# In this directory, run the following command to build this builder.
+# $ gcloud builds submit . --config=cloudbuild.yaml
+steps:
+- name: 'gcr.io/cloud-builders/docker'
+  dir: ${_BUILD_DIRECTORY}
+  args: ['build', '--tag=gcr.io/${PROJECT_ID}/envsubst', '.']
+- name: 'gcr.io/${PROJECT_ID}/envsubst'
+  dir: ${_BUILD_DIRECTORY}
+  env: ["MARS_COLOR=Red"]
+  args: ['-e', 'test.env', 'test.txt']
+- name: alpine
+  dir: ${_BUILD_DIRECTORY}
+  args: [cat, 'test.txt']
+- name: alpine
+  dir: ${_BUILD_DIRECTORY}
+  entrypoint: sh
+  args: ['-c', '[[ "$(cat test.txt)" == "Mars is Red and Neptune is Blue" ]]']
+- name: 'gcr.io/${PROJECT_ID}/envsubst'
+  dir: ${_BUILD_DIRECTORY}
+  env: ["MARS_COLOR=Red"]
+  args: ['-e', 'test.env', '-s', "'$${MARS_COLOR} $${NEPTUNE_COLOR}'", '**/test-shellformat.txt']
+- name: alpine
+  dir: ${_BUILD_DIRECTORY}
+  args: [cat, 'test-shellformat.txt']
+- name: alpine
+  dir: ${_BUILD_DIRECTORY}
+  args: [cat, 'test-globstar/test-shellformat.txt']
+- name: alpine
+  dir: ${_BUILD_DIRECTORY}
+  entrypoint: sh
+  args: ['-c', '[[ "$(cat test-shellformat.txt)" == ''Mars is Red, Neptune is Blue and Saturn is $${YELLOW}'' ]]']
+- name: alpine
+  dir: ${_BUILD_DIRECTORY}
+  entrypoint: sh
+  args: ['-c', '[[ "$(cat test-globstar/test-shellformat.txt)" == ''Mars is Red, Neptune is Blue and Saturn is $${YELLOW}'' ]]']
+
+images:
+- 'gcr.io/${PROJECT_ID}/envsubst:latest'
+
+tags:
+- 'cloud-builders-community'
+- 'envsubst'
+
+substitutions:
+  _BUILD_DIRECTORY: "./" #set to envsubst to run in a trigger

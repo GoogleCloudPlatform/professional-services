@@ -1,0 +1,40 @@
+steps:
+  # Stage 1: build and push the image containing node modules.
+  - id: build-and-push-modules
+    name: gcr.io/$PROJECT_ID/docker-reuse
+    args: [
+        "-f",
+        "docker/server-modules/Dockerfile",
+        "-p",
+        "[server-modules]", # image placeholder in docker/server/Dockerfile
+        ".",
+        "gcr.io/$PROJECT_ID/server-modules",
+        "docker/server/Dockerfile", # update Dockerfile of the second stage
+      ]
+    timeout: 900s
+
+  # Stage 2: build on top of the image built in stage 1 and add server sources;
+  # push the resulting image to the container registry.
+  - id: build-and-push-server
+    waitFor: ["build-and-push-modules"]
+    name: gcr.io/$PROJECT_ID/docker-reuse
+    args: [
+        "-f",
+        "docker/server/Dockerfile",
+        "-p",
+        "[server-image]", # image placeholder in deployment/deploy.sh
+        ".",
+        "gcr.io/$PROJECT_ID/server",
+        "deployment/deploy.sh", # the file to update
+        "GREETING=Hello Earthlings!", # build-arg value is provided
+        "SERVER_PORT", # build-arg value is taken from the environment
+      ]
+    env:
+      - "SERVER_PORT=8080"
+    timeout: 900s
+
+  # The server image is now ready to be deployed.
+  - id: deploy
+    waitFor: ["build-and-push-server"]
+    name: bash
+    args: ["deployment/deploy.sh"]

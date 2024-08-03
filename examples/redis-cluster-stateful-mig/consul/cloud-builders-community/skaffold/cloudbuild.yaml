@@ -1,0 +1,6 @@
+steps:
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['build', '--tag=gcr.io/$PROJECT_ID/skaffold:alpha', '.']
+
+images: ['gcr.io/$PROJECT_ID/skaffold:alpha']
+tags: ['cloud-builders-community']

@@ -1,0 +1,13 @@
+steps:
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['build', '--tag=eu.gcr.io/$PROJECT_ID/fsharp', '.']
+
+# Simple unit test: invoke the new gcloud container to confirm that it was
+# built correctly.
+- name: 'eu.gcr.io/$PROJECT_ID/fsharp'
+  args:
+  - "fsharpc"
+  - "--help"
+
+images: ['eu.gcr.io/$PROJECT_ID/fsharp']
+tags: ['cloud-builders-community']

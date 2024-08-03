@@ -1,0 +1,6 @@
+# gcloud builds submit . --config=cloudbuild.yaml
+---
+steps:
+  - name: 'gcr.io/${PROJECT_ID}/bandit'
+    args: ['example.py']
+tags: ['cloud-builders-community']

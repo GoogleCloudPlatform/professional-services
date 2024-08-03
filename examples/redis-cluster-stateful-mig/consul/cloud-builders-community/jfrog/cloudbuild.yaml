@@ -1,0 +1,25 @@
+# In this directory, run the following command to build this builder.
+# $ gcloud builds submit . --config=cloudbuild.yaml
+#
+
+steps:
+# Build the Cloud Builder Image that includes JFrog CLI
+- name: 'gcr.io/cloud-builders/docker'
+  args:
+  - 'build'
+  - '--build-arg=BASE_IMAGE=gcr.io/cloud-builders/mvn:3.3.9-jdk-8'  
+  - '--tag=gcr.io/$PROJECT_ID/java/jfrog:1.17.1'
+  - '.'
+  wait_for: ['-']
+
+# Tag a default builder version.
+- name: 'gcr.io/cloud-builders/docker'
+  args:
+  - 'tag'
+  - 'gcr.io/$PROJECT_ID/java/jfrog:1.17.1'
+  - 'gcr.io/$PROJECT_ID/java/jfrog'
+
+images:
+- 'gcr.io/$PROJECT_ID/java/jfrog:1.17.1'
+- 'gcr.io/$PROJECT_ID/java/jfrog'
+tags: ['cloud-builders-community']

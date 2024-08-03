@@ -1,0 +1,27 @@
+{
+  "name": "octokit-builder",
+  "version": "1.0.0",
+  "description": "",
+  "main": "build/index.js",
+  "dependencies": {
+    "@google-cloud/secret-manager": "^3.2.3",
+    "@octokit/app": "^10.0.2",
+    "@octokit/auth-app": "^2.10.5",
+    "@octokit/auth-token": "^2.4.4",
+    "@octokit/rest": "^18.0.12"
+  },
+  "devDependencies": {
+    "@types/node": "^14.14.16",
+    "nodemon": "^2.0.6",
+    "rimraf": "^3.0.2",
+    "rollup": "^2.35.1",
+    "ts-node": "^9.1.1",
+    "typescript": "^4.1.3"
+  },
+  "scripts": {
+    "build": "rimraf ./build && tsc",
+    "start:dev": "nodemon"
+  },
+  "author": "Peter Malina <me@petomalina.com>",
+  "license": "MIT"
+}

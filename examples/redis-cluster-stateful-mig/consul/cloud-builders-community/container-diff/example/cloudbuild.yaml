@@ -1,0 +1,12 @@
+steps:
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['build', '-t', 'gcr.io/$PROJECT_ID/diff-test', '.']
+- name: 'gcr.io/$PROJECT_ID/container-diff'
+  args:
+  - 'diff'
+  - 'remote://launcher.gcr.io/google/ubuntu16_04'
+  - 'daemon://gcr.io/$PROJECT_ID/diff-test'
+  - '--type=file'
+
+images: ['gcr.io/$PROJECT_ID/diff-test']
+tags: ['cloud-builders-community']

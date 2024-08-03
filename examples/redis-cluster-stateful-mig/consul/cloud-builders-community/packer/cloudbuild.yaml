@@ -1,0 +1,21 @@
+# In this directory, run the following command to build this builder.
+# $ gcloud builds submit . --config=cloudbuild.yaml
+
+# See docs at https://developer.hashicorp.com/packer/tutorials/docker-get-started/get-started-install-cli
+steps:
+  - name: 'gcr.io/cloud-builders/wget'
+    args: ["https://releases.hashicorp.com/packer/${_PACKER_VERSION}/packer_${_PACKER_VERSION}_linux_amd64.zip"]
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', 'gcr.io/$PROJECT_ID/packer:${_PACKER_VERSION}',
+           '-t', 'gcr.io/$PROJECT_ID/packer',
+           '--build-arg', 'PACKER_VERSION=${_PACKER_VERSION}',
+           '--build-arg', 'PACKER_VERSION_SHA256SUM=${_PACKER_VERSION_SHA256SUM}',
+           '.']
+substitutions:
+  _PACKER_VERSION: 1.9.1
+  _PACKER_VERSION_SHA256SUM: 793ed62255b9e572eda0c77d2a770f5fde501314b7598320786f1e51feb260d6
+
+images:
+  - 'gcr.io/$PROJECT_ID/packer:latest'
+  - 'gcr.io/$PROJECT_ID/packer:${_PACKER_VERSION}'
+tags: ['cloud-builders-community']

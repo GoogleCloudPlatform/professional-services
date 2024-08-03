@@ -1,0 +1,1 @@
+Mars is ${MARS_COLOR}, Neptune is ${NEPTUNE_COLOR} and Saturn is ${YELLOW}

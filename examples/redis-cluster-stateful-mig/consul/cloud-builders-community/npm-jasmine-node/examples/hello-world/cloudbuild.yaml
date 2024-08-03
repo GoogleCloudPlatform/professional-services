@@ -1,0 +1,10 @@
+steps:
+- name: 'gcr.io/cloud-builders/npm'
+  args: ['install']
+- name: 'gcr.io/$PROJECT_ID/npm-jasmine-node'
+  args: ['test']
+- name: 'gcr.io/cloud-builders/docker'
+  args: [ 'build', '-t', 'gcr.io/$PROJECT_ID/hello-world', '.' ]
+images:
+- 'gcr.io/$PROJECT_ID/hello-world'
+tags: ['cloud-builders-community']

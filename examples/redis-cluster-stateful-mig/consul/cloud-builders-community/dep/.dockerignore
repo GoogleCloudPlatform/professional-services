@@ -1,0 +1,4 @@
+Gopkg.lock
+Gopkg.toml
+main.go
+**/vendor/

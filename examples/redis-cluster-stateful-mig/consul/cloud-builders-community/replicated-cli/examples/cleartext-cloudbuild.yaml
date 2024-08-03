@@ -1,0 +1,23 @@
+steps:
+
+  - name: 'gcr.io/$PROJECT_ID/replicated-cli'
+    id: 'List Replicated releases'
+    env:
+      - 'REPLICATED_APP=my-app'
+      - 'REPLICATED_API_TOKEN=XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'
+    args:
+      - "release"
+      - "ls"
+
+  - name: 'gcr.io/$PROJECT_ID/replicated-cli'
+    id: 'Create a new replicated release'
+    env:
+      - 'REPLICATED_APP=my-app'
+      - 'REPLICATED_API_TOKEN=XXX'
+    args:
+      - "release"
+      - "create"
+      - "--promote"
+      - "Unstable"
+      - "--yaml-file"
+      - "replicated.yaml"

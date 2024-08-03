@@ -1,0 +1,23 @@
+steps:
+  #one of the possible solutions around lack of letsencrypt CA cert in alpine
+  # by setting VAULT_SKIP_VERIFY=true env variable
+  #vault lookup
+  - name: 'gcr.io/${PROJECT_ID}/vault:1.2.3'
+    args: [
+      'token',
+      'lookup',
+    ]
+    env:
+     - "VAULT_ADDR=${_VAULT_ADDR}"
+     - "VAULT_SKIP_VERIFY=true"
+    secretEnv:
+      - "VAULT_TOKEN"    
+    timeout: 60s
+secrets:
+  - kmsKeyName: projects/example/locations/global/keyRings/default/cryptoKeys/default 
+    secretEnv:
+      VAULT_TOKEN: BASE64_ENCODED_KMS_SECRET
+substitutions:
+  _VAULT_ADDR: "https://vault.example.com"
+tags: ['vault_token_lookup']
+timeout: 60s

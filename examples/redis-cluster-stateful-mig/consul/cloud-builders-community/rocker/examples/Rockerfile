@@ -1,0 +1,13 @@
+# Build rocker binary.
+FROM gcr.io/cloud-builders/go:debian
+RUN GO15VENDOREXPERIMENT=1 go get github.com/grammarly/rocker
+# Rocker's EXPORT makes the built binary available for packaging below.
+EXPORT /root/go/bin/rocker rocker
+
+# Rocker run on top of docker, so start from a base docker image.
+FROM gcr.io/cloud-builders/docker
+# Rocker's IMPORT allows us to package the above-built binary.
+IMPORT rocker /usr/bin/rocker
+ENTRYPOINT ["/usr/bin/rocker"]
+# We could use PUSH instead of TAG to have Rocker push the image.
+TAG rocker:latest

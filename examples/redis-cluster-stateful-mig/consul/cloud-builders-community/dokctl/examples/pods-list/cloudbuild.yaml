@@ -1,0 +1,6 @@
+steps:
+- name: 'gcr.io/$PROJECT_ID/dokctl'
+  args: ['get', 'pods']
+  env:
+  - 'CLUSTER=<your-cluster>'
+  - 'DIGITALOCEAN_ACCESS_TOKEN=<your-digitalocean-access-token>'

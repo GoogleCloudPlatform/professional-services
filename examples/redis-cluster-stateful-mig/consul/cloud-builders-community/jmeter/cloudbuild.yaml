@@ -1,0 +1,17 @@
+steps:
+- name: 'gcr.io/cloud-builders/docker'
+  args: 
+  - 'build'
+  - '--build-arg'
+  - 'JMETER_VERSION=5.1'
+  - '-t'
+  - 'gcr.io/$PROJECT_ID/jmeter:latest'
+  - '-t'
+  - 'gcr.io/$PROJECT_ID/jmeter:5.1'
+  - '.'
+
+images: 
+- 'gcr.io/$PROJECT_ID/jmeter:latest'
+- 'gcr.io/$PROJECT_ID/jmeter:5.1'
+
+tags: ['cloud-builders-community']

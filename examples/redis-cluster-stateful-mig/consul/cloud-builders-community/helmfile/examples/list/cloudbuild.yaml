@@ -1,0 +1,14 @@
+steps:
+  - name: "gcr.io/$PROJECT_ID/helmfile"
+    args:
+      [
+        "--environment",
+        "environment-name",
+        "--file",
+        "/path/to/state/file",
+        "list",
+      ]
+    env:
+      - "CLOUDSDK_COMPUTE_ZONE=cluster-zone"
+      - "CLOUDSDK_CONTAINER_CLUSTER=cluster-name"
+tags: ["cloud-builders-community"]

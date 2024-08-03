@@ -1,0 +1,21 @@
+# Example of basic flutter build
+
+# In this directory, run the following command to build this builder.
+# $ gcloud builds submit . --config=cloudbuild.yaml
+
+steps:
+- name: 'gcr.io/cloud-builders/git'
+  args: ['clone', 'https://github.com/flutter/flutter']
+  dir: '/workspace'
+
+# To run flutter build apk, one must need to  be at the root of the project, the script simply cd to the root before
+# running the build command
+- name: 'gcr.io/$PROJECT_ID/flutter'
+  entrypoint: '/bin/bash'
+  args: ['build.sh']
+
+# apk artifacts can be pushed to a GCS bucket like this
+# - name: 'gcr.io/cloud-builders/gsutil'
+#   args: ['cp', '/workspace/flutter/examples/hello_world/build/app/outputs/apk/release/app-release.apk', 'gs://$MY_BUCKET/hello_world.apk']
+
+tags: ['cloud-builders-community']

@@ -1,0 +1,7 @@
+steps:
+- name: 'gcr.io/$PROJECT_ID/helm'
+  args: ['install', 'stable/keel', '--name', 'keel', '--namespace', 'keel']
+  env:
+  - 'CLOUDSDK_COMPUTE_ZONE=us-central1-c'
+  - 'CLOUDSDK_CONTAINER_CLUSTER=your-cluster'
+tags: ['cloud-builders-community']

@@ -1,0 +1,57 @@
+FROM openjdk:17-jdk-slim
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+# make Apt non-interactive
+RUN echo 'APT::Get::Assume-Yes "true";' > /etc/apt/apt.conf.d/90builder \
+  && echo 'DPkg::Options "--force-confnew";' >> /etc/apt/apt.conf.d/90builder
+
+# Install Dependencies
+RUN apt-get update && \
+    apt-get install -y \
+        git locales sudo openssh-client ca-certificates tar gzip parallel \
+        zip unzip bzip2 gnupg curl wget
+
+# Set timezone to UTC by default
+RUN ln -sf /usr/share/zoneinfo/Etc/UTC /etc/localtime
+
+# Use unicode
+RUN locale-gen C.UTF-8 || true
+ENV LANG=C.UTF-8
+
+ARG sdk_version=commandlinetools-linux-9477386_latest.zip
+ARG android_home=/opt/android/sdk
+ARG ndk_version=android-ndk-r25
+ARG android_ndk_home=/opt/android/${ndk_version}
+
+# Install Android SDK
+RUN sudo mkdir -p ${android_home} && \
+    curl --silent --show-error --location --fail --retry 3 --output /tmp/${sdk_version} https://dl.google.com/android/repository/${sdk_version} && \
+    unzip -q /tmp/${sdk_version} -d ${android_home}/cmdline-tools && \
+    rm /tmp/${sdk_version}
+
+# Set environment variables
+ENV ANDROID_HOME ${android_home}
+ENV ADB_INSTALL_TIMEOUT 120
+ENV PATH=${ANDROID_HOME}/emulator:${ANDROID_HOME}/tools:${ANDROID_HOME}/cmdline-tools/latest/bin:${ANDROID_HOME}/platform-tools:${PATH}
+
+RUN mv ${android_home}/cmdline-tools/cmdline-tools ${android_home}/cmdline-tools/latest 
+
+RUN mkdir ~/.android && echo '### User Sources for Android SDK Manager' > ~/.android/repositories.cfg
+
+RUN yes | sdkmanager --licenses && sdkmanager --update
+
+# Update SDK manager and install system image, platform and build tools
+RUN yes | sdkmanager \
+    "tools" \
+    "platform-tools" \
+    "extras;android;m2repository" \
+    "extras;google;m2repository" \
+    "extras;google;google_play_services" \
+    "build-tools;33.0.2"
+
+COPY for_branch /bin
+COPY run_build /bin
+
+ENTRYPOINT ["bash", "/bin/run_build"]
+

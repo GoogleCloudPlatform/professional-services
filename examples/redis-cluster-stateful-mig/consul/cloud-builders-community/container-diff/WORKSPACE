@@ -1,0 +1,51 @@
+workspace(name = "bazel_docker")
+
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_file")
+load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository") 
+
+skylib_version = "0.8.0"
+http_archive(
+    name = "bazel_skylib",
+    type = "tar.gz",
+    url = "https://github.com/bazelbuild/bazel-skylib/releases/download/{}/bazel-skylib.{}.tar.gz".format (skylib_version, skylib_version),
+    sha256 = "2ef429f5d7ce7111263289644d233707dba35e39696377ebab8b0bc701f7818e",
+)
+
+git_repository(
+    name = "io_bazel_rules_docker",
+    commit = "5edd38041535c2c07ca982218d184a5769e329c6",
+    remote = "https://github.com/bazelbuild/rules_docker.git",
+    shallow_since = "1553713324 -0400",
+)
+
+load("@io_bazel_rules_docker//container:container.bzl", "container_pull")
+
+load(
+    "@io_bazel_rules_docker//repositories:repositories.bzl",
+    container_repositories = "repositories",
+)
+
+# Consumers shouldn't need to do this themselves once WORKSPACE is
+# instantiated recursively.
+container_repositories()
+
+# Ubuntu base image.
+container_pull(
+    name = "base_image",
+    digest = "sha256:c81e8f6bcbab8818fdbe2df6d367990ab55d85b4dab300931a53ba5d082f4296",
+    registry = "launcher.gcr.io",
+    repository = "google/ubuntu16_04",
+)
+
+http_file(
+    name = "static_binary",
+    executable = True,
+    downloaded_file_path = "container-diff-linux-amd64",
+    # Don't set sha256 since the latest release can change without notice.
+    # When container-diff makes stable releases, pick one and install it.
+    sha256 = "65b10a92ca1eb575037c012c6ab24ae6fe4a913ed86b38048781b17d7cf8021b",
+    urls = [
+        "https://storage.googleapis.com/container-diff/latest/container-diff-linux-amd64",
+    ],
+)

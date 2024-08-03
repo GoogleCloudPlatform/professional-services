@@ -1,0 +1,12 @@
+steps:
+- name: gcr.io/makisu-project/makisu:v0.1.0
+  args: ['build', '--load', '--modifyfs=true', '-t', 'gcr.io/$PROJECT_ID/built-with-makisu', '--commit=explicit', '.']
+
+# TODO: Instead of building with --load into the Docker daemon
+# then pushing, use --push=gcr.io which will push directly to the
+# registry and bypass the Docker daemon. Unfortunately, this seems
+# to not work with Google's Application Default Credentials.
+
+images:
+- gcr.io/$PROJECT_ID/built-with-makisu
+tags: ['cloud-builders-community']

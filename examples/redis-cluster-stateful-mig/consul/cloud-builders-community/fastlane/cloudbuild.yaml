@@ -1,0 +1,11 @@
+# In this directory, run the following command to build this builder.
+# $ gcloud builds submit . --config=cloudbuild.yaml
+
+steps:
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['build', '--pull', '--tag=gcr.io/$PROJECT_ID/fastlane', '.']
+- name: 'gcr.io/$PROJECT_ID/fastlane'
+  args: ['--version']
+
+images: ['gcr.io/$PROJECT_ID/fastlane']
+tags: ['cloud-builders-community']

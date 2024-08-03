@@ -1,0 +1,7 @@
+steps:
+- name: 'gcr.io/$PROJECT_ID/s2i'
+  args: ['build', 'https://github.com/sclorg/django-ex', 'centos/python-35-centos7', 'gcr.io/$PROJECT_ID/s2i-hello-python']
+
+images:
+- 'gcr.io/$PROJECT_ID/s2i-hello-python'
+tags: ['cloud-builders-community']

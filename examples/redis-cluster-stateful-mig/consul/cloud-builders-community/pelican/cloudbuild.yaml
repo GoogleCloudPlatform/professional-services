@@ -1,0 +1,10 @@
+steps:
+- name: gcr.io/cloud-builders/docker
+  args: ['build', '--tag=gcr.io/$PROJECT_ID/pelican', '.']
+
+# Print version information.
+- name: gcr.io/$PROJECT_ID/pelican
+  args: ['--help']
+
+images: ['gcr.io/$PROJECT_ID/pelican']
+tags: ['cloud-builders-community']

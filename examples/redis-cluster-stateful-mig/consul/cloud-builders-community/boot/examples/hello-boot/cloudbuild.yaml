@@ -1,0 +1,6 @@
+# Run a minimal Boot script.
+#
+steps:
+- name: 'gcr.io/$PROJECT_ID/boot'
+  args: [ '-f', './hello.boot' ]
+tags: ['cloud-builders-community']

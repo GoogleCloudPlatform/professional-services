@@ -1,0 +1,16 @@
+{
+  "name": "nodejs-demoapp",
+  "version": "1.0.0",
+  "description": "nodejs demo app",
+  "main": "server.js",
+  "scripts": {
+    "test": "jasmine-node spec",
+    "start": "node server.js"
+  },
+  "author": "Leon Jalfon",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.16.2",
+    "request": "^2.83.0"
+  }
+}

@@ -1,0 +1,40 @@
+steps:
+# Deletes Cloud Dataproc custom image if exists.
+- name: 'gcr.io/cloud-builders/gcloud'
+  entrypoint: 'bash'
+  args:
+  - '-c'
+  - |
+    gcloud compute images delete ${_CUSTOM_IMAGE_NAME} \
+    --project ${_PROJECT_ID} \
+    --quiet || echo "Custom image ${_CUSTOM_IMAGE_NAME} does not exist."
+
+# Creates a Cloud Dataproc custom image using the pre-built Docker 
+# image that runs the Cloud Dataproc custom image Python script.
+- name: 'gcr.io/$_PROJECT_ID/dataproc-custom-image'
+  env:
+  - 'CUSTOM_IMAGE_NAME=$_CUSTOM_IMAGE_NAME'
+  - 'DATAPROC_VERSION=$_DATAPROC_VERSION'
+  - 'BASE_IMAGE_URI=$_BASE_IMAGE_URI'
+  - 'CUSTOMIZATION_SCRIPT_PATH=$_CUSTOMIZATION_SCRIPT_PATH'
+  - 'ZONE=$_ZONE'
+  - 'GCS_LOGS=$_GCS_LOGS'
+  - 'FAMILY=$_FAMILY'
+  - 'PROJECT_ID=$_PROJECT_ID'
+  - 'OAUTH=$_OAUTH'
+  - 'MACHINE_TYPE=$_MACHINE_TYPE'
+  - 'NO_SMOKE_TEST=$_NO_SMOKE_TEST'
+  - 'NETWORK=$_NETWORK'
+  - 'SUBNETWORK=$_SUBNETWORK'
+  - 'NO_EXTERNAL_IP=$_NO_EXTERNAL_IP'
+  - 'SERVICE_ACCOUNT=$_SERVICE_ACCOUNT'
+  - 'EXTRA_SOURCES=$_EXTRA_SOURCES'
+  - 'DISK_SIZE=$_DISK_SIZE'
+  - 'ACCELERATOR=$_ACCELERATOR'
+  - 'BASE_IMAGE_URI=$_BASE_IMAGE_URI'
+  - 'STORAGE_LOCATION=$_STORAGE_LOCATION'
+  - 'SHUTDOWN_INSTANCE_TIMER_SEC=$_SHUTDOWN_INSTANCE_TIMER_SEC'
+  - 'DRY_RUN=$_DRY_RUN'
+
+options:
+  substitution_option: 'ALLOW_LOOSE'

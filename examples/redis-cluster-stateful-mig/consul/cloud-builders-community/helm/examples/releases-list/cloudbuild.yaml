@@ -1,0 +1,7 @@
+steps:
+- name: 'gcr.io/$PROJECT_ID/helm'
+  args: ['list']
+  env:
+  - 'CLOUDSDK_COMPUTE_ZONE=us-central1-c'
+  - 'CLOUDSDK_CONTAINER_CLUSTER=your-cluster'
+tags: ['cloud-builders-community']
