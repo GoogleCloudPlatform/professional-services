@@ -64,3 +64,4 @@
 ./examples/redis-cluster-gke
 ./examples/spinnaker
 ./examples/tensorflow-profiling-examples
+./examples/ccai-agentassist-five9-grpc
