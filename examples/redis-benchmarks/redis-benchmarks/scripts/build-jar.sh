@@ -1,3 +1,6 @@
+#!/bin/bash
+set -eE
+
 JAR_NAME=redis-benchmarks-1.0.jar
 
 mvn spotless:apply
