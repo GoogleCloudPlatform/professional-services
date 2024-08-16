@@ -19,7 +19,7 @@ PROJECT_ID=$4
 REQUEST_FILE=$5
 DURATION=$2
 RATE=$3
-CURR_DIR="$(dirname $0)"
+CURR_DIR="$(dirname "$0")"
 TOKEN="$(gcloud auth application-default print-access-token)"
 URL="https://us-central1-aiplatform.googleapis.com/v1/projects/${PROJECT_ID}/locations/us-central1/endpoints/${ENDPOINT_ID}:predict?access_token=${TOKEN}"
 
