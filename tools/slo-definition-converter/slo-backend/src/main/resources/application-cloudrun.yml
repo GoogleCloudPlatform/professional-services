@@ -1,0 +1,13 @@
+spring:
+  application:
+    name: slo-tools-application
+    display-name: slo-tools-application
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+      base-path: /
+server:
+  port: ${PORT}

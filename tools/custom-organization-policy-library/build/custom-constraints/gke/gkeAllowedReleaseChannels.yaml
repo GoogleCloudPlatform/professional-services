@@ -1,0 +1,19 @@
+#@ load("/constraints.lib.star", "build_constraint")
+#@ constraint = build_constraint("gkeAllowedReleaseChannels")
+
+#@ def condition(release_channels):
+#@   return 'resource.releaseChannel.channel in ' +  str(release_channels) + " == false"
+#@ end
+
+#@ if constraint.to_generate():
+name: #@ constraint.constraint_name()
+resource_types: 
+- container.googleapis.com/Cluster
+condition: #@  condition(constraint.params().release_channels)
+action_type: DENY
+method_types: 
+- CREATE
+- UPDATE 
+display_name: Allow only authorized release channels
+description:  Enfore that GKE cluster are using authorized release channels
+#@ end

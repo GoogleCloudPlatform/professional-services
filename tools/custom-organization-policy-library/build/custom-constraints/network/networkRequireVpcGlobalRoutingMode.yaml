@@ -1,0 +1,14 @@
+#@ load("/constraints.lib.star", "build_constraint")
+#@ constraint = build_constraint("networkRequireVpcGlobalRoutingMode")
+
+#@ if constraint.to_generate():
+name: #@ constraint.constraint_name()
+resource_types: 
+- compute.googleapis.com/Network 
+condition: resource.routingConfig.routingMode.contains ('GLOBAL') == false
+action_type: DENY
+method_types: 
+- CREATE
+display_name: Require VPC with global routing mode
+description:  Enforce that a VPC is configured in global routing mode
+#@ end

@@ -1,0 +1,12 @@
+fire                                # For CMD execution - https://github.com/google/python-fire
+google-cloud-aiplatform
+google-cloud-pipeline-components
+kfp
+protobuf
+google.cloud.logging
+google.cloud.pubsub
+google.cloud.bigquery
+numpy
+pandas
+pandas-gbq                          # https://github.com/googleapis/python-bigquery-pandas
+cloudpathlib                        # For attaching GCS buckets as local - https://github.com/drivendataorg/cloudpathlib

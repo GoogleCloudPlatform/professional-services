@@ -1,0 +1,15 @@
+#@ load("/constraints.lib.star", "build_constraint")
+#@ constraint = build_constraint("gkeRequireMasterAuthorizedNetworks")
+
+#@ if constraint.to_generate():
+name: #@ constraint.constraint_name()
+resourceTypes:
+- container.googleapis.com/Cluster
+methodTypes:
+- CREATE
+- UPDATE
+condition: resource.masterAuthorizedNetworksConfig.enabled == false
+actionType: DENY
+display_name: Require master authorized network with authorized CIDR IP ranges  
+description:  Enforce that GKE clusters restrict network access to the control planes by configuring master authorized networks with authorized CIDR IP ranges
+#@ end

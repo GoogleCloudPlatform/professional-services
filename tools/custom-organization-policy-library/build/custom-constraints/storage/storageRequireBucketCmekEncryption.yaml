@@ -1,0 +1,15 @@
+#@ load("/constraints.lib.star", "build_constraint")
+#@ constraint = build_constraint("storageRequireBucketCmekEncryption")
+
+#@ if constraint.to_generate():
+name: #@ constraint.constraint_name()
+resource_types: 
+- storage.googleapis.com/Bucket 
+condition: has(resource.encryption.defaultKmsKeyName) == false
+action_type: DENY
+method_types: 
+- CREATE
+- UPDATE 
+display_name: Enable bucket CMEK encryption
+description:  Enforce Cloud Storage bucket encryption using customer managed encryption key stored in Cloud KMS
+#@ end

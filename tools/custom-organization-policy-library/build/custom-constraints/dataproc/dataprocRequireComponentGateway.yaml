@@ -1,0 +1,15 @@
+#@ load("/constraints.lib.star", "build_constraint")
+#@ constraint = build_constraint("dataprocRequireComponentGateway")
+
+#@ if constraint.to_generate():
+name: #@ constraint.constraint_name()
+resource_types: 
+- dataproc.googleapis.com/Cluster 
+condition: resource.config.endpointConfig.enableHttpPortAccess == false
+action_type: DENY
+method_types: 
+- CREATE
+- UPDATE 
+display_name: Require Dataproc component gateway
+description:  Enforce that Dataproc cluster is created with component gateway
+#@ end
