@@ -97,12 +97,10 @@ def process(machine_type: str, latencies: list, log_level: str):
         endpoint.deploy(model, min_replica_count=MIN_NODES,
                         max_replica_count=MAX_NODES, machine_type=machine_type)
 
-        # sleep for 5 minutes
-        # TODO: Remove later if this works for all.
-        # Kept here, from experiences in deploying LLMs
-        # on NVIDIA T4 on Vertex endpoints
-        # logging.info("Sleeping for 5 minutes, for the endpoint to be ready!")
-        # time.sleep(300)
+        # Sleep for 5 minutes
+        # general best practice with Vertex AI Endpoints
+        logging.info("Sleeping for 5 minutes, for the endpoint to be ready!")
+        time.sleep(TIMEOUT)
 
         # Register latencies for predictions
         logging.info("Calling utility to register the latencies.")
