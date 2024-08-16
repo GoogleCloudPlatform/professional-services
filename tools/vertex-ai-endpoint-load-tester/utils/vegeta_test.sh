@@ -19,11 +19,11 @@ PROJECT_ID=$4
 REQUEST_FILE=$5
 DURATION=$2
 RATE=$3
-CURR_DIR=$(dirname $0)
-TOKEN=$(gcloud auth application-default print-access-token)
+CURR_DIR="$(dirname $0)"
+TOKEN="$(gcloud auth application-default print-access-token)"
 URL="https://us-central1-aiplatform.googleapis.com/v1/projects/${PROJECT_ID}/locations/us-central1/endpoints/${ENDPOINT_ID}:predict?access_token=${TOKEN}"
 
 # run vegeta tool for load test
-echo "POST ${URL}" | $CURR_DIR/vegeta attack -header "Content-Type: application/json" -body ${REQUEST_FILE} -duration=${DURATION}s -rate=${RATE} | $CURR_DIR/vegeta report -type=json
+echo "POST ${URL}" | "$CURR_DIR"/vegeta attack -header "Content-Type: application/json" -body "${REQUEST_FILE}" -duration="${DURATION}"s -rate="${RATE}" | "$CURR_DIR"/vegeta report -type=json
 
 # END
