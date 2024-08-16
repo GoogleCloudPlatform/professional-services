@@ -1,0 +1,3 @@
+custom.dataprocAllowedComponents:
+  rules:
+  - enforce: true

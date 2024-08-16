@@ -1,0 +1,15 @@
+#@ load("/constraints.lib.star", "build_constraint")
+#@ constraint = build_constraint("gkeRequireMonitoring")
+
+#@ if constraint.to_generate():
+name: #@ constraint.constraint_name()
+resourceTypes:
+- container.googleapis.com/Cluster
+methodTypes:
+- CREATE
+- UPDATE
+condition: resource.monitoringService != 'monitoring.googleapis.com/kubernetes'
+actionType: DENY
+display_name: Enable monitoring 
+description:  Enforce that GKE clusters monitoring is enabled
+#@ end

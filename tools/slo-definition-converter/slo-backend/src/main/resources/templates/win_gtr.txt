@@ -1,0 +1,25 @@
+resource "google_monitoring_slo" "slo" {
+  service = ""
+  display_name = "{SLO_NAME}"
+
+  goal = {GOAL}
+  {ROLLING_OR_CALENDAR}
+
+  windows_based_sli {
+    window_period = {WINDOW_PERIOD}
+
+    good_total_ratio_threshold {
+      threshold = {THRESHOLD}
+      performance {
+        distribution_cut {
+          distribution_filter = {DC_FILTER}
+
+          range {
+            max = {MAXIMA}
+            min = {MINIMA}
+          }
+        }
+      }
+    }
+  }
+}

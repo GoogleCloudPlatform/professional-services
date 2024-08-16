@@ -1,0 +1,19 @@
+resource "google_monitoring_slo" "slo" {
+  service = ""
+  display_name = "{SLO_NAME}"
+
+  goal = {GOAL}
+  {ROLLING_OR_CALENDAR}
+
+  windows_based_sli {
+    window_period = {WINDOW_PERIOD}
+    metric_mean_in_range {
+      time_series = {TS_FILTER}
+
+      range {
+        max = {MAXIMA}
+        min = {MINIMA}
+      }
+    }
+  }
+}

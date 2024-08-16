@@ -1,0 +1,10 @@
+custom.gkeRequireIntraNodeVisibility:
+  action_type: DENY
+  condition: resource.networkConfig.enableIntraNodeVisibility == false
+  description: Enforce that GKE clusters intranode visibility is enabled
+  display_name: Enable intranode visibility
+  method_types:
+  - CREATE
+  - UPDATE
+  resource_types:
+  - container.googleapis.com/Cluster

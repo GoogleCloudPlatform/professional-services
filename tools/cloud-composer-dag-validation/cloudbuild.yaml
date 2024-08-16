@@ -14,18 +14,21 @@
 
 steps:
   - id: docker-build
+    dir: tools/cloud-composer-dag-validation
     name: 'gcr.io/cloud-builders/docker'
     args: ['build', '-t', 'gcr.io/${PROJECT_ID}/cicd:${SHORT_SHA}', '.'] # tag docker image with commit sha
   - id: 'airflow-test'
+    dir: tools/cloud-composer-dag-validation
     name: 'gcr.io/cloud-builders/docker'
     args: ['run', 'gcr.io/${PROJECT_ID}/cicd:${SHORT_SHA}']
     dir: /workspace
   - id: deploy-dags
+    dir: tools/cloud-composer-dag-validation
     name: 'gcr.io/cloud-builders/gsutil'
     entrypoint: bash
     args:
     - '-c'
     - |
-      gsutil -m cp -r '/workspace/dags/' '${_PROJECT_ID}/dags'
+      gsutil -m cp -r 'dags/' '${_COMPOSER_BUCKET}/dags_export'
 options:
   logging: CLOUD_LOGGING_ONLY

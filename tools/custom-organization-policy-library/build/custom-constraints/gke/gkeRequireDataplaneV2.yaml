@@ -1,0 +1,15 @@
+#@ load("/constraints.lib.star", "build_constraint")
+#@ constraint = build_constraint("gkeRequireDataplaneV2")
+
+#@ if constraint.to_generate():
+name: #@ constraint.constraint_name()
+resource_types: 
+- container.googleapis.com/Cluster
+condition: resource.networkConfig.datapathProvider != 'ADVANCED_DATAPATH'
+action_type: DENY
+method_types: 
+- CREATE
+- UPDATE 
+display_name: Require dataplane v2 
+description:  Enforce that the GKE clusters is configured to use dataplane v2
+#@ end

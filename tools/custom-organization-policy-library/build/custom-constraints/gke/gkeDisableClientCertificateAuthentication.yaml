@@ -1,0 +1,15 @@
+#@ load("/constraints.lib.star", "build_constraint")
+#@ constraint = build_constraint("gkeDisableClientCertificateAuthentication")
+
+#@ if constraint.to_generate():
+name: #@ constraint.constraint_name()
+resource_types: 
+- container.googleapis.com/Cluster
+condition: resource.masterAuth.clientCertificateConfig.issueClientCertificate == true
+action_type: DENY
+method_types: 
+- CREATE
+- UPDATE 
+display_name: Disable legacy client certificate authentication 
+description:  Enforce that the API servers authentication are not using  legacy authentication method client certificate
+#@ end

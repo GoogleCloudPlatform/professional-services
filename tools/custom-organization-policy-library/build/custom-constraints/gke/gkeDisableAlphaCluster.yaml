@@ -1,0 +1,15 @@
+#@ load("/constraints.lib.star", "build_constraint")
+#@ constraint = build_constraint("gkeDisableAlphaCluster")
+
+#@ if constraint.to_generate():
+name: #@ constraint.constraint_name()
+resource_types: 
+- container.googleapis.com/Cluster 
+condition: resource.enableKubernetesAlpha == true
+action_type: DENY
+method_types: 
+- CREATE
+- UPDATE 
+display_name: Disable alpha features for production workloads 
+description:  Enforce that GKE clusters are not using alpha features for production workloads
+#@ end

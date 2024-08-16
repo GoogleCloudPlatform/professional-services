@@ -1,0 +1,30 @@
+{
+	"name": "All Spark",
+	"manifest_version": 3,
+	"description": "GCP GenAI based code conversion tool. Usage: Select code and right click menu and choose Convert code with All Spark option",
+	"version": "0.1",
+	"background": {
+		"service_worker":"scripts/background.js"
+	},
+	"oauth2": {
+		"client_id": "Replace-YOUR-Client-ID-here",
+		"scopes":["https://www.googleapis.com/auth/cloud-platform"]
+	},
+	"host_permissions": [
+		"<all_urls>"
+	],
+	"icons": {
+		"128": "./logo128.png"
+	},
+	"permissions": [
+		"tabs",
+		"identity",
+		"scripting",
+		"storage",
+		"contextMenus"
+	],
+	"content_security_policy": {
+		"extension_pages": "script-src 'self'; object-src 'self';",
+		"sandbox": "sandbox allow-scripts allow-forms allow-popups allow-modals; script-src 'self' 'unsafe-inline' 'unsafe-eval'; child-src 'self';"
+	}
+}
