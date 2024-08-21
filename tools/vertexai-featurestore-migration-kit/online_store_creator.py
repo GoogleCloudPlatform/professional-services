@@ -70,10 +70,10 @@ class FeatureOnlineStore:
         )
 
         try:
-            response = self.client.get_feature_online_store(request=request)
+            self.client.get_feature_online_store(request=request)
             logger.info(f"FeatureOnlineStore {self.feature_online_store_name} already exists")
             return True
-        except Exception as e:
+        except Exception:
             logger.info(f"FeatureOnlineStore {self.feature_online_store_name} does not exist")
             return False
 
@@ -124,7 +124,7 @@ class FeatureOnlineStore:
             logger.error(f"Failed to Create online store {self.feature_online_store_name} with Error: {exc}")
             raise exc
 
-        response = poll_operation(client=self.client, operation_name=op.operation.name)
+        poll_operation(client=self.client, operation_name=op.operation.name)
 
     def create_feature_views_from_feature_groups(self):
         """
