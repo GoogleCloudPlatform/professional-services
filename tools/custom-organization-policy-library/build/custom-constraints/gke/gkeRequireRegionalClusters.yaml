@@ -1,0 +1,15 @@
+#@ load("/constraints.lib.star", "build_constraint")
+#@ constraint = build_constraint("gkeRequireRegionalClusters")
+
+#@ if constraint.to_generate():
+name: #@ constraint.constraint_name()
+resource_types: 
+- container.googleapis.com/Cluster
+condition: resource.location.matches("^[a-z]+(-[a-z, 1-9]+)$") == false
+action_type: DENY
+method_types: 
+- CREATE
+- UPDATE 
+display_name: Require regional GKE cluster
+description:  Enforce the creation of regional GKE clusters
+#@ end

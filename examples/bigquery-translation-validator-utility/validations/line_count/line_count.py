@@ -15,10 +15,10 @@
 
 def get_line_count(file1,file2):
     fd1,fd2 = open(file1,'r'),open(file2,'r')
-    lines_td = len(fd1.readlines())
-    lines_bq = len(fd2.readlines())
-    percentage_diff = int(100* (lines_bq-lines_td) / (lines_td))
+    lines_input = len(fd1.readlines())
+    lines_output = len(fd2.readlines())
+    percentage_diff = int(100* (lines_output-lines_input) / (lines_input))
     fd1.close()
     fd2.close()
 
-    return lines_td,lines_bq,percentage_diff
+    return lines_input,lines_output,percentage_diff

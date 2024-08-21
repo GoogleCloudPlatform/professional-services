@@ -59,7 +59,7 @@ export class VisDisplayComponent implements AfterViewInit {
     this.haveDoneDraw = false;
     this.statusCard.loadPlan(plan);
     this.sideDisplay.stepDetails = [];
-    this.sideDisplay.stageDetails = '';
+    this.sideDisplay.stageDetails = [];
     this.clearGraph();
   }
 
@@ -119,7 +119,8 @@ export class VisDisplayComponent implements AfterViewInit {
       onEdgeDeselect?: EdgeDeselectCallback): TreeChart | null {
     let visnodes = new vis.DataSet<vis.Edge>([]);
     let visedges = new vis.DataSet<vis.Edge>([]);
-
+    //console.log('plan.nodes')
+    //console.log(plan.nodes)
     if (plan.nodes.length === 0) {
       this.logSvc.warn('Current Plan has no nodes.');
       return null;
@@ -135,13 +136,18 @@ export class VisDisplayComponent implements AfterViewInit {
         const label = node.name.length > 22 ?
             `${node.name.slice(0, 10)}...${node.name.slice(-10)}` :
             node.name;
+        let node_color = '#D2E5FF'
+        if (node.performanceInsights && node.performanceInsights.length>0){
+          node_color =  '#f26a02'
+        }
+        node_color = node.status === 'RUNNING' ? '#FF8080' : node_color;
         return {
           id: node.id,
           label: label,
           title: node.name,
           widthConstraint: 60,
           shape: node.isExternal ? 'database' : 'box',
-          color: node.status === 'RUNNING' ? '#FF8080' : '#D2E5FF',
+          color: node_color,
           physics: false,
           x: layout.node(node.id).x,
           y: layout.node(node.id).y

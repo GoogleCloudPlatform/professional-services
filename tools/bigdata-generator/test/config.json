@@ -1,0 +1,102 @@
+{
+    "total_number_of_rows":1002,
+    "number_of_rows_per_batch":100,
+    "sinks":[
+        {
+            "type": "BIGQUERY",
+            "table_id":"sbx-13455.bigdatapoc.data-generator-test1",
+            "write_disposition":"WRITE_TRUNCATE"
+        }
+    ],
+    "lookup_fields":[
+        {
+            "lookup_name":"product_id_price",
+            "source_field_name":"product_id",
+            "mapping":{
+                "product1":15,
+                "product2":30,
+                "product3":70
+            }
+        }
+    ],
+    "fields":[
+        {
+            "name":"id", 
+            "type": "STRING",
+            "generation": {
+                "type" : "UUID"
+            }
+        },
+        {
+            "name":"date", 
+            "type": "DATETIME",
+            "generation": {
+                "type" : "RANDOM_BETWEEN",
+                "min":"2018-01-01T00:00:00Z",
+                "max":"2023-01-01T00:00:00Z",
+                "output_format":"%Y-%m-%d %H:%M:%S"
+            }
+        },
+        {
+            "name":"name", 
+            "type": "STRING",
+            "generation": {
+                "type" : "RANDOM_BETWEEN",
+                "subtype":"ascii_uppercase",
+                "length": 10
+            }
+        },
+        {
+            "name":"phone_number", 
+            "type": "STRING",
+            "generation": {
+                "type" : "RANDOM_FROM_REGEX",
+                "expression":"\\d{4}-\\d{4}-\\d{4}-[0-9]{4}"
+            }
+        },
+        {
+            "name":"product_id", 
+            "type": "STRING",
+            "generation": {
+                "type" : "RANDOM_FROM_LIST",
+                "values":["product1","product2","product3"],
+                "weights":[20,60,20]
+            }
+        },
+        {
+            "name":"country", 
+            "type": "STRING",
+            "generation": {
+                "type" : "RANDOM_FROM_LIST",
+                "values":["Argentina","Brazil","Chile","France"]
+            }
+        },
+        {
+            "name":"amount", 
+            "type": "INT",
+            "generation": {
+                "type" : "RANDOM_BETWEEN",
+                "min":5,
+                "max":100
+            }
+        },
+        {
+            "name":"price", 
+            "type": "FLOAT",
+            "generation": {
+                "type" : "LOOKUP_VALUE",
+                "lookup_name":"product_id_price"
+            }
+        },
+        {
+            "name":"customer_satisfaction",
+            "type": "FLOAT",
+            "generation": {
+                "type" : "RANDOM_BETWEEN",
+                "min":51.5,
+                "max":100,
+                "num_decimals":2
+            }
+        }
+    ]
+}

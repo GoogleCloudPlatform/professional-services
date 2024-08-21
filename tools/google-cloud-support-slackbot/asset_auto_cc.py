@@ -21,6 +21,7 @@ from firestore_write import firestore_write
 import firebase_admin
 from firebase_admin import credentials
 from firebase_admin import firestore
+from verify_asset import verify_asset
 
 logger = logging.getLogger(__name__)
 
@@ -52,6 +53,10 @@ def asset_auto_cc(channel_id, channel_name, asset_type, asset_id, user_id,
       emails to be subscribed to a new case within the given resource
       automatically
   """
+    valid_asset = verify_asset(channel_id, asset_type, asset_id, user_id)
+    if valid_asset is False:
+        return
+
     client = slack.WebClient(token=os.environ.get("SLACK_TOKEN"))
 
     if not firebase_admin._apps:
@@ -78,13 +83,13 @@ def asset_auto_cc(channel_id, channel_name, asset_type, asset_id, user_id,
         client.chat_postEphemeral(
             channel=channel_id,
             user=user_id,
-            text=(
-                f"The {asset_type[:-1]} {asset_id} is already being tracked in"
-                f" {channel_name}. Consider updating the pre-existing CC list"
-                " using the following command: \n"
-                f"/google-cloud-support edit-auto-subscribe {asset_type}"
-                f" {asset_id}"
-                " [email 1] ... [email n]"))
+            text=(f"The {asset_type[:-1]} {asset_id} is already being tracked"
+                  f" in {channel_name}. Consider updating the pre-existing CC"
+                  " list using the following command: \n"
+                  f"/google-cloud-support edit-auto-subscribe {asset_type}"
+                  f" {asset_id}"
+                  " [email 1] ... [email n]")
+        )
     else:
         collection = f"tracked_assets/{channel_id}/{asset_type}"
 
@@ -100,9 +105,9 @@ def asset_auto_cc(channel_id, channel_name, asset_type, asset_id, user_id,
 
         client.chat_postMessage(
             channel=channel_id,
-            text=
-            (f"{channel_name} is now tracking the {asset_type[:-1]} {asset_id}"
-             f" to auto CC {cc_list}."))
+            text=(f"{channel_name} is now tracking the {asset_type[:-1]}"
+                  f" {asset_id} to auto CC {cc_list}.")
+        )
 
 
 if __name__ == "__main__":

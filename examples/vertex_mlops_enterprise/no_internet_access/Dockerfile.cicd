@@ -1,0 +1,38 @@
+FROM gcr.io/tfx-oss-public/tfx:1.8.0
+
+#RUN pip install keyring keyrings.google-artifactregistry-auth
+
+COPY pip.conf pip.conf
+ENV PIP_CONFIG_FILE=pip.conf
+
+ADD pydist pydist
+# These need to go in order so we don't hit unsatisfied deps
+RUN pip install -vv pydist/jeepney-0.8.0-py3-none-any.whl
+RUN pip install -vv pydist/typing_extensions-4.3.0-py3-none-any.whl
+RUN pip install -vv pydist/zipp-3.8.1-py3-none-any.whl
+RUN pip install -vv pydist/importlib_metadata-4.12.0-py3-none-any.whl
+RUN pip install -vv pydist/pycparser-2.21-py2.py3-none-any.whl
+RUN pip install -vv pydist/cffi-1.15.1-cp37-cp37m-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
+RUN pip install -vv pydist/cryptography-37.0.4-cp36-abi3-manylinux_2_24_x86_64.whl
+RUN pip install -vv pydist/SecretStorage-3.3.2-py3-none-any.whl
+RUN pip install -vv pydist/keyring-23.7.0-py3-none-any.whl
+
+RUN pip install -vv pydist/pyasn1-0.4.8-py2.py3-none-any.whl
+RUN pip install -vv pydist/pyasn1_modules-0.2.8-py2.py3-none-any.whl
+RUN pip install -vv pydist/rsa-4.9-py3-none-any.whl
+RUN pip install -vv pydist/cachetools-5.2.0-py3-none-any.whl
+RUN pip install -vv pydist/six-1.16.0-py2.py3-none-any.whl
+RUN pip install -vv pydist/google_auth-2.9.1-py2.py3-none-any.whl
+RUN pip install -vv pydist/certifi-2022.6.15-py3-none-any.whl
+RUN pip install -vv pydist/charset_normalizer-2.1.0-py3-none-any.whl
+RUN pip install -vv pydist/idna-3.3-py3-none-any.whl
+RUN pip install -vv pydist/urllib3-1.26.11-py2.py3-none-any.whl
+RUN pip install -vv pydist/requests-2.28.1-py3-none-any.whl
+RUN pip install -vv pydist/pluggy-1.0.0-py2.py3-none-any.whl
+RUN pip install -vv pydist/keyrings.google_artifactregistry_auth-1.0.0-py3-none-any.whl
+
+RUN keyring --list-backends
+
+RUN pip install -U pip
+RUN pip install google-cloud-aiplatform==1.14.0 google-cloud-aiplatform[tensorboard]
+RUN pip install pytest kfp==1.8.12 google-cloud-bigquery==2.34.3 google-cloud-bigquery-storage==2.13.2 google-cloud-aiplatform==1.14.0

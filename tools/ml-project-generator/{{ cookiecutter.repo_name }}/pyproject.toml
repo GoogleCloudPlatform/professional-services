@@ -1,0 +1,46 @@
+# Black formatting
+[tool.black]
+line-length = 100
+include = '\.pyi?$'
+exclude = '''
+/(
+      \.eggs         # exclude a few common directories in the
+    | \.git          # root of the project
+    | \.hg
+    | \.mypy_cache
+    | \.tox
+    | \.venv
+    | _build
+    | buck-out
+    | build
+    | dist
+  )/
+'''
+
+# iSort
+[tool.isort]
+profile = "black"
+line_length = 100
+multi_line_output = 3
+include_trailing_comma = true
+skip_gitignore = true
+virtual_env = "{{ cookiecutter.virtual_env }}"
+
+# Pytest
+[tool.pytest.ini_options]
+testpaths = ["{{ cookiecutter.repo_name }}", "{{ cookiecutter.repo_name }}_tests"]
+python_files = "test_*.py"
+addopts = "--strict-markers --disable-pytest-warnings"
+markers = [
+    "training: tests that involve training",
+]
+
+[tool.pylint.'MESSAGES CONTROL']
+max-line-length = 120
+disable = """
+    W1514,
+"""
+
+# Pytest coverage
+[tool.coverage.run]
+omit = ["app/main.py"]

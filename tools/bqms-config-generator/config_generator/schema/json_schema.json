@@ -1,0 +1,47 @@
+{
+  "$id": "https://example.com/schemas/object_map",
+  "type": "object",
+  "properties": {
+    "name_map": { "$ref": "/schemas/name_map" }
+  },
+  "required": ["name_map"],
+
+  "$defs": {
+    "name_map": {
+      "$id": "/schemas/name_map",
+
+      "type": "array",
+      "items": { "$ref": "/schemas/items" }
+    },
+    "items": {
+      "$id": "/schemas/items",
+
+      "type": "object",
+      "properties":
+      {"source":{"$ref": "/schemas/source" },
+      "target":{"$ref": "/schemas/target" }},
+      "required":["source","target"]
+  },
+  "source": {
+      "$id": "/schemas/source",
+      "type": "object",
+      "properties":
+      {"type":{"type": "string" },
+      "database":{"type":"string"},
+       "schema":{"type":"string"},
+        "relation":{"type":"string"}},
+      "required":["type","database","schema","relation"]
+  },
+  "target": {
+      "$id": "/schemas/target",
+
+      "type": "object",
+      "properties":
+      {
+      "database":{"type":"string"},
+       "schema":{"type":"string"},
+        "relation":{"type":"string"}},
+      "required":["database","schema","relation"]
+  }
+  }
+}

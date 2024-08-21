@@ -26,8 +26,8 @@ logger = logging.getLogger(__name__)
 
 def get_firestore_first_in(case, update_time) -> dict:
     """
-    Pulls all the docs for a case with the specified update time and returns the
-    the doc with the earliest app-generated timestamp.
+    Pulls all the docs for a case with the specified update time and
+    returns the doc with the earliest app-generated timestamp.
 
     Parameters
     ----------
@@ -54,7 +54,8 @@ def get_firestore_first_in(case, update_time) -> dict:
     collection_ref = db.collection("cases")
 
     query = (collection_ref.where("update_time", "==",
-                                  update_time).where("case_number", "==", case))
+                                  update_time).where("case_number", "==",
+                                                     case))
     docs = query.get()
     first_doc_in = {}
 

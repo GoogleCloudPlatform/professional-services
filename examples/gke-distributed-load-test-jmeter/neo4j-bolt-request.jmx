@@ -1,0 +1,63 @@
+<!-- 
+ Copyright 2023 Google Inc. All Rights Reserved.
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+ -->
+
+<?xml version="1.0" encoding="UTF-8"?>
+<jmeterTestPlan version="1.2" properties="5.0" jmeter="5.5">
+	<hashTree>
+		<TestPlan guiclass="TestPlanGui" testclass="TestPlan" testname="Neo4j Test Plan" enabled="true">
+			<stringProp name="TestPlan.comments"></stringProp>
+			<boolProp name="TestPlan.functional_mode">false</boolProp>
+			<boolProp name="TestPlan.tearDown_on_shutdown">false</boolProp>
+			<boolProp name="TestPlan.serialize_threadgroups">false</boolProp>
+			<elementProp name="TestPlan.user_defined_variables" elementType="Arguments" guiclass="ArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
+				<collectionProp name="Arguments.arguments"/>
+			</elementProp>
+			<stringProp name="TestPlan.user_define_classpath"></stringProp>
+		</TestPlan>
+		<hashTree>
+			<BoltConnectionElement guiclass="TestBeanGUI" testclass="BoltConnectionElement" testname="Bolt Connection Configuration" enabled="true">
+				<stringProp name="boltUri">bolt://<INTERNAL_LB_IP>:7687</stringProp>
+				<intProp name="maxConnectionPoolSize">100</intProp>
+				<stringProp name="password"><PASSWORD></stringProp>
+				<stringProp name="username"><USERNAME></stringProp>
+			</BoltConnectionElement>
+			<hashTree/>
+			<ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Thread Group" enabled="true">
+				<stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
+				<elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller" enabled="true">
+					<boolProp name="LoopController.continue_forever">false</boolProp>
+					<stringProp name="LoopController.loops">1</stringProp>
+				</elementProp>
+				<stringProp name="ThreadGroup.num_threads">100000</stringProp>
+				<stringProp name="ThreadGroup.ramp_time">0</stringProp>
+				<boolProp name="ThreadGroup.scheduler">false</boolProp>
+				<stringProp name="ThreadGroup.duration"></stringProp>
+				<stringProp name="ThreadGroup.delay"></stringProp>
+				<boolProp name="ThreadGroup.same_user_on_next_iteration">true</boolProp>
+			</ThreadGroup>
+			<hashTree>
+				<BoltSampler guiclass="TestBeanGUI" testclass="BoltSampler" testname="Bolt Request" enabled="true">
+					<stringProp name="accessMode">WRITE</stringProp>
+					<stringProp name="cypher">MATCH p ->() RETURN p LIMIT 25</stringProp>
+					<stringProp name="params"></stringProp>
+					<boolProp name="recordQueryResults">false</boolProp>
+					<intProp name="txTimeout">60</intProp>
+					<stringProp name="database">dataflow</stringProp>
+				</BoltSampler>
+				<hashTree/></hashTree>
+		</hashTree>
+	</hashTree>
+</jmeterTestPlan>

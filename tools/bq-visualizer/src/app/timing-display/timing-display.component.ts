@@ -49,7 +49,7 @@ export class TimingDisplayComponent implements OnInit {
     this.haveDoneDraw = false;
     this.statusCard.loadPlan(plan);
     this.sideDisplay.stepDetails = [];
-    this.sideDisplay.stageDetails = '';
+    this.sideDisplay.stageDetails = [];
     this.plan = plan;
   }
 

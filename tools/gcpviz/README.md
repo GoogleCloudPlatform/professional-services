@@ -54,6 +54,8 @@ You'll then find `network.gv`, `network.svg` and `network.png` under the `cai/` 
         log to standard error as well as files
   -cpuprofile file
         write cpu profile to file
+  -export-file string
+        location of JSON export file (default "graph.json")
   -graph-file string
         location of Graph & Asset database file (default "graph.db")
   -graph-parameter value
@@ -71,7 +73,7 @@ You'll then find `network.gv`, `network.svg` and `network.png` under the `cai/` 
   -memprofile file
         write memory profile to file
   -mode string
-        mode of operation (generate, visualize)
+        mode of operation (generate, visualize, export)
   -no-banner
         disables banner
   -no-color
@@ -137,6 +139,10 @@ To create a graph, simply run (remember, you'll need to generate the graph file 
 gcpviz -query-file queries/gke.js -mode visualize > gke.gv
 dot -Kneato -Tsvg -Gdpi=60 gke.gv -o gke.svg
 ```
+
+## Exporting the graph
+
+You can also use the `-mode export` for export the enriched assets and edges.
 
 ### Sample graphs
 
