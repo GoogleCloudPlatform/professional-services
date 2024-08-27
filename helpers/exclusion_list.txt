@@ -31,6 +31,7 @@
 ./examples/bigquery-billing-dashboard
 ./examples/bigquery-cross-project-slot-monitoring
 ./examples/bigquery-row-access-groups
+./examples/bigquery-ml-claudeintegrations
 ./examples/bq_benchmarks
 ./examples/cloud-composer-examples
 ./examples/cloudera-parcel-gcsconnector

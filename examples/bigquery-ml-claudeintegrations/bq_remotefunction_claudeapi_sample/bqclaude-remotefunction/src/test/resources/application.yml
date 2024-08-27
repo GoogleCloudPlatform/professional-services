@@ -1,0 +1,15 @@
+#Mon Aug 12 19:32:54 UTC 2024
+micronaut:
+    application:
+        name: bqclaude-remotefunction
+    serde:
+        serialization:
+            inclusion: ALWAYS
+    http:
+        services:
+            claude:
+                url: http://localhost:20001
+claude:
+    model: some-model
+    version: 2020-01-01
+    tokens: test_token1,test_token2
