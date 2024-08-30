@@ -564,6 +564,14 @@ Platform usage.
 *   [STS Job Manager](tools/sts-job-manager/) - A petabyte-scale bucket
     migration tool utilizing
     [Storage Transfer Service](https://cloud.google.com/storage-transfer-service)
+*   [Vertex AI Endpoint Tester] (tools/vertex-ai-endpoint-load-tester) - This 
+    utility helps to methodically test variety of Vertex AI Endpoints by their
+    sizes so that one can decide the right size to deploy an ML Model on Vertex
+    AI given a sample request JSON and some idea(s) on expected queries per second.
+*   [Vertex AI Endpoint Tester](tools/vertex-ai-endpoint-load-tester) - This 
+    utility helps to methodically test variety of Vertex AI Endpoints by their
+    sizes so that one can decide the right size to deploy an ML Model on Vertex
+    AI given a sample request JSON and some idea(s) on expected queries per second.
 *   [VM Migrator](tools/vm-migrator) - This utility automates migrating Virtual
     Machine instances within GCP. You can migrate VM's from one zone to another
     zone/region within the same project or different projects while retaining

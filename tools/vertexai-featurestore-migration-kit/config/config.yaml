@@ -1,0 +1,20 @@
+project_id: vertexai-pgt
+region: us-central1
+bq_dataset_prefix: exp_db_
+bq_table_prefix: exp_db_tbl_
+legacy_feature_store:
+  # Legacy feature store specific configurations
+  feature_store_mode: list  # or all
+  feature_stores:
+    - name: legacy_migration_feature_store
+      entity_type_mode: list # or "list"
+      entity_types:
+        - name: random_string_corpus
+          entity_id_column: entity_id_new
+
+    - name: test_feature_store_legacy
+      entity_type_mode: list # or "list"
+      entity_types:
+        - name: et1
+          entity_id_column: entity_id_new
+          mapping_file: sample_feature_mapping.csv

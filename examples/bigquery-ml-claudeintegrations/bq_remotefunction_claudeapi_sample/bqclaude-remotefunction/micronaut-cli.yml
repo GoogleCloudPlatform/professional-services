@@ -1,0 +1,6 @@
+applicationType: default
+defaultPackage: org.example.gcp.bqclaude
+testFramework: junit
+sourceLanguage: java
+buildTool: maven
+features: [app-name, google-cloud-function, google-cloud-function-http, http-client-test, jackson-databind, java, java-application, junit, logback, maven, maven-enforcer-plugin, micronaut-aot, micronaut-http-validation, properties, readme, shade, static-resources]
