@@ -17,7 +17,7 @@ Optional Args:
 -service_account <Service Account ID with permissions of Storage Admin and Vertex AI User>
 
 ## (Optionally) Enhance Training Dataset
-1. Make a copy of existing [training sheet](https://docs.google.com/spreadsheets/d/1UocNd4Xe28NzaEUdCsoNvPo56eKUxaBCogYF9Yml9iA/edit)
+1. Make a copy of existing [training sheet](https://docs.google.com/spreadsheets/d/1bJTzFINyEByk_z0THYIJlgjuPNRxlNsBdkGG8V6cbd8/edit)
 2. If new tab is created, ensure it follows the naming convention "Language: Source to Target"
 3. Add new Input and Output for training data.
 4. Generate credentials

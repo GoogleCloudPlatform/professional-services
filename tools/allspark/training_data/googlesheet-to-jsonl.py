@@ -19,7 +19,7 @@ import gspread
 import re
 import argparse
 
-SHEET_URL = "https://docs.google.com/spreadsheets/d/1UocNd4Xe28NzaEUdCsoNvPo56eKUxaBCogYF9Yml9iA/edit"
+SHEET_URL = "https://docs.google.com/spreadsheets/d/1bJTzFINyEByk_z0THYIJlgjuPNRxlNsBdkGG8V6cbd8/edit"
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-gsheet_url", type=str, help="gcs folder path for training file", default=SHEET_URL)
