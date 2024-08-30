@@ -7,7 +7,7 @@
 		"service_worker":"scripts/background.js"
 	},
 	"oauth2": {
-		"client_id": "731656201036-maqn4pib1c8e9jgqbbgj4j1cjigj726k.apps.googleusercontent.com",
+		"client_id": "__CLIENT_ID__",
 		"scopes":["https://www.googleapis.com/auth/cloud-platform"]
 	},
 	"host_permissions": [

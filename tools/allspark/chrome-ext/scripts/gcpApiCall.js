@@ -59,7 +59,7 @@ function executeCodeGen(token){
     var content = $("#content").val();
     var prompt = $("#prompt").val();
     var API_ENDPOINT="us-central1-aiplatform.googleapis.com"
-    var PROJECT_ID="pso-dmwo-resources"
+    var PROJECT_ID="__PROJECT_ID__"
     var MODEL_ID="code-bison-32k"
     var LOCATION_ID="us-central1"
     var req = escape(prompt+" /n"+content);
