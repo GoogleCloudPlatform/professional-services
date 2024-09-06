@@ -9,12 +9,11 @@ Datastudio template report/dashboard is used to show prebuilt reports based on t
 
 You can set-up the right python environment as follows:
 ```
- cd examples/billboard
- rm -rf bill-env
- pip install virtualenv
- virtualenv bill-env
- source bill-env/bin/activate
- pip install -r requirements.txt
+cd examples/billboard
+rm -rf bill-env
+python3 -m venv bill-env
+source bill-env/bin/activate
+pip install -r requirements.txt
 ```
 This step includes the following:
 - Install Python local env
