@@ -10,7 +10,7 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <io.grpc.version>1.44.1</io.grpc.version>
-    <protoc.version>3.19.4</protoc.version>
+    <protoc.version>3.25.5</protoc.version>
     <google.cloud.spanner>6.20.0</google.cloud.spanner>
     <encoding>UTF-8</encoding>
     <maven.compiler.source>1.7</maven.compiler.source>
