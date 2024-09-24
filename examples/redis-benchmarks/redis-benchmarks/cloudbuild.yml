@@ -1,0 +1,13 @@
+steps:
+  # This step builds the container image.
+  - name: 'gcr.io/cloud-builders/docker'
+    id: BuildImage
+    args: [ 'build', '-t', 'us-central1-docker.pkg.dev/${PROJECT_ID}/${_REPOSITORY}/${_IMAGE_NAME}:${_TAG_NAME}', '.' ]
+
+substitutions:
+  _REPOSITORY: "benchmarks"
+  _IMAGE_NAME: "redis-benchmark"
+  _TAG_NAME: "latest"
+
+images:
+  - 'us-central1-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_IMAGE_NAME}:${_TAG_NAME}'

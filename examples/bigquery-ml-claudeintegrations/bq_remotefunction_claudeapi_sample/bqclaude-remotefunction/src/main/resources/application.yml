@@ -1,0 +1,15 @@
+#Mon Aug 12 19:32:54 UTC 2024
+micronaut:
+    application:
+        name: bqclaude-remotefunction
+    serde:
+        serialization:
+            inclusion: ALWAYS
+    http:
+        services:
+            claude:
+                url: https://api.anthropic.com
+claude:
+    model: ${CLAUDE_MODEL:claude-3-5-sonnet-20240620}
+    version: ${CLAUDE_VERSION:2023-06-01}
+    tokens: ${CLAUDE_TOKENS}

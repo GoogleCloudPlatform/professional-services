@@ -1,4 +1,4 @@
-CREATE OR REPLACE PROCEDURE `bq-data-project.bq_dataset_name.run_sql_validator`(var_connection_name STRING, var_source_database STRING, var_source_gcs_path STRING, var_target_gcs_path STRING, var_Dataset_name STRING)
+CREATE OR REPLACE PROCEDURE `<my-project>.gemini_sql_validator.run_sql_validator`(var_dataset_name STRING, var_connection_name STRING, var_source_database STRING, var_source_gcs_path STRING, var_target_gcs_path STRING)
 BEGIN
 
 
@@ -12,11 +12,10 @@ BEGIN
 
 --Sample Input
 /*
-DECLARE var_connection_name STRING DEFAULT 'bq-data-project.us.gemini-sql-validator-connection';
+DECLARE var_connection_name STRING DEFAULT '<my-project>.us.gemini-sql-validator-connection';
 DECLARE var_source_database STRING DEFAULT 'Teradata';
-DECLARE var_source_gcs_path STRING DEFAULT 'gs://gemini-sql-validator/td/*'; 
-DECLARE var_target_gcs_path STRING DEFAULT 'gs://gemini-sql-validator/bq/*';
-DECLARE var_Dataset_name STRING DEFAULT 'gemini_sql_validator';
+DECLARE var_source_gcs_path STRING DEFAULT 'gs://gemini-validator/td/*'; 
+DECLARE var_target_gcs_path STRING DEFAULT 'gs://gemini-validator/bq/*';
 */
 
 DECLARE var_Batch_Id STRING;
@@ -24,14 +23,15 @@ DECLARE var_Insert_Time TIMESTAMP;
 DECLARE var_Model_Name STRING;
 DECLARE Var_Prompt STRING;
 
+SET @@dataset_id ="gemini_sql_validator";
+SET var_model_name = "sql-validator-model";
 SET var_Batch_Id = GENERATE_UUID();
 SET var_Insert_Time=current_timestamp();
-SET @@dataset_id=var_Dataset_name;
-SET var_Model_Name = var_Dataset_name||".sql-validator-model";
 
 
+EXECUTE IMMEDIATE """
 --Create the output table to store the validation results
-CREATE TABLE IF NOT EXISTS `validation_output`
+CREATE TABLE IF NOT EXISTS """||var_dataset_name||""".validation_output
 (
   Batch_Id STRING,
   Source_File STRING,
@@ -40,30 +40,31 @@ CREATE TABLE IF NOT EXISTS `validation_output`
   Source_Database STRING,
   Target_Database STRING,
   Insert_Time TIMESTAMP
-);
+) """;
+
 
 ---Create view to retrieve the latest validation results for each file
 EXECUTE IMMEDIATE """
-CREATE VIEW IF NOT EXISTS validation_report as 
+CREATE VIEW IF NOT EXISTS """||var_dataset_name||""".validation_report as 
 (
   select Batch_Id,Source_File,Target_File,Validation_Result,Source_Database,Target_Database,Insert_Time
-  from  """||var_Dataset_name||""".validation_output
-  where (Insert_Time,Source_File) in ( select (max(Insert_Time),Source_File) from """||var_Dataset_name||""".validation_output
+  from  """||var_dataset_name||""".validation_output
+  where (Insert_Time,Source_File) in ( select (max(Insert_Time),Source_File) from """||var_dataset_name||""".validation_output
   group by Source_File )
 ) """;
 
 --Create the LLM Model to execute the validation
-EXECUTE IMMEDIATE "CREATE MODEL IF NOT EXISTS `"||var_Model_Name||"` REMOTE WITH CONNECTION `"||var_connection_name ||"` OPTIONS (ENDPOINT = 'gemini-pro')";
+EXECUTE IMMEDIATE "CREATE MODEL IF NOT EXISTS `"||var_dataset_name||"."||var_Model_Name||"` REMOTE WITH CONNECTION `"||var_connection_name ||"` OPTIONS (ENDPOINT = 'gemini-pro')";
 
 --Create the object table to read the source input files from GCS
-EXECUTE IMMEDIATE "CREATE EXTERNAL TABLE IF NOT EXISTS source_object_table WITH CONNECTION `"||var_connection_name||"` OPTIONS(object_metadata = 'SIMPLE',uris = ['"||var_source_gcs_path||"'],max_staleness=INTERVAL 1 DAY,metadata_cache_mode = 'MANUAL')";
+EXECUTE IMMEDIATE "CREATE EXTERNAL TABLE IF NOT EXISTS "||var_dataset_name||".source_object_table WITH CONNECTION `"||var_connection_name||"` OPTIONS(object_metadata = 'SIMPLE',uris = ['"||var_source_gcs_path||"'],max_staleness=INTERVAL 1 DAY,metadata_cache_mode = 'MANUAL')";
 
 --Create the object table to read the target input files from GCS
-EXECUTE IMMEDIATE "CREATE EXTERNAL TABLE IF NOT EXISTS target_object_table WITH CONNECTION `"||var_connection_name||"` OPTIONS(object_metadata = 'SIMPLE',uris = ['"||var_target_gcs_path||"'],max_staleness=INTERVAL 1 DAY,metadata_cache_mode = 'MANUAL')";
+EXECUTE IMMEDIATE "CREATE EXTERNAL TABLE IF NOT EXISTS "||var_dataset_name||".target_object_table WITH CONNECTION `"||var_connection_name||"` OPTIONS(object_metadata = 'SIMPLE',uris = ['"||var_target_gcs_path||"'],max_staleness=INTERVAL 1 DAY,metadata_cache_mode = 'MANUAL')";
 
 --Refresh both input and putput object tables to include newly added files in GCS
-CALL BQ.REFRESH_EXTERNAL_METADATA_CACHE('source_object_table');
-CALL BQ.REFRESH_EXTERNAL_METADATA_CACHE('target_object_table');
+CALL BQ.REFRESH_EXTERNAL_METADATA_CACHE('gemini_sql_validator.source_object_table');
+CALL BQ.REFRESH_EXTERNAL_METADATA_CACHE('gemini_sql_validator.target_object_table');
 
 --Craft the prompt to send it to LLM
 SET Var_Prompt="""
@@ -92,7 +93,7 @@ on lower(SPLIT(src.uri,"/")[4])=lower(SPLIT(tgt.uri,"/")[4])
 DO
 
 --Call the child procedure for each set of files
-CALL call_llm(var_Dataset_name,var_Batch_Id,record.var_Source_File,record.var_Target_File,record.var_Source_database,var_Insert_Time,var_Model_Name,(record.var_Source_Data),(record.var_Target_Data),Var_Prompt);
+CALL gemini_sql_validator.call_llm(var_dataset_name,var_Batch_Id,record.var_Source_File,record.var_Target_File,record.var_Source_database,var_Insert_Time,var_Model_Name,(record.var_Source_Data),(record.var_Target_Data),Var_Prompt);
 
 END FOR;
 

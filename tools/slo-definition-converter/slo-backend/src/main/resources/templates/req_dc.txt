@@ -1,0 +1,18 @@
+resource "google_monitoring_slo" "request_based_slo" {
+  service = ""
+  slo_id = "{SLO_NAME}"
+  display_name = "{SLO_NAME}"
+
+  goal = {GOAL}
+  {ROLLING_OR_CALENDAR}
+
+  request_based_sli {
+    distribution_cut {
+          distribution_filter = {DC_FILTER}
+          range {
+            max = {MAXIMA}
+            min = {MINIMA}
+          }
+        }
+  }
+}

@@ -1,0 +1,18 @@
+resource "google_monitoring_slo" "slo" {
+ # the basics
+ service = ""
+ slo_id = "{SLO_NAME}"
+ display_name = "{SLO_NAME}"
+
+
+ # the SLI
+ request_based_sli {
+   good_total_ratio {
+     {TYPE_1}_service_filter = {TYPE1_SERVICE_FILTER}
+     {TYPE_2}_service_filter = {TYPE2_SERVICE_FILTER}
+   }
+ }
+  # the goal
+ goal = {GOAL}
+ {ROLLING_OR_CALENDAR}
+}
