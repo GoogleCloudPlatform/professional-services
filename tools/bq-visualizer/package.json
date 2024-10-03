@@ -22,7 +22,7 @@
     "@angular/platform-browser": "^16",
     "@angular/platform-browser-dynamic": "^16",
     "@angular/router": "^16",
-    "@sentry/browser": "^7.53.0",
+    "@sentry/browser": "^8.33.0",
     "@types/google.accounts": "^0.0.7",
     "@types/google.visualization": "^0.0.41",
     "@types/gsi": "^0.0.0",
