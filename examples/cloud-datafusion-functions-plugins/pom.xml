@@ -40,7 +40,7 @@
     <main.basedir>${project.basedir}</main.basedir>
     <google.cloud.bigquery.version>1.72.0</google.cloud.bigquery.version>
     <google.cloud.monitoring.version>1.72.0</google.cloud.monitoring.version>
-    <protobuf.java.version>3.16.3</protobuf.java.version>
+    <protobuf.java.version>3.25.5</protobuf.java.version>
     <google.cloud.storage.version>1.98.0</google.cloud.storage.version>
     <retrofit.version>2.6.0</retrofit.version>
     <okhttp.version>4.2.1</okhttp.version>
