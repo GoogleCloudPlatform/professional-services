@@ -22,6 +22,8 @@ fi
 cd /gcpviz || exit 1
 if [ ! -f graph.db ] ; then
     ./gcpviz -resource-inventory-file cai/resource_inventory.json -mode generate
+else
+    echo "Not regenerating graph database as it exists (graph.db)"
 fi
 
 graph=$1
