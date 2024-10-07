@@ -19,8 +19,8 @@ import airflow
 from datetime import datetime, timedelta
 from airflow.operators.dummy_operator import DummyOperator
 from airflow.sensors.external_task_sensor import ExternalTaskSensor
-from croniter import croniter 
-import pytz 
+# from croniter import croniter -- uncomment these libraries to use if needed
+# import pytz -- uncomment these libraries to use if needed
 
 default_dag_args = {
    "depends_on_past": False,
