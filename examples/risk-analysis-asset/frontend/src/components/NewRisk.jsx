@@ -14,19 +14,19 @@
  * limitations under the License.
  */
 
-import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams, useLocation } from 'react-router-dom';
-import Multiselect from 'multiselect-react-dropdown';
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
-import '../style.css'
+import React, { useState, useEffect } from "react";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
+import Multiselect from "multiselect-react-dropdown";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import "../style.css";
 
-function NewRisk({ journeys, applicationId, backendURL, idToken }) {
-  const [riskName, setRiskName] = useState('');
-  const [ettd, setEttd] = useState('');
-  const [ettr, setEttr] = useState('');
-  const [etbf, setEtbf] = useState('');
-  const [impact, setImpact] = useState('');
+function NewRisk({ journeys, backendURL, idToken }) {
+  const [riskName, setRiskName] = useState("");
+  const [ettd, setEttd] = useState("");
+  const [ettr, setEttr] = useState("");
+  const [etbf, setEtbf] = useState("");
+  const [impact, setImpact] = useState("");
   //const [journeyName, setJourneyName] = useState('');
   const [creationDate, setCreationDate] = useState(new Date());
   const [selectedJourneys, setSelectedJourneys] = useState([]);
@@ -40,29 +40,28 @@ function NewRisk({ journeys, applicationId, backendURL, idToken }) {
 
   const fetchRiskThemes = async () => {
     try {
-      const response = await fetch(`${backendURL}/api/riskThemes`,  {
-        method: 'GET',
-        //mode: 'cors',  
+      const response = await fetch(`${backendURL}/api/riskThemes`, {
+        method: "GET",
+        //mode: 'cors',
         headers: {
-          'Authorization': `Bearer ${idToken}`,
-          'Content-Type': 'application/json',
+          Authorization: `Bearer ${idToken}`,
+          "Content-Type": "application/json",
         },
       });
       if (!response.ok) {
-        throw new Error('Network response was not ok');
+        throw new Error("Network response was not ok");
       }
       const riskthemedata = await response.json();
 
       // Extract risk themes
       const riskThemeOptions = riskthemedata.map((riskthemeinfo) => ({
         name: riskthemeinfo.ThemeName,
-        id: riskthemeinfo.id
+        id: riskthemeinfo.id,
       }));
       setRiskThemeOptions(riskThemeOptions);
-
     } catch (error) {
-      console.error('Error fetching risk themes:', error);
-      toast.error('Error fetching risk themes');
+      console.error("Error fetching risk themes:", error);
+      toast.error("Error fetching risk themes");
     }
   };
 
@@ -70,27 +69,24 @@ function NewRisk({ journeys, applicationId, backendURL, idToken }) {
     setSelectedJourneys([]);
     setSelectedRiskThemes([]);
     setRiskThemeOptions([]);
-    setEttd('');
-    setEttr('');
-    setImpact('');
-    setEtbf('');
-    setRiskName('');
+    setEttd("");
+    setEttr("");
+    setImpact("");
+    setEtbf("");
+    setRiskName("");
 
     const options = journeys.map((journey) => ({
       name: journey.name,
-      id: journey.id
+      id: journey.id,
     }));
     setOptions(options);
 
     fetchRiskThemes();
   }, [journeys]);
 
-
   // Update fields incase of Edit operation
   useEffect(() => {
-
     if (location.state && location.state.riskData) {
-
       const riskData = location.state.riskData;
       setRiskName(riskData.riskName);
       setEttd(riskData.ettd);
@@ -98,17 +94,19 @@ function NewRisk({ journeys, applicationId, backendURL, idToken }) {
       setImpact(riskData.impact);
       setEtbf(riskData.etbf);
 
-      const preselectedJourneys = riskData.journeyDetails.map(journeyDetail => ({
-        id: journeyDetail.JourneyID,
-        name: journeyDetail.CUJName
-      }));
+      const preselectedJourneys = riskData.journeyDetails.map(
+        (journeyDetail) => ({
+          id: journeyDetail.JourneyID,
+          name: journeyDetail.CUJName,
+        })
+      );
       setSelectedJourneys(preselectedJourneys);
-      setPreselectedJourneyIds(preselectedJourneys.map(j => j.id));
+      setPreselectedJourneyIds(preselectedJourneys.map((j) => j.id));
 
       // Pre-select risk themes in the dropdown
-      const preselectedRiskThemes = riskData.riskThemes.map(riskTheme => ({
+      const preselectedRiskThemes = riskData.riskThemes.map((riskTheme) => ({
         id: riskTheme.riskThemeID,
-        name: riskTheme.ThemeName
+        name: riskTheme.ThemeName,
       }));
       setSelectedRiskThemes(preselectedRiskThemes);
     }
@@ -118,8 +116,8 @@ function NewRisk({ journeys, applicationId, backendURL, idToken }) {
     event.preventDefault();
 
     try {
-      const selectedJourneyIds = selectedJourneys.map(j => j.id);
-      const selectedRiskThemeIds = selectedRiskThemes.map(x => x.id);
+      const selectedJourneyIds = selectedJourneys.map((j) => j.id);
+      const selectedRiskThemeIds = selectedRiskThemes.map((x) => x.id);
 
       const riskData = {
         riskName,
@@ -130,7 +128,10 @@ function NewRisk({ journeys, applicationId, backendURL, idToken }) {
         impact,
         etbf,
         creationDate,
-        badMinsData: (parseFloat(ettd) + parseFloat(ettr)) * parseFloat(impact / 100) * parseFloat(etbf),
+        badMinsData:
+          (parseFloat(ettd) + parseFloat(ettr)) *
+          parseFloat(impact / 100) *
+          parseFloat(etbf),
       };
 
       //save risk data
@@ -138,77 +139,95 @@ function NewRisk({ journeys, applicationId, backendURL, idToken }) {
       let newRiskId = null;
       let allStepsSuccessful = true;
 
-      if (riskId) { //Update existing risk
+      if (riskId) {
+        //Update existing risk
         response = await fetch(`${backendURL}/api/risks/${riskId}`, {
-          method: 'PUT',
-          //mode: 'cors',  
+          method: "PUT",
+          //mode: 'cors',
           headers: {
-            'Authorization': `Bearer ${idToken}`,
-            'Content-Type': 'application/json',
+            Authorization: `Bearer ${idToken}`,
+            "Content-Type": "application/json",
           },
-          body: JSON.stringify(riskData)
+          body: JSON.stringify(riskData),
         });
-        if (response.ok) { //update risk and CUJ mapping
+        if (response.ok) {
+          //update risk and CUJ mapping
           // Find deselected journey IDs
-          const deselectedJourneyIds = preselectedJourneyIds.filter(id => !selectedJourneyIds.includes(id));
+          const deselectedJourneyIds = preselectedJourneyIds.filter(
+            (id) => !selectedJourneyIds.includes(id)
+          );
 
           //Delete risk mapping at CUJ level if CUJ removed while editing risk
           for (const journeyID of deselectedJourneyIds) {
-            const removeResponse = await fetch(`${backendURL}/api/cujs/${journeyID}/remove_risk/${riskId}`, {
-              method: 'PUT',
-              //mode: 'cors',  
-              headers: {
-                'Authorization': `Bearer ${idToken}`,
-                'Content-Type': 'application/json',
-              },
-            });
+            const removeResponse = await fetch(
+              `${backendURL}/api/cujs/${journeyID}/remove_risk/${riskId}`,
+              {
+                method: "PUT",
+                //mode: 'cors',
+                headers: {
+                  Authorization: `Bearer ${idToken}`,
+                  "Content-Type": "application/json",
+                },
+              }
+            );
             if (!removeResponse.ok) {
-              console.error('Error removing risk mapping from CUJ:', removeResponse.statusText);
+              console.error(
+                "Error removing risk mapping from CUJ:",
+                removeResponse.statusText
+              );
               allStepsSuccessful = false; // Mark as failure if any removal fails
             }
           }
           for (const journeyID of selectedJourneyIds) {
-            const riskResponse = await fetch(`${backendURL}/api/cujs/${journeyID}`, {
-              method: 'PUT',
-              //mode: 'cors',  
-              headers: {
-                'Authorization': `Bearer ${idToken}`,
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({
-                RiskIDs: riskId // Add new risk ID to the array
-              })
-            });
+            const riskResponse = await fetch(
+              `${backendURL}/api/cujs/${journeyID}`,
+              {
+                method: "PUT",
+                //mode: 'cors',
+                headers: {
+                  Authorization: `Bearer ${idToken}`,
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                  RiskIDs: riskId, // Add new risk ID to the array
+                }),
+              }
+            );
             if (!riskResponse.ok) {
-              console.error('Error adding risk mapping to CUJ:', riskResponse.statusText);
+              console.error(
+                "Error adding risk mapping to CUJ:",
+                riskResponse.statusText
+              );
               allStepsSuccessful = false; // Mark as failure if any addition fails
             }
           }
           if (allStepsSuccessful) {
-            console.log(`Risk information updated successfully! Risk Id: ${riskId}`);
-            toast.success('Risk information updated successfully!');
+            console.log(
+              `Risk information updated successfully! Risk Id: ${riskId}`
+            );
+            toast.success("Risk information updated successfully!");
 
             // Delay navigation slightly to allow the toast to render
             setTimeout(() => {
-              navigate('/riskCatalog/' + cujId);
+              navigate("/riskCatalog/" + cujId);
             }, 3000);
           } else {
-            console.error('Some operations failed during risk update.');
-            toast.error('Error saving risk. Please try again.');
+            console.error("Some operations failed during risk update.");
+            toast.error("Error saving risk. Please try again.");
           }
         } else {
-          console.error('Error updating risk:', response.statusText);
+          console.error("Error updating risk:", response.statusText);
         }
-      }
-      else { //create a new risk
+      } else {
+        //create a new risk
         response = await fetch(`${backendURL}/api/risks`, {
-          method: 'POST',
-          //mode: 'cors',  
+          method: "POST",
+          //mode: 'cors',
           headers: {
-            'Authorization': `Bearer ${idToken}`,
-            'Content-Type': 'application/json',
+            Authorization: `Bearer ${idToken}`,
+            "Content-Type": "application/json",
           },
-          body: JSON.stringify(riskData)
+          body: JSON.stringify(riskData),
         });
         if (response.ok) {
           // map risks back to the CUJ
@@ -217,47 +236,48 @@ function NewRisk({ journeys, applicationId, backendURL, idToken }) {
 
           for (const journeyID of selectedJourneyIds) {
             if (journeyID) {
-              const riskResponse = await fetch(`${backendURL}/api/cujs/${journeyID}`, {
-                method: 'PUT',
-                //mode: 'cors',  
-                headers: {
-                  'Authorization': `Bearer ${idToken}`,
-                  'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                  RiskIDs: newRiskId // Add new risk ID to the array
-                })
-              });
+              const riskResponse = await fetch(
+                `${backendURL}/api/cujs/${journeyID}`,
+                {
+                  method: "PUT",
+                  //mode: 'cors',
+                  headers: {
+                    Authorization: `Bearer ${idToken}`,
+                    "Content-Type": "application/json",
+                  },
+                  body: JSON.stringify({
+                    RiskIDs: newRiskId, // Add new risk ID to the array
+                  }),
+                }
+              );
               if (!riskResponse.ok) {
                 allStepsSuccessful = false;
               }
             }
           }
           if (allStepsSuccessful) {
-            console.log(`Risk information saved successfully! Risk Id ${newRiskId}`);
-            toast.success('Risk information saved successfully!');
+            console.log(
+              `Risk information saved successfully! Risk Id ${newRiskId}`
+            );
+            toast.success("Risk information saved successfully!");
             setTimeout(() => {
-              navigate('/riskCatalog/' + selectedJourneyIds[0]);
+              navigate("/riskCatalog/" + selectedJourneyIds[0]);
             }, 3000);
-
+          } else {
+            console.log("Failed to save Risk Information!");
+            toast.error("Error saving risk. Please try again.");
           }
-          else {
-            console.log('Failed to save Risk Information!');
-            toast.error('Error saving risk. Please try again.');
-          }
-
         }
       }
-
     } catch (error) {
-      console.error('Error:', error);
+      console.error("Error:", error);
     }
   };
 
   const handleChange = (selectedValues, dropdownIdentifier) => {
-    if (dropdownIdentifier === 'journeys') {
+    if (dropdownIdentifier === "journeys") {
       setSelectedJourneys(selectedValues);
-    } else if (dropdownIdentifier === 'riskThemes') {
+    } else if (dropdownIdentifier === "riskThemes") {
       setSelectedRiskThemes(selectedValues);
     }
   };
@@ -271,8 +291,12 @@ function NewRisk({ journeys, applicationId, backendURL, idToken }) {
             <Multiselect
               options={options} // Options to display in the dropdown
               selectedValues={selectedJourneys} // Preselected value to persist in dropdown
-              onSelect={(selectedList, selectedItem) => handleChange(selectedList, 'journeys')}
-              onRemove={(selectedList, removedItem) => handleChange(selectedList, 'journeys')}
+              onSelect={(selectedList, selectedItem) =>
+                handleChange(selectedList, "journeys")
+              }
+              onRemove={(selectedList, removedItem) =>
+                handleChange(selectedList, "journeys")
+              }
               displayValue="name" // Property name to display in the dropdown options
               placeholder="Select User Journeys"
               required
@@ -286,8 +310,12 @@ function NewRisk({ journeys, applicationId, backendURL, idToken }) {
             <Multiselect
               options={riskThemeOptions} // Options to display in the dropdown
               selectedValues={selectedRiskThemes} // Preselected value to persist in dropdown
-              onSelect={(selectedList, selectedItem) => handleChange(selectedList, 'riskThemes')}
-              onRemove={(selectedList, removedItem) => handleChange(selectedList, 'riskThemes')}
+              onSelect={(selectedList, selectedItem) =>
+                handleChange(selectedList, "riskThemes")
+              }
+              onRemove={(selectedList, removedItem) =>
+                handleChange(selectedList, "riskThemes")
+              }
               displayValue="name" // Property name to display in the dropdown options
               placeholder="Select Risk Theme"
               required
@@ -323,7 +351,9 @@ function NewRisk({ journeys, applicationId, backendURL, idToken }) {
         </div>
         <div className="form-column">
           <div className="form-group">
-            <label htmlFor="ettr">[ETTR] Estimated Time to Resolve (Mins)</label>
+            <label htmlFor="ettr">
+              [ETTR] Estimated Time to Resolve (Mins)
+            </label>
             <input
               type="number"
               id="ettr"
@@ -364,16 +394,19 @@ function NewRisk({ journeys, applicationId, backendURL, idToken }) {
           </div>
         </div>
       </div>
-      <div className="form-buttons"> {/* Apply the CSS class */}
+      <div className="form-buttons">
+        {" "}
+        {/* Apply the CSS class */}
         <button type="submit">Save</button>
         &nbsp; &nbsp;
-        <button type="button" onClick={() => navigate('/riskCatalog/' + cujId)}>Cancel</button>
+        <button type="button" onClick={() => navigate("/riskCatalog/" + cujId)}>
+          Cancel
+        </button>
       </div>
       <div>
         <ToastContainer />
       </div>
     </form>
-
   );
 }
 

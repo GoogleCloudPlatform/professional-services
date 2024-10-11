@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-import React, { useState, useEffect } from 'react';
-import '../style.css'
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import React, { useState, useEffect } from "react";
+import "../style.css";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 function Applications({ setIsAddingNewApplication, backendURL, idToken }) {
-  const [applicationName, setApplicationName] = useState('');
-  const [applicationDescription, setApplicationDescription] = useState('');
+  const [applicationName, setApplicationName] = useState("");
+  const [applicationDescription, setApplicationDescription] = useState("");
 
   //set flag to disable application selection dropdown
   useEffect(() => {
@@ -35,42 +35,42 @@ function Applications({ setIsAddingNewApplication, backendURL, idToken }) {
     try {
       //save a new application
       const response = await fetch(`${backendURL}/api/apps`, {
-        method: 'POST',
-        //mode: 'cors',  
+        method: "POST",
+        //mode: 'cors',
         headers: {
-          'Authorization': `Bearer ${idToken}`,
-          'Content-Type': 'application/json',
+          Authorization: `Bearer ${idToken}`,
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           applicationName,
-          applicationDescription
-        })
+          applicationDescription,
+        }),
       });
 
       if (response.ok) {
         const data = await response.json();
-        console.log('Application saved successfully with ID:', data.appId);
-        toast.success('New Application saved successfully!', {
-          autoClose: 3000
+        console.log("Application saved successfully with ID:", data.appId);
+        toast.success("New Application saved successfully!", {
+          autoClose: 3000,
         });
-        setApplicationName('');
-        setApplicationDescription('');
-
-
+        setApplicationName("");
+        setApplicationDescription("");
       } else {
-        console.error('Error saving app:', response.statusText);
-        toast.error('Error saving Application. Please try again.', {});
+        console.error("Error saving app:", response.statusText);
+        toast.error("Error saving Application. Please try again.", {});
       }
     } catch (error) {
-      console.error('Error:', error);
+      console.error("Error:", error);
     }
   };
 
   return (
     <form onSubmit={handleSubmit}>
-      <div className='content'>
+      <div className="content">
         <div className="mb-3">
-          <label htmlFor="applicationName" class="form-label">Application Name</label>
+          <label htmlFor="applicationName" className="form-label">
+            Application Name
+          </label>
           <input
             type="text"
             id="applicationName"
@@ -82,7 +82,9 @@ function Applications({ setIsAddingNewApplication, backendURL, idToken }) {
         </div>
 
         <div className="mb-3">
-          <label htmlFor="applicationDescription" class="form-label">Application Description</label>
+          <label htmlFor="applicationDescription" className="form-label">
+            Application Description
+          </label>
           <textarea
             id="applicationDescription"
             className="form-control"

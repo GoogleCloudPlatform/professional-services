@@ -21,8 +21,9 @@ for creating, listing, updating, and deleting these entities.
 The application uses Google Cloud Firestore for data storage and 
 requires authentication using Google OAuth2.
 """
-
-
+#ignoring W0718: Catching too general exception Exception
+#ignoring R0914: Too many local variables
+# pylint: disable=W0718, R0914
 import os
 import logging
 from datetime import datetime

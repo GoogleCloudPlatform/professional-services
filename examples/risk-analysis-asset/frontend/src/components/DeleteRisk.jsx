@@ -14,12 +14,11 @@
  * limitations under the License.
  */
 
-import React, { useState, useEffect } from 'react';
-import '../style.css'
-import { useParams, useNavigate } from 'react-router-dom';
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
-
+import React, { useEffect } from "react";
+import "../style.css";
+import { useParams, useNavigate } from "react-router-dom";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 function DeleteRisk(backendURL, idToken) {
   //const [riskDeleted, setRiskDeleted] = useState(false);
@@ -30,28 +29,32 @@ function DeleteRisk(backendURL, idToken) {
     const deleteRisks = async () => {
       if (window.confirm("Are you sure you want to delete this risk?")) {
         try {
-          const response = await fetch(`${backendURL.backendURL}/api/risks/${riskId}`, { //can't understand why backendURL is being passed as an object here
-            method: 'DELETE',
-            //mode: 'cors',
-            headers: {
-              'Authorization': `Bearer ${idToken}`,
-              'Content-Type': 'application/json',
-            },
-          });
+          const response = await fetch(
+            `${backendURL.backendURL}/api/risks/${riskId}`,
+            {
+              //can't understand why backendURL is being passed as an object here
+              method: "DELETE",
+              //mode: 'cors',
+              headers: {
+                Authorization: `Bearer ${idToken}`,
+                "Content-Type": "application/json",
+              },
+            }
+          );
 
           if (response.ok) {
             //setRiskDeleted(true);
-            toast.success('Risk deleted successfully!');
-            console.log('Risk deleted successfully');
+            toast.success("Risk deleted successfully!");
+            console.log("Risk deleted successfully");
             setTimeout(() => {
-              navigate('/riskCatalog/' + cujId);
+              navigate("/riskCatalog/" + cujId);
             }, 3000);
           } else {
-            toast.error('Error deleting risk!');
-            console.error('Error deleting risk', response.statusText);
+            toast.error("Error deleting risk!");
+            console.error("Error deleting risk", response.statusText);
           }
         } catch (error) {
-          console.error('Error:', error);
+          console.error("Error:", error);
         }
       }
     };
