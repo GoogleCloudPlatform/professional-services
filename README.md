@@ -295,6 +295,7 @@ them to fit your particular use case.
     proprietary format, for Quantum Approximate Optimization Algorithm (QAOA)
 *   [Redis Cluster on GKE Example](examples/redis-cluster-gke) - Deploying Redis
     cluster on GKE.
+*   [Risk Analysis Asset](examples/risk-analysis-asset) - Deploying Reliability Risk analysis tool on Cloud Run. 
 *   [Spanner Interleave Subquery](examples/spanner-interleave-subquery) -
     Example code to benchmark Cloud Spanner's subqueries for interleaved tables.
 *   [Spanner Change Stream to BigQuery using Dataflow](examples/spanner-changestreams-bigquery) - 
