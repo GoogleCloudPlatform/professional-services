@@ -1,0 +1,5 @@
+Flask
+google-cloud-firestore
+flask-cors
+python-dotenv 
+google-auth
