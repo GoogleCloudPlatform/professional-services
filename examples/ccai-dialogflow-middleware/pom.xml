@@ -115,7 +115,7 @@
     <dependency>
       <artifactId>protobuf-java</artifactId>
       <groupId>com.google.protobuf</groupId>
-      <version>3.21.12</version>
+      <version>3.25.5</version>
     </dependency>
   </dependencies>
   <description>springboot</description>
