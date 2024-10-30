@@ -35,9 +35,9 @@ taskflows:
 
 # Default settings for every generated DAG.
 default_settings:
-  project_id: cy-artifacts
-  region: us-central1
-  composer_environment: composer-3-load-testing
+  project_id: your-project
+  region: your-region
+  composer_environment: your-environment
   deferrable: true
   retries: 1
   retry_delay: 2 # minutes
