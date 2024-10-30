@@ -113,7 +113,7 @@ with DAG(
 
     create_cluster_0 = DataprocCreateClusterOperator(
         task_id="create_cluster_0",
-        project_id='cy-artifacts',
+        project_id='your-project',
         cluster_config={
             "master_config": {
                 "num_instances": 1,
@@ -124,25 +124,25 @@ with DAG(
                     "idle_delete_ttl": "300s"
             }
         },
-        region='us-central1',
+        region='your-region',
         cluster_name=cluster_name,
     )
 
     task_0 = DataprocSubmitJobOperator(
         task_id="task_0",
         job={
-            "reference": {"project_id": 'cy-artifacts'},
+            "reference": {"project_id": 'your-project'},
             "placement": {"cluster_name": cluster_name},
             "hive_job": {"query_list": {"queries": ["SHOW DATABASES;"]}},
         },
-        region='us-central1',
-        project_id='cy-artifacts',
+        region='your-region',
+        project_id='your-project',
     )
     delete_cluster_0 = DataprocDeleteClusterOperator(
         task_id="delete_cluster_0",
-        project_id='cy-artifacts',
+        project_id='your-project',
         cluster_name=cluster_name,
-        region='us-central1',
+        region='your-region',
         trigger_rule="all_done",
     )
 
