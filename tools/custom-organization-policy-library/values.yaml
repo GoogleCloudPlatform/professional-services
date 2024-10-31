@@ -62,15 +62,6 @@ firewall:
       destination_ranges:
       - "192.168.32.0/24"
       - "10.16.0.0/16"
-storage:
-  storageAllowedBucketLabels:
-    params:
-      labels:
-      - "label-0"
-      - "label-1"
-  storageBucketEnforceNamingConvention:
-    params:
-      name_regex: "^(sin|cgk)"
 gke:
   gkeAllowedNodePoolImages:
     params:
@@ -90,3 +81,12 @@ network:
       ip_ranges:
       - "10.0.0.0/24"
       - "192.168.0.0/16"
+storage:
+  storageAllowedBucketLabels:
+    params:
+      labels:
+      - "label-0"
+      - "label-1"
+  storageBucketEnforceNamingConvention:
+    params:
+      name_regex: "^(sin|cgk)"
