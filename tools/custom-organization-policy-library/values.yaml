@@ -72,6 +72,12 @@ gke:
       release_channels: 
       - "REGULAR"
       - "STABLE"
+iam:
+  iamAllowedMembers:
+    params:
+      domains:
+      - "@google.com"
+      - ".gserviceaccount.com"
 network:
   networkEnforceNamingConvention:
     params:

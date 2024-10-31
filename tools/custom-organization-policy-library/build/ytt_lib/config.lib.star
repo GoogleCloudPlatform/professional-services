@@ -21,6 +21,7 @@ services = [
   "dataproc",
   "firewall", 
   "gke", 
+  "iam",
   "network", 
   "storage",
   ]
