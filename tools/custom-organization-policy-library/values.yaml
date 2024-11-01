@@ -19,6 +19,17 @@ bundles:
   pci-dss: false
   cis: false
 dryrun: false
+cloudbuild:
+  cloudbuildAllowedNetworkPeering:
+    params:
+      peered_network_ranges:
+      - "10.0.0.0/24"
+      - "10.0.1.0/24"
+  cloudbuildAllowedPubSubTopic:
+    params:
+      topics:
+      - "projects/project1/topics/topic-1"
+      - "projects/project2/topics/topic-2"
 compute:
   computeAllowedInstanceMachineTypes:
     params:

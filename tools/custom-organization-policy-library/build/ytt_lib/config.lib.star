@@ -16,6 +16,7 @@ load("@ytt:data", "data")
 load("@ytt:struct", "struct")
 
 services = [
+  "cloudbuild",
   "cloudrun", 
   "compute", 
   "dataproc",

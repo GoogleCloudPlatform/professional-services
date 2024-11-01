@@ -204,6 +204,7 @@ make policies                       Build policies based using gcloud format
 make policies-tf                    Build policies based using Terraform Cloud Foundation Fabric module factory 
 make build                          Build constraint and policies using gcloud format
 make build-tf                       Build constraint and policies using Terraform Cloud Foundation Fabric module factory
+make all                            Build constraint and policies using gcloud and Terraform Cloud Foundation Fabric module factory format
 make deploy-constraints             Deploy constraints based using gcloud format
 make deploy-policies                Deploy policies based using gcloud format
 make deploy                         Deploy both constraints and policies based using gcloud format
