@@ -30,6 +30,20 @@ cloudbuild:
       topics:
       - "projects/project1/topics/topic-1"
       - "projects/project2/topics/topic-2"
+cloudsql:
+  cloudsqlAllowedDiskTypes:
+    params:
+      disk_types:
+      - "PD_SSD"
+  cloudsqlAllowedVersions:
+    params:
+      versions:
+      - "MYSQL_5_7"
+      - "POSTGRES_15"
+      - "SQLSERVER_2022_WEB"
+  cloudsqlEnforcePasswordComplexity:
+    params:
+      min_length: 12
 compute:
   computeAllowedInstanceMachineTypes:
     params:
