@@ -199,3 +199,37 @@ The validation file lists the resources from Legacy Feature store and Feature St
 * `Legacy Feature Store` : This tab lists the Feature stores, Entities and Features from the Legacy Feature store.
 * `Feature Groups`: This tab lists the Feature Groups present in the given project and region in the Feature Store 2.0
 * `Online Store Comaprison` : This tab lists the Legacy Feature Stores for which the Online Store is enabled and it lists the Online Stores created in Feature Store 2.0  
+
+
+## Cloud Run Job Deployment
+
+This migration tool can be deployed as a Cloud Run job for managed, serverless execution. Cloud Run Jobs are ideal for this one-time migration as they provide:
+* Purpose-built environment for one-off container workloads
+* Simple deployment model
+* Configurable memory, CPU, and timeout settings
+* Built-in retry policies and error handling
+* Serverless pricing model - pay only for execution time
+
+**Implementation Steps:**
+
+1. Containerize the migration script:
+```dockerfile
+FROM python:3.9
+WORKDIR /app
+COPY . .
+RUN pip install -r requirements.txt
+ENTRYPOINT ["python", "main.py"]
+```
+
+2. Deploy as Cloud Run job:
+
+```bash
+gcloud run jobs create featurestore-migration \
+    --image IMAGE_URL \
+    --region REGION \
+    --service-account SA_EMAIL \
+    --memory 4Gi \
+    --timeout 3600s
+```
+
+The Cloud Run job will execute the migration **without** the --create-resources flag enabled. Ensure the service account has appropriate permissions. 
