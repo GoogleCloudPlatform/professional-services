@@ -92,6 +92,26 @@ This `export_feature_store` method performs the actual data migration.
   }
   ```
 
+**Resource Creation Options**
+
+By default, this migration tool only exports data from the legacy Feature Store. To create Feature Store 2.0 resources (including offline and online stores), you must explicitly specify the `--create-resources` flag:
+
+```bash
+# Export data only (default)
+python main.py
+
+# Full migration including resource creation
+python main.py --create-resources
+```
+
+For production deployments, we recommend using Infrastructure as Code (IaC) to manage your Feature Store 2.0 resources. Please refer to the [Terraform Feature Store module](terraform/vertex_ai_feature_store/README.md) as an example to help get you started with deploying Feature Store 2.0 resources. This module contains detailed configurations and instructions that you can adapt for your specific needs.
+
+**Relevant Terraform Resources:**
+* [google_vertex_ai_feature_online_store](https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/vertex_ai_feature_online_store) - Documentation for Feature Store resource
+* [google_vertex_ai_feature_online_store_featureview](https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/vertex_ai_feature_online_store_featureview) - Documentation for Feature View resource
+
+The following sections describe the resource creation process when the `--create-resources` flag is enabled. If this flag is not set, the migration process will stop after exporting data from the legacy Feature Store.
+
 **2. Import into Feature Store 2.0:**
 
 ```python
