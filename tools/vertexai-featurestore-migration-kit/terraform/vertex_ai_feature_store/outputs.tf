@@ -32,8 +32,8 @@ output "storage_type" {
 output "bigtable_config" {
   description = "BigTable configuration details (only populated when storage_type is 'bigtable')"
   value = var.storage_type == "bigtable" ? {
-    min_node_count        = var.bigtable_min_node_count
-    max_node_count        = var.bigtable_max_node_count
+    min_node_count         = var.bigtable_min_node_count
+    max_node_count         = var.bigtable_max_node_count
     cpu_utilization_target = var.bigtable_cpu_utilization_target
   } : null
 }
@@ -67,10 +67,10 @@ output "entity_id_columns" {
 output "embedding_config" {
   description = "Vector search configuration details (only populated when embedding_column is provided)"
   value = var.embedding_column != null ? {
-    embedding_column      = var.embedding_column
-    dimension            = var.embedding_dimension
-    distance_measure     = var.distance_measure_type
-    filter_columns       = var.filter_columns
-    crowding_column      = var.crowding_column
+    embedding_column = var.embedding_column
+    dimension        = var.embedding_dimension
+    distance_measure = var.distance_measure_type
+    filter_columns   = var.filter_columns
+    crowding_column  = var.crowding_column
   } : null
 }

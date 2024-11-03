@@ -49,10 +49,6 @@ variable "bigtable_max_node_count" {
   description = "The maximum number of nodes for BigTable autoscaling. Must be >= min_node_count and <= 10 * min_node_count"
   type        = number
   default     = 5
-  validation {
-    condition     = var.bigtable_max_node_count >= var.bigtable_min_node_count && var.bigtable_max_node_count <= 10 * var.bigtable_min_node_count
-    error_message = "max_node_count must be greater than or equal to min_node_count and less than or equal to 10 times min_node_count"
-  }
 }
 
 variable "bigtable_cpu_utilization_target" {

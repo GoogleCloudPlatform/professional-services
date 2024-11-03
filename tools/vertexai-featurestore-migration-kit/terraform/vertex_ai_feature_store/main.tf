@@ -46,9 +46,9 @@ resource "google_vertex_ai_feature_online_store" "feature_store" {
     for_each = var.storage_type == "bigtable" ? [1] : []
     content {
       auto_scaling {
-        min_node_count          = var.bigtable_min_node_count
-        max_node_count          = var.bigtable_max_node_count
-        cpu_utilization_target  = var.bigtable_cpu_utilization_target
+        min_node_count         = var.bigtable_min_node_count
+        max_node_count         = var.bigtable_max_node_count
+        cpu_utilization_target = var.bigtable_cpu_utilization_target
       }
     }
   }
@@ -66,7 +66,7 @@ resource "google_vertex_ai_feature_online_store" "feature_store" {
         for_each = var.enable_private_service_connect ? [1] : []
         content {
           enable_private_service_connect = true
-          project_allowlist             = var.project_allowlist
+          project_allowlist              = var.project_allowlist
         }
       }
     }
@@ -81,7 +81,7 @@ resource "google_vertex_ai_feature_online_store" "feature_store" {
     delete = "20m"
   }
 
-    # Add lifecycle block to force new resource on changes
+  # Add lifecycle block to force new resource on changes
   lifecycle {
     create_before_destroy = true
   }
@@ -118,8 +118,8 @@ resource "google_vertex_ai_feature_online_store_featureview" "featureview_vector
       embedding_dimension   = tostring(var.embedding_dimension)
       distance_measure_type = var.distance_measure_type
       filter_columns        = var.filter_columns
-      crowding_column      = var.crowding_column
-      
+      crowding_column       = var.crowding_column
+
       tree_ah_config {
         leaf_node_embedding_count = "10000"
       }
