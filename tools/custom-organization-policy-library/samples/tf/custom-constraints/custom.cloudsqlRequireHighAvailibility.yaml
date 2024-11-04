@@ -1,0 +1,10 @@
+custom.cloudsqlRequireHighAvailibility:
+  actionType: DENY
+  condition: resource.settings.availabilityType != "REGIONAL"
+  description: Ensure that CloudSQL instance is configured with high availibility
+  display_name: Require CloudSQL instances to be configured with high availibility
+  methodTypes:
+  - CREATE
+  - UPDATE
+  resourceTypes:
+  - sqladmin.googleapis.com/Instance
