@@ -246,6 +246,7 @@ them to fit your particular use case.
 *   [Ephemeral Projects](examples/ephemeral-projects) - Creating short lived gcp projects for sandbox purposes.
 *   [GCE Access to Google AdminSDK](examples/gce-to-adminsdk) - Example to help
     manage access to Google's AdminSDK using GCE's service account identity
+*   [GCS Client Side Encryption via Sidecar](examples/gcs-client-encrypt/) - Example to show how to implement GCS client side encyrption via a sidecar
 *   [GCS Hive External Table File Optimization](examples/gcs-hive-external-table-file-optimization) - 
     Example solution to showcase impact of file count, file size, and file
     type on Hive external tables and query speeds.
