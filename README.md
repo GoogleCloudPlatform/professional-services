@@ -295,6 +295,7 @@ them to fit your particular use case.
     proprietary format, for Quantum Approximate Optimization Algorithm (QAOA)
 *   [Redis Cluster on GKE Example](examples/redis-cluster-gke) - Deploying Redis
     cluster on GKE.
+*   [Risk Analysis Asset](examples/risk-analysis-asset) - Deploying Reliability Risk analysis tool on Cloud Run. 
 *   [Spanner Interleave Subquery](examples/spanner-interleave-subquery) -
     Example code to benchmark Cloud Spanner's subqueries for interleaved tables.
 *   [Spanner Change Stream to BigQuery using Dataflow](examples/spanner-changestreams-bigquery) - 
@@ -597,9 +598,12 @@ Platform usage.
     Recommender is a database script that recommends the best numeric data type for the NUMBER data type
     when migrating from legacy databases like Oracle to Google Cloud platforms like BigQuery, AlloyDB,
     Cloud SQL for PostgreSQL, and Google Cloud Storage.
-*   [Composer DAG Load Generator](tools/cloud-composer-dag-generator) - This is an automatic 
-    DAG generator tool which can be used to create test workload on a cloud composer environmnet
-    and to test differents airflows configurations or to do fine tune using the composer/airflow metrics.
+*   [Cloud Composer Stress Testing](tools/cloud-composer-stress-testing) - A collection
+    of tools aimed at testing, benchmarking, and simulating workloads within Composer. Great for
+    integration testing and experimenting with different environment configurations. 
+*   [Cloud Composer Environment Rotator](tools/cloud-composer-environment-rotator) - Rotate Airflow
+    resources from an old composer environment to a new composer environment with minimal downtime. Ideal
+    for non in-place environment updates, downgrading environment versions, or migrating to different regions.
 *   [Gradio and Generative AI Example](examples/genai-gradio-example) - The example code allows developers 
     to create rapid Generative AI PoC applications with Gradio and Gen AI agents.
 *   [Memorystore Cluster Ops Framework](tools/memorystore-cluster-ops-framework) - This is a framework that 
