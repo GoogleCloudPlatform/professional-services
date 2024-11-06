@@ -19,6 +19,31 @@ bundles:
   pci-dss: false
   cis: false
 dryrun: false
+cloudbuild:
+  cloudbuildAllowedNetworkPeering:
+    params:
+      peered_network_ranges:
+      - "10.0.0.0/24"
+      - "10.0.1.0/24"
+  cloudbuildAllowedPubSubTopic:
+    params:
+      topics:
+      - "projects/project1/topics/topic-1"
+      - "projects/project2/topics/topic-2"
+cloudsql:
+  cloudsqlAllowedDiskTypes:
+    params:
+      disk_types:
+      - "PD_SSD"
+  cloudsqlAllowedVersions:
+    params:
+      versions:
+      - "MYSQL_5_7"
+      - "POSTGRES_15"
+      - "SQLSERVER_2022_WEB"
+  cloudsqlEnforcePasswordComplexity:
+    params:
+      min_length: 12
 compute:
   computeAllowedInstanceMachineTypes:
     params:
@@ -62,15 +87,6 @@ firewall:
       destination_ranges:
       - "192.168.32.0/24"
       - "10.16.0.0/16"
-storage:
-  storageAllowedBucketLabels:
-    params:
-      labels:
-      - "label-0"
-      - "label-1"
-  storageBucketEnforceNamingConvention:
-    params:
-      name_regex: "^(sin|cgk)"
 gke:
   gkeAllowedNodePoolImages:
     params:
@@ -81,6 +97,12 @@ gke:
       release_channels: 
       - "REGULAR"
       - "STABLE"
+iam:
+  iamAllowedMembers:
+    params:
+      domains:
+      - "@google.com"
+      - ".gserviceaccount.com"
 network:
   networkEnforceNamingConvention:
     params:
@@ -90,3 +112,12 @@ network:
       ip_ranges:
       - "10.0.0.0/24"
       - "192.168.0.0/16"
+storage:
+  storageAllowedBucketLabels:
+    params:
+      labels:
+      - "label-0"
+      - "label-1"
+  storageBucketEnforceNamingConvention:
+    params:
+      name_regex: "^(sin|cgk)"

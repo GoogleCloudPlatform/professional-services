@@ -1,0 +1,15 @@
+#@ load("/constraints.lib.star", "build_constraint")
+#@ constraint = build_constraint("cloudrunServiceRequireVPCConnector")
+
+#@ if constraint.to_generate():
+name: #@ constraint.constraint_name()
+resourceTypes:
+- run.googleapis.com/Service
+methodTypes:
+- CREATE
+- UPDATE
+condition: "!('run.googleapis.com/vpc-access-connector' in resource.spec.template.metadata.annotations)"
+actionType: DENY
+displayName: Disable creation of Cloud Run Service not using VPC connector
+description: Enforce that Cloud Run Service are configured with VPC connector
+#@ end
