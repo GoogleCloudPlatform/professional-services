@@ -1,4 +1,4 @@
-gradio==5.0.0
+gradio==5.5.0
 google-cloud-speech==2.21.0
 google-cloud-secret-manager==2.10.0
 torch
