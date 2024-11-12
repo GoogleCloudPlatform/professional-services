@@ -79,10 +79,10 @@ def main():
         transformed_config = transform_json(export_response)
         with open(ONLINE_STORE_CONFIG_FILE, "w", encoding="utf-8") as f:
             json.dump(transformed_config, f)
-        
+
         # Read Online Store config File
         online_store_config = read_json_config(ONLINE_STORE_CONFIG_FILE)
-        
+
         # Create Online Stores & Feature Views
         logger.info("Creating online stores and feature views...")
         for online_store_config_obj in online_store_config["online_stores"]:

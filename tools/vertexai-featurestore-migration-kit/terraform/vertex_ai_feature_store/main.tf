@@ -29,7 +29,7 @@ resource "google_project_service" "vertex_ai_api" {
   disable_on_destroy = false
 }
 
-# Create the optimized feature store
+# Create the optimized/bigtable feature store
 resource "google_vertex_ai_feature_online_store" "feature_store" {
   name   = var.feature_store_name
   region = var.region
