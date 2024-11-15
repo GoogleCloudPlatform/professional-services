@@ -16,19 +16,21 @@
 """Test construction of a BigQuery schema from an API discovery document.."""
 
 import unittest
-from asset_inventory.api_schema  import APISchema
+from asset_inventory.api_schema import APISchema
 
 
 # pylint:disable=protected-access
 # pylint: disable=line-too-long
 class TestApiSchema(unittest.TestCase):
+    maxDiff = None
 
     def get_schema_data_field(self, fields):
         return self.get_field_by_name(
             self.get_field_by_name(fields, 'resource')['fields'],
             'data')['fields']
 
-    def get_field_by_name(self, fields, field_name):
+    @staticmethod
+    def get_field_by_name(fields, field_name):
         for field in fields:
             if field['name'].lower() == field_name.lower():
                 return field
@@ -91,7 +93,7 @@ class TestApiSchema(unittest.TestCase):
                                        'description': 'description-2.',
                                        'mode': 'NULLABLE'
                                    }]
-                                  }])
+                                   }])
 
     def test_repeated_properties(self):
         api_properties = {
@@ -165,7 +167,7 @@ class TestApiSchema(unittest.TestCase):
               'mode': 'NULLABLE'}],
             data_fields)
 
-    def test_for_for_asset_type(self):
+    def test_for_asset_type(self):
         APISchema._discovery_document_cache = {
             'https://www.googleapis.com/discovery/v1/apis/compute/v1/rest': {
                 'id': 'compute.v1',
@@ -198,8 +200,8 @@ class TestApiSchema(unittest.TestCase):
               'name': 'lastModifiedTime',
               'mode': 'NULLABLE'}],
             data_fields)
-        # name, asset_type, timestamp, resource, iam_policy
-        self.assertEqual(len(schema), 5)
+        # name, asset_type, timestamp, resource, iam_policy, update_time, ancestors
+        self.assertEqual(len(schema), 7)
 
     def test_resource_last_modified(self):
         # Test that resource lastModifiedTime takes precedence.
@@ -301,6 +303,48 @@ class TestApiSchema(unittest.TestCase):
                           'description': 'description-1.',
                           'mode': 'NULLABLE'}]}])
 
+    def test_additional_properties_with_properties(self):
+        api_properties = {
+            'property-1': {
+                'type': 'object',
+                'properties': {
+                    'property-nested': {
+                        'type': 'string'
+                    }
+                },
+                'additionalProperties': {
+                    'type': 'string',
+                    'description': 'description-1.'
+                },
+                'description': 'description-1'
+            },
+        }
+        resources = {}
+        schema = APISchema._properties_map_to_field_list(api_properties,
+                                                         resources, {})
+        schema.sort()
+        self.assertEqual(
+            schema,
+            [{'name': 'property-1',
+              'field_type': 'RECORD',
+              'fields': [{'name': 'property-nested',
+                          'field_type': 'STRING',
+                          'mode': 'NULLABLE'},
+                         {'name': 'additionalProperties',
+                          'description': 'additionalProperties',
+                          'field_type': 'RECORD',
+                          'fields': [{'description': 'additionalProperties name',
+                                      'field_type': 'STRING',
+                                      'mode': 'NULLABLE',
+                                      'name': 'name'},
+                                     {'description': 'description-1.',
+                                      'field_type': 'STRING',
+                                      'mode': 'NULLABLE',
+                                      'name': 'value'}],
+                          'mode': 'REPEATED'}],
+              'description': 'description-1',
+              'mode': 'NULLABLE'}])
+
     def test_nested_additional_properties(self):
         api_properties = {
             'property-1': {
@@ -343,3 +387,76 @@ class TestApiSchema(unittest.TestCase):
                                       'field_type': 'STRING',
                                       'description': 'description-2.',
                                       'mode': 'NULLABLE'}]}]}])
+
+    def test_array_additional_properties(self):
+        resources = {
+            'Status': {
+                'type': 'object',
+                'properties': {
+                    'code': {
+                        'format': 'int32',
+                        'description': 'The status code, which should be an enum value of google.rpc.Code.',
+                        'type': 'integer'
+                    },
+                    'details': {
+                        'type': 'array',
+                        'description': 'A list of messages that carry the error details. There is a common set of '
+                                       'message types for APIs to use.',
+                        'items': {
+                            'additionalProperties': {
+                                'description': 'Properties of the object. Contains field @type with type URL.',
+                                'type': 'any'
+                            },
+                            'type': 'object'
+                        }
+                    }
+                }
+            }
+        }
+
+        api_properties = {
+            'error': {
+                '$ref': 'Status',
+                'readOnly': True,
+                'description': 'Output only. The error details in case of state FAILED.'
+            },
+        }
+
+        schema = APISchema._properties_map_to_field_list(api_properties,
+                                                         resources, {})
+        schema.sort()
+        self.assertEqual(
+            schema,
+            [{'description': 'Output only. The error details in case of state FAILED.',
+              'field_type': 'RECORD',
+              'fields': [{'description': 'The status code, which should be an enum value '
+                                         'of google.rpc.Code.',
+                          'field_type': 'NUMERIC',
+                          'mode': 'NULLABLE',
+                          'name': 'code'},
+                         {'description': 'A list of messages that carry the error details. '
+                                         'There is a common set of message types for APIs '
+                                         'to use.',
+                          'field_type': 'RECORD',
+                          'fields': [{'description': 'additionalProperties',
+                                      'field_type': 'RECORD',
+                                      'fields': [{'description': 'additionalProperties '
+                                                                 'name',
+                                                  'field_type': 'STRING',
+                                                  'mode': 'NULLABLE',
+                                                  'name': 'name'},
+                                                 {'description': 'additionalProperties '
+                                                                 'value',
+                                                  'field_type': 'STRING',
+                                                  'mode': 'NULLABLE',
+                                                  'name': 'value'}],
+                                      'mode': 'REPEATED',
+                                      'name': 'additionalProperties'}],
+                          'mode': 'REPEATED',
+                          'name': 'details'}],
+              'mode': 'NULLABLE',
+              'name': 'error'}])
+
+# "error":{"code":13,"details":[{"@type":"type.googleapis.com/google.rpc.DebugInfo",
+# "detail":"generic::DEADLINE_EXCEEDED: deadline=9.223372036854776E15s","stackEntries":[
+# "com.google.spanner.SpannerException: generic::DEADLINE_EXCEEDED:

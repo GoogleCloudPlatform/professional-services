@@ -39,7 +39,7 @@ setup(
     packages=['asset_inventory'],
     setup_requires=['pytest-runner', 'setuptools_scm'],
     extras_require = {
-        'testing': ['mock==4.0.3', 'pytest==7.1.3', 'apache-beam[gcp]==2.41.0'],
+        'testing': ['mock==4.0.3', 'pytest==7.1.3', 'apache-beam[gcp]==2.60.0'],
     },
     include_package_data=True,
     # https://pypi.org/project/google-cloud-asset/#history
@@ -47,8 +47,9 @@ setup(
     # https://pypi.org/project/google-cloud-bigquery/#history
     # https://pypi.org/project/requests-futures/#history
     install_requires=[
-        'google-cloud-asset==3.13.0',
-        'google-cloud-bigquery==2.34.4',
+        'google-api-python-client==2.151.0',
+        'google-cloud-asset==3.27.1',
+        'google-cloud-bigquery==3.26.0',
         'requests-futures==1.0.0'
     ],
     use_scm_version = {
