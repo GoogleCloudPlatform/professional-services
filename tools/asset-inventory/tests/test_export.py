@@ -89,5 +89,6 @@ class TestExport(unittest.TestCase):
         self.assertEqual(mock_export_to_gcs_content_types.call_count, 1)
         mock_export_to_gcs.assert_not_called()
 
+
 if __name__ == '__main__':
     unittest.main()
