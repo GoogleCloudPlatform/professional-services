@@ -13,9 +13,6 @@
 import unittest
 from unittest.mock import MagicMock, patch
 from mitmproxy import http
-import tink
-from tink import aead
-from tink.integration import gcpkms
 import os
 from hashlib import md5
 import base64
@@ -37,8 +34,6 @@ TEST_GCP_KMS_KEY = "gcp-kms://projects/your-project/locations/global/keyRings/yo
 os.environ["GCP_KMS_KEY"]=TEST_GCP_KMS_KEY
 import mitmproxy_gcs
 
-#@patch("mitmproxy_gcs.gcpkms.GcpKmsClient", MockGcpKmsClient)
-#@patch("mitmproxy_gcs.aead.KmsEnvelopeAead", MockAead)
 @patch("mitmproxy_gcs.env_aead", MockAead())
 class TestMitmproxyGCS(unittest.TestCase):
 
