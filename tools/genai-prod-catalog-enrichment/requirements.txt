@@ -1,0 +1,4 @@
+google-cloud-aiplatform==1.35.0
+google-cloud-storage==2.11.0
+PyMuPDF==1.23.5
+Pillow==10.3.0

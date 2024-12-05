@@ -1,0 +1,10 @@
+name: organizations/11111111/customConstraints/custom.gkeRequireNetworkPolicy
+resource_types:
+- container.googleapis.com/Cluster
+condition: resource.networkConfig.datapathProvider != 'ADVANCED_DATAPATH' && resource.addonsConfig.networkPolicyConfig.disabled == true
+action_type: DENY
+method_types:
+- CREATE
+- UPDATE
+display_name: Enable network policy
+description: Enforce that GKE clusters are configured with Network Policy enabled

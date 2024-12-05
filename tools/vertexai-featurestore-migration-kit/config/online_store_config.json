@@ -1,0 +1,113 @@
+{
+  "project_id": "vertexai-pgt",
+  "region": "us-central1",
+  "online_stores": [
+    {
+      "feature_online_store_name": "legacy_migration_feature_store_v2",
+      "features_views": [
+        {
+          "feature_view_id": "big_string_corpus_feature_view",
+          "cron_schedule": null,
+          "feature_groups": [
+            {
+              "feature_group_id": "big_string_corpus",
+              "feature_ids": [
+                "feature_25",
+                "feature_24",
+                "feature_22",
+                "feature_2",
+                "feature_31",
+                "feature_28",
+                "feature_5",
+                "feature_15",
+                "feature_12",
+                "feature_45",
+                "feature_30",
+                "feature_26",
+                "feature_6",
+                "feature_43",
+                "feature_42",
+                "feature_10",
+                "feature_34",
+                "feature_47",
+                "feature_29",
+                "feature_23",
+                "feature_20",
+                "feature_9",
+                "feature_19",
+                "feature_17",
+                "feature_40",
+                "feature_8",
+                "feature_35",
+                "feature_44",
+                "feature_32",
+                "feature_3",
+                "feature_7",
+                "feature_18",
+                "feature_4",
+                "feature_16",
+                "feature_39",
+                "feature_1",
+                "feature_11",
+                "feature_38",
+                "feature_21",
+                "feature_13",
+                "feature_41",
+                "feature_36",
+                "feature_14",
+                "feature_37",
+                "feature_33",
+                "feature_46",
+                "feature_48",
+                "feature_27"
+              ]
+            }
+          ]
+        },
+        {
+          "feature_view_id": "users_feature_view",
+          "cron_schedule": null,
+          "feature_groups": [
+            {
+              "feature_group_id": "users",
+              "feature_ids": [
+                "gender",
+                "age",
+                "liked_genres"
+              ]
+            }
+          ]
+        }
+      ],
+      "online_store_type": "bigtable",
+      "bigtable_min_node_count": 1,
+      "bigtable_max_node_count": 3,
+      "cpu_utilization_target": 50
+    },
+    {
+      "feature_online_store_name": "test_feature_store_legacy_v2",
+      "features_views": [
+        {
+          "feature_view_id": "et1_feature_view",
+          "cron_schedule": null,
+          "feature_groups": [
+            {
+              "feature_group_id": "et1",
+              "feature_ids": [
+                "feature_2",
+                "feature_3",
+                "feature_5",
+                "feature_4",
+                "feature_1"
+              ]
+            }
+          ]
+        }
+      ],
+      "online_store_type": "bigtable",
+      "bigtable_min_node_count": 2,
+      "bigtable_max_node_count": 0,
+      "cpu_utilization_target": 0
+    }
+  ]
+}

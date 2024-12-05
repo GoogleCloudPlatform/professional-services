@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Copyright 2022 Google LLC
+# Copyright 2023 Google LLC
 
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -26,8 +26,8 @@ logger = logging.getLogger(__name__)
 
 def get_firestore_first_in(case, update_time) -> dict:
     """
-    Pulls all the docs for a case with the specified update time and returns the
-    the doc with the earliest app-generated timestamp.
+    Pulls all the docs for a case with the specified update time and
+    returns the doc with the earliest app-generated timestamp.
 
     Parameters
     ----------
@@ -41,20 +41,21 @@ def get_firestore_first_in(case, update_time) -> dict:
     first_doc_in
         the matching document in the collection with the earliest timestamp
     """
-    # Initialize the Firebase app if it hasn't already been done
+    # Initialize the Firebase app if it hasn"t already been done
     if not firebase_admin._apps:
-        PROJECT_ID = os.environ.get('PROJECT_ID')
+        PROJECT_ID = os.environ.get("PROJECT_ID")
         cred = credentials.ApplicationDefault()
         firebase_admin.initialize_app(cred, {
-            'projectId': PROJECT_ID,
+            "projectId": PROJECT_ID,
         })
 
     db = firestore.client()
 
-    collection_ref = db.collection('cases')
+    collection_ref = db.collection("cases")
 
-    query = (collection_ref.where('update_time', '==', update_time)
-             .where('case_number', '==', case))
+    query = (collection_ref.where("update_time", "==",
+                                  update_time).where("case_number", "==",
+                                                     case))
     docs = query.get()
     first_doc_in = {}
 
@@ -62,12 +63,12 @@ def get_firestore_first_in(case, update_time) -> dict:
     try:
         first_doc_in = docs[0].to_dict()
     except IndexError as e:
-        error_message = str(e) + ' : {}'.format(datetime.now())
+        error_message = f"{e} : {datetime.now()}"
         logger.error(error_message)
         return first_doc_in
-    firestore_timestamp = ''
+    firestore_timestamp = ""
     for doc in docs:
-        doc_timestamp = doc.to_dict()['firestore_timestamp']
+        doc_timestamp = doc.to_dict()["firestore_timestamp"]
         if i == 0:
             firestore_timestamp = doc_timestamp
         elif float(doc_timestamp) < float(firestore_timestamp):
@@ -79,6 +80,6 @@ def get_firestore_first_in(case, update_time) -> dict:
 
 
 if __name__ == "__main__":
-    case = os.environ.get('TEST_CASE')
-    update_time = '2021-07-12 22:34:21+00:00'
-    print(str(get_firestore_first_in(case, update_time)))
+    test_case = os.environ.get("TEST_CASE")
+    test_update_time = "2021-07-12 22:34:21+00:00"
+    print(str(get_firestore_first_in(test_case, test_update_time)))

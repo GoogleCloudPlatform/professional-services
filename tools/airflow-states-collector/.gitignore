@@ -1,0 +1,22 @@
+*.iml
+logs
+output
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Macos
+**/.DS_Store
+
+# Unit tests
+.cache
+.pytest_cache
+__pycache__/
+
+scratch

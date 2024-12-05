@@ -17,13 +17,13 @@
 """Import Cloud Asset Inventory exports into BigQuery.
 
 Apache Beam pipeline to load Cloud Asset Inventory exports in GCS json objects
-into a BigQuery daset. There are options for appending to tables or truncating
+into a BigQuery dataset. There are options for appending to tables or truncating
 them. The dataset must exist prior to import.
 
 Most all export are small and can likely be processed very quickly by a single
 machine with the direct runner. In some situations there might be a very large
 number of assets like GCS buckets or BigQuery tables which will benefit from the
-scalability of the Dataflow runner or perhaps you wish to process the file from
+scalability of the Dataflow runner, or perhaps you wish to process the file from
 environments that are not easily suited to large memory single machines like
 Cloud Functions or App Engine.
 """
@@ -36,6 +36,7 @@ import pprint
 import random
 
 import apache_beam as beam
+from apache_beam.coders import Coder
 from apache_beam.io import ReadFromText
 from apache_beam.io.filesystems import FileSystems
 from apache_beam.options.pipeline_options import PipelineOptions
@@ -44,20 +45,24 @@ from apache_beam.transforms import core
 from asset_inventory import bigquery_schema
 from asset_inventory.api_schema import APISchema
 from six import string_types
+from typing import Any
 
 from google.api_core.exceptions import BadRequest
 from google.api_core.exceptions import NotFound
 from google.cloud import bigquery
 
 
-class JsonCoder(object):
+class JsonCoder(Coder):
     """A coder interpreting each line as a JSON string."""
 
-    def encode(self, x):
-        return json.dumps(x)
+    def encode(self, value):
+        return json.dumps(value)
 
-    def decode(self, x):
-        return json.loads(x)
+    def decode(self, encoded):
+        return json.loads(encoded)
+
+    def to_type_hint(self):
+        return Any
 
 
 class AssignGroupByKey(beam.DoFn):
@@ -65,7 +70,7 @@ class AssignGroupByKey(beam.DoFn):
 
     The group_by value can be either:
 
-    - ASSET_TYPE so we have a table for that asset type like
+    - ASSET_TYPE, so we have a table for that asset type like
     `google.compute.Instance`.
 
     - ASSET_TYPE_VERSION to have a table for each asset type and version like
@@ -77,17 +82,19 @@ class AssignGroupByKey(beam.DoFn):
       intermediary step prior to load.
     """
 
-    def __init__(self, group_by, num_shards):
+    def __init__(self, group_by, num_shards, *unused_args, **unused_kwargs):
         if isinstance(group_by, string_types):
             group_by = StaticValueProvider(str, group_by)
+
         if isinstance(num_shards, str):
             num_shards = StaticValueProvider(str, num_shards)
-
         self.num_shards = num_shards
         self.group_by = group_by
         self.shard_map = None
 
     def apply_shard(self, key):
+        """Append shard suffix."""
+        # Initialize shard_map from num_shard if first time.
         if self.shard_map is None:
             self.shard_map = {
                 k: int(v) for (k, v) in
@@ -102,9 +109,10 @@ class AssignGroupByKey(beam.DoFn):
 
     @classmethod
     def remove_shard(cls, key):
+        """Strip shard suffix."""
         return key[:key.rfind('.')]
 
-    def process(self, element):
+    def process(self, element, **kwargs):
         key = 'ASSET_TYPE'
         group_by = self.group_by.get()
         if group_by == 'NAME':
@@ -116,13 +124,12 @@ class AssignGroupByKey(beam.DoFn):
             key = self.apply_shard(element.pop('_group_by',
                                                element['asset_type']))
         elif group_by == 'ASSET_TYPE_VERSION':
-            version = ''
             if 'resource' in element:
                 version = element['resource']['version']
                 key = element['asset_type'] + '.' + version
             key = element.pop('_group_by', key)
             key = self.apply_shard(key)
-        yield (key, element)
+        yield key, element
 
 
 class BigQuerySchemaCombineFn(core.CombineFn):
@@ -131,13 +138,15 @@ class BigQuerySchemaCombineFn(core.CombineFn):
     def create_accumulator(self):
         return []
 
-    def merge_accumulators(self, accumulators):
+    def merge_accumulators(self, accumulators, **kwargs):
         return bigquery_schema.merge_schemas(accumulators)
 
-    def extract_output(self, schema):
-        return schema
+    def extract_output(self, accumulator, **kwargs):
+        return accumulator
 
-    def element_to_schema(self, element):
+    @staticmethod
+    def get_api_schema_for_resource(element):
+        """This will contain the discovery document drive resource schema is present."""
         element_resource = element.get('resource', {})
         return APISchema.bigquery_schema_for_resource(
             element['asset_type'],
@@ -146,58 +155,79 @@ class BigQuerySchemaCombineFn(core.CombineFn):
             'data' in element_resource,
             'iam_policy' in element)
 
-    def add_input(self, schema, element):
-        resource_schema = self.element_to_schema(element)
-        json_schema = bigquery_schema.translate_json_to_schema(element)
-        return bigquery_schema.merge_schemas([schema, resource_schema,
-                                              json_schema])
+    def add_input(self, mutable_accumulator, element, **kwargs):
+        resource_schema = self.get_api_schema_for_resource(element)
+        # use the API resource's schema if we have one.
+        if bigquery_schema.contains_resource_data_schema(resource_schema):
+            return resource_schema
+        # we don't have a valid API schema, use the element schema.
+        return bigquery_schema.merge_schemas([
+            mutable_accumulator,
+            resource_schema,
+            bigquery_schema.translate_json_to_schema(element)])
 
 
 class BigQuerySanitize(beam.DoFn):
     """Make the json acceptable to BigQuery."""
 
-    def process(self, element):
+    def process(self, element, **kwargs):
         yield bigquery_schema.sanitize_property_value(element)
 
 
 class ProduceResourceJson(beam.DoFn):
     """Create a json only element for every element."""
 
-    def __init__(self, group_by):
+    def __init__(self, group_by, *unused_args, **unused_kwargs):
         if isinstance(group_by, string_types):
             group_by = StaticValueProvider(str, group_by)
         self.group_by = group_by
 
-    def process(self, element):
+    @staticmethod
+    def create_resource_copy(element):
+        # Write out a json consistently structured row called 'resource' to the
+        # 'resource' table. returns a copy of element without data field which
+        # is grouped by the 'resource' key.
+        resource_data = element.get('resource', {}).pop('data', None)
+        resource_copy = copy.deepcopy(element)
+        # add it back after the copy operation.
+        if resource_data is not None:
+            element['resource']['data'] = resource_data
+        # override the group by field, so it's written to the `resource` table
+        resource_copy['_group_by'] = 'resource'
+        return resource_copy
+
+    def process(self, element, **kwargs):
+        # add the resource.json_data property if we have resource.data
         if ('resource' in element and
-            'data' in element['resource']):
-            resource = element['resource']
-            # add json_data property.
-            resource['json_data'] = json.dumps(resource['data'])
-            resource_element = copy.deepcopy(element)
-            resource_element['resource'].pop('data')
-            resource_element['_group_by'] = 'resource'
-            yield resource_element
-            if self.group_by.get() != 'NONE':
-                yield element
-        else:
-            resource_element = copy.deepcopy(element)
-            resource_element['_group_by'] = 'resource'
-            yield resource_element
-            if self.group_by.get() != 'NONE':
-                yield element
+                'data' in element['resource']):
+            element['resource']['json_data'] = json.dumps(
+                element['resource']['data'])
+        # yield the resource copy.
+        yield self.create_resource_copy(element)
+        # and the element if we are grouping by asset_type or
+        # asset_type_version.
+        if self.group_by.get() != 'NONE':
+            yield element
 
 
 class AddLoadTime(beam.DoFn):
     """Add timestamp field to track load time."""
 
-    def __init__(self, load_time):
+    def __init__(self, load_time, *unused_args, **unused_kwargs):
         if isinstance(load_time, string_types):
             load_time = StaticValueProvider(str, load_time)
         self.load_time = load_time
 
-    def process(self, element):
+    def process(self, element, **kwargs):
         element[1]['timestamp'] = self.load_time.get()
+        yield element
+
+
+class SanitizeBigQuerySchema(beam.DoFn):
+    """Ensure final schema is valid."""
+
+    def process(self, element, **kwargs):
+        bigquery_schema.sanitize_bigquery_schema(element[1])
         yield element
 
 
@@ -206,16 +236,20 @@ class EnforceSchemaDataTypes(beam.DoFn):
     Change json values to match the expected types of the input schema.
     """
 
-    def process(self, element, schemas):
-        """Enforce the datatypes of the input schema on the element data."""
+    def process(self, element, schemas, **kwargs):
+        """Enforce the datatypes of the input schema on the element data.
+        :param element: the element to enforce schema on.
+        :param schemas: schemas to enforce
+        """
         key_name = element[0]
         elements = element[1]
         schema = schemas[key_name]
         for elem in elements:
-            resource_data = elem.get('resource', {}).get('data', {})
-            if resource_data:
-                bigquery_schema.enforce_schema_data_types(elem, schema)
-            yield (key_name, elem)
+            if elem.get('resource', {}).get('data', {}):
+                yield (element[0], bigquery_schema.enforce_schema_data_types(
+                    elem, schema))
+            else:
+                yield element[0], elem
 
 
 class CombinePolicyResource(beam.DoFn):
@@ -226,7 +260,7 @@ class CombinePolicyResource(beam.DoFn):
 
     """
 
-    def process(self, element):
+    def process(self, element, **kwargs):
         combined = {}
         for content in element[1]:
             # don't merge a `resource` element.
@@ -245,12 +279,12 @@ class WriteToGCS(beam.DoFn):
     is an object for each group-key, either an object per asset type, or for
     each asset type version.
 
-    There is nothing cleaning up these objects so it might be prudent to have a
+    There is nothing cleaning up these objects, so it might be prudent to have a
     lifecycle policy on the GCS destination bucket to purge old files.
 
     """
 
-    def __init__(self, stage_dir, load_time):
+    def __init__(self, stage_dir, load_time, *unused_args, **unused_kwargs):
         if isinstance(stage_dir, string_types):
             stage_dir = StaticValueProvider(str, stage_dir)
         if isinstance(load_time, string_types):
@@ -277,13 +311,17 @@ class WriteToGCS(beam.DoFn):
         self.open_files[key_name] = file_handle
         return file_handle, file_path
 
-    def process(self, element):
+    def process(self, element, **kwargs):
         file_handle, created_file_path = self._get_file_for_element(element)
         for asset_line in element[1]:
             file_handle.write(json.dumps(asset_line).encode())
             file_handle.write(b'\n')
         if created_file_path:
-            yield (element[0], created_file_path)
+            # key is bigquery table name so each table deleted and created
+            # independently
+            # value is sharded key and gcs filepath.
+            yield (AssignGroupByKey.remove_shard(element[0]),
+                   (element[0], created_file_path))
 
     def finish_bundle(self):
         for _, file_handle in self.open_files.items():
@@ -291,10 +329,21 @@ class WriteToGCS(beam.DoFn):
             file_handle.close()
 
 
+class AssignShardedKeyForLoad(beam.DoFn):
+    """Element is a tuple keyed by table, value is iterable of sharded key and
+       gcs file path. The transform unbundled the iterable and return a tuples of
+       sharded key and gcs file path to be loaded in parallel to bigquery.
+    """
+
+    def process(self, element, **kwargs):
+        for (sharded_key, created_file_path) in element[1]:
+            yield sharded_key, created_file_path
+
+
 class BigQueryDoFn(beam.DoFn):
     """Superclass for a DoFn that requires BigQuery dataset information."""
 
-    def __init__(self, dataset, add_load_date_suffix, load_time):
+    def __init__(self, dataset, add_load_date_suffix, load_time, *unused_args, **unused_kwargs):
         if isinstance(dataset, string_types):
             dataset = StaticValueProvider(str, dataset)
         self.dataset = dataset
@@ -326,7 +375,7 @@ class BigQueryDoFn(beam.DoFn):
         suffix = ''
         add_load_date_suffix = self.add_load_date_suffix.get()
         if (add_load_date_suffix and
-            add_load_date_suffix.lower() in ('yes', 'true', 't', '1')):
+                add_load_date_suffix.lower() in ('yes', 'true', 't', '1')):
             suffix = '_' + self.load_time.get()[0:10].replace('-', '')
         return asset_type.replace('.', '_').replace('/', '_') + suffix
 
@@ -340,8 +389,8 @@ class BigQueryDoFn(beam.DoFn):
 class DeleteDataSetTables(BigQueryDoFn):
     """Delete tables when truncating and not appending.
 
-    If we are not keeping old data around, it safer to delete all tables in the
-    dataset before loading so that no old asset types remain.
+    If we are not keeping old data around, it safer to delete tables in the
+    dataset before loading so that no old records remain.
     """
 
     def __init__(self, dataset, add_load_date_suffix, load_time,
@@ -354,19 +403,22 @@ class DeleteDataSetTables(BigQueryDoFn):
             write_disposition = StaticValueProvider(str, write_disposition)
         self.write_disposition = write_disposition
 
-    def process(self, element):
+    def process(self, element, **kwargs):
+        # If we are appending to the table, no need to Delete first.
         if self.write_disposition.get() == 'WRITE_APPEND':
             yield element
-        else:
-            key_name = AssignGroupByKey.remove_shard(element[0])
-            table_name = self.asset_type_to_table_name(key_name)
-            table_ref = self.get_dataset_ref().table(
-                table_name)
-            try:
-                self.bigquery_client.delete_table(table_ref)
-            except NotFound:
-                pass
-            yield element
+            return
+
+        # Delete the BigQuery table prior to loading to it.
+        key_name = element[0]
+        table_name = self.asset_type_to_table_name(key_name)
+        table_ref = self.get_dataset_ref().table(
+            table_name)
+        try:
+            self.bigquery_client.delete_table(table_ref)
+        except NotFound:
+            pass
+        yield element
 
 
 class LoadToBigQuery(BigQueryDoFn):
@@ -388,8 +440,11 @@ class LoadToBigQuery(BigQueryDoFn):
                 field['fields'] = self.to_bigquery_schema(field['fields'])
         return [bigquery.SchemaField(**field) for field in fields]
 
-    def process(self, element, schemas):
-        """Element is a tuple of key_ name and iterable of filesystem paths."""
+    def process(self, element, schemas, **kwargs):
+        """Element is a tuple of key_ name and iterable of filesystem paths.
+        :param schemas: schema of the table.
+        :param element: name of object to load.
+        """
 
         dataset_ref = self.get_dataset_ref()
         sharded_key_name = element[0]
@@ -397,6 +452,7 @@ class LoadToBigQuery(BigQueryDoFn):
         object_paths = [object_path for object_path in element[1]]
         job_config = bigquery.LoadJobConfig()
         job_config.write_disposition = 'WRITE_APPEND'
+        job_config.ignore_unknown_values = True
         job_config.schema_update_options = [
             bigquery.job.SchemaUpdateOption.ALLOW_FIELD_ADDITION]
 
@@ -460,7 +516,7 @@ class ImportAssetOptions(PipelineOptions):
             '--num_shards', help=(
                 'Number of shards to use per key.'
                 'List of asset types and the number'
-                'of shardes to use for that type with "*" used as a default.'
+                'of shards to use for that type with "*" used as a default.'
                 ' For example "google.compute.VpnTunnel=1,*=10"'),
             default='*=1')
 
@@ -491,45 +547,49 @@ def run(argv=None):
 
     # Cleanup json documents.
     sanitized = (
-        p | 'read' >> ReadFromText(options.input, coder=JsonCoder())
-        | 'produce_resource_json' >> beam.ParDo(ProduceResourceJson(
-            options.group_by))
-        | 'bigquery_sanitize' >> beam.ParDo(BigQuerySanitize()))
+            p | 'read' >> ReadFromText(options.input, coder=JsonCoder())
+            | 'produce_resource_json' >> beam.ParDo(ProduceResourceJson(
+               options.group_by))
+            | 'bigquery_sanitize' >> beam.ParDo(BigQuerySanitize()))
 
     # Joining all iam_policy objects with resources of the same name.
     merged_iam = (
-        sanitized | 'assign_name_key' >> beam.ParDo(
-            AssignGroupByKey('NAME', options.num_shards))
-        | 'group_by_name' >> beam.GroupByKey()
-        | 'combine_policy' >> beam.ParDo(CombinePolicyResource()))
+            sanitized | 'assign_name_key' >> beam.ParDo(
+              AssignGroupByKey('NAME', ''))
+            | 'group_by_name' >> beam.GroupByKey()
+            | 'combine_policy' >> beam.ParDo(CombinePolicyResource()))
 
     # split into BigQuery tables.
     keyed_assets = merged_iam | 'assign_group_by_key' >> beam.ParDo(
         AssignGroupByKey(options.group_by, options.num_shards))
 
     # Generate BigQuery schema for each table.
-    schemas = keyed_assets | 'to_schema' >> core.CombinePerKey(
-        BigQuerySchemaCombineFn())
+    schemas = (keyed_assets
+               | 'to_schema' >> core.CombinePerKey(
+                BigQuerySchemaCombineFn())
+               | 'sanitize_schema' >> beam.ParDo(SanitizeBigQuerySchema()))
 
     pvalue_schemas = beam.pvalue.AsDict(schemas)
     # Write to GCS and load to BigQuery.
     # pylint: disable=expression-not-assigned
     (keyed_assets
      | 'add_load_time' >> beam.ParDo(AddLoadTime(options.load_time))
-     | 'group_by_key_before_enforce' >> beam.GroupByKey()
+     | 'group_by_sharded_key_for_enforce_schema' >> beam.GroupByKey()
      | 'enforce_schema' >> beam.ParDo(EnforceSchemaDataTypes(), pvalue_schemas)
-     | 'group_by_key_before_write' >> beam.GroupByKey()
+     | 'group_by_sharded_key_for_write' >> beam.GroupByKey()
      | 'write_to_gcs' >> beam.ParDo(
-         WriteToGCS(options.stage, options.load_time))
+                WriteToGCS(options.stage, options.load_time))
      | 'group_written_objects_by_key' >> beam.GroupByKey()
      | 'delete_tables' >> beam.ParDo(
-         DeleteDataSetTables(options.dataset, options.add_load_date_suffix,
-                             options.load_time,
-                             options.write_disposition))
+                DeleteDataSetTables(options.dataset, options.add_load_date_suffix,
+                                    options.load_time,
+                                    options.write_disposition))
+     | 'assign_sharded_key_for_load' >> beam.ParDo(AssignShardedKeyForLoad())
+     | 'group_by_sharded_key_for_load' >> beam.GroupByKey()
      | 'load_to_bigquery' >> beam.ParDo(
-         LoadToBigQuery(options.dataset, options.add_load_date_suffix,
-                        options.load_time),
-         beam.pvalue.AsDict(schemas)))
+                LoadToBigQuery(options.dataset, options.add_load_date_suffix,
+                               options.load_time),
+                beam.pvalue.AsDict(schemas)))
 
     return p.run()
 

@@ -12,8 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# from googleapiclient import discovery
 from google.cloud import bigquery
 from google.cloud import billing
+from google.api_core import client_info as http_client_info
 from google.api_core.exceptions import PermissionDenied
 from google.cloud.exceptions import NotFound
 import argparse
@@ -21,14 +23,13 @@ import sys
 from colorama import Back
 from colorama import Style
 
-bq_client = bigquery.Client()
-
-base_url = "https://datastudio.google.com/reporting/create?"
-report_part_url = base_url + "c.reportId=2e2ea000-8f68-40e2-8847-b80f05069b6e"
+base_url = "https://lookerstudio.google.com/reporting/create?"
+report_part_url = base_url + "c.reportId=64387229-05e0-4951-aa3f-e7349bbafc07"
 report_base_url = report_part_url + "&r.reportName=MyBillboard"
+report_base_url = report_base_url + "&ds.ds8.refreshFields=false"
 
-std_proj_url = "&ds.ds39.connector=bigQuery&ds.ds39.projectId={}"
-std_table_url = "&ds.ds39.type=TABLE&ds.ds39.datasetId={}&ds.ds39.tableId={}"
+std_proj_url = "&ds.ds8.connector=bigQuery&ds.ds8.projectId={}"
+std_table_url = "&ds.ds8.type=TABLE&ds.ds8.datasetId={}&ds.ds8.tableId={}"
 standard_view_url = std_proj_url + std_table_url
 
 dtl_proj_url = "&ds.ds93.connector=bigQuery&ds.ds93.projectId={}"
@@ -39,7 +40,18 @@ output_url = ""
 isDetailedExportDifferentLocation = False
 detailedBBDataset = ""
 
-app_version = "2.0"
+app_version = "3.0"
+
+APPLICATION_NAME = "professional-services/billboard"
+USER_AGENT = "{}/{}".format(APPLICATION_NAME, app_version)
+
+
+# This is find code usage
+def get_http_client_info():
+    return http_client_info.ClientInfo(user_agent=USER_AGENT)
+
+
+bq_client = bigquery.Client(client_info=get_http_client_info())
 
 
 # This function checks if billboard dataset already exists or not
@@ -78,7 +90,7 @@ def create_dataset(args):
         # Create dataset for BB for standard export.
         dataset_id = "{}.{}".format(args.PROJECT_ID,
                                     args.BILLBOARD_DATASET_NAME_TO_BE_CREATED)
-        create_dataset_by_location(dataset_id, standard_table_info.location)
+        create_dataset_by_loc(dataset_id, standard_table_info.location)
     except NotFound:
         print("Table {} is not found check the export and proceed.".format(
             standard_source_id))
@@ -101,7 +113,7 @@ def create_dataset(args):
             dataset_id = "{}.{}".format(args.PROJECT_ID, detailedBBDataset)
             print("Creating another dataset {} in detailed export loc".format(
                 dataset_id))
-            create_dataset_by_location(dataset_id, detailed_table_info.location)
+            create_dataset_by_loc(dataset_id, detailed_table_info.location)
 
     except NotFound:
         print("Table {} is not found check the export.".format(
@@ -112,7 +124,7 @@ def create_dataset(args):
 
 # Creates billboard dataset based on billing exported location
 # Location is taken from the billing export table provided by the user.
-def create_dataset_by_location(dataset_id, location):
+def create_dataset_by_loc(dataset_id, location):
     # Check if billboard dataset exists
     if check_billboard_dataset_exists(dataset_id) is True:
         return
@@ -165,8 +177,16 @@ def create_billboard_view(args, isStandard):
         return
 
     sql = """
-    CREATE VIEW if not exists `{}`
-    AS select *, COALESCE((SELECT SUM(x.amount) FROM UNNEST(s.credits) x),0) AS credits_sum_amount, COALESCE((SELECT SUM(x.amount) FROM UNNEST(s.credits) x),0) + cost as net_cost, EXTRACT(DATE FROM _PARTITIONTIME) AS date from `{}` s WHERE _PARTITIONTIME >'2020-08-01'
+    CREATE OR REPLACE VIEW  `{}`
+    AS select *,
+    COALESCE((SELECT SUM(x.amount)
+    FROM UNNEST(s.credits) x),0) AS credits_sum_amount,
+    COALESCE((SELECT SUM(x.amount)
+    FROM UNNEST(s.credits) x),0) + cost as net_cost,
+    PARSE_DATE("%Y%m", invoice.month) AS Invoice_Month,
+    _PARTITIONDATE AS date
+    from `{}` s
+    WHERE _PARTITIONDATE > DATE_SUB(CURRENT_DATE(), INTERVAL 13 MONTH)
     """.format(view_id, source_id)
 
     # Not sure why this need project_id
@@ -179,9 +199,10 @@ def create_billboard_view(args, isStandard):
         output_url = report_base_url + standard_view_url.format(
             args.PROJECT_ID, args.BILLBOARD_DATASET_NAME_TO_BE_CREATED,
             args.bb_standard)
-    else:
-        output_url = output_url + detailed_view_url.format(
-            args.PROJECT_ID, detailedBBDataset, args.bb_detailed)
+    # not using detailed datasource yet so commenting
+    # else:
+    #     output_url = output_url + detailed_view_url.format(
+    #         args.PROJECT_ID, detailedBBDataset, args.bb_detailed)
 
     print('Created view {}{}.{}.{}'.format(Back.GREEN, job.destination.project,
                                            job.destination.dataset_id,
@@ -235,7 +256,8 @@ def main(argv):
                         required=True)
     parser.add_argument('-de',
                         dest='DETAILED_BILLING_EXPORT_DATASET_NAME',
-                        type=str)
+                        type=str,
+                        required=True)
 
     parser.add_argument('-bb',
                         dest='BILLBOARD_DATASET_NAME_TO_BE_CREATED',
@@ -250,22 +272,33 @@ def main(argv):
     args = parser.parse_args()
     print('Version of billboard.py  ' + app_version + "\n")
 
-    if args.DETAILED_BILLING_EXPORT_DATASET_NAME is None:
-        print("Detailed export not provided so setting default to Standard.")
-        args.DETAILED_BILLING_EXPORT_DATASET_NAME = args.STANDARD_BILLING_EXPORT_DATASET_NAME
+    # if args.DETAILED_BILLING_EXPORT_DATASET_NAME is None:
+    # print("Detailed export not provided so setting default to Standard.")
+    # args.DETAILED_BILLING_EXPORT_DATASET_NAME
+    # = args.STANDARD_BILLING_EXPORT_DATASET_NAME
 
-    # Detailed Export could be in different region so name will be modified as {}_detail in logic
+    # Detailed Export could be in different region
+    # so name will be modified as {}_detail in logic
     # So we are storing in global variable.
     detailedBBDataset = '{}'.format(args.BILLBOARD_DATASET_NAME_TO_BE_CREATED)
 
     project_id_temp = "projects/{}".format(args.PROJECT_ID)
+
+    # Check if billing api is enabled.
+    # service = discovery.build('serviceusage', 'v1')
+    # request = service.services().get(
+    #     name=f"{project_id_temp}/services/cloudbilling.googleapis.com")
+    # response = request.execute()
+    # if response.get('state') == 'DISABLED':
+    #     print("Cloud Billing API is not enabled.")
+    #     return sys.exit(1)
+
     try:
         project_billing_info = billing.CloudBillingClient(
         ).get_project_billing_info(name=project_id_temp)
-    except PermissionDenied:
-        print(
-            "Permission Denied so you do not have project level permission or provided wrong project id, please check."
-        )
+    except PermissionDenied as pde:
+        print("Permission Denied, check project level permission.")
+        print(pde.message)
         return sys.exit(1)
 
     billing_account_name = project_billing_info.billing_account_name.split(

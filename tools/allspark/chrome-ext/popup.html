@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>All Spark Chrome Extension</title>
+    <link rel="stylesheet" href="./styles/popup_styles.css">
+    <script type="text/javascript" src="scripts/jquery-3.7.1.min.js"></script>
+    <script type="text/javascript" src="scripts/showdown.js"></script>
+</head>
+<body>
+    <div class="section" style="padding-left:300px;padding-right:300px;">
+        <div class="field">
+            <figure class="image is-128x128">
+                <img src="./logo128.png" width="128px" height="128px" alt="All Spark"/>
+            </figure>
+            <label class="label">Language</label>
+            <div class="control">
+                <div class="select is-link is-fullwidth">
+                    <select id="language">
+                        <option>Select dropdown</option>
+                        <option>Java</option>
+                        <option>Python</option>
+                        <option>DML / DDL</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        <div class="field">
+            <label class="label">Source</label>
+            <div class="control">
+                <div class="select is-link is-fullwidth">
+                    <select id="source">
+                        <option>Select dropdown</option>
+                        <option>MSSQL</option>
+                        <option>Oracle</option>
+                        <option>MySQL</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        <div class="field">
+            <label class="label">Target</label>
+            <div class="control">
+                <div class="select is-link is-fullwidth">
+                    <select id="target">
+                        <option>Select dropdown</option>
+                        <option>Postgresql</option>
+                        <option>Spanner</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        <div class="field">
+            <label class="label">Prompt:</label>
+            <div class="control">
+                <textarea class="textarea danger" placeholder="Textarea" rows="2" id="prompt"></textarea>
+            </div>
+        </div>
+        <div class="field">
+            <label class="label">Code copied:</label>
+            <div class="control">
+                <textarea class="textarea" placeholder="Textarea" rows="7" id="content"></textarea>
+            </div>
+        </div>
+        <div id="output"></div>
+        <div class="field">
+            <div class="control" id="submit-wrapper">
+                <button id="submit" class="button is-outlined is-rounded is-link is-fullwidth is-focused">Submit</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="./scripts/popup_script.js"></script>
+    <script type="text/javascript" src="scripts/gcpApiCall.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,96 @@
+# Copyright 2022 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+
+# Role default values
+asm_install: true
+asm_version: "1.13"
+asm_revision: "asm-1137-3" # dynamically determined during Ansible execution
+asm_asmcli: "asmcli" # installation script name
+asm_asmcli_url: "https://storage.googleapis.com/csm-artifacts/asm"
+asm_asmcli_version: "1.13.7-asm.3-config1" # full version including the revision
+asm_cluster_name: "{{ uc_name }}"
+asm_temp: "/tmp/{{ asm_cluster_name }}"
+asm_out_dir: "{{ asm_temp }}/asm-{{ asm_version }}" # local directory where ASM artifacts are downloaded and hydrated
+asm_copy_istioctl: true         # set to true if istioctl is required to be copied to a different location
+istioctl_dest_path: "/usr/bin"  # location where istioctl should be copied
+asm_debug_mode: false           # set to true to keep the asm_temp directory in adminWS for troubleshooting
+
+
+# GCP related
+asm_gcp_project: "" # GCP project where user cluster is registered
+asm_gcp_project_number: ""
+asm_mesh_id: "proj-{{ asm_gcp_project_number }}" # consists of proj-[GCP Project Number]
+asm_gcpsa: '{{ lookup("env", "GCPSA_ASMCFG_FILE") }}'
+asm_gcpsa_path: "asm-meshconfig.json"
+asm_user_email: ""
+
+# Mesh config related
+asm_kubeconfig: "{{ yamldestpath }}/{{ asm_cluster_name }}-kubeconfig" # absolute path to user cluster kubeconfig
+asm_ingress_namespace: "asm-ingress" # Namespace the Ingress Gateways will get deployed in
+asm_network_id: "" # Mesh network ID. Must be unique and non-numeric for multi-cluster mesh to work
+
+# Gateway related
+asm_tls_cred_name: "ingress-wildcard"
+asm_tlscert_file: '{{ lookup("env", "ASM_TLSCERT_FILE") }}' # file holding the server-side TLS certificate
+asm_tlskey_file: '{{ lookup("env", "ASM_TLSKEY_FILE") }}'   # file holding the server’s private key
+asm_tls_cert_path: "{{ asm_temp }}/tls-cert.pem"  #  path to the file holding the server-side TLS certificate to use
+asm_tls_key_path: "{{ asm_temp }}/tls-key.pem"    # path to the file holding the server’s private key
+asm_ingress_hosts: [] # list
+
+# Offline mode related
+asm_offline_mode: false
+asm_offline_bundle_file: "asm-1.13.7.tar.gz"
+
+# OPTIONAL: CERTIFICATE RELATED - Set the flag to True and define the following cert variables to install cert
+asm_install_cert: false
+# define cert destination paths
+asm_ca_cert_path: "{{ asm_temp }}/ca-cert.pem"
+asm_ca_key_path: "{{ asm_temp }}/ca-key.pem"
+asm_root_cert_path: "{{ asm_temp }}/root-cert.pem"
+asm_cert_chain_path: "{{ asm_temp }}/cert-chain.pem"
+# define cert source files
+asm_cacert_file: '{{ lookup("env", "ASM_CACERT_FILE") }}'
+asm_cakey_file: '{{ lookup("env", "ASM_CAKEY_FILE") }}'
+asm_rootcert_file: '{{ lookup("env", "ASM_ROOTCERT_FILE") }}'
+asm_certchain_file: '{{ lookup("env", "ASM_CERTCHAIN_FILE") }}'
+
+# Optional: Upgrade completion task related
+asm_upgrade_completion: false # pass this as command-line argument to playbook asm_upgrade.yml
+asm_old_revision: "" # set this to previous revision of ASM installed in the cluster
+
+# Optional: private registry
+asm_registry_url: "{{ glb_privatereg_url if glb_privatereg_url is defined else '' }}" # set to private registry used for container images
+asm_minor_version: "1.13.7-asm.3" # required when using private registry
+
+# Optional: private registry, ASM hardcoded image paths in configs
+asm_csc_tag: "1.10.3-asm.16" # tag used for canonical-service-controller image
+asm_kubebuilder_tag: "v0.5.0" # tag used for kubebuilder/kube-rbac-proxy image
+
+## Optional: private registry images, uploaded to artifactory if glb_privatereg_url is defined
+asm_container_images:
+  "1.13.7-asm.3":
+    - gcr.io/gke-release/asm/pilot:1.13.7-asm.3
+    - gcr.io/gke-release/asm/proxyv2:1.13.7-asm.3
+    - gcr.io/gke-release/asm/mdp:1.13.7-asm.3
+    - gcr.io/gke-release/asm/install-cni:1.13.7-asm.3
+    - gcr.io/gke-release/asm/canonical-service-controller:1.10.3-asm.16
+    - gcr.io/kubebuilder/kube-rbac-proxy:v0.5.0
+  "1.14.1-asm.3":
+    - gcr.io/gke-release/asm/pilot:1.14.1-asm.3
+    - gcr.io/gke-release/asm/proxyv2:1.14.1-asm.3
+    - gcr.io/gke-release/asm/mdp:1.14.1-asm.3
+    - gcr.io/gke-release/asm/install-cni:1.14.1-asm.3
+    - gcr.io/gke-release/asm/canonical-service-controller:1.10.3-asm.16
+    - gcr.io/kubebuilder/kube-rbac-proxy:v0.5.0

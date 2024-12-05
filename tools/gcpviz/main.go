@@ -1,3 +1,19 @@
+/*
+#   Copyright 2022 Google LLC
+#
+#   Licensed under the Apache License, Version 2.0 (the "License");
+#   you may not use this file except in compliance with the License.
+#   You may obtain a copy of the License at
+#
+#       http://www.apache.org/licenses/LICENSE-2.0
+#
+#   Unless required by applicable law or agreed to in writing, software
+#   distributed under the License is distributed on an "AS IS" BASIS,
+#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#   See the License for the specific language governing permissions and
+#   limitations under the License.
+#
+*/
 package gcpviz
 
 import (
@@ -10,6 +26,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"log"
 	"net"
 	"os"
 	"reflect"
@@ -546,7 +563,15 @@ func (v *GcpViz) GenerateNodes(wg *sync.WaitGroup, ctx context.Context, gizmoQue
 	}
 	defer it.Close()
 	for it.Next(ctx) {
-		data := it.Result().(*gizmo.Result)
+		result := it.Result()
+		switch result.(type) {
+		case (*gizmo.Result):
+		case string:
+			log.Fatalf("Invalid result from query, expected nodes, got string: %v", result.(string))
+		default:
+			log.Fatalf("Invalid result from query, expected nodes, got: %v", result)
+		}
+		data := result.(*gizmo.Result)
 
 		var (
 			node string
@@ -671,6 +696,97 @@ func (v *GcpViz) GenerateNodes(wg *sync.WaitGroup, ctx context.Context, gizmoQue
 	}
 
 	fmt.Fprintf(out, "}\n")
+	return nil
+}
+
+func (v *GcpViz) ExportNodes(wg *sync.WaitGroup, ctx context.Context, out io.Writer) error {
+	defer wg.Done()
+
+	tx, err := v.AssetDatabase.Begin(false)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	// Iterate assets in BoltDB
+	b := tx.Bucket([]byte("Assets"))
+	c := b.Cursor()
+
+	fmt.Fprintf(os.Stderr, "Reading assets...")
+
+	var assets map[string]interface{}
+	assets = make(map[string]interface{}, 0)
+	for k, v := c.First(); k != nil; k, v = c.Next() {
+		var asset map[string]interface{}
+		err = json.Unmarshal(v, &asset)
+		if err != nil {
+			return err
+		}
+		assetMap := make(map[string]interface{}, 0)
+		assetMap["id"] = string(k)
+		assetMap["asset"] = asset
+		assets[string(k)] = assetMap
+	}
+	fmt.Fprintf(os.Stderr, "done.\n")
+
+	fmt.Fprintf(os.Stderr, "Reading edges...")
+
+	// Iterate graph in BoltDB
+	gb := tx.Bucket([]byte("Graph"))
+	gc := gb.Cursor()
+	for k, v := gc.First(); k != nil; k, v = gc.Next() {
+		var q cquad.Quad
+
+		dec := gob.NewDecoder(bytes.NewReader(v))
+		for true {
+			err = dec.Decode(&q)
+			if err != nil {
+				break
+			}
+			subject := q.Subject.String()
+			if len(subject) > 2 {
+				subject = subject[1 : len(subject)-1]
+				if _, ok := assets[subject]; ok {
+					var asset map[string]interface{}
+					asset = assets[subject].(map[string]interface{})
+					if _, ok := asset["edges"]; !ok {
+						asset["edges"] = make(map[string]interface{}, 0)
+					}
+
+					var edgeMap map[string]interface{} = asset["edges"].(map[string]interface{})
+					predicate := q.Predicate.String()
+					predicate = predicate[1 : len(predicate)-1]
+					if predicate != "data" {
+						if _, ok := edgeMap[predicate]; !ok {
+							edgeMap[predicate] = make([]string, 0)
+						}
+
+						var predList []string
+						predList = edgeMap[predicate].([]string)
+
+						object := q.Object.String()
+						object = object[1 : len(object)-1]
+						predList = append(predList, object)
+
+						edgeMap[predicate] = predList
+					}
+				}
+			}
+		}
+	}
+	fmt.Fprintf(os.Stderr, " done.\n")
+
+	fmt.Fprintf(os.Stderr, "Exporting...")
+	for _, v := range assets {
+		assetBlob, err := json.Marshal(v)
+		if err != nil {
+			return err
+		}
+		out.Write(assetBlob)
+		out.Write([]byte("\n"))
+	}
+	fmt.Fprintf(os.Stderr, " done.\n")
+
 	return nil
 }
 
@@ -934,6 +1050,10 @@ func (v *GcpViz) EnrichAssets() error {
 	}
 
 	fmt.Fprintf(os.Stderr, "\nCreating reference aliases for assets...\n")
+	wrtx, err := v.AssetDatabase.Begin(true)
+	if err != nil {
+		return err
+	}
 	err = tx.Bucket([]byte("Assets")).ForEach(func(bk, bv []byte) error {
 		isAliasAsset := false
 		for _, aliasAssetType := range aliasAssetTypes {
@@ -965,19 +1085,10 @@ func (v *GcpViz) EnrichAssets() error {
 							continue
 						}
 
-						wrtx, err := v.AssetDatabase.Begin(true)
-						if err != nil {
-							return err
-						}
-						defer wrtx.Rollback()
-
 						_targets, err := v.jsonPathResultsToString(targets)
 						for _, vertex := range _targets {
 							err = wrtx.Bucket([]byte("Aliases")).Put([]byte(vertex), []byte(name))
 							v.TotalAliases++
-						}
-						if err = wrtx.Commit(); err != nil {
-							return err
 						}
 					}
 				}
@@ -987,7 +1098,12 @@ func (v *GcpViz) EnrichAssets() error {
 		return nil
 	})
 	if err != nil {
+		wrtx.Rollback()
 		return err
+	} else {
+		if err = wrtx.Commit(); err != nil {
+			return err
+		}
 	}
 
 	fmt.Fprintf(os.Stderr, "Creating references between assets...\n")
@@ -1234,7 +1350,7 @@ func (v *GcpViz) EnrichAssets() error {
 	return nil
 }
 
-func (v *GcpViz) AddAsset(tx *bolt.Tx, asset validator.Asset, resource interface{}) error {
+func (v *GcpViz) AddAsset(tx *bolt.Tx, asset validator.Asset, resource interface{}, addResourceData bool) error {
 	name := asset.GetName()
 	parent := asset.GetResource().GetParent()
 	assetType := asset.GetAssetType()
@@ -1252,6 +1368,16 @@ func (v *GcpViz) AddAsset(tx *bolt.Tx, asset validator.Asset, resource interface
 	}
 
 	v.QW.AddQuad(cayley.Quad(parent, "child", name, assetType))
+	if addResourceData {
+		data := resource.(map[string]interface{})
+		if resourceValue, ok := data["resource"]; ok {
+			resourceValueMap := resourceValue.(map[string]interface{})
+			if _, ok := resourceValueMap["data"]; ok {
+				v.QW.AddQuad(cayley.Quad(name, "data", string(jsn), assetType))
+			}
+		}
+
+	}
 	v.TotalVertexes++
 	v.TotalEdges++
 	return nil
@@ -1270,7 +1396,7 @@ func (v *GcpViz) UpdateAsset(tx *bolt.Tx, name string, resource interface{}) err
 	return nil
 }
 
-func (v *GcpViz) ReadAssetsFromFile(input string) error {
+func (v *GcpViz) ReadAssetsFromFile(input string, addResourceData bool) error {
 	file, err := os.Open(input)
 	if err != nil {
 		return err
@@ -1328,7 +1454,7 @@ func (v *GcpViz) ReadAssetsFromFile(input string) error {
 			return err
 		}
 
-		err = v.AddAsset(tx, *pbAsset, resource)
+		err = v.AddAsset(tx, *pbAsset, resource, addResourceData)
 		if err != nil {
 			return err
 		}

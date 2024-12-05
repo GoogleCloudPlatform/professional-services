@@ -1,0 +1,13 @@
+custom.cloudsqlRequirePointInTimeRecovery:
+  actionType: DENY
+  condition: (resource.databaseVersion.contains("POSTGRES") || resource.databaseVersion.contains("SQLSERVER"))
+    && resource.settings.backupConfiguration.pointInTimeRecoveryEnabled == false
+  description: Ensure that CloudSQL instance is configure enable point in time recovery
+    in the backup configuration. This setting is possibly for Postgres and SQLServer
+    databases.
+  display_name: Require CloudSQL instances to enable point in time recovery
+  methodTypes:
+  - CREATE
+  - UPDATE
+  resourceTypes:
+  - sqladmin.googleapis.com/Instance

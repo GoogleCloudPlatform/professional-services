@@ -1,0 +1,10 @@
+name: organizations/11111111/customConstraints/custom.dataprocDisableAmPreemptibleWorker
+resource_types:
+- dataproc.googleapis.com/Cluster
+condition: ('dataproc:am.primary_only' in resource.config.softwareConfig.properties == false) || (resource.config.softwareConfig.properties['dataproc:am.primary_only'] != 'true')
+action_type: DENY
+method_types:
+- CREATE
+- UPDATE
+display_name: Disable application master to run on preemptible workers
+description: Enforce that the Dataproc application master from running on Dataproc cluster preemptible workers

@@ -1,0 +1,15 @@
+#@ load("/constraints.lib.star", "build_constraint")
+#@ constraint = build_constraint("iamDisableGmailMembers")
+
+#@ if constraint.to_generate():
+name: #@ constraint.constraint_name()
+resourceTypes: 
+- iam.googleapis.com/AllowPolicy
+methodTypes:
+- CREATE
+- UPDATE
+condition: resource.bindings.exists(binding, binding.members.exists(member, MemberSubjectEndsWith(member, ['@gmail.com'])))
+actionType: DENY
+displayName: Deny use of gmail members
+description: Ensure no binding are done by using gmail members
+#@ end

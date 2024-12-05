@@ -1,0 +1,15 @@
+#@ load("/constraints.lib.star", "build_constraint")
+#@ constraint = build_constraint("cloudrunServiceRequireBinaryAuthorization")
+
+#@ if constraint.to_generate():
+name: #@ constraint.constraint_name()
+resourceTypes:
+- run.googleapis.com/Service
+methodTypes:
+- CREATE
+- UPDATE
+condition: "!('run.googleapis.com/binary-authorization' in resource.metadata.annotations)"
+actionType: DENY
+displayName: Disable creation of Cloud Run Service without Binary Authorization
+description: Enforce that Cloud Run Service are using binary authorization
+#@ end

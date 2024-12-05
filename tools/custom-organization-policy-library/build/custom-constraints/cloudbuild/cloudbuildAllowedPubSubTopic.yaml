@@ -1,0 +1,19 @@
+#@ load("/constraints.lib.star", "build_constraint")
+#@ constraint = build_constraint("cloudbuildAllowedPubSubTopic")
+
+#@ def condition(topics):
+#@   return 'resource.pubsubConfig.topic in ' +  str(topics) + " == false"
+#@ end
+
+#@ if constraint.to_generate():
+name: #@ constraint.constraint_name()
+resourceTypes:
+- cloudbuild.googleapis.com/BuildTrigger
+methodTypes:
+- CREATE
+- UPDATE
+condition: #@  condition(constraint.params().topics)
+actionType: DENY
+displayName: Deny unauthorized Pub/Sub topics to use for trigger Cloud Build
+description: Ensure no unauthorized Pub/Sub topics are for trigger Cloud Build
+#@ end

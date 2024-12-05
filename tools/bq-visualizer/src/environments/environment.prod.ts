@@ -17,6 +17,7 @@ export const environment = {
   production: true,
   name: 'prod',
   bqUrl: 'https://www.googleapis.com/bigquery/v2/projects',
+  appVersion: require('../../package.json').version,
 
   authConfig: {
     // Url of the Identity Provider
@@ -26,12 +27,11 @@ export const environment = {
     redirectUri: window.location.origin + '/jobs',
 
     // The SPA's id. The SPA is registerd with this id at the auth-server
-    clientId:
-        '699963415840-s7ns6ehdtg8grqsrf6b9aes9vp2h8gm3.apps.googleusercontent.com',
-    clientSecret: '-bSKcuv2mYDgpLFgvdIiaF2R',
+    clientId:'699963415840-59hr83v43ubphcje8v14habt1ujkm82p.apps.googleusercontent.com',
+  
 
     // Set the scope for the permissions the client should request
-    scope: 'profile email https://www.googleapis.com/auth/bigquery',
+    scope: 'profile email https://www.googleapis.com/auth/bigquery.readonly',
     strictDiscoveryDocumentValidation: false,
     showDebugInformation: true,
   },

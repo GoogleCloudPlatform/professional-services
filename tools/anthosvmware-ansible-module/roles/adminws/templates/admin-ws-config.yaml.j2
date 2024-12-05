@@ -1,0 +1,52 @@
+{#
+# Copyright 2022 Google LLC
+# 
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+# 
+#     http://www.apache.org/licenses/LICENSE-2.0
+# 
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#}
+gcp:
+  componentAccessServiceAccountKeyPath: "{{ job_sakeyfolder }}/{{ component_access_gcpsa_path }}"
+vCenter:
+  credentials:
+    address: "{{ adminws_vc_fqdn }}"
+    fileRef:
+      path: {{ adminws_vc_credfile }}
+      entry: {{ adminws_vc_credentry }}
+  datacenter: "{{ adminws_vc_datacenter }}"
+  datastore: "{{ adminws_vc_datastore }}"
+  cluster: "{{ adminws_vc_cluster }}"
+  network: "{{ adminws_vc_network }}"
+{% if adminws_vc_folder | length > 2 %}
+  folder: "{{ adminws_vc_folder }}"
+{% endif %}
+  resourcePool: "{{ adminws_vc_respool }}"
+  caCertPath: "{{ adminws_vc_cacertpath }}"
+proxyUrl: "{{ glb_proxyurl }}"
+adminWorkstation:
+  name: {{ adminws_name }}
+  cpus: 4
+  memoryMB: 8192
+  diskGB: {{ adminws_rootdisk_gb }}
+  dataDiskName: {{ adminws_datadiskname }}
+  dataDiskMB: {{ adminws_homedisk_mb }}
+  network:
+    ipAllocationMode: "{{ adminws_nw_ipallocmode }}"
+    hostConfig:
+      ip: "{{ adminws_nw_ip }}"
+      gateway: "{{ adminws_nw_gw }}"
+      netmask: "{{ adminws_nw_nm }}"
+      dns:
+{% for ip in adminws_nw_dns %}
+      - "{{ ip }}"
+{% endfor %}
+  proxyUrl: "{{ glb_proxyurl }}"
+  ntpServer: "{{ adminws_ntp }}"

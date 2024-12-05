@@ -1,0 +1,11 @@
+FROM gcr.io/deeplearning-platform-release/tf-cpu.2-11.py37:latest
+
+RUN pip install \
+model-card-toolkit==2.0.0 \
+kfp==2.0.1 \
+pandas==1.3.5 \
+xgboost==1.6.2 \
+scikit-learn==0.24.1
+
+COPY src .
+ENV PYTHONPATH=/

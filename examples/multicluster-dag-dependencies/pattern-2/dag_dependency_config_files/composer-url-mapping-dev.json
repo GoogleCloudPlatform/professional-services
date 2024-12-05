@@ -1,0 +1,6 @@
+{
+    "composer-env-1": {
+        "project_id": "<<REPLACE_IT>>",
+        "url": "<<REPLACE_IT>>"    
+    }
+}

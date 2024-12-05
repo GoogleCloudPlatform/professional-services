@@ -1,0 +1,8 @@
+{
+    "traffic_percentage": 100,
+    "machine_type": "n1-standard-2",
+    "min_replica_count": 1,
+    "max_replica_count": 1,
+    "accelerator_type": null,
+    "accelerator_count": null
+}

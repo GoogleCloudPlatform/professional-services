@@ -1,0 +1,63 @@
+# Copyright 2022 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+apiVersion: constraints.gatekeeper.sh/v1beta1
+kind: K8sPSPSeccomp
+metadata:
+  name: cis-k8s-v1.5.1-psp-seccomp-default
+  labels:
+    policycontroller.gke.io/bundleName: cis-k8s-v1.5.1
+  annotations:
+    # This constraint is not certified by CIS.
+    policycontroller.gke.io/constraintData: |
+      "{
+        bundleName: 'cis-k8s-v1.5.1',
+        bundleDisplayName: 'CIS Kubernetes Benchmark 1.5.1',
+        bundleLink: 'https://cloud.google.com/anthos-config-management/docs/how-to/using-cis-k8s-benchmark',
+        bundleVersion: '202208.1',
+        bundleDescription: 'Use the CIS Kubernetes Benchmark 1.5.1 policy bundle with Anthos Policy Controller to evaluate the compliance of your in cluster resources against the CIS Kubernetes Benchmark, which is a set of recommendations for configuring Kubernetes to support a robust security posture.',
+        controlNumbers: '[5.7.2]',
+        severity: 'UNASSIGNED',
+        description: 'Requires that Pods have seccomp profile set to runtime/default or docker/default.',
+        remediation: 'Containers are restricted from running with `seccomp` other than `runtime/default` or `docker/default`, please remote or set your containers `seccomp` annotation to `runtime/default`.  See ‘Set the Seccomp Profile for a Container’ for more information: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-seccomp-profile-for-a-containe',
+        minimumTemplateLibraryVersion: '1.11.1'
+      }"
+spec:
+  enforcementAction: dryrun
+  match:
+    kinds:
+    - apiGroups:
+      - ""
+      kinds:
+      - Pod
+    excludedNamespaces:
+    - kube-system
+    - gatekeeper-system
+    - config-management-monitoring
+    - config-management-system
+    - cert-manager
+    - asm-system
+    - resource-group-system
+    - istio-system
+    - gke-connect
+  parameters:
+    # Modification: Added parameters.exemptImages to ensure ASM proxies initContainers do not cause violations
+    exemptImages:
+    - "gcr.io/gke-release/asm/proxyv2:*"
+    - "artifactory-dev.example.com/anthosdockerlocal/proxyv2:*"
+    - "artifactory-uat.example.com/anthosdockerlocal/proxyv2:*"
+    - "artifactory.example.com/anthosdockerlocal/proxyv2:*"
+    allowedProfiles:
+    - runtime/default
+    - docker/default

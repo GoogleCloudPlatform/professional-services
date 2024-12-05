@@ -1,0 +1,10 @@
+name: organizations/11111111/customConstraints/custom.gkeRequireLogging
+resourceTypes:
+- container.googleapis.com/Cluster
+methodTypes:
+- CREATE
+- UPDATE
+condition: resource.loggingService != 'logging.googleapis.com/kubernetes'
+actionType: DENY
+display_name: Enable logging
+description: Enforce that GKE clusters logging is enabled

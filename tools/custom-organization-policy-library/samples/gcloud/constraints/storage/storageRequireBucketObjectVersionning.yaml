@@ -1,0 +1,10 @@
+name: organizations/11111111/customConstraints/custom.storageRequireBucketObjectVersionning
+resource_types:
+- storage.googleapis.com/Bucket
+condition: resource.versioning.enabled == false
+action_type: DENY
+method_types:
+- CREATE
+- UPDATE
+display_name: Require object versioning
+description: Enforce Cloud Storage bucket object versioning to be configured

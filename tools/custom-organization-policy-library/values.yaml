@@ -1,0 +1,123 @@
+#!  Copyright 2024 Google LLC
+#!
+#!  Licensed under the Apache License, Version 2.0 (the "License");
+#!  you may not use this file except in compliance with the License.
+#!  You may obtain a copy of the License at
+#!
+#!       http://www.apache.org/licenses/LICENSE-2.0
+#!
+#!  Unless required by applicable law or agreed to in writing, software
+#!  distributed under the License is distributed on an "AS IS" BASIS,
+#!  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#!  See the License for the specific language governing permissions and
+#!  limitations under the License.
+
+#@data/values
+---
+organization: '11111111'
+bundles:
+  pci-dss: false
+  cis: false
+dryrun: false
+cloudbuild:
+  cloudbuildAllowedNetworkPeering:
+    params:
+      peered_network_ranges:
+      - "10.0.0.0/24"
+      - "10.0.1.0/24"
+  cloudbuildAllowedPubSubTopic:
+    params:
+      topics:
+      - "projects/project1/topics/topic-1"
+      - "projects/project2/topics/topic-2"
+cloudsql:
+  cloudsqlAllowedDiskTypes:
+    params:
+      disk_types:
+      - "PD_SSD"
+  cloudsqlAllowedVersions:
+    params:
+      versions:
+      - "MYSQL_5_7"
+      - "POSTGRES_15"
+      - "SQLSERVER_2022_WEB"
+  cloudsqlEnforcePasswordComplexity:
+    params:
+      min_length: 12
+compute:
+  computeAllowedInstanceMachineTypes:
+    params:
+      machine_types:
+      - "n2-standard-1"
+      - "n2-standard-2"
+  computeAllowedInstanceLabels:
+    params:
+      labels:
+      - "label-0"
+      - "label-1"
+  computeAllowedDiskTypes:
+    params:
+      disk_types:
+      - "pd-ssd"
+      - "pd-standard"
+  computeRestrictDiskSize:
+    params:
+      max_disksize: 100
+  computeAllowedInstanceVpcs:
+    params:
+      networks:
+      - "network-1"
+      - "network-2"
+dataproc:
+  dataprocAllowedLabels:
+    params:
+      labels:
+      - "label-0"
+      - "label-1"
+firewall:
+  firewallEnforceNamingConvention:
+    params:
+      name_regex: "^(allow|deny)-(all|rdp|ssh|tcp|udp|icmp|custom)[a-z0-9-]*"
+  firewallRestrictRule:
+    params:
+      direction: "INGRESS"
+      source_ranges:
+      - "192.168.32.0/24"
+      - "10.16.0.0/16"
+      destination_ranges:
+      - "192.168.32.0/24"
+      - "10.16.0.0/16"
+gke:
+  gkeAllowedNodePoolImages:
+    params:
+      images:
+      - "COS_CONTAINERD"
+  gkeAllowedReleaseChannels:
+    params:
+      release_channels: 
+      - "REGULAR"
+      - "STABLE"
+iam:
+  iamAllowedMembers:
+    params:
+      domains:
+      - "@google.com"
+      - ".gserviceaccount.com"
+network:
+  networkEnforceNamingConvention:
+    params:
+      vpc_name_regex: "^(vpc)-(dev|prd|uat)-[a-z0-9-]*"
+  networkAllowedSubnetIpRanges:
+    params:
+      ip_ranges:
+      - "10.0.0.0/24"
+      - "192.168.0.0/16"
+storage:
+  storageAllowedBucketLabels:
+    params:
+      labels:
+      - "label-0"
+      - "label-1"
+  storageBucketEnforceNamingConvention:
+    params:
+      name_regex: "^(sin|cgk)"

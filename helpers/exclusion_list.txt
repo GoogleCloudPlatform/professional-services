@@ -4,6 +4,7 @@
 ./tools/bigquery-query-plan-exporter
 ./tools/bigquery-zos-mainframe-connector
 ./tools/bqpipeline
+./tools/slo-definition-converter
 ./tools/bq-visualizer
 ./tools/cloudconnect
 ./tools/cloudera-parcel-gcsconnector
@@ -30,6 +31,7 @@
 ./examples/bigquery-billing-dashboard
 ./examples/bigquery-cross-project-slot-monitoring
 ./examples/bigquery-row-access-groups
+./examples/bigquery-ml-claudeintegrations
 ./examples/bq_benchmarks
 ./examples/cloud-composer-examples
 ./examples/cloudera-parcel-gcsconnector
@@ -63,3 +65,4 @@
 ./examples/redis-cluster-gke
 ./examples/spinnaker
 ./examples/tensorflow-profiling-examples
+./examples/ccai-agentassist-five9-grpc

@@ -1,0 +1,58 @@
+# Copyright 2022 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+
+# private ssh key on the jump host to use for the admin workstation creation
+ssh_auth_key_priv_path: "/home/anthosjumper/.ssh/user_id_ed25519"
+
+# folder where the templated YAML files result in
+yamldestpath: "/home/anthosjumper/anthos" # template out YAML files relative to playbooks/ subfolder
+
+# SSH user used by Ansible to ssh connect to the jump host
+ansible_user: "anthosjumper"
+
+# admin workstation specific below until end of file
+adminws_name: "admws"
+component_access_gcpsa: '{{ lookup("env", "GCPSA_COMACC_FILE") }}'
+component_access_gcpsa_path: "component-access.json"
+sakeyfolder_base: "/home/anthosjumper/sakeys" # different home directory on jumphost than adminWS
+adminws_create_gsa: false
+
+# vSphere/vCenter
+adminws_vc_fqdn: "{{ glb_vc_fqdn }}"
+adminws_vc_credfile: "credential.yaml"
+adminws_vc_credentry: "{{ glb_vc_credentry }}"
+adminws_vc_datacenter: "{{ glb_vc_datacenter }}"
+adminws_vc_datastore: "{{ glb_vc_datastore }}"
+adminws_vc_cluster: "{{ glb_vc_cluster }}"
+adminws_vc_network: "{{ glb_vc_network }}" # VM Network
+adminws_vc_folder: "{{ glb_vc_folder }}" # optional
+adminws_vc_respool: "{{ glb_vc_respool }}" # if default resourcePool use <adminws_vc_cluster>/Resources
+adminws_vc_cacertpath: "{{ yamldestpath }}/vcenter.pem"
+adminws_datadiskname: "{{ adminws_name }}-data-disk/{{ adminws_name }}-data-disk.vmdk"
+
+# Networking
+adminws_nw_ipallocmode: "static" # dhcp or static
+adminws_nw_ip: "10.20.0.39" # IP address of VM
+adminws_nw_gw: "10.20.0.1" # gateway
+adminws_nw_nm: "255.255.255.0" # netmask 255.255.255.0 or similar
+adminws_nw_dns: "{{ glb_dns }}" # list from group_vars/all
+adminws_ntp: "{{ glb_ntp[0] }}" # only one can be set default ntp.ubuntu.com
+
+adminws_skipvalidations: ""
+# adminws_skipvalidations: "--skip-validation"
+
+# Optional - when using private artifact repository
+private_download_base: "{{ glb_private_download_base }}"
+private_download_auth_header: "{{ glb_private_download_auth_header }}"

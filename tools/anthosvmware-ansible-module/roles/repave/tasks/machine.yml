@@ -1,0 +1,116 @@
+# Copyright 2022 Google LLC
+# 
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+# 
+#     http://www.apache.org/licenses/LICENSE-2.0
+# 
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+- name: "[repave] Get current list of machines"
+  ansible.builtin.command:
+    argv:
+      - kubectl
+      - --kubeconfig
+      - "{{ repave_kubeconfig }}"
+      - get
+      - machines
+      - --selector=set!=master
+      - --no-headers
+  register: curr_machines
+
+- name: "[repave] Annotate machine '{{ machine }}' for replacement"
+  ansible.builtin.command:
+    argv:
+      - kubectl
+      - --kubeconfig
+      - "{{ repave_kubeconfig }}"
+      - annotate
+      - machine
+      - "{{ machine }}"
+      - onprem.cluster.gke.io/repair-machine=true
+
+- name: "[repave] Remove machine '{{ machine }}' to trigger replacement"
+  async: 1800
+  poll: 15
+  ansible.builtin.command:
+    argv:
+      - kubectl
+      - --kubeconfig
+      - "{{ repave_kubeconfig }}"
+      - delete
+      - machine
+      - "{{ machine }}"
+
+- name: "[repave] Wait for replacement machine name"
+  ansible.builtin.command:
+    argv:
+      - kubectl
+      - --kubeconfig
+      - "{{ repave_kubeconfig }}"
+      - get
+      - machines
+      - --selector=set!=master
+      - --no-headers
+  register: new_machines
+  retries: 10
+  delay: 5
+  until: new_machines.stdout_lines | length >= curr_machines.stdout_lines | length
+
+- name: "[repave] Set new machine name"
+  ansible.builtin.set_fact:
+    new_machine_name: "{{ new_machines.stdout_lines | difference(curr_machines.stdout_lines) }}"
+
+- name: "[repave] Wait for replacement machine '{{ new_machine_name | join(' ') }}' to be provisioned"
+  async: 610
+  poll: 15
+  ansible.builtin.command:
+    argv: "{{ _base_argv + new_machine_name }}"
+  vars:
+    _base_argv:
+      - kubectl
+      - --kubeconfig
+      - "{{ repave_kubeconfig }}"
+      - get
+      - machine
+      - -o
+      - jsonpath={.status.phase}
+  register: _machine
+  retries: 10
+  delay: 5
+  until: _machine.stdout=="Ready"
+
+- name: "[repave] Wait for replacement machine node"
+  ansible.builtin.command:
+    argv: "{{ _base_argv + new_machine_name }}"
+  vars:
+    _base_argv:
+      - kubectl
+      - --kubeconfig
+      - "{{ repave_kubeconfig }}"
+      - get
+      - node
+  register: _node
+  retries: 15
+  delay: 5
+  until: not 'not found' in _node.stdout
+
+- name: "[repave] Wait for replacement machine '{{ new_machine_name | join(' ') }}' to be ready"
+  async: 610
+  poll: 15
+  ansible.builtin.command:
+    argv: "{{ _base_argv + new_machine_name }}"
+  vars:
+    _base_argv:
+      - kubectl
+      - --kubeconfig
+      - "{{ repave_kubeconfig }}"
+      - wait
+      - --for=condition=Ready
+      - --timeout=600s
+      - node

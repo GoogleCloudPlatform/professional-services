@@ -1,0 +1,11 @@
+custom.gkeRequireCOSImage:
+  action_type: DENY
+  condition: resource.config.imageType != "COS_CONTAINERD"
+  description: Enforce the nodes pool are using Container-Optimized OS for running
+    containers
+  display_name: Require Container-Optimized OS on node pools
+  method_types:
+  - CREATE
+  - UPDATE
+  resource_types:
+  - container.googleapis.com/NodePool

@@ -12,6 +12,14 @@ The tool requires the following:
 - Golang 1.14 (or later)
 - Graphviz
 
+## Installing locally
+
+You can install the tool locally by running:
+
+```sh
+go install github.com/GoogleCloudPlatform/professional-services/tools/gcpviz/cmd/gcpviz
+```
+
 ## Building a Docker image
 
 Easiest way to get started is to build a container from the tool, that includes all the necessary
@@ -46,6 +54,8 @@ You'll then find `network.gv`, `network.svg` and `network.png` under the `cai/` 
         log to standard error as well as files
   -cpuprofile file
         write cpu profile to file
+  -export-file string
+        location of JSON export file (default "graph.json")
   -graph-file string
         location of Graph & Asset database file (default "graph.db")
   -graph-parameter value
@@ -63,7 +73,7 @@ You'll then find `network.gv`, `network.svg` and `network.png` under the `cai/` 
   -memprofile file
         write memory profile to file
   -mode string
-        mode of operation (generate, visualize)
+        mode of operation (generate, visualize, export)
   -no-banner
         disables banner
   -no-color
@@ -74,6 +84,8 @@ You'll then find `network.gv`, `network.svg` and `network.png` under the `cai/` 
         additional parameter to pass to Gizmo query (param=value)
   -relations-file string
         location of relations file (default "relations.yaml")
+  -resource-data data
+        adds resource data to graph under data predicate
   -resource-inventory-file string
         location of resource inventory file from Cloud Asset Inventory (default "resource_inventory.json")
   -stderrthreshold value
@@ -128,6 +140,10 @@ gcpviz -query-file queries/gke.js -mode visualize > gke.gv
 dot -Kneato -Tsvg -Gdpi=60 gke.gv -o gke.svg
 ```
 
+## Exporting the graph
+
+You can also use the `-mode export` for export the enriched assets and edges.
+
 ### Sample graphs
 
 #### Basic networking components
@@ -172,3 +188,7 @@ the queries a little bit).
 - A Cloud Asset Inventory export can contain some sensitive information. A simple tool,
   called [redactor.py](redactor.py), has been included to remove some fields from the export.
 - A few asset types have clickable links in a SVG! Try it out.
+- If you have a huge resource inventory, only export the assets you need for your graph 
+  by specifying `--asset-types` when doing the `gcloud asset export`.
+- You can now access the resource properties if you specify `-resource-data` flag during
+  graph database creation. For an example how to use it, see [standalone-projects.js](queries/standalone-projects.js).

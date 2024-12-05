@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Copyright 2022 Google LLC
+# Copyright 2023 Google LLC
 
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -29,29 +29,32 @@ def case_not_found(channel_id, user_id, case):
     Parameters
     ----------
     channel_id : str
-        unique string used to idenify a Slack channel. Used to send messages to the channel
+      unique string used to idenify a Slack channel. Used to send messages to
+      the channel
     user_id : str
-        the Slack user_id of the user who submitted the request. Used to send ephemeral
-        messages to the user
+      the Slack user_id of the user who submitted the request. Used to send
+      ephemeral messages to the user
     case : str
-        unique id of the case
+      unique id of the case
     """
-    client = slack.WebClient(token=os.environ.get('SLACK_TOKEN'))
+    client = slack.WebClient(token=os.environ.get("SLACK_TOKEN"))
     try:
         client.chat_postEphemeral(
             channel=channel_id,
             user=user_id,
-            text=f"Case {case} could not be found in your org. If this case was recently"
-            " created, please give the system 60 seconds to fetch it. Otherwise,"
-            " double check your case number or confirm the org being tracked"
-            " with your Slack admin.")
+            text=(
+                f"Case {case} could not be found in your org. If this"
+                " case was recently created, please give the system 60"
+                " seconds to fetch it. Otherwise, double check your case"
+                " number or confirm the org being tracked with your Slack"
+                " admin."))
     except slack.errors.SlackApiError as e:
-        error_message = str(e) + ' : {}'.format(datetime.now())
+        error_message = f"{e} : {datetime.now()}"
         logger.error(error_message)
 
 
 if __name__ == "__main__":
-    channel_id = os.environ.get('TEST_CHANNEL_ID')
-    user_id = os.environ.get('TEST_USER_ID')
-    case = "xxxxxxxx"
-    case_not_found(channel_id, user_id, case)
+    test_channel_id = os.environ.get("TEST_CHANNEL_ID")
+    test_user_id = os.environ.get("TEST_USER_ID")
+    test_case = "xxxxxxxx"
+    case_not_found(test_channel_id, test_user_id, test_case)

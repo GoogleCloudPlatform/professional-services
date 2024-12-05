@@ -1,0 +1,9 @@
+name: organizations/11111111/customConstraints/custom.firewallEnforceNamingConvention
+resource_types:
+- compute.googleapis.com/Firewall
+condition: resource.name.matches("^(allow|deny)-(all|rdp|ssh|tcp|udp|icmp|custom)[a-z0-9-]*") == false
+action_type: DENY
+method_types:
+- CREATE
+display_name: Enforce VPC Firewall rule naming convention
+description: Prevent the creation of VPC Firewall rule that are not following the naming convention

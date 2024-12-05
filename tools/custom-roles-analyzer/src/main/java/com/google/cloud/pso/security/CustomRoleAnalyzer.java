@@ -16,7 +16,6 @@ limitations under the License.
 
 package com.google.cloud.pso.security;
 
-import com.google.cloud.pso.security.asset.AssetServiceUtil;
 import com.google.cloud.pso.security.constants.GenericConstants;
 import com.google.cloud.pso.security.util.CustomRoleAnalyzerHelper;
 import com.google.common.flogger.GoogleLogger;
@@ -32,8 +31,7 @@ public class CustomRoleAnalyzer {
 
     String orgId = "";
     String resultFormat = GenericConstants.DEFAULT_FORMAT;
-    boolean binding = false;
-    boolean customRoleAnalysis = false;
+    boolean customRoleAnalysis = true;
 
     List<String> commandlineArgs = null;
     if (args != null && args.length > 0) {
@@ -60,14 +58,7 @@ public class CustomRoleAnalyzer {
       }
     }
 
-    if (commandlineArgs.contains("--binding-analysis")) {
-      binding = true;
-    }
     if (commandlineArgs.contains("--role-analysis")) {
-      customRoleAnalysis = true;
-    }
-    if (!binding && !customRoleAnalysis) {
-      logger.atInfo().log("Choosing execution of default tool as custom role analysis.");
       customRoleAnalysis = true;
     }
 
@@ -100,24 +91,6 @@ public class CustomRoleAnalyzer {
               + GenericConstants.RESULT_FILENAME
               + "."
               + resultFormat);
-    }
-
-    if (binding) {
-      String scope = GenericConstants.ORGANIZATIONS + GenericConstants.SEPARATOR + orgId;
-      String query = "";
-      logger.atInfo().log("Staring role binding analysis for scope : " + scope);
-      AssetServiceUtil assetServiceUtil = new AssetServiceUtil();
-      try {
-        assetServiceUtil.analyzeBindings(scope, query);
-      } catch (Exception e) {
-        logger.atSevere().withCause(e).log("Unable to process bindings for the roles.");
-        System.exit(1);
-      }
-      logger.atInfo().log(
-          "Successfully executed role binding analysis and results are written to: "
-              + GenericConstants.RESULT_FILENAME_ROLE_BINDING
-              + "."
-              + GenericConstants.DEFAULT_FORMAT);
     }
     System.exit(1);
   }

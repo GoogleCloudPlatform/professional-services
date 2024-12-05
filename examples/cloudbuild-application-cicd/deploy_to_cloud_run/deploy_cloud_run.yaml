@@ -1,0 +1,49 @@
+# Copyright 2023 Google LLC
+
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+
+#     http://www.apache.org/licenses/LICENSE-2.0
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+substitutions:
+  _CICD_PROJECT: my-cicd-project-id     # GCP Project ID Containing Docker App Images (Must be defined as a Cloud Build Substitution)
+  _DEPLOY_PROJECT: my-deploy-project-id # GCP Project ID to deploy app to (Must be defined as a Cloud Build Substitution)
+  _DEPLOY_REGION: us-central1           # GCP Region to deploy app to
+  _AR_LOC: us-central1                  # Artifact Registry location
+  _AR_REPO: docker                      # Artifact Registry repository name (must already exist)
+  _APPLICATION: application             # Application name
+  _APP_IMAGE_NAME: application          # Application image name
+  _APP_IMAGE_VERSION: latest            # Application image tag/version
+  _SWAGGER: 'true'                      # Enable Swagger UI
+  _LOG_LEVEL: 'info'                    # Log level
+  _SERVICE_ACCOUNT_EMAIL: application-sa@project-id.iam.gserviceaccount.com
+
+
+steps:
+  - id: 'push to cloud run'
+    name: 'gcr.io/google.com/cloudsdktool/cloud-sdk:slim'
+    entrypoint: 'gcloud'
+    args: [
+      '--project', '${_DEPLOY_PROJECT}',
+      'run', 'deploy', '${_APPLICATION}',
+      '--service-account', '${_SERVICE_ACCOUNT_EMAIL}',
+      '--image',
+      '${_AR_LOC}-docker.pkg.dev/${_CICD_PROJECT}/${_AR_REPO}/${_APP_IMAGE_NAME}:${_APP_IMAGE_VERSION}',
+      '--platform', 'managed',
+      '--region', '${_DEPLOY_REGION}',
+      '--ingress', 'internal-and-cloud-load-balancing',
+      '--vpc-egress', 'all-traffic',
+      '--set-env-vars','SWAGGER=${_SWAGGER}',
+      '--set-env-vars','LOG_LEVEL=${_LOG_LEVEL}',
+      '--allow-unauthenticated'
+    ]
+
+# Cloud Build logs need to be defined for builds using a GCP service account
+logsBucket: gs://$_CICD_PROJECT-cloudbuild-logs
