@@ -65,6 +65,7 @@ The examples folder contains example solutions across a variety of Google Cloud 
 * [Home Appliance Status Monitoring from Smart Power Readings](examples/e2e-home-appliance-status-monitoring) - An end-to-end demo system featuring a suite of Google Cloud Platform products such as IoT Core, ML Engine, BigQuery, etc.
 * [IAP User Profile](examples/iap-user-profile) - An example to retrieve user profile from an IAP-enabled GAE application.
 * [IoT Nirvana](examples/iot-nirvana) - An end-to-end Internet of Things architecture running on Google Cloud Platform.
+* [MongoDB DLP hybrid inspection](examples/mongodb-hybrid-dlp) - Use Sensitive Data Protection's Data Loss Prevention to scan MongoDB data in near real-time.
 * [Kubeflow Pipelines Sentiment Analysis](examples/kubeflow-pipelines-sentiment-analysis) - Create a Kubeflow Pipelines component and pipelines to analyze sentiment for New York Times front page headlines using Cloud Dataflow (Apache Beam Java) and Cloud Natural Language API.
 * [Kubeflow Fairing Example](examples/kubeflow-fairing-example) - Provided three notebooks to demonstrate the usage of Kubeflow Faring to train machine learning jobs (Scikit-Learn, XGBoost, Tensorflow) locally or in the Cloud (AI platform training or Kubeflow cluster).
 * [Python CI/CD with Cloud Builder and CSR](examples/python-cicd-with-cloudbuilder) - Example that uses Cloud Builder and Cloud Source Repositories to automate testing and linting.
