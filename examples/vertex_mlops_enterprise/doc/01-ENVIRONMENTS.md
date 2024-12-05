@@ -76,7 +76,7 @@ Review the files `*.yaml` files in the `build` folder and modify them if needed.
 You will need to repeat this process for each one of the different environments (01-development, 02-staging, 03-production):
 
 - Go to the environment folder: I.e. `cd ../terraform/01-dev`
-- In the file `providers.tf`, set the name of a bucket that you want to use as the storage for your Terraform state. This should be an existing bucket that your user has access to.
+- It is recommended to have a remote state file. In this case, make sure to create the right `providers.tf` file, set the name of a bucket that you want to use as the storage for your Terraform state. This should be an existing bucket that your user has access to.
 - Create a `terraform.tfvars` file and specify the required variables. You can use the `terraform.tfvars.sample` an an starting point
 
 ```tfm

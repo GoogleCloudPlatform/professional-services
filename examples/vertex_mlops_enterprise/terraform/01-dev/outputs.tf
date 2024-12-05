@@ -173,7 +173,7 @@ locals {
     pipeline_params = "{\"bq_table\": \"${module.mlops.github.PROJECT_ID}.${var.dataset_name}.creditcards_ml\"}"
   })
 
-  model_deployment = templatefile("${path.module}/../../build/model-deployment.yaml.TEMPLATE", {
+  model_deployment = templatefile("${path.module}/../../build/model-deployment-tfx.yaml.TEMPLATE", {
     project_id    = module.mlops.github.PROJECT_ID,
     region        = var.region,
     github_org    = try(var.github.organization, null),
@@ -242,7 +242,7 @@ resource "local_file" "deployment_kfp_yml" {
 
 resource "local_file" "deployment_bqml_yml" {
   filename = "${path.module}/../../build/${var.environment}/pipeline-deployment-bqml.yaml"
-  content  = local.pipeline_deploy_kfp
+  content  = local.pipeline_deploy_bqml
 }
 
 resource "local_file" "pipeline_run_tfx_ml" {
@@ -257,11 +257,11 @@ resource "local_file" "pipeline_run_kfp_ml" {
 
 resource "local_file" "pipeline_run_bqml_ml" {
   filename = "${path.module}/../../build/${var.environment}/pipeline-run-bqml.yaml"
-  content  = local.pipeline_run_kfp
+  content  = local.pipeline_run_bqml
 }
 
 resource "local_file" "model_deploy_yml" {
-  filename = "${path.module}/../../build/${var.environment}/model-deployment.yaml"
+  filename = "${path.module}/../../build/${var.environment}/model-deployment-tfx.yaml"
   content  = local.model_deployment
 }
 

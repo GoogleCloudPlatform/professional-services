@@ -54,7 +54,7 @@ jobs:
     
     - name: 'Build container'
       run: |
-       gcloud builds submit --gcs-log-dir=$${{ env.CLOUDBUILD_LOGS }} --project $${{ env.PROJECT_ID }} --region $${{ env.REGION }} --tag $${{ env.DOCKER_REPO }}/cicd-bqml:latest src/bqml_pipeline/. --timeout=15m --machine-type=e2-highcpu-8 --suppress-logs
+       gcloud builds submit --gcs-log-dir=$${{ env.CLOUDBUILD_LOGS }} --project $${{ env.PROJECT_ID }} --region $${{ env.REGION }} --tag $${{ env.DOCKER_REPO }}/cicd-bqml:latest src/bqml_pipeline/. --timeout=60m --suppress-logs
   
   build-container-cicd-tfx:
     name: 'Build container CI/CD TFX'
@@ -76,7 +76,7 @@ jobs:
     - name: 'Build container'
       run: |
           cp build/Dockerfile.cicd-tfx build/Dockerfile
-          gcloud builds submit --gcs-log-dir=$${{ env.CLOUDBUILD_LOGS }} --project $${{ env.PROJECT_ID }} --region $${{ env.REGION }} --tag $${{ env.DOCKER_REPO }}/cicd-tfx:latest build/. --timeout=15m --machine-type=e2-highcpu-8 --suppress-logs
+          gcloud builds submit --gcs-log-dir=$${{ env.CLOUDBUILD_LOGS }} --project $${{ env.PROJECT_ID }} --region $${{ env.REGION }} --tag $${{ env.DOCKER_REPO }}/cicd-tfx:latest build/. --timeout=60m --suppress-logs
 
   
   build-container-cicd-kfp:
@@ -98,7 +98,7 @@ jobs:
     
     - name: 'Build container'
       run: |
-          gcloud builds submit --gcs-log-dir=$${{ env.CLOUDBUILD_LOGS }} --project $${{ env.PROJECT_ID }} --region $${{ env.REGION }} --tag $${{ env.DOCKER_REPO }}/cicd-kfp:latest src/kfp_pipelines/. --timeout=15m --machine-type=e2-highcpu-8 --suppress-logs
+          gcloud builds submit --gcs-log-dir=$${{ env.CLOUDBUILD_LOGS }} --project $${{ env.PROJECT_ID }} --region $${{ env.REGION }} --tag $${{ env.DOCKER_REPO }}/cicd-kfp:latest src/kfp_pipelines/. --timeout=60m --suppress-logs
 
   build-container-model-card:
     name: 'Build container for Model Card'
@@ -120,7 +120,7 @@ jobs:
     - name: 'Build container'
       run: |
           cp src/kfp_pipelines/Dockerfile.modelcard Dockerfile
-          gcloud builds submit --gcs-log-dir=$${{ env.CLOUDBUILD_LOGS }} --project $${{ env.PROJECT_ID }} --region $${{ env.REGION }} --tag $${{ env.DOCKER_REPO }}/model-card:latest . --timeout=15m --machine-type=e2-highcpu-8 --suppress-logs
+          gcloud builds submit --gcs-log-dir=$${{ env.CLOUDBUILD_LOGS }} --project $${{ env.PROJECT_ID }} --region $${{ env.REGION }} --tag $${{ env.DOCKER_REPO }}/model-card:latest . --timeout=60m --suppress-logs
   
   build-container-vertex:
     name: 'Build container Vertex'
@@ -142,7 +142,7 @@ jobs:
     - name: 'Build container'
       run: |
           cp build/Dockerfile.vertex Dockerfile
-          gcloud builds submit --gcs-log-dir=$${{ env.CLOUDBUILD_LOGS }} --project $${{ env.PROJECT_ID }} --region $${{ env.REGION }} --tag $${{ env.DOCKER_REPO }}/vertex:latest . --timeout=15m --machine-type=e2-highcpu-8 --suppress-logs
+          gcloud builds submit --gcs-log-dir=$${{ env.CLOUDBUILD_LOGS }} --project $${{ env.PROJECT_ID }} --region $${{ env.REGION }} --tag $${{ env.DOCKER_REPO }}/vertex:latest . --timeout=60m --suppress-logs
         
   build-container-dataflow:
     name: 'Build container Dataflow'
@@ -164,5 +164,5 @@ jobs:
     - name: 'Build container'
       run: |
           cp build/Dockerfile.dataflow Dockerfile
-          gcloud builds submit --gcs-log-dir=$${{ env.CLOUDBUILD_LOGS }} --project $${{ env.PROJECT_ID }} --region $${{ env.REGION }} --tag $${{ env.DOCKER_REPO }}/dataflow:latest . --timeout=15m --machine-type=e2-highcpu-8 --suppress-logs
+          gcloud builds submit --gcs-log-dir=$${{ env.CLOUDBUILD_LOGS }} --project $${{ env.PROJECT_ID }} --region $${{ env.REGION }} --tag $${{ env.DOCKER_REPO }}/dataflow:latest . --timeout=60m --suppress-logs
 
