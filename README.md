@@ -211,7 +211,7 @@ them to fit your particular use case.
     implementation for best practices around Beam, pipeline structuring, testing
     and continuous deployment.
 *   [Dataflow XML to BigQuery](examples/dataflow-xmlio-to-bq) - Example of
-    loading XML data into BigQuery with DataFlow via XMLIO
+    loading XML data into BigQuery with DataFlow via XMLIO.
 *   [Data Loss Prevention hybrid inspection for MongoDB](examples/mongodb-hybrid-dlp) - 
     A Cloud Function using MongoDB Change Streams that uses Sensitive Data Protection's
     hybrid Data Loss Prevention inspection API in near real-time.
