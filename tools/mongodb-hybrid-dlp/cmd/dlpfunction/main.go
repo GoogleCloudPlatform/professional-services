@@ -18,7 +18,7 @@ import (
 	"os"
 
 	"github.com/GoogleCloudPlatform/functions-framework-go/funcframework"
-	_ "github.com/rosmo/professional-services/tools/mongodb-hybrid-dlp"
+	_ "github.com/GoogleCloudPlatform/professional-services/tools/mongodb-hybrid-dlp"
 )
 
 func main() {
