@@ -1,0 +1,28 @@
+#  Copyright 2024 Google LLC. This software is provided as-is, without warranty
+#  or representation for any use or purpose. Your use of it is subject to your
+#  agreement with Google.
+
+project: datastream-rm
+region: us-central1
+job_name: dlp-deid-pipeline
+service_account: dlp-deid-pipeline-sa@datastream-rm.iam.gserviceaccount.com
+machine_type: n1-standard-2
+max_num_workers: 30
+job_dir: gs://clz-provider
+prod: False
+
+# DLP Params
+inspect_template: projects/datastream-rm/locations/global/inspectTemplates/inspect_template
+deidentify_template: projects/datastream-rm/locations/global/deidentifyTemplates/deidentify_template
+dlp_batch_size: 100
+
+# Either "gcs" or "bq"
+mode: gcs
+
+# GCS mode required paramas
+input_dir: gs://tdm-poc/dlp
+output_dir: gs://datastream-rm-demo-data/output
+
+# BigQuery mode required params
+input_projects:  datastream-rm
+output_projects: poc-env-aks-bq-admin
