@@ -8,7 +8,6 @@ from argparse import Namespace
 from typing import Type
 import apache_beam as beam
 from apache_beam.io import fileio
-from apache_beam.options.pipeline_options import PipelineOptions
 from src.dlp.deidentify import DeidentifyDoFn
 from src.gcs.helpers import AvroFileSink, AvroSchema, TextFileSink
 from src.gcs.helpers import ensure_avro_data_follows_schema, key_naming

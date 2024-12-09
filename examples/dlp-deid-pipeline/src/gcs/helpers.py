@@ -9,7 +9,7 @@ pipeline.
 
 from io import BytesIO
 import logging
-from typing import Any, Dict, List, Tuple, Type
+from typing import Dict, List, Tuple
 import apache_beam as beam
 from apache_beam.io import fileio
 from fastavro import reader

@@ -7,7 +7,6 @@
 from argparse import Namespace
 from typing import Type
 from apache_beam import Pipeline
-from apache_beam.options.pipeline_options import PipelineOptions
 from src.bq.pipeline import run_bq_pipeline
 from src.gcs.pipeline import run_gcs_pipeline
 

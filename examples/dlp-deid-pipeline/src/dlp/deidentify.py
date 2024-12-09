@@ -12,7 +12,7 @@ import google.cloud.dlp
 import google.cloud.dlp_v2 as dlp_v2
 import apache_beam as beam
 
-from typing import Any, Dict, List, Tuple, Union
+from typing import Any, Dict, List
 
 from src.common.utils import remove_prefix
 
