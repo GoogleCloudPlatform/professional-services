@@ -19,6 +19,8 @@ import airflow
 from datetime import datetime, timedelta
 from airflow.operators.dummy_operator import DummyOperator
 from airflow.sensors.external_task_sensor import ExternalTaskSensor
+# from croniter import croniter -- uncomment these libraries to use if needed
+# import pytz -- uncomment these libraries to use if needed
 
 default_dag_args = {
    "depends_on_past": False,
@@ -53,6 +55,16 @@ def execution_delta_dependency(logical_date, **kwargs):
     elif schedule_frequency == "daily":
         parent_dag_poke = (dt).replace(hour=0, minute=0, second=0, microsecond=0)    
     print(parent_dag_poke)
+    
+    #OPTIONAL : In case your dag frequency does not fall in any of the above options or if you want to test with varying dynamic frequencies 
+    # such as 5th minute every hour and so on, consider uncommenting the below code and comment / delete the above code. 
+    # the below code uses the croniter library to get the previous execution instance of the dag based on the date and the scheduled frequency 
+    
+    # iter = croniter(schedule_frequency, dt)
+    # prev_instance = iter.get_prev(datetime)
+    # parent_dag_poke = pytz.utc.localize(prev_instance)
+    # return prev_instance
+    
     return parent_dag_poke
 
 with airflow.DAG('product_catalog_refresh',
