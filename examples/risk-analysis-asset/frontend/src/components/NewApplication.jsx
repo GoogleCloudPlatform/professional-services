@@ -16,7 +16,7 @@
 
 import React, { useState, useEffect } from "react";
 import "../style.css";
-import { ToastContainer, toast } from "react-toastify";
+import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 function Applications({ setIsAddingNewApplication, backendURL, idToken }) {
@@ -32,6 +32,8 @@ function Applications({ setIsAddingNewApplication, backendURL, idToken }) {
   }, []);
 
   const handleSubmit = async (event) => {
+    event.preventDefault();
+    if (!idToken) return;
     try {
       //save a new application
       const response = await fetch(`${backendURL}/api/apps`, {
@@ -99,7 +101,6 @@ function Applications({ setIsAddingNewApplication, backendURL, idToken }) {
           &nbsp;
           <button type="button">Cancel</button>
         </div>
-        <ToastContainer />
       </div>
     </form>
   );

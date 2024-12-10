@@ -41,6 +41,7 @@ module "firestore" {
   db_name = var.db_name
   db_location_id = var.db_location_id
   db_project_id = var.db_project_id
+  risk_themes = var.risk_themes
   depends_on = [ google_project_service.host_project_service ]
 }
 

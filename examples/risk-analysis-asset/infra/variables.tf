@@ -40,6 +40,11 @@ variable "db_project_id" {
     description = "Project id of the DB"
 }
 
+variable "risk_themes" {
+    type = list(string)
+    description = "Risk Themes"
+}
+
 variable "frontend_svc_name" {
   type = string
   description = "Name of the Frontend Cloud Run service"

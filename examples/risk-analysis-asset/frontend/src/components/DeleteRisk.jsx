@@ -17,30 +17,26 @@
 import React, { useEffect } from "react";
 import "../style.css";
 import { useParams, useNavigate } from "react-router-dom";
-import { ToastContainer, toast } from "react-toastify";
+import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-function DeleteRisk(backendURL, idToken) {
+function DeleteRisk({ backendURL, idToken }) {
   //const [riskDeleted, setRiskDeleted] = useState(false);
   const { cujId, riskId } = useParams();
   const navigate = useNavigate();
-
   useEffect(() => {
     const deleteRisks = async () => {
+      if (!idToken) return;
       if (window.confirm("Are you sure you want to delete this risk?")) {
         try {
-          const response = await fetch(
-            `${backendURL.backendURL}/api/risks/${riskId}`,
-            {
-              //can't understand why backendURL is being passed as an object here
-              method: "DELETE",
-              //mode: 'cors',
-              headers: {
-                Authorization: `Bearer ${idToken}`,
-                "Content-Type": "application/json",
-              },
-            }
-          );
+          const response = await fetch(`${backendURL}/api/risks/${riskId}`, {
+            method: "DELETE",
+            //mode: 'cors',
+            headers: {
+              Authorization: `Bearer ${idToken}`,
+              "Content-Type": "application/json",
+            },
+          });
 
           if (response.ok) {
             //setRiskDeleted(true);
@@ -62,11 +58,7 @@ function DeleteRisk(backendURL, idToken) {
     deleteRisks();
   }, []);
 
-  return (
-    <div>
-      <ToastContainer />
-    </div>
-  );
+  return <div></div>;
 }
 
 export default DeleteRisk;
