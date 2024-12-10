@@ -17,7 +17,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import Multiselect from "multiselect-react-dropdown";
-import { ToastContainer, toast } from "react-toastify";
+import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "../style.css";
 
@@ -40,6 +40,7 @@ function NewRisk({ journeys, backendURL, idToken }) {
 
   const fetchRiskThemes = async () => {
     try {
+      if (!idToken) return;
       const response = await fetch(`${backendURL}/api/riskThemes`, {
         method: "GET",
         //mode: 'cors',
@@ -139,7 +140,7 @@ function NewRisk({ journeys, backendURL, idToken }) {
       let newRiskId = null;
       let allStepsSuccessful = true;
 
-      if (riskId) {
+      if (riskId && idToken) {
         //Update existing risk
         response = await fetch(`${backendURL}/api/risks/${riskId}`, {
           method: "PUT",
@@ -150,13 +151,12 @@ function NewRisk({ journeys, backendURL, idToken }) {
           },
           body: JSON.stringify(riskData),
         });
-        if (response.ok) {
+        if (response.ok && idToken) {
           //update risk and CUJ mapping
           // Find deselected journey IDs
           const deselectedJourneyIds = preselectedJourneyIds.filter(
             (id) => !selectedJourneyIds.includes(id)
           );
-
           //Delete risk mapping at CUJ level if CUJ removed while editing risk
           for (const journeyID of deselectedJourneyIds) {
             const removeResponse = await fetch(
@@ -229,7 +229,7 @@ function NewRisk({ journeys, backendURL, idToken }) {
           },
           body: JSON.stringify(riskData),
         });
-        if (response.ok) {
+        if (response.ok && idToken) {
           // map risks back to the CUJ
           const data = await response.json();
           newRiskId = data.riskId;
@@ -399,13 +399,18 @@ function NewRisk({ journeys, backendURL, idToken }) {
         {/* Apply the CSS class */}
         <button type="submit">Save</button>
         &nbsp; &nbsp;
-        <button type="button" onClick={() => navigate("/riskCatalog/" + cujId)}>
+        <button
+          type="button"
+          onClick={() =>
+            navigate(
+              `/riskCatalog/${cujId || (options.length > 0 ? options[0].id : "")}`
+            )
+          }
+        >
           Cancel
         </button>
       </div>
-      <div>
-        <ToastContainer />
-      </div>
+      <div></div>
     </form>
   );
 }

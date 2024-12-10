@@ -16,16 +16,18 @@
 
 import React, { useState } from "react";
 import "../style.css";
-import { ToastContainer, toast } from "react-toastify";
+import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { useNavigate } from "react-router-dom";
 
-function UserJourneys({ applicationId, backendURL, idToken }) {
+function UserJourneys({ applicationId, backendURL, idToken, refreshJourneys }) {
   const [journeyName, setJourneyName] = useState("");
   const [journeyDescription, setJourneyDescription] = useState("");
+  const navigate = useNavigate();
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-
+    if (!idToken) return;
     try {
       //saving CUJ data
       if (applicationId) {
@@ -50,6 +52,8 @@ function UserJourneys({ applicationId, backendURL, idToken }) {
             data.cujId
           );
           toast.success("Critical User Journey saved successfully!");
+          refreshJourneys();
+          navigate(`/riskCatalog/${data.cujId}`);
           setJourneyName("");
           setJourneyDescription("");
         } else {
@@ -99,7 +103,6 @@ function UserJourneys({ applicationId, backendURL, idToken }) {
           &nbsp;
           <button type="button">Cancel</button>
         </div>
-        <ToastContainer />
       </div>
     </form>
   );
