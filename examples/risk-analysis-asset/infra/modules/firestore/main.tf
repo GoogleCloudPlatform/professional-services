@@ -18,5 +18,20 @@ resource "google_firestore_database" "risk_db" {
   project = var.db_project_id
   location_id = var.db_location_id
   type = "FIRESTORE_NATIVE"
-  delete_protection_state = "DELETE_PROTECTION_ENABLED"
+  # delete_protection_state = "DELETE_PROTECTION_ENABLED"
+}
+
+resource "random_id" "risk_theme_doc_id" {
+  for_each = toset(var.risk_themes)
+  byte_length = 8
+}
+
+resource "google_firestore_document" "risktheme" {
+  for_each = toset(var.risk_themes)
+  project     = var.db_project_id
+  database    = var.db_name
+  collection  = "Risk Themes"
+  document_id = random_id.risk_theme_doc_id[each.value].hex
+  fields = "{\"ThemeName\":{\"stringValue\":\"${each.value}\"}}"
+  depends_on = [ google_firestore_database.risk_db ]
 }

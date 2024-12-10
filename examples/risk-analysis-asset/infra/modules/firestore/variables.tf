@@ -28,3 +28,8 @@ variable "db_project_id" {
     type = string
     description = "Project id of the DB"
 }
+
+variable "risk_themes" {
+    type = list(string)
+    description = "Risk Themes"
+}

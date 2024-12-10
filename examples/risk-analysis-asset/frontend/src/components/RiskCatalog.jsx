@@ -20,7 +20,7 @@ import "../style.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPenToSquare, faTrashCan } from "@fortawesome/free-regular-svg-icons";
 import { Link } from "react-router-dom";
-import { ToastContainer, toast } from "react-toastify";
+import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 function RiskCatalog({ applicationId, backendURL, idToken }) {
@@ -44,6 +44,12 @@ function RiskCatalog({ applicationId, backendURL, idToken }) {
   const [tooBigThreshold0, setTooBigThreshold0] = useState();
   const [tooBigThreshold1, setTooBigThreshold1] = useState();
   const [tooBigThreshold2, setTooBigThreshold2] = useState();
+  // store accepted risk state
+  const [acceptedRisks, setAcceptedRisks] = useState({
+    0: [],
+    1: [],
+    2: [],
+  });
 
   // classify risks as high/medium/low
   function calculateRiskLevelForGrid(badMinsData, tooBigThreshold) {
@@ -59,16 +65,10 @@ function RiskCatalog({ applicationId, backendURL, idToken }) {
     }
   }
 
-  // store accepted risk state
-  const [acceptedRisks, setAcceptedRisks] = useState({
-    0: [],
-    1: [],
-    2: [],
-  });
-
   useEffect(() => {
     const fetchRiskThresholds = async () => {
       try {
+        if (!idToken) return;
         //fetch Risk Thresholds for selected journey
         const response = await fetch(`${backendURL}/api/cujs/${cujId}`, {
           method: "GET",
@@ -164,11 +164,12 @@ function RiskCatalog({ applicationId, backendURL, idToken }) {
       }
     };
     fetchRiskThresholds();
-  }, [cujId, applicationId]);
+  }, [idToken, cujId, applicationId]);
 
   useEffect(() => {
     const fetchSortedRisks = async () => {
       try {
+        if (!idToken) return;
         //fetch risks sorted in descending order for the selected CUJ.
         const response = await fetch(`${backendURL}/api/cujs/${cujId}/risks`, {
           method: "GET",
@@ -189,7 +190,7 @@ function RiskCatalog({ applicationId, backendURL, idToken }) {
       }
     };
     fetchSortedRisks();
-  }, [cujId, applicationId]);
+  }, [idToken, cujId, applicationId]);
 
   useEffect(() => {
     //update the accepted risk cells
@@ -205,7 +206,32 @@ function RiskCatalog({ applicationId, backendURL, idToken }) {
       }
     }
     setClickedCells(updatedClickedCells);
-  }, [acceptedRisks, sortedRisks]);
+  }, [idToken, acceptedRisks, sortedRisks]);
+
+  useEffect(() => {
+    // This function will be called whenever Threshold for individual risk changes
+    const calculateTooBigThresholds = () => {
+      setTooBigThreshold0(
+        (parseFloat(individualThreshold) / 100) *
+          parseFloat(
+            (1 - parseFloat(targetAvailability0) / 100) * 1440 * 365.25
+          )
+      );
+      setTooBigThreshold1(
+        (parseFloat(individualThreshold) / 100) *
+          parseFloat(
+            (1 - parseFloat(targetAvailability1) / 100) * 1440 * 365.25
+          )
+      );
+      setTooBigThreshold2(
+        (parseFloat(individualThreshold) / 100) *
+          parseFloat(
+            (1 - parseFloat(targetAvailability2) / 100) * 1440 * 365.25
+          )
+      );
+    };
+    calculateTooBigThresholds();
+  }, [idToken, individualThreshold]);
 
   const toggleClickedCell = (prevClickedCells, riskId, columnIndex) => ({
     ...prevClickedCells,
@@ -281,7 +307,6 @@ function RiskCatalog({ applicationId, backendURL, idToken }) {
     }
 
     // Recalculate budget, unallocated, and tooBigThreshold for the specific index
-    // You'll need to adjust the logic here based on your specific calculations
     switch (index) {
       case 0:
         setBudget0((1 - parseFloat(newValue) / 100) * 1440 * 365.25);
@@ -313,35 +338,37 @@ function RiskCatalog({ applicationId, backendURL, idToken }) {
   const handleSave = async () => {
     try {
       // Prepare data to send to the backend
-      const updateData = {
-        individualThreshold,
-        targetAvailability0,
-        targetAvailability1,
-        targetAvailability2,
-        acceptedRisks0: acceptedRisks[0],
-        acceptedRisks1: acceptedRisks[1],
-        acceptedRisks2: acceptedRisks[2],
-        accepted0,
-        accepted1,
-        accepted2,
-      };
-      //update the stack rank information
-      const response = await fetch(`${backendURL}/api/cujs/${cujId}`, {
-        method: "PUT",
-        //mode: 'cors',
-        headers: {
-          Authorization: `Bearer ${idToken}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(updateData),
-      });
+      if (idToken) {
+        const updateData = {
+          individualThreshold,
+          targetAvailability0,
+          targetAvailability1,
+          targetAvailability2,
+          acceptedRisks0: acceptedRisks[0],
+          acceptedRisks1: acceptedRisks[1],
+          acceptedRisks2: acceptedRisks[2],
+          accepted0,
+          accepted1,
+          accepted2,
+        };
+        //update the stack rank information
+        const response = await fetch(`${backendURL}/api/cujs/${cujId}`, {
+          method: "PUT",
+          //mode: 'cors',
+          headers: {
+            Authorization: `Bearer ${idToken}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(updateData),
+        });
 
-      if (response.ok) {
-        console.log("Stack Rank data saved successfully!");
-        toast.success("Stack Rank data saved successfully!");
-      } else {
-        console.error("Error saving data:", response.statusText);
-        toast.error("Failed to save stack rank data successfully!");
+        if (response.ok) {
+          console.log("Stack Rank data saved successfully!");
+          toast.success("Stack Rank data saved successfully!");
+        } else {
+          console.error("Error saving data:", response.statusText);
+          toast.error("Failed to save stack rank data successfully!");
+        }
       }
     } catch (error) {
       console.error("Error:", error);
@@ -611,13 +638,17 @@ function RiskCatalog({ applicationId, backendURL, idToken }) {
               Save
             </button>{" "}
             &nbsp;
-            <button type="button" onClick={() => window.location.reload()}>
+            <button
+              type="button"
+              onClick={() => {
+                setActiveTab("Risk Catalog");
+              }}
+            >
               Cancel
             </button>
           </div>
         )}
       </div>
-      <ToastContainer />
     </div>
   );
 }
