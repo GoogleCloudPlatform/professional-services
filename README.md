@@ -441,6 +441,12 @@ Platform usage.
     Instances and load balancers are added to the cloud DNS zone as they start
     from compute_engine_activity log events sent from a pub/sub push
     subscription. Can sync multiple projects to a single Cloud DNS zone.
+*   [DynamoDB to Bigtable Migration](tools/dynamodb-bigtable-migration) - 
+    DynamoDB to Bigtable Migration tool is a powerful solution designed to streamline data transfer 
+    from DynamoDB to Cloud Bigtable.
+    This tool automates schema translation, ensuring your data structure is mapped to Bigtable. 
+    It also provides options to accelerate and scale data transfer efficiently using dataflow, 
+    minimizing downtime and maximizing performance.
 *   [Firewall Enforcer](tools/firewall-enforcer) - Automatically watch & remove
     illegal firewall rules across organization. Firewall rules are monitored by
     a Cloud Asset Inventory Feed, which trigger a Cloud Function that inspects
