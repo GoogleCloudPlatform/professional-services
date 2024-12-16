@@ -16,7 +16,7 @@ function build_jar() {
   echo "Creating uber jar..."
 
 
-mvn clean package -Dspotless.skip=true -Dcheckstyle.skip=true -Denforcer.skip=true \
+mvn clean package -Dspotless.check=true -Dcheckstyle.skip=true -Dmaven.test.skip=true -Denforcer.skip=true \
   -Dtestargs="--testBucket=$(echo "${TEMP_LOCATION}" | cut -d '/' -f 3) \
     --testProjectId=${PROJECT_ID} \
     --testInstanceId=${BIGTABLE_INSTANCE_ID}"

@@ -61,7 +61,7 @@ public class DataLoadOptionsValidator {
       // Validate BigtableRowKey
       if (options.getBigtableRowKey() == null || options.getBigtableRowKey().trim().isEmpty()) {
         throw new IllegalArgumentException(
-            "BigtableRowKey must be provided for Bigtable operations.");
+            "BigtableRowKey must be provided for mapping DynamoDB schema to Bigtable.");
       }
     }
   }
@@ -97,15 +97,30 @@ public class DataLoadOptionsValidator {
             options.setBigtableTableId(tableId);
             options.setBigtableColumnFamily("cf1");
           } else {
-            // Check if table exists
+
             try {
               Table table = adminClient.getTable(tableId);
+              // Check if column family is provided when table exists
+              if (options.getBigtableColumnFamily() == null
+                      || options.getBigtableColumnFamily().trim().isEmpty()) {
+                throw new IllegalArgumentException(
+                        "BigtableColumnFamily must be provided when Bigtable Table ID is specified.");
+              }
 
               // If table exists, no need to validate column family (as per requirement)
             } catch (com.google.api.gax.rpc.NotFoundException e) {
               throw new IllegalArgumentException(
-                  String.format("Table '%s' does not exist in instance '%s'", tableId, instanceId));
+                      String.format("Table '%s' does not exist in instance '%s'", tableId, instanceId));
             }
+            // Check if table exists
+//            try {
+//              Table table = adminClient.getTable(tableId);
+//
+//              // If table exists, no need to validate column family (as per requirement)
+//            } catch (com.google.api.gax.rpc.NotFoundException e) {
+//              throw new IllegalArgumentException(
+//                  String.format("Table '%s' does not exist in instance '%s'", tableId, instanceId));
+//            }
           }
         }
       } catch (Exception e) {

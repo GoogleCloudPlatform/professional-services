@@ -21,7 +21,7 @@ The Bigtable Migration utility efficiently migrates data from a DynamoDB table t
 
 ### Bigtable
 
-*   **Bigtable Table:** Create a Bigtable `table` along with a `column family` before executing the utility. The utility will create `column qualifier` in the specified column family.
+*   **Bigtable Table:** If you don't specify a Bigtable `table` in the environment file, the utility will create one for you.To migrate data to a specific Bigtable table, you need to create the table and at least one column family beforehand. The utility will create `column qualifier` in the specified column family.
 *   **Bigtable row key:** The DynamoDB `partition key` will be mapped as the `row key` in Bigtable. Along with the `table name` and `column family`, specify the DynamoDB table `partition key` as a parameter in the .env file.
 
 ## Migration Steps

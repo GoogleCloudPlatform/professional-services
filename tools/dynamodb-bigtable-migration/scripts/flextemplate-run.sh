@@ -14,6 +14,7 @@ JOB_NAME=$(echo "${COMMAND}-dataload-`date +%Y%m%d-%H%M%S`" | tr '[:upper:]' '[:
 function dynamodb_to_bigtable() {
    echo "Loading DynamoDB data from Cloud Storage to Bigtable using job:${JOB_NAME}"
 
+
 gcloud dataflow flex-template run ${JOB_NAME} \
     --template-file-gcs-location "${FLEX_TEMPLATE_SPEC_FILE_PATH}" \
     --project ${PROJECT_ID}  --region "${REGION}" \
@@ -23,7 +24,9 @@ gcloud dataflow flex-template run ${JOB_NAME} \
     --parameters inputFilePath="${INPUT_FILEPATH}" \
     --parameters bigtableProjectId="${PROJECT_ID}" \
     --parameters bigtableInstanceId="${BIGTABLE_INSTANCE_ID}" \
-    --parameters bigtableRowKey="${BIGTABLE_ROW_KEY}"
+    --parameters bigtableRowKey="${BIGTABLE_ROW_KEY}" \
+    --parameters bigtableTableId="${BIGTABLE_TABLE_ID}" \
+    --parameters bigtableColumnFamily="${BIGTABLE_COL_FAMILY}"
 
 }
 
