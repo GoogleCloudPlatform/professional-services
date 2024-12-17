@@ -112,7 +112,6 @@ public class DataLoadOptionsValidator {
               throw new IllegalArgumentException(
                   String.format("Table '%s' does not exist in instance '%s'", tableId, instanceId));
             }
-
           }
         }
       } catch (Exception e) {
