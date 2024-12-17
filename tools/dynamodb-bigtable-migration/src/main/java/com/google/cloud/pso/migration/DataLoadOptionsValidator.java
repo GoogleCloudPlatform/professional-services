@@ -1,18 +1,18 @@
 /*
-*  Copyright 2024 Google LLC
-*
-*  Licensed under the Apache License, Version 2.0 (the "License");
-*  you may not use this file except in compliance with the License.
-*  You may obtain a copy of the License at
-*
-*      https://www.apache.org/licenses/LICENSE-2.0
-*
-*  Unless required by applicable law or agreed to in writing, software
-*  distributed under the License is distributed on an "AS IS" BASIS,
-*  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-*  See the License for the specific language governing permissions and
-*  limitations under the License.
-*/
+ *  Copyright 2024 Google LLC
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
 package com.google.cloud.pso.migration;
 
 import com.google.cloud.bigtable.admin.v2.BigtableTableAdminClient;
@@ -102,25 +102,17 @@ public class DataLoadOptionsValidator {
               Table table = adminClient.getTable(tableId);
               // Check if column family is provided when table exists
               if (options.getBigtableColumnFamily() == null
-                      || options.getBigtableColumnFamily().trim().isEmpty()) {
+                  || options.getBigtableColumnFamily().trim().isEmpty()) {
                 throw new IllegalArgumentException(
-                        "BigtableColumnFamily must be provided when Bigtable Table ID is specified.");
+                    "BigtableColumnFamily must be provided when Bigtable Table ID is specified.");
               }
 
               // If table exists, no need to validate column family (as per requirement)
             } catch (com.google.api.gax.rpc.NotFoundException e) {
               throw new IllegalArgumentException(
-                      String.format("Table '%s' does not exist in instance '%s'", tableId, instanceId));
+                  String.format("Table '%s' does not exist in instance '%s'", tableId, instanceId));
             }
-            // Check if table exists
-//            try {
-//              Table table = adminClient.getTable(tableId);
-//
-//              // If table exists, no need to validate column family (as per requirement)
-//            } catch (com.google.api.gax.rpc.NotFoundException e) {
-//              throw new IllegalArgumentException(
-//                  String.format("Table '%s' does not exist in instance '%s'", tableId, instanceId));
-//            }
+
           }
         }
       } catch (Exception e) {
