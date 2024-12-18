@@ -62,14 +62,18 @@ The Bigtable Migration utility efficiently migrates data from a DynamoDB table t
 **3. Build and deploy the Dataflow flex template to import the data**
 
 *    Before you begin, make sure you have the following installed:
-	```
-	Java Development Kit (JDK) 11
-	Apache Maven 3
-	```
+
+	 ```
+     Java Development Kit (JDK) 11
+     Apache Maven 3
+     ```
+
 *   Clone the repository:
 
 	```
-	git clone git@dynamodb-567794993156-ssh.us-central1.sourcemanager.dev:cloud-professional-services/dynamodb-bigtable-migration.git
+	git clone https://github.com/GoogleCloudPlatform/professional-services.git
+    cd ./professional-services/tools/dynamodb-bigtable-migration
+
 	```
 
 
