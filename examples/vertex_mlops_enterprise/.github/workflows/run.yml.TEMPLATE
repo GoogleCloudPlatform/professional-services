@@ -48,5 +48,5 @@ jobs:
         access_token_lifetime: 7200s
 
     - name: 'Run Vertex Pipeline'
-      run: gcloud builds submit --no-source --config build/$${{ env.ENVIRONMENT }}/pipeline-run-${framework}.yaml --project $${{ env.PROJECT_ID }} --region $${{ env.REGION }} --machine-type=e2-highcpu-8 --suppress-logs
+      run: gcloud builds submit --no-source --config build/$${{ env.ENVIRONMENT }}/pipeline-run-${framework}.yaml --project $${{ env.PROJECT_ID }} --region $${{ env.REGION }} --suppress-logs
       

@@ -1,0 +1,8 @@
+# Ignore build folders
+target/
+
+# Ignore IDE-specific files
+.idea/
+.vscode/
+
+scripts/.env

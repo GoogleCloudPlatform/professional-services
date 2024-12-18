@@ -1,0 +1,11 @@
+custom.cloudsqlAllowedDiskTypes:
+  actionType: DENY
+  condition: resource.settings.dataDiskType in ["PD_SSD"] == false
+  description: Ensure that CloudSQL instance is configured with allowed configurations
+    (e.g. SSD disk type)
+  display_name: Require CloudSQL instances to use allowed configurations
+  methodTypes:
+  - CREATE
+  - UPDATE
+  resourceTypes:
+  - sqladmin.googleapis.com/Instance

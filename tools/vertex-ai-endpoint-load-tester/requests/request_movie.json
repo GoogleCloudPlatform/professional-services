@@ -1,0 +1,20 @@
+{
+  "instances": [
+    {
+      "Id": 3837,
+      "name": "The",
+      "rating": "R",
+      "genre": "Comedy",
+      "year": 2000,
+      "released": "8/3/2001",
+      "director": "John",
+      "writer": "John",
+      "star": "Michael",
+      "country": "United",
+      "budget": 35524924.14,
+      "company": "Pictures",
+      "runtime": 104,
+      "data_cat": "TRAIN"
+    }
+  ]
+}

@@ -48,4 +48,4 @@ jobs:
         access_token_lifetime: 3600s
 
     - name: 'Deploy Vertex AI Pipeline'
-      run: gcloud builds submit --no-source --config build/$${{ env.ENVIRONMENT }}/pipeline-deployment-${framework}.yaml --project $${{ env.PROJECT_ID }} --region $${{ env.REGION }} --machine-type=e2-highcpu-8 --suppress-logs
+      run: gcloud builds submit --no-source --config build/$${{ env.ENVIRONMENT }}/pipeline-deployment-${framework}.yaml --project $${{ env.PROJECT_ID }} --region $${{ env.REGION }} --suppress-logs

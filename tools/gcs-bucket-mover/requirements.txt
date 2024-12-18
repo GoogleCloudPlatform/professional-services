@@ -65,7 +65,7 @@ googleapis-common-protos[grpc]==1.52.0
     #   grpc-google-iam-v1
 grpc-google-iam-v1==0.12.3
     # via google-cloud-pubsub
-grpcio==1.41.1
+grpcio==1.53.2
     # via
     #   google-api-core
     #   googleapis-common-protos
@@ -117,7 +117,7 @@ requests==2.27.1
     #   google-cloud-storage
 retrying==1.3.3
     # via gcs_bucket_mover (setup.py)
-rsa==4.5
+rsa==4.7
     # via
     #   google-api-python-client
     #   google-auth
@@ -142,7 +142,7 @@ text-unidecode==1.3
     # via faker
 uritemplate==3.0.1
     # via google-api-python-client
-urllib3==1.26.18
+urllib3==1.26.19
     # via requests
 yaspin==1.5.0
     # via gcs_bucket_mover (setup.py)

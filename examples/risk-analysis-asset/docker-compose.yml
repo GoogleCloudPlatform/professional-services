@@ -1,0 +1,36 @@
+# Copyright 2020 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+version: "3.8"
+
+services:
+  backend:
+    build: ./backend 
+    platform: linux/amd64
+    ports:
+      - "5000:5000" # Map container port 5000 to host port 5000
+    environment:
+      - ENV=development
+      - FIRESTORE_PROJECT_ID=your-project-id  
+      - FIRESTORE_DATABASE_ID=your-database-id 
+  frontend:
+    build: ./frontend # Build from the frontend Dockerfile
+    platform: linux/amd64
+    ports:
+      - "3000:3000" # Map container port 3000 to host port 3000
+    environment:
+      - REACT_APP_ENV=development
+      - REACT_APP_BACKEND_SERVICE_URL="http://127.0.0.1:5000"
+    depends_on:
+      - backend # Ensure the backend starts before the frontend

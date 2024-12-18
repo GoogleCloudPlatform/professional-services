@@ -30,12 +30,12 @@ class APISchema(object):
     Will union all API versions into a single schema.
     """
 
-    _discovery_document_cache = dict()
+    _discovery_document_cache = {}
     _schema_cache = {}
 
     @classmethod
     def _get_discovery_document(cls, dd_url):
-        """Retreive and cache a discovery document."""
+        """Retrieve and cache a discovery document."""
         if dd_url in cls._discovery_document_cache:
             return cls._discovery_document_cache[dd_url]
         discovery_document = None
@@ -57,9 +57,9 @@ class APISchema(object):
         Args:
           dd_url: Discovery document url.
         Returns:
-          API name if can be found, None otherwise.
+          API name if one can be found, None otherwise.
         """
-        apiary_match = re.match(r'https://(?:[^/]+)/discovery/v1/apis/([^/]+)',
+        apiary_match = re.match(r'https://[^/]+/discovery/v1/apis/([^/]+)',
                                 dd_url)
         if apiary_match:
             return apiary_match.group(1)
@@ -70,28 +70,28 @@ class APISchema(object):
         return None
 
     @classmethod
-    def _get_discovery_document_versions(cls, dd_url):
-        """Return all verisons of the APIs discovery documents.
+    def _get_discovery_document_versions(cls, doc_url):
+        """Return all versions of the APIs discovery documents.
 
         Args:
-          dd_url: the url of the asset's discovery document.
+          doc_url: the url of the asset's discovery document.
         Returns:
            list of discovery document json objects.
         """
         # calculate all the discovery documents from the url.
         discovery_documents = []
-        api_name = cls._get_api_name_for_discovery_document_url(dd_url)
-        dd = cls._get_discovery_document(dd_url)
+        api_name = cls._get_api_name_for_discovery_document_url(doc_url)
+        doc = cls._get_discovery_document(doc_url)
         # add the discovery document to return value
-        discovery_documents += [dd] if dd else []
+        discovery_documents += [doc] if doc else []
         # and discovery documents from other versions of the same API.
         all_discovery_docs = cls._get_discovery_document(
             'https://content.googleapis.com/discovery/v1/apis')
         for discovery_doc in all_discovery_docs['items']:
             dru = discovery_doc['discoveryRestUrl']
-            if (api_name == discovery_doc['name'] and dru != dd_url):
-                dd = cls._get_discovery_document(dru)
-                discovery_documents += [dd] if dd else []
+            if api_name == discovery_doc['name'] and dru != doc_url:
+                doc = cls._get_discovery_document(dru)
+                discovery_documents += [doc] if doc else []
         return discovery_documents
 
     @classmethod
@@ -111,7 +111,9 @@ class APISchema(object):
         bigquery_type = 'STRING'
         property_type = property_value.get('type', None)
         # nested record.
-        if property_type == 'object' or 'properties' in property_value:
+        if (property_type == 'any' or
+                property_type == 'object' or
+                'properties' in property_value):
             bigquery_type = 'RECORD'
         # repeated, recurse into element type.
         elif property_type == 'array':
@@ -155,43 +157,108 @@ class APISchema(object):
         Returns:
             BigQuery fields dict list or None if the field should be skipped.
         """
-        # found a record type, this is a recursive exit condition.
+
+        return_value = []
+
+        # explicit properties are added to the list of fields to return.
         if 'properties' in property_value:
-            return cls._properties_map_to_field_list(
+            return_value += cls._properties_map_to_field_list(
                 property_value['properties'], resources, seen_resources)
+
+        # handle $ref
         property_resource_name = cls._ref_resource_name(property_value)
         # get fields of the reference type.
         if property_resource_name:
-            # not handling recursive fields.
+            # if a field is recursive, ignore the field.
             if property_resource_name in seen_resources:
-                return None
-            # rack prior types to not recurse forever.
+                return []
+            # track prior types to not recurse forever.
             seen_resources[property_resource_name] = True
-            return_value = cls._get_properties_map_field_list(
+            return_value += cls._get_properties_map_field_list(
                 property_resource_name, resources[property_resource_name],
                 resources, seen_resources)
             del seen_resources[property_resource_name]
-            return return_value
-        # get fields of item type.
+
+        # handle 'items'
         if 'items' in property_value:
-            return cls._get_properties_map_field_list(
+            return_value += cls._get_properties_map_field_list(
                 property_name, property_value['items'],
                 resources, seen_resources)
-        # convert additionalProperties fields to a dict
-        # of name value pairs for a more regular schema.
-        if 'additionalProperties' in property_value:
-            fields = [{'name': 'name',
-                       'field_type': 'STRING',
-                       'description': 'additionalProperties name',
-                       'mode': 'NULLABLE'}]
-            fields.append(
-                cls._property_to_field(
-                    'value',
-                    property_value['additionalProperties'],
-                    resources, seen_resources))
-            return fields
-        # unknown property type.
-        return None
+            # additionalProperties is a repeated field,
+            # to support a nested repeated field we need another nested field.
+            if cls.is_additional_property_fields(return_value):
+                return_value = [{'name': 'additionalProperties',
+                                 'field_type': 'RECORD',
+                                 'description': 'additionalProperties',
+                                 'fields': return_value,
+                                 'mode': 'REPEATED'}]
+
+        # does the property allow arbitrary properties with no schema?
+        if cls.allows_additional_properties(property_value):
+            # assign the additional_properties to the return value.
+            additional_properties_fields = return_value
+
+            # if there are 'properties' in addition to 'additionalProperties',
+            # we'll create a new 'additionalProperties' nested field to hold the
+            # repeated name value property list.
+            if additional_properties_fields:
+                ap_field = {'name': 'additionalProperties',
+                            'field_type': 'RECORD',
+                            'description': 'additionalProperties',
+                            'fields': [],
+                            'mode': 'REPEATED'}
+                return_value.append(ap_field)
+                additional_properties_fields = ap_field['fields']
+
+            # add name field.
+            additional_properties_fields.append(
+                {'name': 'name',
+                 'field_type': 'STRING',
+                 'description': 'additionalProperties name',
+                 'mode': 'NULLABLE'})
+
+            # is there an explicit type for the additional property value?
+            ap_prop = property_value.get('additionalProperties', None)
+            if isinstance(ap_prop, dict) and ap_prop:
+                ap_field = cls._property_to_field(
+                    'value', ap_prop,
+                    resources, seen_resources)
+                # only add the value property if it's valid,
+                # also, don't double next additional properties.
+                # which can happen if the property type of the additional
+                # properties value is arbitrary.
+                if (ap_field is not None
+                        and not cls.is_additional_property_fields(
+                            ap_field.get('fields', None))):
+                    additional_properties_fields.append(ap_field)
+
+            # if we didn't find a value property,
+            # add a generic 'STRING' value property
+            if len(additional_properties_fields) < 2:
+                additional_properties_fields.append(
+                    {'name': 'value',
+                     'field_type': 'STRING',
+                     'description': 'additionalProperties value',
+                     'mode': 'NULLABLE'})
+
+        return return_value
+
+    @classmethod
+    def allows_additional_properties(cls, schema_object):
+        """True if the schema allows arbitrary properties."""
+        return (('items' not in schema_object and
+                 '$ref' not in schema_object and
+                 'properties' not in schema_object) or
+                ('additionalProperties' in schema_object) and
+                schema_object['additionalProperties'] is not False)
+
+    @classmethod
+    def is_additional_property_fields(cls, fields):
+        """True if 'fields' is an additionalProperties schema field list."""
+        return fields and len(fields) == 2 and all(
+            (f.get('name', None) == 'name'
+             and f.get('description', None) == 'additionalProperties name')
+            or (f.get('name', None) == 'value') for f in fields)
 
     @classmethod
     def _property_to_field(cls, property_name, property_value,
@@ -215,20 +282,23 @@ class APISchema(object):
         if 'description' in property_value:
             field['description'] = property_value['description'][:1024]
 
+        fields_list = []
+        if bigquery_type == 'RECORD':
+            fields_list = cls._get_properties_map_field_list(
+                property_name, property_value, resources, seen_resources)
+            # did we find any fields?
+            if not fields_list:
+                return None
+            field['fields'] = fields_list
+
         # array fields are BigQuery repeated fields, and convert
         # additionalProperties to repeated lists of key value pairs.
         if (property_type == 'array' or
-            'additionalProperties' in property_value):
+                cls.is_additional_property_fields(fields_list)):
             field['mode'] = 'REPEATED'
         else:
             field['mode'] = 'NULLABLE'
 
-        if bigquery_type == 'RECORD':
-            fields_list = cls._get_properties_map_field_list(
-                property_name, property_value, resources, seen_resources)
-            if not fields_list:
-                return None
-            field['fields'] = fields_list
         return field
 
     @classmethod
@@ -238,7 +308,7 @@ class APISchema(object):
 
         Args:
             properties_map: dict of properties from the API schema document we
-            are convering into a BigQuery field list.
+            are converting into a BigQuery field list.
             resources: dict of all other resources that might be referenced by
             the API schema through reference types ($ref values).
             seen_resources: dict of types we have processed to prevent endless
@@ -257,12 +327,10 @@ class APISchema(object):
     @classmethod
     def _get_cache_key(cls, resource_name, document):
         if 'id' in document:
-            return '{}.{}'.format(document['id'], resource_name)
+            return f'{document["id"]}.{resource_name}'
         if 'info' in document:
             info = document['info']
-            return '{}.{}.{}'.format(info['title'],
-                                     info['version'],
-                                     resource_name)
+            return f'{info["title"]}.{info["version"]}.{resource_name}'
         return resource_name
 
     @classmethod
@@ -273,7 +341,7 @@ class APISchema(object):
 
     @classmethod
     def _translate_resource_to_schema(cls, resource_name, document):
-        """Expands the $ref properties of a reosurce definition."""
+        """Expands the $ref properties of a resource definition."""
         cache_key = cls._get_cache_key(resource_name, document)
         if cache_key in cls._schema_cache:
             return cls._schema_cache[cache_key]
@@ -318,13 +386,26 @@ class APISchema(object):
             'field_type': 'TIMESTAMP',
             'description': 'Load time.',
             'mode': 'NULLABLE'
-        }]
+        }, {
+            'name': 'ancestors',
+            'field_type': 'STRING',
+            'mode': 'REPEATED',
+            'description': 'The ancestry path of an asset in Google Cloud.'
+        },
+            {
+                'name': 'update_time',
+                'field_type': 'STRING',
+                'mode': 'NULLABLE',
+                'description': 'The last update timestamp of an asset.'
+            }]
         if include_resource:
             resource_schema = list(schema)
             _, last_modified = bigquery_schema.get_field_by_name(
                 resource_schema,
                 'lastModifiedTime')
             if not last_modified:
+                # if we lack a lastModified time in the schema, add it, some
+                # resources include it without being in the schema.
                 resource_schema.append({
                     'name': 'lastModifiedTime',
                     'field_type': 'STRING',
@@ -362,7 +443,20 @@ class APISchema(object):
                     'description': 'Resource properties.',
                     'mode': 'NULLABLE',
                     'fields': resource_schema
-                }]
+                },
+                    {
+                        'name': 'location',
+                        'field_type': 'STRING',
+                        'description': 'The location of the resource in Google Cloud, such as its zone and region. '
+                                       'For more information, see https://cloud.google.com/about/locations/.',
+                        'mode': 'NULLABLE'
+                    },
+                    {
+                        'name': 'json_data',
+                        'field_type': 'JSON',
+                        'description': 'Original JSON of the resource.',
+                        'mode': 'NULLABLE'
+                    }]
             })
         if include_iam_policy:
             asset_schema.append({
@@ -396,9 +490,9 @@ class APISchema(object):
                             'field_type': 'NUMERIC',
                             'mode': 'NULLABLE',
                             'description':
-                            ('1: Admin reads. Example: CloudIAM getIamPolicy'
-                             '2: Data writes. Example: CloudSQL Users create'
-                             '3: Data reads. Example: CloudSQL Users list')
+                                ('1: Admin reads. Example: CloudIAM getIamPolicy'
+                                 '2: Data writes. Example: CloudSQL Users create'
+                                 '3: Data reads. Example: CloudSQL Users list')
                         }]
                     }]
                 }, {
@@ -439,8 +533,12 @@ class APISchema(object):
         Returns:
             BigQuery schema.
         """
-        cache_key = '{}.{}.{}'.format(asset_type, include_resource,
-                                      include_iam_policy)
+
+        # some resources use asset_type as their discovery_name incorrectly.
+        # this tries to correct that.
+        if resource_name is not None and '/' in resource_name:
+            resource_name = resource_name[resource_name.find('/') + 1:]
+        cache_key = f'{asset_type}.{include_resource}.{include_iam_policy}'
         if cache_key in cls._schema_cache:
             return cls._schema_cache[cache_key]
         # get the resource schema if we are including the resource

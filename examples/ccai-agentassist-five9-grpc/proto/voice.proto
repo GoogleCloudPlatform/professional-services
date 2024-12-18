@@ -1,0 +1,160 @@
+syntax = "proto3";
+
+package five9.voicestream;
+
+import "google/protobuf/timestamp.proto";
+
+option java_package = "com.five9.voicestream.grpc";
+
+
+// Service to stream live voice of a participant in a call.
+service Voice {
+    // Method for bidirectional streaming of messages:
+    // send audio of the user's speech and receive feedback in response.
+    rpc StreamingVoice(stream StreamingVoiceRequest) returns (stream StreamingVoiceResponse) {}
+}
+
+
+// The message sent by the client for the 'StreamingVoice' method.
+// Multiple 'StreamingVoiceRequest' messages are sent repeatedly as defined below.
+// The first message must be 'streaming_config' containing control data specific to the call being streamed.
+// The subsequent messages must be 'audio_content' with audio payload.
+// After sending the 'streaming_config' message, the client must wait for a response from the server
+// with status code SRV_START_STREAMING before sending audio payloads.
+// Optionally status messages 'streaming_status' can be sent any time to provide
+// additional information e.g events, notifications about the call.
+message StreamingVoiceRequest {
+    // The streaming request, which is either a streaming config, audio content or client status.
+    oneof streaming_request {
+        // Provides information about the call and the participant to the receiver.
+        // The first 'StreamingVoiceRequest' message must contain a 'StreamingConfig' message.
+        StreamingConfig streaming_config = 1;
+
+        // As the user speaks the speech is sent in chunks of audio data
+        // sequentially in a stream of 'StreamingVoiceRequest' messages.
+        // The audio bytes must have been encoded as specified in 'StreamingConfig'.
+        bytes audio_content = 2;
+
+        // Provides additional information related to the call or stream e.g. events
+        // like CALL_ENDED, HOLD, RESUME etc. Errors or statistics etc.
+        StreamingStatus streaming_status = 3;
+    }
+    // The time this message was created.
+    // This must be set for messages with audio data. Optional for other type of messages.
+    google.protobuf.Timestamp send_time = 4;
+}
+
+// Provides information to the receiver that specifies how to process the request.
+message StreamingConfig {
+    VoiceConfig voice_config = 1;
+
+    // CallID to identify a call within a domain in Five9.
+    string vcc_call_id = 2;
+
+    string domain_id = 3;
+
+    string campaign_id = 4;
+
+    string agent_id = 5;
+
+    enum CallLeg {
+        AGENT = 0;
+        CUSTOMER = 1;
+        SUPERVISOR = 2;
+    }
+
+    // Identifies the role of the participant
+    CallLeg call_leg = 6;
+
+    string trust_token = 7;
+
+    // same call can be streamed for multiple subscribers/filters
+    string subscription_id = 8;
+
+    // Skill Id associated with this audio stream.
+    string skill_id = 9;
+
+}
+
+// Provides information about audio data in the request.
+message VoiceConfig {
+    // Supported audio encoding types.
+
+    // ***********************************************
+    // N.B. Currently VoiceStream supports only LINEAR16 at 8000 Hz
+    // Other encodings and sample rates may be supported in the future, but are
+    // currently ignored.
+    // ***********************************************
+
+    enum AudioEncoding {
+        // Not specified.
+        ENCODING_UNSPECIFIED = 0;
+
+        // Uncompressed 16-bit signed little-endian samples (Linear PCM).
+        LINEAR16 = 1;
+
+        // 8-bit samples that compand 14-bit audio samples using G.711 PCMU/mu-law.
+        MULAW = 2;
+
+        // Adaptive Multi-Rate Narrowband codec. `sample_rate_hertz` must be 8000.
+        AMR = 3;
+
+        // Adaptive Multi-Rate Wideband codec. `sample_rate_hertz` must be 16000.
+        AMR_WB = 4;
+      }
+
+    // Encoding of data sent in 'StreamingVoiceRequest' messages with audio.
+    AudioEncoding encoding = 1;
+
+    // Sampling rate in Hertz of the audio data sent in 'StreamingVoiceRequest' messages.
+    // Currently only 8000 is supported by VoiceStream.
+    int32 sample_rate_hertz = 2;
+}
+
+// The status message which can be used by either client or server
+// in the Request or Response message respectively.
+message StreamingStatus {
+
+    enum StatusCode {
+        SUCCESS = 0;
+        // Client status codes
+        CLT_CALL_ENDED = 1;                 // Call ended. Close the gRPC channel.
+        CLT_CALL_HOLD = 2;
+        CLT_CALL_RESUME = 3;
+        CLT_DISCONNECT = 4;                 // Client closing gRPC channel.
+        CLT_ERROR_NO_RESOURCE = 100;
+        CLT_ERROR_TIMEOUT = 101;
+        CLT_ERROR_GENERIC = 102;
+
+        // Server status codes
+        SRV_REQ_START_STREAMING = 1001;     // Start sending audio
+        SRV_REQ_PAUSE_STREAMING = 1002;     // Stop sending audio
+        SRV_REQ_DISCONNECT = 1011;          // Close the existing gRPC channel.
+        SRV_REQ_RECONNECT = 1012;           // Close the existing channel and then start all over again on a new channel.
+        SRV_ERROR_NO_RESOURCE = 1100;
+        SRV_ERROR_TIMEOUT = 1101;
+        SRV_ERROR_GENERIC = 1102;
+    }
+
+    // The status code, which is either a client side code or server side code.
+    StatusCode code = 1;
+
+    // A description of the status
+    string message = 2;
+}
+
+// The message sent by the server for the 'StreamingVoice' method.
+// The server may send status or provide feedback about the call using this message.
+// The first message must be with status code SRV_START_STREAMING, and it must be
+// sent after receiving configuration 'streaming_config' in request message from the client.
+message StreamingVoiceResponse {
+    // Provides notifications e.g. events, errors etc about the stream to the client.
+    StreamingStatus status = 1;
+
+    // Optional: Provides additional data e.g. feedback about the stream to the client.
+    StreamingFeedback feedback = 2;
+}
+
+message StreamingFeedback {
+    VoiceConfig voice_config = 1;
+}

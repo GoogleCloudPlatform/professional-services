@@ -1,0 +1,17 @@
+PROJECT_ID=<<GCP Project ID>> #e.g: test-project
+REGION=<<GCP Region>> #e.g: us-central1
+
+REPOSITORY=<<Artifactory repository>> #e.g: "cbt-flextemplates"
+IMAGE_NAME=<<Name of the docker image along with tag>> #e.g: bigtable-data-import:latest
+
+FLEX_TEMPLATE_SPEC_FILE_PATH=<<GCS Path to store the flex template file specification>> # "gs://<bucket-name>/templates/templatename"
+STAGING_LOCATION=<<GCS Path to store the staging data >>   # "gs://<bucket-name>/templates/templatename"
+TEMP_LOCATION=<<GCS Path to store the flex template file specification>> # "gs://<bucket-name>/templates/templatename"
+
+INPUT_FILEPATH=<<GCS path containing the DynamoDB exports>> # gs://sample-bucket-test/dynamodb-export/*.json.gz
+BIGTABLE_INSTANCE_ID=<<Name of the Bigtable instance>>  #bigtable-clusterOptional parameters
+BIGTABLE_ROW_KEY=<<Provide DynamoDB Partition Key that will be used as Bigtable row key >> #Username
+
+// Optional parameters
+BIGTABLE_TABLE_ID=<<Name of the Bigtable table>> #bigtable-table
+BIGTABLE_COL_FAMILY=<<Provide Bigtable Column Family>> #cf1

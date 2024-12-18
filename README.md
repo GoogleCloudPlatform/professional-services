@@ -212,6 +212,9 @@ them to fit your particular use case.
     and continuous deployment.
 *   [Dataflow XML to BigQuery](examples/dataflow-xmlio-to-bq) - Example of
     loading XML data into BigQuery with DataFlow via XMLIO.
+*   [Data Loss Prevention hybrid inspection for MongoDB](examples/mongodb-hybrid-dlp) - 
+    A Cloud Function using MongoDB Change Streams that uses Sensitive Data Protection's
+    hybrid Data Loss Prevention inspection API in near real-time.
 *   [Dataproc GCS Connector](examples/dataproc-gcs-connector) - Install and test
     unreleased features on the GCS Connector for Dataproc.
 *   [Dataproc Job Optimization Guide](examples/dataproc-job-optimization-guide) - Step-by-step
@@ -246,6 +249,7 @@ them to fit your particular use case.
 *   [Ephemeral Projects](examples/ephemeral-projects) - Creating short lived gcp projects for sandbox purposes.
 *   [GCE Access to Google AdminSDK](examples/gce-to-adminsdk) - Example to help
     manage access to Google's AdminSDK using GCE's service account identity
+*   [GCS Client Side Encryption via Sidecar](examples/gcs-client-encrypt/) - Example to show how to implement GCS client side encyrption via a sidecar
 *   [GCS Hive External Table File Optimization](examples/gcs-hive-external-table-file-optimization) - 
     Example solution to showcase impact of file count, file size, and file
     type on Hive external tables and query speeds.
@@ -295,6 +299,7 @@ them to fit your particular use case.
     proprietary format, for Quantum Approximate Optimization Algorithm (QAOA)
 *   [Redis Cluster on GKE Example](examples/redis-cluster-gke) - Deploying Redis
     cluster on GKE.
+*   [Risk Analysis Asset](examples/risk-analysis-asset) - Deploying Reliability Risk analysis tool on Cloud Run. 
 *   [Spanner Interleave Subquery](examples/spanner-interleave-subquery) -
     Example code to benchmark Cloud Spanner's subqueries for interleaved tables.
 *   [Spanner Change Stream to BigQuery using Dataflow](examples/spanner-changestreams-bigquery) - 
@@ -436,6 +441,12 @@ Platform usage.
     Instances and load balancers are added to the cloud DNS zone as they start
     from compute_engine_activity log events sent from a pub/sub push
     subscription. Can sync multiple projects to a single Cloud DNS zone.
+*   [DynamoDB to Bigtable Migration](tools/dynamodb-bigtable-migration) - 
+    DynamoDB to Bigtable Migration tool is a powerful solution designed to streamline data transfer 
+    from DynamoDB to Cloud Bigtable.
+    This tool automates schema translation, ensuring your data structure is mapped to Bigtable. 
+    It also provides options to accelerate and scale data transfer efficiently using dataflow, 
+    minimizing downtime and maximizing performance.
 *   [Firewall Enforcer](tools/firewall-enforcer) - Automatically watch & remove
     illegal firewall rules across organization. Firewall rules are monitored by
     a Cloud Asset Inventory Feed, which trigger a Cloud Function that inspects
@@ -564,6 +575,14 @@ Platform usage.
 *   [STS Job Manager](tools/sts-job-manager/) - A petabyte-scale bucket
     migration tool utilizing
     [Storage Transfer Service](https://cloud.google.com/storage-transfer-service)
+*   [Vertex AI Endpoint Tester] (tools/vertex-ai-endpoint-load-tester) - This 
+    utility helps to methodically test variety of Vertex AI Endpoints by their
+    sizes so that one can decide the right size to deploy an ML Model on Vertex
+    AI given a sample request JSON and some idea(s) on expected queries per second.
+*   [Vertex AI Endpoint Tester](tools/vertex-ai-endpoint-load-tester) - This 
+    utility helps to methodically test variety of Vertex AI Endpoints by their
+    sizes so that one can decide the right size to deploy an ML Model on Vertex
+    AI given a sample request JSON and some idea(s) on expected queries per second.
 *   [VM Migrator](tools/vm-migrator) - This utility automates migrating Virtual
     Machine instances within GCP. You can migrate VM's from one zone to another
     zone/region within the same project or different projects while retaining
@@ -589,9 +608,12 @@ Platform usage.
     Recommender is a database script that recommends the best numeric data type for the NUMBER data type
     when migrating from legacy databases like Oracle to Google Cloud platforms like BigQuery, AlloyDB,
     Cloud SQL for PostgreSQL, and Google Cloud Storage.
-*   [Composer DAG Load Generator](tools/cloud-composer-dag-generator) - This is an automatic 
-    DAG generator tool which can be used to create test workload on a cloud composer environmnet
-    and to test differents airflows configurations or to do fine tune using the composer/airflow metrics.
+*   [Cloud Composer Stress Testing](tools/cloud-composer-stress-testing) - A collection
+    of tools aimed at testing, benchmarking, and simulating workloads within Composer. Great for
+    integration testing and experimenting with different environment configurations. 
+*   [Cloud Composer Environment Rotator](tools/cloud-composer-environment-rotator) - Rotate Airflow
+    resources from an old composer environment to a new composer environment with minimal downtime. Ideal
+    for non in-place environment updates, downgrading environment versions, or migrating to different regions.
 *   [Gradio and Generative AI Example](examples/genai-gradio-example) - The example code allows developers 
     to create rapid Generative AI PoC applications with Gradio and Gen AI agents.
 *   [Memorystore Cluster Ops Framework](tools/memorystore-cluster-ops-framework) - This is a framework that 
