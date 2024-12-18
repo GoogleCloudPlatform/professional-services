@@ -1,3 +1,0 @@
-google-cloud-resource-manager
-google-cloud-logging
-pytest

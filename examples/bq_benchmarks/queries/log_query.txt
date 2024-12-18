@@ -1,9 +1,0 @@
-SELECT
-    protopayload_auditlog.servicedata_v1_bigquery.jobCompletedEvent.job.jobStatistics.totalSlotMs,
-    protopayload_auditlog.servicedata_v1_bigquery.jobCompletedEvent.job.jobStatistics.totalSlotMs / TIMESTAMP_DIFF(
-        protopayload_auditlog.servicedata_v1_bigquery.jobCompletedEvent.job.jobStatistics.endTime,
-        protopayload_auditlog.servicedata_v1_bigquery.jobCompletedEvent.job.jobStatistics.startTime,
-        MILLISECOND
-    ) avgSlots
-FROM `{0:s}.{1:s}.cloudaudit_googleapis_com_data_access_{2:s}`
-WHERE  protopayload_auditlog.servicedata_v1_bigquery.jobCompletedEvent.job.jobName.jobId = '{3:s}'

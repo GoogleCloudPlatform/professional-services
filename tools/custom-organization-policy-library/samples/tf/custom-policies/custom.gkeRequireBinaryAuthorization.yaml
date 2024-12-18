@@ -1,3 +1,0 @@
-custom.gkeRequireBinaryAuthorization:
-  rules:
-  - enforce: true

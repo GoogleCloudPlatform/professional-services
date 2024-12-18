@@ -1,1 +1,0 @@
-{"additions": [], "deletions": [{"name": "test.gcp.example.com.", "type": "A", "ttl": 300, "rrdatas": ["10.138.0.44"], "signatureRrdatas": [], "kind": "dns#resourceRecordSet"}], "startTime": "2019-06-19T23:29:55.513Z", "id": "7", "status": "pending", "kind": "dns#change"}

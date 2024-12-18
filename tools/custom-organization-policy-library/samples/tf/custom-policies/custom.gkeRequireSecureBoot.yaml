@@ -1,3 +1,0 @@
-custom.gkeRequireSecureBoot:
-  rules:
-  - enforce: true

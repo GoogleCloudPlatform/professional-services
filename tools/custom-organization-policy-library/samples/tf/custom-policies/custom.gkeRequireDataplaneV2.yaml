@@ -1,3 +1,0 @@
-custom.gkeRequireDataplaneV2:
-  rules:
-  - enforce: true

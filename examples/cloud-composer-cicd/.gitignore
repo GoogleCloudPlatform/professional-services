@@ -1,9 +1,0 @@
-__pycache__
-logs/
-.direnv
-.envrc
-airflow.cfg
-airflow.db
-unittests.cfg
-tmp/
-deployed/

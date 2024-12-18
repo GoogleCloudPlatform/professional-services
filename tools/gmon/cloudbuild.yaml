@@ -1,6 +1,0 @@
----
-steps:
-- name: 'gcr.io/cloud-builders/docker'
-  args: ['build', '-t', 'gcr.io/{_PROJECT_NAME}/gmon', '.']
-images:
-- 'gcr.io/${_PROJECT_NAME}/gmon'

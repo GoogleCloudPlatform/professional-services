@@ -1,5 +1,0 @@
-.terraform/
-.keys/
-.terraform*
-terraform.tfstate*
-terraform.tfvars

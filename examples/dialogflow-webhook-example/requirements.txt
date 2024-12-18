@@ -1,5 +1,0 @@
-dialogflow==0.7.2
-Flask==1.1.1
-pandas
-google-cloud-firestore
-

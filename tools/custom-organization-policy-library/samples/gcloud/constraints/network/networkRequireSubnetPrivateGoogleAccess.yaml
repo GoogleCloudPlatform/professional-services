@@ -1,9 +1,0 @@
-name: organizations/11111111/customConstraints/custom.networkRequireSubnetPrivateGoogleAccess
-resource_types:
-- compute.googleapis.com/Subnetwork
-condition: resource.privateIpGoogleAccess == false
-action_type: DENY
-method_types:
-- CREATE
-display_name: Require Private Google Access
-description: Enforce that the VPC network subnets are configured with private Google access

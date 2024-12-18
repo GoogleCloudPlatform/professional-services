@@ -1,0 +1,31 @@
+module "google-managed-kafka-src" {
+  source = "../../../modules/google-managed-kafka"
+  project_id = "mbawa-sandbox"
+  region = "us-central1"
+  rebalance_config = "AUTO_REBALANCE_ON_SCALE_UP"
+  name = "kafka-src"
+  shared_vpc_name = ""
+  shared_vpc_subnetwork = ""
+  service_account_email = ""
+  kafka_topic_id = "kafka-src-topic"
+  kafka_topic_partition_count = "2"
+  kafka_topic_replication_factor = "3"
+  kafka_topic_retention_ms = "-1"
+  kafka_topic_cleanup_policy = ""
+}
+
+module "google-managed-kafka-dest" {
+  source = "../../../modules/google-managed-kafka"
+  project_id = "mbawa-sandbox"
+  region = "us-central1"
+  rebalance_config = "AUTO_REBALANCE_ON_SCALE_UP"
+  name = "kafka-dest"
+  shared_vpc_name = ""
+  shared_vpc_subnetwork = ""
+  service_account_email = ""
+  kafka_topic_id = "kafka-dest-topic"
+  kafka_topic_partition_count = "2"
+  kafka_topic_replication_factor = "3"
+  kafka_topic_retention_ms = "-1"
+  kafka_topic_cleanup_policy = ""
+}

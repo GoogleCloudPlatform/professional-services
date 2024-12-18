@@ -1,7 +1,0 @@
-LABUSER      K D01        1   0   4   0   0   0   0   0   0   4  755   .  0   0   0   0   0 100
-#U
-#/1/                          A   G   -   C   R   7   T   -   Z RELE EX.  _   _   _   _   _ CLI
-S4S f 0000 20240322163114 tocsaps4app       s4sadm
-S4S e 0000 20240322163117 tocsaps4app       s4sadm
-D01 < 0000 20240322163120 tocsaps4app       s4sadm
-S4S E 0000 20240322163120 tocsaps4app       s4sadm

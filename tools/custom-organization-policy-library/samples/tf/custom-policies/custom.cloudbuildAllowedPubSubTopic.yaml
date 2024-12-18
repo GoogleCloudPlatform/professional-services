@@ -1,3 +1,0 @@
-custom.cloudbuildAllowedPubSubTopic:
-  rules:
-  - enforce: true

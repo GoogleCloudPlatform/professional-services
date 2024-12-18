@@ -1,5 +1,0 @@
-google-api-python-client
-mock
-pytz
-webapp2
-webtest

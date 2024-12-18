@@ -1,8 +1,0 @@
-{
-    "organization_id" : "",
-    "owner_username" : "",
-    "owner_email" : "",
-    "owner_role" : "",
-    "service_ids" : ["compute.googleapis.com", "iam.googleapis.com"],
-    "project_id" : ""
-}

@@ -1,7 +1,0 @@
-.gcloudignore
-.git
-.gitignore
-README.md
-*.iml
-.idea/
-venv/

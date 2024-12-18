@@ -1,9 +1,0 @@
-custom.networkRequireInternalIpv6Ranges:
-  action_type: DENY
-  condition: resource.enableUlaInternalIpv6 == false
-  description: Enforce that a VPC is configured to have an internal IPv6 range
-  display_name: Require internal IPv6 ranges on VPC
-  method_types:
-  - CREATE
-  resource_types:
-  - compute.googleapis.com/Network

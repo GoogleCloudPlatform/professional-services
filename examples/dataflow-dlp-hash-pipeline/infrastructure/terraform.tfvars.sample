@@ -1,8 +1,0 @@
-project = "<project-id>"
-// Note these buckets MUST exist prior to terraform apply
-// or the notification will not work.
-// Also bucket names do not include the gs:// prefix
-buckets_to_monitor = [
-    "<bucket-1>",
-    "<bucket-2>",
-]
