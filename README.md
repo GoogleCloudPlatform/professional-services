@@ -265,7 +265,7 @@ them to fit your particular use case.
     Basic example of a Grpc server that is connected to a Spanner database.
 *   [Grpc Server connected to Redis](examples/grpc_redis_example) - Basic
     example of a Grpc server that is connected to Redis.
-*   [Gitlab KAS agent for GKE](examples/gitlab-kas-gke) - Terraform solution for          deploying a Gitlab KAS agent for synchronizing container deployments from Gitlab repos into a GKE cluster
+*   [Gitlab KAS agent for GKE](examples/gitlab-kas-gke) - Terraform solution for          deploying a Gitlab KAS agent for synchronizing container deployments from Gitlab repos into a GKE cluster 
 *   [Home Appliance Status Monitoring from Smart Power Readings](examples/e2e-home-appliance-status-monitoring) -
     An end-to-end demo system featuring a suite of Google Cloud Platform
     products such as IoT Core, ML Engine, BigQuery, etc.
@@ -287,6 +287,7 @@ them to fit your particular use case.
     templates from your choice of sources.
 *   [LookerStudio Cost Optimization Dashboard](examples/cost-optimization-dashboard) -
     SQL scripts to help build Cost Optimization LookerStudio Dashboard.
+*   [Migrate Kafka to GMK using MM2](examples/mm2-gmk-migration) -  Terraform code to deploy resources to migrate data between two Google Managed Kafka clustes using MirrorMaker2
 *   [Personal Workbench Notebooks Deployer](examples/personal-workbench-notebooks-deployer) - Terraform sample modules to provision Dataproc Hub using personal auth clusters, and workbench managed notebooks for individual analytical users.
 *   [Project factory with Terragrunt](examples/terragrunt-project-factory-gcp/) -
     This implements a `State-Scalable` project factory pattern for creating Google Cloud Platform projects using Terragrunt and public Terraform modules
