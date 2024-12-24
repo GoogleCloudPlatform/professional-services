@@ -1,0 +1,22 @@
+{
+  "name": "Escape Double Quotes Flex Template",
+  "description": "",
+  "parameters": [
+    {
+      "name": "input",
+      "label": "Input destination",
+      "helpText": "The path and filename prefix for writing input files. Example: gs://your-bucket/your-path",
+      "regexes": [
+        "^gs:\\/\\/[^\\n\\r]+$"
+      ]
+    },
+    {
+      "name": "output",
+      "label": "Output destination",
+      "helpText": "The path and filename prefix for writing output files. Example: gs://your-bucket/your-path",
+      "regexes": [
+        "^gs:\\/\\/[^\\n\\r]+$"
+      ]
+    }
+  ]
+}

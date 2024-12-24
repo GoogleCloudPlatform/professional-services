@@ -1,0 +1,10 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "escape_quotes_package"
+version = "0.1.0"
+dependencies = [
+    "apache-beam[gcp]==2.59.0",  # Must match the version in `Dockerfile``.
+]

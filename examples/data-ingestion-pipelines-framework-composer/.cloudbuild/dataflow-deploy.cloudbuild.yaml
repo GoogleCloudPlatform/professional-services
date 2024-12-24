@@ -1,0 +1,56 @@
+# Copyright 2021 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitatioŻns under the License.
+
+serviceAccount: projects/gcp-dev/serviceAccounts/cloudbuild-ssm@gcp-dev.iam.gserviceaccount.com
+options:
+  logging: CLOUD_LOGGING_ONLY
+substitutions:
+  _SDK_CONTAINER_IMAGE: me-central1-docker.pkg.dev/dev-processing/default-docker-repository/escape-quotes
+steps:
+  - name: gcr.io/cloud-builders/docker
+    dir: dataflow/escape_quotes
+    args:
+      - build
+      - -t
+      - ${_SDK_CONTAINER_IMAGE}:latest
+      - -t
+      - ${_SDK_CONTAINER_IMAGE}:${COMMIT_SHA}
+      - .
+  - name: gcr.io/cloud-builders/docker
+    dir: dataflow/escape_quotes
+    args:
+    - push
+    - ${_SDK_CONTAINER_IMAGE}:latest
+  - name: gcr.io/cloud-builders/docker
+    dir: dataflow/escape_quotes
+    args:
+    - push
+    - ${_SDK_CONTAINER_IMAGE}:${COMMIT_SHA}
+  - name: gcr.io/cloud-builders/gcloud
+    dir: dataflow/escape_quotes
+    args:
+    - dataflow
+    - flex-template
+    - build
+    - gs://dev-processing-dataflow-artifacts/templates/escape_quotes.json
+    - --disable-public-ips
+    - --image=${_SDK_CONTAINER_IMAGE}:${COMMIT_SHA}
+    - --max-workers=10
+    - --metadata-file=metadata.json
+    - --project=dev-processing
+    - --sdk-language=PYTHON
+    - --service-account-email=dataflow-worker@dev-processing.iam.gserviceaccount.com
+    - --staging-location=gs://dev-processing-dataflow-temp/staging
+    - --subnetwork=regions/me-central1/subnetworks/default
+    - --temp-location=gs://dev-processing-dataflow-temp/temp

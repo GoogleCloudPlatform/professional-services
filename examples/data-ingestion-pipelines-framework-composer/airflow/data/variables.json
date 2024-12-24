@@ -1,0 +1,15 @@
+{
+  "bq_project_id": "dev-dls",
+  "dataplex_lake_id": "datalake-id",
+  "dataplex_project_id": "dev-governance",
+  "dataplex_raw_layer_zone_id": "raw-layer",
+  "gcs_bucket": "dev_table",
+  "location": "me-central1",
+  "oracle_jdbc_DB_DATASET_NAME": "jdbc:oracle:thin:@0.0.0.0:0001:DB_DATASET_NAME",
+  "oracle_password": "$PASSWORD",
+  "oracle_user": "$USERNAME",
+  "processing_project_id": "dev-processing",
+  "teradata_jdbc_DB_DATASET_NAME": "jdbc:teradata://0.0.0.0/DATABASE=DB_DATASET_NAME",
+  "teradata_password": "$PASSWORD",
+  "teradata_user": "$USERNAME"
+}
