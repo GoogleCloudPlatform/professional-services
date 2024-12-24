@@ -1,0 +1,67 @@
+# Copyright 2021 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitatioŻns under the License.
+
+# [START composer_cicd_dagsync_yaml]
+serviceAccount: projects/gcp-dev/serviceAccounts/cloudbuild-ssm@gcp-dev.iam.gserviceaccount.com
+options:
+  logging: CLOUD_LOGGING_ONLY
+substitutions:
+  _COMPOSER_PROJECT: dev-orchestration
+  _COMPOSER_ENV_NAME: dev-composer-env
+  _COMPOSER_GCS_BUCKET: gs://dev_composer_storage
+  _LOCATION: me-central1
+steps:
+  # Deploy DAGs and Data
+  - name: gcr.io/cloud-builders/gsutil
+    args:
+    - -m
+    - rsync
+    - -r
+    - airflow/
+    - $_COMPOSER_GCS_BUCKET
+  # Deploy SQL scripts
+  - name: gcr.io/cloud-builders/gsutil
+    args:
+    - -m
+    - rsync
+    - -r
+    - SQL
+    - gs://ooredoo_dev_table/sql/
+  # Import variables
+  - name: gcr.io/cloud-builders/gcloud
+    args:
+    - composer
+    - environments
+    - run
+    - $_COMPOSER_ENV_NAME
+    - --project=${_COMPOSER_PROJECT}
+    - --location=${_LOCATION}
+    - variables
+    - import
+    - --
+    - /home/airflow/gcs/data/variables.json
+  # Import Connections file
+  - name: gcr.io/cloud-builders/gcloud
+    args:
+    - composer
+    - environments
+    - run
+    - $_COMPOSER_ENV_NAME
+    - --project=${_COMPOSER_PROJECT}
+    - --location=${_LOCATION}
+    - connections
+    - import
+    - --
+    - --overwrite
+    - /home/airflow/gcs/data/connections.json

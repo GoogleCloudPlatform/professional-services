@@ -1,0 +1,24 @@
+triggers:
+# With every push
+- name: test-python
+  project: gcp-dev
+  configFilePath: .cloudbuild/test-python.cloudbuild.yaml
+  includedGitRefs: ^.*$
+  eventType: push
+  disabled: false
+  serviceAccount: projects/gcp-dev/serviceAccounts/cloudbuild-ssm@gcp-dev.iam.gserviceaccount.com
+# Main branch only
+- name: orchestration-deploy
+  project: gcp-dev
+  configFilePath: .cloudbuild/composer-deploy.cloudbuild.yaml
+  includedGitRefs: ^main$
+  eventType: push
+  disabled: false
+  serviceAccount: projects/gcp-dev/serviceAccounts/cloudbuild-ssm@gcp-dev.iam.gserviceaccount.com
+- name: deploy-dataflow-artifacts
+  project: gcp-dev
+  configFilePath: .cloudbuild/dataflow-deploy.cloudbuild.yaml
+  includedGitRefs: ^main$
+  eventType: push
+  disabled: false
+  serviceAccount: projects/gcp-dev/serviceAccounts/cloudbuild-ssm@gcp-dev.iam.gserviceaccount.com

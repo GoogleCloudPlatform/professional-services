@@ -1,0 +1,12 @@
+{
+  "ooredoo_sftp_dev": {
+    "conn_type": "sftp",
+    "description": "connection to sftp_dev",
+    "login": "infa_admin",
+    "password": "$PASSWORD",
+    "host": "172.16.0.0",
+    "port": 22,
+    "schema": "",
+    "extra": "{}"
+  }
+}

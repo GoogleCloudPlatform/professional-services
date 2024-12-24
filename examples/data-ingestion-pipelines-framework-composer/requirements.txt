@@ -1,0 +1,4 @@
+apache-airflow-providers-sftp==4.10.3
+apache-airflow[gcp]==2.9.1
+paramiko==3.4.1
+-e dataflow/escape_quotes/.
