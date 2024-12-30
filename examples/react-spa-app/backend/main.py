@@ -19,6 +19,7 @@ from google.auth.transport import requests as auth_requests
 from google.oauth2 import id_token
 from flask import abort
 
+
 def validate_iap_jwt(iap_jwt, expected_audience):
     """Validate an IAP JWT.
 
@@ -40,7 +41,7 @@ def validate_iap_jwt(iap_jwt, expected_audience):
             # due to backend service needing to point to a function, so the audience is created after
             # deployment. We could store the audience in a Secret Manager secret to decouple the process,
             # but this exercise is left up to the reader.
-            audience=None, # audience=expected_audience
+            audience=None,  # audience=expected_audience
             certs_url="https://www.gstatic.com/iap/verify/public_key",
         )
         return (decoded_jwt["sub"], decoded_jwt["email"], "")
@@ -48,11 +49,13 @@ def validate_iap_jwt(iap_jwt, expected_audience):
         print(f"**ERROR: JWT validation error {e}**", file=sys.stderr)
         return (None, None, f"**ERROR: JWT validation error {e}**")
 
+
 @functions_framework.http
 def hello_function(request):
-  if os.getenv("IAP_AUDIENCE"):
-    ret = validate_iap_jwt(request.headers.get("x-goog-iap-jwt-assertion"), os.getenv("IAP_AUDIENCE"))
-    if not ret[0]:
-      abort(403)
-    return "Hello World: %s" % (ret[0])
-  return 'Hello World'
+    if os.getenv("IAP_AUDIENCE"):
+        ret = validate_iap_jwt(request.headers.get("x-goog-iap-jwt-assertion"),
+                               os.getenv("IAP_AUDIENCE"))
+        if not ret[0]:
+            abort(403)
+        return "Hello World: %s" % (ret[0])
+    return 'Hello World'
