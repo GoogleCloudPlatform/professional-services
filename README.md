@@ -297,6 +297,8 @@ them to fit your particular use case.
     Batching in Pub/Sub's Java client API.
 *   [QAOA](examples/qaoa) - Examples of parsing a max-SAT problem in a
     proprietary format, for Quantum Approximate Optimization Algorithm (QAOA)
+*   [React single-page app on Cloud Run + Cloud Storage](examples/react-spa-app) - End-to-end example of deploying 
+    a React SPA on serverless Google Cloud services.
 *   [Redis Cluster on GKE Example](examples/redis-cluster-gke) - Deploying Redis
     cluster on GKE.
 *   [Risk Analysis Asset](examples/risk-analysis-asset) - Deploying Reliability Risk analysis tool on Cloud Run. 
