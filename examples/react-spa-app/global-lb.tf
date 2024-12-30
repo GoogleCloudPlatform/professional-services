@@ -152,7 +152,7 @@ module "xlb" {
 
   urlmap_config = {
     default_service = "gcs-static"
-    host_rules = var.dns_config != null ? [{
+    host_rules = var.dns_config == null ? [{
       hosts        = ["*"]
       path_matcher = "combined"
       }] : [

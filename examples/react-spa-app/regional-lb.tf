@@ -275,12 +275,12 @@ module "xlb-regional" {
 
   urlmap_config = {
     default_service = "regional-gcs-proxy-backend"
-    host_rules = var.dns_config != null ? [{
+    host_rules = var.dns_config == null ? [{
       hosts        = ["*"]
       path_matcher = "combined"
       }] : [
       {
-        hosts        = [trimsuffix(format("%s.%s", var.dns_config.backend, module.dns[""].domain), ".")]
+        hosts        = [trimsuffix(format("%s.regional.%s", var.dns_config.backend, module.dns[""].domain), ".")]
         path_matcher = "api"
       },
       {
