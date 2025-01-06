@@ -1,13 +1,11 @@
 import base64
 import datetime
-import http.server
 import json
 import random
 import google.auth
 import google.auth.transport.urllib3
 import urllib3
 import confluent_kafka
-import functools
 import time
 
 
