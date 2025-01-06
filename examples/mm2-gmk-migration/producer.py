@@ -2,19 +2,21 @@ import base64
 import datetime
 import json
 import random
+import time
+import urllib3
+
 import google.auth
 import google.auth.transport.urllib3
-import urllib3
+
 import confluent_kafka
-import time
 
 
 # Token Provider class
 # This class handles the OAuth token retrieval and formatting
 class TokenProvider(object):
 
-    def __init__(self, **config):
-        self.credentials, _project = google.auth.default()
+    def __init__(self):
+        self.credentials = google.auth.default()
         self.http_client = urllib3.PoolManager()
         self.HEADER = json.dumps(dict(typ="JWT", alg="GOOG_OAUTH2_TOKEN"))
 
