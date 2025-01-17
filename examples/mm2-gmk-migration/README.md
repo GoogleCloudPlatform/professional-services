@@ -1,6 +1,7 @@
 # mm2-gmk-migration
 This repository provides hands-on experience to migrate data between two Google Managed Kafka clustes using MirrorMaker2. As a part of POC, below resources are provisioned:
-1. Two Google Managed Kafka clusters as a source and destination. To disable creation of the source cluster, please modify the `terraform plan` step to not include `-target=module.google-managed-kafka-src`, in the "Deploy Google Cloud Managed Service for Apache Kafka (GMK)" section of this file. 
+
+1. Two Google Managed Kafka clusters as a source and destination. To disable creation of the source cluster, please modify the `terraform plan` step to not include `-target=module.google-managed-kafka-src`, in the "Deploy Google Cloud Managed Service for Apache Kafka (GMK)" section of this file. To point the source cluster to one on-prem, please update [this variable](https://github.com/GoogleCloudPlatform/professional-services/blob/main/examples/mm2-gmk-migration/terraform/modules/environments/production/deploy_mm2-standalone.tf#L12) as well as [this password](https://github.com/GoogleCloudPlatform/professional-services/blob/main/examples/mm2-gmk-migration/terraform/modules/mirror-maker2-standalone/mm2standalone.tf#L129).
 2. MirrorMaker2 on GCE
 3. Kafka Producer node to publish messages for testing purpose
 
