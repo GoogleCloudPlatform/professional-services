@@ -190,9 +190,6 @@ them to fit your particular use case.
     where workers can not download python packages due to egress traffic restrictions.
 *   [Dataflow Python Examples](examples/dataflow-python-examples) - Various ETL
     examples using the Dataflow Python SDK.
-*   [Dataflow Scala Example: Kafka2Avro](examples/dataflow-scala-kafka2avro) -
-    Example to read objects from Kafka, and persist them encoded in Avro in
-    Google Cloud Storage, using Dataflow with SCIO.
 *   [Dataflow Streaming Benchmark](examples/dataflow-streaming-benchmark) -
     Utility to publish randomized fake JSON messages to a Cloud Pub/Sub topic at
     a configured QPS.
