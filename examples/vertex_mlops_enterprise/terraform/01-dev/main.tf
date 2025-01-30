@@ -30,6 +30,7 @@ locals {
   }
 
   identity_pool_claims = try("attribute.repository/${var.github.organization}/${var.github.repo}", null)
+  identity_pool_assertion = try("assertion.repository=='${var.github.organization}/${var.github.repo}'", null)
 
   project_config = {
     billing_account_id = var.project_config.billing_account_id
@@ -46,6 +47,7 @@ module "mlops" {
   dataset_name            = var.dataset_name
   groups                  = var.groups
   identity_pool_claims    = local.identity_pool_claims
+  identity_pool_assertions= local.identity_pool_assertion
   labels                  = local.labels
   notebooks               = var.notebooks
   service_encryption_keys = var.service_encryption_keys

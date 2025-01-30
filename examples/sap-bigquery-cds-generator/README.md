@@ -46,10 +46,13 @@ Manually creating CDS views for each SAP source table intended for replication t
 ### Mass CDS Generator Utility Program Import and Execution
 
 1. **Import Transport Request:** Import the provided transport request using the attached files:
+
     * `K900071.S4S`
     * `R900071.S4S`
+
     * Refer to this guide for importing transport requests: [How to Import an SAP Transport Request](https://kb.theobald-software.com/sap/how-to-import-an-sap-transport-request-with-the-transportmanagement-system-stms)   
 
 2. **Prepare Input File:** Create an input file (CSV or TXT) with two columns: `TABLENAME` and `CDSVIEWNAME`.
 3. **Execute the Program:** Run the imported program, providing the input file from step 2.
 4. **(Optional) Replicate to GCP BQ:** If needed, follow the remaining steps (not provided in this document) to replicate the generated views to Google Cloud BigQuery.
+

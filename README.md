@@ -190,9 +190,6 @@ them to fit your particular use case.
     where workers can not download python packages due to egress traffic restrictions.
 *   [Dataflow Python Examples](examples/dataflow-python-examples) - Various ETL
     examples using the Dataflow Python SDK.
-*   [Dataflow Scala Example: Kafka2Avro](examples/dataflow-scala-kafka2avro) -
-    Example to read objects from Kafka, and persist them encoded in Avro in
-    Google Cloud Storage, using Dataflow with SCIO.
 *   [Dataflow Streaming Benchmark](examples/dataflow-streaming-benchmark) -
     Utility to publish randomized fake JSON messages to a Cloud Pub/Sub topic at
     a configured QPS.
@@ -212,6 +209,9 @@ them to fit your particular use case.
     and continuous deployment.
 *   [Dataflow XML to BigQuery](examples/dataflow-xmlio-to-bq) - Example of
     loading XML data into BigQuery with DataFlow via XMLIO.
+*   [Data Loss Prevention hybrid inspection for MongoDB](examples/mongodb-hybrid-dlp) - 
+    A Cloud Function using MongoDB Change Streams that uses Sensitive Data Protection's
+    hybrid Data Loss Prevention inspection API in near real-time.
 *   [Dataproc GCS Connector](examples/dataproc-gcs-connector) - Install and test
     unreleased features on the GCS Connector for Dataproc.
 *   [Dataproc Job Optimization Guide](examples/dataproc-job-optimization-guide) - Step-by-step
@@ -246,6 +246,7 @@ them to fit your particular use case.
 *   [Ephemeral Projects](examples/ephemeral-projects) - Creating short lived gcp projects for sandbox purposes.
 *   [GCE Access to Google AdminSDK](examples/gce-to-adminsdk) - Example to help
     manage access to Google's AdminSDK using GCE's service account identity
+*   [GCS Client Side Encryption via Sidecar](examples/gcs-client-encrypt/) - Example to show how to implement GCS client side encyrption via a sidecar
 *   [GCS Hive External Table File Optimization](examples/gcs-hive-external-table-file-optimization) - 
     Example solution to showcase impact of file count, file size, and file
     type on Hive external tables and query speeds.
@@ -261,7 +262,7 @@ them to fit your particular use case.
     Basic example of a Grpc server that is connected to a Spanner database.
 *   [Grpc Server connected to Redis](examples/grpc_redis_example) - Basic
     example of a Grpc server that is connected to Redis.
-*   [Gitlab KAS agent for GKE](examples/gitlab-kas-gke) - Terraform solution for          deploying a Gitlab KAS agent for synchronizing container deployments from Gitlab repos into a GKE cluster
+*   [Gitlab KAS agent for GKE](examples/gitlab-kas-gke) - Terraform solution for          deploying a Gitlab KAS agent for synchronizing container deployments from Gitlab repos into a GKE cluster 
 *   [Home Appliance Status Monitoring from Smart Power Readings](examples/e2e-home-appliance-status-monitoring) -
     An end-to-end demo system featuring a suite of Google Cloud Platform
     products such as IoT Core, ML Engine, BigQuery, etc.
@@ -283,6 +284,7 @@ them to fit your particular use case.
     templates from your choice of sources.
 *   [LookerStudio Cost Optimization Dashboard](examples/cost-optimization-dashboard) -
     SQL scripts to help build Cost Optimization LookerStudio Dashboard.
+*   [Migrate Kafka to GMK using MM2](examples/mm2-gmk-migration) -  Terraform code to deploy resources to migrate data between two Google Managed Kafka clustes using MirrorMaker2
 *   [Personal Workbench Notebooks Deployer](examples/personal-workbench-notebooks-deployer) - Terraform sample modules to provision Dataproc Hub using personal auth clusters, and workbench managed notebooks for individual analytical users.
 *   [Project factory with Terragrunt](examples/terragrunt-project-factory-gcp/) -
     This implements a `State-Scalable` project factory pattern for creating Google Cloud Platform projects using Terragrunt and public Terraform modules
@@ -293,11 +295,14 @@ them to fit your particular use case.
     Batching in Pub/Sub's Java client API.
 *   [QAOA](examples/qaoa) - Examples of parsing a max-SAT problem in a
     proprietary format, for Quantum Approximate Optimization Algorithm (QAOA)
+*   [React single-page app on Cloud Run + Cloud Storage](examples/react-spa-app) - End-to-end example of deploying 
+    a React SPA on serverless Google Cloud services.
 *   [Redis Cluster on GKE Example](examples/redis-cluster-gke) - Deploying Redis
     cluster on GKE.
 *   [SAP Mass CDS Generator for Bigquery](examples/sap-bigquery-cds-generator) - SAP ABAP Program and user guide to create CDS views for SAP tables 
     that can be used to replicate tables as CDS views from SAP to BigQuery via Datasphere. Useful in scenarios where the users wish to replicate sap tables via
     datasphere without having an Enterprise SLT license.  
+*   [Risk Analysis Asset](examples/risk-analysis-asset) - Deploying Reliability Risk analysis tool on Cloud Run. 
 *   [Spanner Interleave Subquery](examples/spanner-interleave-subquery) -
     Example code to benchmark Cloud Spanner's subqueries for interleaved tables.
 *   [Spanner Change Stream to BigQuery using Dataflow](examples/spanner-changestreams-bigquery) - 
@@ -439,6 +444,12 @@ Platform usage.
     Instances and load balancers are added to the cloud DNS zone as they start
     from compute_engine_activity log events sent from a pub/sub push
     subscription. Can sync multiple projects to a single Cloud DNS zone.
+*   [DynamoDB to Bigtable Migration](tools/dynamodb-bigtable-migration) - 
+    DynamoDB to Bigtable Migration tool is a powerful solution designed to streamline data transfer 
+    from DynamoDB to Cloud Bigtable.
+    This tool automates schema translation, ensuring your data structure is mapped to Bigtable. 
+    It also provides options to accelerate and scale data transfer efficiently using dataflow, 
+    minimizing downtime and maximizing performance.
 *   [Firewall Enforcer](tools/firewall-enforcer) - Automatically watch & remove
     illegal firewall rules across organization. Firewall rules are monitored by
     a Cloud Asset Inventory Feed, which trigger a Cloud Function that inspects
@@ -600,9 +611,12 @@ Platform usage.
     Recommender is a database script that recommends the best numeric data type for the NUMBER data type
     when migrating from legacy databases like Oracle to Google Cloud platforms like BigQuery, AlloyDB,
     Cloud SQL for PostgreSQL, and Google Cloud Storage.
-*   [Composer DAG Load Generator](tools/cloud-composer-dag-generator) - This is an automatic 
-    DAG generator tool which can be used to create test workload on a cloud composer environmnet
-    and to test differents airflows configurations or to do fine tune using the composer/airflow metrics.
+*   [Cloud Composer Stress Testing](tools/cloud-composer-stress-testing) - A collection
+    of tools aimed at testing, benchmarking, and simulating workloads within Composer. Great for
+    integration testing and experimenting with different environment configurations. 
+*   [Cloud Composer Environment Rotator](tools/cloud-composer-environment-rotator) - Rotate Airflow
+    resources from an old composer environment to a new composer environment with minimal downtime. Ideal
+    for non in-place environment updates, downgrading environment versions, or migrating to different regions.
 *   [Gradio and Generative AI Example](examples/genai-gradio-example) - The example code allows developers 
     to create rapid Generative AI PoC applications with Gradio and Gen AI agents.
 *   [Memorystore Cluster Ops Framework](tools/memorystore-cluster-ops-framework) - This is a framework that 

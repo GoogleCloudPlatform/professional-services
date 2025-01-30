@@ -8,22 +8,27 @@ For more information on how Custom Organization Policies (CuOP) can help secure 
 You can quickly set up your environment to manage the CuOP library using [ytt](https://carvel.dev/ytt/).
 
 ### Install via script (macOS or Linux)
-Install ytt into specific directory. Note that install.sh script installs other Carvel tools as well.
-```
-$ mkdir local-bin/
-$ curl -L https://carvel.dev/install.sh | K14SIO_INSTALL_BIN_DIR=local-bin bash
-$ export PATH=$PWD/local-bin/:$PATH
-$ ytt version
+Install ytt into specific directory. Note that install.sh script installs other Carvel tools as well. For more detail instruction, you can check [here](https://carvel.dev/ytt/docs/latest/install/)
+```bash
+mkdir local-bin/
+curl -L https://carvel.dev/install.sh | K14SIO_INSTALL_BIN_DIR=local-bin bash
+export PATH=$PWD/local-bin/:$PATH
+ytt version
 ```
 
 ### Install binaries via Homebrew (macOS or Linux) 
 Require Homebrew to be installed
-```
-$ brew tap carvel-dev/carvel
-$ brew install ytt
-$ ytt version
+```bash
+brew tap carvel-dev/carvel
+brew install ytt
+ytt version
 ```
 For more details about other type of installation, please refer to official documentation [here](https://carvel.dev/ytt/docs/latest/install/)
+
+### Install 
+```bash
+pip3 install -r scripts/requirements.txt
+```
 
 ## Organization of the repository
 The repository is organized as follows:
@@ -199,6 +204,7 @@ make policies                       Build policies based using gcloud format
 make policies-tf                    Build policies based using Terraform Cloud Foundation Fabric module factory 
 make build                          Build constraint and policies using gcloud format
 make build-tf                       Build constraint and policies using Terraform Cloud Foundation Fabric module factory
+make all                            Build constraint and policies using gcloud and Terraform Cloud Foundation Fabric module factory format
 make deploy-constraints             Deploy constraints based using gcloud format
 make deploy-policies                Deploy policies based using gcloud format
 make deploy                         Deploy both constraints and policies based using gcloud format
