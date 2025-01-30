@@ -15,7 +15,18 @@
 load("@ytt:data", "data")
 load("@ytt:struct", "struct")
 
-services = ["compute", "firewall", "gke", "network", "storage" , "dataproc"]
+services = [
+  "cloudbuild",
+  "cloudrun", 
+  "cloudsql",
+  "compute", 
+  "dataproc",
+  "firewall", 
+  "gke", 
+  "iam",
+  "network", 
+  "storage",
+  ]
 
 # Retrieve the service associated with the constraint
 # computeAllowedInstanceLabels -> compute

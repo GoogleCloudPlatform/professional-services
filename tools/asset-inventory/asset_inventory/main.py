@@ -30,11 +30,11 @@ from asset_inventory import pipeline_runner
 
 
 def parse_args():
-    """Parse command line argments.
+    """Parse command line arguments.
 
     Present a slightly simpler interface by constructing the pipeline input and
     stage parameters from the export gcs-destination if not supplied. Also
-    accepts arbitraty beam pipeline arguments if using a beam runner. but #
+    accepts arbitrary beam pipeline arguments if using a beam runner. but #
     getting them into the help text is near impossible.
 
 
@@ -54,16 +54,16 @@ def parse_args():
         choices=['ASSET_TYPE', 'ASSET_TYPE_VERSION', 'NONE'],
         # pylint: disable=line-too-long
         help=(
-            'How to group exported resources into Bigquery tables.\n',
-            '  ASSET_TYPE: A table for each asset type (like google.compute.Instance\n',
-            '  ASSET_TYPE_VERSION: A table for each asset type and api version (like google.compute.Instance.v1\n',
+            'How to group exported resources into Bigquery tables.\n'
+            '  ASSET_TYPE: A table for each asset type (like google.compute.Instance\n'
+            '  ASSET_TYPE_VERSION: A table for each asset type and api version (like google.compute.Instance.v1\n'
             '  NONE: One one table holding assets in a single json column\n'))
 
     parser.add_argument(
         '--write_disposition',
         default='WRITE_APPEND',
         choices=['WRITE_APPEND', 'WRITE_EMPTY'],
-        help='Location to write data and load from from.')
+        help='When WRITE_EMPTY, will delete the tables first prior to loading.')
 
     parser.add_argument(
         '--stage',
@@ -81,7 +81,7 @@ def parse_args():
         default='*=1',
         help=('Number of shards to use per asset type.'
               'List of asset types and the number '
-              'of shardes to use for that type with "*" used as a default.'
+              'of shards to use for that type with "*" used as a default.'
               ' For example "google.compute.VpnTunnel=1,*=10"'))
 
     parser.add_argument(
@@ -94,6 +94,12 @@ def parse_args():
         '--skip-export',
         help=('Do not perform asset export to GCS. Imports to bigquery'
               ' what\'s in the --gcs-destination. '),
+        action='store_true',
+        default=False)
+
+    parser.add_argument(
+        '--add-load-date-suffix',
+        help='If load date is appended to table name.',
         action='store_true',
         default=False)
 
@@ -133,7 +139,7 @@ def parse_args():
     # If input isn't supplied, we can infer it from the export destination.
     if 'input' not in args or not args.input:
         args.input = '{}/*.json'.format(args.gcs_destination)
-    # If stage isn't supplied, we can infer it from export desitnation.
+    # If stage isn't supplied, we can infer it from export destination.
     if 'stage' not in args or not args.stage:
         args.stage = args.gcs_destination + '/stage'
 
@@ -159,12 +165,13 @@ def main():
             args.template_job_project, args.template_job_region,
             launch_location, args.input, args.group_by, args.write_disposition,
             args.dataset, args.stage, args.load_time, args.num_shards,
+            args.add_load_date_suffix,
             args.template_job_runtime_environment_json)
     else:
         final_state = pipeline_runner.run_pipeline_beam_runner(
             None, None, args.input, args.group_by, args.write_disposition,
             args.dataset, args.stage, args.load_time, args.num_shards,
-            beam_args)
+            args.add_load_date_suffix, beam_args)
 
     if not pipeline_runner.is_successful_state(final_state):
         sys.exit(1)

@@ -1,0 +1,10 @@
+custom.cloudrunJobRequireBinaryAuthorization:
+  actionType: DENY
+  condition: '!(''run.googleapis.com/binary-authorization'' in resource.metadata.annotations)'
+  description: Enforce that Cloud Run Job are using binary authorization
+  displayName: Disable creation of Cloud Run Job without Binary Authorization
+  methodTypes:
+  - CREATE
+  - UPDATE
+  resourceTypes:
+  - run.googleapis.com/Job

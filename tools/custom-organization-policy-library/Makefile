@@ -30,6 +30,9 @@ build: clean constraints policies
 .PHONY: build-tf
 build-tf: clean constraints-tf policies-tf
 
+.PHONY: all
+all: clean build build-tf
+
 .PHONY: simulate
 simulate: clean constraints policies
 	bash scripts/simulate.sh $(OUTPUT_GCLOUD)/constraints $(OUTPUT_GCLOUD)/policies $(OUTPUT_GCLOUD)/simulation

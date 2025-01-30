@@ -1,3 +1,0 @@
-gs://python-dataflow-example/images/dog0.jpg
-gs://python-dataflow-example/images/dog1.jpg
-gs://python-dataflow-example/images/dog2.jpg

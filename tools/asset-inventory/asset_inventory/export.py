@@ -51,7 +51,7 @@ def export_to_gcs(parent, gcs_destination, content_type, asset_types):
 
     Invoke either the cloudasset.organizations.exportAssets or
     cloudasset.projects.exportAssets method depending on if parent is a project
-    or orgniaztion.
+    or organization.
     Args:
         parent: Either `project/<project-id>` or `organization/<organization#>`.
         gcs_destination: GCS uri to export to.
@@ -65,10 +65,10 @@ def export_to_gcs(parent, gcs_destination, content_type, asset_types):
     output_config = asset_v1.types.OutputConfig()
     output_config.gcs_destination.uri = gcs_destination
     operation = Clients.cloudasset().export_assets(
-        parent,
-        output_config,
-        content_type=content_type,
-        asset_types=asset_types)
+        {'parent': parent,
+         'output_config': output_config,
+         'content_type': content_type,
+         'asset_types': asset_types})
     return operation.result()
 
 
@@ -128,17 +128,19 @@ def add_argparse_args(ap, required=False):
         'This MUST be run with a service account owned by a project with the '
         'Cloud Asset API enabled. The gcloud generated user credentials'
         ' do not work. This requires:\n\n'
-        '  1. Enable the Cloud Asset Inventory API on a project (https://console.cloud.google.com/apis/api/cloudasset.googleapis.com/overview)\n'
-        '  2. Create a service acocunt owned by this project\n'
+        '1. Enable the Cloud Asset Inventory API on a project ('
+        'https://console.cloud.google.com/apis/api/cloudasset.googleapis.com/overview)\n'
+        '  2. Create a service account owned by this project\n'
         '  3. Give the service account roles/cloudasset.viewer at the organization layer\n'
         '  4. Run on a GCE instance started with this service account,\n'
-        '   or downloadthe private key and set GOOGLE_APPLICATION_CREDENTIALS to the file name\n'
+        '   or download the private key and set GOOGLE_APPLICATION_CREDENTIALS to the file name\n'
         '  5. Run this command.\n\n'
         'If the GCS bucket being written to is owned by a different project then'
         ' the project that you enabled the API on, then you must also grant the'
         ' "service-<project-id>@gcp-sa-cloudasset.iam.gserviceaccount.com" account'
-        ' objectAdmin privleges to the bucket:\n'
-        ' gsutil iam ch serviceAccount:service-<project-id>@gcp-sa-cloudasset.iam.gserviceaccount.com:objectAdmin gs://<bucket>\n'
+        ' objectAdmin privileges to the bucket:\n'
+        'gsutil iam ch serviceAccount:service-<project-id>@gcp-sa-cloudasset.iam.gserviceaccount.com:objectAdmin '
+        'gs://<bucket>\n'
         '\n\n')
     ap.add_argument(
         '--parent',
@@ -172,7 +174,7 @@ def add_argparse_args(ap, required=False):
 
     ap.add_argument(
         '--asset-types',
-        help=('Comma seprated list of asset types to export such as '
+        help=('Comma separated list of asset types to export such as '
               '"google.compute.Firewall,google.compute.HealthCheck"'
               ' default is `*` for everything'),
         type=lambda x: [y.strip() for y in x.split(',')],
