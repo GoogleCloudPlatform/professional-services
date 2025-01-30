@@ -1,0 +1,68 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: mitmproxy-demo
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: gcs-proxy-sa
+  namespace: mitmproxy-demo
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gcs-app-deployment
+  namespace: mitmproxy-demo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gcs-app
+  template:
+    metadata:
+      labels:
+        app: gcs-app
+    spec:
+      serviceAccountName: gcs-proxy-sa
+      volumes:
+      - name: proxycerts
+        emptyDir: {}
+      containers:
+      - name: gcs-app
+        image: us-docker.pkg.dev/your-project/your-repo/your-client-app-image
+        ports:
+        - containerPort: 8000
+        env:
+          - name: https_proxy
+            value: "https://127.0.0.1:8080"
+          - name: REQUESTS_CA_BUNDLE
+            value: "/proxy/certs/mitmproxy-ca-cert.pem"
+        volumeMounts:
+        - name: proxycerts
+          mountPath: /proxy/certs
+      - name: mitmproxy
+        image: us-docker.pkg.dev/your-project/your-repo/your-proxy-image
+        ports:
+        - containerPort: 8080
+        env:
+          - name: GCP_KMS_PROJECT_ID
+            value: "axlearn"
+          - name: GCP_KMS_KEY
+            value: "gcp-kms://projects/your-project/locations/global/keyRings/your-ring/cryptoKeys/your-key"
+        volumeMounts:
+        - name: proxycerts
+          mountPath: /proxy/certs
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gcs-app-loadbalancer
+  namespace: mitmproxy-demo
+spec:
+  type: LoadBalancer
+  selector:
+    app: gcs-app
+  ports:
+  - port: 80
+    targetPort: 8000

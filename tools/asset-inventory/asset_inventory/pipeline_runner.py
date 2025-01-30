@@ -22,7 +22,7 @@ from oauth2client.client import GoogleCredentials
 
 
 def get_job_name(load_time):
-    """User friendly job name from load_time."""
+    """User-friendly job name from load_time."""
     return ('cloud-asset-import-' + load_time.lower().replace(
         ':', '-').replace(' ', '').replace('.', '-'))
 
@@ -60,7 +60,7 @@ def wait_on_pipeline_job(df_service, pipeline_job):
     ]:
         logging.info('final pipeline state : %s', current_state)
         return current_state, pipeline_job
-    logging.info('sleeping 60 seconds before repolling.')
+    logging.info('sleeping 60 seconds before polling.')
     time.sleep(60)
     return wait_on_pipeline_job(df_service, pipeline_job)
 
@@ -69,7 +69,7 @@ def run_pipeline_template(dataflow_project, template_region, template_location,
                           input_location, group_by, write_disposition, dataset,
                           stage, load_time, num_shards, add_load_date_suffix,
                           runtime_environment):
-    """Invoke the suplied pipeline template.
+    """Invoke the supplied pipeline template.
 
     Args:
         dataflow_project: Project to run the dataflow job in.
@@ -77,13 +77,13 @@ def run_pipeline_template(dataflow_project, template_region, template_location,
         template_location: GCS path to the template file.
         input_location: GCS path load json documents from,
         group_by: How to split assets into tables.
-        write_disposition: To append to or ovewrite BigQuery tables.
+        write_disposition: To append to or overwrite BigQuery tables.
         dataset: BigQuery dataset to write to.
         stage: GCS path to write BigQuery load files.
         load_time: Timestamp or date to load data with.
-        num_shards: Shards for for each asset type.
+        num_shards: Shards for each asset type.
         add_load_date_suffix: If the load date is added as a table suffix.
-        runtime_environment: Dict  suppling other runtime overrides.
+        runtime_environment: Dict  supplying other runtime overrides.
     Returns:
         End state of the pipline and job object.
     """
@@ -132,11 +132,11 @@ def run_pipeline_beam_runner(pipeline_runner, dataflow_project, input_location,
         dataflow_project: Project to run the dataflow job in.
         input_location: GCS path load json documents from,
         group_by: How to split assets into tables.
-        write_disposition: To append to or ovewrite BigQuery tables.
+        write_disposition: To append to or overwrite BigQuery tables.
         dataset: BigQuery dataset to write to.
         stage: GCS path to write BigQuery load files.
-        load_time: Timestamp to add to data during during BigQuery load.
-        num_shards: Shards for for each asset type.
+        load_time: Timestamp to add to data during BigQuery load.
+        num_shards: Shards for each asset type.
         add_load_date_suffix: If the load date is added as a table suffix.
         pipeline_arguments: List of additional runner arguments.
     Returns:

@@ -13,6 +13,7 @@
  */
 package com.tools.slo.slotools.utility;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -40,8 +41,8 @@ public class TextUtility {
    */
   public static String convertToJoinFormat(String input) {
     // Split the input string by space to get individual key-value pairs
-    List<String> keyValuePairs = Arrays.asList(input.split(" "));
-
+    List<String> keyValuePairs = new ArrayList<>(Arrays.asList(input.split(" ")));
+    keyValuePairs.removeAll(Arrays.asList("AND"));
     // Wrap each key-value pair in double quotes and add a single backslash to escape the quotes
     List<String> quotedKeyValuePairs =
         keyValuePairs.stream()

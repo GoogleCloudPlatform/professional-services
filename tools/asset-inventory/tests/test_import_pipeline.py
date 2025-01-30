@@ -23,7 +23,6 @@ import warnings
 
 from asset_inventory import import_pipeline
 import mock
-from six import string_types
 
 STAGE_PATH = 'tests/data/stage'
 
@@ -31,11 +30,11 @@ STAGE_PATH = 'tests/data/stage'
 class TestImportPipeline(unittest.TestCase):
 
     def setUp(self):
-
         if not os.path.exists(STAGE_PATH):
             os.mkdir(STAGE_PATH)
         for old_test_file in os.listdir(STAGE_PATH):
-            os.remove(os.path.join(STAGE_PATH, old_test_file))
+            if os.path.isfile(os.path.join(STAGE_PATH, old_test_file)):
+                os.remove(os.path.join(STAGE_PATH, old_test_file))
 
     @mock.patch('google.cloud.bigquery.Client')
     def test_assets(self, _):
@@ -93,13 +92,14 @@ class TestImportPipeline(unittest.TestCase):
             self.assertEqual(len(instance_labels), 1)
 
     @mock.patch('google.cloud.bigquery.Client')
-    def test_load_group_by_none(self, _):
+    def test_resource_with_error_details(self, _):
         with warnings.catch_warnings():
             warnings.filterwarnings('ignore',
                                     'The compiler package is deprecated')
             import_pipeline.run([
                 '--load_time=',
-                '--input=tests/data/resource.json', '--group_by=NONE',
+                '--input=tests/data/resource_with_error_details.json',
+                '--group_by=ASSET_TYPE',
                 '--stage={}'.format(STAGE_PATH), '--dataset=test_resource'
             ])
             rows = []
@@ -109,18 +109,38 @@ class TestImportPipeline(unittest.TestCase):
                 with open(fn) as f:
                     for line in f:
                         rows.append(json.loads(line))
-            self.assertEqual(export_files, 1)
+            # both resource and asset_type file should exist.
+            self.assertEqual(export_files, 2)
             found_assets = {}
             found_names = {}
             for row in rows:
                 found_assets[row['asset_type']] = row
                 found_names[row['name']] = row
-            self.assertEqual(len(found_names), 2)
-            self.assertEqual(len(found_assets), 2)
-            instance_row = found_assets['google.compute.Instance']
-            resource_properties = instance_row['resource']['json_data']
-            self.assertIsInstance(resource_properties, string_types)
-            self.assertNotIn('data', instance_row['resource'])
+            self.assertEqual(len(found_names), 1)
+            self.assertEqual(len(found_assets), 1)
+            instance_row = found_assets[
+                'datamigration.googleapis.com.MigrationJob']
+            error_property = instance_row['resource']['data']['error']
+            self.assertEqual(
+                error_property,
+                {"code": 13, "details": [
+                    {"additionalProperties": [
+                        {"name": "detail",
+                         "value": "generic::DEADLINE_EXCEEDED: deadline=9.2"},
+                        {"name": "stackEntries",
+                         "value": "['com.google.spanner.SpannerException: generic::DEADLINE_EXCEEDED: deadline=9.2']"},
+                        {"name": "type",
+                         "value": "type.googleapis.com/google.rpc.DebugInfo"}]},
+                    {"additionalProperties": [
+                        {"name": "links",
+                         "value": "[{'description': 'Learn more:', 'url': "
+                                  "'https://cloud.google.com/database-migration/docs/diagnose-issues'}]"},
+                        {"name": "type",
+                         "value": "type.googleapis.com/google.rpc.Help"}]}],
+                 "message":
+                     "An internal error occurred. Contact support. Dapper trace id: -40, operation id: "
+                     "projects/123/locations/europe-west1/operations/operation-123."
+                 })
 
 
 if __name__ == '__main__':
