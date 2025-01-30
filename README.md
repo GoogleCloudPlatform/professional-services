@@ -295,6 +295,9 @@ them to fit your particular use case.
     proprietary format, for Quantum Approximate Optimization Algorithm (QAOA)
 *   [Redis Cluster on GKE Example](examples/redis-cluster-gke) - Deploying Redis
     cluster on GKE.
+*   [SAP Mass CDS Generator for Bigquery](examples/sap-bigquery-cds-generator) - SAP ABAP Program and user guide to create CDS views for SAP tables 
+    that can be used to replicate tables as CDS views from SAP to BigQuery via Datasphere. Useful in scenarios where the users wish to replicate sap tables via
+    datasphere without having an Enterprise SLT license.  
 *   [Spanner Interleave Subquery](examples/spanner-interleave-subquery) -
     Example code to benchmark Cloud Spanner's subqueries for interleaved tables.
 *   [Spanner Change Stream to BigQuery using Dataflow](examples/spanner-changestreams-bigquery) - 
