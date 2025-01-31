@@ -17,7 +17,7 @@ CREATE STORAGE INTEGRATION gcs_int
   TYPE = EXTERNAL_STAGE
   STORAGE_PROVIDER = GCS
   ENABLED = TRUE
-  STORAGE_ALLOWED_LOCATIONS = ('gs://from-sf/sf-data/');
+  STORAGE_ALLOWED_LOCATIONS = ('gcs://from-sf/sf-data/');
 ```
 
 

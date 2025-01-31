@@ -152,8 +152,6 @@ substitutions:
   _SUBNETWORK: ${subnetwork}
   _SERVICE_ACCOUNT: ${sa_mlops}
   _WORKDIR: ${github_repo}
-options:
-  machineType: 'E2_HIGHCPU_8'
 
 availableSecrets:
   secretManager:

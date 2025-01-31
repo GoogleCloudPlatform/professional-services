@@ -1,0 +1,19 @@
+#@ load("/constraints.lib.star", "build_constraint")
+#@ constraint = build_constraint("cloudbuildAllowedNetworkPeering")
+
+#@ def condition(peered_network_ranges):
+#@   return 'resource.privatePoolV1Config.networkConfig.peeredNetworkIpRange in ' +  str(peered_network_ranges) + " == false"
+#@ end
+
+#@ if constraint.to_generate():
+name: #@ constraint.constraint_name()
+resourceTypes:
+- cloudbuild.googleapis.com/WorkerPool
+methodTypes:
+- CREATE
+- UPDATE
+condition: #@  condition(constraint.params().peered_network_ranges)
+actionType: DENY
+displayName: Deny unauthorized VPC peering connections for Cloud Build private pools
+description: Ensure only authorized VPC peering connections are used for Cloud Build private pools
+#@ end

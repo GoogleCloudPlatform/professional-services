@@ -1,0 +1,101 @@
+{
+  "Item": {
+    "Username": {
+      "S": "kathygutierrez2099"
+    },
+    "Preferences": {
+      "M": {
+        "Language": {
+          "S": "English"
+        },
+        "NotificationFrequency": {
+          "S": "Daily"
+        },
+        "EmailUpdates": {
+          "BOOL": true
+        }
+      }
+    },
+    "Hobbies": {
+      "L": [
+        {
+          "S": "Runner, broadcasting/film/video"
+        },
+        {
+          "S": "Designer, blown glass/stained glass"
+        },
+        {
+          "S": "Theatre manager"
+        }
+      ]
+    },
+    "FavoriteColors": {
+      "L": [
+        {
+          "S": "PaleGreen"
+        },
+        {
+          "S": "IndianRed"
+        },
+        {
+          "S": "OrangeRed"
+        }
+      ]
+    },
+    "Subscribed": {
+      "BOOL": true
+    },
+    "Zipcode": {
+      "N": "88959"
+    },
+    "ReminderDate": {
+      "S": "2024-11-03"
+    },
+    "PointsEarned": {
+      "N": "5378"
+    },
+    "Addresses": {
+      "L": [
+        {
+          "M": {
+            "Street": {
+              "S": "8016 Oliver Dale Suite 479"
+            },
+            "State": {
+              "S": "MI"
+            },
+            "City": {
+              "S": "Branditown"
+            }
+          }
+        },
+        {
+          "M": {
+            "Street": {
+              "S": "00700 Darryl Corners"
+            },
+            "Country": {
+              "M": {
+                "Street": {
+                  "S": "0534 Thomas Groves Apt. 035"
+                },
+                "State": {
+                  "S": "DC"
+                },
+                "City": {
+                  "S": "West Elizabethmouth"
+                }
+              }
+            },
+            "City": {
+              "S": "East Aaron"
+            },
+            "State": {
+              "S": "NY"
+            }
+          }
+        }
+      ]
+    }
+  }
+}

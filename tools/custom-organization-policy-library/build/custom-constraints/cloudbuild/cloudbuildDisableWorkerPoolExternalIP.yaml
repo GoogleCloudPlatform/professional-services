@@ -1,0 +1,15 @@
+#@ load("/constraints.lib.star", "build_constraint")
+#@ constraint = build_constraint("cloudbuildDisableWorkerPoolExternalIP")
+
+#@ if constraint.to_generate():
+name: #@ constraint.constraint_name()
+resourceTypes:
+- cloudbuild.googleapis.com/WorkerPool
+methodTypes:
+- CREATE
+- UPDATE
+condition: (resource.privatePoolV1Config.networkConfig.egressOption != "NO_PUBLIC_EGRESS")
+actionType: DENY
+displayName: Deny unauthorized worker pools external ip used for each build
+description: Ensure no unauthorized worker pools external ip used for each build
+#@ end
