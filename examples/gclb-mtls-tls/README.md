@@ -62,16 +62,19 @@ terraform apply
 
 After executing the terraform script, we should have the GCP application load balancer provisioned with 2 forwarding rules:
 * One forwarding rule is used to send the tls connection.
+![tls](https://github.com/user-attachments/assets/6d52967b-c275-497d-9c35-fd09254e183d)
 
 
 * Another forwarding rule is used to send the mtls connection to load balancer.
+![mtls](https://github.com/user-attachments/assets/0f8852f5-0ee7-47b1-a27f-faa7d3337153)
+
 
 #### Test the tls connection to the GCP Load balancer by sending the following curl request
 
 ```bash
 curl -v --cacert int2.cert --connect-to test-domain.com:443:34.149.90.136:443 https://test-domain.com
 ```
-
+<img width="1098" alt="Screenshot 2025-02-06 at 10 46 25 PM" src="https://github.com/user-attachments/assets/d392214c-da93-4198-be47-eb2e0ac3315f" />
 The GCP application load balancer is also configured to send the custom headers of the mtls request back to the backend service which are seen in the curl request output of the mTLS connection, since the above request was tls connection, the custom headers are empty in the above tls connection response.
 
 
@@ -80,5 +83,5 @@ The GCP application load balancer is also configured to send the custom headers 
 ```bash
 curl -v --cacert int2.cert --key client.key --cert client.cert --connect-to test-domain.com:443:34.8.115.55:443 https://test-domain.com
 ```
-
+<img width="1204" alt="Screenshot 2025-02-06 at 10 49 07 PM" src="https://github.com/user-attachments/assets/24f69993-46a9-4329-bb8f-6609c7d2680f" />
 We see the mTLS custom headers in above mtls connection response are populated automatically by load balancer frontend and sent back to the backend server after a successful mTLS connection is established.
