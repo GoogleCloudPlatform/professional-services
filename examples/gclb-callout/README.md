@@ -41,10 +41,11 @@ kubectl create secret tls svc-ext-tls --key="extproc/ssl_creds/localhost.key" --
 kubectl apply -f manifests/service-extension.yaml
 ```
 
-### The above steps will create 2 zonal NEG each for the sample application and the service extension.
+The above steps will create 2 zonal NEG each for the sample application and the service extension.
 
 
-### Deploy the GCP resources to configure GCP Application load balancer with callout based service extension using the above backens deployed on GKE for service extension and sample application:
+### Deployment
+Deploy the GCP resources to configure GCP Application load balancer with callout based service extension using the above backens deployed on GKE for service extension and sample application:
 
 #### Update the following terraform local variables in `terraform/main.tf`:
 * project_id: GCP Project ID.
@@ -83,4 +84,4 @@ After executing the terraform script, we should have the following GCP resource 
         curl --header 'Host: example.com' --header 'Secret: passcode'  http://34.117.181.83:80
     ```
 
-    We can see in the response that the secret header value received by the backend gets transformed to a bas64 encoded value.
+    We can see in the response that the secret header value received by the backend gets transformed to a base64 encoded value.
