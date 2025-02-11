@@ -31,6 +31,11 @@ gcloud container clusters get-credentials neg-demo-cluster --zone us-central1-a 
 kubectl apply -f manifests/deploy.yaml
 ```
 
+### Build the service extension code and update the image:
+
+* Build the service extension code in the `service-extensions` directory using the Dockerfile in `service-extensions/extproc/config` directory.
+* After the image is built, push the docker image in artifact registry and update the image name in image field of `manifests/service-extension.yaml` file.
+
 ### Create a namespace and TLS secret for service extension backend deployment on GKE:
 ```bash
 kubectl create ns gclb-extension

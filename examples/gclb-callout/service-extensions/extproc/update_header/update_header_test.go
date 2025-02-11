@@ -15,11 +15,11 @@
 package add_header
 
 import (
-	"testing"
 	"encoding/base64"
+	"testing"
 
-	core "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
 	base "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
+	core "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
 	extproc "github.com/envoyproxy/go-control-plane/envoy/service/ext_proc/v3"
 	"github.com/google/go-cmp/cmp"
 	"google.golang.org/protobuf/testing/protocmp"
@@ -80,4 +80,3 @@ func TestHandleRequestHeadersUpdateHeader(t *testing.T) {
 		t.Errorf("HandleRequestHeaders() mismatch (-want +got):\n%s", diff)
 	}
 }
-

@@ -15,7 +15,6 @@
 package main
 
 import (
-
 	"github.com/GoogleCloudPlatform/examples/gclb-callouts/service-extensions/extproc/internal/server"
 	update_header "github.com/GoogleCloudPlatform/examples/gclb-callouts/service-extensions/extproc/update_header"
 	extproc "github.com/envoyproxy/go-control-plane/envoy/service/ext_proc/v3"

@@ -36,7 +36,7 @@ spec:
     spec:
       containers:
       - name: ext-svc-gclb
-        image: gcr.io/axlearn/service-extension:v2
+        image: gcr.io/<GCP-PROJECT-ID>/service-extension:v2 # Update the correct Image built from the service extension code.
         volumeMounts:
         - mountPath: "/credentials"
           name: svc-ext-tls
