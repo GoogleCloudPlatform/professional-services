@@ -12,6 +12,8 @@ The service extension code in this repository follows a specific use case where 
 
 This repository contains detailed steps to provision the resources along with the configuration steps in an automated way to setup the callout based service extension.
 
+![Service Extension](https://github.com/user-attachments/assets/f55e8a92-c63e-44df-89e1-e3c414563966)
+
 ### [Create a VPC native cluster:](https://cloud.google.com/kubernetes-engine/docs/how-to/standalone-neg#create-cluster)
 
 ```bash
@@ -81,7 +83,15 @@ After executing the terraform script, we should have the following GCP resource 
 
 * Send the following curl request with the secret headers set:
     ```bash 
-        curl --header 'Host: example.com' --header 'Secret: passcode'  http://34.117.181.83:80
+        curl --header 'Host: example.com' --header 'Secret: passcode'  http://<GCP_LB_IP>:80
     ```
-
+    <img width="976" alt="Screenshot 2025-02-11 at 2 12 06 PM" src="https://github.com/user-attachments/assets/318ccccf-0437-474f-b5fa-b261f0ff574a" />
     We can see in the response that the secret header value received by the backend gets transformed to a base64 encoded value.
+
+* Send the following curl request with no secret headers:
+    ```bash 
+        curl --header 'Host: example.com' http://<GCP_LB_IP>:80
+    ```
+    <img width="779" alt="Screenshot 2025-02-11 at 2 13 40 PM" src="https://github.com/user-attachments/assets/af96d7bf-d757-410f-8297-95c3513e6b65" />
+
+    We can see in the response that the secret header value received by the backend gets transformed to empty value as no secret headers were passed via the curl request.
