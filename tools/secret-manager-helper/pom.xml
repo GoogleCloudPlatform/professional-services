@@ -60,7 +60,7 @@
             <!-- Find the most recent version of this artifact here:
             http://checkstyle.sourceforge.net
             -->
-            <version>8.27</version>
+            <version>10.21.2</version>
           </dependency>
         </dependencies>
         <executions>
@@ -82,7 +82,7 @@
       <dependency>
         <groupId>com.google.cloud</groupId>
         <artifactId>libraries-bom</artifactId>
-        <version>16.3.0</version>
+        <version>26.54.0</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
@@ -98,7 +98,7 @@
     <dependency>
       <artifactId>commons-text</artifactId>
       <groupId>org.apache.commons</groupId>
-      <version>1.9</version>
+      <version>1.13.0</version>
     </dependency>
     <!-- https://mvnrepository.com/artifact/org.slf4j/slf4j-api -->
     <dependency>
@@ -116,21 +116,22 @@
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
-      <version>4.10</version>
+      <version>4.13.2</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.mockito</groupId>
-      <artifactId>mockito-inline</artifactId>
-      <version>3.6.0</version>
+      <artifactId>mockito-core</artifactId>
+      <version>5.15.2</version>
     </dependency>
   </dependencies>
   <groupId>org.example</groupId>
   <modelVersion>4.0.0</modelVersion>
 
   <properties>
-    <maven.compiler.source>1.8</maven.compiler.source>
-    <maven.compiler.target>1.8</maven.compiler.target>
+    <maven.compiler.release>20</maven.compiler.release>
+    <maven.compiler.source>20</maven.compiler.source>
+    <maven.compiler.target>20</maven.compiler.target>
   </properties>
 
 
