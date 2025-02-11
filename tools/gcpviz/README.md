@@ -19,27 +19,6 @@ You can install the tool locally by running:
 ```sh
 go install github.com/GoogleCloudPlatform/professional-services/tools/gcpviz/cmd/gcpviz
 ```
-
-## Building a Docker image
-
-Easiest way to get started is to build a container from the tool, that includes all the necessary
-dependencies. You can build a Docker image using the supplied `Dockerfile`:
-
-```sh
-docker build -t gcr.io/YOUR-PROJECT/gcpviz .
-docker push gcr.io/YOUR-PROJECT/gcpviz
-```
-
-## Running Docker image locally and generate a graph
-
-```sh
-mkdir cai
-cp resource_inventory.json cai/
-docker run --rm -v $PWD/cai:/gcpviz/cai gcr.io/YOUR-PROJECT/gcpviz gcpviz.sh network --query-file queries/data.js
-```
-
-You'll then find `network.gv`, `network.svg` and `network.png` under the `cai/` directory.
-
 ## Usage
 
 ```sh
@@ -98,6 +77,7 @@ You'll then find `network.gv`, `network.svg` and `network.png` under the `cai/` 
         comma-separated list of pattern=N settings for file-filtered logging
 ```
 
+
 ## Exporting Cloud Asset Inventory and creating graph
 
 You'll need a Cloud Storage bucket to store the export and `roles/cloudasset.viewer` permission (on
@@ -114,11 +94,14 @@ gcloud asset export \
    --output-path "gs://$CAI_BUCKET_NAME/resource_inventory.json"
 ```
 
+
 Copy the `resource_inventory.json` to your machine and generate the graph file:
 
 ```sh
 gcpviz -resource-inventory-file resource_inventory.json -mode generate 
 ```
+
+
 
 ## Creating graphs
 
@@ -176,6 +159,28 @@ You can customize your graph styling by editing the following files:
 - `relations.yaml`: contains jsonpath mappings that build `uses` relationships between objects.
 - `style.yaml`: contains graph, node and edge styles (you can override these styles using `-graph-parameter` or just make a new style file)
 - `labels.yaml`: contains formatting for node labels and clickable links.
+
+
+## Building a Docker image
+
+Easiest way to get started is to build a container from the tool, that includes all the necessary
+dependencies. You can build a Docker image using the supplied `Dockerfile`:
+
+```sh
+docker build -t gcr.io/YOUR-PROJECT/gcpviz .
+docker push gcr.io/YOUR-PROJECT/gcpviz
+```
+
+## Running Docker image locally and generate a graph
+
+```sh
+mkdir cai
+cp resource_inventory.json cai/
+docker run --rm -v $PWD/cai:/gcpviz/cai gcr.io/YOUR-PROJECT/gcpviz gcpviz.sh network --query-file queries/data.js
+```
+
+You'll then find `network.gv`, `network.svg` and `network.png` under the `cai/` directory.
+
 
 ## Cool tips
 
