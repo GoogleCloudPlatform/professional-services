@@ -33,6 +33,7 @@ kubectl apply -f manifests/deploy.yaml
 
 ### Build the service extension code and update the image:
 
+* Copy the all the certificates and key files from [ssl_creds](https://github.com/GoogleCloudPlatform/service-extensions/tree/main/callouts/go/extproc/ssl_creds) directory of the service extensions repository to this code repository working directory `gclb-callouts/service-extensions/extproc/ssl_creds`.
 * Build the service extension code in the `service-extensions` directory using the Dockerfile in `service-extensions/extproc/config` directory.
 * After the image is built, push the docker image in artifact registry and update the image name in image field of `manifests/service-extension.yaml` file.
 
