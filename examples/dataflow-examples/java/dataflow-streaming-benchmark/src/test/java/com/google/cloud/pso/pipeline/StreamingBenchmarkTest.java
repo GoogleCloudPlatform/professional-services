@@ -21,8 +21,8 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 
-import com.google.cloud.pso.pipeline.StreamingBenchmark.MessageGeneratorFn;
 import com.google.cloud.pso.pipeline.StreamingBenchmark.MalformedSchemaException;
+import com.google.cloud.pso.pipeline.StreamingBenchmark.MessageGeneratorFn;
 import com.google.common.io.ByteStreams;
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -119,7 +119,8 @@ public class StreamingBenchmarkTest {
     PCollection<PubsubMessage> results =
         pipeline
             .apply("CreateInput", Create.of(0L))
-            .apply("GenerateMessage", ParDo.of(new MessageGeneratorFn(file.getAbsolutePath(), true)));
+            .apply(
+                "GenerateMessage", ParDo.of(new MessageGeneratorFn(file.getAbsolutePath(), true)));
 
     // Assert
     //
@@ -153,12 +154,16 @@ public class StreamingBenchmarkTest {
     PCollection<PubsubMessage> results =
         pipeline
             .apply("CreateInput", Create.of(0L))
-            .apply("GenerateMessage", ParDo.of(new MessageGeneratorFn(file.getAbsolutePath(), true)));
+            .apply(
+                "GenerateMessage", ParDo.of(new MessageGeneratorFn(file.getAbsolutePath(), true)));
 
     pipeline.run();
   }
 
-  /** Tests the {@link MessageGeneratorFn} should not fails when given invalid schema with validateSchema set to false. */
+  /**
+   * Tests the {@link MessageGeneratorFn} should not fails when given invalid schema with
+   * validateSchema set to false.
+   */
   @Test
   public void testInvalidSchemaIgnoringValidation() throws IOException {
     // Arrange
@@ -171,21 +176,25 @@ public class StreamingBenchmarkTest {
     // Act
     //
     PCollection<PubsubMessage> results =
-            pipeline
-                    .apply("CreateInput", Create.of(0L))
-                    .apply("GenerateMessage", ParDo.of(new MessageGeneratorFn(file.getAbsolutePath(), false)));
+        pipeline
+            .apply("CreateInput", Create.of(0L))
+            .apply(
+                "GenerateMessage", ParDo.of(new MessageGeneratorFn(file.getAbsolutePath(), false)));
 
     // Assert
     //
-    PAssert.that(results).satisfies(input -> {
-      PubsubMessage message = input.iterator().next();
-      assertThat(message, is(notNullValue()));
-      assertThat(new String(message.getPayload()), is(equalTo(schema)));
-      return null;
-    });
+    PAssert.that(results)
+        .satisfies(
+            input -> {
+              PubsubMessage message = input.iterator().next();
+              assertThat(message, is(notNullValue()));
+              assertThat(new String(message.getPayload()), is(equalTo(schema)));
+              return null;
+            });
 
     pipeline.run();
   }
+
   /**
    * Helper to generate files for testing.
    *
