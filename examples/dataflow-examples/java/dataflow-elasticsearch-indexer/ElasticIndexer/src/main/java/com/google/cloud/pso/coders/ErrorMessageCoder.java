@@ -17,13 +17,13 @@
 package com.google.cloud.pso.coders;
 
 import com.google.cloud.pso.common.ErrorMessage;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import org.apache.beam.sdk.coders.CoderException;
 import org.apache.beam.sdk.coders.CustomCoder;
 import org.apache.beam.sdk.coders.NullableCoder;
 import org.apache.beam.sdk.coders.StringUtf8Coder;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 
 /** {@link org.apache.beam.sdk.coders.Coder} for {@link ErrorMessage} */
 public class ErrorMessageCoder extends CustomCoder<ErrorMessage> {

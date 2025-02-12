@@ -49,9 +49,8 @@ import org.apache.beam.sdk.values.TupleTag;
  * how to enhance the documents with external data sitting in Cloud Bigtable prior to indexing it
  * into Elasticsearch.
  *
- * Note: The idField should be provided in {@link com.fasterxml.jackson.core.JsonPointer} syntax
- * e.g.: { "sku": 123}
- * will have an id field of: /sku
+ * <p>Note: The idField should be provided in {@link com.fasterxml.jackson.core.JsonPointer} syntax
+ * e.g.: { "sku": 123} will have an id field of: /sku
  *
  * <pre>
  * Build and execute:

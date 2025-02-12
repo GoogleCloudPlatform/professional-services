@@ -16,6 +16,8 @@
 
 package com.google.cloud.pso.common;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import com.google.cloud.pso.coders.ErrorMessageCoder;
 import org.apache.beam.sdk.testing.NeedsRunner;
 import org.apache.beam.sdk.testing.PAssert;
@@ -32,8 +34,6 @@ import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
-
-import static com.google.common.truth.Truth.assertThat;
 
 /** Test class for {@link FailSafeValidate} */
 @RunWith(JUnit4.class)

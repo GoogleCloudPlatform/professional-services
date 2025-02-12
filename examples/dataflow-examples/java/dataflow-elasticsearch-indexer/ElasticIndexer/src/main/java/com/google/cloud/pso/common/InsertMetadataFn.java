@@ -18,10 +18,10 @@ package com.google.cloud.pso.common;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.beam.sdk.transforms.DoFn;
-import org.apache.beam.sdk.values.KV;
 import java.io.IOException;
 import java.util.Map;
+import org.apache.beam.sdk.transforms.DoFn;
+import org.apache.beam.sdk.values.KV;
 
 /**
  * A {@link DoFn} that extracts a Boolean value associated with a json payload and adds a new field

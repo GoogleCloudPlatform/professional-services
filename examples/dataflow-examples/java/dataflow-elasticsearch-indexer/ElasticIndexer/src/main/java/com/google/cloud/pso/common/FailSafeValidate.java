@@ -16,12 +16,15 @@
 
 package com.google.cloud.pso.common;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 import com.fasterxml.jackson.core.JsonPointer;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.google.auto.value.AutoValue;
 import com.google.common.base.Throwables;
+import java.io.IOException;
 import org.apache.beam.sdk.transforms.DoFn;
 import org.apache.beam.sdk.transforms.PTransform;
 import org.apache.beam.sdk.transforms.ParDo;
@@ -30,9 +33,6 @@ import org.apache.beam.sdk.values.PCollection;
 import org.apache.beam.sdk.values.PCollectionTuple;
 import org.apache.beam.sdk.values.TupleTag;
 import org.apache.beam.sdk.values.TupleTagList;
-import java.io.IOException;
-
-import static com.google.common.base.Preconditions.checkArgument;
 
 /**
  * A {@link PTransform} that validates a {@link PCollection<String>} and performs the following

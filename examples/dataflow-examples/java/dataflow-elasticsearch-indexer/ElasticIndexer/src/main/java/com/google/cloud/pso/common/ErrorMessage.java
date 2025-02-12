@@ -16,10 +16,10 @@
 
 package com.google.cloud.pso.common;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 import com.google.auto.value.AutoValue;
 import javax.annotation.Nullable;
-
-import static com.google.common.base.Preconditions.checkArgument;
 
 /**
  * A class to hold messages that fail validation either because the json is not well formed or

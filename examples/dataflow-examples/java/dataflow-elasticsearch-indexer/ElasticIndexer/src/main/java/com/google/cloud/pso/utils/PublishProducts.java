@@ -25,6 +25,8 @@ import com.google.cloud.pso.options.BigtableOptions;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.protobuf.ByteString;
+import java.io.IOException;
+import java.util.Random;
 import org.apache.beam.runners.dataflow.options.DataflowPipelineOptions;
 import org.apache.beam.sdk.Pipeline;
 import org.apache.beam.sdk.PipelineResult;
@@ -44,8 +46,6 @@ import org.apache.beam.sdk.values.PCollection;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import java.io.IOException;
-import java.util.Random;
 
 /**
  * A utility Dataflow pipeline to generate sample products data available at
@@ -55,9 +55,9 @@ import java.util.Random;
  * and table with a column family to stage the metadata for the demo. 3. Create a PubSub topic to
  * publish product JSONs to.
  *
- * Note: The idField should be provided in {@link com.fasterxml.jackson.core.JsonPointer} syntax
- * e.g.: { "sku": 123}
- * will have an id field of: /sku
+ * <p>Note: The idField should be provided in {@link com.fasterxml.jackson.core.JsonPointer} syntax
+ * e.g.: { "sku": 123} will have an id field of: /sku
+ *
  * <pre>
  * Build and execute:
  * mvn compile exec:java -Dexec.mainClass=com.google.cloud.pso.utils.PublishProducts -Dexec.args=" \
