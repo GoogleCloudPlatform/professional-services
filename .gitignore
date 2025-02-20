@@ -38,6 +38,9 @@ node_modules/
 htmlcov/
 *.iml
 **/target
+.metals
+.bsp
+.scala-build
 
 
 # Terraform
