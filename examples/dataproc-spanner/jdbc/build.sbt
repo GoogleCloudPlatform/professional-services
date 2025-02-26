@@ -3,7 +3,7 @@
 lazy val root = (project in file(".")).settings(
   inThisBuild(
     List(
-      organization := "org.tonz.com",
+      organization := "com.google.cloud.pso",
       // version of scala compatible with latest dataproc images
       scalaVersion := "2.12.18"
     )
