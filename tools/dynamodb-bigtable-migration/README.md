@@ -1,4 +1,4 @@
-# Bigtable Data Bridge - DynamoDB to Bigtable Migration Utility
+# DynamoDB to Bigtable Migration Utility
 
 ## Overview
 
