@@ -1,10 +1,10 @@
-# Vector Search Load Testing Framework
+# Vertex AI Vector Search Load Testing Framework
 
-This framework enables distributed load testing for Vertex AI Vector Search endpoints using Locust running on Google Kubernetes Engine (GKE). It allows simulating production-like workloads to benchmark performance, analyze scalability, and validate deployment configurations.
+This framework provides a streamlined solution for distributed load testing of Vertex AI Vector Search endpoints on Google Kubernetes Engine (GKE) using [Locust](https://locust.io/). It enables you to simulate production-like workloads to effectively benchmark performance, analyze scalability, and validate deployment configurations.
 
 ## Overview
 
-The framework provides a complete solution for testing Vector Search performance and scalability, including:
+This framework enables you to quickly deploy both a Vertex AI Vector Search index and a distributed Locust-based load testing suite on Google Kubernetes Engine. This rapid setup facilitates immediate performance benchmarking, scalability analysis, and validation of your vector search deployments by simulating production workloads. The framework includes the following features:
 
 - Infrastructure setup via Terraform
 - Simplified configuration management
@@ -27,18 +27,23 @@ The framework provides a complete solution for testing Vector Search performance
 ## Prerequisites
 
 - Google Cloud project with billing enabled
-- `gcloud` CLI installed and configured
-- Terraform installed (v6.0.0+)
+- [`gcloud`](https://cloud.google.com/sdk/docs/install) CLI installed and configured
+- [Terraform CLI](https://developer.hashicorp.com/terraform/tutorials/aws-get-started/install-cli) installed (v6.0.0+)
+- [GKE Auth Plugin](https://cloud.google.com/kubernetes-engine/docs/how-to/cluster-access-for-kubectl): `gcloud components install gke-gcloud-auth-plugin`
+- [Kubectl CLI](https://cloud.google.com/kubernetes-engine/docs/how-to/cluster-access-for-kubectl): `gcloud components install kubectl`
 - Permission to create following resources:
    - GKE cluster
    - Vertex AI resources
    - Service account
    - IAM roles
    - Artifact Registry repository
+- Pre-existing embeddings in a Cloud Storage bucket or in an existing Vector Search index.
 
 ## Quick Start
 
-For those who want to get started immediately:
+You can quickly deploy a Vector Search deployed index and Locust-based load test platform with default settings with the commands below. This framework allows you to stand up a brand new Vector Search index or bring your own existing index. In either scenario the framework will create a new deployed index.
+- *Vector Search Index: Data structure holding vector embeddings*
+- *Vector Search Deployed Index: The index made queryable and accessible as a live service endpoint.*
 
 1. Copy the configuration template:
    ```bash
@@ -66,13 +71,16 @@ For those who want to get started immediately:
    BUCKET_NAME="your-embedding-bucket"
    EMBEDDING_PATH="your-embedding-folder"
    ```
-
-3. Run the deployment:
+3. Authenticate your local machine to Google Cloud using your Google account for application default credentials:
+   ```bash
+   gcloud auth application-default login
+   ```
+4. Run the deployment:
    ```bash
    ./deploy_vvs_load_testing_framework.sh
    ```
 
-4. Access the Locust UI using the URL provided at the end of deployment.
+5. Access the Locust UI using the URL provided at the end of deployment.
 
 ## Detailed Configuration Options
 
@@ -170,11 +178,33 @@ DEPLOYED_INDEX_DEDICATED_MAX_REPLICAS=10
 __Locust UI Configuration__
 ```
 Number of Users=1000
-Ramp Up=100
+Ramp Up=.5
 Num Neighbors=20
 QPS per User=5
 ```
 
+Note: setting a low user ramp up (e.g., .5) will help to not overwhelm the workers, and keep CPU utilization low.
+
+### Optimizing Locust Worker Scaling
+
+The framework automatically scales Locust workers based on CPU utilization, but you can customize the minimum number of workers to optimize test execution:
+
+#### Why Worker Count Matters
+
+- Initial Distribution: Locust distributes users evenly across available workers when a test begins
+- Scaling Limitations: Once workers are assigned users, Locust doesn't automatically redistribute load when new workers are added
+- Best Practice: Start with enough workers to handle your expected peak load
+- Alternatively, if you observe a new worker is spun up without any traffic, you can restart the load test to distribute the load to the new worker.
+
+For example:
+
+- Testing with 30 users? 3 workers (default) is sufficient
+- Testing with 300 users? Start with at least 10 workers (MIN_REPLICAS_WORKER=10)
+- Testing with 3000 users? Start with at least 30-50 workers (MIN_REPLICAS_WORKER=50)
+
+Starting with an appropriate number of workers ensures even load distribution and more accurate test results, especially for high-volume tests.
+
+Note: Setting too many workers for a small test can waste resources, while too few workers for a large test can cause uneven load distribution and misleading results.
 
 ### Secure Enterprise Deployment
 
