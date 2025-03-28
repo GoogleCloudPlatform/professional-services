@@ -50,7 +50,8 @@ function main() {
 # Check and load configuration
 #------------------------------------------------------------------------------
 function load_configuration() {
-  local CONFIG_FILE="config.sh"
+  local CONFIG_FILE
+  CONFIG_FILE="config.sh"
   
   echo "📋 Checking for configuration file..."
   if [ ! -f "$CONFIG_FILE" ]; then
@@ -60,6 +61,7 @@ function load_configuration() {
   fi
 
   echo "✅ Found configuration file. Loading settings..."
+  # shellcheck disable=1090
   source "$CONFIG_FILE"
 }
 
@@ -86,9 +88,9 @@ function setup_dynamic_variables() {
   
   # Generate timestamps and names
   TIMESTAMP=$(date +%Y%m%d%H%M%S)
-  CLEAN_REPO_NAME="locust-docker-repo-$(echo ${DEPLOYMENT_ID} | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9-]/-/g' | sed 's/^[^a-z]*/l/' | sed 's/-$/1/')"
+  CLEAN_REPO_NAME="locust-docker-repo-$(echo "${DEPLOYMENT_ID}" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9-]/-/g' | sed 's/^[^a-z]*/l/' | sed 's/-$/1/')"
   DOCKER_IMAGE="${REGION}-docker.pkg.dev/${PROJECT_ID}/${CLEAN_REPO_NAME}/locust-load-test:LTF-${TIMESTAMP}"
-  PROJECT_NUMBER=$(gcloud projects describe $PROJECT_ID --format="value(projectNumber)")
+  PROJECT_NUMBER=$(gcloud projects describe "$PROJECT_ID" --format="value(projectNumber)")
   
   # Export for Terraform
   export TIMESTAMP
@@ -193,11 +195,8 @@ function validate_subnet() {
     # Extract just the subnet name from the full path if provided
     SUBNET_NAME=$(basename "${SUBNETWORK}")
     
-    # Get network URL format that GCP uses internally 
-    NETWORK_URL="projects/${PROJECT_NUMBER}/global/networks/${VPC_NETWORK_NAME}"
-    
     # Get subnet details
-    SUBNET_DETAILS=$(gcloud compute networks subnets describe ${SUBNET_NAME} \
+    SUBNET_DETAILS=$(gcloud compute networks subnets describe "${SUBNET_NAME}" \
       --project="${PROJECT_ID}" \
       --region="${REGION}" \
       --format="yaml" 2>/dev/null)
@@ -318,9 +317,9 @@ function enable_gcp_services() {
 function create_artifact_registry() {
   echo "🔄 Setting up Artifact Registry repository..."
   
-  if ! gcloud artifacts repositories describe ${CLEAN_REPO_NAME} --location="${REGION}" --project="${PROJECT_ID}" &>/dev/null; then
+  if ! gcloud artifacts repositories describe "${CLEAN_REPO_NAME}" --location="${REGION}" --project="${PROJECT_ID}" &>/dev/null; then
     echo "  ➡️ Creating Artifact Registry repository: ${CLEAN_REPO_NAME}"
-    gcloud artifacts repositories create ${CLEAN_REPO_NAME} \
+    gcloud artifacts repositories create "${CLEAN_REPO_NAME}" \
       --repository-format=docker \
       --location="${REGION}" \
       --project="${PROJECT_ID}"
@@ -404,87 +403,92 @@ function create_terraform_vars() {
   # Start with an empty file
   : > terraform.tfvars
   
-  # Add basic variables
-  echo "project_id = \"${PROJECT_ID}\"" >> terraform.tfvars
-  echo "region = \"${REGION}\"" >> terraform.tfvars
-  echo "project_number = \"${PROJECT_NUMBER}\"" >> terraform.tfvars
-  echo "deployment_id = \"${DEPLOYMENT_ID}\"" >> terraform.tfvars
-  echo "locust_test_type = \"${LOCUST_TEST_TYPE}\"" >> terraform.tfvars
-  echo "create_external_ip = ${TF_VAR_create_external_ip:-false}" >> terraform.tfvars
+  {
+    # Add basic variables
+    echo "project_id = \"${PROJECT_ID}\""
+    echo "region = \"${REGION}\""
+    echo "project_number = \"${PROJECT_NUMBER}\""
+    echo "deployment_id = \"${DEPLOYMENT_ID}\""
+    echo "locust_test_type = \"${LOCUST_TEST_TYPE}\""
+    echo "create_external_ip = ${TF_VAR_create_external_ip:-false}"
   
-  # Add network configuration
-  echo "" >> terraform.tfvars
-  echo "# Network configuration" >> terraform.tfvars
-  echo "network_configuration = {" >> terraform.tfvars
-  echo "  network_name = \"${VPC_NETWORK_NAME:-default}\"" >> terraform.tfvars
-  echo "  subnetwork = \"${SUBNETWORK}\"" >> terraform.tfvars
-  echo "  master_ipv4_cidr_block = \"${MASTER_IPV4_CIDR_BLOCK:-172.16.0.0/28}\"" >> terraform.tfvars
-  echo "  pod_subnet_range = \"${GKE_POD_SUBNET_RANGE:-10.4.0.0/14}\"" >> terraform.tfvars
-  echo "  service_subnet_range = \"${GKE_SERVICE_SUBNET_RANGE:-10.0.32.0/20}\"" >> terraform.tfvars
-  [[ -n "$MIN_REPLICAS_WORKER" ]] && echo "min_replicas_worker = $MIN_REPLICAS_WORKER" >> terraform.tfvars
-  echo "}" >> terraform.tfvars
+    # Add network configuration
+    echo ""
+    echo "# Network configuration"
+    echo "network_configuration = {"
+    echo "  network_name = \"${VPC_NETWORK_NAME:-default}\""
+    echo "  subnetwork = \"${SUBNETWORK}\""
+    echo "  master_ipv4_cidr_block = \"${MASTER_IPV4_CIDR_BLOCK:-172.16.0.0/28}\""
+    echo "  pod_subnet_range = \"${GKE_POD_SUBNET_RANGE:-10.4.0.0/14}\""
+    echo "  service_subnet_range = \"${GKE_SERVICE_SUBNET_RANGE:-10.0.32.0/20}\""
+    echo "}"
 
-  # Add VPC peering variables if needed
-  if [[ "${ENDPOINT_ACCESS_TYPE}" == "vpc_peering" ]]; then
-    echo "" >> terraform.tfvars
-    echo "peering_range_name = \"${PEERING_RANGE_NAME}\"" >> terraform.tfvars
-    echo "peering_prefix_length = ${PEERING_PREFIX_LENGTH:-16}" >> terraform.tfvars
-  fi
+    # Setting minimum number of Replicas
+    echo ""
+    [[ -n "$MIN_REPLICAS_WORKER" ]] && echo "min_replicas_worker = $MIN_REPLICAS_WORKER"
 
-  # Add index configuration
-  echo "" >> terraform.tfvars
-  if [[ -n "${VECTOR_SEARCH_INDEX_ID}" ]]; then
-    echo "vector_search_index_id = \"${VECTOR_SEARCH_INDEX_ID}\"" >> terraform.tfvars
-  else
-    echo "existing_bucket_name = \"${BUCKET_NAME}\"" >> terraform.tfvars
-    echo "embedding_data_path = \"${EMBEDDING_PATH}\"" >> terraform.tfvars
-  fi
+    # Add VPC peering variables if needed
+    if [[ "${ENDPOINT_ACCESS_TYPE}" == "vpc_peering" ]]; then
+      echo ""
+      echo "peering_range_name = \"${PEERING_RANGE_NAME}\""
+      echo "peering_prefix_length = ${PEERING_PREFIX_LENGTH:-16}"
+    fi
 
-  # Add other required settings
-  echo "" >> terraform.tfvars
-  echo "index_dimensions = ${INDEX_DIMENSIONS}" >> terraform.tfvars
-  echo "deployed_index_resource_type = \"${DEPLOYED_INDEX_RESOURCE_TYPE:-dedicated}\"" >> terraform.tfvars
-  echo "deployed_index_dedicated_machine_type = \"${DEPLOYED_INDEX_DEDICATED_MACHINE_TYPE:-e2-standard-16}\"" >> terraform.tfvars
-  echo "image = \"${DOCKER_IMAGE}\"" >> terraform.tfvars
+    # Add index configuration
+    echo ""
+    if [[ -n "${VECTOR_SEARCH_INDEX_ID}" ]]; then
+      echo "vector_search_index_id = \"${VECTOR_SEARCH_INDEX_ID}\""
+    else
+      echo "existing_bucket_name = \"${BUCKET_NAME}\""
+      echo "embedding_data_path = \"${EMBEDDING_PATH}\""
+    fi
 
-  # Add all optional variables
-  echo "" >> terraform.tfvars
-  echo "# Optional variables" >> terraform.tfvars
-  
-  # Index settings
-  [[ -n "$INDEX_DISPLAY_NAME" ]] && echo "index_display_name = \"$INDEX_DISPLAY_NAME\"" >> terraform.tfvars
-  [[ -n "$INDEX_DESCRIPTION" ]] && echo "index_description = \"$INDEX_DESCRIPTION\"" >> terraform.tfvars
-  [[ -n "$INDEX_LABELS" ]] && echo "index_labels = $INDEX_LABELS" >> terraform.tfvars
-  
-  [[ -n "$INDEX_APPROXIMATE_NEIGHBORS_COUNT" ]] && echo "index_approximate_neighbors_count = $INDEX_APPROXIMATE_NEIGHBORS_COUNT" >> terraform.tfvars
-  [[ -n "$INDEX_DISTANCE_MEASURE_TYPE" ]] && echo "index_distance_measure_type = \"$INDEX_DISTANCE_MEASURE_TYPE\"" >> terraform.tfvars
-  [[ -n "$INDEX_SHARD_SIZE" ]] && echo "index_shard_size = \"$INDEX_SHARD_SIZE\"" >> terraform.tfvars
-  
-  [[ -n "$FEATURE_NORM_TYPE" ]] && echo "feature_norm_type = \"$FEATURE_NORM_TYPE\"" >> terraform.tfvars
-  [[ -n "$INDEX_ALGORITHM_CONFIG_TYPE" ]] && echo "index_algorithm_config_type = \"$INDEX_ALGORITHM_CONFIG_TYPE\"" >> terraform.tfvars
-  [[ -n "$INDEX_TREE_AH_LEAF_NODE_EMBEDDING_COUNT" ]] && echo "index_tree_ah_leaf_node_embedding_count = $INDEX_TREE_AH_LEAF_NODE_EMBEDDING_COUNT" >> terraform.tfvars
-  [[ -n "$INDEX_TREE_AH_LEAF_NODES_TO_SEARCH_PERCENT" ]] && echo "index_tree_ah_leaf_nodes_to_search_percent = $INDEX_TREE_AH_LEAF_NODES_TO_SEARCH_PERCENT" >> terraform.tfvars
-  [[ -n "$INDEX_UPDATE_METHOD" ]] && echo "index_update_method = \"$INDEX_UPDATE_METHOD\"" >> terraform.tfvars
+    # Add other required settings
+    echo ""
+    echo "index_dimensions = ${INDEX_DIMENSIONS}"
+    echo "deployed_index_resource_type = \"${DEPLOYED_INDEX_RESOURCE_TYPE:-dedicated}\""
+    echo "deployed_index_dedicated_machine_type = \"${DEPLOYED_INDEX_DEDICATED_MACHINE_TYPE:-e2-standard-16}\""
+    echo "image = \"${DOCKER_IMAGE}\""
 
-  # Endpoint settings
-  [[ -n "$ENDPOINT_DISPLAY_NAME" ]] && echo "endpoint_display_name = \"$ENDPOINT_DISPLAY_NAME\"" >> terraform.tfvars
-  [[ -n "$ENDPOINT_DESCRIPTION" ]] && echo "endpoint_description = \"$ENDPOINT_DESCRIPTION\"" >> terraform.tfvars
-  [[ -n "$ENDPOINT_LABELS" ]] && echo "endpoint_labels = $ENDPOINT_LABELS" >> terraform.tfvars
-  [[ -n "$ENDPOINT_CREATE_TIMEOUT" ]] && echo "endpoint_create_timeout = \"$ENDPOINT_CREATE_TIMEOUT\"" >> terraform.tfvars
-  [[ -n "$ENDPOINT_UPDATE_TIMEOUT" ]] && echo "endpoint_update_timeout = \"$ENDPOINT_UPDATE_TIMEOUT\"" >> terraform.tfvars
-  [[ -n "$ENDPOINT_DELETE_TIMEOUT" ]] && echo "endpoint_delete_timeout = \"$ENDPOINT_DELETE_TIMEOUT\"" >> terraform.tfvars
+    # Add all optional variables
+    echo ""
+    echo "# Optional variables"
+    
+    # Index settings
+    [[ -n "$INDEX_DISPLAY_NAME" ]] && echo "index_display_name = \"$INDEX_DISPLAY_NAME\""
+    [[ -n "$INDEX_DESCRIPTION" ]] && echo "index_description = \"$INDEX_DESCRIPTION\""
+    [[ -n "$INDEX_LABELS" ]] && echo "index_labels = $INDEX_LABELS"
+    
+    [[ -n "$INDEX_APPROXIMATE_NEIGHBORS_COUNT" ]] && echo "index_approximate_neighbors_count = $INDEX_APPROXIMATE_NEIGHBORS_COUNT"
+    [[ -n "$INDEX_DISTANCE_MEASURE_TYPE" ]] && echo "index_distance_measure_type = \"$INDEX_DISTANCE_MEASURE_TYPE\""
+    [[ -n "$INDEX_SHARD_SIZE" ]] && echo "index_shard_size = \"$INDEX_SHARD_SIZE\""
+    
+    [[ -n "$FEATURE_NORM_TYPE" ]] && echo "feature_norm_type = \"$FEATURE_NORM_TYPE\""
+    [[ -n "$INDEX_ALGORITHM_CONFIG_TYPE" ]] && echo "index_algorithm_config_type = \"$INDEX_ALGORITHM_CONFIG_TYPE\""
+    [[ -n "$INDEX_TREE_AH_LEAF_NODE_EMBEDDING_COUNT" ]] && echo "index_tree_ah_leaf_node_embedding_count = $INDEX_TREE_AH_LEAF_NODE_EMBEDDING_COUNT"
+    [[ -n "$INDEX_TREE_AH_LEAF_NODES_TO_SEARCH_PERCENT" ]] && echo "index_tree_ah_leaf_nodes_to_search_percent = $INDEX_TREE_AH_LEAF_NODES_TO_SEARCH_PERCENT"
+    [[ -n "$INDEX_UPDATE_METHOD" ]] && echo "index_update_method = \"$INDEX_UPDATE_METHOD\""
 
-  # Deployed index settings
-  [[ -n "$DEPLOYED_INDEX_ID" ]] && echo "deployed_index_id = \"$DEPLOYED_INDEX_ID\"" >> terraform.tfvars
-  [[ -n "$DEPLOYED_INDEX_DEDICATED_MIN_REPLICAS" ]] && echo "deployed_index_dedicated_min_replicas = $DEPLOYED_INDEX_DEDICATED_MIN_REPLICAS" >> terraform.tfvars
-  [[ -n "$DEPLOYED_INDEX_DEDICATED_MAX_REPLICAS" ]] && echo "deployed_index_dedicated_max_replicas = $DEPLOYED_INDEX_DEDICATED_MAX_REPLICAS" >> terraform.tfvars
-  [[ -n "$DEPLOYED_INDEX_AUTOMATIC_MIN_REPLICAS" ]] && echo "deployed_index_automatic_min_replicas = $DEPLOYED_INDEX_AUTOMATIC_MIN_REPLICAS" >> terraform.tfvars
-  [[ -n "$DEPLOYED_INDEX_AUTOMATIC_MAX_REPLICAS" ]] && echo "deployed_index_automatic_max_replicas = $DEPLOYED_INDEX_AUTOMATIC_MAX_REPLICAS" >> terraform.tfvars
-  [[ -n "$DEPLOYED_INDEX_RESERVED_IP_RANGES" ]] && echo "deployed_index_reserved_ip_ranges = $DEPLOYED_INDEX_RESERVED_IP_RANGES" >> terraform.tfvars
-  [[ -n "$DEPLOYED_INDEX_CREATE_TIMEOUT" ]] && echo "deployed_index_create_timeout = \"$DEPLOYED_INDEX_CREATE_TIMEOUT\"" >> terraform.tfvars
-  [[ -n "$DEPLOYED_INDEX_UPDATE_TIMEOUT" ]] && echo "deployed_index_update_timeout = \"$DEPLOYED_INDEX_UPDATE_TIMEOUT\"" >> terraform.tfvars
-  [[ -n "$DEPLOYED_INDEX_DELETE_TIMEOUT" ]] && echo "deployed_index_delete_timeout = \"$DEPLOYED_INDEX_DELETE_TIMEOUT\"" >> terraform.tfvars
-  
+    # Endpoint settings
+    [[ -n "$ENDPOINT_DISPLAY_NAME" ]] && echo "endpoint_display_name = \"$ENDPOINT_DISPLAY_NAME\""
+    [[ -n "$ENDPOINT_DESCRIPTION" ]] && echo "endpoint_description = \"$ENDPOINT_DESCRIPTION\""
+    [[ -n "$ENDPOINT_LABELS" ]] && echo "endpoint_labels = $ENDPOINT_LABELS"
+    [[ -n "$ENDPOINT_CREATE_TIMEOUT" ]] && echo "endpoint_create_timeout = \"$ENDPOINT_CREATE_TIMEOUT\""
+    [[ -n "$ENDPOINT_UPDATE_TIMEOUT" ]] && echo "endpoint_update_timeout = \"$ENDPOINT_UPDATE_TIMEOUT\""
+    [[ -n "$ENDPOINT_DELETE_TIMEOUT" ]] && echo "endpoint_delete_timeout = \"$ENDPOINT_DELETE_TIMEOUT\""
+
+    # Deployed index settings
+    [[ -n "$DEPLOYED_INDEX_ID" ]] && echo "deployed_index_id = \"$DEPLOYED_INDEX_ID\""
+    [[ -n "$DEPLOYED_INDEX_DEDICATED_MIN_REPLICAS" ]] && echo "deployed_index_dedicated_min_replicas = $DEPLOYED_INDEX_DEDICATED_MIN_REPLICAS"
+    [[ -n "$DEPLOYED_INDEX_DEDICATED_MAX_REPLICAS" ]] && echo "deployed_index_dedicated_max_replicas = $DEPLOYED_INDEX_DEDICATED_MAX_REPLICAS"
+    [[ -n "$DEPLOYED_INDEX_AUTOMATIC_MIN_REPLICAS" ]] && echo "deployed_index_automatic_min_replicas = $DEPLOYED_INDEX_AUTOMATIC_MIN_REPLICAS"
+    [[ -n "$DEPLOYED_INDEX_AUTOMATIC_MAX_REPLICAS" ]] && echo "deployed_index_automatic_max_replicas = $DEPLOYED_INDEX_AUTOMATIC_MAX_REPLICAS"
+    [[ -n "$DEPLOYED_INDEX_RESERVED_IP_RANGES" ]] && echo "deployed_index_reserved_ip_ranges = $DEPLOYED_INDEX_RESERVED_IP_RANGES"
+    [[ -n "$DEPLOYED_INDEX_CREATE_TIMEOUT" ]] && echo "deployed_index_create_timeout = \"$DEPLOYED_INDEX_CREATE_TIMEOUT\""
+    [[ -n "$DEPLOYED_INDEX_UPDATE_TIMEOUT" ]] && echo "deployed_index_update_timeout = \"$DEPLOYED_INDEX_UPDATE_TIMEOUT\""
+    [[ -n "$DEPLOYED_INDEX_DELETE_TIMEOUT" ]] && echo "deployed_index_delete_timeout = \"$DEPLOYED_INDEX_DELETE_TIMEOUT\""
+  } >> terraform.tfvars
+
   # Display terraform.tfvars for verification
   echo "  📄 Contents of terraform.tfvars:"
   if [ -f terraform.tfvars ]; then
@@ -495,53 +499,17 @@ function create_terraform_vars() {
 }
 
 #------------------------------------------------------------------------------
-# Add optional Terraform variables if defined
-#------------------------------------------------------------------------------
-function add_optional_terraform_vars() {
-  # Index settings
-  [[ -n "$INDEX_DISPLAY_NAME" ]] && echo "index_display_name = \"$INDEX_DISPLAY_NAME\"" >> terraform.tfvars
-  [[ -n "$INDEX_DESCRIPTION" ]] && echo "index_description = \"$INDEX_DESCRIPTION\"" >> terraform.tfvars
-  [[ -n "$INDEX_LABELS" ]] && echo "index_labels = $INDEX_LABELS" >> terraform.tfvars
-  
-  [[ -n "$INDEX_APPROXIMATE_NEIGHBORS_COUNT" ]] && echo "index_approximate_neighbors_count = $INDEX_APPROXIMATE_NEIGHBORS_COUNT" >> terraform.tfvars
-  [[ -n "$INDEX_DISTANCE_MEASURE_TYPE" ]] && echo "index_distance_measure_type = \"$INDEX_DISTANCE_MEASURE_TYPE\"" >> terraform.tfvars
-  [[ -n "$INDEX_SHARD_SIZE" ]] && echo "index_shard_size = \"$INDEX_SHARD_SIZE\"" >> terraform.tfvars
-  
-  [[ -n "$FEATURE_NORM_TYPE" ]] && echo "feature_norm_type = \"$FEATURE_NORM_TYPE\"" >> terraform.tfvars
-  [[ -n "$INDEX_ALGORITHM_CONFIG_TYPE" ]] && echo "index_algorithm_config_type = \"$INDEX_ALGORITHM_CONFIG_TYPE\"" >> terraform.tfvars
-  [[ -n "$INDEX_TREE_AH_LEAF_NODE_EMBEDDING_COUNT" ]] && echo "index_tree_ah_leaf_node_embedding_count = $INDEX_TREE_AH_LEAF_NODE_EMBEDDING_COUNT" >> terraform.tfvars
-  [[ -n "$INDEX_TREE_AH_LEAF_NODES_TO_SEARCH_PERCENT" ]] && echo "index_tree_ah_leaf_nodes_to_search_percent = $INDEX_TREE_AH_LEAF_NODES_TO_SEARCH_PERCENT" >> terraform.tfvars
-  [[ -n "$INDEX_UPDATE_METHOD" ]] && echo "index_update_method = \"$INDEX_UPDATE_METHOD\"" >> terraform.tfvars
-
-  # Endpoint settings
-  [[ -n "$ENDPOINT_DISPLAY_NAME" ]] && echo "endpoint_display_name = \"$ENDPOINT_DISPLAY_NAME\"" >> terraform.tfvars
-  [[ -n "$ENDPOINT_DESCRIPTION" ]] && echo "endpoint_description = \"$ENDPOINT_DESCRIPTION\"" >> terraform.tfvars
-  [[ -n "$ENDPOINT_LABELS" ]] && echo "endpoint_labels = $ENDPOINT_LABELS" >> terraform.tfvars
-  [[ -n "$ENDPOINT_CREATE_TIMEOUT" ]] && echo "endpoint_create_timeout = \"$ENDPOINT_CREATE_TIMEOUT\"" >> terraform.tfvars
-  [[ -n "$ENDPOINT_UPDATE_TIMEOUT" ]] && echo "endpoint_update_timeout = \"$ENDPOINT_UPDATE_TIMEOUT\"" >> terraform.tfvars
-  [[ -n "$ENDPOINT_DELETE_TIMEOUT" ]] && echo "endpoint_delete_timeout = \"$ENDPOINT_DELETE_TIMEOUT\"" >> terraform.tfvars
-
-  # Deployed index settings
-  [[ -n "$DEPLOYED_INDEX_ID" ]] && echo "deployed_index_id = \"$DEPLOYED_INDEX_ID\"" >> terraform.tfvars
-  [[ -n "$DEPLOYED_INDEX_DEDICATED_MIN_REPLICAS" ]] && echo "deployed_index_dedicated_min_replicas = $DEPLOYED_INDEX_DEDICATED_MIN_REPLICAS" >> terraform.tfvars
-  [[ -n "$DEPLOYED_INDEX_DEDICATED_MAX_REPLICAS" ]] && echo "deployed_index_dedicated_max_replicas = $DEPLOYED_INDEX_DEDICATED_MAX_REPLICAS" >> terraform.tfvars
-  [[ -n "$DEPLOYED_INDEX_AUTOMATIC_MIN_REPLICAS" ]] && echo "deployed_index_automatic_min_replicas = $DEPLOYED_INDEX_AUTOMATIC_MIN_REPLICAS" >> terraform.tfvars
-  [[ -n "$DEPLOYED_INDEX_AUTOMATIC_MAX_REPLICAS" ]] && echo "deployed_index_automatic_max_replicas = $DEPLOYED_INDEX_AUTOMATIC_MAX_REPLICAS" >> terraform.tfvars
-  [[ -n "$DEPLOYED_INDEX_RESERVED_IP_RANGES" ]] && echo "deployed_index_reserved_ip_ranges = $DEPLOYED_INDEX_RESERVED_IP_RANGES" >> terraform.tfvars
-  [[ -n "$DEPLOYED_INDEX_CREATE_TIMEOUT" ]] && echo "deployed_index_create_timeout = \"$DEPLOYED_INDEX_CREATE_TIMEOUT\"" >> terraform.tfvars
-  [[ -n "$DEPLOYED_INDEX_UPDATE_TIMEOUT" ]] && echo "deployed_index_update_timeout = \"$DEPLOYED_INDEX_UPDATE_TIMEOUT\"" >> terraform.tfvars
-  [[ -n "$DEPLOYED_INDEX_DELETE_TIMEOUT" ]] && echo "deployed_index_delete_timeout = \"$DEPLOYED_INDEX_DELETE_TIMEOUT\"" >> terraform.tfvars
-}
-#------------------------------------------------------------------------------
 # Extract outputs from Terraform
 #------------------------------------------------------------------------------
 function extract_terraform_outputs() {
   echo "  🔍 Extracting Vector Search configuration..."
   
   # Set basic outputs
+  VS_DEPLOYED_INDEX_ID=$(terraform output -raw vector_search_deployed_index_id)
+  VS_INDEX_ENDPOINT_ID=$(terraform output -raw vector_search_endpoint_id)
   export VS_DIMENSIONS=${INDEX_DIMENSIONS}
-  export VS_DEPLOYED_INDEX_ID=$(terraform output -raw vector_search_deployed_index_id)
-  export VS_INDEX_ENDPOINT_ID=$(terraform output -raw vector_search_endpoint_id)
+  export VS_DEPLOYED_INDEX_ID
+  export VS_INDEX_ENDPOINT_ID
 
   # Get public endpoint if available
   if terraform output -raw vector_search_public_endpoint &>/dev/null; then
@@ -626,7 +594,8 @@ function setup_psc_config() {
   
   # Get service attachment (required for PSC)
   if terraform output -raw vector_search_service_attachment &>/dev/null; then
-    local service_attachment=$(terraform output -raw vector_search_service_attachment)
+    local service_attachment
+    service_attachment=$(terraform output -raw vector_search_service_attachment)
     echo "  📝 Service Attachment: ${service_attachment}"
     echo "SERVICE_ATTACHMENT=${service_attachment}" >> ../config/locust_config.env
   else
@@ -635,8 +604,10 @@ function setup_psc_config() {
   
   # Get PSC IP address
   if terraform output -raw psc_address_ip &>/dev/null; then
-    local psc_ip=$(terraform output -raw psc_address_ip)
-    local psc_ip_with_port="${psc_ip}:10000"
+    local psc_ip
+    local psc_ip_with_port
+    psc_ip=$(terraform output -raw psc_address_ip)
+    psc_ip_with_port="${psc_ip}:10000"
     echo "  📝 PSC IP Address: ${psc_ip}"
     echo "PSC_IP_ADDRESS=${psc_ip_with_port}" >> ../config/locust_config.env
   else
@@ -653,7 +624,8 @@ function setup_vpc_peering_config() {
   
   # Get VPC peering connection info
   if terraform output -raw vector_search_private_endpoints_connection &>/dev/null; then
-    local private_endpoint=$(terraform output -raw vector_search_private_endpoints_connection)
+    local private_endpoint
+    private_endpoint=$(terraform output -raw vector_search_private_endpoints_connection)
     echo "  📝 VPC Peering Connection: ${private_endpoint}"
     echo "PRIVATE_ENDPOINT=${private_endpoint}" >> ../config/locust_config.env
   else
@@ -666,9 +638,11 @@ function setup_vpc_peering_config() {
 #------------------------------------------------------------------------------
 function setup_grpc_address() {
   if terraform output -raw vector_search_match_grpc_address &>/dev/null; then
-    local match_raw=$(terraform output -raw vector_search_match_grpc_address)
-    local grpc_address=""
+    local match_raw
+    local grpc_address
+    match_raw=$(terraform output -raw vector_search_match_grpc_address)
     
+    grpc_address=""
     # Add port if not already present
     if [[ "$match_raw" != *":"* && -n "$match_raw" ]]; then
       grpc_address="${match_raw}:10000"
@@ -689,7 +663,7 @@ function setup_grpc_address() {
 function build_and_push_docker_image() {
   echo "🔄 Building and pushing Docker image to Google Cloud..."
   echo "   (This may take several minutes depending on your connection speed)"
-  gcloud builds submit --project=${PROJECT_ID} --tag ${DOCKER_IMAGE}
+  gcloud builds submit --project="${PROJECT_ID}" --tag "${DOCKER_IMAGE}"
   echo "  ✅ Docker image built and pushed successfully to: ${DOCKER_IMAGE}"
 }
 
@@ -702,7 +676,7 @@ function deploy_remaining_infrastructure() {
   cd terraform
 
   # Select workspace and apply Terraform
-  terraform workspace select $DEPLOYMENT_ID
+  terraform workspace select "$DEPLOYMENT_ID"
   echo "  🔄 Deploying GKE cluster and Locust in workspace: $DEPLOYMENT_ID"
   echo "      (Progress will be shown below)"
   terraform apply --auto-approve
@@ -723,20 +697,22 @@ function deploy_remaining_infrastructure_with_k8s_error_handling() {
   cd terraform
 
   # Check if this is a re-deployment by looking for existing state file
-  local state_file="../${DEPLOYMENT_ID}_state.sh"
+  local state_file
+  state_file="../${DEPLOYMENT_ID}_state.sh"
   if [ -f "$state_file" ]; then
     echo "  🔍 Found existing deployment state file"
+    # shellcheck disable=1090
     source "$state_file"
     
     # If we have a cluster name from previous deployment, configure kubectl
     if [[ -n "$DEPLOYED_CLUSTER_NAME" ]]; then
       echo "  🔄 Configuring kubectl for existing cluster: $DEPLOYED_CLUSTER_NAME"
-      gcloud container clusters get-credentials $DEPLOYED_CLUSTER_NAME --project=${PROJECT_ID} --location=${REGION}
+      gcloud container clusters get-credentials "$DEPLOYED_CLUSTER_NAME" --project="${PROJECT_ID}" --location="${REGION}"
     fi
   fi
 
   # Select workspace and apply Terraform
-  terraform workspace select $DEPLOYMENT_ID
+  terraform workspace select "$DEPLOYMENT_ID"
   echo "  🔄 Deploying GKE cluster and Locust in workspace: $DEPLOYMENT_ID"
   echo "      (Progress will be shown below)"
   
@@ -746,7 +722,7 @@ function deploy_remaining_infrastructure_with_k8s_error_handling() {
   TF_APPLY_EXIT_CODE=${PIPESTATUS[0]}
   
   # If the apply failed, check if it's a K8s connection issue
-  if [ $TF_APPLY_EXIT_CODE -ne 0 ]; then
+  if [ "$TF_APPLY_EXIT_CODE" -ne 0 ]; then
     echo "  ⚠️ Detected errors in terraform apply (exit code $TF_APPLY_EXIT_CODE)"
     
     # Check if there is a kubernetes connection error
@@ -760,7 +736,7 @@ function deploy_remaining_infrastructure_with_k8s_error_handling() {
       
       if [[ -n "$DEPLOYMENT_CLUSTER_NAME" ]]; then
         echo "  🔄 Configuring kubectl for cluster: $DEPLOYMENT_CLUSTER_NAME"
-        gcloud container clusters get-credentials $DEPLOYMENT_CLUSTER_NAME --project=${PROJECT_ID} --location=${REGION}
+        gcloud container clusters get-credentials "$DEPLOYMENT_CLUSTER_NAME" --project="${PROJECT_ID}" --location="${REGION}"
       fi
       
       # Remove problematic Kubernetes resources from state
@@ -789,7 +765,7 @@ function deploy_remaining_infrastructure_with_k8s_error_handling() {
     else
       echo "  ❌ Error: Terraform apply failed with errors unrelated to Kubernetes connectivity"
       echo "     Please check the error messages above for details."
-      exit $TF_APPLY_EXIT_CODE
+      exit "$TF_APPLY_EXIT_CODE"
     fi
   fi
   
@@ -829,7 +805,7 @@ EOF
   # Configure kubectl if we have a cluster name
   if [[ -n "$DEPLOYED_CLUSTER_NAME" ]]; then
     echo "  🔄 Configuring kubectl..."
-    gcloud container clusters get-credentials $DEPLOYED_CLUSTER_NAME --project=${PROJECT_ID} --location=${REGION}
+    gcloud container clusters get-credentials "$DEPLOYED_CLUSTER_NAME" --project="${PROJECT_ID}" --location="${REGION}"
   else
     echo "  ⚠️ Warning: Unable to get GKE cluster name, skipping kubectl configuration"
   fi
@@ -878,7 +854,7 @@ EOF
 function verify_deployment() {
   echo "🔍 Verifying deployment status..."
   echo "   Checking Kubernetes deployments in namespace: $LOCUST_NAMESPACE"
-  kubectl -n $LOCUST_NAMESPACE get deployments
+  kubectl -n "$LOCUST_NAMESPACE" get deployments
   
   echo
   echo "======================================================================"
@@ -901,7 +877,7 @@ function verify_deployment() {
       echo "   Open the above URL in your browser to access the load testing interface."
     else
       # Fallback to kubectl if terraform output fails
-      EXTERNAL_IP=$(kubectl -n $LOCUST_NAMESPACE get svc ${DEPLOYED_CLUSTER_SVC} -o jsonpath='{.status.loadBalancer.ingress[0].ip}' 2>/dev/null)
+      EXTERNAL_IP=$(kubectl -n "$LOCUST_NAMESPACE" get svc "${DEPLOYED_CLUSTER_SVC}" -o jsonpath='{.status.loadBalancer.ingress[0].ip}' 2>/dev/null)
       if [ -n "$EXTERNAL_IP" ]; then
         echo
         echo "🌐 ACCESS INFORMATION:"

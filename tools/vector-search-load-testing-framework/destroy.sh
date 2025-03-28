@@ -1,5 +1,6 @@
 #!/bin/bash
 set -e
+
 # Load configuration
 CONFIG_FILE="config.sh"
 if [ ! -f "$CONFIG_FILE" ]; then
@@ -7,9 +8,12 @@ if [ ! -f "$CONFIG_FILE" ]; then
   echo "Please copy config.template.sh to config.sh and update with your settings."
   exit 1
 fi
+
+# shellcheck disable=1090
 source "$CONFIG_FILE"
 
 # Determine the workspace name
+# shellcheck disable=2153
 WORKSPACE_NAME="$DEPLOYMENT_ID"
 
 # Format resource prefix the same way Terraform does
@@ -26,6 +30,7 @@ echo "Using resource prefix: $RESOURCE_PREFIX"
 STATE_FILE="${DEPLOYMENT_ID}_state.sh"
 if [ -f "$STATE_FILE" ]; then
   echo "Loading state from $STATE_FILE"
+  # shellcheck disable=1090
   source "$STATE_FILE"
 else
   echo "State file $STATE_FILE not found. Using values from config.sh instead."
@@ -66,7 +71,7 @@ fi
 # Configure kubectl if we have a cluster name
 if [[ -n "$DEPLOYED_CLUSTER_NAME" ]]; then
   echo "Configuring kubectl..."
-  gcloud container clusters get-credentials $DEPLOYED_CLUSTER_NAME --project=${PROJECT_ID} --location=${REGION} || echo "Warning: Unable to get GKE credentials, cluster may not exist"
+  gcloud container clusters get-credentials "$DEPLOYED_CLUSTER_NAME" --project="${PROJECT_ID}" --location="${REGION}" || echo "Warning: Unable to get GKE credentials, cluster may not exist"
 else
   echo "Warning: Unable to get GKE cluster name, skipping kubectl configuration"
 fi
@@ -99,10 +104,10 @@ fi
 
 # Artifact Registry Cleanup
 # Format repository name the same way as in the deployment script
-CLEAN_REPO_NAME="locust-docker-repo-$(echo ${DEPLOYMENT_ID} | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9-]/-/g' | sed 's/^[^a-z]*/l/' | sed 's/-$/1/')"
+CLEAN_REPO_NAME="locust-docker-repo-$(echo "${DEPLOYMENT_ID}" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9-]/-/g' | sed 's/^[^a-z]*/l/' | sed 's/-$/1/')"
 if [[ -n "${CLEAN_REPO_NAME}" ]]; then
   echo "Cleaning up Artifact Registry repository: ${CLEAN_REPO_NAME}..."
-  gcloud artifacts repositories delete ${CLEAN_REPO_NAME} --location="$REGION" --project="$PROJECT_ID" --quiet --async || echo "Failed to delete Artifact Registry repository, it may not exist"
+  gcloud artifacts repositories delete "${CLEAN_REPO_NAME}" --location="$REGION" --project="$PROJECT_ID" --quiet --async || echo "Failed to delete Artifact Registry repository, it may not exist"
 fi
 
 echo "Cleanup complete."

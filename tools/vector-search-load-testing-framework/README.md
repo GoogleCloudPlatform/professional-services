@@ -178,12 +178,12 @@ DEPLOYED_INDEX_DEDICATED_MAX_REPLICAS=10
 __Locust UI Configuration__
 ```
 Number of Users=1000
-Ramp Up=.5
+Ramp Up=0.5
 Num Neighbors=20
 QPS per User=5
 ```
 
-Note: setting a low user ramp up (e.g., .5) will help to not overwhelm the workers, and keep CPU utilization low.
+Note: setting a low user ramp up (e.g., 0.5) will help to not overwhelm the workers, and keep CPU utilization low.
 
 ### Optimizing Locust Worker Scaling
 
