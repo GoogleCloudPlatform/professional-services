@@ -6,7 +6,7 @@
 set -e
 
 # Configuration - REPLACE THESE VALUES
-PROJECT_ID="email2podcast"
+PROJECT_ID="your-project-id" # Replace with your GCP project I
 REGION="us-central1"
 VPC_NAME="vertex-psc-network"
 SUBNET_NAME="vertex-psc-subnet"
