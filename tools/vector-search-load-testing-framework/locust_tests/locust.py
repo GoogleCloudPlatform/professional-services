@@ -316,7 +316,8 @@ def _(parser):
         "--return-full-datapoint",
         action="store_true",
         default=config.return_full_datapoint,
-        help="Whether to return full datapoint content with search results. Increases response size but provides complete vector data."
+        help=
+        "Whether to return full datapoint content with search results. Increases response size but provides complete vector data."
     )
 
 
@@ -496,9 +497,10 @@ class VectorSearchHttpUser(FastHttpUser):
             self.request["queries"][0]["datapoint"][
                 "featureVector"] = self.base.generate_random_vector(
                     self.base.dimensions)
-        
+
         # Set return_full_datapoint flag based on the parameter
-        self.request["queries"][0]["returnFullDatapoint"] = self.environment.parsed_options.return_full_datapoint
+        self.request["queries"][0][
+            "returnFullDatapoint"] = self.environment.parsed_options.return_full_datapoint
 
         # Send the request using FastHttpUser
         with self.client.request(
@@ -595,9 +597,9 @@ class VectorSearchGrpcUser(User):
 
         # Create a query
         query = FindNeighborsRequest.Query(
-            datapoint=datapoint, 
+            datapoint=datapoint,
             neighbor_count=self.base.num_neighbors,
-            )
+        )
 
         # Add optional parameters if specified
         if self.base.fraction_leaf_nodes_to_search_override > 0:
@@ -610,8 +612,9 @@ class VectorSearchGrpcUser(User):
             index_endpoint=index_endpoint,
             deployed_index_id=self.base.deployed_index_id,
             queries=[query],
-            return_full_datapoint=self.environment.parsed_options.return_full_datapoint,
-            )
+            return_full_datapoint=self.environment.parsed_options.
+            return_full_datapoint,
+        )
 
         # The interceptor will handle performance metrics automatically
         try:
