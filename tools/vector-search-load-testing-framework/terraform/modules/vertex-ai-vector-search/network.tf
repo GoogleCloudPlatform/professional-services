@@ -87,3 +87,9 @@ resource "google_service_networking_connection" "vpc_peering_connection" {
     google_compute_global_address.vpc_peering_range
   ]
 }
+
+resource "time_sleep" "wait_for_peering" {
+  count = var.enable_vpc_peering ? 1 : 0
+  depends_on = [google_service_networking_connection.vpc_peering_connection]
+  create_duration = "120s"
+}
