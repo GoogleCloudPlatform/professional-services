@@ -576,6 +576,11 @@ Platform usage.
 *   [STS Job Manager](tools/sts-job-manager/) - A petabyte-scale bucket
     migration tool utilizing
     [Storage Transfer Service](https://cloud.google.com/storage-transfer-service)
+*   [Vector Search Load Testing Framework](tools/vector-search-load-testing-framework) - This 
+    framework provides a streamlined solution for distributed load testing of Vertex AI
+    Vector Search endpoints on Google Kubernetes Engine (GKE) using
+    [Locust](https://locust.io/). It enables you to simulate production-like workloads to effectively benchmark performance, analyze scalability, and validate deployment
+    configurations.
 *   [Vertex AI Endpoint Tester] (tools/vertex-ai-endpoint-load-tester) - This 
     utility helps to methodically test variety of Vertex AI Endpoints by their
     sizes so that one can decide the right size to deploy an ML Model on Vertex
