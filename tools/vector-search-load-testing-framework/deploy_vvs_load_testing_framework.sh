@@ -372,6 +372,7 @@ function deploy_vector_search() {
   extract_terraform_outputs
   
   echo "  ✅ Vector Search deployment completed successfully!"
+  # shellcheck disable=2103
   cd ..
 }
 
@@ -582,6 +583,7 @@ function add_network_specific_config() {
   # Get common gRPC address for both PSC and VPC peering
   setup_grpc_address
   
+  # shellcheck disable=2103
   cd ..
 }
 
@@ -685,6 +687,7 @@ function deploy_remaining_infrastructure() {
   extract_deployment_outputs
   
   echo "  ✅ Kubernetes cluster and Locust resources deployed successfully!"
+  # shellcheck disable=2103
   cd ..
 }
 
@@ -726,7 +729,7 @@ function deploy_remaining_infrastructure_with_k8s_error_handling() {
     echo "  ⚠️ Detected errors in terraform apply (exit code $TF_APPLY_EXIT_CODE)"
     
     # Check if there is a kubernetes connection error
-    if grep -q "dial tcp \[::1\]:80: connect: connection refused" $terraform_output_file || 
+    if grep -q "dial tcp \\[::1\\]:80: connect: connection refused" $terraform_output_file || 
        grep -q "transport: Error while dialing" $terraform_output_file; then
       
       echo "  🔍 Identified Kubernetes connection error - attempting automatic fix"
@@ -776,6 +779,7 @@ function deploy_remaining_infrastructure_with_k8s_error_handling() {
   echo "  ✅ Infrastructure deployment process completed!"
   # Clean up temporary file
   rm -f $terraform_output_file
+  # shellcheck disable=2103
   cd ..
 }
 
@@ -868,6 +872,7 @@ function verify_deployment() {
     # Get external IP from Terraform output
     cd terraform
     EXTERNAL_IP=$(terraform output -raw locust_external_ip 2>/dev/null)
+    # shellcheck disable=2103
     cd ..
     
     if [ -n "$EXTERNAL_IP" ]; then
