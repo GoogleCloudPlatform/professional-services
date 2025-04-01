@@ -58,7 +58,7 @@ fi
 
 # Terraform cleanup
 echo "Destroying Terraform resources..."
-cd terraform
+pushd terraform
 
 # Select the workspace
 if terraform workspace list | grep -q "$WORKSPACE_NAME"; then
@@ -93,8 +93,7 @@ terraform destroy --auto-approve
 terraform workspace select default
 terraform workspace delete --force "$WORKSPACE_NAME"
 
-# shellcheck disable=2103
-cd ..
+popd
 
 # Deleting Locust config
 rm -rf config
