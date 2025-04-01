@@ -92,6 +92,8 @@ terraform destroy --auto-approve
 # Delete the workspace
 terraform workspace select default
 terraform workspace delete --force "$WORKSPACE_NAME"
+
+# shellcheck disable=2103
 cd ..
 
 # Deleting Locust config
