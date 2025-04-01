@@ -352,7 +352,7 @@ function setup_directories() {
 function deploy_vector_search() {
   echo "🚀 Deploying Vector Search infrastructure..."
   echo "   (This can take 5-180 minutes depending on the size of your dataset. Now might be a good time for coffee ☕)"
-  cd terraform
+  pushd terraform
 
   # Setup Terraform workspace
   setup_terraform_workspace
@@ -372,8 +372,7 @@ function deploy_vector_search() {
   extract_terraform_outputs
   
   echo "  ✅ Vector Search deployment completed successfully!"
-  # shellcheck disable=2103
-  cd ..
+  popd
 }
 
 #------------------------------------------------------------------------------
@@ -571,7 +570,7 @@ function add_network_specific_config() {
   
   # For private endpoints (PSC or VPC peering)
   echo "  🔄 Extracting private networking configuration..."
-  cd terraform
+  pushd terraform
   
   # Set PSC or VPC peering flags based on endpoint type
   if [[ "${ENDPOINT_ACCESS_TYPE}" == "private_service_connect" ]]; then
@@ -583,8 +582,7 @@ function add_network_specific_config() {
   # Get common gRPC address for both PSC and VPC peering
   setup_grpc_address
   
-  # shellcheck disable=2103
-  cd ..
+  popd
 }
 
 #------------------------------------------------------------------------------
@@ -675,7 +673,7 @@ function build_and_push_docker_image() {
 function deploy_remaining_infrastructure() {
   echo "🚀 Deploying Kubernetes cluster and Locust resources..."
   echo "   (This can take 10-15 minutes to complete)"
-  cd terraform
+  pushd terraform
 
   # Select workspace and apply Terraform
   terraform workspace select "$DEPLOYMENT_ID"
@@ -687,8 +685,7 @@ function deploy_remaining_infrastructure() {
   extract_deployment_outputs
   
   echo "  ✅ Kubernetes cluster and Locust resources deployed successfully!"
-  # shellcheck disable=2103
-  cd ..
+  popd
 }
 
 #------------------------------------------------------------------------------
@@ -697,7 +694,7 @@ function deploy_remaining_infrastructure() {
 function deploy_remaining_infrastructure_with_k8s_error_handling() {
   echo "🚀 Deploying Kubernetes cluster and Locust resources..."
   echo "   (This can take 10-15 minutes to complete)"
-  cd terraform
+  pushd terraform
 
   # Check if this is a re-deployment by looking for existing state file
   local state_file
@@ -779,8 +776,7 @@ function deploy_remaining_infrastructure_with_k8s_error_handling() {
   echo "  ✅ Infrastructure deployment process completed!"
   # Clean up temporary file
   rm -f $terraform_output_file
-  # shellcheck disable=2103
-  cd ..
+  popd
 }
 
 #------------------------------------------------------------------------------
@@ -870,10 +866,9 @@ function verify_deployment() {
   # Provide access instructions based on external IP preference
   if [[ "${TF_VAR_create_external_ip}" == "true" ]]; then
     # Get external IP from Terraform output
-    cd terraform
+    pushd terraform
     EXTERNAL_IP=$(terraform output -raw locust_external_ip 2>/dev/null)
-    # shellcheck disable=2103
-    cd ..
+    popd
     
     if [ -n "$EXTERNAL_IP" ]; then
       echo
