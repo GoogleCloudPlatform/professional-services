@@ -21,7 +21,7 @@ Steps to run:
  b) run $python main.py
  c) move dags folder generated to the dag buckets in composer like:
         gsutil cp -r out  gs://BUCKET_NAME/dags
-NOTE: the "number_of_operators_defined" variable in the configuration file 
+NOTE: the "number_of_operators_defined" variable in the configuration file
         (config.json) allows to create up to 5 differents kind of task,
         none has complex functionallity:
         a) bash_operator_echo
@@ -32,22 +32,23 @@ NOTE: the "number_of_operators_defined" variable in the configuration file
 """
 
 import json
+import math
 import random
+
 import modules.initDag
 import modules.operators
-import math
 
 
 def get_config():
     """module to read configs"""
-    f = open('config.json', "r")
+    f = open("config.json", "r")
     data = json.loads(f.read())
     f.close()
     return data
 
 
 def get_init_content(i):
-    """Initialise test DAG with headers """
+    """Initialise test DAG with headers"""
     modules.initDag.get_init_dag(i)
 
 
@@ -60,21 +61,22 @@ def get_task_dag(min_number_of_task_in_dag):
     file.close()
     return data
 
-# build the dags 
+
+# build the dags
 def main():
     """main function to create test DAGs"""
     # read config file
     data = get_config()
 
-    number_of_dags_to_generate = data['number_of_dags_to_generate']
-    min_number_of_task_in_dag = data['min_number_of_task_in_dag']
-    max_number_of_task_in_dag = data['max_number_of_task_in_dag']
-    task_min_time_in_sec = data['task_min_time_in_sec']
-    task_max_time_in_sec = data['task_max_time_in_sec']
-    percentage_of_job_in_parallel = data['percentage_of_job_in_parallel']
-    number_of_operators_defined = data['number_of_operators_defined']
-    file_index = data['file_start_index']
-    schedules = data['schedules']
+    number_of_dags_to_generate = data["number_of_dags_to_generate"]
+    min_number_of_task_in_dag = data["min_number_of_task_in_dag"]
+    max_number_of_task_in_dag = data["max_number_of_task_in_dag"]
+    task_min_time_in_sec = data["task_min_time_in_sec"]
+    task_max_time_in_sec = data["task_max_time_in_sec"]
+    percentage_of_job_in_parallel = data["percentage_of_job_in_parallel"]
+    number_of_operators_defined = data["number_of_operators_defined"]
+    file_index = data["file_start_index"]
+    schedules = data["schedules"]
 
     # creatting DAG's files
     for i in range(number_of_dags_to_generate):
@@ -82,46 +84,49 @@ def main():
         dagf = open(f"out/dagFile_{file_index+i}.py", "w+")
         dagf.write(
             modules.initDag.get_init_dag(
-                file_index + i,
-                schedules[random.randrange(0,
-                                           len(schedules) - 1)]))
+                file_index + i, schedules[random.randrange(0, len(schedules) - 1)]
+            )
+        )
         dagf.write(modules.operators.start_task())
         dagf.write(modules.operators.stop_task())
         for task_index in range(
-                random.randrange(min_number_of_task_in_dag,
-                                 max_number_of_task_in_dag)):
+            random.randrange(min_number_of_task_in_dag, max_number_of_task_in_dag)
+        ):
             task_list.append("task_{index}".format(index=task_index))
-            if (task_index % number_of_operators_defined == 0):
+            if task_index % number_of_operators_defined == 0:
                 dagf.write(modules.operators.bash_operator_echo(task_index))
-            elif (task_index % number_of_operators_defined == 1):
+            elif task_index % number_of_operators_defined == 1:
                 dagf.write(
                     modules.operators.bash_operator_sleep(
                         task_index,
-                        random.randrange(task_min_time_in_sec,
-                                         task_max_time_in_sec)))
-            elif (task_index % number_of_operators_defined == 2):
+                        random.randrange(task_min_time_in_sec, task_max_time_in_sec),
+                    )
+                )
+            elif task_index % number_of_operators_defined == 2:
                 dagf.write(
                     modules.operators.python_operator_task_sleep(
                         task_index,
-                        random.randrange(task_min_time_in_sec,
-                                         task_max_time_in_sec)))
-            elif (task_index % number_of_operators_defined == 3):
-                dagf.write(
-                    modules.operators.bash_operator_task_ping(task_index))
+                        random.randrange(task_min_time_in_sec, task_max_time_in_sec),
+                    )
+                )
+            elif task_index % number_of_operators_defined == 3:
+                dagf.write(modules.operators.bash_operator_task_ping(task_index))
             else:
-                dagf.write(
-                    modules.operators.python_operator_task_print(task_index))
-        no_tasks_in_parallel = math.ceil(percentage_of_job_in_parallel / 100 *
-                                         len(task_list))
+                dagf.write(modules.operators.python_operator_task_print(task_index))
+        no_tasks_in_parallel = math.ceil(
+            percentage_of_job_in_parallel / 100 * len(task_list)
+        )
         parallel_tasks = []
-        if (no_tasks_in_parallel > 1):
+        if no_tasks_in_parallel > 1:
             for parallel_task_index in range(no_tasks_in_parallel):
                 parallel_tasks.append(task_list.pop())
-            task_list.insert(random.randrange(1,
-                                              len(task_list) - 2),
-                             "[{task}]".format(task=",".join(parallel_tasks)))
-        dagf.write("\n\tchain(start_task,{tasks},stop_task)".format(
-            tasks=",".join(task_list)))
+            task_list.insert(
+                random.randrange(1, len(task_list) - 2),
+                "[{task}]".format(task=",".join(parallel_tasks)),
+            )
+        dagf.write(
+            "\n\tchain(start_task,{tasks},stop_task)".format(tasks=",".join(task_list))
+        )
         dagf.close()
 
 

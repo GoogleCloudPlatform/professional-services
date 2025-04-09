@@ -144,7 +144,7 @@ from airflow.providers.google.cloud.operators.kubernetes_engine import (
     # Default DataprocSubmitJobOperator Taskflow 
     # -------------------------------------------------
 
-    cluster_name = "{self.dag_id}-{task_id}".replace("_", "-")
+    cluster_name = "composer-workload-simulator".replace("_", "-")
 
     create_cluster_{task_id} = DataprocCreateClusterOperator(
         task_id="create_cluster_{task_id}",
@@ -172,14 +172,7 @@ from airflow.providers.google.cloud.operators.kubernetes_engine import (
         region='{self.region}',
         project_id='{self.project_id}',
     )
-    delete_cluster_{task_id} = DataprocDeleteClusterOperator(
-        task_id="delete_cluster_{task_id}",
-        project_id='{self.project_id}',
-        cluster_name=cluster_name,
-        region='{self.region}',
-        trigger_rule="all_done",
-    )
-    create_cluster_{task_id} >> task_{task_id} >> delete_cluster_{task_id}
+    create_cluster_{task_id} >> task_{task_id}
     """
 
     def beamrunjavapipelineoperator_taskflow(self, task_id: str):
@@ -189,7 +182,7 @@ from airflow.providers.google.cloud.operators.kubernetes_engine import (
     # Default BeamRunJavaPipelineOperator Taskflow 
     # -------------------------------------------------
 
-    bucket = "{self.dag_id}-{task_id}".replace('_','-')
+    bucket = "composer-workload-simulator".replace('_','-')
     public_bucket = "airflow-system-tests-resources"
     jar_file_name = "word-count-beam-bundled-0.1.jar"
     gcs_output = f"gs://{{bucket}}"
@@ -255,7 +248,7 @@ from airflow.providers.google.cloud.operators.kubernetes_engine import (
     # -------------------------------------------------   
 
     source_bucket="cloud-samples-data",
-    destination_bucket = "{self.dag_id}-{task_id}".replace('_','-')
+    destination_bucket = "composer-workload-simulator".replace('_','-')
 
     source_object = "bigquery/us-states/us-states.csv"
 
@@ -327,18 +320,18 @@ from airflow.providers.google.cloud.operators.kubernetes_engine import (
     # Default GKEStartPodOperator Taskflow
     # -------------------------------------------------  
 
-    cluster_name = "gkecluster-{self.dag_id}-{task_id}".replace("_", "-")
+    cluster_name = "gkecluster-composer-workload-simulator".replace("_", "-")
 
     create_gke_cluster_{task_id} = GKECreateClusterOperator(
         task_id="create_gke_cluster_{task_id}",
-        project_id={self.project_id}, 
-        location={self.region}-a,
+        project_id="{self.project_id}", 
+        location="{self.region}-a",
         body={{"name": cluster_name, "initial_node_count": 1}}
     )
     task_{task_id} = GKEStartPodOperator(
         task_id="gke_start_pod_task_{task_id}",
-        project_id={self.project_id},
-        location={self.region}-a,
+        project_id="{self.project_id}", 
+        location="{self.region}-a",
         cluster_name=cluster_name,
         namespace="default",
         image="perl",
@@ -349,8 +342,8 @@ from airflow.providers.google.cloud.operators.kubernetes_engine import (
     delete_gke_cluster_{task_id} = GKEDeleteClusterOperator(
         task_id="delete_gke_cluster_{task_id}",
         name=cluster_name,
-        project_id={self.project_id},
-        location={self.region}-a,
+        project_id="{self.project_id}", 
+        location="{self.region}-a",
     )
 
     create_gke_cluster_{task_id} >> task_{task_id} >> delete_gke_cluster_{task_id}
