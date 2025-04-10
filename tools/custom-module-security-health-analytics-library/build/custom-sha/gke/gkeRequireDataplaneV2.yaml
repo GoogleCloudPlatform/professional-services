@@ -1,0 +1,13 @@
+#@ load("/sha.lib.star", "build_sha")
+#@ sha = build_sha("gkeRequireDataplaneV2")
+
+#@ if sha.to_generate():
+severity: MEDIUM
+description: Detect if GKE clusters are configured with a version different than Dataplane V2
+recommendation: Ensure only GKE Dataplane V2 are configured
+resource_selector:
+  resource_types:
+  - container.googleapis.com/Cluster
+predicate:
+  expression: resource.networkConfig.datapathProvider == 'ADVANCED_DATAPATH'
+#@ end

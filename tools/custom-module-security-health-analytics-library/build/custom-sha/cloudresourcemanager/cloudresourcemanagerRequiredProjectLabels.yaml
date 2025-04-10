@@ -1,0 +1,17 @@
+#@ load("/sha.lib.star", "build_sha")
+#@ sha = build_sha("cloudresourcemanagerRequiredProjectLabels")
+
+#@ def expression(labels):
+#@   return '(!' + str(labels) + '.all(required_label, resource.labels.exists(label, label.matches(required_label))))'
+#@ end
+
+#@ if sha.to_generate():
+severity: LOW
+description: "Detect if project is missing required labels"
+recommendation: "Ensure project has required labels"
+resource_selector:  
+  resource_types:  
+  - cloudresourcemanager.googleapis.com/Project
+predicate:  
+  expression: #@  expression(sha.params().labels)
+#@ end

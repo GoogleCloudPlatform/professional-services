@@ -1,0 +1,17 @@
+#@ load("/sha.lib.star", "build_sha")
+#@ sha = build_sha("cloudkmsAllowedAlgorithms")
+
+#@ def expression(algorithms):
+#@   return 'resource.algorithm in ' +  str(algorithms) + " == false"
+#@ end
+
+#@ if sha.to_generate():
+severity: MEDIUM
+description: "Detect if the the algorithm for Cloud KMS keys is not configured correctly"
+recommendation: "Ensure the algorithm for Cloud KMS keys is configured correctly"
+resource_selector:
+  resource_types:
+  - cloudkms.googleapis.com/CryptoKeyVersion
+predicate:
+  expression: #@  expression(sha.params().algorithms)
+#@ end
