@@ -18,20 +18,22 @@ import random
 
 def get_init_dag(dag_number, schedule):
     today = datetime.datetime.now()
-    if (schedule == "min"):
+    if schedule == "min":
         dag_schedule = "{min} * * * *".format(min=random.randrange(1, 10))
-    elif (schedule == "hour"):
-        dag_schedule = "{min} {hour} * * *".format(min=random.randrange(0, 59),
-                                                   hour=random.randrange(0, 23))
-    elif (schedule == "everyhalfhour"):
+    elif schedule == "hour":
+        dag_schedule = "{min} {hour} * * *".format(
+            min=random.randrange(0, 59), hour=random.randrange(0, 23)
+        )
+    elif schedule == "everyhalfhour":
         dag_schedule = "*/30 * * * *"
-    elif (schedule == "everyhour"):
+    elif schedule == "everyhour":
         dag_schedule = "0 * * * *"
     else:
         dag_schedule = "{min} {hour} {day} * *".format(
             min=random.randrange(0, 59),
             hour=random.randrange(0, 23),
-            day=random.randrange(1, 28))
+            day=random.randrange(1, 28),
+        )
 
     lines = """import time
 from datetime import datetime
@@ -52,9 +54,11 @@ with DAG(
     default_args=default_args,
     catchup=False
 ) as dag:
-    """.format(dag_id=dag_number,
-               start_year=today.year,
-               schedule=dag_schedule,
-               start_month=today.month,
-               start_day=today.day)
+    """.format(
+        dag_id=dag_number,
+        start_year=today.year,
+        schedule=dag_schedule,
+        start_month=today.month,
+        start_day=today.day,
+    )
     return lines

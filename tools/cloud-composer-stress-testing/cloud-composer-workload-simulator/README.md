@@ -61,6 +61,7 @@ Sizing a Composer Environment is an estimated process. There are many different 
 experiment_id: experiment_1
 number_of_dags: 10
 tasks_per_dag: 3
+paused: 0.5 # weighted chance for dag to be paused
 
 # Schedules and weights
 schedules:
@@ -97,7 +98,7 @@ default_settings:
   deferrable: true
   retries: 1
   catchup: false
-  is_paused_upon_creation: false
+  is_paused_upon_creation: false # true will pause all dags
   execution_timeout: 30
   sla: 25
   project_id: your-project
