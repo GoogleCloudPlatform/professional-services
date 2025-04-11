@@ -1,0 +1,13 @@
+#@ load("/sha.lib.star", "build_sha")
+#@ sha = build_sha("computeRequireVPCFlowLogs")
+
+#@ if sha.to_generate():
+severity: HIGH
+description: "Detect if every VPC subnets have VPC flow logging enabled with the proper config"
+recommendation: "Ensure VPC subnet has VPC flow logging enabled with the proper config"
+resource_selector:
+  resource_types:
+  - compute.googleapis.com/Subnetwork
+predicate:
+  expression: (!resource.enableFlowLogs || !resource.logConfig.enable || resource.logConfig.flowSampling != 1.0 || !resource.logConfig.metadata.matches('INCLUDE_ALL_METADATA'))
+#@ end

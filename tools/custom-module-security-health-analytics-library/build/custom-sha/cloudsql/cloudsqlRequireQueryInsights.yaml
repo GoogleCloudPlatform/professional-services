@@ -1,0 +1,13 @@
+#@ load("/sha.lib.star", "build_sha")
+#@ sha = build_sha("cloudsqlRequireQueryInsights")
+
+#@ if sha.to_generate():
+severity: MEDIUM
+description: "Detect if the CloudSQL query insights feature is disabled on databases"
+recommendation: "Ensure the CloudSQL query insights feature are enabled on every databases"
+resource_selector:
+  resource_types:
+  - sqladmin.googleapis.com/Instance
+predicate:
+  expression: (!resource.settings.insightsConfig.queryInsightsEnabled)
+#@ end

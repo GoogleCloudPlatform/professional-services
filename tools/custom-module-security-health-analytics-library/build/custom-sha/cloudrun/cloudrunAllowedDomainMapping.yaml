@@ -1,0 +1,17 @@
+#@ load("/sha.lib.star", "build_sha")
+#@ sha = build_sha("cloudrunAllowedDomainMapping")
+
+#@ def expression(domains):
+#@   return '(!' + str(domains) + '.exists(suffix, resource.metadata.name.endsWith(suffix)))'
+#@ end
+
+#@ if sha.to_generate():
+severity: HIGH
+description: "Detect if mapped domain on Cloud Run services is an unauthorized domain."
+recommendation: "Ensure mapped domain on Cloud Run services is an authorized domain."
+resource_selector:
+  resource_types:
+  - run.googleapis.com/DomainMapping
+predicate:
+  expression: #@  expression(sha.params().domains)
+#@ end

@@ -1,0 +1,13 @@
+#@ load("/sha.lib.star", "build_sha")
+#@ sha = build_sha("cloudsqlAllowedBackupLocation")
+
+#@ if sha.to_generate():
+severity: LOW
+description: "Detect if Cloud SQL backup is in an unauthorized location"
+recommendation: "Ensure if Cloud SQL backup is in the same location as the database instance"
+resource_selector:  
+  resource_types:  
+  - sqladmin.googleapis.com/Instance 
+predicate:  
+  expression: resource.settings.backupConfiguration.location != resource.region
+#@ end

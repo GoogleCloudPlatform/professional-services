@@ -1,0 +1,13 @@
+#@ load("/sha.lib.star", "build_sha")
+#@ sha = build_sha("gkeDisableClientCertificateAuth")
+
+#@ if sha.to_generate():
+severity: CRITICAL
+description: "Detect if any GKE clusters uses client certificate authentication"
+recommendation: "Ensure that control plane does not use client certificate authentication"
+resource_selector:
+  resource_types:
+  - container.googleapis.com/Cluster
+predicate:
+  expression: resource.masterAuth.clientCertificateConfig.issueClientCertificate == true
+#@ end

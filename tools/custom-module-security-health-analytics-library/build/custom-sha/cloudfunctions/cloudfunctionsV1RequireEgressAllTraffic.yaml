@@ -1,0 +1,13 @@
+#@ load("/sha.lib.star", "build_sha")
+#@ sha = build_sha("cloudfunctionsV1RequireEgressAllTraffic")
+
+#@ if sha.to_generate():
+severity: HIGH
+description: "Detect if Gen1 Cloud Functions are not configured to route all traffic through the VPC connector"
+recommendation: "Ensure Gen1 Cloud Functions are configured to route all traffic through the VPC connector"
+resource_selector:
+  resource_types:
+  - cloudfunctions.googleapis.com/CloudFunction
+predicate:
+  expression: (!resource.vpcConnectorEgressSettings.matches("ALL_TRAFFIC"))
+#@ end

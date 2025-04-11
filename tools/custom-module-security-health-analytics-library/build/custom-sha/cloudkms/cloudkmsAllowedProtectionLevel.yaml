@@ -1,0 +1,18 @@
+#@ load("/sha.lib.star", "build_sha")
+#@ sha = build_sha("cloudkmsAllowedProtectionLevel")
+
+#@ def expression(protection_levels):
+#@   return 'resource.primary.protectionLevel in ' +  str(protection_levels) + " == false"
+#@ end
+
+
+#@ if sha.to_generate():
+severity: MEDIUM
+description: "Detect if the protection level for Cloud KMS keys is not configured correctly"
+recommendation: "Ensure the protection level for Cloud KMS keys is configured correctly"
+resource_selector:
+  resource_types:
+  - cloudkms.googleapis.com/CryptoKey
+predicate:
+  expression: #@  expression(sha.params().protection_levels)
+#@ end
