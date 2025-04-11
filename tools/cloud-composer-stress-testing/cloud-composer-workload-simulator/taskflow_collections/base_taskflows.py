@@ -51,7 +51,7 @@ from airflow.operators.python import (
     PythonOperator,
     BranchPythonOperator,
 )
-from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
+from airflow.providers.cncf.kubernetes.operators.pod import KubernetesPodOperator
 from airflow.operators.bash import BashOperator
 from airflow.operators.empty import EmptyOperator
 """
@@ -110,7 +110,7 @@ from airflow.operators.empty import EmptyOperator
             return 'odd_day_task_{task_id}'
 
     # Define the BranchPythonOperator
-    task_{task_id} = BranchPythonOperator(
+    branch_task_{task_id} = BranchPythonOperator(
         task_id='branch_task_{task_id}',
         python_callable=choose_branch,
         provide_context=True,
@@ -118,11 +118,11 @@ from airflow.operators.empty import EmptyOperator
 
     # Define tasks for each branch
     even_day_task_{task_id}  = EmptyOperator(task_id='even_day_task_{task_id}')
-    odd_day_task_{task_id}  = EmptyOperator(task_id='odd_day_task_{task_id}')
+    task_{task_id}  = EmptyOperator(task_id='task_{task_id}') # this will connect other taskflows
 
     # Define task dependencies
-    task_{task_id}  >> even_day_task_{task_id}
-    task_{task_id}  >> odd_day_task_{task_id}
+    branch_task_{task_id}  >> even_day_task_{task_id}
+    branch_task_{task_id}  >> task_{task_id}
     """
 
     def kubernetespodoperator_taskflow(

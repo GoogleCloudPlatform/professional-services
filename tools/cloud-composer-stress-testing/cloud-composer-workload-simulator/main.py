@@ -12,15 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import random
-from pathlib import Path
 import getopt
+import random
 import sys
+from pathlib import Path
 
-from utils import helper_functions
+from local_utils import helper_functions
 from taskflow_collections.base_taskflows import BaseTaskFlows
-from taskflow_collections.google_cloud_taskflows import GoogleCloudTaskFlows
 from taskflow_collections.custom_taskflows import CustomTaskFlows
+from taskflow_collections.google_cloud_taskflows import GoogleCloudTaskFlows
 
 
 def generate_dag_string(
@@ -32,6 +32,7 @@ def generate_dag_string(
     taskflow_collections: list,
     taskflows: dict,
     num_tasks: int,
+    is_paused: bool,
 ):
     """Generates a string representation of an Airflow DAG with random taskflows."""
 
@@ -69,7 +70,7 @@ with DAG(
     start_date=datetime.strptime("{start_date}", "%m/%d/%Y"),
     catchup={default_settings['catchup']},
     dagrun_timeout=timedelta(minutes={default_settings['dagrun_timeout']}),
-    is_paused_upon_creation={default_settings['is_paused_upon_creation']},
+    is_paused_upon_creation={is_paused},
     tags=['generated_workload', '{experiment_id}']
 ) as dag:
 
@@ -132,9 +133,7 @@ def generate_tasks_string(
 
 
 def main(argv):
-    """
-    Reads configuration, generates DAGs, and writes them to files.
-    """
+    """Reads configuration, generates DAGs, and writes them to files."""
 
     config_file = ""
     output_dir = ""
@@ -165,75 +164,88 @@ def main(argv):
             upload = True
             print("-- Uploading generated dags to Composer environment.")
 
-    # Load configuration (assuming you have a function to load it)
-    load_config = helper_functions.load_config_from_file(
-        config_file
-    )  # Replace with your loading logic
-    num_dags = load_config["number_of_dags"]
-    min_tasks_per_dag = load_config["min_tasks_per_dag"]
+    # Load configuration
+    load_config = helper_functions.load_config_from_file(config_file)
 
-    # merge taskflow collections into single map of taskflows and weights
-    taskflows = {}
-    taskflow_collections = []
-    for key in load_config["taskflows"]:
-        taskflow_collections.append(key)
-        nested_dict = load_config["taskflows"][key]
-        taskflows.update(nested_dict)
+    validated = helper_functions.validate_config(load_config)
 
-    # Generate DAGs
-    for i in range(num_dags):
-        experiment_id = load_config["experiment_id"]
-        dag_id = f"{experiment_id}_dag_{i}".replace("-", "_")
-        schedule = random.choices(
-            list(load_config["schedules"].keys()),
-            weights=list(load_config["schedules"].values()),
-        )[0]
-        start_date = random.choices(
-            list(load_config["start_dates"].keys()),
-            weights=list(load_config["start_dates"].values()),
-        )[0]
-        default_settings = load_config["default_settings"].copy()
-        default_settings["owner"] = "airflow"
+    if validated:
+        num_dags = load_config["number_of_dags"]
+        min_tasks_per_dag = load_config["min_tasks_per_dag"]
 
-        dag = generate_dag_string(
-            experiment_id=experiment_id,
-            dag_id=dag_id,
-            start_date=start_date,
-            schedule=schedule,
-            default_settings=default_settings,
-            taskflow_collections=taskflow_collections,
-            taskflows=taskflows,
-            num_tasks=min_tasks_per_dag,
-        )
+        # merge taskflow collections into single map of taskflows and weights
+        taskflows = {}
+        taskflow_collections = []
+        for key in load_config["taskflows"]:
+            taskflow_collections.append(key)
+            nested_dict = load_config["taskflows"][key]
+            taskflows.update(nested_dict)
 
-        if not output_dir:
-            output_dir = "dags/"
+        # Get paused weight configuration (default to 50/50 if not provided)
+        paused_weight = load_config.get("paused", 0.5)
 
-        Path(f"{output_dir}/{experiment_id}").mkdir(parents=True, exist_ok=True)
-        with open(f"{output_dir}/{experiment_id}/dag_{i}.py", "w") as file:
-            file.write(dag)
+        # Generate DAGs
+        for i in range(num_dags):
+            experiment_id = load_config["experiment_id"]
+            dag_id = f"{experiment_id}_dag_{i}".replace("-", "_")
+            schedule = random.choices(
+                list(load_config["schedules"].keys()),
+                weights=list(load_config["schedules"].values()),
+            )[0]
+            start_date = random.choices(
+                list(load_config["start_dates"].keys()),
+                weights=list(load_config["start_dates"].values()),
+            )[0]
+            default_settings = load_config["default_settings"].copy()
+            default_settings["owner"] = "airflow"
 
+            # Determine if the DAG is paused based on the weight
 
-    # Upload DAGS to Composer Environment if specified.
-    if upload:
-        dag_folder = helper_functions.get_composer_environment_bucket(
-            default_settings["project_id"],
-            default_settings["region"],
-            default_settings["composer_environment"],
-        )
-        helper_functions.upload_directory(
-            source_folder=f"{output_dir}/{experiment_id}/",
-            target_gcs_path=f"{dag_folder}/{experiment_id}",
-        )
+            if default_settings["is_paused_upon_creation"]:
+                is_paused = True
+            else:
+                is_paused = random.random() < paused_weight
+            print(is_paused)
 
-    print(
-        f"> Generated {num_dags} dags with at least {min_tasks_per_dag} tasks per dag"
-    )
-    print(f"> Check dags/{experiment_id} directory for generated output")
-    if upload:
+            dag = generate_dag_string(
+                experiment_id=experiment_id,
+                dag_id=dag_id,
+                start_date=start_date,
+                schedule=schedule,
+                default_settings=default_settings,
+                taskflow_collections=taskflow_collections,
+                taskflows=taskflows,
+                num_tasks=min_tasks_per_dag,
+                is_paused=is_paused,
+            )
+
+            if not output_dir:
+                output_dir = "dags/"
+
+            Path(f"{output_dir}/{experiment_id}").mkdir(parents=True, exist_ok=True)
+            with open(f"{output_dir}/{experiment_id}/dag_{i}.py", "w") as file:
+                file.write(dag)
+
+        # Upload DAGS to Composer Environment if specified.
+        if upload:
+            dag_folder = helper_functions.get_composer_environment_bucket(
+                default_settings["project_id"],
+                default_settings["region"],
+                default_settings["composer_environment"],
+            )
+            helper_functions.upload_directory(
+                source_folder=f"{output_dir}/{experiment_id}/",
+                target_gcs_path=f"{dag_folder}/{experiment_id}",
+            )
+
         print(
-            f"> Uploaded dags/{experiment_id} contents to {dag_folder}/{experiment_id}"
+            f"> Generated {num_dags} dags with at least {min_tasks_per_dag} tasks per dag"
         )
+        print(f"> Check dags/{experiment_id} directory for generated output")
+        if upload:
+            print(
+                f"> Uploaded dags/{experiment_id} contents to {dag_folder}/{experiment_id}"
+            )
 
 
 if __name__ == "__main__":
