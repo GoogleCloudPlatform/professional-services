@@ -15,6 +15,7 @@
 experiment_id: custom_experiment_1
 number_of_dags: 1
 min_tasks_per_dag: 1
+paused: 0.5
 
 # Schedules and weights
 schedules:
@@ -35,13 +36,13 @@ default_settings:
   project_id: your-project
   region: your-region
   composer_environment: your-environment
-  deferrable: true
+  deferrable: false
   retries: 1
-  retry_delay: 2 # minutes
+  retry_delay: 2  # minutes
   catchup: false
-  is_paused_upon_creation: false
-  dagrun_timeout: 60 # minutes
-  execution_timeout: 30 # minutes
-  sla: 25 # minutes
-  mode: poke
-  poke_interval: 120 # seconds
+  is_paused_upon_creation: false # True will override and set all dags to paused
+  dagrun_timeout: 60  # minutes 
+  execution_timeout: 30  # minutes
+  sla: 25  # minutes
+  mode: reschedule
+  poke_interval: 60  # seconds

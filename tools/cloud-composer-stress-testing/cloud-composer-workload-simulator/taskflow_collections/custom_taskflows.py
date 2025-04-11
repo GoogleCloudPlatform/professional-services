@@ -123,7 +123,6 @@ from airflow.providers.google.cloud.hooks.gcs import GCSHook
         op_args=[bucket_name, f"{{object_path}}/hello.txt", "hello world"]
     )
 
-
     list_objects_with_prefix_{task_id} = GCSListObjectsOperator(
         task_id="list_objects_with_prefix_{task_id}",
         bucket=bucket_name,
