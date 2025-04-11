@@ -1,0 +1,18 @@
+#@ load("/sha.lib.star", "build_sha")
+#@ sha = build_sha("computeAllowedLoadBalancerTypes")
+
+#@ def expression(load_balancer_types):
+#@   return '(has(resource.loadBalancingScheme) && !(resource.loadBalancingScheme in ' + str(load_balancer_types) + '))'
+#@ end
+
+#@ if sha.to_generate():
+severity: MEDIUM
+description: "Detect unauthorized Load Balancer type are used"
+recommendation: "Ensure only load balancers with authorized types are used"
+resource_selector:
+  resource_types:
+  - compute.googleapis.com/GlobalForwardingRule
+  - compute.googleapis.com/ForwardingRule
+predicate:
+  expression: #@  expression(sha.params().load_balancer_types)
+#@ end

@@ -1,0 +1,13 @@
+#@ load("/sha.lib.star", "build_sha")
+#@ sha = build_sha("computeDisableOSLoginProject")
+
+#@ if sha.to_generate():
+severity: MEDIUM
+description: "Detect if OS Login is enabled at the project level"
+recommendation: "Ensure OS Login is disabled at the project level"
+resource_selector:
+  resource_types:
+  - compute.googleapis.com/Project
+predicate:
+  expression: (resource.commonInstanceMetadata.items.exists(item, item.key.matches('enable-oslogin') && item.value.matches('true')))
+#@ end

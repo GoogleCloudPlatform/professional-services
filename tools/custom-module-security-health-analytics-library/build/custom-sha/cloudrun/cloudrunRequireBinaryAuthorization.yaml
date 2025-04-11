@@ -1,0 +1,14 @@
+#@ load("/sha.lib.star", "build_sha")
+#@ sha = build_sha("cloudrunRequireBinaryAuthorization")
+
+#@ if sha.to_generate():
+severity: HIGH
+description: "Detect if Cloud Run services are configured without Binary Authorization enabled"
+recommendation: "Ensure that Binary Authorization is enabled for all Cloud Run services and that the project's default Binary Authorization policy requires attestation"
+resource_selector:
+  resource_types:
+  - run.googleapis.com/Job
+  - run.googleapis.com/Service
+predicate:
+  expression: (!resource.metadata.annotations.exists(data, data == 'run.googleapis.com/binary-authorization'))
+#@ end

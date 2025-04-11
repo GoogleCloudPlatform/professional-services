@@ -1,0 +1,13 @@
+#@ load("/sha.lib.star", "build_sha")
+#@ sha = build_sha("artifactregistryRequireCMEK")
+
+#@ if sha.to_generate():
+severity: HIGH
+description: "Detect if Artifact Registry repositories are not encrypted using CMEK"
+recommendation: "Ensure the Artifact Registry repositoriesa are encrypted using CMEK"
+resource_selector:
+  resource_types:
+  - artifactregistry.googleapis.com/Repository
+predicate:
+  expression: (!has(resource.kmsKeyName))
+#@ end

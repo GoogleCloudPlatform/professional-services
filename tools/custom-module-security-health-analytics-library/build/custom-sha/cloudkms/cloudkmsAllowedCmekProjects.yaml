@@ -1,0 +1,17 @@
+#@ load("/sha.lib.star", "build_sha")
+#@ sha = build_sha("cloudkmsAllowedCmekProjects")
+
+#@ def expression(projects):
+#@   return '(!' + str(projects) + '.exists(prj, resource.name.startsWith("projects/" + prj)))'
+#@ end
+
+#@ if sha.to_generate():
+severity: HIGH
+description: "Detect if CMEKs are used from unauthorized projects"
+recommendation: "Ensure only CMEKs from authorized projects are used"
+resource_selector:
+  resource_types:
+  - cloudkms.googleapis.com/CryptoKey
+predicate:
+  expression: #@  expression(sha.params().projects)
+#@ end

@@ -1,0 +1,99 @@
+#!  Copyright 2024 Google LLC
+#!
+#!  Licensed under the Apache License, Version 2.0 (the "License");
+#!  you may not use this file except in compliance with the License.
+#!  You may obtain a copy of the License at
+#!
+#!       http://www.apache.org/licenses/LICENSE-2.0
+#!
+#!  Unless required by applicable law or agreed to in writing, software
+#!  distributed under the License is distributed on an "AS IS" BASIS,
+#!  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#!  See the License for the specific language governing permissions and
+#!  limitations under the License.
+
+#@ load("@ytt:overlay", "overlay")
+#@data/values-schema
+---
+#@overlay/match missing_ok=True
+compute:
+  computeAllowedLoadBalancerTypes:
+    #@schema/validation one_of=["default", "skip", "include"]
+    generation: "default"
+    bundles:
+      pci-dss: false
+      cis: false
+    params:
+      #@schema/validation min_len=1
+      load_balancer_types:
+      - ""
+  computeAllowedVPNGatewayProjects:
+    #@schema/validation one_of=["default", "skip", "include"]
+    generation: "default"
+    bundles:
+      pci-dss: false
+      cis: false
+    params:
+      #@schema/validation min_len=1
+      projects:
+      - ""
+  computeDisableDefaultServiceAccount:
+    #@schema/validation one_of=["default", "skip", "include"]
+    generation: "default"
+    bundles:
+      pci-dss: false
+      cis: false
+  computeDisableInstanceIPForwarding:
+    #@schema/validation one_of=["default", "skip", "include"]
+    generation: "default"
+    bundles:
+      pci-dss: false
+      cis: false
+  computeDisableNetworkAutoMode:
+    #@schema/validation one_of=["default", "skip", "include"]
+    generation: "default"
+    bundles:
+      pci-dss: false
+      cis: false
+  computeDisableOSLoginProject:
+    #@schema/validation one_of=["default", "skip", "include"]
+    generation: "default"
+    bundles:
+      pci-dss: false
+      cis: false
+  computeDisableNestedVirtualization:
+    #@schema/validation one_of=["default", "skip", "include"]
+    generation: "default"
+    bundles:
+      pci-dss: false
+      cis: false
+  computeRequireBackendServiceLog:
+    #@schema/validation one_of=["default", "skip", "include"]
+    generation: "default"
+    bundles:
+      pci-dss: false
+      cis: false
+  computeRequireFirewallLog:
+    #@schema/validation one_of=["default", "skip", "include"]
+    generation: "default"
+    bundles:
+      pci-dss: false
+      cis: false
+  computeRequireHealthCheckLog:
+    #@schema/validation one_of=["default", "skip", "include"]
+    generation: "default"
+    bundles:
+      pci-dss: false
+      cis: false
+  computeRequireRouterNatLog:
+    #@schema/validation one_of=["default", "skip", "include"]
+    generation: "default"
+    bundles:
+      pci-dss: false
+      cis: false
+  computeRequireVPCFlowLogs:
+    #@schema/validation one_of=["default", "skip", "include"]
+    generation: "default"
+    bundles:
+      pci-dss: false
+      cis: false

@@ -1,0 +1,13 @@
+#@ load("/sha.lib.star", "build_sha")
+#@ sha = build_sha("gkeRequireConfidentialNodes")
+
+#@ if sha.to_generate():
+severity: MEDIUM
+description: "Detect if any GKE clusters are running without Confidential GKE nodes"
+recommendation: "Ensure GKE clusters are running with Confidential GKE nodes enabled"
+resource_selector:
+  resource_types:
+  - container.googleapis.com/Cluster
+predicate:
+  expression: (resource.confidentialNodes.enabled == false)
+#@ end
