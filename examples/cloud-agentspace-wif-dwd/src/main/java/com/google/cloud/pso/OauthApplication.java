@@ -1,22 +1,17 @@
 /**
- * 
- *  Copyright 2025 Google LLC
-
-   Licensed under the Apache License, Version 2.0 (the "License");
-   you may not use this file except in compliance with the License.
-   You may obtain a copy of the License at
-
-       http://www.apache.org/licenses/LICENSE-2.0
-
-   Unless required by applicable law or agreed to in writing, software
-   distributed under the License is distributed on an "AS IS" BASIS,
-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   See the License for the specific language governing permissions and
-   limitations under the License.
-
-*/
+ * Copyright 2025 Google LLC
+ *
+ * <p>Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file
+ * except in compliance with the License. You may obtain a copy of the License at
+ *
+ * <p>http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * <p>Unless required by applicable law or agreed to in writing, software distributed under the
+ * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+ * express or implied. See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.google.cloud.pso;
-
 
 import com.google.api.client.googleapis.auth.oauth2.GoogleTokenResponse;
 import com.google.api.client.http.*;
@@ -33,7 +28,6 @@ import com.google.cloud.discoveryengine.v1alpha.*;
 import com.google.cloud.iam.credentials.v1.IamCredentialsClient;
 import com.google.cloud.iam.credentials.v1.SignJwtRequest;
 import com.google.cloud.iam.credentials.v1.SignJwtResponse;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -41,9 +35,8 @@ import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 /**
- * This sample demonstrates how to authenticate GCP AgentSapce and discovery API using Domain
- * Wide Delegation to impersonate the user
- * when using WIF credentials
+ * This sample demonstrates how to authenticate GCP AgentSapce and discovery API using Domain Wide
+ * Delegation to impersonate the user when using WIF credentials
  */
 public class OauthApplication {
 
@@ -51,7 +44,7 @@ public class OauthApplication {
 
     /*
      * Configuration details
-     * 
+     *
      */
 
     String projectId = "project-id"; // Project ID .
@@ -60,12 +53,21 @@ public class OauthApplication {
     String engineId = "ws-search_engine"; // Engine ID.
     String servingConfigId = "default_search"; // Serving configuration. Options: "default_search"
     String searchUserEmail = "email@domain.com"; // Email-id of the user to impersonate
-    String serviceAccountId = "service-account@projectid.iam.gserviceaccount.com"; // Service account with the permission on the WIF
+    String serviceAccountId =
+        "service-account@projectid.iam.gserviceaccount.com"; // Service account with the permission
+                                                             // on the WIF
 
     String searchQuery = "Sample Search Query"; // Search Query for the data store.
     try {
-      search(projectId, location, collectionId, engineId, servingConfigId, searchQuery,
-          searchUserEmail, serviceAccountId);
+      search(
+          projectId,
+          location,
+          collectionId,
+          engineId,
+          servingConfigId,
+          searchQuery,
+          searchUserEmail,
+          serviceAccountId);
     } catch (IOException | ExecutionException e) {
       throw new RuntimeException(e);
     }
@@ -74,16 +76,16 @@ public class OauthApplication {
   /**
    * Performs a search operation in the Google Cloud Discovery Engine.
    *
-   * @param projectId       The project ID.
-   * @param location        The location of the data store.
-   * @param collectionId    The collection containing the data store.
-   * @param engineId        The engine ID.
+   * @param projectId The project ID.
+   * @param location The location of the data store.
+   * @param collectionId The collection containing the data store.
+   * @param engineId The engine ID.
    * @param servingConfigId The serving configuration ID.
-   * @param searchQuery     The search query.
+   * @param searchQuery The search query.
    * @param searchUserEmail The email of the user to impersonate.
-   * @param serviceAccount  The service account with the necessary permissions,
-   *                        should be same one from credentials.
-   * @throws IOException        If an I/O error occurs.
+   * @param serviceAccount The service account with the necessary permissions, should be same one
+   *     from credentials.
+   * @throws IOException If an I/O error occurs.
    * @throws ExecutionException If an execution error occurs.
    */
   public static void search(
@@ -103,17 +105,19 @@ public class OauthApplication {
       HttpRequestInitializer requestInitializer = new HttpCredentialsAdapter(credentials);
       HttpTransport transport = new NetHttpTransport.Builder().build();
       transport.createRequestFactory(requestInitializer);
-      settings = SearchServiceSettings.newBuilder()
-          .setCredentialsProvider(FixedCredentialsProvider.create(credentials))
-          .build();
+      settings =
+          SearchServiceSettings.newBuilder()
+              .setCredentialsProvider(FixedCredentialsProvider.create(credentials))
+              .build();
       SearchServiceClient searchServiceClient = SearchServiceClient.create(settings);
-      SearchRequest request = SearchRequest.newBuilder()
-          .setServingConfig(
-              ServingConfigName.formatProjectLocationCollectionEngineServingConfigName(
-                  projectId, location, collectionId, engineId, servingConfigId))
-          .setQuery(searchQuery)
-          .setPageSize(10)
-          .build();
+      SearchRequest request =
+          SearchRequest.newBuilder()
+              .setServingConfig(
+                  ServingConfigName.formatProjectLocationCollectionEngineServingConfigName(
+                      projectId, location, collectionId, engineId, servingConfigId))
+              .setQuery(searchQuery)
+              .setPageSize(10)
+              .build();
       Object o = searchServiceClient.search(request).getPage().getResponse();
       System.out.println("Response Object: " + o);
       SearchResponse response = searchServiceClient.search(request).getPage().getResponse();
@@ -130,7 +134,7 @@ public class OauthApplication {
   /**
    * Generates credentials for a given user email and service account.
    *
-   * @param userEmail        The email of the user.
+   * @param userEmail The email of the user.
    * @param serviceAccountId The service account ID.
    * @return A Credentials object containing the OAuth2 credentials.
    * @throws IOException If an I/O error occurs during credentials generation.
@@ -170,14 +174,13 @@ public class OauthApplication {
     HttpResponse tokenResponse = tokenRequest.execute();
     GoogleTokenResponse googleTokenResponse = tokenResponse.parseAs(GoogleTokenResponse.class);
     return googleTokenResponse.getAccessToken();
-
   }
 
   /**
-   * Generates a signed JWT for a given user email and service account using
-   * Google IAM Credentials API.
+   * Generates a signed JWT for a given user email and service account using Google IAM Credentials
+   * API.
    *
-   * @param userEmail        The email of the user.
+   * @param userEmail The email of the user.
    * @param serviceAccountId The service account ID.
    * @return The signed JWT.
    * @throws IOException If an I/O error occurs during JWT generation.
@@ -188,19 +191,27 @@ public class OauthApplication {
     long nowSeconds = System.currentTimeMillis() / 1000;
     long expSeconds = nowSeconds + 1800; // 30 minutes
 
-    String jsonPayload = "{\"aud\":\"https://oauth2.googleapis.com/token\""
-        + ",\"exp\":" + expSeconds
-        + ",\"iat\":" + nowSeconds
-        + ",\"iss\":\"" + serviceAccountId + "\""
-        + ",\"sub\":\"" + userEmail + "\""
-        + ",\"scope\":\"https://www.googleapis.com/auth/cloud-platform\"}";
+    String jsonPayload =
+        "{\"aud\":\"https://oauth2.googleapis.com/token\""
+            + ",\"exp\":"
+            + expSeconds
+            + ",\"iat\":"
+            + nowSeconds
+            + ",\"iss\":\""
+            + serviceAccountId
+            + "\""
+            + ",\"sub\":\""
+            + userEmail
+            + "\""
+            + ",\"scope\":\"https://www.googleapis.com/auth/cloud-platform\"}";
     System.out.println(jsonPayload);
 
-    SignJwtRequest request = SignJwtRequest.newBuilder()
-        .setName("projects/-/serviceAccounts/" + serviceAccountId)
-        .addAllDelegates(new ArrayList<String>())
-        .setPayload(jsonPayload)
-        .build();
+    SignJwtRequest request =
+        SignJwtRequest.newBuilder()
+            .setName("projects/-/serviceAccounts/" + serviceAccountId)
+            .addAllDelegates(new ArrayList<String>())
+            .setPayload(jsonPayload)
+            .build();
 
     SignJwtResponse response = iamCredentialsClient.signJwt(request);
     System.out.println("response: " + response);

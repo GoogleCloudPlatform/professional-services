@@ -1,20 +1,16 @@
 /**
- * 
- *  Copyright 2025 Google LLC
-
-   Licensed under the Apache License, Version 2.0 (the "License");
-   you may not use this file except in compliance with the License.
-   You may obtain a copy of the License at
-
-       http://www.apache.org/licenses/LICENSE-2.0
-
-   Unless required by applicable law or agreed to in writing, software
-   distributed under the License is distributed on an "AS IS" BASIS,
-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   See the License for the specific language governing permissions and
-   limitations under the License.
-
-*/
+ * Copyright 2025 Google LLC
+ *
+ * <p>Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file
+ * except in compliance with the License. You may obtain a copy of the License at
+ *
+ * <p>http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * <p>Unless required by applicable law or agreed to in writing, software distributed under the
+ * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+ * express or implied. See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.google.cloud.pso;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -29,7 +25,6 @@ import com.google.api.client.http.HttpRequest;
 import com.google.api.client.http.HttpRequestFactory;
 import com.google.api.client.http.HttpResponse;
 import com.google.api.client.http.HttpTransport;
-import com.google.api.client.json.JsonFactory;
 import com.google.cloud.discoveryengine.v1alpha.SearchRequest;
 import com.google.cloud.discoveryengine.v1alpha.SearchResponse;
 import com.google.cloud.discoveryengine.v1alpha.SearchServiceClient;
@@ -72,7 +67,8 @@ class OauthApplicationTest {
     IamCredentialsClient mockIamCredentialsClient = mock(IamCredentialsClient.class);
     SignJwtResponse mockSignJwtResponse = mock(SignJwtResponse.class);
     when(mockSignJwtResponse.getSignedJwt()).thenReturn("mockedSignedJwt");
-    when(mockIamCredentialsClient.signJwt(any(SignJwtRequest.class))).thenReturn(mockSignJwtResponse);
+    when(mockIamCredentialsClient.signJwt(any(SignJwtRequest.class)))
+        .thenReturn(mockSignJwtResponse);
 
     // Mocking getAccessToken
     GoogleTokenResponse mockGoogleTokenResponse = mock(GoogleTokenResponse.class);
@@ -82,7 +78,8 @@ class OauthApplicationTest {
     HttpRequest mockHttpRequest = mock(HttpRequest.class);
     when(mockHttpRequest.execute()).thenReturn(mockHttpResponse);
     HttpRequestFactory mockHttpRequestFactory = mock(HttpRequestFactory.class);
-    when(mockHttpRequestFactory.buildPostRequest(any(GenericUrl.class), any())).thenReturn(mockHttpRequest);
+    when(mockHttpRequestFactory.buildPostRequest(any(GenericUrl.class), any()))
+        .thenReturn(mockHttpRequest);
     HttpTransport mockHttpTransport = mock(HttpTransport.class);
     when(mockHttpTransport.createRequestFactory()).thenReturn(mockHttpRequestFactory);
 
@@ -91,34 +88,58 @@ class OauthApplicationTest {
     SearchResponse mockSearchResponse = mock(SearchResponse.class);
     SearchResponse.SearchResult mockSearchResult = mock(SearchResponse.SearchResult.class);
     when(mockSearchResult.toString()).thenReturn("Mocked Search Result");
-    when(mockSearchResponse.getResultsList()).thenReturn(java.util.Collections.singletonList(mockSearchResult));
+    when(mockSearchResponse.getResultsList())
+        .thenReturn(java.util.Collections.singletonList(mockSearchResult));
     when(mockSearchResponse.getResultsCount()).thenReturn(1);
-    SearchServiceClient.SearchPagedResponse mockPagedResponse = mock(SearchServiceClient.SearchPagedResponse.class);
-    when(mockPagedResponse.getPage()).thenReturn(new SearchResponse.SearchResult.Page() {
-      @Override
-      public SearchResponse getResponse() {
-        return mockSearchResponse;
-      }
-    });
+    SearchServiceClient.SearchPagedResponse mockPagedResponse =
+        mock(SearchServiceClient.SearchPagedResponse.class);
+    when(mockPagedResponse.getPage())
+        .thenReturn(
+            new SearchResponse.SearchResult.Page() {
+              @Override
+              public SearchResponse getResponse() {
+                return mockSearchResponse;
+              }
+            });
     when(mockSearchServiceClient.search(any(SearchRequest.class))).thenReturn(mockPagedResponse);
 
-    try (MockedStatic<IamCredentialsClient> mockedIamCredentialsClient = Mockito.mockStatic(IamCredentialsClient.class);
-         MockedStatic<SearchServiceClient> mockedSearchServiceClient = Mockito.mockStatic(SearchServiceClient.class);
-         MockedStatic<OauthApplication> mockedOauthApplication = Mockito.mockStatic(OauthApplication.class);
-         MockedStatic<HttpTransport> mockedHttpTransport = Mockito.mockStatic(HttpTransport.class)) {
+    try (MockedStatic<IamCredentialsClient> mockedIamCredentialsClient =
+            Mockito.mockStatic(IamCredentialsClient.class);
+        MockedStatic<SearchServiceClient> mockedSearchServiceClient =
+            Mockito.mockStatic(SearchServiceClient.class);
+        MockedStatic<OauthApplication> mockedOauthApplication =
+            Mockito.mockStatic(OauthApplication.class);
+        MockedStatic<HttpTransport> mockedHttpTransport = Mockito.mockStatic(HttpTransport.class)) {
 
-      mockedIamCredentialsClient.when(IamCredentialsClient::create).thenReturn(mockIamCredentialsClient);
-      mockedSearchServiceClient.when(() -> SearchServiceClient.create(any(SearchServiceSettings.class))).thenReturn(mockSearchServiceClient);
+      mockedIamCredentialsClient
+          .when(IamCredentialsClient::create)
+          .thenReturn(mockIamCredentialsClient);
+      mockedSearchServiceClient
+          .when(() -> SearchServiceClient.create(any(SearchServiceSettings.class)))
+          .thenReturn(mockSearchServiceClient);
       mockedHttpTransport.when(HttpTransport::new).thenReturn(mockHttpTransport);
       when(mockHttpTransport.createRequestFactory()).thenReturn(mockHttpRequestFactory);
-      when(mockHttpRequestFactory.buildPostRequest(any(GenericUrl.class), any())).thenReturn(mockHttpRequest);
+      when(mockHttpRequestFactory.buildPostRequest(any(GenericUrl.class), any()))
+          .thenReturn(mockHttpRequest);
       when(mockHttpRequest.execute()).thenReturn(mockHttpResponse);
       when(mockHttpResponse.parseAs(GoogleTokenResponse.class)).thenReturn(mockGoogleTokenResponse);
 
-      mockedOauthApplication.when(() -> OauthApplication.generateSingedJwt(searchUserEmail, serviceAccountId)).thenReturn("mockedSignedJwt");
-      mockedOauthApplication.when(() -> OauthApplication.getAccessToken("mockedSignedJwt")).thenReturn("mockedAccessToken");
+      mockedOauthApplication
+          .when(() -> OauthApplication.generateSingedJwt(searchUserEmail, serviceAccountId))
+          .thenReturn("mockedSignedJwt");
+      mockedOauthApplication
+          .when(() -> OauthApplication.getAccessToken("mockedSignedJwt"))
+          .thenReturn("mockedAccessToken");
 
-      OauthApplication.search(projectId, location, collectionId, engineId, servingConfigId, searchQuery, searchUserEmail, serviceAccountId);
+      OauthApplication.search(
+          projectId,
+          location,
+          collectionId,
+          engineId,
+          servingConfigId,
+          searchQuery,
+          searchUserEmail,
+          serviceAccountId);
 
       // Verify that the search method executed without throwing an exception.  More specific
       // verification would be ideal, but this at least confirms the happy path.
@@ -133,10 +154,14 @@ class OauthApplicationTest {
     IamCredentialsClient mockIamCredentialsClient = mock(IamCredentialsClient.class);
     SignJwtResponse mockSignJwtResponse = mock(SignJwtResponse.class);
     when(mockSignJwtResponse.getSignedJwt()).thenReturn("mockedSignedJwt");
-    when(mockIamCredentialsClient.signJwt(any(SignJwtRequest.class))).thenReturn(mockSignJwtResponse);
+    when(mockIamCredentialsClient.signJwt(any(SignJwtRequest.class)))
+        .thenReturn(mockSignJwtResponse);
 
-    try (MockedStatic<IamCredentialsClient> mockedIamCredentialsClient = Mockito.mockStatic(IamCredentialsClient.class)) {
-      mockedIamCredentialsClient.when(IamCredentialsClient::create).thenReturn(mockIamCredentialsClient);
+    try (MockedStatic<IamCredentialsClient> mockedIamCredentialsClient =
+        Mockito.mockStatic(IamCredentialsClient.class)) {
+      mockedIamCredentialsClient
+          .when(IamCredentialsClient::create)
+          .thenReturn(mockIamCredentialsClient);
 
       String signedJwt = OauthApplication.generateSingedJwt(searchUserEmail, serviceAccountId);
 
@@ -155,14 +180,17 @@ class OauthApplicationTest {
     HttpRequest mockHttpRequest = mock(HttpRequest.class);
     when(mockHttpRequest.execute()).thenReturn(mockHttpResponse);
     HttpRequestFactory mockHttpRequestFactory = mock(HttpRequestFactory.class);
-    when(mockHttpRequestFactory.buildPostRequest(any(GenericUrl.class), any())).thenReturn(mockHttpRequest);
+    when(mockHttpRequestFactory.buildPostRequest(any(GenericUrl.class), any()))
+        .thenReturn(mockHttpRequest);
     HttpTransport mockHttpTransport = mock(HttpTransport.class);
     when(mockHttpTransport.createRequestFactory()).thenReturn(mockHttpRequestFactory);
 
-    try (MockedStatic<HttpTransport> mockedHttpTransport = Mockito.mockStatic(HttpTransport.class)) {
+    try (MockedStatic<HttpTransport> mockedHttpTransport =
+        Mockito.mockStatic(HttpTransport.class)) {
       mockedHttpTransport.when(HttpTransport::new).thenReturn(mockHttpTransport);
       when(mockHttpTransport.createRequestFactory()).thenReturn(mockHttpRequestFactory);
-      when(mockHttpRequestFactory.buildPostRequest(any(GenericUrl.class), any())).thenReturn(mockHttpRequest);
+      when(mockHttpRequestFactory.buildPostRequest(any(GenericUrl.class), any()))
+          .thenReturn(mockHttpRequest);
       when(mockHttpRequest.execute()).thenReturn(mockHttpResponse);
       when(mockHttpResponse.parseAs(GoogleTokenResponse.class)).thenReturn(mockGoogleTokenResponse);
 
