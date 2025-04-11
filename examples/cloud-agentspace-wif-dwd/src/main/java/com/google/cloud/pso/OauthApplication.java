@@ -55,7 +55,7 @@ public class OauthApplication {
     String searchUserEmail = "email@domain.com"; // Email-id of the user to impersonate
     String serviceAccountId =
         "service-account@projectid.iam.gserviceaccount.com"; // Service account with the permission
-                                                             // on the WIF
+    // on the WIF
 
     String searchQuery = "Sample Search Query"; // Search Query for the data store.
     try {
