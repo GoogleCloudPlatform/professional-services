@@ -43,6 +43,7 @@
 ./examples/bigquery-translation-validator-utility
 ./examples/bigquery-ml-claudeintegrations
 ./examples/bq_benchmarks
+./examples/cloud-agentspace-wif-dwd
 ./examples/cloud-composer-examples
 ./examples/cloudera-parcel-gcsconnector
 ./examples/cloudml-bank-marketing
