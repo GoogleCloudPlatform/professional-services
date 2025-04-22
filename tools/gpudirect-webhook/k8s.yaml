@@ -1,0 +1,151 @@
+# Copyright 2025 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: selfsigned-issuer
+spec:
+  selfSigned: {}
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: gpudirect-workload-mutating-webhook
+spec:
+  secretName: gpudirect-workload-mutating-webhook
+  dnsNames:
+    - gpudirect-workload-mutating-webhook.default
+    - gpudirect-workload-mutating-webhook.default.svc
+  issuerRef:
+    name: selfsigned-issuer
+    kind: Issuer
+    group: cert-manager.io
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: gpudirect-webhook
+  namespace: default
+---
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: gpudirect-webhook
+rules:
+- apiGroups: ["networking.gke.io"]
+  resources: ["*"]
+  verbs: ["*"]
+- apiGroups: ["apps"]
+  resources: ["pods", "daemonsets"]
+  verbs: ["*"]
+---
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: gpudirect-webhook
+subjects:
+- kind: ServiceAccount
+  name: gpudirect-webhook
+  namespace: default
+roleRef:
+  kind: ClusterRole
+  name: gpudirect-webhook
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: gpudirect-workload-mutating-webhook
+  name: gpudirect-workload-mutating-webhook
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gpudirect-workload-mutating-webhook
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: gpudirect-workload-mutating-webhook
+    spec:
+      terminationGracePeriodSeconds: 10
+      serviceAccountName: gpudirect-webhook
+      containers:
+        - image: <REPO>/gpudirect-webhook:<TAG>
+          name: webhook
+          # args:
+          # - --create-networks
+          # - --create-node-pool
+          # - --machine-type=a3-high
+          ports:
+            - containerPort: 8443
+          volumeMounts:
+            - mountPath: /var/run/tls
+              name: tls
+      volumes:
+        - name: tls
+          secret:
+            secretName: gpudirect-workload-mutating-webhook
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gpudirect-workload-mutating-webhook
+spec:
+  selector:
+    app: gpudirect-workload-mutating-webhook
+  ports:
+    - port: 443
+      targetPort: 8443
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingWebhookConfiguration
+metadata:
+  name: gpudirect-workload-mutating-webhook
+  annotations:
+    cert-manager.io/inject-ca-from: default/gpudirect-workload-mutating-webhook
+webhooks:
+  - admissionReviewVersions: ["v1", "v1beta1"]
+    matchPolicy: Equivalent
+    namespaceSelector:
+      matchExpressions:
+      - key: kubernetes.io/metadata.name
+        operator: In
+        values:
+        - default
+    objectSelector:
+      matchExpressions:
+      - key: gpudirect
+        operator: In
+        values:
+        - tcpx
+        - tcpxo
+    clientConfig:
+      service:
+        name: gpudirect-workload-mutating-webhook
+        namespace: default
+        path: /mutate
+        port: 443
+    name: gpudirect-workload-mutating-webhook.default.svc
+    sideEffects: None
+    rules:
+      - apiGroups: [""]
+        apiVersions: ["v1"]
+        resources: ["pods"]
+        scope: "Namespaced"
+        operations:
+          - CREATE
