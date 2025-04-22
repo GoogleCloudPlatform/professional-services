@@ -13,7 +13,7 @@ env_logger = "0.11.6"
 anyhow = "1.0.96"
 json-patch = "4.0.0"
 axum = { version = "0.8.1", features = ["macros"] }
-tokio = { version = "1.43.0", features = ["rt-multi-thread", "macros"] }
+tokio = { version = "1.43.1", features = ["rt-multi-thread", "macros"] }
 clap = { version = "4.5.32", features = ["derive"] }
 log = "0.4.26"
 regex = "1.11.1"
