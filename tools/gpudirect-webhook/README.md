@@ -31,11 +31,11 @@ The goal is to simplify the `TCPX/TCPXO` configuration for workloads.
 
 ## Contributing
 
-See [`CONTRIBUTING.md`](../CONTRIBUTING.md) for details.
+See [`CONTRIBUTING.md`](../../CONTRIBUTING.md) for details.
 
 ## License
 
-Apache 2.0. See [`LICENSE`](../LICENSE) for details.
+Apache 2.0. See [`LICENSE`](../../LICENSE) for details.
 
 ## Disclaimer
 
