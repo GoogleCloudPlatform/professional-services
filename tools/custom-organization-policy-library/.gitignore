@@ -5,5 +5,5 @@
 *.bak
 */**/terraform.tfstate*
 terraform/
-test/venv/
-test/report.html
+tests/venv/
+tests/report.html

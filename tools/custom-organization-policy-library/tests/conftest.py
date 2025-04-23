@@ -13,7 +13,8 @@ def pytest_sessionstart(session):
         pytest.exit(f"Test case directory not found: {TEST_CASES_DIR}", returncode=1)
     if not os.getenv('PREFIX'):
         pytest.exit("Environment variable 'PREFIX' is not set. It is required for test execution.", returncode=1)
-
+    if not os.getenv('PROJECT_ID'):
+        pytest.exit("Environment variable 'PROJECT_ID' is not set. It is required for test execution.", returncode=1)
 
 def build_command(shared_config, step):
     command_template = shared_config.get('command')
