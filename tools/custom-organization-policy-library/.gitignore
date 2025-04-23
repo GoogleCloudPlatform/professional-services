@@ -7,3 +7,4 @@
 terraform/
 tests/venv/
 tests/report.html
+scripts/summary.csv
