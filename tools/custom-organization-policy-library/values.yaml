@@ -30,6 +30,18 @@ cloudbuild:
       topics:
       - "projects/project1/topics/topic-1"
       - "projects/project2/topics/topic-2"
+cloudkms:
+  cloudkmsAllowedAlgorithms:
+    params:
+      algorithms:
+      - "GOOGLE_SYMMETRIC_ENCRYPTION"
+  cloudkmsAllowedProtectionLevel:
+    params:
+      protection_levels:
+      - "SOFTWARE"
+  cloudkmsAllowedRotationPeriod:
+    params:
+      max_rotation_period: 31536000s  #! 1 year
 cloudsql:
   cloudsqlAllowedBackupLocations:
     params:

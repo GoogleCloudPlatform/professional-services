@@ -34,7 +34,7 @@ cloudsql_mysql_instance_no_ssl_mode_encrypted:
       return_code: 1
       stderr: "customConstraints/custom.cloudsqlRequireSSLConnection"
 
-cloudsql_mysql_instance_no_public_authorized_networks:
+cloudsql_mysql_instance_no_public_networks:
   steps:
   - command_flags:
       authorized-networks: 0.0.0.0/0
@@ -68,7 +68,7 @@ cloudsql_mysql_instance_no_query_insights:
       return_code: 1
       stderr: "customConstraints/custom.cloudsqlRequireQueryInsights"
 
-cloudsql_mysql_instance_no_skip_show_database_on_flag:
+cloudsql_mysql_instance_no_skip_show_flag:
   steps:
   - command_flags:
       database-flags: local_infile=off

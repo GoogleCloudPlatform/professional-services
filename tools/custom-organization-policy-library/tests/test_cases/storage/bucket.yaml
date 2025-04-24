@@ -7,12 +7,12 @@ shared_config:
   default_markers:
     - storage
 
-storage_bucket_uniform_bucket_level_access:
+storage_allowed_bucket:
   steps:
   - expected_result:
       return_code: 0
 
-storage_bucket_no_uniform_bucket_level_access:
+storage_bucket_no_uni_level_access:
   steps:
   - command_flags:
       uniform-bucket-level-access: false

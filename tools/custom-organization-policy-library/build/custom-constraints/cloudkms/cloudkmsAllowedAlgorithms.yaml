@@ -1,0 +1,19 @@
+#@ load("/constraints.lib.star", "build_constraint")
+#@ constraint = build_constraint("cloudkmsAllowedAlgorithms")
+
+#@ def condition(algorithms):
+#@   return 'resource.versionTemplate.algorithm in ' +  str(algorithms) + " == false"
+#@ end
+
+#@ if constraint.to_generate():
+name: #@ constraint.constraint_name()
+resourceTypes:
+- cloudkms.googleapis.com/CryptoKey
+methodTypes:
+- CREATE
+- UPDATE
+condition: #@  condition(constraint.params().algorithms)
+actionType: DENY
+displayName: Require Cloud KMS keys algorithm to be configured correctly
+description: Ensure the algorithm for Cloud KMS keys is configured correctly
+#@ end

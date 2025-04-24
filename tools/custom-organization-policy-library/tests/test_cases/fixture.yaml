@@ -1,0 +1,9 @@
+before_tests:
+  - command: gcloud kms keyrings create {{ prefix }}-key-ring-1 --location=asia-southeast2
+    expected_result:
+      return_code: 0
+
+after_tests:
+  - command: gcloud kms keyrings describe {{ prefix }}-key-ring-1 --location=asia-southeast2
+    expected_result:
+      return_code: 0
