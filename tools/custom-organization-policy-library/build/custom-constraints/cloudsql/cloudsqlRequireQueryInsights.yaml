@@ -1,0 +1,15 @@
+#@ load("/constraints.lib.star", "build_constraint")
+#@ constraint = build_constraint("cloudsqlRequireQueryInsights")
+
+#@ if constraint.to_generate():
+name: #@ constraint.constraint_name()
+resourceTypes:
+- sqladmin.googleapis.com/Instance
+methodTypes:
+- CREATE
+- UPDATE
+condition: resource.settings.insightsConfig.queryInsightsEnabled == false
+actionType: DENY
+display_name: Require Cloud SQL instances to have Query Insights feature enabled
+description: Ensure that Cloud SQL instance is configured to have Query Insights feature enabled
+#@ end

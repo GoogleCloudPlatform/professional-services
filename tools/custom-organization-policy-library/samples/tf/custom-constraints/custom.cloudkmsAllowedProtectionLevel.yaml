@@ -1,0 +1,10 @@
+custom.cloudkmsAllowedProtectionLevel:
+  actionType: DENY
+  condition: resource.versionTemplate.protectionLevel in ["SOFTWARE"] == false
+  description: Ensure the protection level for Cloud KMS keys is configured correctly
+  displayName: Require Cloud KMS keys protection level to be configured correctly
+  methodTypes:
+  - CREATE
+  - UPDATE
+  resourceTypes:
+  - cloudkms.googleapis.com/CryptoKey

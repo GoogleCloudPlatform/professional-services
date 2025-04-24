@@ -1,0 +1,15 @@
+#@ load("/constraints.lib.star", "build_constraint")
+#@ constraint = build_constraint("cloudsqlDisablePublicAuthorizedNetworks")
+
+#@ if constraint.to_generate():
+name: #@ constraint.constraint_name()
+resourceTypes:
+- sqladmin.googleapis.com/Instance
+methodTypes:
+- CREATE
+- UPDATE
+condition: "resource.settings.ipConfiguration.authorizedNetworks.exists(network, network.value == '0.0.0.0/0')"
+actionType: DENY
+display_name: Require Cloud SQL database instances to not whitelist all public IP addresses
+description: Ensure That Cloud SQL database instances do not implicitly whitelist all public IP addresses
+#@ end
