@@ -6,5 +6,5 @@ methodTypes:
 - UPDATE
 condition: resource.settings.dataDiskType in ["PD_SSD"] == false
 actionType: DENY
-display_name: Require CloudSQL instances to use allowed configurations
-description: Ensure that CloudSQL instance is configured with allowed configurations (e.g. SSD disk type)
+display_name: Require Cloud SQL instances to use allowed configurations
+description: Ensure that Cloud SQL instance is configured with allowed configurations (e.g. SSD disk type)

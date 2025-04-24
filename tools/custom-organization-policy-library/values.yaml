@@ -30,7 +30,23 @@ cloudbuild:
       topics:
       - "projects/project1/topics/topic-1"
       - "projects/project2/topics/topic-2"
+cloudkms:
+  cloudkmsAllowedAlgorithms:
+    params:
+      algorithms:
+      - "GOOGLE_SYMMETRIC_ENCRYPTION"
+  cloudkmsAllowedProtectionLevel:
+    params:
+      protection_levels:
+      - "SOFTWARE"
+  cloudkmsAllowedRotationPeriod:
+    params:
+      max_rotation_period: 31536000s  #! 1 year
 cloudsql:
+  cloudsqlAllowedBackupLocations:
+    params:
+      locations:
+      - "asia-southeast1"
   cloudsqlAllowedDiskTypes:
     params:
       disk_types:
@@ -39,6 +55,7 @@ cloudsql:
     params:
       versions:
       - "MYSQL_5_7"
+      - "MYSQL_8_0_37"
       - "POSTGRES_15"
       - "SQLSERVER_2022_WEB"
   cloudsqlEnforcePasswordComplexity:

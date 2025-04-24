@@ -17,6 +17,7 @@ load("@ytt:struct", "struct")
 
 services = [
   "cloudbuild",
+  "cloudkms",
   "cloudrun", 
   "cloudsql",
   "compute", 

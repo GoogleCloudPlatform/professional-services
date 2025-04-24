@@ -136,3 +136,9 @@ Use command `make policies` automatically generate the constraint.
 Use command `make build` command to generate both custonm constraints and policy.
 
 The files generated are in the folder `samples`. At this moment, the output generated can be verified and tested.
+
+### 3. Deploy
+Use command `make deploy` to provision the constraint and policies to your environment.
+
+### 4. Test
+Refer to [test documentation](../test/README.md) for more information how to write and run test cases.
