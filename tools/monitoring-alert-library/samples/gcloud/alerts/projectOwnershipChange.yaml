@@ -1,0 +1,15 @@
+displayName: Project Ownership Changes
+documentation:
+  content: Log-based alerting policy in project ${project} detected a project ownership assignments or changes. ``` (protoPayload.serviceName="cloudresourcemanager.googleapis.com")  AND (ProjectOwnership OR projectOwnerInvitee)  OR (protoPayload.serviceData.policyDelta.bindingDeltas.action="REMOVE"  AND protoPayload.serviceData.policyDelta.bindingDeltas.role="roles/owner")  OR (protoPayload.serviceData.policyDelta.bindingDeltas.action="ADD"  AND protoPayload.serviceData.policyDelta.bindingDeltas.role="roles/owner") ```
+  mimeType: text/markdown
+conditions:
+- displayName: 'Log match condition: project ownership changes'
+  conditionMatchedLog:
+    filter: (protoPayload.serviceName="cloudresourcemanager.googleapis.com")  AND (ProjectOwnership OR projectOwnerInvitee)  OR (protoPayload.serviceData.policyDelta.bindingDeltas.action="REMOVE"  AND protoPayload.serviceData.policyDelta.bindingDeltas.role="roles/owner")  OR (protoPayload.serviceData.policyDelta.bindingDeltas.action="ADD"  AND protoPayload.serviceData.policyDelta.bindingDeltas.role="roles/owner")
+combiner: OR
+notificationChannels:
+- projects/dbs-validator-kcc-29ae/notificationChannels/1911345462390136248
+alertStrategy:
+  notificationRateLimit:
+    period: 300s
+  autoClose: 604800s
