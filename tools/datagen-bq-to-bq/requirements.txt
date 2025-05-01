@@ -1,0 +1,9 @@
+google-cloud-aiplatform
+snowfakery==3.6.3
+gcsfs
+pandas
+google-cloud-storage
+google-cloud-bigquery
+PyYAML
+google-api-core
+# vertexai is part of google-cloud-aiplatform
