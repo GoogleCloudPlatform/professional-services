@@ -65,6 +65,7 @@ false
 
 """
 
+
 # Function to create header prediction prompt
 def header_prediction(file_data):
     return f"""You are an expert in reading file content and understanding its context. You will be provided with a rows of file data. Your task is to predict whether the file contains column headers or not.
@@ -97,6 +98,7 @@ false
 
 **Output:**
 """
+
 
 # Function to create Snowfakery recipe generation prompt
 def create_receipe_prompt(fake_function_list, table_schema):
@@ -266,7 +268,6 @@ Your Output should be
 * The output should contain only the receip and no other explanation
 """
 
-
 # Prompt for Relationship Builder
 Relationship_builder = """Purpose: Given the schema of multiple database tables, determine their relationships and the type of each table.
 Strictly build the relationship only for the table provided the user.
@@ -351,8 +352,6 @@ Additional Notes:
 
 *  For large schemas, you might implement more advanced algorithms for relationship discovery.
 """
-
-
 
 # Prompt for Updating Recipe based on Relationship
 Relationship_Prompt = """Below is the Example of Snowfakery yml file for tables emp and dept with minimal number of columns to demonstrate how primary key and foreign key can be represented while creating recipe.
@@ -439,7 +438,7 @@ c. Replace the foreign key column value to refer to primary column recipe
 """
 
 # Prompt for Correcting Object Name in Recipe
-Correct_Object_Name_Prompt =""" You will either get the relationship json or a table name as an input.
+Correct_Object_Name_Prompt = """ You will either get the relationship json or a table name as an input.
 Your task is as below:
 1. If you get the relationship json , then extract the table name form the relationship.
 Then, read the provided yaml receipe and replace the object name with the name of the table names extracted from the relationship.

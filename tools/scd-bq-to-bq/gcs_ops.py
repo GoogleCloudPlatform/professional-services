@@ -1,6 +1,5 @@
 from google.cloud import bigquery
-from google.cloud import storage
-import re
+
 
 def export_bigquery_to_gcs(project_id, bq_table_name, gcs_destination_uri):
     """Exports data from a BigQuery table to a GCS bucket in CSV format.
@@ -25,7 +24,7 @@ def export_bigquery_to_gcs(project_id, bq_table_name, gcs_destination_uri):
         extract_job = bq_client.extract_table(
             source=bq_table_name,
             destination_uris=gcs_destination_uri,
-            job_config=job_config
+            job_config=job_config,
         )  # API request
         extract_job.result()  # Waits for job to complete
 
