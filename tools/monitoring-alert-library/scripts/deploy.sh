@@ -158,7 +158,7 @@ function traverse_folder() {
       process_file "$project_id" "$item"
     elif [[ -d "$item" ]]; then
       if ! traverse_folder "$project_id" "$item"; then
-          has_error=1 
+          has_error=1
       fi
     fi
   done

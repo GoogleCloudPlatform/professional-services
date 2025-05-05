@@ -11,7 +11,7 @@ endif
 PROJECT_ID := $(shell $(YQ) '.project' values.yaml)
 
 .PHONY: alerts
-alerts: 
+alerts:
 	rm -rf $(OUTPUT_GCLOUD)/alerts
 	ytt $(CONFIG) -f build/alerts/  --output-files $(OUTPUT_GCLOUD)/alerts
 
@@ -26,7 +26,5 @@ deploy-alerts:
 deploy: build deploy-alerts
 
 .PHONY: clean
-clean: 
+clean:
 	rm -rf $(OUTPUT_GCLOUD)
-
-

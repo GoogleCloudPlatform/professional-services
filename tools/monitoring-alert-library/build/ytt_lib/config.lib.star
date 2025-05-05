@@ -27,11 +27,11 @@ end
 
 # Check if the constraint the and the policy should be included in the generation
 # Behavior is:
-# - No bundle definied, constraint is generated except if specifically "skip"
-# - Bundle definied, constraint is not generated except if specifically "include" or part of the bundle
+# - No bundle defined, constraint is generated except if specifically "skip"
+# - Bundle defined, constraint is not generated except if specifically "include" or part of the bundle
 def include(constraint, bundles):
   if not has_bundle(bundles):
-    return constraint["generation"] == "default" or constraint["generation"] == "include" 
+    return constraint["generation"] == "default" or constraint["generation"] == "include"
   end
 
   # Bundle defined
