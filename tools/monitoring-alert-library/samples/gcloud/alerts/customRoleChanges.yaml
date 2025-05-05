@@ -1,0 +1,17 @@
+displayName: Custom Role Changes
+documentation:
+  content: |-
+    Log-based alerting policy in project ${project} detected custom IAM role creation, deletion or update activities.
+    This alert helps ensure security by monitoring changes to Identity and Access Management (IAM) roles. ``` resource.type="iam_role" AND (protoPayload.methodName="google.iam.admin.v1.CreateRole" OR protoPayload.methodName="google.iam.admin.v1.DeleteRole" OR protoPayload.methodName="google.iam.admin.v1.UpdateRole") ```
+  mimeType: text/markdown
+conditions:
+- displayName: 'Log match condition: custom role changes'
+  conditionMatchedLog:
+    filter: resource.type="iam_role" AND (protoPayload.methodName="google.iam.admin.v1.CreateRole" OR protoPayload.methodName="google.iam.admin.v1.DeleteRole" OR protoPayload.methodName="google.iam.admin.v1.UpdateRole")
+combiner: OR
+notificationChannels:
+- projects/dbs-validator-kcc-29ae/notificationChannels/1911345462390136248
+alertStrategy:
+  notificationRateLimit:
+    period: 300s
+  autoClose: 604800s

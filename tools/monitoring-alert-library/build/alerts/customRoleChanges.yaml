@@ -1,0 +1,36 @@
+#@ load("/alert.lib.star", "build_alert")
+#@ load("/alert.lib.yaml", "generate_notification_channels")
+#@ load("@ytt:template", "template")
+#@ alert = build_alert("customRoleChanges")
+
+#@ if alert.to_generate():
+displayName: 'Custom Role Changes'
+documentation:
+  content: >-
+    Log-based alerting policy in project ${project} detected custom IAM role creation, deletion or update activities.
+
+    This alert helps ensure security by monitoring changes to Identity and Access Management (IAM) roles.
+    ```
+    resource.type="iam_role"
+    AND (protoPayload.methodName="google.iam.admin.v1.CreateRole"
+    OR protoPayload.methodName="google.iam.admin.v1.DeleteRole"
+    OR protoPayload.methodName="google.iam.admin.v1.UpdateRole")
+    ```
+  mimeType: text/markdown
+conditions:
+  - displayName: 'Log match condition: custom role changes'
+    conditionMatchedLog:
+      filter: >-
+        resource.type="iam_role"
+        AND (protoPayload.methodName="google.iam.admin.v1.CreateRole"
+        OR protoPayload.methodName="google.iam.admin.v1.DeleteRole"
+        OR protoPayload.methodName="google.iam.admin.v1.UpdateRole")
+combiner: OR
+#@ if alert.has_notification_channels():
+_: #@ template.replace(generate_notification_channels())
+#@ end
+alertStrategy:
+  notificationRateLimit:
+    period: 300s
+  autoClose: 604800s
+#@ end

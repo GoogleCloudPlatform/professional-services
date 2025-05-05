@@ -1,0 +1,17 @@
+displayName: SQL Instance Configuration Changes
+documentation:
+  content: |-
+    Log-based alerting policy in project ${project} detected Cloud SQL instance configuration changes.
+    This alert helps ensure security by monitoring configuration changes to SQL instances. ``` protoPayload.methodName="cloudsql.instances.update" ```
+  mimeType: text/markdown
+conditions:
+- displayName: 'Log match condition: SQL instance configuration changes'
+  conditionMatchedLog:
+    filter: protoPayload.methodName="cloudsql.instances.update"
+combiner: OR
+notificationChannels:
+- projects/dbs-validator-kcc-29ae/notificationChannels/1911345462390136248
+alertStrategy:
+  notificationRateLimit:
+    period: 300s
+  autoClose: 604800s

@@ -1,0 +1,32 @@
+#@ load("/alert.lib.star", "build_alert")
+#@ load("/alert.lib.yaml", "generate_notification_channels")
+#@ load("@ytt:template", "template")
+#@ alert = build_alert("auditConfigChanges")
+
+#@ if alert.to_generate():
+displayName: 'Audit Configuration Changes'
+documentation:
+  content: >-
+    Log-based alerting policy in project ${project} detected audit configuration changes.
+
+    This alert helps track GCP services audit log configuration changes to ensure appropriate audit logs are being collected.
+    ```
+    protoPayload.methodName="SetIamPolicy" AND
+    protoPayload.serviceData.policyDelta.auditConfigDeltas:*
+    ```
+  mimeType: text/markdown
+conditions:
+  - displayName: 'Log match condition: audit configuration changes'
+    conditionMatchedLog:
+      filter: >-
+        protoPayload.methodName="SetIamPolicy" AND
+        protoPayload.serviceData.policyDelta.auditConfigDeltas:*
+combiner: OR
+#@ if alert.has_notification_channels():
+_: #@ template.replace(generate_notification_channels())
+#@ end
+alertStrategy:
+  notificationRateLimit:
+    period: 300s
+  autoClose: 604800s
+#@ end
