@@ -9,7 +9,7 @@ Migrate to Google Managed Kafka using MirrorMaker2
 ```
 Example (Please update actuals)
 
-bucket  = "bqusagerepo"
+bucket  = "YOUR_GCS_BUCKET"
 ```
 2. run terraform init
 ```
@@ -22,7 +22,7 @@ terraform init
 ```
 Example (Please update actuals)
 
-project_id = "mbawa-sandbox"
+project_id = "YOUR_PROJECT_ID"
 region = "us-central1"
 
 Please change following if needed to update the kafka parameters (name, topic name )
@@ -79,7 +79,7 @@ Launch a stand alone Mirror Maker 2 node
     ```
     Example (Please update actuals)
     
-    project_id = "test-sandbox"
+    project_id = "YOUR_PROJECT_ID"
     region = "us-central1"
     zone = "us-central1-a"
     service_account_email = "compute@developer.gserviceaccount.com"
