@@ -1,25 +1,15 @@
 # mm2-gmk-migration
-This repository provides hands-on experience to migrate data between two Google Managed Kafka clustes using MirrorMaker2. As a part of POC, below resources are provisioned:
-
-1. Two Google Managed Kafka clusters as a source and destination. To disable creation of the source cluster, please modify the `terraform plan` step to not include `-target=module.google-managed-kafka-src`, in the "Deploy Google Cloud Managed Service for Apache Kafka (GMK)" section of this file. To point the source cluster to one on-prem, please update [this variable](https://github.com/GoogleCloudPlatform/professional-services/blob/main/examples/mm2-gmk-migration/terraform/modules/environments/production/deploy_mm2-standalone.tf#L12) as well as [this password](https://github.com/GoogleCloudPlatform/professional-services/blob/main/examples/mm2-gmk-migration/terraform/modules/mirror-maker2-standalone/mm2standalone.tf#L129).
-2. MirrorMaker2 on GCE
-3. Kafka Producer node to publish messages for testing purpose
-
-<img src="./static/Kafka Migration using MM2.png" alt="drawing" width="600"/>
-
-Please follow below instructions to deploy resources for POC:
+Migrate to Google Managed Kafka using MirrorMaker2
 
 [![Open in Cloud Shell](http://gstatic.com/cloudssh/images/open-btn.svg)](https://console.cloud.google.com/cloudshell/editor?cloudshell_git_repo=https%3A%2F%2Fgithub.com%2Fmandeeptrehan%2Fmm2-gmk-migration.git)
 
 ## Setup Terraform Workspace
 
-1. Create a GCS bucket of your choice to store Terraform state files. 
-   1. Update modules/environments/production/backends.tf
+1. Update modules/environments/production/backends.tf
 ```
-Example (Please update with actual values)
+Example (Please update actuals)
 
-bucket  = "YOUR_GCS_BUCKET"
-prefix  = "terraform" 
+bucket  = "bqusagerepo"
 ```
 2. run terraform init
 ```
@@ -28,44 +18,44 @@ terraform init
 ```
 
 ## Deploy Google Cloud Managed Service for Apache Kafka (GMK)
-1. Navigate to Update modules/environments/production/deploy_kafka.tf (One for each src and dest cluster)and update the required variables
+1. Please Navigate to Update modules/environments/production/deploy_kafka.tf (One for each src and dest cluster)and update the required variables
 ```
-Example (Please update with actual values.)
+Example (Please update actuals)
 
-project_id = "YOUR_PROJECT_ID"
+project_id = "mbawa-sandbox"
 region = "us-central1"
 
-Please change following if needed to update the kafka parameters (name, topic name)
+Please change following if needed to update the kafka parameters (name, topic name )
 ```
-2. Run terraform plan for kafka module (This will plan both source and destination kafka cluster one can trigger this individually as well)
-```
-cd terraform/modules/environments/production
-terraform plan -target=module.google-managed-kafka-src -target=module.google-managed-kafka-dest
-```
-3. Run terraform apply for kafka module (This will deploy both source and destination kafka cluster one can trigger this individually as well)
+2. Run terraform plan for kafka module
 ```
 cd terraform/modules/environments/production
-terraform apply -target=module.google-managed-kafka-src -target=module.google-managed-kafka-dest
+terraform plan -target=module.deploy_kafka
+```
+3. Run terraform apply for kafka module
+```
+cd terraform/modules/environments/production
+terraform apply -target=module.deploy_kafka
 ```
 
-Please Note It May take up to 30 minutes for the cluster to create.
+Please Note It May take upto 30 minutes for the cluster to come up
 ```
 module.google-managed-kafka.google_managed_kafka_cluster.cluster: Creation complete after 28m37s [id=projects/mbawa-sandbox/locations/us-central1/clusters/kafka-dev]
 module.google-managed-kafka.google_managed_kafka_topic.example-topic: Creating...
 module.google-managed-kafka.google_managed_kafka_topic.example-topic: Creation complete after 6s [id=projects/mbawa-sandbox/locations/us-central1/clusters/kafka-dev/topics/kafka-topic]
 ```
 
-## Deploy Kafka Producer Environment
-1. Navigate to Update modules/environments/production/deploy_producer.tf and update the required variables
+## Deploy Kafka Producer Enviorment
+1. Please Navigate to Update modules/environments/production/deploy_producer.tf and update the required variables
 2. Run terraform plan for producer module
 ```
 cd terraform/modules/environments/production
-terraform plan -target=module.kafka-producer
+terraform plan -target=module.deploy_producer
 ```
 3. Run terraform apply for producer module
 ```
 cd terraform/modules/environments/production
-terraform apply -target=module.kafka-producer
+terraform apply -target=module.deploy_producer
 ```
 
 4. SSH to the `kafka-producer` google compute engine instance.
@@ -73,38 +63,29 @@ bootstrap derived from [here](https://cloud.google.com/managed-service-for-apach
 we have bootstrapped the same using a start-up script
 
 
-5. Edit/Upload the `producer.py` script and run the same using `python producer.py` to generate data. (This is a Python3 file).
+5. Edit/Upload the `producer.py` script and run the same using `python producer.py` to generate data
 
 
-## Deploy Standalone MirrorMaker 2
+## Deploy Stand Alone Mirror Maker 2
 
-Launch a standalone Mirror Maker 2 node
-1. Create a GCS bucket to store mirror maker 2 binaries
-2.  ```
-    $BUCKET=mm2-binaries-bucket
+Launch a stand alone Mirror Maker 2 node
+1. create a GCS bucket to store mirror maker 2 binaries
+2. run deploy.sh script
     ```
-3. run deploy.sh script
+    bash deploy.sh mm2-binaries-bucket
     ```
-    bash deploy.sh $BUCKET
-    ```
-4. Update the `terraform/modules/mirror-maker2-standalone/variables.tf` with corresponding default values
+3. Update the `terraform/modules/mirror-maker2-standalone/variables.tf` with corresponding default values
    Update the `terraform/modules/environments/production/deploy_mm2-standalone.tf` with corresponding values
     ```
-    Example (Please update `YOUR_PROJECT_ID` and `your-project-name` with actual values. Note that the service account should be the one used for creating a Managed Service for Apache Kafka cluster.)
+    Example (Please update actuals)
     
-    project_id = "YOUR_PROJECT_ID"
+    project_id = "test-sandbox"
     region = "us-central1"
     zone = "us-central1-a"
-    service_account_email = "594537533327-compute@developer.gserviceaccount.com"
-    kafka_cluster_src_broker = "bootstrap.kafka-src-new.us-central1.managedkafka.your-project-name.cloud.goog:9092"
-    kafka_cluster_dest_broker = "bootstrap.kafka-dest-new.us-central1.managedkafka.your-project-name.cloud.goog:9092"
+    service_account_email = "compute@developer.gserviceaccount.com"
+    kafka_cluster_src_broker = "bootstrap.kafka-src-new.us-central1.managedkafka.mbawa-sandbox.cloud.goog:9092"
+    kafka_cluster_dest_broker = "bootstrap.kafka-dest-new.us-central1.managedkafka.mbawa-sandbox.cloud.goog:9092"
     ```
-Please note you would need to update username and password based on [GMK SASL/PLAIN authentication](https://cloud.google.com/managed-service-for-apache-kafka/docs/authentication-kafka#sasl-plain)
-
-    
-    ![image](https://github.com/user-attachments/assets/3fd73be8-4449-43f1-8b54-71af0a863cb8)
-
-  
 
 4. terraform initialization
     ```
@@ -116,13 +97,67 @@ Please note you would need to update username and password based on [GMK SASL/PL
 
    ```
     cd terraform/modules/environments/production
-    terraform plan -target=module.mm2-standalone
+    terraform plan -target=module.deploy_mm2-standalone
    ```
 
 6. deploy the resources
    ```
     cd terraform/modules/environments/production
-    terraform apply -target=module.mm2-standalone
+    terraform apply -target=module.deploy_mm2-standalone
+   ```
+
+## Deploy Google Managed Kafka Connect and  Mirror Maker 2 Connectors
+
+Launch a Google Managed Kafka Connect Cluster and Mirror Maker 2 Connectors
+1. Fetch the latest google terraform module
+    ```
+    terraform init -upgrade
+    ```
+  
+2. Update the `terraform/modules/google-managed-kafkaconnect-mirror-maker2/variables.tf` with corresponding default values
+   Update the `terraform/modules/environments/production/deploy_kafka_connect_mm2.tf` with corresponding values
+    ```
+    Example (Please update actuals)
+    
+    project_id = "test-sandbox"
+    region = "us-central1"
+    zone = "us-central1-a"
+    mkc_cluster_name = "mkc-mm2-tf"
+    mkc_dest_cluster_id = "kafka-dest-new"
+    mkc_src_cluster_id = "kafka-src-new"
+    gmk_src_region = "us-central1"
+    gmk_dst_region = "us-central1"                            
+    shared_vpc_name = ""
+    shared_vpc_subnetwork = ""                            
+    service_account_email = "compute@developer.gserviceaccount.com"
+    kafka_cluster_src_broker = "bootstrap.kafka-src-new.us-central1.managedkafka.test-sandbox.cloud.goog:9092"
+    kafka_cluster_dest_broker = "bootstrap.kafka-dest-new.us-central1.managedkafka.test-sandbox.cloud.goog:9092"
+    ```
+
+
+Please note you would need to update user name and password based on [GMK SASL/PLAIN authentication](https://cloud.google.com/managed-service-for-apache-kafka/docs/authentication-kafka#sasl-plain)
+
+
+
+  
+
+3. terraform initialization
+    ```
+    cd terraform/modules/environments/production
+    terraform init
+    ```
+
+4. terraform plan to check the resources being created
+
+   ```
+    cd terraform/modules/environments/production
+    terraform plan -target=module.kafka-connect-mm2
+   ```
+
+5. deploy the resources
+   ```
+    cd terraform/modules/environments/production
+    terraform apply -target=module.kafka-connect-mm2
    ```
 
 ## Troubleshooting 
@@ -146,7 +181,7 @@ curl localhost:3600 | grep -i kafka_connect_mirror_source_connector_replication_
 
 #Other Metrics
 
-curl localhost:3600 | grep -i kafka-src-topic
+shlokk@mm2-standalone:~$ curl localhost:3600 | grep -i kafka-src-topic
 
 kafka_consumer_fetch_manager_records_consumed_total{clientId="\"source->target|MirrorSourceConnector-0|replication-consumer\"",topic="kafka-src-topic",} 0.0
 kafka_connect_mirror_source_connector_replication_latency_ms{destination="target",partition="0",topic="source.kafka-src-topic",} 0.0
