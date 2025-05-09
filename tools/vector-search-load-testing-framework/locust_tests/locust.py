@@ -484,8 +484,8 @@ class VectorSearchHttpUser(FastHttpUser):
         # Handle sparse embedding case
         if (config.sparse_embedding_num_dimensions > 0 and
                 config.sparse_embedding_num_dimensions_with_values > 0 and
-                config.sparse_embedding_num_dimensions_with_values <=
-                config.sparse_embedding_num_dimensions):
+                config.sparse_embedding_num_dimensions_with_values
+                <= config.sparse_embedding_num_dimensions):
 
             values, dimensions = self.base.generate_sparse_embedding()
             self.request["queries"][0]["datapoint"]["sparseEmbedding"] = {
@@ -579,8 +579,8 @@ class VectorSearchGrpcUser(User):
         # Create datapoint based on embedding type
         if (config.sparse_embedding_num_dimensions > 0 and
                 config.sparse_embedding_num_dimensions_with_values > 0 and
-                config.sparse_embedding_num_dimensions_with_values <=
-                config.sparse_embedding_num_dimensions):
+                config.sparse_embedding_num_dimensions_with_values
+                <= config.sparse_embedding_num_dimensions):
             # Sparse embedding case
             values, dimensions = self.base.generate_sparse_embedding()
             datapoint = IndexDatapoint(datapoint_id='0',
