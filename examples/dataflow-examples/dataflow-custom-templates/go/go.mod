@@ -1,4 +1,4 @@
-module github.com/professional-services/examples/dataflow-custom-templates/go
+module github.com/professional-services/examples/dataflow-examples/dataflow-custom-templates/go
 
 go 1.19
 
