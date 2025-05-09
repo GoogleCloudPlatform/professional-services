@@ -553,12 +553,13 @@ Platform usage.
 *   [Quota Monitoring and Alerting](tools/quota-monitoring-alerting) - An
     easy-to-deploy Data Studio Dashboard with alerting capabilities, showing
     usage and quota limits in an organization or folder.
-*   [RAG Application Using Vector Search](tools/rag-application-using-vector-search) - This project
-    deploys a backend system for Retrieval-Augmented Generation (RAG) on Google Cloud, fully managed
-    by Infrastructure as Code (IaC) via Terraform. It enables querying private documents with Large
-    Language Models (LLMs), powerfully augmented by context from Vertex AI RAG Engine and Vector Search.
-    While a simple Streamlit UI is included, it serves primarily to demonstrate the capabilities of the
-    underlying backend services.
+*   [RAG Application Using Vector Search](tools/rag-application-using-vector-search) - It serves
+    primarily to demonstrate the capabilities of the underlying backend services, and as a reference
+    architecture for customer deployments. This tool deploys a backend system for Retrieval-Augmented
+    Generation (RAG) on Google Cloud, fully managed by Infrastructure as Code (IaC) via Terraform. It
+    enables querying private documents with Large Language Models (LLMs), powerfully augmented by context
+    from Vertex AI RAG Engine and Vector Search. While a simple Streamlit UI is included, it serves
+    primarily to demonstrate the capabilities of the underlying backend services.
 *   [Ranger Hive Assessment for BigQuery/BigLake IAM migration](tools/ranger-to-bigquery-biglake-assessment) - 
     A tool that assesses which Ranger authorization rules can be migrated 
     or not to BigQuery/BigLake IAM.
