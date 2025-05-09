@@ -13,10 +13,7 @@ if __name__ == "__main__":
                     default_dataset=DATASET,
                     json_credentials_path='credentials.json')
 
-    replacements = {
-        'project': PROJECT,
-        'dataset': DATASET
-    }
+    replacements = {'project': PROJECT, 'dataset': DATASET}
 
     # It's possible to leave project and dataset unspecified if defaults have been set
     tbl1 = '.'.join([PROJECT, DATASET, 'tmp_table_1'])
@@ -26,15 +23,8 @@ if __name__ == "__main__":
     tbl5 = '.'.join([DATASET, 'tmp_table_5'])
     tbl6 = 'tmp_table_6'
 
-    bq.run_queries(
-        [
-            ('q1.sql', tbl1),
-            ('q2.sql', tbl2),
-            ('q3.sql', 'tmp_table_3'),
-            'q4.sql'
-        ],
-        **replacements
-    )
+    bq.run_queries([('q1.sql', tbl1), ('q2.sql', tbl2),
+                    ('q3.sql', 'tmp_table_3'), 'q4.sql'], **replacements)
 
     bq.copy_table(tbl3, tbl4)
     bq.copy_table(tbl4, tbl5)

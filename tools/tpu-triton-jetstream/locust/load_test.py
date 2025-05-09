@@ -84,7 +84,9 @@ class FixedQPSPacer:
 
 
 class LengthSampler:
-    def __init__(self, distribution: str, mean: int, cap: Optional[int], alpha: float):
+
+    def __init__(self, distribution: str, mean: int, cap: Optional[int],
+                 alpha: float):
         self.distribution = distribution
         self.mean = mean
         self.cap = cap
@@ -97,14 +99,12 @@ class LengthSampler:
             if self.cap is not None:
                 mx = min(mx, self.cap)
             self.sample_func = lambda: random.randint(
-                max(1, self.mean - int(self.alpha * self.mean)), mx
-            )
+                max(1, self.mean - int(self.alpha * self.mean)), mx)
         elif self.distribution == "constant":
             self.sample_func = lambda: self.mean
         elif self.distribution == "normal":
             self.sample_func = lambda: int(
-                random.gauss(self.mean, self.mean * self.alpha)
-            )
+                random.gauss(self.mean, self.mean * self.alpha))
         else:
             raise ValueError(f"Unknown distribution {self.distribution}")
 
@@ -161,18 +161,14 @@ class InitTracker:
     @classmethod
     def notify_first_request(cls):
         with cls.lock:
-            if (
-                cls.environment.parsed_options.qps is not None
-                and cls.first_request_done == 0
-            ):
+            if (cls.environment.parsed_options.qps is not None and
+                    cls.first_request_done == 0):
                 # if in QPS mode, reset after first successful request comes back
                 cls.reset_stats()
             cls.first_request_done += 1
-            if (
-                cls.environment.parsed_options.qps is not None
-                and cls.first_request_done == 0
-                and cls.users == cls.first_request_done
-            ):
+            if (cls.environment.parsed_options.qps is not None and
+                    cls.first_request_done == 0 and
+                    cls.users == cls.first_request_done):
                 # if in fixed load mode, reset after all users issued one request (we're in a steady state)
                 cls.reset_stats()
 
@@ -224,16 +220,20 @@ class BaseProvider(abc.ABC):
         self.parsed_options = parsed_options
 
     @abc.abstractmethod
-    def get_url(self): ...
+    def get_url(self):
+        ...
 
     @abc.abstractmethod
-    def format_payload(self, prompt, max_tokens): ...
+    def format_payload(self, prompt, max_tokens):
+        ...
 
     @abc.abstractmethod
-    def parse_output_json(self, json, prompt): ...
+    def parse_output_json(self, json, prompt):
+        ...
 
 
 class OpenAIProvider(BaseProvider):
+
     def get_url(self):
         if self.parsed_options.chat:
             return "/v1/chat/completions"
@@ -258,7 +258,8 @@ class OpenAIProvider(BaseProvider):
     def parse_output_json(self, data, prompt):
         usage = data.get("usage", None)
 
-        assert len(data["choices"]) == 1, f"Too many choices {len(data['choices'])}"
+        assert len(
+            data["choices"]) == 1, f"Too many choices {len(data['choices'])}"
         choice = data["choices"][0]
         if self.parsed_options.chat:
             if self.parsed_options.stream:
@@ -273,11 +274,13 @@ class OpenAIProvider(BaseProvider):
             text=text,
             logprob_tokens=len(logprobs["tokens"]) if logprobs else None,
             usage_tokens=usage["completion_tokens"] if usage else None,
-            prompt_usage_tokens=usage.get("prompt_tokens", None) if usage else None,
+            prompt_usage_tokens=usage.get("prompt_tokens", None)
+            if usage else None,
         )
 
 
 class FireworksProvider(OpenAIProvider):
+
     def format_payload(self, prompt, max_tokens):
         data = super().format_payload(prompt, max_tokens)
         data["min_tokens"] = max_tokens
@@ -286,6 +289,7 @@ class FireworksProvider(OpenAIProvider):
 
 
 class VllmProvider(OpenAIProvider):
+
     def format_payload(self, prompt, max_tokens):
         data = super().format_payload(prompt, max_tokens)
         data["ignore_eos"] = True
@@ -293,6 +297,7 @@ class VllmProvider(OpenAIProvider):
 
 
 class TogetherProvider(OpenAIProvider):
+
     def get_url(self):
         assert not self.parsed_options.chat, "Chat is not supported"
         return "/"
@@ -366,7 +371,7 @@ class TritonInferProvider(BaseProvider):
                 text = text.removeprefix("<s> ")
                 if text.startswith(prompt):
                     # HF tokenizers get confused by the leading space
-                    text = text[len(prompt) :].removeprefix(" ")
+                    text = text[len(prompt):].removeprefix(" ")
                 else:
                     print("WARNING: prompt not found in the output")
                 return ChunkMetadata(
@@ -406,7 +411,7 @@ class TritonGenerateProvider(BaseProvider):
             text = text.removeprefix("<s> ")
             if text.startswith(prompt):
                 # HF tokenizers get confused by the leading space
-                text = text[len(prompt) :].removeprefix(" ")
+                text = text[len(prompt):].removeprefix(" ")
             else:
                 print("WARNING: prompt not found in the output")
         return ChunkMetadata(
@@ -450,12 +455,10 @@ class TgiProvider(BaseProvider):
             # non-streaming response
             return ChunkMetadata(
                 text=data["generated_text"],
-                logprob_tokens=(
-                    len(data["details"]["tokens"]) if "details" in data else None
-                ),
-                usage_tokens=(
-                    data["details"]["generated_tokens"] if "details" in data else None
-                ),
+                logprob_tokens=(len(data["details"]["tokens"])
+                                if "details" in data else None),
+                usage_tokens=(data["details"]["generated_tokens"]
+                              if "details" in data else None),
                 prompt_usage_tokens=None,
             )
 
@@ -511,11 +514,9 @@ class LLMUser(HttpUser):
             elif "anyscale" in self.host:
                 self.provider = "anyscale"
 
-        if (
-            self.model is None
-            and self.provider is not None
-            and PROVIDER_CLASS_MAP[self.provider].DEFAULT_MODEL_NAME is not None
-        ):
+        if (self.model is None and self.provider is not None and
+                PROVIDER_CLASS_MAP[self.provider].DEFAULT_MODEL_NAME
+                is not None):
             self.model = PROVIDER_CLASS_MAP[self.provider].DEFAULT_MODEL_NAME
 
         if self.model and self.provider:
@@ -556,40 +557,35 @@ class LLMUser(HttpUser):
         self.client.headers["Content-Type"] = "application/json"
         if self.environment.parsed_options.api_key:
             self.client.headers["Authorization"] = (
-                "Bearer " + self.environment.parsed_options.api_key
-            )
+                "Bearer " + self.environment.parsed_options.api_key)
         self._guess_provider()
-        print(f" Provider {self.provider} using model {self.model} ".center(80, "*"))
+        print(f" Provider {self.provider} using model {self.model} ".center(
+            80, "*"))
         self.provider_formatter = PROVIDER_CLASS_MAP[self.provider](
-            self.model, self.environment.parsed_options
-        )
+            self.model, self.environment.parsed_options)
 
         self.stream = self.environment.parsed_options.stream
         prompt_chars = self.environment.parsed_options.prompt_chars
         if self.environment.parsed_options.prompt_text:
             self.prompt = _load_curl_like_data(
-                self.environment.parsed_options.prompt_text
-            )
+                self.environment.parsed_options.prompt_text)
         elif prompt_chars:
-            self.prompt = (
-                prompt_prefix * (prompt_chars // len(prompt_prefix) + 1) + prompt
-            )[:prompt_chars]
+            self.prompt = (prompt_prefix *
+                           (prompt_chars // len(prompt_prefix) + 1) +
+                           prompt)[:prompt_chars]
         else:
-            min_prompt_len = (
-                prompt_tokens
-                + prompt_random_tokens
-                * self.environment.parsed_options.prompt_randomize
-            )
+            min_prompt_len = (prompt_tokens + prompt_random_tokens *
+                              self.environment.parsed_options.prompt_randomize)
             assert (
-                self.environment.parsed_options.prompt_tokens >= min_prompt_len
-            ), f"Minimal prompt length is {min_prompt_len}"
+                self.environment.parsed_options.prompt_tokens
+                >= min_prompt_len), f"Minimal prompt length is {min_prompt_len}"
             self.prompt = (
-                prompt_prefix
-                * (self.environment.parsed_options.prompt_tokens - min_prompt_len)
-                + prompt
-            )
+                prompt_prefix *
+                (self.environment.parsed_options.prompt_tokens - min_prompt_len)
+                + prompt)
         self.max_tokens_sampler = LengthSampler(
-            distribution=self.environment.parsed_options.max_tokens_distribution,
+            distribution=self.environment.parsed_options.
+            max_tokens_distribution,
             mean=self.environment.parsed_options.max_tokens,
             cap=self.environment.parsed_options.max_tokens_cap,
             alpha=self.environment.parsed_options.max_tokens_range,
@@ -600,7 +596,9 @@ class LLMUser(HttpUser):
             # TODO: add some server info with git version
             "provider": self.provider,
             "model": self.model,
-            "prompt_tokens": self.environment.parsed_options.prompt_tokens,  # might be overwritten based on metric
+            "prompt_tokens":
+                self.environment.parsed_options.
+                prompt_tokens,  # might be overwritten based on metric
             "generation_tokens": str(self.max_tokens_sampler),
             "stream": self.stream,
             "temperature": self.temperature,
@@ -609,12 +607,10 @@ class LLMUser(HttpUser):
         InitTracker.notify_init(self.environment, logging_params)
 
         self.tokenizer = InitTracker.load_tokenizer(
-            self.environment.parsed_options.tokenizer
-        )
+            self.environment.parsed_options.tokenizer)
         if self.tokenizer:
             self.prompt_tokenizer_tokens = len(
-                self.tokenizer.encode(self._get_prompt())
-            )
+                self.tokenizer.encode(self._get_prompt()))
         else:
             self.prompt_tokenizer_tokens = None
 
@@ -630,8 +626,7 @@ class LLMUser(HttpUser):
             self.wait()
         elif self.environment.parsed_options.burst:
             self.wait_time = partial(
-                constant_pacing(self.environment.parsed_options.burst), self
-            )
+                constant_pacing(self.environment.parsed_options.burst), self)
         else:
             # introduce initial delay to avoid all users hitting the service at the same time
             time.sleep(random.random())
@@ -642,14 +637,9 @@ class LLMUser(HttpUser):
         if not self.environment.parsed_options.prompt_randomize:
             return self.prompt
         # single letters are single tokens
-        return (
-            " ".join(
-                chr(ord("a") + random.randint(0, 25))
-                for _ in range(prompt_random_tokens)
-            )
-            + " "
-            + self.prompt
-        )
+        return (" ".join(
+            chr(ord("a") + random.randint(0, 25))
+            for _ in range(prompt_random_tokens)) + " " + self.prompt)
 
     @task
     def generate_text(self):
@@ -659,10 +649,10 @@ class LLMUser(HttpUser):
         t_start = time.perf_counter()
 
         with self.client.post(
-            self.provider_formatter.get_url(),
-            data=json.dumps(data),
-            stream=True,
-            catch_response=True,
+                self.provider_formatter.get_url(),
+                data=json.dumps(data),
+                stream=True,
+                catch_response=True,
         ) as response:
             dur_chunks = []
             combined_text = ""
@@ -684,7 +674,9 @@ class LLMUser(HttpUser):
                     continue  # come providers send empty lines between data chunks
                 if done:
                     if chunk != b"data: [DONE]":
-                        print(f"WARNING: Received more chunks after [DONE]: {chunk}")
+                        print(
+                            f"WARNING: Received more chunks after [DONE]: {chunk}"
+                        )
                 try:
                     now = time.perf_counter()
                     dur_chunks.append(now - t_prev)
@@ -693,34 +685,33 @@ class LLMUser(HttpUser):
                         assert chunk.startswith(
                             b"data:"
                         ), f"Unexpected chunk not starting with 'data': {chunk}"
-                        chunk = chunk[len(b"data:") :]
+                        chunk = chunk[len(b"data:"):]
                         if chunk.strip() == b"[DONE]":
                             done = True
                             continue
                     data = orjson.loads(chunk)
-                    out = self.provider_formatter.parse_output_json(data, prompt)
+                    out = self.provider_formatter.parse_output_json(
+                        data, prompt)
                     if out.usage_tokens:
-                        total_usage_tokens = (
-                            total_usage_tokens or 0
-                        ) + out.usage_tokens
+                        total_usage_tokens = (total_usage_tokens or
+                                              0) + out.usage_tokens
                     if out.prompt_usage_tokens:
                         prompt_usage_tokens = out.prompt_usage_tokens
                     combined_text += out.text
 
                     if out.logprob_tokens:
-                        total_logprob_tokens = (
-                            total_logprob_tokens or 0
-                        ) + out.logprob_tokens
+                        total_logprob_tokens = (total_logprob_tokens or
+                                                0) + out.logprob_tokens
                 except Exception as e:
-                    print(f"Failed to parse response: {chunk} with error {repr(e)}")
+                    print(
+                        f"Failed to parse response: {chunk} with error {repr(e)}"
+                    )
                     response.failure(e)
                     return
             assert t_first_token is not None, "empty response received"
-            if (
-                (total_logprob_tokens is not None)
-                and (total_usage_tokens is not None)
-                and total_logprob_tokens != total_usage_tokens
-            ):
+            if ((total_logprob_tokens is not None) and
+                (total_usage_tokens is not None) and
+                    total_logprob_tokens != total_usage_tokens):
                 print(
                     f"WARNING: usage_tokens {total_usage_tokens} != logprob_tokens {total_logprob_tokens}"
                 )
@@ -750,9 +741,8 @@ class LLMUser(HttpUser):
                 print(combined_text)
                 print("---")
             if num_chars:
-                add_custom_metric(
-                    "latency_per_char", dur_generation / num_chars * 1000, num_chars
-                )
+                add_custom_metric("latency_per_char",
+                                  dur_generation / num_chars * 1000, num_chars)
             if self.stream:
                 add_custom_metric("time_to_first_token", dur_first_token * 1000)
             add_custom_metric("total_latency", dur_total * 1000)
@@ -762,19 +752,17 @@ class LLMUser(HttpUser):
                         f"WARNING: wrong number of tokens: {num_tokens}, expected {max_tokens}"
                     )
                 add_custom_metric("num_tokens", num_tokens)
-                add_custom_metric(
-                    "latency_per_token", dur_generation / num_tokens * 1000, num_tokens
-                )
+                add_custom_metric("latency_per_token",
+                                  dur_generation / num_tokens * 1000,
+                                  num_tokens)
                 add_custom_metric(
                     "overall_latency_per_token",
                     dur_total / num_tokens * 1000,
                     num_tokens,
                 )
-            if (
-                prompt_usage_tokens is not None
-                and self.prompt_tokenizer_tokens is not None
-                and prompt_usage_tokens != self.prompt_tokenizer_tokens
-            ):
+            if (prompt_usage_tokens is not None and
+                    self.prompt_tokenizer_tokens is not None and
+                    prompt_usage_tokens != self.prompt_tokenizer_tokens):
                 print(
                     f"WARNING: prompt usage tokens {prompt_usage_tokens} != {self.prompt_tokenizer_tokens} derived from local tokenizer"
                 )
@@ -793,14 +781,16 @@ def init_parser(parser):
         "--provider",
         choices=list(PROVIDER_CLASS_MAP.keys()),
         type=str,
-        help="Which flavor of API to use. If not specified, we'll try to guess based on the URL and /v1/models output",
+        help=
+        "Which flavor of API to use. If not specified, we'll try to guess based on the URL and /v1/models output",
     )
     parser.add_argument(
         "-m",
         "--model",
         env_var="MODEL",
         type=str,
-        help="The model to use for generating text. If not specified we will pick the first model from the service as returned by /v1/models",
+        help=
+        "The model to use for generating text. If not specified we will pick the first model from the service as returned by /v1/models",
     )
     parser.add_argument(
         "--chat",
@@ -826,13 +816,15 @@ def init_parser(parser):
         "--prompt-text",
         env_var="PROMPT_TEXT",
         type=str,
-        help="Prompt text to use instead of generating one. It can be a file reference starting with an ampersand, e.g. `@prompt.txt`",
+        help=
+        "Prompt text to use instead of generating one. It can be a file reference starting with an ampersand, e.g. `@prompt.txt`",
     )
     parser.add_argument(
         "--prompt-randomize",
         action=argparse.BooleanOptionalAction,
         default=False,
-        help="Include a few random numbers in the generated prompt to avoid caching",
+        help=
+        "Include a few random numbers in the generated prompt to avoid caching",
     )
     parser.add_argument(
         "-o",
@@ -840,13 +832,15 @@ def init_parser(parser):
         env_var="MAX_TOKENS",
         type=int,
         default=64,
-        help="Max number of tokens to generate. If --max-tokens-distribution is non-constant this is going to be the mean. Defaults to 64",
+        help=
+        "Max number of tokens to generate. If --max-tokens-distribution is non-constant this is going to be the mean. Defaults to 64",
     )
     parser.add_argument(
         "--max-tokens-cap",
         env_var="MAX_TOKENS_CAP",
         type=int,
-        help="If --max-tokens-distribution is non-constant, this truncates the distribition at the specified limit",
+        help=
+        "If --max-tokens-distribution is non-constant, this truncates the distribition at the specified limit",
     )
     parser.add_argument(
         "--max-tokens-distribution",
@@ -861,7 +855,8 @@ def init_parser(parser):
         env_var="MAX_TOKENS_RANGE",
         type=float,
         default=0.3,
-        help="Specifies the width of the distribution. Specified value `alpha` is relative to `max-tokens`. For uniform distribution we'd sample from [max_tokens - max_tokens * alpha, max_tokens + max_tokens * alpha]. For normal distribution we'd sample from `N(max_tokens, max_tokens * alpha)`. Defaults to 0.3",
+        help=
+        "Specifies the width of the distribution. Specified value `alpha` is relative to `max-tokens`. For uniform distribution we'd sample from [max_tokens - max_tokens * alpha, max_tokens + max_tokens * alpha]. For normal distribution we'd sample from `N(max_tokens, max_tokens * alpha)`. Defaults to 0.3",
     )
     parser.add_argument(
         "--stream",
@@ -887,36 +882,42 @@ def init_parser(parser):
         "--logprobs",
         type=int,
         default=None,
-        help="Whether to ask for logprobs, it makes things slower for some providers but is necessary for token count in streaming (unless it's Fireworks API that returns usage in streaming mode)",
+        help=
+        "Whether to ask for logprobs, it makes things slower for some providers but is necessary for token count in streaming (unless it's Fireworks API that returns usage in streaming mode)",
     )
     parser.add_argument(
         "--summary-file",
         type=str,
-        help="Append the line with the summary to the specified CSV file. Useful for generating a spreadsheet with perf sweep results. If the file doesn't exist, writes out the header first",
+        help=
+        "Append the line with the summary to the specified CSV file. Useful for generating a spreadsheet with perf sweep results. If the file doesn't exist, writes out the header first",
     )
     parser.add_argument(
         "--qps",
         type=float,
         default=None,
-        help="Enabled 'fixed QPS' mode where requests are issues at the specified rate regardless of how long the processing takes. In this case --users and --spawn-rate need to be set to a sufficiently high value (e.g. 100)",
+        help=
+        "Enabled 'fixed QPS' mode where requests are issues at the specified rate regardless of how long the processing takes. In this case --users and --spawn-rate need to be set to a sufficiently high value (e.g. 100)",
     )
     parser.add_argument(
         "--qps-distribution",
         type=str,
         choices=["constant", "uniform", "exponential"],
         default="constant",
-        help="Must be used with --qps. Specifies how to space out requests: equally ('constant') or by sampling wait times from a distribution ('uniform' or 'exponential'). Expected QPS is going to match --qps",
+        help=
+        "Must be used with --qps. Specifies how to space out requests: equally ('constant') or by sampling wait times from a distribution ('uniform' or 'exponential'). Expected QPS is going to match --qps",
     )
     parser.add_argument(
         "--burst",
         type=float,
         default=None,
-        help="Makes requests to arrive in bursts every specified number of seconds. Note that burst duration has to be longer than maximum time of the response. Size of the burst is controlled by --users. The spawn rate -r is best set to a high value",
+        help=
+        "Makes requests to arrive in bursts every specified number of seconds. Note that burst duration has to be longer than maximum time of the response. Size of the burst is controlled by --users. The spawn rate -r is best set to a high value",
     )
     parser.add_argument(
         "--tokenizer",
         type=str,
-        help="Specify HF tokenizer to use for validating the output of the model. It's optional, we're going to rely on 'usage' or 'logprobs' field to get token count information",
+        help=
+        "Specify HF tokenizer to use for validating the output of the model. It's optional, we're going to rely on 'usage' or 'logprobs' field to get token count information",
     )
     parser.add_argument(
         "--show-response",
@@ -942,15 +943,14 @@ def _(environment, **kw):
     else:
         entries["concurrency"] = InitTracker.users
     for metric_name in [
-        "time_to_first_token",
-        "latency_per_token",
-        "num_tokens",
-        "total_latency",
-        "prompt_tokens",  # might overwrite the static value based on server side tokenization
+            "time_to_first_token",
+            "latency_per_token",
+            "num_tokens",
+            "total_latency",
+            "prompt_tokens",  # might overwrite the static value based on server side tokenization
     ]:
-        entries[metric_name] = environment.stats.entries[
-            (metric_name, "METRIC")
-        ].avg_response_time
+        entries[metric_name] = environment.stats.entries[(
+            metric_name, "METRIC")].avg_response_time
     if not environment.parsed_options.stream:
         # if there's no streaming these metrics are meaningless
         entries["time_to_first_token"] = ""

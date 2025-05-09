@@ -31,20 +31,28 @@ from capacity_planner import CapacityPlanner  # noqa: E402
 
 @click.command()
 @click.option(
-    '--project_id', required=True, type=str,
+    '--project_id',
+    required=True,
+    type=str,
     help='GCP project ID where the Cloud Monitoring API is called against.')
 @click.option(
-    '--end_time', required=False, type=click.DateTime(['%Y-%m-%dT%H:%M:%S%z']),
+    '--end_time',
+    required=False,
+    type=click.DateTime(['%Y-%m-%dT%H:%M:%S%z']),
     help='The end time in ISO 8601 format of the time interval for which \
           results should be returned. Default is now. \
           e.g. 2022-10-03T05:23:02+09:00')
 @click.option(
-    '--duration_minutes', required=False, type=int, default=360,
+    '--duration_minutes',
+    required=False,
+    type=int,
+    default=360,
     help='The number of minutes in the time interval ending at the time \
           specified with --end_time. Default is 360 minutes (6 hours).')
-@click.option(
-    '--output', required=True, type=click.Path(dir_okay=False, writable=True),
-    help='The file for writing the results out.')
+@click.option('--output',
+              required=True,
+              type=click.Path(dir_okay=False, writable=True),
+              help='The file for writing the results out.')
 def dump_query_result(project_id, end_time, duration_minutes, output):
     client = CapacityPlanner(project_id)
 

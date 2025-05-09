@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """
 DAG to scope the estimated work effort for an Airflow 1 to Airflow 2 Migration.
 Collects airflow metadata for inventory, runs diagnostic tools, outputs all
@@ -44,6 +43,7 @@ default_args = {
     "retry_delay": timedelta(minutes=2),
 }
 
+
 # -------------------------
 # Callback Functions
 # -------------------------
@@ -68,10 +68,10 @@ def full_migration_complexity(**context):
     rules_blob = bucket.blob(f"{root_path}/v1-to-v2-report/rules.csv")
     rules_blob.download_to_filename("rules.csv")
     rules_df = pd.read_csv("rules.csv")
-    manuals = rules_df.loc[rules_df["Manual Intervention"] == True, "Operator"].tolist()
-    automated = rules_df.loc[
-        rules_df["Manual Intervention"] == False, "Operator"
-    ].tolist()
+    manuals = rules_df.loc[rules_df["Manual Intervention"] == True,
+                           "Operator"].tolist()
+    automated = rules_df.loc[rules_df["Manual Intervention"] == False,
+                             "Operator"].tolist()
 
     # -------------------------------------------------------------------------
     # using the ruleset and the original work estimate, generate metrics on how
@@ -112,7 +112,8 @@ def full_migration_complexity(**context):
     # Calculate the new work estimate
     # -------------------------------------------------------------------------
 
-    new_work_hours = round(work_hours - (num_converts / tasks * work_hours) / 2, 2)
+    new_work_hours = round(work_hours - (num_converts / tasks * work_hours) / 2,
+                           2)
     effort_reduction = round((1 - new_work_hours / work_hours) * 100, 2)
 
     # -------------------------------------------------------------------------
@@ -122,53 +123,49 @@ def full_migration_complexity(**context):
     upgrade_check_blob = bucket.blob(f"{root_path}/upgrade-check/results")
     upgrade_check_data = upgrade_check_blob.download_as_text()
 
-    summary_blob = bucket.blob(f"{root_path}/v1-to-v2-report/Summary-Report.txt")
+    summary_blob = bucket.blob(
+        f"{root_path}/v1-to-v2-report/Summary-Report.txt")
     summary_data = summary_blob.download_as_text()
 
     detailed_summary_blob = bucket.blob(
-        f"{root_path}/v1-to-v2-report/Detailed-Report.txt"
-    )
+        f"{root_path}/v1-to-v2-report/Detailed-Report.txt")
     detailed_summary_data = detailed_summary_blob.download_as_text()
 
     with document(title="Migration Complexity Assessment") as doc:
-        style(
-            """
+        style("""
             body {
               font-family: math;
             }
-        """
-        )
+        """)
         h1("Composer Migration Complexity Assessment")
         h2("Summary")
         p(f"Original Total Work Hours Estimate: {str(work_hours)}")
         p(f"Number of Active DAGs: {str(num_dags)}")
 
         h3("All Tasks")
-        p(f"{str(tasks)} total task(s) consisting of these unique operator types:")
+        p(f"{str(tasks)} total task(s) consisting of these unique operator types:"
+         )
         uo_list = ul()
         for item in list(unique_operators):
             uo_list += li(item)
 
         h3("Automated Conversions")
-        p(
-            f"{str(num_converts)} task(s) automatically converted consisting of these unique operator types:"
-        )
+        p(f"{str(num_converts)} task(s) automatically converted consisting of these unique operator types:"
+         )
         c_list = ul()
         for item in list(unique_conversions):
             c_list += li(item)
 
         h3("Manual Interventions")
-        p(
-            f"{str(num_interventions)} task(s) require manual intervention consisting of these unique operator types:"
-        )
+        p(f"{str(num_interventions)} task(s) require manual intervention consisting of these unique operator types:"
+         )
         i_list = ul()
         for item in list(unique_interventions):
             i_list += li(item)
 
         h3("Need Review")
-        p(
-            f"{str(num_reviews)} task(s) need review consisting of these unique operator types:"
-        )
+        p(f"{str(num_reviews)} task(s) need review consisting of these unique operator types:"
+         )
         r_list = ul()
         for item in unique_reviews:
             r_list += li(item)
@@ -176,21 +173,20 @@ def full_migration_complexity(**context):
         h3("New Work Estimate")
         p(f"Total Work Hours: {str(new_work_hours)}")
         p(f"{effort_reduction}% change in estimated work hours.")
-        p("formula: original_hours-(converted_tasks/total_tasks*original_hours)/2")
+        p("formula: original_hours-(converted_tasks/total_tasks*original_hours)/2"
+         )
 
         h2("Tooling Logs")
         h3("Google PSO Airflow V1 to V2")
-        p(
-            "The objective of the tool is to automate the upgrade of DAG files from Composer-v1 (Airflow 1.x) to Composer-v2 (Airflow 2.x). This process involves handling changes in import statements, operators, and their arguments. By automating the migration, the tool saves time, ensures consistency, reduces errors, and minimizes administrative overhead associated with manual upgrades."
-        )
+        p("The objective of the tool is to automate the upgrade of DAG files from Composer-v1 (Airflow 1.x) to Composer-v2 (Airflow 2.x). This process involves handling changes in import statements, operators, and their arguments. By automating the migration, the tool saves time, ensures consistency, reduces errors, and minimizes administrative overhead associated with manual upgrades."
+         )
 
         pre(str(summary_data))
         pre(str(detailed_summary_data))
 
         h3("Airflow Upgrade Check")
-        p(
-            "This shows a number of action items that you should follow before upgrading to 2.0.0 or above."
-        )
+        p("This shows a number of action items that you should follow before upgrading to 2.0.0 or above."
+         )
         pre(str(upgrade_check_data))
 
     with open("full_migration_complexity.html", "w") as html_file:
@@ -205,16 +201,16 @@ def full_migration_complexity(**context):
 # -------------------------------------------------------------------------
 
 with models.DAG(
-    "test_airflow_migration_assessment_v1_0",
-    tags=["airflow_migration_assessment"],
-    description="assess migration scope for airflow v1 to v2",
-    is_paused_upon_creation=True,
-    catchup=False,
-    start_date=datetime(2023, 8, 10),
-    dagrun_timeout=timedelta(minutes=30),
-    max_active_runs=1,
-    default_args=default_args,
-    schedule_interval="0 0 * * *",  # daily at 00:00
+        "test_airflow_migration_assessment_v1_0",
+        tags=["airflow_migration_assessment"],
+        description="assess migration scope for airflow v1 to v2",
+        is_paused_upon_creation=True,
+        catchup=False,
+        start_date=datetime(2023, 8, 10),
+        dagrun_timeout=timedelta(minutes=30),
+        max_active_runs=1,
+        default_args=default_args,
+        schedule_interval="0 0 * * *",  # daily at 00:00
 ) as dag:
 
     TIMESTAMP = time.strftime("%Y%m%d")
@@ -232,9 +228,7 @@ with models.DAG(
         FROM dag
         WHERE
             is_active=1
-    """.format(
-        processed_ts=TIMESTAMP
-    )
+    """.format(processed_ts=TIMESTAMP)
 
     collect_dag_inventory = MySqlToGoogleCloudStorageOperator(
         task_id="collect_dag_inventory",
@@ -254,9 +248,7 @@ with models.DAG(
         FROM task_instance ti
         JOIN dag d on d.dag_id = ti.dag_id
         WHERE d.is_active=1
-    """.format(
-        processed_ts=TIMESTAMP
-    )
+    """.format(processed_ts=TIMESTAMP)
 
     collect_task_inventory = MySqlToGoogleCloudStorageOperator(
         task_id="collect_task_inventory",
@@ -278,9 +270,7 @@ with models.DAG(
         INNER JOIN dag as d ON d.dag_id = ti.dag_id
         WHERE d.is_active=1
         GROUP BY ti.operator
-    """.format(
-        processed_ts=TIMESTAMP
-    )
+    """.format(processed_ts=TIMESTAMP)
 
     collect_operator_inventory = MySqlToGoogleCloudStorageOperator(
         task_id="collect_operator_inventory",
@@ -301,9 +291,7 @@ with models.DAG(
         mkdir -p upgrade-check
         airflow upgrade_check > upgrade-check/results
         gsutil cp -r upgrade-check gs://{bucket}/{root_path}/
-    """.format(
-        bucket=GCS_BUCKET, root_path=GCS_ROOT_PATH
-    )
+    """.format(bucket=GCS_BUCKET, root_path=GCS_ROOT_PATH)
 
     run_upgrade_check = BashOperator(
         task_id="run_upgrade_check",
@@ -321,9 +309,9 @@ with models.DAG(
     python3 {root_dir}/airflow-v1-to-v2-migration/run_mig.py --input_dag_folder={root_dir} --output_dag_folder=v1-to-v2-report --rules_file={root_dir}/airflow-v1-to-v2-migration/migration_rules/rules.csv
     gsutil cp -r v1-to-v2-report gs://{gcs_bucket}/{root_path}/
     gsutil rm gs://{gcs_bucket}/{root_path}/v1-to-v2-report/*.py
-     """.format(
-        root_dir=AIRFLOW_HOME_DIR, gcs_bucket=GCS_BUCKET, root_path=GCS_ROOT_PATH
-    )
+     """.format(root_dir=AIRFLOW_HOME_DIR,
+                gcs_bucket=GCS_BUCKET,
+                root_path=GCS_ROOT_PATH)
 
     run_airflow_v1_to_v2 = BashOperator(
         task_id="run_airflow_v1_to_v2",
@@ -380,9 +368,7 @@ with models.DAG(
         ) t
         ON sd.dag_id = t.dag_id
     ) c
-    """.format(
-        processed_ts=TIMESTAMP
-    )
+    """.format(processed_ts=TIMESTAMP)
 
     generate_work_estimate = MySqlToGoogleCloudStorageOperator(
         task_id="generate_work_estimate",
@@ -397,7 +383,10 @@ with models.DAG(
         task_id="full_migration_complexity",
         python_callable=full_migration_complexity,
         provide_context=True,
-        templates_dict={"gcs_bucket": GCS_BUCKET, "gcs_root_path": GCS_ROOT_PATH},
+        templates_dict={
+            "gcs_bucket": GCS_BUCKET,
+            "gcs_root_path": GCS_ROOT_PATH
+        },
     )
 
     [

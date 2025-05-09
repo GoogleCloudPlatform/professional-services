@@ -139,26 +139,20 @@ def run(args: Type[argparse.Namespace]):
     if runner == 'DataflowRunner':
         # Set up pipeline options
         pipeline_options = PipelineOptions([
-            f'--runner={runner}',
-            f'--project={project}',
-            f'--region={zone}',
+            f'--runner={runner}', f'--project={project}', f'--region={zone}',
             f'--staging_location={args.staging_location}',
             f'--temp_file_location={args.temp_file_location}',
             f'--template_location={args.template_location}'
         ],
-            setup_file='../setup.py',
-            save_main_session=True
-        )
+                                           setup_file='../setup.py',
+                                           save_main_session=True)
     elif runner == 'DirectRunner':
         # Set up pipeline options
         pipeline_options = PipelineOptions([
-            f'--runner={runner}',
-            f'--project={project}',
-            f'--region={zone}',
+            f'--runner={runner}', f'--project={project}', f'--region={zone}',
             f'--direct_num_workers={args.direct_num_workers}'
         ],
-            save_main_session=True
-        )
+                                           save_main_session=True)
 
     # Specify the number of cells to analyze per batch.
     batch_size = 50000
@@ -172,12 +166,10 @@ def run(args: Type[argparse.Namespace]):
             List[Tuple]: A list of tuples containing the table name and
             the start index of each cell block.
         """
-        preprocess = Preprocessing(
-            source=source,
-            project=project,
-            zone=zone,
-            **db_args.preprocess_args
-        )
+        preprocess = Preprocessing(source=source,
+                                   project=project,
+                                   zone=zone,
+                                   **db_args.preprocess_args)
         tables_info = preprocess.get_tables_info()
         tables_start_index_list = []
 
@@ -199,15 +191,13 @@ def run(args: Type[argparse.Namespace]):
 
         """
         table_name, start_index = table_start_index_tuple
-        preprocess = Preprocessing(
-            source=source,
-            project=project,
-            zone=zone,
-            **db_args.preprocess_args
-        )
+        preprocess = Preprocessing(source=source,
+                                   project=project,
+                                   zone=zone,
+                                   **db_args.preprocess_args)
 
-        dlp_table = preprocess.get_dlp_table_per_block(
-            50000, table_name, start_index)
+        dlp_table = preprocess.get_dlp_table_per_block(50000, table_name,
+                                                       start_index)
         return table_name, dlp_table
 
     def inspect_table(table_dlp_table_tuple: Tuple) -> Tuple[str, Dict]:
@@ -225,8 +215,7 @@ def run(args: Type[argparse.Namespace]):
                                       location_category=location_category,
                                       dlp_template=dlp_template)
 
-        finding_results_per_block = dlpinspection.get_finding_results(
-            dlp_table)
+        finding_results_per_block = dlpinspection.get_finding_results(dlp_table)
         return table_name, finding_results_per_block
 
     def merge_top_findings(finding_tuple: Tuple) -> Tuple:
@@ -258,46 +247,43 @@ def run(args: Type[argparse.Namespace]):
         """
         table_name, top_finding = top_finding_tuple
 
-        catalog = Catalog(
-            data=top_finding,
-            project_id=project,
-            zone=zone,
-            dataset=db_args.dataset,
-            table=table_name,
-            instance_id=db_args.instance_id,
-            entry_group_name=entry_group_name
-        )
+        catalog = Catalog(data=top_finding,
+                          project_id=project,
+                          zone=zone,
+                          dataset=db_args.dataset,
+                          table=table_name,
+                          instance_id=db_args.instance_id,
+                          entry_group_name=entry_group_name)
         catalog.main()
 
     with beam.Pipeline(options=pipeline_options) as pipeline:
 
         # pylint: disable=expression-not-assigned
-        top_finding = (pipeline | 'InitialPcollection' >> beam.Create([None])
-                       # Generate a list of tuples representing the table name
-                       # and start index of each cell block.
-                       | 'TablesIndexes' >> beam.FlatMap(get_tables_indexes)
+        top_finding = (
+            pipeline | 'InitialPcollection' >> beam.Create([None])
+            # Generate a list of tuples representing the table name
+            # and start index of each cell block.
+            | 'TablesIndexes' >> beam.FlatMap(get_tables_indexes)
 
-                       # Reshuffle the data to allow parallel processing.
-                       | 'ReshuffledData' >> beam.Reshuffle()
+            # Reshuffle the data to allow parallel processing.
+            | 'ReshuffledData' >> beam.Reshuffle()
 
-                       # Preprocess each table based on their start indexes
-                       # and retrieve DLP tables.
-                       | 'PreProcessTable' >> beam.Map(preprocess_table)
+            # Preprocess each table based on their start indexes
+            # and retrieve DLP tables.
+            | 'PreProcessTable' >> beam.Map(preprocess_table)
 
-                       # Inspect each DLP table and retrieve finding results
-                       # for each block.
-                       | 'Inspect' >> beam.Map(inspect_table)
+            # Inspect each DLP table and retrieve finding results
+            # for each block.
+            | 'Inspect' >> beam.Map(inspect_table)
 
-                       # Group finding results by table name.
-                       | 'GroupByKey' >> beam.GroupByKey()
+            # Group finding results by table name.
+            | 'GroupByKey' >> beam.GroupByKey()
 
-                       # Merge and extract the top finding result
-                       # for each table.
-                       | 'ProcessTopFinding' >> beam.Map(merge_top_findings)
-                       )
+            # Merge and extract the top finding result
+            # for each table.
+            | 'ProcessTopFinding' >> beam.Map(merge_top_findings))
         # Write the top finding results to a text file.
-        top_finding | 'WriteOutput' >> beam.io.WriteToText(
-            output_txt_location)
+        top_finding | 'WriteOutput' >> beam.io.WriteToText(output_txt_location)
 
         # Process the top finding results and create tags in Data Catalog.
         top_finding | 'ProcessCatalog' >> beam.Map(process_catalog)

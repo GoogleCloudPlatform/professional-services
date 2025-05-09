@@ -19,8 +19,6 @@ import time
 from datetime import datetime
 from functools import partial
 from concurrent.futures import ThreadPoolExecutor
-
-
 """ 
 Send Data is intended to be an easy to use tool for manual
 and E2E testing.  The Webhook Application is mostly infrastructure,
@@ -33,24 +31,25 @@ python send_data.py
 """
 
 WEBHOOK_EXAMPLE = {
-  "responseBody": "",
-  "method": "GET",
-  "url": "/stuff",
-  "account": "company-prod",
-  "host": "app.company.com",
-  "remoteAddress": "0.0.0.0",
-  "statusCode": 304,
-  "responseTime": 50.056793,
-  "requestBody": {},
-  "isBooleanRequest": True,
-  "record_data_ex": {
-      "value": "embedded",
-      "from": "-10min",
-  },
-  "array_data_ex": ["value", "value2"],
-  "_metadata_dataset": "webhook",
-  "_metadata_table": "webhook"
+    "responseBody": "",
+    "method": "GET",
+    "url": "/stuff",
+    "account": "company-prod",
+    "host": "app.company.com",
+    "remoteAddress": "0.0.0.0",
+    "statusCode": 304,
+    "responseTime": 50.056793,
+    "requestBody": {},
+    "isBooleanRequest": True,
+    "record_data_ex": {
+        "value": "embedded",
+        "from": "-10min",
+    },
+    "array_data_ex": ["value", "value2"],
+    "_metadata_dataset": "webhook",
+    "_metadata_table": "webhook"
 }
+
 
 def get_row():
     """ Return clean example row to send """
@@ -59,11 +58,14 @@ def get_row():
 
     return row
 
+
 def _get_app_domain(project_id):
     """ Return String App Engine Domain to send data to """
-    app_domain = "https://{project_id}.appspot.com".format(project_id=project_id)
+    app_domain = "https://{project_id}.appspot.com".format(
+        project_id=project_id)
 
     return app_domain
+
 
 def send_request(request_size, project_id=None):
     # Send batches of data to speed up EPS
@@ -71,7 +73,13 @@ def send_request(request_size, project_id=None):
     data = [get_row() for i in range(request_size)]
     requests.post(app_domain, json=data)
 
-def generate_traffic(project_id, batches=10, pool_size=10, request_size=200, batch_size=100, batch_sleep_secs=1):
+
+def generate_traffic(project_id,
+                     batches=10,
+                     pool_size=10,
+                     request_size=200,
+                     batch_size=100,
+                     batch_sleep_secs=1):
     """ Send Data at App Engine Endpoint
         
         :param project_id: GCP Project ID
@@ -88,34 +96,44 @@ def generate_traffic(project_id, batches=10, pool_size=10, request_size=200, bat
             print("Running for %d" % total_events)
             for r in range(batches):
 
-                executor.map(
-                    partial(send_request, project_id=project_id),
-                    [request_size for i in range(batch_size)])
+                executor.map(partial(send_request, project_id=project_id),
+                             [request_size for i in range(batch_size)])
                 time.sleep(batch_sleep_secs)
         else:
             while True:
-                executor.map(
-                    partial(send_request, project_id=project_id),
-                    [request_size for i in range(batch_size)])
+                executor.map(partial(send_request, project_id=project_id),
+                             [request_size for i in range(batch_size)])
                 time.sleep(batch_sleep_secs)
+
 
 def configure_arg_parser():
     parser = argparse.ArgumentParser()
-    
-    parser.add_argument("--project-id", "-p",
-                        help="GCP Project ID")
-    parser.add_argument("--pool-size", "-ps", default=100,
+
+    parser.add_argument("--project-id", "-p", help="GCP Project ID")
+    parser.add_argument("--pool-size",
+                        "-ps",
+                        default=100,
                         help="Number of concurrent processes used")
-    parser.add_argument("--request-size", "-r", default=10,
+    parser.add_argument("--request-size",
+                        "-r",
+                        default=10,
                         help="Number of events per request to batch")
-    parser.add_argument("--batch-size", "-bs", default=100,
+    parser.add_argument("--batch-size",
+                        "-bs",
+                        default=100,
                         help="Number of requests per batch")
-    parser.add_argument("--batches", "-b", default=1,
-                        help="Number of batches to send (0 sends in infinite loop)")
-    parser.add_argument("--batch-sleep-secs", "-s", default=0,
+    parser.add_argument(
+        "--batches",
+        "-b",
+        default=1,
+        help="Number of batches to send (0 sends in infinite loop)")
+    parser.add_argument("--batch-sleep-secs",
+                        "-s",
+                        default=0,
                         help="Seconds to sleep between batches")
 
     return parser.parse_args()
+
 
 def main():
     args = configure_arg_parser()
@@ -125,6 +143,7 @@ def main():
                      batch_size=int(args.batch_size),
                      batches=int(args.batches),
                      batch_sleep_secs=int(args.batch_sleep_secs))
+
 
 if __name__ == "__main__":
     main()

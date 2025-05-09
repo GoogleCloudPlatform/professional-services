@@ -46,8 +46,9 @@ def get_project_ids(resource_mgr_client: resource_manager.Client,
         'parent.id': organization_id,
         'parent.type': 'organization'
     }
-    return [p.project_id for p in
-            resource_mgr_client.list_projects(project_filter)]
+    return [
+        p.project_id for p in resource_mgr_client.list_projects(project_filter)
+    ]
 
 
 def get_buckets(project_ids: List[str],
@@ -68,14 +69,22 @@ def get_buckets(project_ids: List[str],
                 bucket_list = list(gcs_client.list_buckets(project=project_id))
                 for bucket in bucket_list:
                     output_list.append({
-                        "bucket_name": bucket.name,
-                        "project_id": project_id,
-                        "last_read_timestamp": "",
-                        "days_since_last_read": -1,
-                        "read_count_30_days": -1,
-                        "read_count_90_days": -1,
-                        "export_day": datetime.datetime.utcnow().strftime("%Y-%m-%d"),
-                        "recommended_OLM": ""
+                        "bucket_name":
+                            bucket.name,
+                        "project_id":
+                            project_id,
+                        "last_read_timestamp":
+                            "",
+                        "days_since_last_read":
+                            -1,
+                        "read_count_30_days":
+                            -1,
+                        "read_count_90_days":
+                            -1,
+                        "export_day":
+                            datetime.datetime.utcnow().strftime("%Y-%m-%d"),
+                        "recommended_OLM":
+                            ""
                     })
             except Forbidden as err:
                 logging.error(f"""Access denied on bucket {bucket.name}.
@@ -119,6 +128,7 @@ def main():
 
     except Exception as err:
         logging.error(err)
+
 
 if __name__ == "__main__":
     main()

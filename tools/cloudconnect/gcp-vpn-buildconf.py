@@ -12,7 +12,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """
     gcp-vpn-buildconf.py reads AWS' customer gateway XML configuratoin and
     outputs a gcp-vpn.jinja Demployment Manager configuration file
@@ -94,11 +93,14 @@ def main():
     ''' main '''
 
     parser = argparse.ArgumentParser(description="""
-        Reads a CustomerGatewayConfiguration(XML) from stdin, and outputs a yaml file to use with gcp-vpn.jinja.""", usage="""
-        aws ec2 describe-vpn-connections --filter Name=vpn-connection-id,Values=vpn-67c00420 --query VpnConnections[0].CustomerGatewayConfiguration --output text | ./gcp-vpn-buildconf.py --network https://www.googleapis.com/compute/v1/projects/xpn-host/global/networks/vpc >> gcp-vpn.yaml""")
+        Reads a CustomerGatewayConfiguration(XML) from stdin, and outputs a yaml file to use with gcp-vpn.jinja.""",
+                                     usage="""
+        aws ec2 describe-vpn-connections --filter Name=vpn-connection-id,Values=vpn-67c00420 --query VpnConnections[0].CustomerGatewayConfiguration --output text | ./gcp-vpn-buildconf.py --network https://www.googleapis.com/compute/v1/projects/xpn-host/global/networks/vpc >> gcp-vpn.yaml"""
+                                    )
 
     parser.add_argument('--region', default='us-east1')
-    parser.add_argument('--network', required=True,
+    parser.add_argument('--network',
+                        required=True,
                         help='Fully-qualified network url')
     parser.add_argument('--local-traffic-selector', nargs='+')
     parser.add_argument('--remote-traffic-selector', nargs='+')
@@ -109,32 +111,31 @@ def main():
     except ValueError:
         print("InValid xml input. Verify aws cli command includes \"--query \
             VpnConnections[0].CustomerGatewayConfiguration \
-            --output text\"", file=sys.stderr)
+            --output text\"",
+              file=sys.stderr)
         sys.exit(1)
 
-    params = {
-        'region': args.region,
-        'network': args.network,
-        'tunnels': []
-    }
+    params = {'region': args.region, 'network': args.network, 'tunnels': []}
 
     for i in tree.getroot().findall('ipsec_tunnel'):
         params['address'] = i.find(PATHS['address']).text
         if i.find(PATHS['asn']) is None:
             config = STATIC_CONFIG
-            tunnel = {k: i.find(v).text for k, v in
-                      PATHS['static_tunnel'].items()}
+            tunnel = {
+                k: i.find(v).text for k, v in PATHS['static_tunnel'].items()
+            }
             tunnel['local_traffic_selector'] = args.local_traffic_selector
             tunnel['remote_traffic_selector'] = args.remote_traffic_selector
             params['tunnels'].append(tunnel)
         else:
             config = BGP_CONFIG
             params['asn'] = i.find(PATHS['asn']).text
-            params['tunnels'].append(
-                {k: i.find(v).text for k, v in PATHS['bgp_tunnel'].items()}
-            )
+            params['tunnels'].append({
+                k: i.find(v).text for k, v in PATHS['bgp_tunnel'].items()
+            })
 
     print(Environment().from_string(config).render(params).rstrip())
+
 
 if __name__ == '__main__':
     main()

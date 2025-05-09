@@ -1,4 +1,3 @@
-
 from migrator import uri
 from unittest import TestCase
 from migrator.exceptions import InvalidFormatException
@@ -52,8 +51,8 @@ class Instance(TestCase):
         zone = 'europe-west5-b'
         region = 'europe-west5'
         name = 'instance-id'
-        uri_value = 'projects/{}/zones/{}/instances/{}'.format(project, zone,
-                                                               name)
+        uri_value = 'projects/{}/zones/{}/instances/{}'.format(
+            project, zone, name)
         abs_beta_uri_value = \
             'https://www.googleapis.com/compute/beta/{}'.format(uri_value)
         instance_uri = uri.Instance(project, zone, name)
@@ -69,8 +68,8 @@ class Instance(TestCase):
         project = 'my-project-id'
         zone = 'europe-west5-b'
         name = 'instance-id'
-        uri_value = 'projects/{}/zones/{}/instances/{}'.format(project, zone,
-                                                               name)
+        uri_value = 'projects/{}/zones/{}/instances/{}'.format(
+            project, zone, name)
         self.assertEqual(uri_value, uri.Instance.from_uri(uri_value).uri)
         self.assertIsNone(uri.Instance.from_uri(None))
         self.assertIsNone(uri.Instance.from_uri(''))
@@ -86,9 +85,8 @@ class Subnet(TestCase):
         project = 'my-project-id'
         region = 'europe-west6'
         name = 'subnet-name'
-        uri_value = 'projects/{}/regions/{}/subnetworks/{}'.format(project,
-                                                                   region,
-                                                                   name)
+        uri_value = 'projects/{}/regions/{}/subnetworks/{}'.format(
+            project, region, name)
         abs_beta_uri_value = \
             'https://www.googleapis.com/compute/beta/{}'.format(uri_value)
         subnet_uri = uri.Subnet(project, region, name)
@@ -103,9 +101,8 @@ class Subnet(TestCase):
         project = 'my-project-id'
         region = 'europe-west6'
         name = 'subnet-name'
-        uri_value = 'projects/{}/regions/{}/subnetworks/{}'.format(project,
-                                                                   region,
-                                                                   name)
+        uri_value = 'projects/{}/regions/{}/subnetworks/{}'.format(
+            project, region, name)
         self.assertEqual(uri_value, uri.Subnet.from_uri(uri_value).uri)
         self.assertIsNone(uri.Subnet.from_uri(None))
         self.assertIsNone(uri.Subnet.from_uri(''))
@@ -122,8 +119,7 @@ class Disk(TestCase):
         zone = 'europe-west1-d'
         region = 'europe-west1'
         name = 'disk-id'
-        uri_value = 'projects/{}/zones/{}/disks/{}'.format(project, zone,
-                                                           name)
+        uri_value = 'projects/{}/zones/{}/disks/{}'.format(project, zone, name)
         abs_beta_uri_value = \
             'https://www.googleapis.com/compute/beta/{}'.format(uri_value)
         disk_uri = uri.Disk(project, zone, name)
@@ -139,8 +135,7 @@ class Disk(TestCase):
         project = 'my-project-id'
         zone = 'europe-west1-d'
         name = 'disk-id'
-        uri_value = 'projects/{}/zones/{}/disks/{}'.format(project, zone,
-                                                           name)
+        uri_value = 'projects/{}/zones/{}/disks/{}'.format(project, zone, name)
         self.assertEqual(uri_value, uri.Disk.from_uri(uri_value).uri)
         self.assertIsNone(uri.Disk.from_uri(None))
         self.assertIsNone(uri.Disk.from_uri(''))

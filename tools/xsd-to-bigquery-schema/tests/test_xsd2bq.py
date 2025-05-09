@@ -24,6 +24,7 @@ class TestMapType(unittest.TestCase):
     """
     Set of test for lookup_element_type function
     """
+
     def setUp(self):
         self.types_schema = xmlschema.XMLSchema(
             f'{os.path.dirname(__file__)}/sample_data/types.xsd')
@@ -58,6 +59,7 @@ class TestConvertXsd(unittest.TestCase):
     """
     Set of test for convert_xsd function
     """
+
     def setUp(self) -> None:
         self.test_files_dir = f'{os.path.dirname(__file__)}/sample_data'
 

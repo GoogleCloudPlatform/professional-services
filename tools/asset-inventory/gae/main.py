@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """A HTTP server that runs the Cloud Asset Inventory export and import process.
 
 
@@ -55,6 +54,7 @@ class Config(object):
             for pname in config_dict:
                 setattr(self, pname.lower(), config_dict[pname])
 
+
 app = Flask(__name__)
 
 CONFIG = Config('config.yaml')
@@ -63,8 +63,7 @@ CONFIG = Config('config.yaml')
 def get_export_arguments():
     """Convert environment values into arguments."""
     return (CONFIG.export_parent, CONFIG.gcs_destination,
-            CONFIG.export_content_types,
-            CONFIG.export_asset_types)
+            CONFIG.export_content_types, CONFIG.export_asset_types)
 
 
 def get_import_arguments():
@@ -73,10 +72,8 @@ def get_import_arguments():
             CONFIG.import_template_region, CONFIG.import_template_location,
             '{}/*.json'.format(CONFIG.gcs_destination), CONFIG.import_group_by,
             CONFIG.import_write_disposition, CONFIG.import_dataset,
-            CONFIG.import_add_load_date_suffix,
-            CONFIG.import_stage,
-            datetime.datetime.now().isoformat(),
-            CONFIG.import_num_shards,
+            CONFIG.import_add_load_date_suffix, CONFIG.import_stage,
+            datetime.datetime.now().isoformat(), CONFIG.import_num_shards,
             CONFIG.import_pipeline_arguments,
             json.loads(CONFIG.import_pipeline_runtime_environment))
 
@@ -88,23 +85,21 @@ def run_import():
     import_arguments = get_import_arguments()
     logging.info('running import %s', import_arguments)
     (runner, dataflow_project, template_region, template_location,
-     input_location, group_by, write_disposition, dataset,
-     add_load_date_suffix, stage, load_time,
-     num_shards, pipeline_arguments,
+     input_location, group_by, write_disposition, dataset, add_load_date_suffix,
+     stage, load_time, num_shards, pipeline_arguments,
      pipeline_runtime_environment) = import_arguments
 
     if runner == 'template':
         return pipeline_runner.run_pipeline_template(
-            dataflow_project, template_region,
-            template_location, input_location,
-            group_by, write_disposition, dataset, stage,
+            dataflow_project, template_region, template_location,
+            input_location, group_by, write_disposition, dataset, stage,
             load_time, num_shards, add_load_date_suffix,
             pipeline_runtime_environment)
     else:
         return pipeline_runner.run_pipeline_beam_runner(
-            runner, dataflow_project, input_location,
-            group_by, write_disposition, dataset, stage, load_time,
-            num_shards, add_load_date_suffix, pipeline_arguments)
+            runner, dataflow_project, input_location, group_by,
+            write_disposition, dataset, stage, load_time, num_shards,
+            add_load_date_suffix, pipeline_arguments)
 
 
 @app.route('/export_import')

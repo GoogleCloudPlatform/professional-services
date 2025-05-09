@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Executes tests on functions created in main.py."""
 import unittest
 import unittest.mock as mock
@@ -36,9 +35,7 @@ class TestMain(unittest.TestCase):
         self.mocked_bq = mock.Mock()
 
     @mock.patch('builtins.open', new_callable=mock_open)
-
     def testFileToString(self, mock_file):
-
         """Tests that creating a string from a SQL file executes on correct file."""
         main.file_to_string(config.config_vars['sql_file_path'])
         mock_file.assert_called_with(config.config_vars['sql_file_path'], 'r')
@@ -50,7 +47,6 @@ class TestMain(unittest.TestCase):
         self.mocked_bq().list_tables.return_value = mocked_table_list
         main.execute_transformation_query(self.mocked_bq())
         self.mocked_bq().query().result().called
-
 
     def testPartitionsAndUsageDates(self):
         """Tests that the # of partitions is equal to the # of usage_start_times."""
