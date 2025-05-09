@@ -33,6 +33,18 @@ network:
       #@schema/validation min_len=1
       ip_ranges: 
       - ""
+  networkDisableTargetHTTPProxy:
+    #@schema/validation one_of=["default", "skip", "include"]
+    generation: "default"
+    bundles:
+      pci-dss: false
+      cis: true
+  networkDisableWeakSSLPolicy:
+      #@schema/validation one_of=["default", "skip", "include"]
+    generation: "default"
+    bundles:
+      pci-dss: false
+      cis: true
   networkEnforceNamingConvention:
     #@schema/validation one_of=["default", "skip", "include"]
     generation: "default"
@@ -42,11 +54,17 @@ network:
     params:
       #@schema/validation min_len=1
       vpc_name_regex: ""
+  networkRequireBackendServiceLogging:
+    #@schema/validation one_of=["default", "skip", "include"]
+    generation: "default"
+    bundles:
+      pci-dss: true
+      cis: true
   networkRequireCustomModeVpc:
     #@schema/validation one_of=["default", "skip", "include"]
     generation: "default"
     bundles:
-      pci-dss: false
+      pci-dss: true
       cis: true
   networkRequireVPCFlowLogs:
     #@schema/validation one_of=["default", "skip", "include"]

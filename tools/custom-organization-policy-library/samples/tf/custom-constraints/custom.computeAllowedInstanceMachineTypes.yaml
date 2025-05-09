@@ -1,7 +1,7 @@
 custom.computeAllowedInstanceMachineTypes:
   action_type: DENY
-  condition: (["n2-standard-1", "n2-standard-2"].exists(type, resource.machineType.contains(type)))
-    == false
+  condition: (["n2-standard-1", "n2-standard-2", "n2d-standard-2\""].exists(type,
+    resource.machineType.contains(type))) == false
   description: Prevent the creation of VMs not using specific machine types
   display_name: Allow only specific machine types
   method_types: CREATE

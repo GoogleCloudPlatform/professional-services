@@ -1,8 +1,9 @@
 import logging
 import os
+import shutil
 import yaml
 import pytest
-from main import run_gcloud_command
+from main import run_gcloud_command, GCLOUD_EXIT_CODE_OK_OR_FAIL_ALREADY_EXISTS
 
 TEST_CASES_DIR = os.path.join(os.path.dirname(__file__), "test_cases")
 FIXTURE_CONFIG_FILE = os.path.join(TEST_CASES_DIR, "fixture.yaml")
@@ -22,12 +23,26 @@ def pytest_sessionstart(session):
             "Environment variable 'PROJECT_ID' is not set. It is required for test execution.",
             returncode=1,
         )
+    if not os.getenv("PROJECT_NUMBER"):
+        pytest.exit(
+            "Environment variable 'PROJECT_NUMBER' is not set. It is required for test execution.",
+            returncode=1,
+        )
     logging.info(
-        "Initial checks passed. PREFIX=%s, PROJECT_ID=%s",
+        "Initial checks passed. PREFIX=%s, PROJECT_ID=%s, PROJECT_NUMBER=%s",
         os.getenv("PREFIX"),
         os.getenv("PROJECT_ID"),
+        os.getenv("PROJECT_NUMBER"),
     )
 
+def _print_centered_with_fill(text_to_center):
+    """
+    Prints the given text centered on the screen,
+    padded with '=' characters to fill the terminal width.
+    """
+    terminal_width = 80  # A common default
+    centered_text = text_to_center.center(terminal_width, '=')
+    logging.info(centered_text)
 
 def _load_fixture_config():
     """Loads the fixture configuration YAML file."""
@@ -47,11 +62,13 @@ def _load_fixture_config():
         pytest.fail(f"Failed to load {FIXTURE_CONFIG_FILE}: {e}", pytrace=False)
 
 
-def _substitute_variables(command_template, prefix, project_id):
+def _substitute_variables(command_template, prefix, project_id, project_number):
     """Substitutes placeholders in a command string."""
     command = command_template
     if "{{ project }}" in command and project_id:
         command = command.replace("{{ project }}", project_id)
+    if "{{ project_number }}" in command and project_number:
+        command = command.replace("{{ project_number }}", project_number)
     if "{{ prefix }}" in command and prefix:
         command = command.replace("{{ prefix }}", prefix)
     return command
@@ -67,23 +84,31 @@ def session_setup_and_teardown():
     config = _load_fixture_config()
     prefix = os.getenv("PREFIX")
     project_id = os.getenv("PROJECT_ID")
+    project_number = os.getenv("PROJECT_NUMBER")
 
     # --- Before Tests ---
     if config and "before_tests" in config:
-        logging.info("Executing 'before_tests' commands...")
+        _print_centered_with_fill("Executing 'before_tests' commands...")
         for item in config["before_tests"]:
             command_template = item.get("command")
             description = item.get("description", "N/A")
+            expected_result = item.get("expected_result", {})
+            expected_return_code = expected_result.get("return_code", 0)
             if not command_template:
                 logging.warning(
                     "Skipping 'before_tests' item without command: %s", description
                 )
                 continue
 
-            command = _substitute_variables(command_template, prefix, project_id)
+            command = _substitute_variables(command_template, prefix, project_id, project_number)
             logging.info("Running setup command (%s): %s", description, command)
             try:
                 result = run_gcloud_command(command)
+                if result.returncode != 0 and  expected_return_code != GCLOUD_EXIT_CODE_OK_OR_FAIL_ALREADY_EXISTS:
+                    logging.error(
+                        "Setup command failed: %s with result: %s", command, result
+                    )
+
                 logging.debug(
                     "Setup command successful: %s with result: %s", command, result
                 )
@@ -93,17 +118,16 @@ def session_setup_and_teardown():
                     command,
                     e,
                 )
-        logging.info("'before_tests' commands execution finished.")
+        _print_centered_with_fill("'before_tests' commands execution finished.")
     else:
-        logging.info("No 'before_tests' commands found or fixture file missing.")
+        _print_centered_with_fill("No 'before_tests' commands found or fixture file missing.")
 
     yield
 
     # --- After Tests ---
-    logging.info("Starting session teardown from fixture.yaml")
     config = _load_fixture_config()
     if config and "after_tests" in config:
-        logging.info("Executing 'after_tests' commands...")
+        _print_centered_with_fill("Executing 'after_tests' commands...")
         for item in reversed(config["after_tests"]):
             command_template = item.get("command")
             description = item.get("description", "N/A")
@@ -113,10 +137,15 @@ def session_setup_and_teardown():
                 )
                 continue
 
-            command = _substitute_variables(command_template, prefix, project_id)
+            command = _substitute_variables(command_template, prefix, project_id, project_number)
             logging.info("Running teardown command (%s): %s", description, command)
             try:
                 result = run_gcloud_command(command)
+                if result.returncode != 0:
+                    logging.error(
+                        "Teardown command failed: %s with result: %s", command, result
+                    )
+
                 logging.debug(
                     "Teardown command successful: %s with result: %s", command, result
                 )
@@ -126,9 +155,9 @@ def session_setup_and_teardown():
                     command,
                     e,
                 )
-        logging.info("'after_tests' commands execution finished.")
+        _print_centered_with_fill("'after_tests' commands execution finished.")
     else:
-        logging.info("No 'after_tests' commands found or fixture file missing.")
+        _print_centered_with_fill("No 'after_tests' commands found or fixture file missing.")
 
 
 def build_command(shared_config, step):
@@ -160,7 +189,7 @@ def build_command(shared_config, step):
         elif value == "absent":
             additional_flags = f"{additional_flags }"
         else:
-            additional_flags = f"{additional_flags} --{key}={value}"
+            additional_flags = f"{additional_flags} --{key}=\"{value}\""
 
     return f"{command_template} {additional_flags}"
 
@@ -171,6 +200,8 @@ def pytest_collection_modifyitems(session, config, items):
     """
     prefix = os.getenv("PREFIX")
     project_id = os.getenv("PROJECT_ID")
+    project_number = os.getenv("PROJECT_NUMBER")
+
     for item in items:
         if "steps" in getattr(item, "callspec", {}).params:
             identifier = item.callspec.params.get("name", "").replace("_", "-")
@@ -195,7 +226,7 @@ def pytest_collection_modifyitems(session, config, items):
                         identifier,
                     )
                     command = _substitute_variables(
-                        command_template, prefix, project_id
+                        command_template, prefix, project_id, project_number
                     )
                     if "{{ identifier }}" in command and identifier is not None:
                         command = command.replace(
@@ -221,6 +252,7 @@ def pytest_runtest_teardown(item, nextitem):
     logging.debug("Running teardown check for item: %s", item.nodeid)
     prefix = os.getenv("PREFIX")
     project_id = os.getenv("PROJECT_ID")
+    project_number = os.getenv("PROJECT_NUMBER")
 
     shared_config = item.callspec.params.get("shared_config", {})
     logging.debug("Using test shared_config=%s", shared_config)
@@ -246,7 +278,7 @@ def pytest_runtest_teardown(item, nextitem):
             identifier,
         )
 
-        teardown_command = _substitute_variables(teardown_template, prefix, project_id)
+        teardown_command = _substitute_variables(teardown_template, prefix, project_id, project_number)
         if "{{ identifier }}" in teardown_template and identifier is not None:
             teardown_command = teardown_command.replace("{{ identifier }}", identifier)
 

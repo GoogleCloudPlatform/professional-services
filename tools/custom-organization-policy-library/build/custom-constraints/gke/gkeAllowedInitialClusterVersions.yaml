@@ -1,0 +1,19 @@
+#@ load("/constraints.lib.star", "build_constraint")
+#@ constraint = build_constraint("gkeAllowedInitialClusterVersions")
+
+#@ def condition(initial_cluster_versions):
+#@   return 'resource.initialClusterVersion in ' +  str(initial_cluster_versions) + " == false"
+#@ end
+
+#@ if constraint.to_generate():
+name: #@ constraint.constraint_name()
+resource_types: 
+- container.googleapis.com/Cluster
+condition: #@  condition(constraint.params().initial_cluster_versions)
+action_type: DENY
+method_types: 
+- CREATE
+- UPDATE 
+display_name: Allow only authorized cluster versions when creating GKE cluster
+description:  Enforce that GKE cluster are using authorized cluster versions
+#@ end

@@ -1,0 +1,15 @@
+#@ load("/constraints.lib.star", "build_constraint")
+#@ constraint = build_constraint("networkDisableTargetHTTPProxy")
+
+#@ if constraint.to_generate():
+name: #@ constraint.constraint_name()
+resourceTypes:
+- compute.googleapis.com/TargetHttpProxy
+methodTypes:
+- CREATE
+- UPDATE
+condition: true == true
+actionType: DENY
+displayName: Deny usage and creation of Target HTTP Proxy
+description: Ensure Target HTTP Proxy are not used
+#@ end

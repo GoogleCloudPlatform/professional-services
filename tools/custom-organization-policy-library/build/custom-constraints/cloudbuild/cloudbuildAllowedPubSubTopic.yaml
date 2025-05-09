@@ -2,7 +2,7 @@
 #@ constraint = build_constraint("cloudbuildAllowedPubSubTopic")
 
 #@ def condition(topics):
-#@   return 'resource.pubsubConfig.topic in ' +  str(topics) + " == false"
+#@   return 'has(resource.pubsubConfig.topic) && resource.pubsubConfig.topic in ' +  str(topics) + " == false"
 #@ end
 
 #@ if constraint.to_generate():

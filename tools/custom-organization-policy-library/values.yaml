@@ -15,6 +15,10 @@
 #@data/values
 ---
 organization: '11111111'
+deployment:
+  parent: organizations/11111111
+  #! parent: folders/11111111
+  #! parent: projects/my-project
 bundles:
   pci-dss: false
   cis: false
@@ -27,9 +31,9 @@ cloudbuild:
       - "10.0.1.0/24"
   cloudbuildAllowedPubSubTopic:
     params:
-      topics:
-      - "projects/project1/topics/topic-1"
-      - "projects/project2/topics/topic-2"
+        topics:
+        - "projects/project1/topics/topic-1"
+        - "projects/project2/topics/topic-2"
 cloudkms:
   cloudkmsAllowedAlgorithms:
     params:
@@ -42,6 +46,16 @@ cloudkms:
   cloudkmsAllowedRotationPeriod:
     params:
       max_rotation_period: 31536000s  #! 1 year
+cloudrun:
+  cloudrunServiceRequireVPCConnector:
+    generation: "skip" #! Skip by default as not needed by most organization
+  cloudrunDisableEnvironmentVariablePattern:
+    params:
+      patterns:
+      - "[sS][eE][cC][rR][eE][tT]"
+      - "[kK][eE][yY]"
+      - "[pP][aA][sS][sS][wW][oO][rR][dD]"
+      - "[tT][oO][kK][eE][nN]"
 cloudsql:
   cloudsqlAllowedBackupLocations:
     params:
@@ -67,6 +81,7 @@ compute:
       machine_types:
       - "n2-standard-1"
       - "n2-standard-2"
+      - n2d-standard-2"
   computeAllowedInstanceLabels:
     params:
       labels:
@@ -77,6 +92,7 @@ compute:
       disk_types:
       - "pd-ssd"
       - "pd-standard"
+      - "pd-balanced"
   computeRestrictDiskSize:
     params:
       max_disksize: 100
@@ -85,6 +101,10 @@ compute:
       networks:
       - "network-1"
       - "network-2"
+  computeRequireConfidentialComputing:
+    params:
+      machine_types:
+      - "n2d-standard-2"
 dataproc:
   dataprocAllowedLabels:
     params:
@@ -104,7 +124,16 @@ firewall:
       destination_ranges:
       - "192.168.32.0/24"
       - "10.16.0.0/16"
+dns:
+  dnsAllowedSigningAlgorithms:
+    params:
+      algorithms:
+      - ECDSAP256SHA256
 gke:
+  gkeAllowedInitialClusterVersions:
+    params:
+      initial_cluster_versions: 
+      - 1.32.2-gke.1182003
   gkeAllowedNodePoolImages:
     params:
       images:
