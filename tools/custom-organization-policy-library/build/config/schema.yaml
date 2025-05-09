@@ -15,7 +15,10 @@
 #@data/values-schema
 ---
 organization: "111111"
+deployment:
+  parent: ""
 bundles:
   pci-dss: false
   cis: false
 dryrun: false
+service: ""

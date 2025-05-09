@@ -1,3 +1,7 @@
+./tools/scd-bq-to-bq
+./tools/scd-file-to-file
+./tools/datagen-bq-to-bq
+./tools/datagen-gcs-to-gcs
 ./tools/agile-machine-learning-api
 ./tools/apachebeam-throttling
 ./tools/asset-inventory

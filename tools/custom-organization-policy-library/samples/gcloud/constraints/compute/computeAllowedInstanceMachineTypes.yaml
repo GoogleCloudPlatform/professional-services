@@ -1,6 +1,6 @@
 name: organizations/11111111/customConstraints/custom.computeAllowedInstanceMachineTypes
 resource_types: compute.googleapis.com/Instance
-condition: (["n2-standard-1", "n2-standard-2"].exists(type, resource.machineType.contains(type))) == false
+condition: (["n2-standard-1", "n2-standard-2", "n2d-standard-2\""].exists(type, resource.machineType.contains(type))) == false
 action_type: DENY
 method_types: CREATE
 display_name: Allow only specific machine types

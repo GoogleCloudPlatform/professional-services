@@ -1,0 +1,10 @@
+name: organizations/11111111/customConstraints/custom.firewallRestrictSshRule
+resource_types:
+- compute.googleapis.com/Firewall
+condition: resource.direction.matches('INGRESS') &&  resource.allowed.containsFirewallPort('tcp', '22') &&  !resource.sourceRanges.all(range, range == '35.235.240.0/20' || range.startsWith('10.') || range.startsWith('192.168.'))
+action_type: DENY
+method_types:
+- CREATE
+- UPDATE
+display_name: Restrict VPC Firewall rules allowing SSH access from the Internet
+description: Ensure that SSH access is restricted from the Internet when using VPC Firewall Rule

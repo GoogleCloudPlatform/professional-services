@@ -1,9 +1,10 @@
 .terraform.lock.hcl
 .terraform
 .terraform.tfstate*
-
 *.out
 *.bak
-
 */**/terraform.tfstate*
 terraform/
+tests/venv/
+tests/report.html
+scripts/summary.csv

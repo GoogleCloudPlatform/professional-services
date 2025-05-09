@@ -1,13 +1,24 @@
-# Make will use bash instead of sh
-SHELL 	:= /usr/bin/env bash
+SHELL 	:= /usr/bin/env bash	# Make will use bash instead of sh
 CONFIG 	:= -f build/config/schema.yaml -f build/config/services/ -f values.yaml -f build/ytt_lib/
 OUTPUT_GCLOUD 	:= samples/gcloud
 OUTPUT_TF := samples/tf
 
+# By default, generating all services 
+# For testing, can be set SERVICE := "cloudsql"
+# SERVICE := "cloudrun"
+
+CUSTOM_CONSTRAINTS_BASE_DIR := build/custom-constraints/
+CUSTOM_CONSTRAINTS_DIR := $(CUSTOM_CONSTRAINTS_BASE_DIR)
+
+ifneq ($(strip $(SERVICE)),"")
+  CUSTOM_CONSTRAINTS_DIR := $(CUSTOM_CONSTRAINTS_BASE_DIR)$(SERVICE)
+  POLICIES_PARAM := -v service=$(SERVICE) 
+endif
+
 .PHONY: constraints
 constraints: 
 	rm -rf $(OUTPUT_GCLOUD)/constraints
-	ytt $(CONFIG) -f build/custom-constraints/  --output-files $(OUTPUT_GCLOUD)/constraints
+	ytt $(CONFIG) -f $(CUSTOM_CONSTRAINTS_DIR) --output-files $(OUTPUT_GCLOUD)/constraints
 
 .PHONY: constraints-tf
 constraints-tf: constraints
@@ -16,7 +27,7 @@ constraints-tf: constraints
 .PHONY: policies
 policies: 
 	rm -rf $(OUTPUT_GCLOUD)/policies
-	ytt $(CONFIG) -f build/org-policies/  --output-files $(OUTPUT_GCLOUD)/policies
+	ytt $(CONFIG) -f build/org-policies/ $(POLICIES_PARAM)  --output-files $(OUTPUT_GCLOUD)/policies
 	python3 scripts/format-policies.py $(OUTPUT_GCLOUD)/policies/policies.yaml $(OUTPUT_GCLOUD)/policies
 	rm $(OUTPUT_GCLOUD)/policies/policies.yaml
 
@@ -39,11 +50,11 @@ simulate: clean constraints policies
 
 .PHONY: deploy-constraints
 deploy-constraints:
-	sh scripts/deploy.sh constraint $(OUTPUT_GCLOUD)/constraints
+	bash scripts/deploy.sh constraint $(OUTPUT_GCLOUD)/constraints
 
 .PHONY: deploy-policies
 deploy-policies:
-	sh scripts/deploy.sh policy $(OUTPUT_GCLOUD)/policies
+	bash scripts/deploy.sh policy $(OUTPUT_GCLOUD)/policies
 
 .PHONY: deploy
 deploy: deploy-constraints deploy-policies
