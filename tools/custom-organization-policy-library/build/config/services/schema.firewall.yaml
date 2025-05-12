@@ -26,6 +26,30 @@ firewall:
     params:
       #@schema/validation min_len=1
       name_regex: ""
+  firewallRequireDescription:
+    #@schema/validation one_of=["default", "skip", "include"]
+    generation: "default"
+    bundles:
+      pci-dss: false
+      cis: false
+  firewallRestrictOpenWorldRule:
+    #@schema/validation one_of=["default", "skip", "include"]
+    generation: "default"
+    bundles:
+      pci-dss: false
+      cis: false
+  firewallRestrictRdpRule:
+    #@schema/validation one_of=["default", "skip", "include"]
+    generation: "default"
+    bundles:
+      pci-dss: false
+      cis: true
+  firewallRestrictRdpPolicyRule:
+    #@schema/validation one_of=["default", "skip", "include"]
+    generation: "default"
+    bundles:
+      pci-dss: false
+      cis: true
   firewallRestrictRule:
     #@schema/validation one_of=["default", "skip", "include"]
     generation: "default"
@@ -38,15 +62,15 @@ firewall:
       - ""
       destination_ranges:
       - ""
-  firewallRestrictOpenWorldRule:
+  firewallRestrictSshRule:
     #@schema/validation one_of=["default", "skip", "include"]
     generation: "default"
     bundles:
       pci-dss: false
-      cis: false
-  firewallRequireDescription:
+      cis: true
+  firewallRestrictSshPolicyRule:
     #@schema/validation one_of=["default", "skip", "include"]
     generation: "default"
     bundles:
       pci-dss: false
-      cis: false
+      cis: true

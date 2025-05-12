@@ -51,14 +51,14 @@ cloudsql:
     #@schema/validation one_of=["default", "skip", "include"]
     generation: "default"
     bundles:
-      pci-dss: false
-      cis: false
+      pci-dss: true
+      cis: true
   cloudsqlDisablePublicAuthorizedNetworks:
     #@schema/validation one_of=["default", "skip", "include"]
     generation: "default"
     bundles:
-      pci-dss: false
-      cis: false
+      pci-dss: true
+      cis: true
   cloudsqlEnforcePasswordComplexity:
     #@schema/validation one_of=["default", "skip", "include"]
     generation: "default"
@@ -73,7 +73,7 @@ cloudsql:
     generation: "default"
     bundles:
       pci-dss: false
-      cis: false
+      cis: true
   cloudsqlRequireHighAvailibility:
     #@schema/validation one_of=["default", "skip", "include"]
     generation: "default"
@@ -84,8 +84,8 @@ cloudsql:
       #@schema/validation one_of=["default", "skip", "include"]
       generation: "default"
       bundles:
-        pci-dss: false
-        cis: false
+        pci-dss: true
+        cis: true
   cloudsqlRequirePointInTimeRecovery:
     #@schema/validation one_of=["default", "skip", "include"]
     generation: "default"
@@ -96,8 +96,8 @@ cloudsql:
     #@schema/validation one_of=["default", "skip", "include"]
     generation: "default"
     bundles:
-      pci-dss: false
-      cis: false
+      pci-dss: true
+      cis: true
   cloudsqlRequireQueryInsights:
     #@schema/validation one_of=["default", "skip", "include"]
     generation: "default"
@@ -109,16 +109,16 @@ cloudsql:
     generation: "default"
     bundles:
       pci-dss: false
-      cis: false
+      cis: true
   cloudsqlRequireSQLServerDatabaseFlags:
     #@schema/validation one_of=["default", "skip", "include"]
     generation: "default"
     bundles:
-      pci-dss: false
-      cis: false
+      pci-dss: true
+      cis: true
   cloudsqlRequireSSLConnection:
     #@schema/validation one_of=["default", "skip", "include"]
     generation: "default"
     bundles:
       pci-dss: false
-      cis: false
+      cis: true

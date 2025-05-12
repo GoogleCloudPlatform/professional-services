@@ -5,7 +5,7 @@ OUTPUT_TF := samples/tf
 
 # By default, generating all services 
 # For testing, can be set SERVICE := "cloudsql"
-# SERVICE := "cloudkms"
+# SERVICE := "cloudrun"
 
 CUSTOM_CONSTRAINTS_BASE_DIR := build/custom-constraints/
 CUSTOM_CONSTRAINTS_DIR := $(CUSTOM_CONSTRAINTS_BASE_DIR)
@@ -50,11 +50,11 @@ simulate: clean constraints policies
 
 .PHONY: deploy-constraints
 deploy-constraints:
-	sh scripts/deploy.sh constraint $(OUTPUT_GCLOUD)/constraints
+	bash scripts/deploy.sh constraint $(OUTPUT_GCLOUD)/constraints
 
 .PHONY: deploy-policies
 deploy-policies:
-	sh scripts/deploy.sh policy $(OUTPUT_GCLOUD)/policies
+	bash scripts/deploy.sh policy $(OUTPUT_GCLOUD)/policies
 
 .PHONY: deploy
 deploy: deploy-constraints deploy-policies
