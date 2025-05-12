@@ -1,3 +1,0 @@
-custom.storageRequireBucketLock:
-  rules:
-  - enforce: true

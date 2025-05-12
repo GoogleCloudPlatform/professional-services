@@ -31,8 +31,8 @@ dataproc:
     #@schema/validation one_of=["default", "skip", "include"]
     generation: "default"
     bundles:
-      pci-dss: false
-      cis: false
+      pci-dss: true
+      cis: true
   dataprocDisableAmPreemptibleWorker:
     #@schema/validation one_of=["default", "skip", "include"]
     generation: "default"

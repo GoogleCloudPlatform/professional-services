@@ -1,0 +1,54 @@
+shared_config:
+  command:  gcloud compute instances create {{ identifier }} --zone asia-southeast2-a
+  teardown_command: gcloud compute instances delete  {{ identifier }} --zone asia-southeast2-a
+  default_command_flags: 
+    machine-type: e2-medium 
+    image-family: debian-11
+    image-project: debian-cloud 
+    boot-disk-size: 10GB 
+    boot-disk-type: pd-ssd 
+    address: no # no external IP
+    network: cuop-vpc-network
+    subnet: subnet-vm
+  default_markers:
+    - compute
+    - compute-instance
+
+compute_instance_allowed:
+  steps:
+  - expected_result:
+      return_code: 0
+
+compute_instance_no_ip_forward:
+  steps:
+  - command_flags:
+      can-ip-forward: false
+    expected_result:
+      return_code: 0
+
+compute_instance_confidential:
+  steps:
+  - command_flags:
+      confidential-compute-type: SEV
+      machine-type: n2d-standard-2
+      min-cpu-platform: AMD Milan
+      maintenance-policy: MIGRATE
+      image-family: debian-12
+    expected_result:
+      return_code: 0
+
+compute_instance_ip_forward:
+  steps:
+  - command_flags:
+      can-ip-forward: true
+    expected_result:
+      return_code: 1
+      stderr: customConstraints/custom.computeDisableIPForwarding
+
+compute_instance_no_confidential:
+  steps:
+  - command_flags:
+      machine-type: n2d-standard-2
+    expected_result:
+      return_code: 1
+      stderr: customConstraints/custom.computeRequireConfidentialComputing

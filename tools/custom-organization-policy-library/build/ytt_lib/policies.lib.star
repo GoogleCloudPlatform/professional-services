@@ -17,6 +17,9 @@ load("@ytt:struct", "struct")
 load("/config.lib.star", "include", "get_service")
 
 def _name(self):
+  if data.values.deployment and  data.values.deployment.parent != "":
+    return data.values.deployment.parent + "/policies/custom." + self.name
+  end
   return "organizations/" + data.values.organization + "/policies/custom." + self.name
 end
 

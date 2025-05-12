@@ -22,6 +22,7 @@ services = [
   "cloudsql",
   "compute", 
   "dataproc",
+  "dns",
   "firewall", 
   "gke", 
   "iam",
