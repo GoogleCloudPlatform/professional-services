@@ -2,6 +2,14 @@
 ## Overview
 
 This repository provides a library of custom organization policy constraints and samples. It includes tools to easily generate policies for provisioning across your organization using either Google Cloud (gcloud) or Terraform.
+
+For a detailled list of the policies developed, please refer [here](./docs/index.md). 
+
+The library contains more than 100 constraints, including implementation n of policies for these bundles:
+- CIS for GCP v3.0
+- CIS for GKE v1.5
+- PCI-DSS v4.0
+
 For more information on how Custom Organization Policies (CuOP) can help secure your environment, please refer to the  [Google Cloud documentation](./https://cloud.google.com/resource-manager/docs/organization-policy/creating-managing-custom-constraints).
 
 ## Setting up environment 

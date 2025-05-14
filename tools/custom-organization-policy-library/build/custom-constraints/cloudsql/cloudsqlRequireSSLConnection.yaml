@@ -1,0 +1,15 @@
+#@ load("/constraints.lib.star", "build_constraint")
+#@ constraint = build_constraint("cloudsqlRequireSSLConnection")
+
+#@ if constraint.to_generate():
+name: #@ constraint.constraint_name()
+resourceTypes:
+- sqladmin.googleapis.com/Instance
+methodTypes:
+- CREATE
+- UPDATE
+condition: resource.settings.ipConfiguration.sslMode in ['ENCRYPTED_ONLY', 'TRUSTED_CLIENT_CERTIFICATE_REQUIRED'] == false
+actionType: DENY
+display_name: Require Cloud SQL instances to allow only connections that are encrypted with SSL/TLS
+description: Ensure that Cloud SQL instance is configured to allow only connections that are encrypted with SSL/TLS
+#@ end

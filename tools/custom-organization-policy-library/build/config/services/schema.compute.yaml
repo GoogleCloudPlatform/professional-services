@@ -47,15 +47,6 @@ compute:
       #@schema/validation min_len=1
       disk_types:
       - ""
-  computeRestrictDiskSize:
-    #@schema/validation one_of=["default", "skip", "include"]
-    generation: "default"
-    bundles:
-      pci-dss: false
-      cis: false
-    params:
-      #@schema/validation min=1
-      max_disksize: 0
   computeAllowedInstanceVpcs:
     #@schema/validation one_of=["default", "skip", "include"]
     generation: "default"
@@ -66,5 +57,28 @@ compute:
       #@schema/validation min_len=1
       networks:
       - ""
-
-
+  computeDisableIPForwarding:
+    #@schema/validation one_of=["default", "skip", "include"]
+    generation: "default"
+    bundles:
+      pci-dss: false
+      cis: true
+  computeRequireConfidentialComputing:
+    #@schema/validation one_of=["default", "skip", "include"]
+    generation: "default"
+    bundles:
+      pci-dss: true
+      cis: true
+    params:
+      #@schema/validation min_len=1
+      machine_types:
+      - ""
+  computeRestrictDiskSize:
+    #@schema/validation one_of=["default", "skip", "include"]
+    generation: "default"
+    bundles:
+      pci-dss: false
+      cis: false
+    params:
+      #@schema/validation min=1
+      max_disksize: 0
