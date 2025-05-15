@@ -1,42 +1,43 @@
+"""
+Copyright 2025 Google. This software is provided as-is, 
+without warranty or representation for any use or purpose. 
+Your use of it is subject to your agreement with Google.
+
+"""
+
 # Google Cloud Project Configuration
-PROJECT_ID = "<project_id>"
+PROJECT_ID = "poc-env-aks-bq-admin"
 LOCATION = "us-central1"
+MODEL_ID="gemini-1.5-pro-002"
 
 # BigQuery Configuration
-target_bq_project_id = "<target_project_id>"
+target_bq_project_id = "poc-env-aks-bq-admin"
 target_bq_dataset = "tdm_bigquery_demo_target"
-source_bq_project_id = "<source_project_id>"
+source_bq_project_id = "poc-env-aks-bq-admin"
 source_bq_dataset = "tdm_bigquery_demo"
-audit_table = "<project_id>.datageneration.audit_log"
+audit_table = 'poc-env-aks-bq-admin.datageneration.audit_log'
 
 # Input Table Names (as a string, then potentially parsed in main)
 input_bq_table_names = (
-    "<project_id>.tdm_bigquery_demo.Dim_Account,"
-    "<project_id>.tdm_bigquery_demo.Fact_Transactions"
+    "poc-env-aks-bq-admin.tdm_bigquery_demo.Dim_Account,"
+    "poc-env-aks-bq-admin.tdm_bigquery_demo.Dim_Account_Type,"
+    "poc-env-aks-bq-admin.tdm_bigquery_demo.Dim_Branch,"
+    "poc-env-aks-bq-admin.tdm_bigquery_demo.Dim_Channel,"
+    "poc-env-aks-bq-admin.tdm_bigquery_demo.Dim_Customer,"
+    "poc-env-aks-bq-admin.tdm_bigquery_demo.Dim_Customer_Segment,"
+    "poc-env-aks-bq-admin.tdm_bigquery_demo.Dim_Date,"
+    "poc-env-aks-bq-admin.tdm_bigquery_demo.Dim_Location,"
+    "poc-env-aks-bq-admin.tdm_bigquery_demo.Dim_Product,"
+    "poc-env-aks-bq-admin.tdm_bigquery_demo.Dim_Product_Category,"
+    "poc-env-aks-bq-admin.tdm_bigquery_demo.Dim_Time,"
+    "poc-env-aks-bq-admin.tdm_bigquery_demo.Dim_Transaction_Type,"
+    "poc-env-aks-bq-admin.tdm_bigquery_demo.Fact_Transactions"
 )
-""" input_bq_table_names = (
-    "<project_id>.tdm_bigquery_demo.Dim_Account,"
-    "<project_id>.tdm_bigquery_demo.Dim_Account_Type,"
-    "<project_id>.tdm_bigquery_demo.Dim_Branch,"
-    "<project_id>.tdm_bigquery_demo.Dim_Channel,"
-    "<project_id>.tdm_bigquery_demo.Dim_Customer,"
-    "<project_id>.tdm_bigquery_demo.Dim_Customer_Segment,"
-    "<project_id>.tdm_bigquery_demo.Dim_Date,"
-    "<project_id>.tdm_bigquery_demo.Dim_Location,"
-    "<project_id>.tdm_bigquery_demo.Dim_Product,"
-    "<project_id>.tdm_bigquery_demo.Dim_Product_Category,"
-    "<project_id>.tdm_bigquery_demo.Dim_Time,"
-    "<project_id>.tdm_bigquery_demo.Dim_Transaction_Type,"
-    "<project_id>.tdm_bigquery_demo.Fact_Transactions"
-)
-"""
+
 
 # Desired record counts for generated tables
+
 user_counts = {
-    "Dim_Account": 10,
-    "Fact_Transactions": 20,
-}
-"""user_counts = {
     "Dim_Date": 10,
     "Dim_Time": 10,
     "Dim_Customer": 10,
@@ -51,19 +52,20 @@ user_counts = {
     "Dim_Transaction_Type": 10,
     "Fact_Transactions": 20,
 }
-"""
+
 
 # GCS Configuration
 gcs_bucket_name = "data-generation-usecase"
 
 # Source Type
-SOURCE_TYPE = "BigQuery"  # or "GCS"
+SOURCE_TYPE = "BigQuery" # or "GCS"
 
 # These will be initialized in main.py or passed around
 # batch_id (generated dynamically)
-# output_gcs_path (e.g., f"gs://{gcs_bucket_name}/<project_id>/tdm_output/{batch_id}/")
-# staging_gcs_path (e.g., f"gs://{gcs_bucket_name}/<project_id>/tdm_staging/{batch_id}")
-# staging_path_bigquery (e.g., f"gs://{gcs_bucket_name}/<project_id>/tdm_staging/bigquery/{batch_id}")
+# output_gcs_path (e.g., f"gs://{gcs_bucket_name}/poc-env-aks-bq-admin/tdm_output/{batch_id}/")
+# staging_gcs_path (e.g., f"gs://{gcs_bucket_name}/poc-env-aks-bq-admin/tdm_staging/{batch_id}")
+# staging_path_bigquery (e.g., f"gs://{gcs_bucket_name}/poc-env-aks-bq-admin/tdm_staging/bigquery/{batch_id}")
+
 
 # Local output directory for Snowfakery
-LOCAL_OUTPUT_BASE_DIR = "./output"  # Snowfakery generates files here first, batch_id subfolder will be created
+LOCAL_OUTPUT_BASE_DIR = "./output" # Snowfakery generates files here first, batch_id subfolder will be created

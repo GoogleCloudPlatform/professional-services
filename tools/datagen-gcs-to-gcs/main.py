@@ -1,3 +1,10 @@
+"""
+Copyright 2025 Google. This software is provided as-is, 
+without warranty or representation for any use or purpose. 
+Your use of it is subject to your agreement with Google.
+
+"""
+
 import uuid
 import os
 import shutil
@@ -16,27 +23,27 @@ import audit_utils
 
 def main():
     """Main function to orchestrate the synthetic data generation pipeline."""
-    # Variables from notebook, initialized or generated
-    batch_id = uuid.uuid4()  # Notebook uses this, then converts to str for logging
+    
+    batch_id = uuid.uuid4()  
     print(f"Starting pipeline with batch_id: {str(batch_id)}")
 
     # Initialize clients and Vertex AI
     try:
         vertex_init(project=config_vars.PROJECT_ID, location=config_vars.LOCATION)
         gemini_model = GenerativeModel(
-            "gemini-1.5-pro-002", generation_config=GenerationConfig(temperature=0)
+            config_vars.MODEL_ID, generation_config=GenerationConfig(temperature=0)
         )
         bq_client_main = bigquery.Client(project=config_vars.PROJECT_ID)
     except Exception as e:
         print(f"Error during initialization: {e}")
         return
 
-    # Define dynamic GCS paths using batch_id, preserving notebook structure
+    # Define dynamic GCS paths using batch_id
     output_gcs_path = f"gs://{config_vars.gcs_bucket_name}/{config_vars.PROJECT_ID}/tdm_output/{str(batch_id)}/"
-    staging_gcs_path = f"gs://{config_vars.gcs_bucket_name}/{config_vars.PROJECT_ID}/tdm_staging/{str(batch_id)}"  # No trailing slash as per notebook
-    staging_path_bigquery = f"gs://{config_vars.gcs_bucket_name}/{config_vars.PROJECT_ID}/tdm_staging/bigquery/{str(batch_id)}"  # No trailing slash
+    staging_gcs_path = f"gs://{config_vars.gcs_bucket_name}/{config_vars.PROJECT_ID}/tdm_staging/{str(batch_id)}"  
+    staging_path_bigquery = f"gs://{config_vars.gcs_bucket_name}/{config_vars.PROJECT_ID}/tdm_staging/bigquery/{str(batch_id)}"  
 
-    # Initialize maps/dicts as in notebook
+    # Initialize maps/dicts
     table_attributes = {}
     input_gcs_path = config_vars.input_gcs_path
     header_gcs_path = config_vars.header_gcs_path
@@ -45,25 +52,9 @@ def main():
     local_snowfakery_output_base = config_vars.LOCAL_OUTPUT_BASE_DIR
 
     try:
-        # 1. Export BigQuery Data to GCS (if source is BigQuery)
-        if config_vars.SOURCE_TYPE == "BigQuery":
-            print("\\n--- Exporting BigQuery tables to GCS ---")
-            # The export function in notebook populates a global 'input_gcs_path', here it returns it
-            input_gcs_path = bq_ops.export_bigquery_table_to_bq_gcs_staging(
-                bq_client_main,
-                config_vars.input_bq_table_names,  # Pass the string of table names
-                staging_path_bigquery,  # Pass the batch-specific path
-                input_gcs_path,
-            )
-            if not input_gcs_path:  # Check if the dictionary is empty
-                raise Exception(
-                    "Failed to export BigQuery tables or input_gcs_path map is empty."
-                )
-        # Add elif for SOURCE_TYPE == "GCS" if needed, similar to previous response
 
-        # 2. Pre-process Source Files
+        # 1. Pre-process Source Files
         print("\\n--- Pre-processing source files ---")
-        # This function in notebook uses/updates global 'table_attributes', here it returns it
         table_attributes = file_processing_utils.file_pre_processing(
             gemini_model,
             input_gcs_path,  # Pass the map generated above
@@ -78,13 +69,13 @@ def main():
                 "File preprocessing failed or no staging paths were generated."
             )
 
-        # 3. Start Audit Log
+        # 2. Start Audit Log
         print("\\n--- Logging start entries to audit table ---")
         audit_utils.start_audit_log(
             bq_client_main, batch_id, input_gcs_path, table_attributes, header_gcs_path
         )
 
-        # 4. Generate Synthetic Data using Snowfakery (combines recipe gen and run)
+        # 3. Generate Synthetic Data using Snowfakery (combines recipe gen and run)
         print("\\n--- Generating synthetic data (recipes and execution) ---")
         # Create a batch-specific local output directory for Snowfakery
         local_snowfakery_output_batch = os.path.join(
@@ -94,7 +85,7 @@ def main():
             shutil.rmtree(local_snowfakery_output_batch)
         os.makedirs(local_snowfakery_output_batch, exist_ok=True)
 
-        # The 'generate_output_data' function in notebook handles recipe creation and generation
+        # The 'generate_output_data' function handles recipe creation and generation
         generation_successful = snowfakery_gen.generate_output_data(
             gemini_model,
             table_attributes,  # Pass current table_attributes
@@ -103,7 +94,7 @@ def main():
         if not generation_successful:
             raise Exception("Snowfakery data generation process failed.")
 
-        # 5. Post-process Generated Files
+        # 4. Post-process Generated Files
         print("\\n--- Post-processing generated files ---")
         # This function updates and returns table_attributes with num_records_generated and output_gcs_path
         table_attributes = file_processing_utils.file_post_processing(
@@ -113,7 +104,7 @@ def main():
             local_snowfakery_output_batch,  # Local directory where generated files are
         )
 
-        # 6. End Audit Log
+        # 5. End Audit Log
         print("\\n--- Logging end entries to audit table ---")
         audit_utils.end_audit_log(
             bq_client_main, batch_id, input_gcs_path, table_attributes, header_gcs_path
