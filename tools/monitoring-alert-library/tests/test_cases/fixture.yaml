@@ -1,10 +1,14 @@
-before_tests: []
+before_tests:
   # Network for VPC
-  # - command: gcloud compute networks create monitoring-alert-vpc-network --subnet-mode=custom --bgp-routing-mode=global
-  # - command: gcloud compute networks subnets create subnet-vm --network=monitoring-alert-vpc-network --range=10.10.0.0/24 --region=asia-southeast2
-  # - command: gcloud compute networks subnets create subnet-gke --network=monitoring-alert-vpc-network --range=10.10.1.0/24 --region=asia-southeast2
-after_tests: []
+  - command: gcloud compute networks create monitoring-alert-vpc-network --subnet-mode=custom --bgp-routing-mode=global
+  - command: gcloud compute networks subnets create subnet-vm --network=monitoring-alert-vpc-network --range=10.10.0.0/24 --region=asia-southeast2
+  - command: gcloud compute networks subnets create subnet-gke --network=monitoring-alert-vpc-network --range=10.10.1.0/24 --region=asia-southeast2
+  # Firewall Policy
+  - command: gcloud compute network-firewall-policies create monitoring-alert-fw-policy --global
+after_tests:
   # Network for VPC
-  # - command: gcloud compute networks delete monitoring-alert-vpc-network
-  # - command: gcloud compute networks subnets delete subnet-vm --region=asia-southeast2
-  # - command: gcloud compute networks subnets delete subnet-gke --region=asia-southeast2
+  - command: gcloud compute networks delete monitoring-alert-vpc-network
+  - command: gcloud compute networks subnets delete subnet-vm --region=asia-southeast2
+  - command: gcloud compute networks subnets delete subnet-gke --region=asia-southeast2
+  # Firewall Policy
+  - command: gcloud compute network-firewall-policies delete monitoring-alert-fw-policy --global

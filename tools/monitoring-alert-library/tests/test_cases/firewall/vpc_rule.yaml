@@ -1,13 +1,14 @@
 shared_config:
+  log_filter: >-
+    resource.type="gce_firewall_rule" AND (protoPayload.methodName:"compute.firewalls.patch" OR protoPayload.methodName:"compute.firewalls.insert" OR protoPayload.methodName:"compute.firewalls.delete")
   default_markers:
     - firewall
     - firewall-vpc-rule
 
 firewall_vpc_creation_audit_log:
   steps:
-  - log_filter: >-
-        resource.type="gce_firewall_rule" AND (protoPayload.methodName:"compute.firewalls.patch" OR protoPayload.methodName:"compute.firewalls.insert" OR protoPayload.methodName:"compute.firewalls.delete")
-    command: gcloud compute firewall-rules create {{ identifier }}
+  - command: gcloud compute firewall-rules create {{ identifier }}
+    teardown_command: gcloud compute firewall-rules delete {{ identifier }}
     command_flags: 
       action: ALLOW
       direction: INGRESS
@@ -15,17 +16,16 @@ firewall_vpc_creation_audit_log:
       priority: 1000  
       rules: tcp:3389 
       source-ranges: 192.168.1.0/24
-    teardown_command: gcloud compute firewall-rules delete {{ identifier }}
     expected_result:
       return_code: 0
       attributes:
         'protoPayload.resourceName': "projects/{{ project }}/global/firewalls/{{ identifier }}"
         'protoPayload.methodName': "v1.compute.firewalls.insert"
 
-
 firewall_vpc_update_audit_log:
   steps:
   - command: gcloud compute firewall-rules create {{ identifier }}
+    teardown_command: gcloud compute firewall-rules delete {{ identifier }}
     command_flags: 
       action: ALLOW
       direction: INGRESS
@@ -33,12 +33,9 @@ firewall_vpc_update_audit_log:
       priority: 1000  
       rules: tcp:3389 
       source-ranges: 192.168.1.0/24
-    teardown_command: gcloud compute firewall-rules delete {{ identifier }}
     expected_result:
       return_code: 0
-  - log_filter: >-
-        resource.type="gce_firewall_rule" AND (protoPayload.methodName:"compute.firewalls.patch" OR protoPayload.methodName:"compute.firewalls.insert" OR protoPayload.methodName:"compute.firewalls.delete")
-    command: gcloud compute firewall-rules update {{ identifier }}
+  - command: gcloud compute firewall-rules update {{ identifier }}
     command_flags: 
       priority: 1001
     expected_result:
@@ -60,9 +57,7 @@ firewall_vpc_delete_audit_log:
       source-ranges: 192.168.1.0/24
     expected_result:
       return_code: 0
-  - log_filter: >-
-        resource.type="gce_firewall_rule" AND (protoPayload.methodName:"compute.firewalls.patch" OR protoPayload.methodName:"compute.firewalls.insert" OR protoPayload.methodName:"compute.firewalls.delete")
-    command: gcloud compute firewall-rules delete {{ identifier }}
+  - command: gcloud compute firewall-rules delete {{ identifier }}
     expected_result:
       return_code: 0
       attributes:

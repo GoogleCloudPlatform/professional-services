@@ -40,6 +40,12 @@ alerts:
     bundles:
       pci-dss: false
       cis: false
+  firewallPolicyRuleChanges:
+    #@schema/validation one_of=["default", "skip", "include"]
+    generation: "default"
+    bundles:
+      pci-dss: false
+      cis: false
   firewallRuleChanges:
     #@schema/validation one_of=["default", "skip", "include"]
     generation: "default"

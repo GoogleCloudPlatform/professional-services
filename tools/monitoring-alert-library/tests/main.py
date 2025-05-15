@@ -240,14 +240,11 @@ def test_gcloud_command(name, steps, shared_config):
                 f"STDOUT: {stdout_raw[:500]}... " 
                 f"STDERR: {stderr_raw[:500]}..."
             )
-            # If main command has explicit failure conditions and fails, assert immediately.
-            # This depends on whether log check should proceed if main command fails.
-            # Assuming for now: if main command validation fails, the step fails.
             assert main_cmd_ok, f"Test '{name}', step '{step_name}': Main command execution or validation failed."
 
         # --- 2. Perform log validation if configured ---
         log_validation_overall_ok = True # Default to True if no log validation is configured
-        log_filter_template = step.get("log_filter")
+        log_filter_template = shared_config.get("log_filter")
         expected_attributes = step.get("expected_result", {}).get("attributes")
 
         if log_filter_template and expected_attributes:

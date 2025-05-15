@@ -26,7 +26,6 @@ def pytest_sessionstart(session):
         os.getenv("PROJECT_NUMBER"),
     )
 
-
 def _print_centered_with_fill(text_to_center):
     """
     Prints the given text centered on the screen,
