@@ -4,10 +4,29 @@ import logging
 import shlex
 import shutil
 import subprocess
-
+import datetime
+import time
+import json
+from jsonpath_ng import jsonpath, parse as parse_jsonpath
 
 GCLOUD_EXIT_CODE_OK_OR_FAIL_ALREADY_EXISTS = "0_or_1_already_exists"
 
+# Log polling constants
+LOG_POLL_RETRIES = 3  # Number of retries for fetching logs
+LOG_POLL_INITIAL_INTERVAL_SECONDS = 5  # Initial wait time
+LOG_POLL_MAX_INTERVAL_SECONDS = 30  # Maximum wait time for exponential backoff
+
+
+def substitute_variables(command_template, prefix, project_id, project_number):
+    """Substitutes placeholders in a command string."""
+    command = str(command_template)
+    if "{{ project }}" in command and project_id:
+        command = command.replace("{{ project }}", project_id)
+    if "{{ project_number }}" in command and project_number:
+        command = command.replace("{{ project_number }}", project_number)
+    if "{{ prefix }}" in command and prefix:
+        command = command.replace("{{ prefix }}", prefix)
+    return command
 
 def sanitize_gcloud_command(command_list):
     """
@@ -53,23 +72,6 @@ def run_gcloud_command(command_string):
         sys.exit(1)
 
     return process_result
-
-
-def test_gcloud_command(name, steps, shared_config):
-    """
-    Execute a pytest test involving gcloud command ans ensure
-    that the gcloud output is container an expected pattern
-    """
-    logging.debug("Running gcloud test %s with shared_config=%s", name, shared_config)
-    for step in steps:
-        command = shlex.split(step.get("command"))
-        if command[0] != "gcloud":
-            logging.fatal("Command %s is not supported", command[0])
-            assert False
-
-        output = run_gcloud_command(step.get("command"))
-        result = parse_gcloud_output(step, output)
-        assert result
 
 
 def parse_gcloud_output(step, output):
@@ -124,3 +126,210 @@ def parse_gcloud_output(step, output):
         return False
 
     return True
+
+def validate_log_attributes(log_entry, expected_attributes, substitutions):
+    """
+    Validates attributes of a log entry against expected attributes after substitution.
+    substitutions: dict with 'prefix', 'project_id', 'project_number', 'identifier'
+    """
+    if not log_entry:
+        logging.error("Log entry is empty, cannot validate attributes.")
+        return False
+    if not expected_attributes:
+        logging.debug("No expected_attributes to validate in log entry.")
+        return True
+
+    all_match = True
+    for path_key, expected_value_template in expected_attributes.items():
+        substituted_expected_value = substitute_variables(
+            str(expected_value_template),
+            substitutions["prefix"],
+            substitutions["project_id"],
+            substitutions["project_number"]
+        )
+        if "{{ identifier }}" in substituted_expected_value and "identifier" in substitutions:
+            substituted_expected_value = substituted_expected_value.replace("{{ identifier }}", substitutions["identifier"])
+
+        jsonpath_expr = parse_jsonpath(path_key)
+        matches = jsonpath_expr.find(log_entry)
+
+        if not matches:
+            logging.warning(f"Log attribute check: JSONPath '{path_key}' not found in log entry.")
+            all_match = False
+            continue
+
+        actual_value = matches[0].value
+        expected_value_parsed = substituted_expected_value # By default, treat as string
+
+        # Attempt to match type of expected_value_template if it's not a string from YAML (e.g. bool, int)
+        # YAML loads bools as Python bools, numbers as int/float.
+        if isinstance(expected_value_template, bool):
+            # Convert actual_value to bool for comparison
+            if isinstance(actual_value, str):
+                actual_value_cmp = actual_value.lower() == 'true'
+            else:
+                actual_value_cmp = bool(actual_value)
+            expected_value_cmp = expected_value_template
+        elif isinstance(expected_value_template, int):
+            try:
+                actual_value_cmp = int(actual_value)
+                expected_value_cmp = expected_value_template
+            except (ValueError, TypeError):
+                logging.warning(f"Log attribute check: Cannot compare '{actual_value}' as int for path '{path_key}'.")
+                all_match = False
+                continue
+        elif isinstance(expected_value_template, float):
+            try:
+                actual_value_cmp = float(actual_value)
+                expected_value_cmp = expected_value_template
+            except (ValueError, TypeError):
+                logging.warning(f"Log attribute check: Cannot compare '{actual_value}' as float for path '{path_key}'.")
+                all_match = False
+                continue
+        else: # Default to string comparison
+            actual_value_cmp = str(actual_value)
+            expected_value_cmp = str(substituted_expected_value)
+
+
+        if actual_value_cmp != expected_value_cmp:
+            logging.warning(
+                f"Log attribute mismatch for '{path_key}'. Expected: '{expected_value_cmp}' (type: {type(expected_value_cmp)}), "
+                f"Got: '{actual_value_cmp}' (type: {type(actual_value_cmp)}, original: '{actual_value}')"
+            )
+            all_match = False
+
+    return all_match
+
+def test_gcloud_command(name, steps, shared_config):
+    """
+    Execute a pytest test involving gcloud command, optionally check for specific logs,
+    and ensure that the gcloud output and/or log attributes match expected patterns.
+    """
+    logging.info("STARTING GCLOUD TEST: %s (Shared config: %s)", name, shared_config)
+    prefix = os.getenv("PREFIX")
+    project_id = os.getenv("PROJECT_ID")
+    project_number = os.getenv("PROJECT_NUMBER")
+
+    # This identifier is specific to the test case (e.g., 'myprefix-firewall-vpc-creation')
+    test_specific_identifier = f"{prefix}-{name.replace('_', '-')}" if prefix else name.replace('_', '-')
+
+    for step_index, step in enumerate(steps):
+        step_name = step.get("name", f"Step {step_index + 1}")
+        logging.info(f"Executing Test '{name}', {step_name}")
+
+        main_command_str = step.get("command")
+        if not main_command_str:
+            logging.error(f"No command found for step {step_name} in test {name}")
+            assert False, f"Missing command in step {step_name} for test {name}"
+
+        # --- 1. Execute the main gcloud command ---
+        logging.info(f"Main command for step '{step_name}': {main_command_str}")
+        start_time_utc = datetime.datetime.utcnow()
+        # Ensure RFC3339 format with Z for UTC, compatible with gcloud timestamp filters
+        start_timestamp_rfc3339 = start_time_utc.isoformat(timespec='microseconds') + "Z"
+
+        main_cmd_output_obj = run_gcloud_command(main_command_str)
+        main_cmd_ok = parse_gcloud_output(step, main_cmd_output_obj)
+
+        if not main_cmd_ok:
+            stdout_raw = main_cmd_output_obj.stdout.decode('utf-8', errors='replace') if main_cmd_output_obj.stdout else ""
+            stderr_raw = main_cmd_output_obj.stderr.decode('utf-8', errors='replace') if main_cmd_output_obj.stderr else ""
+            logging.error(
+                f"Main command for step '{step_name}' failed validation. "
+                f"Return Code: {main_cmd_output_obj.returncode}. "
+                f"STDOUT: {stdout_raw[:500]}... " 
+                f"STDERR: {stderr_raw[:500]}..."
+            )
+            # If main command has explicit failure conditions and fails, assert immediately.
+            # This depends on whether log check should proceed if main command fails.
+            # Assuming for now: if main command validation fails, the step fails.
+            assert main_cmd_ok, f"Test '{name}', step '{step_name}': Main command execution or validation failed."
+
+        # --- 2. Perform log validation if configured ---
+        log_validation_overall_ok = True # Default to True if no log validation is configured
+        log_filter_template = step.get("log_filter")
+        expected_attributes = step.get("expected_result", {}).get("attributes")
+
+        if log_filter_template and expected_attributes:
+            logging.info(f"Step '{step_name}': Performing log validation.")
+
+            # Substitute variables in log_filter_template
+            log_filter_substituted_vars = substitute_variables(
+                log_filter_template, prefix, project_id, project_number
+            )
+            log_filter_final = log_filter_substituted_vars.replace("{{ identifier }}", test_specific_identifier)
+
+            full_log_filter = f'({log_filter_final}) AND timestamp >= "{start_timestamp_rfc3339}"'
+            logging_command_str = f"gcloud logging read '{full_log_filter}' --format json --limit 1 --order=desc"
+            
+            log_found_and_valid = False
+            current_interval = LOG_POLL_INITIAL_INTERVAL_SECONDS
+
+            for attempt in range(LOG_POLL_RETRIES):
+                logging.info(
+                    f"Log poll attempt {attempt + 1}/{LOG_POLL_RETRIES} for step '{step_name}'. "
+                    f"Command: {logging_command_str}"
+                )
+                log_cmd_output_obj = run_gcloud_command(logging_command_str)
+
+                log_stdout = log_cmd_output_obj.stdout.decode("utf-8", errors="replace") if log_cmd_output_obj.stdout else ""
+                log_stderr = log_cmd_output_obj.stderr.decode("utf-8", errors="replace") if log_cmd_output_obj.stderr else ""
+
+                if log_cmd_output_obj.returncode == 0 and log_stdout.strip():
+                    try:
+                        log_entries = json.loads(log_stdout)
+                        if log_entries: # Found one or more log entries
+                            log_entry = log_entries[0] # Process the latest one matching criteria
+                            logging.info(f"Log entry found for step '{step_name}'. Validating attributes...")
+                            logging.debug(f"Log entry content: {json.dumps(log_entry, indent=2)}")
+
+                            substitutions_for_validation = {
+                                "prefix": prefix,
+                                "project_id": project_id,
+                                "project_number": project_number,
+                                "identifier": test_specific_identifier
+                            }
+                            if validate_log_attributes(log_entry, expected_attributes, substitutions_for_validation):
+                                logging.info(f"Log attributes validated successfully for step '{step_name}'.")
+                                log_found_and_valid = True
+                                break # Exit polling loop
+                            else:
+                                logging.warning(f"Log attributes validation failed for step '{step_name}'. Will retry if attempts left.")
+                        else:
+                            logging.info(f"Log poll attempt {attempt + 1}: No matching log entries found yet for step '{step_name}'.")
+                    except json.JSONDecodeError as e:
+                        logging.error(f"Failed to parse JSON from 'gcloud logging read' output: {e}. Output: {log_stdout}")
+                else:
+                    logging.warning(
+                        f"Log poll attempt {attempt + 1} for step '{step_name}' failed or returned no output. "
+                        f"RC: {log_cmd_output_obj.returncode}. Stderr: {log_stderr}"
+                    )
+                
+                if attempt < LOG_POLL_RETRIES - 1:
+                    logging.info(f"Waiting {current_interval}s before next log poll attempt...")
+                    time.sleep(current_interval)
+                    # Exponential backoff
+                    current_interval = min(current_interval * 2, LOG_POLL_MAX_INTERVAL_SECONDS)
+
+            log_validation_overall_ok = log_found_and_valid
+            if not log_validation_overall_ok:
+                logging.error(f"Test '{name}', step '{step_name}': Log validation failed after {LOG_POLL_RETRIES} attempts.")
+
+        elif log_filter_template and not expected_attributes:
+            logging.info(
+                f"Step '{step_name}' for test '{name}': 'log_filter' provided but 'expected_result.attributes' is missing. "
+                "Skipping log validation."
+            )
+        elif not log_filter_template and expected_attributes:
+            logging.info(
+                f"Step '{step_name}' for test '{name}': 'expected_result.attributes' provided but 'log_filter' is missing. "
+                "Skipping log validation."
+            )
+
+        # --- 3. Final assertion for the step ---
+        assert main_cmd_ok and log_validation_overall_ok, \
+            f"Test '{name}', step '{step_name}' failed. Main command OK: {main_cmd_ok}, Log validation OK: {log_validation_overall_ok}"
+
+        logging.info(f"COMPLETED Test '{name}', step '{step_name}' successfully.")
+
+    logging.info(f"COMPLETED GCLOUD TEST: {name} successfully.")

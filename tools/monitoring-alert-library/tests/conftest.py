@@ -2,7 +2,7 @@ import logging
 import os
 import yaml
 import pytest
-from main import run_gcloud_command, GCLOUD_EXIT_CODE_OK_OR_FAIL_ALREADY_EXISTS
+from main import run_gcloud_command, substitute_variables, GCLOUD_EXIT_CODE_OK_OR_FAIL_ALREADY_EXISTS
 
 TEST_CASES_DIR = os.path.join(os.path.dirname(__file__), "test_cases")
 FIXTURE_CONFIG_FILE = os.path.join(TEST_CASES_DIR, "fixture.yaml")
@@ -12,21 +12,13 @@ def pytest_sessionstart(session):
     """Check for essential setup before starting the session."""
     if not os.path.isdir(TEST_CASES_DIR):
         pytest.exit(f"Test case directory not found: {TEST_CASES_DIR}", returncode=1)
-    if not os.getenv("PREFIX"):
-        pytest.exit(
-            "Environment variable 'PREFIX' is not set. It is required for test execution.",
-            returncode=1,
-        )
-    if not os.getenv("PROJECT_ID"):
-        pytest.exit(
-            "Environment variable 'PROJECT_ID' is not set. It is required for test execution.",
-            returncode=1,
-        )
-    if not os.getenv("PROJECT_NUMBER"):
-        pytest.exit(
-            "Environment variable 'PROJECT_NUMBER' is not set. It is required for test execution.",
-            returncode=1,
-        )
+    required_env_vars = ["PREFIX", "PROJECT_ID", "PROJECT_NUMBER"]
+    for var in required_env_vars:
+        if not os.getenv(var):
+            pytest.exit(
+                f"Environment variable '{var}' is not set. It is required for test execution.",
+                returncode=1,
+            )
     logging.info(
         "Initial checks passed. PREFIX=%s, PROJECT_ID=%s, PROJECT_NUMBER=%s",
         os.getenv("PREFIX"),
@@ -62,19 +54,6 @@ def _load_fixture_config():
         )
         pytest.fail(f"Failed to load {FIXTURE_CONFIG_FILE}: {e}", pytrace=False)
 
-
-def _substitute_variables(command_template, prefix, project_id, project_number):
-    """Substitutes placeholders in a command string."""
-    command = command_template
-    if "{{ project }}" in command and project_id:
-        command = command.replace("{{ project }}", project_id)
-    if "{{ project_number }}" in command and project_number:
-        command = command.replace("{{ project_number }}", project_number)
-    if "{{ prefix }}" in command and prefix:
-        command = command.replace("{{ prefix }}", prefix)
-    return command
-
-
 @pytest.fixture(scope="session", autouse=True)
 def session_setup_and_teardown():
     """
@@ -101,7 +80,7 @@ def session_setup_and_teardown():
                 )
                 continue
 
-            command = _substitute_variables(
+            command = substitute_variables(
                 command_template, prefix, project_id, project_number
             )
             logging.info("Running setup command (%s): %s", description, command)
@@ -146,7 +125,7 @@ def session_setup_and_teardown():
                 )
                 continue
 
-            command = _substitute_variables(
+            command = substitute_variables(
                 command_template, prefix, project_id, project_number
             )
             logging.info("Running teardown command (%s): %s", description, command)
@@ -237,7 +216,7 @@ def pytest_collection_modifyitems(session, config, items):
                         command_template,
                         identifier,
                     )
-                    command = _substitute_variables(
+                    command = substitute_variables(
                         command_template, prefix, project_id, project_number
                     )
                     if "{{ identifier }}" in command and identifier is not None:
@@ -290,7 +269,7 @@ def pytest_runtest_teardown(item, nextitem):
             identifier,
         )
 
-        teardown_command = _substitute_variables(
+        teardown_command = substitute_variables(
             teardown_template, prefix, project_id, project_number
         )
         if "{{ identifier }}" in teardown_template and identifier is not None:
