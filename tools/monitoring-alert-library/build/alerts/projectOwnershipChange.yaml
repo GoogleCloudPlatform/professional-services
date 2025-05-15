@@ -9,24 +9,36 @@ documentation:
   content: >-
     Log-based alerting policy in project ${project} detected a project ownership assignments or changes.
     ```
-    (protoPayload.serviceName="cloudresourcemanager.googleapis.com") 
-    AND (ProjectOwnership OR projectOwnerInvitee) 
-    OR (protoPayload.serviceData.policyDelta.bindingDeltas.action="REMOVE" 
-    AND protoPayload.serviceData.policyDelta.bindingDeltas.role="roles/owner") 
-    OR (protoPayload.serviceData.policyDelta.bindingDeltas.action="ADD" 
-    AND protoPayload.serviceData.policyDelta.bindingDeltas.role="roles/owner")
+    (protoPayload.serviceName="cloudresourcemanager.googleapis.com") AND 
+    (ProjectOwnership OR projectOwnerInvitee) 
+    OR 
+    (
+      protoPayload.serviceData.policyDelta.bindingDeltas.action="REMOVE" AND 
+      protoPayload.serviceData.policyDelta.bindingDeltas.role="roles/owner"
+    ) 
+    OR 
+    (
+      protoPayload.serviceData.policyDelta.bindingDeltas.action="ADD" AND 
+      protoPayload.serviceData.policyDelta.bindingDeltas.role="roles/owner"
+    )
     ```
   mimeType: text/markdown
 conditions:
   - displayName: 'Log match condition: project ownership changes'
     conditionMatchedLog:
       filter: >-
-        (protoPayload.serviceName="cloudresourcemanager.googleapis.com") 
-        AND (ProjectOwnership OR projectOwnerInvitee) 
-        OR (protoPayload.serviceData.policyDelta.bindingDeltas.action="REMOVE" 
-        AND protoPayload.serviceData.policyDelta.bindingDeltas.role="roles/owner") 
-        OR (protoPayload.serviceData.policyDelta.bindingDeltas.action="ADD" 
-        AND protoPayload.serviceData.policyDelta.bindingDeltas.role="roles/owner")
+        (protoPayload.serviceName="cloudresourcemanager.googleapis.com") AND 
+        (ProjectOwnership OR projectOwnerInvitee) 
+        OR 
+        (
+          protoPayload.serviceData.policyDelta.bindingDeltas.action="REMOVE" AND 
+          protoPayload.serviceData.policyDelta.bindingDeltas.role="roles/owner"
+        ) 
+        OR 
+        (
+          protoPayload.serviceData.policyDelta.bindingDeltas.action="ADD" AND 
+          protoPayload.serviceData.policyDelta.bindingDeltas.role="roles/owner"
+        )
 combiner: OR
 #@ if alert.has_notification_channels():
 _: #@ template.replace(generate_notification_channels())
