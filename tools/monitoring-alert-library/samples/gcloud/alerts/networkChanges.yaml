@@ -1,13 +1,11 @@
 displayName: VPC Network Changes
 documentation:
-  content: |-
-    Log-based alerting policy in project ${project} detected VPC Network changes.
-    This alert helps ensure security by monitoring creation, modification, deletion, or peering changes to VPC networks. ``` resource.type="gce_network" AND (protoPayload.methodName:"compute.networks.insert" OR protoPayload.methodName:"compute.networks.patch" OR protoPayload.methodName:"compute.networks.delete" OR protoPayload.methodName:"compute.networks.removePeering" OR protoPayload.methodName:"compute.networks.addPeering") ```
+  content: "Log-based alerting policy in project ${project} detected VPC Network changes.\nThis alert helps ensure security by monitoring creation, modification, deletion, or peering changes to VPC networks. ``` resource.type=\"gce_network\" AND  (\n  protoPayload.methodName:\"compute.networks.insert\" OR \n  protoPayload.methodName:\"compute.networks.patch\" OR \n  protoPayload.methodName:\"compute.networks.delete\" OR \n  protoPayload.methodName:\"compute.networks.addPeering\" OR \n  protoPayload.methodName:\"compute.networks.updatePeering\" OR \n  protoPayload.methodName:\"compute.networks.removePeering\"\n) ```"
   mimeType: text/markdown
 conditions:
 - displayName: 'Log match condition: network changes'
   conditionMatchedLog:
-    filter: resource.type="gce_network" AND (protoPayload.methodName:"compute.networks.insert" OR protoPayload.methodName:"compute.networks.patch" OR protoPayload.methodName:"compute.networks.delete" OR protoPayload.methodName:"compute.networks.removePeering" OR protoPayload.methodName:"compute.networks.addPeering")
+    filter: "resource.type=\"gce_network\" AND  (\n  protoPayload.methodName:\"compute.networks.insert\" OR \n  protoPayload.methodName:\"compute.networks.patch\" OR \n  protoPayload.methodName:\"compute.networks.delete\" OR \n  protoPayload.methodName:\"compute.networks.addPeering\" OR \n  protoPayload.methodName:\"compute.networks.updatePeering\" OR \n  protoPayload.methodName:\"compute.networks.removePeering\"\n)"
 combiner: OR
 notificationChannels:
 - projects/dbs-validator-kcc-29ae/notificationChannels/1911345462390136248
