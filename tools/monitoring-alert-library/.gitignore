@@ -7,3 +7,5 @@
 
 */**/terraform.tfstate*
 terraform/
+tests/venv/
+report.html
