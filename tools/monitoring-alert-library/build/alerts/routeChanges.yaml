@@ -11,18 +11,22 @@ documentation:
 
     This alert helps ensure security by monitoring creation or deletion of network routes.
     ```
-    resource.type="gce_route"
-    AND (protoPayload.methodName:"compute.routes.delete"
-    OR protoPayload.methodName:"compute.routes.insert")
+    resource.type="gce_route" AND 
+    (
+      protoPayload.methodName:"compute.routes.insert" OR 
+      protoPayload.methodName:"compute.routes.delete"
+    )
     ```
   mimeType: text/markdown
 conditions:
   - displayName: 'Log match condition: route changes'
     conditionMatchedLog:
       filter: >-
-        resource.type="gce_route"
-        AND (protoPayload.methodName:"compute.routes.delete"
-        OR protoPayload.methodName:"compute.routes.insert")
+        resource.type="gce_route" AND 
+        (
+          protoPayload.methodName:"compute.routes.insert" OR 
+          protoPayload.methodName:"compute.routes.delete"
+        )
 combiner: OR
 #@ if alert.has_notification_channels():
 _: #@ template.replace(generate_notification_channels())

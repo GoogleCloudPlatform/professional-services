@@ -1,13 +1,11 @@
 displayName: VPC Network Route Changes
 documentation:
-  content: |-
-    Log-based alerting policy in project ${project} detected VPC Network Route changes.
-    This alert helps ensure security by monitoring creation or deletion of network routes. ``` resource.type="gce_route" AND (protoPayload.methodName:"compute.routes.delete" OR protoPayload.methodName:"compute.routes.insert") ```
+  content: "Log-based alerting policy in project ${project} detected VPC Network Route changes.\nThis alert helps ensure security by monitoring creation or deletion of network routes. ``` resource.type=\"gce_route\" AND  (\n  protoPayload.methodName:\"compute.routes.insert\" OR \n  protoPayload.methodName:\"compute.routes.delete\"\n) ```"
   mimeType: text/markdown
 conditions:
 - displayName: 'Log match condition: route changes'
   conditionMatchedLog:
-    filter: resource.type="gce_route" AND (protoPayload.methodName:"compute.routes.delete" OR protoPayload.methodName:"compute.routes.insert")
+    filter: "resource.type=\"gce_route\" AND  (\n  protoPayload.methodName:\"compute.routes.insert\" OR \n  protoPayload.methodName:\"compute.routes.delete\"\n)"
 combiner: OR
 notificationChannels:
 - projects/dbs-validator-kcc-29ae/notificationChannels/1911345462390136248
