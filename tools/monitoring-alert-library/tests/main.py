@@ -7,17 +7,21 @@ import subprocess
 import datetime
 import time
 import json
+import uuid
+import hashlib
+import pytest
 from jsonpath_ng import jsonpath, parse as parse_jsonpath
 
 GCLOUD_EXIT_CODE_OK_OR_FAIL_ALREADY_EXISTS = "0_or_1_already_exists"
+RANDOM_KEY = pytest.StashKey[str]()
 
 # Log polling constants
-LOG_POLL_RETRIES = 3  # Number of retries for fetching logs
+LOG_POLL_RETRIES = 5  # Number of retries for fetching logs
 LOG_POLL_INITIAL_INTERVAL_SECONDS = 5  # Initial wait time
-LOG_POLL_MAX_INTERVAL_SECONDS = 30  # Maximum wait time for exponential backoff
+LOG_POLL_MAX_INTERVAL_SECONDS = 60  # Maximum wait time for exponential backoff
 
 
-def substitute_variables(command_template, prefix, project_id, project_number):
+def substitute_variables(command_template, prefix, project_id, project_number, random):
     """Substitutes placeholders in a command string."""
     command = str(command_template)
     if "{{ project }}" in command and project_id:
@@ -26,6 +30,8 @@ def substitute_variables(command_template, prefix, project_id, project_number):
         command = command.replace("{{ project_number }}", project_number)
     if "{{ prefix }}" in command and prefix:
         command = command.replace("{{ prefix }}", prefix)
+    if "{{ random }}" in command and random:
+        command = command.replace("{{ random }}", random)
     return command
 
 def sanitize_gcloud_command(command_list):
@@ -145,7 +151,8 @@ def validate_log_attributes(log_entry, expected_attributes, substitutions):
             str(expected_value_template),
             substitutions["prefix"],
             substitutions["project_id"],
-            substitutions["project_number"]
+            substitutions["project_number"],
+            substitutions["random"],
         )
         if "{{ identifier }}" in substituted_expected_value and "identifier" in substitutions:
             substituted_expected_value = substituted_expected_value.replace("{{ identifier }}", substitutions["identifier"])
@@ -200,7 +207,7 @@ def validate_log_attributes(log_entry, expected_attributes, substitutions):
 
     return all_match
 
-def test_gcloud_command(name, steps, shared_config):
+def test_gcloud_command(current_test_item, name, steps, shared_config):
     """
     Execute a pytest test involving gcloud command, optionally check for specific logs,
     and ensure that the gcloud output and/or log attributes match expected patterns.
@@ -209,6 +216,7 @@ def test_gcloud_command(name, steps, shared_config):
     prefix = os.getenv("PREFIX")
     project_id = os.getenv("PROJECT_ID")
     project_number = os.getenv("PROJECT_NUMBER")
+    random = current_test_item.stash.get(RANDOM_KEY, None)
 
     # This identifier is specific to the test case (e.g., 'myprefix-firewall-vpc-creation')
     test_specific_identifier = f"{prefix}-{name.replace('_', '-')}" if prefix else name.replace('_', '-')
@@ -252,7 +260,7 @@ def test_gcloud_command(name, steps, shared_config):
 
             # Substitute variables in log_filter_template
             log_filter_substituted_vars = substitute_variables(
-                log_filter_template, prefix, project_id, project_number
+                log_filter_template, prefix, project_id, project_number, random
             )
             log_filter_final = log_filter_substituted_vars.replace("{{ identifier }}", test_specific_identifier)
 
@@ -284,7 +292,8 @@ def test_gcloud_command(name, steps, shared_config):
                                 "prefix": prefix,
                                 "project_id": project_id,
                                 "project_number": project_number,
-                                "identifier": test_specific_identifier
+                                "identifier": test_specific_identifier,
+                                "random": random,
                             }
                             if validate_log_attributes(log_entry, expected_attributes, substitutions_for_validation):
                                 logging.info(f"Log attributes validated successfully for step '{step_name}'.")

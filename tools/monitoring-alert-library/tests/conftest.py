@@ -2,11 +2,13 @@ import logging
 import os
 import yaml
 import pytest
-from main import run_gcloud_command, substitute_variables, GCLOUD_EXIT_CODE_OK_OR_FAIL_ALREADY_EXISTS
+import uuid
+import hashlib
+
+from main import run_gcloud_command, substitute_variables, GCLOUD_EXIT_CODE_OK_OR_FAIL_ALREADY_EXISTS, RANDOM_KEY
 
 TEST_CASES_DIR = os.path.join(os.path.dirname(__file__), "test_cases")
 FIXTURE_CONFIG_FILE = os.path.join(TEST_CASES_DIR, "fixture.yaml")
-
 
 def pytest_sessionstart(session):
     """Check for essential setup before starting the session."""
@@ -80,7 +82,7 @@ def session_setup_and_teardown():
                 continue
 
             command = substitute_variables(
-                command_template, prefix, project_id, project_number
+                command_template, prefix, project_id, project_number, None
             )
             logging.info("Running setup command (%s): %s", description, command)
             try:
@@ -125,7 +127,7 @@ def session_setup_and_teardown():
                 continue
 
             command = substitute_variables(
-                command_template, prefix, project_id, project_number
+                command_template, prefix, project_id, project_number, None
             )
             logging.info("Running teardown command (%s): %s", description, command)
             try:
@@ -150,6 +152,12 @@ def session_setup_and_teardown():
             "No 'after_tests' commands found or fixture file missing."
         )
 
+@pytest.fixture
+def current_test_item(request):
+    """
+    Fixture to provide access to the current test item (pytest.Function object).
+    """
+    return request.node
 
 def build_command(shared_config, step):
     """
@@ -197,10 +205,16 @@ def pytest_collection_modifyitems(session, config, items):
     for item in items:
         if "steps" in getattr(item, "callspec", {}).params:
             identifier = item.callspec.params.get("name", "").replace("_", "-")
+            random_string = str(uuid.uuid4())
+            random = hashlib.sha256(random_string.encode()).hexdigest()
+            random = random[:8]
+            item.stash[RANDOM_KEY] = random
+
             logging.debug(
-                "Processing pytest item: %s with identifier: %s",
+                "Processing pytest item: %s with identifier: %s and random: %s",
                 item.nodeid,
                 identifier,
+                random
             )
             shared_config = item.callspec.params.get("shared_config", {})
             logging.debug("Using test shared_config=%s", shared_config)
@@ -216,7 +230,7 @@ def pytest_collection_modifyitems(session, config, items):
                         identifier,
                     )
                     command = substitute_variables(
-                        command_template, prefix, project_id, project_number
+                        command_template, prefix, project_id, project_number, random
                     )
                     if "{{ identifier }}" in command and identifier is not None:
                         command = command.replace(
@@ -243,6 +257,7 @@ def pytest_runtest_teardown(item, nextitem):
     prefix = os.getenv("PREFIX")
     project_id = os.getenv("PROJECT_ID")
     project_number = os.getenv("PROJECT_NUMBER")
+    random = item.stash.get(RANDOM_KEY, None)
 
     shared_config = item.callspec.params.get("shared_config", {})
     logging.debug("Using test shared_config=%s", shared_config)
@@ -269,7 +284,7 @@ def pytest_runtest_teardown(item, nextitem):
         )
 
         teardown_command = substitute_variables(
-            teardown_template, prefix, project_id, project_number
+            teardown_template, prefix, project_id, project_number, random
         )
         if "{{ identifier }}" in teardown_template and identifier is not None:
             teardown_command = teardown_command.replace("{{ identifier }}", identifier)
