@@ -1,4 +1,6 @@
 before_tests:
+  # Storage
+  - command: gcloud storage buckets create gs://{{ prefix }}-monitoring-alert-bucket --default-storage-class=standard --uniform-bucket-level-access --location asia-southeast2
   # Network for VPC
   - command: gcloud compute networks create monitoring-alert-vpc-network --subnet-mode=custom --bgp-routing-mode=global
   - command: gcloud compute networks create monitoring-alert-vpc-network-peer --subnet-mode=custom --bgp-routing-mode=global
@@ -7,6 +9,8 @@ before_tests:
   # Firewall Policy
   - command: gcloud compute network-firewall-policies create monitoring-alert-fw-policy --global
 after_tests:
+  # Storage
+  - command: gcloud storage buckets delete gs://{{ prefix }}-monitoring-alert-bucket
   # Network for VPC
   - command: gcloud compute networks delete monitoring-alert-vpc-network
   - command: gcloud compute networks delete monitoring-alert-vpc-network-peer
