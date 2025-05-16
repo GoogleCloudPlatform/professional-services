@@ -19,18 +19,8 @@ audit_table = 'poc-env-aks-bq-admin.datageneration.audit_log'
 
 # Input Table Names (as a string, then potentially parsed in main)
 input_bq_table_names = (
-    "poc-env-aks-bq-admin.tdm_bigquery_demo.Dim_Account,"
-    "poc-env-aks-bq-admin.tdm_bigquery_demo.Dim_Account_Type,"
-    "poc-env-aks-bq-admin.tdm_bigquery_demo.Dim_Branch,"
-    "poc-env-aks-bq-admin.tdm_bigquery_demo.Dim_Channel,"
     "poc-env-aks-bq-admin.tdm_bigquery_demo.Dim_Customer,"
-    "poc-env-aks-bq-admin.tdm_bigquery_demo.Dim_Customer_Segment,"
-    "poc-env-aks-bq-admin.tdm_bigquery_demo.Dim_Date,"
-    "poc-env-aks-bq-admin.tdm_bigquery_demo.Dim_Location,"
     "poc-env-aks-bq-admin.tdm_bigquery_demo.Dim_Product,"
-    "poc-env-aks-bq-admin.tdm_bigquery_demo.Dim_Product_Category,"
-    "poc-env-aks-bq-admin.tdm_bigquery_demo.Dim_Time,"
-    "poc-env-aks-bq-admin.tdm_bigquery_demo.Dim_Transaction_Type,"
     "poc-env-aks-bq-admin.tdm_bigquery_demo.Fact_Transactions"
 )
 
@@ -38,18 +28,8 @@ input_bq_table_names = (
 # Desired record counts for generated tables
 
 user_counts = {
-    "Dim_Date": 10,
-    "Dim_Time": 10,
     "Dim_Customer": 10,
-    "Dim_Customer_Segment": 10,
-    "Dim_Location": 10,
-    "Dim_Account": 10,
-    "Dim_Account_Type": 10,
-    "Dim_Branch": 10,
     "Dim_Product": 10,
-    "Dim_Product_Category": 10,
-    "Dim_Channel": 10,
-    "Dim_Transaction_Type": 10,
     "Fact_Transactions": 20,
 }
 
@@ -58,7 +38,7 @@ user_counts = {
 gcs_bucket_name = "data-generation-usecase"
 
 # Source Type
-SOURCE_TYPE = "BigQuery" # or "GCS"
+SOURCE_TYPE = "BigQuery"
 
 # These will be initialized in main.py or passed around
 # batch_id (generated dynamically)
