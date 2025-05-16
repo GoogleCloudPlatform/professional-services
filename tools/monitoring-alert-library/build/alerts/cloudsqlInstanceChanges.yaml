@@ -1,10 +1,10 @@
 #@ load("/alert.lib.star", "build_alert")
 #@ load("/alert.lib.yaml", "generate_notification_channels")
 #@ load("@ytt:template", "template")
-#@ alert = build_alert("sqlInstanceChanges")
+#@ alert = build_alert("cloudsqlInstanceChanges")
 
 #@ if alert.to_generate():
-displayName: 'SQL Instance Configuration Changes'
+displayName: 'Cloud SQL Instance Configuration Changes'
 documentation:
   content: >-
     Log-based alerting policy in project ${project} detected Cloud SQL instance configuration changes.
@@ -15,7 +15,7 @@ documentation:
     ```
   mimeType: text/markdown
 conditions:
-  - displayName: 'Log match condition: SQL instance configuration changes'
+  - displayName: 'Log match condition: Cloud SQL instance configuration changes'
     conditionMatchedLog:
       filter: >-
         protoPayload.methodName="cloudsql.instances.update"

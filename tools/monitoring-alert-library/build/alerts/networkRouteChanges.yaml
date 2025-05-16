@@ -1,7 +1,7 @@
 #@ load("/alert.lib.star", "build_alert")
 #@ load("/alert.lib.yaml", "generate_notification_channels")
 #@ load("@ytt:template", "template")
-#@ alert = build_alert("routeChanges")
+#@ alert = build_alert("networkRouteChanges")
 
 #@ if alert.to_generate():
 displayName: 'VPC Network Route Changes'
