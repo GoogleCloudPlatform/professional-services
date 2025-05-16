@@ -40,7 +40,30 @@ This high-level design outlines an AI-powered data pipeline. User provides the i
     * Google Cloud Storage API
     * Vertex AI API
 * Appropriate **IAM permissions** for the service account or user running the scripts to access BigQuery, GCS, and Vertex AI.
-* Google Cloud SDK configured (`gcloud auth application-default login`).
+* Google Cloud SDK configured (`gcloud auth application-default login`)
+* Create the audit table in Bigquery usign the below DDL
+
+    CREATE TABLE `your_project_id.your_dataset_id.audit_log` (
+    `batch_id` STRING OPTIONS(description="Unique identifier for a batch process."),
+    `gcs_bucket_name` STRING OPTIONS(description="Name of the GCS bucket involved in the operation."),
+    `input_gcs_path` STRING OPTIONS(description="Full GCS path of the input file or folder."),
+    `header_gcs_path` STRING OPTIONS(description="GCS path to the header file, if applicable."),
+    `user_requested_table_count` INTEGER OPTIONS(description="Number of tables requested by the user."),
+    `table_name` STRING OPTIONS(description="Name of the BigQuery table processed or affected."),
+    `column_names` STRING OPTIONS(description="Comma-separated list or JSON string of column names."),
+    `column_header_flag` BOOLEAN OPTIONS(description="Flag indicating if a column header was present (TRUE/FALSE)."),
+    `delimiter` STRING OPTIONS(description="Delimiter used in the source file (e.g., ',', '|', '\t')."),
+    `custom_header` STRING OPTIONS(description="Custom header string, if provided."),
+    `schema` STRING OPTIONS(description="JSON representation of the inferred or provided schema."),
+    `num_records_generated` INTEGER OPTIONS(description="Number of records generated or processed."),
+    `status` STRING OPTIONS(description="Status of the operation (e.g., 'SUCCESS', 'FAILED', 'RUNNING')."),
+    `error_message` STRING OPTIONS(description="Error message if the operation failed."),
+    `insert_timestamp` TIMESTAMP OPTIONS(description="Timestamp when the audit log entry was inserted.")
+    )
+    OPTIONS(
+    description = "Audit log for synthetic data generation and processing jobs."
+    );
+
 
 ### Installation
 
