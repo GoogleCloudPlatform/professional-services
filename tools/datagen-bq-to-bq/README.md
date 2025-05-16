@@ -3,6 +3,67 @@
 This project offers a Python-based pipeline designed to generate synthetic data. It works by leveraging **existing table structures and sample data within Google BigQuery**. The pipeline integrates **generative AI** for tasks like schema inference and data generation recipe creation, **Snowfakery** for the actual data synthesis, and **Google Cloud services** (BigQuery, Google Cloud Storage) for efficient data handling and orchestration. Additionally, it provides robust capabilities for pre-processing input data, post-processing generated data, and maintaining detailed audit logs.
 
 ---
+## Design Flow
+
+![Design Flow](./images/design-flow.png)
+
+This high-level design outlines an AI-powered data pipeline. User provides the input and BigQuery Source Tables with sample data, which is feed into Gemini. The Gemini intelligently generates a Snowfakery Recipe. This recipe then drives the generation of data, which is subsequently loaded into BigQuery Target Tables.
+
+---
+
+## High Level Design
+
+![High Level Design ](./images/high-level-design.png)
+
+1. User will provide the BigQuery Source Tables
+2. Export from BigQuery to GCS for Preprocessing
+3. **Gemini Driven Pre-Processing** (Column name extraction, Delimiter Extraction)
+4. Export the Pre-Processed File to staging GCS
+5. Log the status to Audit Table
+6. **Gemini Driven Referential Integrity Mapping**
+7. **Gemini Driven SnowFakery recipes generation**
+8. Generation of data based on the recipes
+9. Post-processing of the generated file
+10. Export the generated files to GCS output path
+11. Import from GCS Output Path to BigQuery Target Tables
+12. Log the status to Audit Table
+
+---
+
+## Setup and Usage
+
+### Prerequisites
+
+* **Python 3.x** installed.
+* Access to a **Google Cloud Platform project** with the following APIs enabled:
+    * BigQuery API
+    * Google Cloud Storage API
+    * Vertex AI API
+* Appropriate **IAM permissions** for the service account or user running the scripts to access BigQuery, GCS, and Vertex AI.
+* Google Cloud SDK configured (`gcloud auth application-default login`).
+
+### Installation
+
+1.  Clone the repository or download the code files.
+2.  Install the required Python packages:
+
+    ```bash
+    pip3 install -r requirements.txt
+    ```
+
+### Configuration
+
+Modify **config_vars.py** with your specific GCP project details, BigQuery source/target information, GCS bucket name, table names, and desired synthetic record counts. Ensure the BigQuery audit table specified in **config_vars.py** exists with the expected schema (see **audit_utils.py** for fields like `batch_id`, `table_name`, `status`, etc.).
+
+### Running the Pipeline
+
+Execute the main script:
+
+```bash
+python3 main.py
+```
+
+---
 
 ## Key Features
 
@@ -28,6 +89,11 @@ This project offers a Python-based pipeline designed to generate synthetic data.
 * **Customizable Configuration**: Allows users to easily configure project settings, BigQuery details, GCS paths, table names, and desired record counts for synthetic data generation through a central configuration file (**config_vars.py**).
 
 ---
+
+## Low Level Design
+
+![Low Level Design](./images/low-level-design.png)
+
 
 ## Workflow
 
@@ -120,37 +186,3 @@ The primary way to customize the pipeline is by modifying the **config_vars.py**
 * **gcs_bucket_name**: The name of the GCS bucket to be used for staging and output files.
 * **SOURCE_TYPE**: Specifies the source of the data. Can be "**BigQuery**" (to export from BQ) or potentially "**GCS**" (if files are already in GCS, though the current main.py primarily details the BQ export flow).
 * **LOCAL_OUTPUT_BASE_DIR**: The base local directory where Snowfakery will generate output files before they are post-processed and uploaded to GCS.
-
----
-
-## Setup and Usage
-
-### Prerequisites
-
-* **Python 3.x** installed.
-* Access to a **Google Cloud Platform project** with the following APIs enabled:
-    * BigQuery API
-    * Google Cloud Storage API
-    * Vertex AI API
-* Appropriate **IAM permissions** for the service account or user running the scripts to access BigQuery, GCS, and Vertex AI.
-* Google Cloud SDK configured (`gcloud auth application-default login`).
-
-### Installation
-
-1.  Clone the repository or download the code files.
-2.  Install the required Python packages:
-
-    ```bash
-    pip install -r requirements.txt
-    ```
-
-### Configuration
-
-Modify **config_vars.py** with your specific GCP project details, BigQuery source/target information, GCS bucket name, table names, and desired synthetic record counts. Ensure the BigQuery audit table specified in **config_vars.py** exists with the expected schema (see **audit_utils.py** for fields like `batch_id`, `table_name`, `status`, etc.).
-
-### Running the Pipeline
-
-Execute the main script:
-
-```bash
-python main.py

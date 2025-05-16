@@ -1,14 +1,69 @@
 # Synthetic Data Generation Pipeline: GCS to GCS
 
-This project provides a robust pipeline for generating synthetic data based on sample data residing in Google Cloud Storage (GCS). It leverages **Snowfakery** for data generation and Google's **Gemini model** for intelligent schema detection and recipe creation. The pipeline includes comprehensive pre-processing and post-processing steps, along with detailed audit logging capabilities.
+This project offers a Python-based pipeline designed to generate synthetic data. It works by leveraging **existing sample data in Google Cloud Storage(GCS)**. The pipeline integrates **generative AI** for tasks like schema inference and data generation recipe creation, **Snowfakery** for the actual data synthesis, and **Google Cloud services** (BigQuery, Google Cloud Storage) for efficient data handling and orchestration. Additionally, it provides robust capabilities for pre-processing input data, post-processing generated data, and maintaining detailed audit logs.
 
 ---
 
-## Overview
+## Design Flow
 
-The core functionality of this pipeline is to take input data from GCS, understand its structure (either through provided header files or AI-driven schema prediction), generate synthetic data that mimics the characteristics of the input data, and then store this synthetic data back into GCS. It also supports BigQuery as a data source.
+![Design Flow](./images/design-flow.png)
+
+This high-level design outlines an AI-powered data pipeline. User provides the input and GCS Path with sample data, which is feed into Gemini. The Gemini intelligently generates a Snowfakery Recipe. This recipe then drives the generation of data, which is subsequently loaded into target GCS directory
 
 ---
+
+## High Level Design
+
+![High Level Design ](./images/high-level-design.png)
+
+
+1. User will provide the Sources Files in GCS
+2. **Gemini Driven Pre-processing** (Addition of Column Header, Custom Header Extraction, Delimiter Extraction, Schema Prediction)
+3. Export the Pre-Processed File to staging GCS
+4. Log the status to Audit Table
+5. **Gemini Driven Referential Integrity Mapping**
+6. **Gemini Driven SnowFakery recipes generation**
+7. Generation of data based on the recipes
+8. **Post-processing of the generated file** (Column Header Removal, Addition of Custom Header, Delimiter Conversion)
+9. Export the generated files to GCS output path
+10. Log the status to Audit Table
+
+---
+
+## Setup and Usage
+
+### Prerequisites
+
+* **Python 3.x** installed.
+* Access to a **Google Cloud Platform project** with the following APIs enabled:
+    * BigQuery API
+    * Google Cloud Storage API
+    * Vertex AI API
+* Appropriate **IAM permissions** for the service account or user running the scripts to access BigQuery, GCS, and Vertex AI.
+* Google Cloud SDK configured (`gcloud auth application-default login`).
+
+### Installation
+
+1.  Clone the repository or download the code files.
+2.  Install the required Python packages:
+
+    ```bash
+    pip3 install -r requirements.txt
+
+### Configuration
+
+Modify **config_vars.py** with your specific GCP project details, GCS source/target information, GCS bucket name, and desired synthetic record counts. Ensure the BigQuery audit table specified in **config_vars.py** exists with the expected schema (see **audit_utils.py** for fields like `batch_id`, `table_name`, `status`, etc.).
+
+### Running the Pipeline
+
+Execute the main script:
+
+```bash
+python3 main.py
+```
+
+---
+
 
 ## Key Features
 
@@ -35,6 +90,12 @@ The core functionality of this pipeline is to take input data from GCS, understa
 * **Modular Design**: The code is organized into logical modules for GCS operations, BigQuery operations, file processing, Snowfakery recipe generation, audit logging, and configuration.
 
 ---
+
+## Low Level Design
+
+![Low Level Design](./images/low-level-design.png)
+
+
 
 ## Workflow
 
@@ -92,21 +153,6 @@ The local temporary directory created for Snowfakery output is removed.
 
 ---
 
-## Prerequisites
-
-The following Python libraries are required, as listed in **requirements.txt**:
-
-* `google-cloud-aiplatform`
-* `snowfakery==3.6.3`
-* `gcsfs`
-* `pandas`
-* `google-cloud-storage`
-* `google-cloud-bigquery`
-* `PyYAML`
-* `google-api-core`
-
----
-
 ## Configuration (config\_vars.py)
 
 The pipeline's behavior is primarily controlled by the **config\_vars.py** file. Key configuration options include:
@@ -138,20 +184,6 @@ The pipeline's behavior is primarily controlled by the **config\_vars.py** file.
 * **audit\_utils.py**: Manages the logging of audit trails to a specified BigQuery table, recording the start and end of processing for each table along with relevant metadata.
 * **prompts\_collection.py**: Stores the various prompts used to interact with the Gemini model for tasks like delimiter prediction, header extraction, schema prediction, and Snowfakery recipe generation.
 * **requirements.txt**: Lists all the Python dependencies required to run the project.
-
----
-
-## How to Run
-
-1.  Ensure all prerequisites listed in **requirements.txt** are installed in your Python environment.
-2.  Configure all necessary parameters in **config\_vars.py** according to your GCP environment and data locations.
-3.  Execute the main script:
-
-    ```bash
-    python main.py
-    ```
-
-The pipeline will then run through the workflow described above, logging its progress to the console and creating audit entries in the specified BigQuery table. Generated synthetic data will be placed in the GCS output location defined by `output_gcs_path` (which includes the **batch\_id**).
 
 ---
 
