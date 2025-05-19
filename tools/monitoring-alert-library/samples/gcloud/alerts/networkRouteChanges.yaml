@@ -8,7 +8,7 @@ conditions:
     filter: "resource.type=\"gce_route\" AND  (\n  protoPayload.methodName:\"compute.routes.insert\" OR \n  protoPayload.methodName:\"compute.routes.delete\"\n)"
 combiner: OR
 notificationChannels:
-- projects/dbs-validator-kcc-29ae/notificationChannels/1911345462390136248
+- projects/dbs-validator-kcc-29ae/notificationChannels/14923856898178156414
 alertStrategy:
   notificationRateLimit:
     period: 300s

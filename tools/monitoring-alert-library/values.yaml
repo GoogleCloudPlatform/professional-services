@@ -20,7 +20,7 @@ bundles:
   pci-dss: false
   cis: false
 notification_channels:
-  - projects/dbs-validator-kcc-29ae/notificationChannels/1911345462390136248
+  - projects/dbs-validator-kcc-29ae/notificationChannels/14923856898178156414
 alerts:
   projectOwnershipChange: {}
 

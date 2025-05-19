@@ -8,7 +8,7 @@ conditions:
     filter: "resource.type=\"iam_role\" AND  (\n  protoPayload.methodName=\"google.iam.admin.v1.CreateRole\" OR \n  protoPayload.methodName=\"google.iam.admin.v1.UpdateRole\" OR \n  protoPayload.methodName=\"google.iam.admin.v1.DeleteRole\"\n)"
 combiner: OR
 notificationChannels:
-- projects/dbs-validator-kcc-29ae/notificationChannels/1911345462390136248
+- projects/dbs-validator-kcc-29ae/notificationChannels/14923856898178156414
 alertStrategy:
   notificationRateLimit:
     period: 300s

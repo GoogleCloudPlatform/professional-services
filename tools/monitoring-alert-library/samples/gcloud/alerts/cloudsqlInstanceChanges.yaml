@@ -10,7 +10,7 @@ conditions:
     filter: protoPayload.methodName="cloudsql.instances.update"
 combiner: OR
 notificationChannels:
-- projects/dbs-validator-kcc-29ae/notificationChannels/1911345462390136248
+- projects/dbs-validator-kcc-29ae/notificationChannels/14923856898178156414
 alertStrategy:
   notificationRateLimit:
     period: 300s
