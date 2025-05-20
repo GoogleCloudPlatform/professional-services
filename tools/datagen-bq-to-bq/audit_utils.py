@@ -1,5 +1,12 @@
+"""
+Copyright 2025 Google. This software is provided as-is, 
+without warranty or representation for any use or purpose. 
+Your use of it is subject to your agreement with Google.
+
+"""
+
 from datetime import datetime
-import config_vars  # Use the renamed config file
+import config_vars  
 
 
 def start_audit_log(
@@ -9,14 +16,14 @@ def start_audit_log(
         row_to_insert = [
             {
                 "batch_id": str(batch_id),
-                "gcs_bucket_name": config_vars.gcs_bucket_name,  # Assuming this variable is defined in your notebook
+                "gcs_bucket_name": config_vars.gcs_bucket_name,  
                 "input_gcs_path": gcs_path,
                 "header_gcs_path": header_gcs_path.get(
                     table_name, None
                 ),  # Use None if header_gcs_path not found
                 "user_requested_table_count": config_vars.user_counts.get(
                     table_name
-                ),  # Assuming this variable is defined
+                ),  
                 "table_name": table_name,
                 "column_names": table_attributes[table_name]["column_names"],
                 "column_header_flag": table_attributes[table_name][
@@ -49,14 +56,14 @@ def end_audit_log(
         row_to_insert = [
             {
                 "batch_id": str(batch_id),
-                "gcs_bucket_name": config_vars.gcs_bucket_name,  # Assuming this variable is defined in your notebook
+                "gcs_bucket_name": config_vars.gcs_bucket_name,  
                 "input_gcs_path": gcs_path,
                 "header_gcs_path": header_gcs_path.get(
                     table_name, None
                 ),  # Use None if header_gcs_path not found
                 "user_requested_table_count": config_vars.user_counts.get(
                     table_name
-                ),  # Assuming this variable is defined
+                ),  
                 "table_name": table_name,
                 "column_names": table_attributes[table_name]["column_names"],
                 "column_header_flag": table_attributes[table_name][

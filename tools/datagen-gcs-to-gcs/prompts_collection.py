@@ -1,3 +1,10 @@
+"""
+Copyright 2025 Google. This software is provided as-is, 
+without warranty or representation for any use or purpose. 
+Your use of it is subject to your agreement with Google.
+
+"""
+
 # Prompt for Delimiter Prediction
 Delimiter_Prediction_Prompt = """You are an expert in reading file content and identifying column delimiters.  Your input will be the file content. You will read the file and return the delimiter as output. The output should contain only the delimiter and nothing else. No other explanation is needed.
 
