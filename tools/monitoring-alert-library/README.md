@@ -3,6 +3,7 @@
 ## Overview
 
 This repository provides a library of monitoring alerts and samples. It includes tools to easily provision monitoring alerts on your organization using gcloud.
+
 For more information on how Monitoring Alert can help secure your environment and being notified when certain event happens, please refer to the [Google Cloud documentation](https://cloud.google.com/logging/docs/alerting/log-based-alerts).
 
 ## Setting up environment
@@ -44,11 +45,12 @@ The repository is organized as follows:
 - `docs`: Contains documentation related to this tool.
 - `samples`: Contains the generated monitoring alerts.
 - `scripts`: Contains scripts used for deployment of monitoring alerts.
+- `tests`: Contains tests to ensure Cloud Logging queries worked as expected.
 
 Here's a visual representation:
 
 ```txt
-$ tree -d -L 4
+$ tree -d -L 3
 .
 ├── build
 │   ├── alerts
@@ -58,7 +60,15 @@ $ tree -d -L 4
 ├── samples
 │   └── gcloud
 │       └── alerts
-└── scripts
+├── scripts
+└── tests
+    └── test_cases
+        ├── cloudsql
+        ├── firewall
+        ├── iam
+        ├── network
+        ├── project
+        └── storage
 ```
 
 ## Generating Monitoring Alerts

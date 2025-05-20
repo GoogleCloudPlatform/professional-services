@@ -8,7 +8,7 @@ conditions:
     filter: protoPayload.methodName="google.cloud.binaryauthorization.v1.BinauthzManagementServiceV1.UpdatePolicy" AND  protoPayload.serviceName="binaryauthorization.googleapis.com" AND  ("ALWAYS_ALLOW" OR "DRYRUN_AUDIT_LOG_ONLY")
 combiner: OR
 notificationChannels:
-- projects/dbs-validator-kcc-29ae/notificationChannels/14923856898178156414
+- projects/my-project/notificationChannels/11111111111111
 alertStrategy:
   notificationRateLimit:
     period: 300s

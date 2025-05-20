@@ -10,7 +10,7 @@ conditions:
     filter: resource.type="gce_firewall_rule" AND (protoPayload.methodName:"compute.firewalls.patch" OR protoPayload.methodName:"compute.firewalls.insert" OR protoPayload.methodName:"compute.firewalls.delete")
 combiner: OR
 notificationChannels:
-- projects/dbs-validator-kcc-29ae/notificationChannels/14923856898178156414
+- projects/my-project/notificationChannels/11111111111111
 alertStrategy:
   notificationRateLimit:
     period: 300s

@@ -14,13 +14,13 @@
 
 #@data/values
 ---
-organization: '741724935092'
-project: dbs-validator-kcc-29ae
+organization: "111111"
+project: my-project
 bundles:
   pci-dss: false
   cis: false
 notification_channels:
-  - projects/dbs-validator-kcc-29ae/notificationChannels/14923856898178156414
+  - projects/my-project/notificationChannels/11111111111111
 alerts:
   projectOwnershipChange: {}
 

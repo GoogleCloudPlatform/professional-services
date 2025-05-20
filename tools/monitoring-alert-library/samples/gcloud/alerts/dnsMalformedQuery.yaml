@@ -12,7 +12,7 @@ conditions:
     filter: resource.type="dns_query" AND jsonPayload.responseCode="FORMERR"
 combiner: OR
 notificationChannels:
-- projects/dbs-validator-kcc-29ae/notificationChannels/14923856898178156414
+- projects/my-project/notificationChannels/11111111111111
 alertStrategy:
   notificationRateLimit:
     period: 300s

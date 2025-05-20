@@ -8,7 +8,7 @@ conditions:
     filter: "(protoPayload.serviceName=\"cloudresourcemanager.googleapis.com\") AND  (ProjectOwnership OR projectOwnerInvitee)  OR  (\n  protoPayload.serviceData.policyDelta.bindingDeltas.action=\"REMOVE\" AND \n  protoPayload.serviceData.policyDelta.bindingDeltas.role=\"roles/owner\"\n)  OR  (\n  protoPayload.serviceData.policyDelta.bindingDeltas.action=\"ADD\" AND \n  protoPayload.serviceData.policyDelta.bindingDeltas.role=\"roles/owner\"\n)"
 combiner: OR
 notificationChannels:
-- projects/dbs-validator-kcc-29ae/notificationChannels/14923856898178156414
+- projects/my-project/notificationChannels/11111111111111
 alertStrategy:
   notificationRateLimit:
     period: 300s

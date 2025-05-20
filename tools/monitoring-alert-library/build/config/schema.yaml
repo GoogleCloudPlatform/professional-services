@@ -26,8 +26,8 @@ alerts:
     #@schema/validation one_of=["default", "skip", "include"]
     generation: "default"
     bundles:
-      pci-dss: false
-      cis: false
+      pci-dss: true
+      cis: true
   binaryAuthorizationPolicyChanges:
     #@schema/validation one_of=["default", "skip", "include"]
     generation: "default"
@@ -38,14 +38,14 @@ alerts:
     #@schema/validation one_of=["default", "skip", "include"]
     generation: "default"
     bundles:
-      pci-dss: false
-      cis: false
+      pci-dss: true
+      cis: true
   customRoleChanges:
     #@schema/validation one_of=["default", "skip", "include"]
     generation: "default"
     bundles:
-      pci-dss: false
-      cis: false
+      pci-dss: true
+      cis: true
   dnsMalformedQuery:
     #@schema/validation one_of=["default", "skip", "include"]
     generation: "default"
@@ -56,35 +56,35 @@ alerts:
     #@schema/validation one_of=["default", "skip", "include"]
     generation: "default"
     bundles:
-      pci-dss: false
-      cis: false
+      pci-dss: true
+      cis: true
   firewallRuleChanges:
     #@schema/validation one_of=["default", "skip", "include"]
     generation: "default"
     bundles:
-      pci-dss: false
-      cis: false
+      pci-dss: true
+      cis: true
   networkChanges:
     #@schema/validation one_of=["default", "skip", "include"]
     generation: "default"
     bundles:
-      pci-dss: false
-      cis: false
+      pci-dss: true
+      cis: true
   networkRouteChanges:
     #@schema/validation one_of=["default", "skip", "include"]
     generation: "default"
     bundles:
-      pci-dss: false
-      cis: false
+      pci-dss: true
+      cis: true
   projectOwnershipChange:
     #@schema/validation one_of=["default", "skip", "include"]
     generation: "default"
     bundles:
-      pci-dss: false
-      cis: false
+      pci-dss: true
+      cis: true
   storageIamChanges:
     #@schema/validation one_of=["default", "skip", "include"]
     generation: "default"
     bundles:
-      pci-dss: false
-      cis: false
+      pci-dss: true
+      cis: faltruese
