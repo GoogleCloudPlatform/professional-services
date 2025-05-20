@@ -97,13 +97,14 @@ Those settings needs to be defined in the `values.yaml` file.
 
 #### General settings
 
-| Settings        | Default value | Description                                                                                 |
-| --------------- | ------------- | ------------------------------------------------------------------------------------------- |
-| organization    | 111111        | Organization ID used for the generation of alert                                            |
-| project         | my-project    | Project ID used to deploy the generated alerts to                                           |
-| bundles         |               | Represents whether custom module of a specific bundles have to be generated                 |
-| bundles.pci_dss | false         | Generate only monitoring alerts that are part of PCI-DSS 4.0 recommendations for GKE        |
-| bundles.cis     | false         | Generate only monitoring alerts that are part of CIS Benchmark v1.5 for GKE recommendations |
+| Settings               | Default value | Description                                                                                 |
+| -----------------------| ------------- | ------------------------------------------------------------------------------------------- |
+| organization           | 111111        | Organization ID used for the generation of alert                                            |
+| project                | my-project    | Project ID used to deploy the generated alerts to                                           |
+| bundles                |               | Represents whether custom module of a specific bundles have to be generated                 |
+| bundles.pci_dss        | false         | Generate only monitoring alerts that are part of PCI-DSS 4.0 recommendations for GKE        |
+| bundles.cis            | false         | Generate only monitoring alerts that are part of CIS Benchmark v3.0 for GCP recommendations |
+| notification_channels  |               | List of notification channels to publish alert to                                           |
 
 Example of values.yaml
 
@@ -113,6 +114,8 @@ project: "my-project"
 bundles:
   pci-dss: false
   cis: true
+notification_channels:
+  - projects/my-project/notificationChannels/11111111111111
 ```
 
 #### Monitoring Alert parameters settings
