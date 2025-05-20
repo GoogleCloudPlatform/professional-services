@@ -28,6 +28,12 @@ alerts:
     bundles:
       pci-dss: false
       cis: false
+  binaryAuthorizationPolicyChanges:
+    #@schema/validation one_of=["default", "skip", "include"]
+    generation: "default"
+    bundles:
+      pci-dss: false
+      cis: false
   cloudsqlInstanceChanges:
     #@schema/validation one_of=["default", "skip", "include"]
     generation: "default"
