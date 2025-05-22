@@ -1,0 +1,61 @@
+shared_config:
+  log_filter: >-
+    resource.type="gce_network" AND 
+    (
+      protoPayload.methodName:"compute.networks.insert" OR 
+      protoPayload.methodName:"compute.networks.patch" OR 
+      protoPayload.methodName:"compute.networks.delete" OR 
+      protoPayload.methodName:"compute.networks.addPeering" OR 
+      protoPayload.methodName:"compute.networks.updatePeering" OR 
+      protoPayload.methodName:"compute.networks.removePeering"
+    )
+  default_markers:
+    - network
+    - network-vpc
+
+network_vpc_creation_audit_log:
+  steps:
+  - command: gcloud compute networks create {{ identifier }}
+    teardown_command: gcloud compute networks delete {{ identifier }}
+    command_flags: 
+      subnet-mode: custom
+      bgp-routing-mode: global
+    expected_result:
+      return_code: 0
+      attributes:
+        'protoPayload.resourceName': "projects/{{ project }}/global/networks/{{ identifier }}"  
+        'protoPayload.methodName': "v1.compute.networks.insert"
+        
+network_vpc_update_audit_log:
+  steps:
+  - command: gcloud compute networks create {{ identifier }}
+    teardown_command: gcloud compute networks delete {{ identifier }}
+    command_flags: 
+      subnet-mode: custom
+      bgp-routing-mode: global
+    expected_result:
+      return_code: 0
+  - command: gcloud compute networks update {{ identifier }}
+    command_flags: 
+      bgp-routing-mode: regional
+    expected_result:
+      return_code: 0
+      attributes:
+        'protoPayload.resourceName': "projects/{{ project }}/global/networks/{{ identifier }}"  
+        'protoPayload.methodName': "v1.compute.networks.patch"
+
+network_vpc_delete_audit_log:
+  steps:
+  - command: gcloud compute networks create {{ identifier }}
+    command_flags: 
+      subnet-mode: custom
+      bgp-routing-mode: global
+    expected_result:
+      return_code: 0
+  - command: gcloud compute networks delete {{ identifier }}
+    expected_result:
+      return_code: 0
+      attributes:
+        'protoPayload.resourceName': "projects/{{ project }}/global/networks/{{ identifier }}"  
+        'protoPayload.methodName': "v1.compute.networks.delete"
+

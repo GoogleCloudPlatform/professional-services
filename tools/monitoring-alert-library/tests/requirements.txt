@@ -1,0 +1,12 @@
+grpcio==1.71.0
+iniconfig==2.1.0
+Jinja2==3.1.6
+jsonpath-ng==1.7.0
+MarkupSafe==3.0.2
+packaging==24.2
+pluggy==1.5.0
+ply==3.11
+pytest==8.3.5
+pytest-html==4.1.1
+pytest-metadata==3.1.1
+PyYAML==6.0.1

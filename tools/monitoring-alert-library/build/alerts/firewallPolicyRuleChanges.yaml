@@ -1,0 +1,39 @@
+#@ load("/alert.lib.star", "build_alert")
+#@ load("/alert.lib.yaml", "generate_notification_channels")
+#@ load("@ytt:template", "template")
+#@ alert = build_alert("firewallPolicyRuleChanges")
+
+#@ if alert.to_generate():
+displayName: 'Network Firewall Policy Rule Changes'
+documentation:
+  content: >-
+    Log-based alerting policy in project ${project} detected Firewall Policy rule changes.
+
+    This alert helps ensure security by monitoring creation, modification, or deletion of firewall rules.
+    ```
+    resource.labels.method:"compute.networkFirewallPolicies" AND 
+    (
+      protoPayload.methodName:"compute.networkFirewallPolicies.addRule" OR 
+      protoPayload.methodName:"compute.networkFirewallPolicies.removeRule" OR 
+      protoPayload.methodName:"compute.networkFirewallPolicies.patchRule")
+    ```
+  mimeType: text/markdown
+conditions:
+  - displayName: 'Log match condition: firewall rule changes'
+    conditionMatchedLog:
+      filter: >-
+        resource.labels.method:"compute.networkFirewallPolicies" AND 
+        (
+          protoPayload.methodName:"compute.networkFirewallPolicies.addRule" OR 
+          protoPayload.methodName:"compute.networkFirewallPolicies.removeRule" OR 
+          protoPayload.methodName:"compute.networkFirewallPolicies.patchRule"
+        )
+combiner: OR
+#@ if alert.has_notification_channels():
+_: #@ template.replace(generate_notification_channels())
+#@ end
+alertStrategy:
+  notificationRateLimit:
+    period: 300s
+  autoClose: 604800s
+#@ end

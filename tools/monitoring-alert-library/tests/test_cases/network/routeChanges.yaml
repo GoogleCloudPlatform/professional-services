@@ -1,0 +1,38 @@
+shared_config:
+  log_filter: >-
+    resource.type="gce_route" AND 
+    (
+      protoPayload.methodName:"compute.routes.insert" OR 
+      protoPayload.methodName:"compute.routes.delete"
+    )
+  default_markers:
+    - network
+    - network-route
+
+network_route_creation_audit_log:
+  steps:
+  - command: gcloud compute routes create {{ identifier }} --network monitoring-alert-vpc-network
+    teardown_command: gcloud compute routes delete {{ identifier }}
+    command_flags: 
+      destination-range: 0.0.0.0/0
+      next-hop-gateway: default-internet-gateway
+    expected_result:
+      return_code: 0
+      attributes:
+        'protoPayload.resourceName': "projects/{{ project }}/global/routes/{{ identifier }}"  
+        'protoPayload.methodName': "v1.compute.routes.insert"
+        
+network_route_delete_audit_log:
+  steps:
+  - command: gcloud compute routes create {{ identifier }} --network monitoring-alert-vpc-network
+    command_flags: 
+      destination-range: 0.0.0.0/0
+      next-hop-gateway: default-internet-gateway
+    expected_result:
+      return_code: 0
+  - command: gcloud compute routes delete {{ identifier }}
+    expected_result:
+      return_code: 0
+      attributes:
+        'protoPayload.resourceName': "projects/{{ project }}/global/routes/{{ identifier }}"  
+        'protoPayload.methodName': "v1.compute.routes.delete"

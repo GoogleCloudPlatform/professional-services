@@ -1,0 +1,11 @@
+.terraform.lock.hcl
+.terraform
+.terraform.tfstate*
+
+*.out
+*.bak
+
+*/**/terraform.tfstate*
+terraform/
+tests/venv/
+report.html

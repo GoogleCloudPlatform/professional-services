@@ -1,0 +1,40 @@
+shared_config:
+  log_filter: >-
+    protoPayload.methodName="cloudsql.instances.update"
+  default_markers:
+    - cloudsql
+
+cloudsql_instance_update:
+  steps:
+  - command:  gcloud beta sql instances create {{ identifier }}
+    teardown_command: gcloud sql instances delete {{ identifier }}
+    command_flags: 
+      availability-type: REGIONAL 
+      region: asia-southeast2 
+      network: projects/{{ project }}/global/networks/monitoring-alert-vpc-network
+      assign-ip: false
+      allocated-ip-range-name: google-managed-services-monitoring-alert-vpc-network 
+      tier: db-g1-small 
+      database-version: MYSQL_8_0_37 
+      root-password: R00tP@ss0rd11@@ 
+      password-policy-min-length: 12 
+      password-policy-complexity: COMPLEXITY_DEFAULT  
+      backup-location: asia-southeast1 
+      retained-backups-count: 10 
+      storage-type: SSD    
+      ssl-mode: ENCRYPTED_ONLY
+      database-flags: skip_show_database=on,local_infile=off
+      enable-bin-log : true
+      enable-password-policy: true
+      insights-config-query-insights-enabled: true
+    expected_result:
+      return_code: 0
+  - command:  gcloud sql instances patch {{ identifier }}
+    command_flags: 
+      retained-backups-count: 14 
+    expected_result:
+      return_code: 0
+      attributes:
+        'protoPayload.resourceName': projects/{{ project }}/instances/{{ identifier }}
+        'protoPayload.methodName': 'cloudsql.instances.update'
+
