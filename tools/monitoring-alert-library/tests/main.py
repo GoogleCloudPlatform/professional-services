@@ -7,10 +7,8 @@ import subprocess
 import datetime
 import time
 import json
-import uuid
-import hashlib
 import pytest
-from jsonpath_ng import jsonpath, parse as parse_jsonpath
+from jsonpath_ng import parse as parse_jsonpath
 
 GCLOUD_EXIT_CODE_OK_OR_FAIL_ALREADY_EXISTS = "0_or_1_already_exists"
 RANDOM_KEY = pytest.StashKey[str]()
@@ -166,7 +164,6 @@ def validate_log_attributes(log_entry, expected_attributes, substitutions):
             continue
 
         actual_value = matches[0].value
-        expected_value_parsed = substituted_expected_value # By default, treat as string
 
         # Attempt to match type of expected_value_template if it's not a string from YAML (e.g. bool, int)
         # YAML loads bools as Python bools, numbers as int/float.
