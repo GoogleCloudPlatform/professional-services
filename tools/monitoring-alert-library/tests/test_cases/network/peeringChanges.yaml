@@ -1,0 +1,57 @@
+shared_config:
+  log_filter: >-
+    resource.type="gce_network" AND 
+    (
+      protoPayload.methodName:"compute.networks.insert" OR 
+      protoPayload.methodName:"compute.networks.patch" OR 
+      protoPayload.methodName:"compute.networks.delete" OR 
+      protoPayload.methodName:"compute.networks.addPeering" OR 
+      protoPayload.methodName:"compute.networks.updatePeering" OR 
+      protoPayload.methodName:"compute.networks.removePeering"
+    )
+  default_markers:
+    - network
+    - network-peering
+
+network_peering_creation_audit_log:
+  steps:
+  - command: gcloud compute networks peerings create {{ identifier }} --network monitoring-alert-vpc-network
+    teardown_command: gcloud compute networks peerings delete {{ identifier }} --network monitoring-alert-vpc-network
+    command_flags: 
+      peer-network: "monitoring-alert-vpc-network-peer"
+    expected_result:
+      return_code: 0
+      attributes:
+        'protoPayload.resourceName': "projects/{{ project }}/global/networks/monitoring-alert-vpc-network"
+        'protoPayload.methodName': "v1.compute.networks.addPeering"
+
+network_peering_update_audit_log:
+  steps:
+  - command: gcloud compute networks peerings create {{ identifier }} --network monitoring-alert-vpc-network
+    teardown_command: gcloud compute networks peerings delete {{ identifier }} --network monitoring-alert-vpc-network
+    command_flags: 
+      peer-network: "monitoring-alert-vpc-network-peer"
+    expected_result:
+      return_code: 0
+  - command: gcloud compute networks peerings update {{ identifier }} --network monitoring-alert-vpc-network
+    command_flags: 
+      export-custom-routes: true
+    expected_result:
+      return_code: 0
+      attributes:
+        'protoPayload.resourceName': "projects/{{ project }}/global/networks/monitoring-alert-vpc-network"
+        'protoPayload.methodName': "v1.compute.networks.updatePeering"
+
+network_peering_delete_audit_log:
+  steps:
+  - command: gcloud compute networks peerings create {{ identifier }} --network monitoring-alert-vpc-network
+    command_flags: 
+      peer-network: "monitoring-alert-vpc-network-peer"
+    expected_result:
+      return_code: 0
+  - command: gcloud compute networks peerings delete {{ identifier }} --network monitoring-alert-vpc-network
+    expected_result:
+      return_code: 0
+      attributes:
+        'protoPayload.resourceName': "projects/{{ project }}/global/networks/monitoring-alert-vpc-network"
+        'protoPayload.methodName': "v1.compute.networks.removePeering"
