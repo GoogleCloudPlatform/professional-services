@@ -1,0 +1,17 @@
+displayName: Audit Configuration Changes
+documentation:
+  content: |-
+    Log-based alerting policy in project ${project} detected audit configuration changes.
+    This alert helps track GCP services audit log configuration changes to ensure appropriate audit logs are being collected. ``` protoPayload.methodName="SetIamPolicy" AND protoPayload.serviceData.policyDelta.auditConfigDeltas:* ```
+  mimeType: text/markdown
+conditions:
+- displayName: 'Log match condition: audit configuration changes'
+  conditionMatchedLog:
+    filter: protoPayload.methodName="SetIamPolicy" AND protoPayload.serviceData.policyDelta.auditConfigDeltas:*
+combiner: OR
+notificationChannels:
+- projects/my-project/notificationChannels/11111111111111
+alertStrategy:
+  notificationRateLimit:
+    period: 300s
+  autoClose: 604800s

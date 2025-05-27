@@ -1,0 +1,15 @@
+displayName: Network Firewall Policy Rule Changes
+documentation:
+  content: "Log-based alerting policy in project ${project} detected Firewall Policy rule changes.\nThis alert helps ensure security by monitoring creation, modification, or deletion of firewall rules. ``` resource.labels.method:\"compute.networkFirewallPolicies\" AND  (\n  protoPayload.methodName:\"compute.networkFirewallPolicies.addRule\" OR \n  protoPayload.methodName:\"compute.networkFirewallPolicies.removeRule\" OR \n  protoPayload.methodName:\"compute.networkFirewallPolicies.patchRule\")\n```"
+  mimeType: text/markdown
+conditions:
+- displayName: 'Log match condition: firewall rule changes'
+  conditionMatchedLog:
+    filter: "resource.labels.method:\"compute.networkFirewallPolicies\" AND  (\n  protoPayload.methodName:\"compute.networkFirewallPolicies.addRule\" OR \n  protoPayload.methodName:\"compute.networkFirewallPolicies.removeRule\" OR \n  protoPayload.methodName:\"compute.networkFirewallPolicies.patchRule\"\n)"
+combiner: OR
+notificationChannels:
+- projects/my-project/notificationChannels/11111111111111
+alertStrategy:
+  notificationRateLimit:
+    period: 300s
+  autoClose: 604800s
