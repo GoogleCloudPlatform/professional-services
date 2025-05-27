@@ -1,5 +1,5 @@
-# AI-Powered Code Modification Cloud Function
-This example contains the code and Terraform infrastructure needed to deploy a Google Cloud Function designed to automatically generate code modifications using the Vertex AI Gemini API. The function reads files from a GitHub repository, processes them with a large language model (LLM) to generate modified code, and then saves these modifications to another repository (or the same one).
+# GenAI-Powered Code Modification Cloud Function
+This tool contains the code and Terraform infrastructure needed to deploy a Google Cloud Function designed to automatically generate code modifications using the Vertex AI Gemini API. The function reads files from a GitHub repository, processes them with a large language model (LLM) to generate modified code, and then saves these modifications to another repository (or the same one).
 
 # Features
 - **AI-Powered Code Generation:** Utilizes Vertex AI Gemini models to transform or adapt code.
