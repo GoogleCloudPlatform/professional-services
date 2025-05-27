@@ -18,6 +18,8 @@ required_apis = [
 ]
 
 //Project ID where resources will be created
-project_id = "project_id"
+project_id = "signifyd-tests-5612f"
 //Location where resources will be created
-location = "location"
+location = "us-east4"
+//Staging Cloud function bucket where the source code will be stored
+stg_cf_bucket = "genai-code-mod-test" //Please change this
