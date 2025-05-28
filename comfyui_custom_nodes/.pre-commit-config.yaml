@@ -1,0 +1,41 @@
+# Copyright 2025 Google LLC. This software is provided as-is, without warranty
+# or representation for any use or purpose. Your use of it is subject to
+# your agreement with Google.
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: check-ast
+      - id: check-case-conflict
+      - id: check-json
+      - id: check-yaml
+      - id: detect-private-key
+      - id: end-of-file-fixer
+      - id: fix-byte-order-marker
+      - id: trailing-whitespace
+      - id: mixed-line-ending
+  - repo: https://github.com/PyCQA/isort
+    rev: 5.13.2
+    hooks:
+      - id: isort
+        args: [ "--profile", "black", "-l80" ]
+  - repo: https://github.com/pycqa/flake8
+    rev: 7.1.0
+    hooks:
+      - id: flake8
+        additional_dependencies: [ flake8-print ]
+  - repo: local
+    hooks:
+      - id: pylint
+        name: pylint
+        entry: ./venv/bin/pylint
+        language: system
+        types: [ python ]
+        args: [ --ignore-patterns=venv ]
+  - repo: local
+    hooks:
+      - id: check-license
+        name: check-license
+        entry: tests/license_check.sh
+        language: script
+        pass_filenames: false

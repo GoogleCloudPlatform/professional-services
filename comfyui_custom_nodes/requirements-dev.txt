@@ -1,0 +1,4 @@
+pre-commit==3.7.1
+pylint==3.2.3
+pytest==8.2.2
+pytest-cov==5.0.0
