@@ -491,6 +491,7 @@ Platform usage.
     project to generate recommended object lifecycle management.
 *   [GCVE2BQ](tools/gcve2bq) - A tool for scheduled exports of VM, datastore and ESXi
     utilization data from vCenter to BigQuery for billing and reporting use cases.
+*   [GenAI-Powered Code Modification Cloud Function](tools/genai-code-mod-auto) - A deployable Google Cloud Function that, powered by the Vertex AI Gemini API, automates code modification. It reads files from GitHub, processes them with an LLM to generate new versions, and then saves those modifications back to the repositories.
 *   [GKE AutoPSC Controller](tools/gke-autopsc-controller) - Google Kubernetes Engine
     controller, to setup PSC ServiceAttachment for Gateway API managed Forwarding Rules.
 *   [Global DNS -> Zonal DNS Project Bulk Migration](tools/gdns-zdns-project-bulk-migration) - 
@@ -638,7 +639,7 @@ Platform usage.
     The framework can be extended for other use cases as required. 
     The framework uses RIOT to bridge current product gaps with Memorystore Clusters
 *   [ML Project Generator](tools/ml-project-generator) - A utility to create a Production grade ML project template with the best productivity tools installed like auto-formatting, license checks, linting, etc.
-*   [GenAI-Powered Code Modification Cloud Function](tools/genai-code-mod-auto) - A deployable Google Cloud Function that, powered by the Vertex AI Gemini API, automates code modification. It reads files from GitHub, processes them with an LLM to generate new versions, and then saves those modifications back to the repositories.
+
 
 ## Contributing
 
