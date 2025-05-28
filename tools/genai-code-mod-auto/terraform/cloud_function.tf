@@ -3,8 +3,7 @@
 resource "google_project_service" "apis" {
   for_each = toset(var.required_apis)
   project  = var.project_id
-  service = each.value
-  
+  service = each.value  
 }
 
 #Service account creation
@@ -28,19 +27,24 @@ resource "google_project_iam_member" "code_trans_sa_roles" {
 #Bucket for Cloud function's code
 resource "google_storage_bucket" "code_trans_stg_bucket" {
     project = var.project_id
-    name     = "code-trans-stg-bucket"
-    location = "US"
+    name     = var.stg_cf_bucket
+    location = var.location
     uniform_bucket_level_access = true
 }
 
 # Zip files with code 
+resource "archive_file" "code_trans_source_code_zip" {
+  type        = "zip"
+  source_dir  = "../src_code/" # Source Code
+  output_path = "../src_code/code_trans_source_code.zip" # Zip output
+}
 
 # Source Code Storage
 resource "google_storage_bucket_object" "code_trans_source_code_zip" {
   depends_on = [ google_storage_bucket.code_trans_stg_bucket ]
   name   = "code_trans_source_code.zip"
   bucket = google_storage_bucket.code_trans_stg_bucket.name
-  source = "../source_code/code_trans_source_code.zip"
+  source = "../src_code/code_trans_source_code.zip"
 }
 
 resource "time_sleep" "wait_for_propagation" {

@@ -1,5 +1,5 @@
-# AI-Powered Code Modification Cloud Function
-This example contains the code and Terraform infrastructure needed to deploy a Google Cloud Function designed to automatically generate code modifications using the Vertex AI Gemini API. The function reads files from a GitHub repository, processes them with a large language model (LLM) to generate modified code, and then saves these modifications to another repository (or the same one).
+# GenAI-Powered Code Modification Cloud Function
+This tool contains the code and Terraform infrastructure needed to deploy a Google Cloud Function designed to automatically generate code modifications using the Vertex AI Gemini API. The function reads files from a GitHub repository, processes them with a large language model (LLM) to generate modified code, and then saves these modifications to another repository (or the same one).
 
 # Features
 - **AI-Powered Code Generation:** Utilizes Vertex AI Gemini models to transform or adapt code.
@@ -19,26 +19,21 @@ Before deploying and using this Cloud Function, ensure you have the following:
 # Deployment
 Follow these steps to deploy the Cloud Function using Terraform:
 
-**1. Prepare the Source Code**
-First, you need to package your Python function code into a .zip file. Make sure your requirements.txt file is at the same root level as your main.py file.
-
-For example, if your structure is:
-
-|-main.py
-
-|--requirements.txt
-
-
-Compress these two files.
-
-Place this code_trans_source_code.zip file in the source_code folder (or adjust the path in cloud_functions.tf).
+**1. Prepare the Deployment**
+- Clone the repository in your Cloud Shell or Terraform environment where you are going to deploy the Cloud Function.
+- Set the working directory to be **github-repos/professional-services/tools/genai-code-mod-auto/terraform** this can be done with the cd command in the shell or a configuration in terraform.
 
 **2. Configure Terraform**
 Navigate to the directory where your Terraform files are located.
 
-- **backend.tf:** Update the bucket and prefix with your GCS bucket information where Terraform will store its state.
+- **backend.tf:** This is commented by default, in case you need to have a backend uncomment the code and update the bucket and prefix with the GCS bucket information where Terraform will store its state.
 
-- **variables.auto.tfvars:** Update the project_id and location variables with your Google Cloud project ID and the region where you want to deploy the function (e.g., us-east4).
+- **variables.auto.tfvars:** Update the following variables:
+    - **project_id:** Your Google Cloud project ID.
+    - **location:** The region where you want to deploy the function (e.g., us-east4).
+    - **stg_cf_bucket:** The bucket where the source code for the cloud function will be stored
+
+The variables **code_trans_sa_roles** and **required_apis** contain the necessary APIS and service account permissions for the function to work properly.
 
 **3. Execute Terraform**
 
