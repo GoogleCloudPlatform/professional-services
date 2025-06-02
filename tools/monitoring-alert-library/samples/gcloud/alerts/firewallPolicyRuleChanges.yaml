@@ -6,6 +6,9 @@ conditions:
 - displayName: 'Log match condition: firewall rule changes'
   conditionMatchedLog:
     filter: "resource.labels.method:\"compute.networkFirewallPolicies\" AND  (\n  protoPayload.methodName:\"compute.networkFirewallPolicies.addRule\" OR \n  protoPayload.methodName:\"compute.networkFirewallPolicies.removeRule\" OR \n  protoPayload.methodName:\"compute.networkFirewallPolicies.patchRule\"\n)"
+    labelExtractors:
+      principal: EXTRACT(protoPayload.authenticationInfo.principalEmail)
+      method_name: EXTRACT(protoPayload.methodName)
 combiner: OR
 notificationChannels:
 - projects/my-project/notificationChannels/11111111111111
