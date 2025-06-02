@@ -39,6 +39,12 @@ conditions:
           protoPayload.serviceData.policyDelta.bindingDeltas.action="ADD" AND 
           protoPayload.serviceData.policyDelta.bindingDeltas.role="roles/owner"
         )
+      labelExtractors:
+        principal: "EXTRACT(protoPayload.authenticationInfo.principalEmail)"
+        method_name: "EXTRACT(protoPayload.methodName)"
+        organization_id: "EXTRACT(labels.organization_id)"
+        folder_id: "EXTRACT(labels.folder_id)"
+        project_id: "EXTRACT(labels.project_id)"
 combiner: OR
 #@ if alert.has_notification_channels():
 _: #@ template.replace(generate_notification_channels())
