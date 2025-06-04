@@ -99,7 +99,7 @@ resource "google_org_policy_custom_constraint" "deny_owner" {
   resource_types = ["iam.googleapis.com/AllowPolicy"]
 }
 
-resource "google_org_policy_policy" "bool" {
+resource "google_org_policy_policy" "enforce_deny_owner_constraint" {
 
   name   = "organizations/${var.org_id}/policies/${google_org_policy_custom_constraint.deny_owner.name}"
   parent = "organizations/${var.org_id}"
@@ -115,8 +115,8 @@ module "gcp_org_policy_v2" {
   source  = "terraform-google-modules/org-policy/google//modules/org_policy_v2"
   version = "~> 5.3.0"
 
-  policy_root         = "folder"                               # either of organization, folder or project
-  policy_root_id      = var.folder_id                  # either of org id, folder id or project id
+  policy_root         = "folder"                   # either of organization, folder or project
+  policy_root_id      = var.folder_id              # either of org id, folder id or project id
   constraint          = "gcp.restrictServiceUsage" # constraint identifier without constriants/ prefix. Example "compute.requireOsLogin"
   policy_type         = "list"
   inherit_from_parent = "false" # either of list or boolean
