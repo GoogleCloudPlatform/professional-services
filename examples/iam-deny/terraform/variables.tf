@@ -58,5 +58,4 @@ variable "top_exception_principals" {
   type        = list(string)
   description = "A list of excluded principals from an IAM Deny Policy. Follows the format principalSet://goog/group/GROUP_EMAIL_ADDRESS"
   default     = []
-  # default = []
 }

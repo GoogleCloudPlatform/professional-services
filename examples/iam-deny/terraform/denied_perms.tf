@@ -27,13 +27,13 @@ locals {
     # --- Organization & Folder Management ---
     # Prevent non-admins from modifying org/folder structure or top-level access.
     # NOTE: Org/Folder management permissions (create, delete, move, setIamPolicy) were reported as unsupported at the Org level deny attachment point.
-    "cloudresourcemanager.googleapis.com/projects.create",      # Prevent non-admins creating new projects bypassing potential controls.
-    "cloudresourcemanager.googleapis.com/projects.delete",      # Prevent deletion of projects outside of approved processes.
-    "cloudresourcemanager.googleapis.com/projects.move",        # Prevent moving projects between folders/org.
-    "cloudresourcemanager.googleapis.com/projects.undelete",    # Prevent undeleting projects outside approved processes.
-    "cloudresourcemanager.googleapis.com/projects.update",      # Prevent modifying core project settings like labels/parent.
-    "cloudresourcemanager.googleapis.com/projects.updateLiens", # Prevent modifying project liens, which block deletion.
-    "cloudresourcemanager.googleapis.com/projects.setIamPolicy",# Prevent non-admins setting IAM policies directly on projects from org level.
+    "cloudresourcemanager.googleapis.com/projects.create",       # Prevent non-admins creating new projects bypassing potential controls.
+    "cloudresourcemanager.googleapis.com/projects.delete",       # Prevent deletion of projects outside of approved processes.
+    "cloudresourcemanager.googleapis.com/projects.move",         # Prevent moving projects between folders/org.
+    "cloudresourcemanager.googleapis.com/projects.undelete",     # Prevent undeleting projects outside approved processes.
+    "cloudresourcemanager.googleapis.com/projects.update",       # Prevent modifying core project settings like labels/parent.
+    "cloudresourcemanager.googleapis.com/projects.updateLiens",  # Prevent modifying project liens, which block deletion.
+    "cloudresourcemanager.googleapis.com/projects.setIamPolicy", # Prevent non-admins setting IAM policies directly on projects from org level.
 
     # --- Billing Management ---
     # Prevent non-admins managing billing accounts or linking projects improperly.
@@ -42,55 +42,55 @@ locals {
 
     # --- IAM & Identity Management (Organization Level) ---
     # Prevent non-admins creating/modifying org-level roles, keys, or federation.
-    "iam.googleapis.com/roles.create",                          # Prevent creating custom IAM roles at the org level.
-    "iam.googleapis.com/roles.delete",                          # Prevent deleting org-level custom IAM roles.
-    "iam.googleapis.com/roles.undelete",                        # Prevent undeleting org-level custom IAM roles.
-    "iam.googleapis.com/roles.update",                          # Prevent updating org-level custom IAM roles.
-    "iam.googleapis.com/serviceAccountKeys.create",             # Prevent creating service account keys, often long-lived credentials.
-    "iam.googleapis.com/serviceAccountKeys.delete",             # Prevent deleting service account keys.
-    "iam.googleapis.com/serviceAccounts.getAccessToken",        # Prevent impersonating service accounts to get access tokens.
-    "iam.googleapis.com/serviceAccounts.getOpenIdToken",        # Prevent impersonating service accounts to get OIDC tokens.
-    "iam.googleapis.com/serviceAccounts.implicitDelegation",    # Prevent implicit delegation chains through service accounts.
-    "iam.googleapis.com/serviceAccounts.signBlob",              # Prevent using service accounts to sign arbitrary blobs.
-    "iam.googleapis.com/serviceAccounts.signJwt",               # Prevent using service accounts to sign JWTs.
-    "iam.googleapis.com/serviceAccounts.setIamPolicy",          # Prevent changing permissions on service accounts themselves (if defined at org level).
-    "iam.googleapis.com/workloadIdentityPools.create",          # Prevent creating new Workload Identity Pools for federation.
-    "iam.googleapis.com/workloadIdentityPools.delete",          # Prevent deleting Workload Identity Pools.
-    "iam.googleapis.com/workloadIdentityPools.update",          # Prevent modifying Workload Identity Pools.
-    "iam.googleapis.com/workloadIdentityPoolProviders.delete",  # Prevent deleting Workload Identity Providers.
-    "iam.googleapis.com/workloadIdentityPoolProviders.undelete",# Prevent undeleting Workload Identity Providers.
-    "iam.googleapis.com/workloadIdentityPoolProviders.update",  # Prevent modifying Workload Identity Providers.
+    "iam.googleapis.com/roles.create",                           # Prevent creating custom IAM roles at the org level.
+    "iam.googleapis.com/roles.delete",                           # Prevent deleting org-level custom IAM roles.
+    "iam.googleapis.com/roles.undelete",                         # Prevent undeleting org-level custom IAM roles.
+    "iam.googleapis.com/roles.update",                           # Prevent updating org-level custom IAM roles.
+    "iam.googleapis.com/serviceAccountKeys.create",              # Prevent creating service account keys, often long-lived credentials.
+    "iam.googleapis.com/serviceAccountKeys.delete",              # Prevent deleting service account keys.
+    "iam.googleapis.com/serviceAccounts.getAccessToken",         # Prevent impersonating service accounts to get access tokens.
+    "iam.googleapis.com/serviceAccounts.getOpenIdToken",         # Prevent impersonating service accounts to get OIDC tokens.
+    "iam.googleapis.com/serviceAccounts.implicitDelegation",     # Prevent implicit delegation chains through service accounts.
+    "iam.googleapis.com/serviceAccounts.signBlob",               # Prevent using service accounts to sign arbitrary blobs.
+    "iam.googleapis.com/serviceAccounts.signJwt",                # Prevent using service accounts to sign JWTs.
+    "iam.googleapis.com/serviceAccounts.setIamPolicy",           # Prevent changing permissions on service accounts themselves (if defined at org level).
+    "iam.googleapis.com/workloadIdentityPools.create",           # Prevent creating new Workload Identity Pools for federation.
+    "iam.googleapis.com/workloadIdentityPools.delete",           # Prevent deleting Workload Identity Pools.
+    "iam.googleapis.com/workloadIdentityPools.update",           # Prevent modifying Workload Identity Pools.
+    "iam.googleapis.com/workloadIdentityPoolProviders.delete",   # Prevent deleting Workload Identity Providers.
+    "iam.googleapis.com/workloadIdentityPoolProviders.undelete", # Prevent undeleting Workload Identity Providers.
+    "iam.googleapis.com/workloadIdentityPoolProviders.update",   # Prevent modifying Workload Identity Providers.
 
     # --- Organization-Level Networking ---
     # Prevent non-admins modifying core/shared network infrastructure.
     # NOTE: Network Firewall Policy permissions were reported as unsupported at the Org level deny attachment point.
     # Note: Many compute networking permissions were already removed as they exist in networking.json
-    "compute.googleapis.com/organizations.setSecurityPolicy",   # Prevent changing org-level security policies (e.g., Cloud Armor).
-    "dns.googleapis.com/managedZones.create",                   # Prevent creating new managed DNS zones if centrally managed.
-    "dns.googleapis.com/managedZones.delete",                   # Prevent deleting managed DNS zones.
-    "dns.googleapis.com/managedZones.update",                   # Prevent updating managed DNS zones.
+    "compute.googleapis.com/organizations.setSecurityPolicy", # Prevent changing org-level security policies (e.g., Cloud Armor).
+    "dns.googleapis.com/managedZones.create",                 # Prevent creating new managed DNS zones if centrally managed.
+    "dns.googleapis.com/managedZones.delete",                 # Prevent deleting managed DNS zones.
+    "dns.googleapis.com/managedZones.update",                 # Prevent updating managed DNS zones.
 
     # --- Organization-Level Security & Policy ---
     # Prevent non-admins tampering with security posture or Org Policies.
     # NOTE: accesscontextmanager & securitycenter org settings permissions reported as unsupported at the Org level deny attachment point.
     # Note: Some SCC permissions were already removed as they exist in securitycenter.json
-    "orgpolicy.googleapis.com/policy.set",                      # Critical: Prevent changing Organization Policies.
-    "secretmanager.googleapis.com/secrets.setIamPolicy",        # Prevent changing access to secrets (if managed centrally).
-    "secretmanager.googleapis.com/secrets.delete",              # Prevent deleting secrets (if managed centrally).
+    "orgpolicy.googleapis.com/policy.set",               # Critical: Prevent changing Organization Policies.
+    "secretmanager.googleapis.com/secrets.setIamPolicy", # Prevent changing access to secrets (if managed centrally).
+    "secretmanager.googleapis.com/secrets.delete",       # Prevent deleting secrets (if managed centrally).
 
     # --- Service & API Management ---
     # Prevent non-admins enabling/disabling services org-wide or creating org-level keys.
-    "serviceusage.googleapis.com/services.enable",              # Prevent enabling APIs/services outside of controlled processes.
-    "serviceusage.googleapis.com/services.disable",             # Prevent disabling critical APIs/services.
-    "apikeys.googleapis.com/keys.create",                       # Prevent creating potentially unrestricted API keys.
-    "apikeys.googleapis.com/keys.delete",                       # Prevent deleting API keys.
-    "apikeys.googleapis.com/apiKeys.regenerate",                # Prevent regenerating (changing) API keys.
-    "apikeys.googleapis.com/apiKeys.revert",                    # Prevent reverting API key changes.
-    "apikeys.googleapis.com/keys.update",                       # Prevent updating API key settings.
+    "serviceusage.googleapis.com/services.enable",  # Prevent enabling APIs/services outside of controlled processes.
+    "serviceusage.googleapis.com/services.disable", # Prevent disabling critical APIs/services.
+    "apikeys.googleapis.com/keys.create",           # Prevent creating potentially unrestricted API keys.
+    "apikeys.googleapis.com/keys.delete",           # Prevent deleting API keys.
+    "apikeys.googleapis.com/apiKeys.regenerate",    # Prevent regenerating (changing) API keys.
+    "apikeys.googleapis.com/apiKeys.revert",        # Prevent reverting API key changes.
+    "apikeys.googleapis.com/keys.update",           # Prevent updating API key settings.
 
     # --- Storage (Org-Level Concerns) ---
     # Prevent creating long-lived storage credentials.
-    "storage.googleapis.com/hmacKeys.create",                   # Prevent creating HMAC keys, often used for long-term access.
+    "storage.googleapis.com/hmacKeys.create", # Prevent creating HMAC keys, often used for long-term access.
     "storage.googleapis.com/hmacKeys.delete",
     "storage.googleapis.com/hmacKeys.get",
     "storage.googleapis.com/hmacKeys.list",
@@ -110,15 +110,15 @@ locals {
     "clientauthconfig.googleapis.com/clients.undelete",
     "clientauthconfig.googleapis.com/clients.update",
 
-     # --- Remaining Compute Permissions (Not in networking.json) ---
-     # These relate to VPN Gateways not covered in the specific networking profile removal.
-     "compute.googleapis.com/vpnGateways.create",
-     "compute.googleapis.com/vpnGateways.delete",
-     "compute.googleapis.com/vpnGateways.setLabels",
-     "compute.googleapis.com/vpnGateways.use",
+    # --- Remaining Compute Permissions (Not in networking.json) ---
+    # These relate to VPN Gateways not covered in the specific networking profile removal.
+    "compute.googleapis.com/vpnGateways.create",
+    "compute.googleapis.com/vpnGateways.delete",
+    "compute.googleapis.com/vpnGateways.setLabels",
+    "compute.googleapis.com/vpnGateways.use",
 
     # --- Remaining Subnetwork Permission (Not in networking.json) ---
-    "compute.googleapis.com/subnetworks.getIamPolicy",          # Prevent viewing subnetwork IAM policies directly (defense in depth).
+    "compute.googleapis.com/subnetworks.getIamPolicy", # Prevent viewing subnetwork IAM policies directly (defense in depth).
 
   ] # End of project_admin_perms_deny
 }   # End of locals

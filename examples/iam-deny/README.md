@@ -12,10 +12,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# iamdeny-next2025
-Repo for Next 2025
-
 # Terraform Google Cloud IAM Deny and Organization Policies
+
+This Terraform configuration demonstrates how to implement a series of security guardrails within a Google Cloud organization. It leverages IAM Deny Policies and Organization Policies to restrict high-privilege permissions and enforce organizational standards.
+
+## Table of Contents
+
+* [Features](#features)
+* [Prerequisites](#prerequisites)
+* [Installation and Deployment](#installation-and-deployment)
+* [Resources Created](#resources-created)
+* [Inputs](#inputs)
+* [Outputs](#outputs)
+* [Providers](#providers)
+* [Modules](#modules)
+* [Related Modules & Concepts](#related-modules--concepts)
+* [Contributing](#contributing)
+* [License](#license)
 
 ## Description
 
@@ -34,42 +47,58 @@ Key components include:
 * Applies folder-level deny policies based on the *absence* of any resource tags, covering Billing, Networking, and Security Center permissions.
 * Provides exceptions for specific principals (e.g., dedicated groups for networking, billing, security) for each deny policy rule.
 * Enforces a custom constraint against the `roles/owner` role.
-* Restricts specific service usage within a target folder using a standard Organization Policy constraint.
+*   Restricts specified Google Cloud service usage (e.g., `securitycenter.googleapis.com`, `accessapproval.googleapis.com`) within a designated folder using a standard Organization Policy.
 
 ## Prerequisites
 
-1.  **Terraform:** Terraform CLI (version compatible with provider requirements) installed.
-2.  **Google Cloud Provider:** Configured authentication for the Terraform Google providers (e.g., via `gcloud auth application-default login` or Service Account key).
-3.  **Permissions:** The identity running Terraform needs sufficient permissions, typically granted at the **Organization level**. Consider assigning roles like:
-    * **IAM Deny Admin** (`roles/iam.denyAdmin`) for `iam.denyPolicies.*` permissions.
-    * **Organization Policy Administrator** (`roles/orgpolicy.policyAdmin`) for `orgpolicy.*` permissions.
-    * **Tag User** (`roles/resourcemanager.tagUser`) or **Tag Viewer** (`roles/resourcemanager.tagViewer`) for reading tag information (`resourcemanager.tagValues.get`, `resourcemanager.tagKeys.get`).
-    * **Organization Viewer** (`roles/resourcemanager.organizationViewer`) or broader roles like **Folder Admin** (`roles/resourcemanager.folderAdmin`) for `resourcemanager.organizations.get` and `resourcemanager.folders.get`.
-4.  **Organization ID:** Your Google Cloud Organization ID.
-5.  **Target Folder ID:** The ID of the specific Google Cloud Folder (`folder_id`) where folder-level policies will be applied.
-6.  **Tag Setup:** You need to create a suitable tag (e.g., `iam_deny=enabled`) within your Google Cloud organization. Obtain the specific numeric IDs for the Tag Key and Tag Value.
-    * **Crucially, you must replace the placeholder tag key ID and tag value ID** in the `google_iam_deny_policy.top_level_deny` resource within your `main.tf` file (around line 32) with your actual IDs. Look for the `resource.matchTagId('tagKeys/*', 'tagValues/*')` expression.
-7.  **Permission Files:** The required profile JSON files (`billing.json`, `networking.json`, `securitycenter.json`) are located within the `/terraform/profiles/` directory of this repository.
+1.  **Terraform:** Terraform CLI installed (see `provider.tf` for version constraints).
+2.  **Google Cloud Provider Authentication:** Configured authentication for the Terraform Google providers. This is typically done via `gcloud auth application-default login` or by setting the `GOOGLE_APPLICATION_CREDENTIALS` environment variable to point to a service account key JSON file.
+3.  **Required Permissions (Organization Level):** The identity running Terraform needs sufficient permissions. Consider assigning or ensuring the identity has roles like:
+    *   **IAM Deny Admin** (`roles/iam.denyAdmin`)
+    *   **Organization Policy Administrator** (`roles/orgpolicy.policyAdmin`)
+    *   **Tag Admin** (`roles/resourcemanager.tagAdmin`) or **Tag User** (`roles/resourcemanager.tagUser`) for creating and using tags.
+    *   **Organization Viewer** (`roles/resourcemanager.organizationViewer`) or **Folder Admin** (`roles/resourcemanager.folderAdmin`)
+4.  **Google Cloud Organization ID:** Your numeric Organization ID (e.g., `123456789012`).
+5.  **Target Google Cloud Folder ID:** The numeric ID of the specific Google Cloud Folder (e.g., `987654321098`) where folder-level policies will be applied.
+6.  **Tag Setup:**
+    *   You need to create a suitable tag (e.g., key `iam_deny` with value `enabled`) within your Google Cloud organization that will be used by the organization-level deny policy.
+    *   Obtain the specific numeric IDs for the Tag Key (e.g., `tagKeys/123...`) and Tag Value (e.g., `tagValues/456...`).
+7.  **Permission Definition Files:** The example JSON files defining permissions for different profiles (`billing.json`, `networking.json`, `securitycenter.json`) are located within the `terraform/profiles/` directory of this example.
 
-## Usage
+## Installation and Deployment
 
-1.  **Clone Repository:** Clone this repository to your local machine.
+1.  **Clone Repository:** If you haven't already, clone the repository containing this example to your local machine.
     ```bash
-     git clone https://github.com/kevinschmidtG/iamdeny-next2025
+    # Example: Replace with the actual repository URL
+    git clone https://github.com/GoogleCloudPlatform/terraform-google-iam.git
+    cd terraform-google-iam/examples/iam-deny
     ```
-2.  **Navigate to Directory:** Change into the Terraform directory within the cloned repository.
+2.  **Navigate to Terraform Directory:** Change into the Terraform configuration directory for this example.
     ```bash
     cd terraform
     ```
-    *(All subsequent commands should be run from this `/terraform` directory)*
-3.  **Update `main.tf` Tag IDs:** **This is a critical step.** Open the `main.tf` file. Locate the `google_iam_deny_policy.top_level_deny` resource. Inside its `denial_condition` block (around line 32), you **must replace** the generic `'tagKeys/*'` and `'tagValues/*'` in the `expression = "resource.matchTagId('tagKeys/*', 'tagValues/*')"` line with your specific TagKey ID and TagValue ID that you created as part of the prerequisites.
-4.  **Prepare Variables File:**
-    * Copy the example variables file (`terraform.tfvars.example`) to the name Terraform automatically loads (`terraform.tfvars`):
-      ```bash
-      cp terraform.tfvars.example terraform.tfvars
-      ```
-    * Edit the new `terraform.tfvars` file.
-    * **IMPORTANT: Replace all placeholder values** (like `YOUR_ORG_ID`, `YOUR_FOLDER_ID`, group emails `...@example.com`) with your actual Organization ID, target Folder ID (`folder_id`), and principal group emails/identifiers for the exceptions. Refer to the "Inputs" section for details on each variable.
+    *(All subsequent Terraform commands should be run from this `terraform` directory)*
+
+3.  **CRITICAL: Update Tag IDs in `main.tf`**
+
+    This is a **crucial step** for the organization-level deny policy to function correctly.
+    *   Open the `main.tf` file.
+    *   Locate the `google_iam_deny_policy.top_level_deny` resource (around line 32).
+    *   Inside its `denial_condition` block, you **MUST REPLACE** the placeholder tag key ID (`'tagKeys/*'`) and tag value ID (`'tagValues/*'`) in the expression:
+        ```terraform
+        # Before: expression = "resource.matchTagId('tagKeys/*', 'tagValues/*')"
+        # After:  expression = "resource.matchTagId('tagKeys/YOUR_TAG_KEY_ID', 'tagValues/YOUR_TAG_VALUE_ID')"
+        ```
+        Replace `YOUR_TAG_KEY_ID` and `YOUR_TAG_VALUE_ID` with the actual numeric IDs of the tag key and value you created in the prerequisites.
+
+4.  **Prepare `terraform.tfvars` File:**
+    *   Copy the example variables file:
+        ```bash
+        cp terraform.tfvars.example terraform.tfvars
+        ```
+    *   Edit the new `terraform.tfvars` file.
+    *   **IMPORTANT: Replace all placeholder values** (like `YOUR_ORG_ID`, `YOUR_FOLDER_ID`, and example group emails `...@example.com`) with your actual Organization ID, target Folder ID, and principal/group identifiers for policy exceptions. Refer to the [Inputs](#inputs) section for details on each variable.
+
 5.  **Initialize Terraform:**
     ```bash
     terraform init
@@ -87,27 +116,27 @@ Key components include:
 
 This configuration will create the following Google Cloud resources:
 
-* **`google_iam_deny_policy.top_level_deny`**: An IAM Deny Policy attached at the organization level, denying a broad set of permissions on resources tagged with your specified tag (defined by `resource.matchTagId` in `main.tf`).
-* **`google_iam_deny_policy.profile-deny-policy`**: An IAM Deny Policy attached at the folder level (`var.folder_id`), denying specific Billing, Security, and Networking permissions on resources that *do not* have any tags applied.
-* **`google_org_policy_custom_constraint.deny_owner`**: A Custom Organization Policy Constraint (`custom.denyOwner`) defined at the organization level, which specifies a condition to deny the `roles/owner` primitive role.
-* **`google_org_policy_policy.bool`**: An Organization Policy that enforces the `custom.denyOwner` constraint at the organization level.
-* **`module "gcp_org_policy_v2"`**: This module is used to create an Organization Policy attached at the folder level (`var.folder_id`) that enforces `gcp.restrictServiceUsage` to deny the usage of specified services (e.g., `securitycenter.googleapis.com`, `accessapproval.googleapis.com`).
+*   **`google_iam_deny_policy.top_level_deny`**: An IAM Deny Policy attached at the organization level. It denies a broad set of administrative permissions (defined in `denied_perms.tf`) on any resource tagged with the specific tag you configured in `main.tf`.
+*   **`google_iam_deny_policy.profile-deny-policy`**: An IAM Deny Policy attached at the folder level (specified by `var.folder_id`). It denies specific Billing, Security, and Networking permissions on resources within that folder *unless* those resources have *any* tag applied to them. The specific sets of permissions for these profiles are defined in JSON files within the `./terraform/profiles/` directory (e.g., `billing.json`, `networking.json`, `securitycenter.json`). This structure allows for clear organization of denied permissions and the application of distinct exception principals for each functional area.
+*   **`google_org_policy_custom_constraint.deny_owner`**: A Custom Organization Policy Constraint defined at the organization level. This constraint (`custom.denyOwner`) specifies a condition to deny the assignment of the primitive `roles/owner` role.
+*   **`google_org_policy_policy.enforce_deny_owner_constraint`**: An Organization Policy that enforces the `custom.denyOwner` constraint at the organization level.
+*   **`module "gcp_org_policy_v2"` (Resource: `google_org_policy_policy`):** This module creates an Organization Policy attached at the folder level (specified by `var.folder_id`). It enforces the `gcp.restrictServiceUsage` constraint to deny the usage of specified services (e.g., `securitycenter.googleapis.com`, `accessapproval.googleapis.com`) within that folder.
 
 ## Inputs
 
 | Name                            | Description                                                                                                                               | Type         | Default                                      | Required |
-| ------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- | ------------ | -------------------------------------------- | :------: |
-| `org_id`                        | Your Google Cloud Organization ID. **Must be set in `terraform.tfvars`.**                                                                 | `string`     | `""` (Effectively N/A - Must be provided)  |   Yes    |
-| `folder_id`                     | The folder ID where folder-level policies will be attached. **Must be set in `terraform.tfvars`.**                                         | `string`     | `""` (Effectively N/A - Must be provided)  |   Yes    |
-| `networking_exception_principals` | List of principals exempt from the networking deny rule. Format: `principalSet://goog/group/GROUP_EMAIL_ADDRESS`. See [IAM Principals](https://cloud.google.com/iam/docs/principal-identifiers). | `list(string)` | `[]`                                         |    No    |
-| `billing_exception_principals`  | List of principals exempt from the billing deny rule. Format: `principalSet://goog/group/GROUP_EMAIL_ADDRESS`.                              | `list(string)` | `[]`                                         |    No    |
-| `sec_exception_principals`      | List of principals exempt from the security deny rule. Format: `principalSet://goog/group/GROUP_EMAIL_ADDRESS`.                               | `list(string)` | `[]`                                         |    No    |
-| `top_exception_principals`      | List of principals exempt from the organization-level deny policy. Format: `principalSet://goog/group/GROUP_EMAIL_ADDRESS`.                  | `list(string)` | `[]`                                         |    No    |
-| `folder_path`                   | The prefix for the folder resource path.                                                                                                  | `string`     | `"cloudresourcemanager.googleapis.com/folders/"` |    No    |
+|---------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------|--------------|----------------------------------------------|:--------:|
+| `org_id`                        | Your Google Cloud Organization ID (numeric string). **Must be set in `terraform.tfvars`.**                                                                 | `string`     | `""` (Effectively N/A - Must be provided)  |   Yes    |
+| `folder_id`                     | The folder ID (numeric string, without "folders/" prefix) where folder-level policies will be attached. **Must be set in `terraform.tfvars`.**                                         | `string`     | `""` (Effectively N/A - Must be provided)  |   Yes    |
+| `networking_exception_principals` | List of principals exempt from the networking deny rule. Example format: `principalSet://goog/group/GROUP_EMAIL_ADDRESS`. See [IAM Principals](https://cloud.google.com/iam/docs/principal-identifiers). | `list(string)` | `[]`                                         |    No    |
+| `billing_exception_principals`  | List of principals exempt from the billing deny rule.                                                                                           | `list(string)` | `[]`                                         |    No    |
+| `sec_exception_principals`      | List of principals exempt from the security deny rule.                                                                                          | `list(string)` | `[]`                                         |    No    |
+| `top_exception_principals`      | List of principals exempt from the organization-level deny policy.                                                                              | `list(string)` | `[]`                                         |    No    |
+| `folder_path`                   | The prefix for the folder resource path used in IAM policies.                                                                                                  | `string`     | `"cloudresourcemanager.googleapis.com/folders/"` |    No    |
 | `region`                        | The default Google Cloud region for the provider.                                                                                         | `string`     | `"us-central1"`                              |    No    |
 | `zone`                          | The default Google Cloud zone for the provider.                                                                                           | `string`     | `"us-central1-c"`                            |    No    |
 
-**Important Note on `terraform.tfvars`:** The `terraform.tfvars.example` file provides the structure for your `terraform.tfvars` file. You **must** update `org_id`, `folder_id`, and any desired exception principals in `terraform.tfvars` before applying the configuration. The default empty string `""` for `org_id` and `folder_id` in the table above are placeholders in the variable definitions; they will cause errors if not overridden. Exception principal lists default to empty `[]` if not specified, meaning no exceptions.
+**Important Note on `terraform.tfvars`:** The `terraform.tfvars.example` file provides the structure for your `terraform.tfvars` file. You **must** update `org_id`, `folder_id`, and any desired exception principals in `terraform.tfvars` before applying the configuration. The default empty string `""` for `org_id` and `folder_id` in the table above are placeholders in the variable definitions; they will cause errors if not overridden. Exception principal lists default to empty `[]` if not specified, meaning no exceptions by default.
 
 ## Outputs
 
@@ -135,8 +164,13 @@ This repository focuses on preventative controls using IAM Deny and Organization
 Google Cloud provides a reference implementation for PAM using Terraform:
 * **terraform-google-pam:** [https://github.com/GoogleCloudPlatform/terraform-google-pam/tree/main](https://github.com/GoogleCloudPlatform/terraform-google-pam/tree/main)
 
-This PAM module was intentionally not included as part of this configuration, as it addresses a different (though related) aspect of access control and is typically implemented separately based on specific operational needs for managing temporary elevation.
+This PAM module is separate and addresses a different aspect of access control, typically implemented based on specific operational needs for managing temporary elevation.
+
+## Contributing
+
+Contributions are welcome! Please refer to the main repository's contributing guidelines for more information.
 
 ## License
 
-This code is licensed under the Apache License, Version 2.0. See the license headers in the `.tf` files for details.
+Licensed under the Apache License, Version 2.0. See the [LICENSE](../../../LICENSE) file for the full license text.
+(Note: Adjust the path to the main LICENSE file if this example is moved).
