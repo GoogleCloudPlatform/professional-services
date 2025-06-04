@@ -1,0 +1,20 @@
+displayName: VPC Network Route Changes
+documentation:
+  content: "Log-based alerting policy in project ${project} detected VPC Network Route changes.\nThis alert helps ensure security by monitoring creation or deletion of network routes. ``` resource.type=\"gce_route\" AND  (\n  protoPayload.methodName:\"compute.routes.insert\" OR \n  protoPayload.methodName:\"compute.routes.delete\"\n) ```"
+  mimeType: text/markdown
+conditions:
+- displayName: 'Log match condition: route changes'
+  conditionMatchedLog:
+    filter: "resource.type=\"gce_route\" AND  (\n  protoPayload.methodName:\"compute.routes.insert\" OR \n  protoPayload.methodName:\"compute.routes.delete\"\n)"
+    labelExtractors:
+      principal: EXTRACT(protoPayload.authenticationInfo.principalEmail)
+      method_name: EXTRACT(protoPayload.methodName)
+      project_id: EXTRACT(labels.project_id)
+      route_id: EXTRACT(labels.route_id)
+combiner: OR
+notificationChannels:
+- projects/my-project/notificationChannels/11111111111111
+alertStrategy:
+  notificationRateLimit:
+    period: 300s
+  autoClose: 604800s

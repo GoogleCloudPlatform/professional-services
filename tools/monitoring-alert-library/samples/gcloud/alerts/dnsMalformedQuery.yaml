@@ -1,0 +1,22 @@
+displayName: DNS Malformed Queries
+documentation:
+  content: |-
+    Log-based alerting policy in project ${project} detected where DNS queries are malformed or cannot be processed by the DNS server.
+    This alert helps monitoring the DNS logs for response code "FORMERR" when malformed DNS queries are sent to the DNS server. ```
+      resource.type="dns_query" AND jsonPayload.responseCode="FORMERR"
+    ```
+  mimeType: text/markdown
+conditions:
+- displayName: 'Log match condition: dns malformed queries'
+  conditionMatchedLog:
+    filter: resource.type="dns_query" AND jsonPayload.responseCode="FORMERR"
+    labelExtractors:
+      principal: EXTRACT(protoPayload.authenticationInfo.principalEmail)
+      project_id: EXTRACT(labels.project_id)
+combiner: OR
+notificationChannels:
+- projects/my-project/notificationChannels/11111111111111
+alertStrategy:
+  notificationRateLimit:
+    period: 300s
+  autoClose: 604800s

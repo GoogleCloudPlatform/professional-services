@@ -1,0 +1,56 @@
+#@ load("/alert.lib.star", "build_alert")
+#@ load("/alert.lib.yaml", "generate_notification_channels")
+#@ load("@ytt:template", "template")
+#@ alert = build_alert("projectOwnershipChange")
+
+#@ if alert.to_generate():
+displayName: 'Project Ownership Changes'
+documentation:
+  content: >-
+    Log-based alerting policy in project ${project} detected a project ownership assignments or changes.
+    ```
+    (protoPayload.serviceName="cloudresourcemanager.googleapis.com") AND 
+    (ProjectOwnership OR projectOwnerInvitee) 
+    OR 
+    (
+      protoPayload.serviceData.policyDelta.bindingDeltas.action="REMOVE" AND 
+      protoPayload.serviceData.policyDelta.bindingDeltas.role="roles/owner"
+    ) 
+    OR 
+    (
+      protoPayload.serviceData.policyDelta.bindingDeltas.action="ADD" AND 
+      protoPayload.serviceData.policyDelta.bindingDeltas.role="roles/owner"
+    )
+    ```
+  mimeType: text/markdown
+conditions:
+  - displayName: 'Log match condition: project ownership changes'
+    conditionMatchedLog:
+      filter: >-
+        (protoPayload.serviceName="cloudresourcemanager.googleapis.com") AND 
+        (ProjectOwnership OR projectOwnerInvitee) 
+        OR 
+        (
+          protoPayload.serviceData.policyDelta.bindingDeltas.action="REMOVE" AND 
+          protoPayload.serviceData.policyDelta.bindingDeltas.role="roles/owner"
+        ) 
+        OR 
+        (
+          protoPayload.serviceData.policyDelta.bindingDeltas.action="ADD" AND 
+          protoPayload.serviceData.policyDelta.bindingDeltas.role="roles/owner"
+        )
+      labelExtractors:
+        principal: "EXTRACT(protoPayload.authenticationInfo.principalEmail)"
+        method_name: "EXTRACT(protoPayload.methodName)"
+        organization_id: "EXTRACT(labels.organization_id)"
+        folder_id: "EXTRACT(labels.folder_id)"
+        project_id: "EXTRACT(labels.project_id)"
+combiner: OR
+#@ if alert.has_notification_channels():
+_: #@ template.replace(generate_notification_channels())
+#@ end
+alertStrategy:
+  notificationRateLimit:
+    period: 300s
+  autoClose: 604800s
+#@ end

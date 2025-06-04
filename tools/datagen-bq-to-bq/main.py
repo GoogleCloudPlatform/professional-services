@@ -1,10 +1,17 @@
+"""
+Copyright 2025 Google. This software is provided as-is, 
+without warranty or representation for any use or purpose. 
+Your use of it is subject to your agreement with Google.
+
+"""
+
 import uuid
 import os
 import shutil
 from google.cloud import (
     bigquery,
-)  # Removed storage import, individual modules handle it
-from vertexai import init as vertex_init  # Preserving 'init' alias
+)  
+from vertexai import init as vertex_init  
 from vertexai.generative_models import GenerativeModel, GenerationConfig
 
 import config_vars
@@ -16,29 +23,29 @@ import audit_utils
 
 def main():
     """Main function to orchestrate the synthetic data generation pipeline."""
-    # Variables from notebook, initialized or generated
-    batch_id = uuid.uuid4()  # Notebook uses this, then converts to str for logging
+    
+    batch_id = uuid.uuid4()  
     print(f"Starting pipeline with batch_id: {str(batch_id)}")
 
     # Initialize clients and Vertex AI
     try:
         vertex_init(project=config_vars.PROJECT_ID, location=config_vars.LOCATION)
         gemini_model = GenerativeModel(
-            "gemini-1.5-pro-002", generation_config=GenerationConfig(temperature=0)
+            config_vars.MODEL_ID, generation_config=GenerationConfig(temperature=0)
         )
         bq_client_main = bigquery.Client(project=config_vars.PROJECT_ID)
     except Exception as e:
         print(f"Error during initialization: {e}")
         return
 
-    # Define dynamic GCS paths using batch_id, preserving notebook structure
+    # Define dynamic GCS paths using batch_id
     output_gcs_path = f"gs://{config_vars.gcs_bucket_name}/{config_vars.PROJECT_ID}/tdm_output/{str(batch_id)}/"
-    staging_gcs_path = f"gs://{config_vars.gcs_bucket_name}/{config_vars.PROJECT_ID}/tdm_staging/{str(batch_id)}"  # No trailing slash as per notebook
-    staging_path_bigquery = f"gs://{config_vars.gcs_bucket_name}/{config_vars.PROJECT_ID}/tdm_staging/bigquery/{str(batch_id)}"  # No trailing slash
+    staging_gcs_path = f"gs://{config_vars.gcs_bucket_name}/{config_vars.PROJECT_ID}/tdm_staging/{str(batch_id)}"  
+    staging_path_bigquery = f"gs://{config_vars.gcs_bucket_name}/{config_vars.PROJECT_ID}/tdm_staging/bigquery/{str(batch_id)}" 
 
-    # Initialize maps/dicts as in notebook
+    # Initialize maps/dicts 
     table_attributes = {}
-    input_gcs_path = {}  # This is populated by export_bigquery_table_to_bq_gcs_staging
+    input_gcs_path = {}  
     header_gcs_path = {}
 
     # Local output directory for Snowfakery, will append batch_id
@@ -48,7 +55,7 @@ def main():
         # 1. Export BigQuery Data to GCS (if source is BigQuery)
         if config_vars.SOURCE_TYPE == "BigQuery":
             print("\\n--- Exporting BigQuery tables to GCS ---")
-            # The export function in notebook populates a global 'input_gcs_path', here it returns it
+            
             input_gcs_path = bq_ops.export_bigquery_table_to_bq_gcs_staging(
                 bq_client_main,
                 config_vars.input_bq_table_names,  # Pass the string of table names
@@ -59,11 +66,11 @@ def main():
                 raise Exception(
                     "Failed to export BigQuery tables or input_gcs_path map is empty."
                 )
-        # Add elif for SOURCE_TYPE == "GCS" if needed, similar to previous response
+            
 
         # 2. Pre-process Source Files
         print("\\n--- Pre-processing source files ---")
-        # This function in notebook uses/updates global 'table_attributes', here it returns it
+    
         table_attributes = file_processing_utils.file_pre_processing(
             gemini_model,
             input_gcs_path,  # Pass the map generated above
@@ -94,7 +101,7 @@ def main():
             shutil.rmtree(local_snowfakery_output_batch)
         os.makedirs(local_snowfakery_output_batch, exist_ok=True)
 
-        # The 'generate_output_data' function in notebook handles recipe creation and generation
+        # The 'generate_output_data' function handles recipe creation and generation
         generation_successful = snowfakery_gen.generate_output_data(
             gemini_model,
             table_attributes,  # Pass current table_attributes
@@ -115,7 +122,6 @@ def main():
 
         # 6. Load Data to BigQuery
         print("\\n--- Loading generated data to BigQuery ---")
-        # The notebook calls import_gcs_to_bigquery directly without looping here
         bq_ops.import_gcs_to_bigquery(
             table_attributes  # Contains the output_gcs_path for each table
         )

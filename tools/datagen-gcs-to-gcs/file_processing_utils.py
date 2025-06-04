@@ -1,3 +1,10 @@
+"""
+Copyright 2025 Google. This software is provided as-is, 
+without warranty or representation for any use or purpose. 
+Your use of it is subject to your agreement with Google.
+
+"""
+
 import time
 import json
 import os
@@ -32,6 +39,8 @@ def file_pre_processing(
         # Create a nested dictionary for 'table_name' before assigning values
         table_attributes[table_name] = {}
 
+        print(f"Processing GCS File: {gcs_path}")
+        
         # Extract of the sample rows from the GCS File Path
         file_name, sample_rows = gcs_ops.get_filename_sample_rows(gcs_path)
         sample_rows_str = "\n".join(map(str, sample_rows))

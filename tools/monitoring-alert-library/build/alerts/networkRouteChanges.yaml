@@ -1,0 +1,43 @@
+#@ load("/alert.lib.star", "build_alert")
+#@ load("/alert.lib.yaml", "generate_notification_channels")
+#@ load("@ytt:template", "template")
+#@ alert = build_alert("networkRouteChanges")
+
+#@ if alert.to_generate():
+displayName: 'VPC Network Route Changes'
+documentation:
+  content: >-
+    Log-based alerting policy in project ${project} detected VPC Network Route changes.
+
+    This alert helps ensure security by monitoring creation or deletion of network routes.
+    ```
+    resource.type="gce_route" AND 
+    (
+      protoPayload.methodName:"compute.routes.insert" OR 
+      protoPayload.methodName:"compute.routes.delete"
+    )
+    ```
+  mimeType: text/markdown
+conditions:
+  - displayName: 'Log match condition: route changes'
+    conditionMatchedLog:
+      filter: >-
+        resource.type="gce_route" AND 
+        (
+          protoPayload.methodName:"compute.routes.insert" OR 
+          protoPayload.methodName:"compute.routes.delete"
+        )
+      labelExtractors:
+        principal: "EXTRACT(protoPayload.authenticationInfo.principalEmail)"
+        method_name: "EXTRACT(protoPayload.methodName)"
+        project_id: "EXTRACT(labels.project_id)"
+        route_id: "EXTRACT(labels.route_id)"
+combiner: OR
+#@ if alert.has_notification_channels():
+_: #@ template.replace(generate_notification_channels())
+#@ end
+alertStrategy:
+  notificationRateLimit:
+    period: 300s
+  autoClose: 604800s
+#@ end

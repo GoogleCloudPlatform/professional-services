@@ -1,0 +1,51 @@
+#@ load("/alert.lib.star", "build_alert")
+#@ load("/alert.lib.yaml", "generate_notification_channels")
+#@ load("@ytt:template", "template")
+#@ alert = build_alert("networkChanges")
+
+#@ if alert.to_generate():
+displayName: 'VPC Network Changes'
+documentation:
+  content: >-
+    Log-based alerting policy in project ${project} detected VPC Network changes.
+
+    This alert helps ensure security by monitoring creation, modification, deletion, or peering changes to VPC networks.
+    ```
+    resource.type="gce_network" AND 
+    (
+      protoPayload.methodName:"compute.networks.insert" OR 
+      protoPayload.methodName:"compute.networks.patch" OR 
+      protoPayload.methodName:"compute.networks.delete" OR 
+      protoPayload.methodName:"compute.networks.addPeering" OR 
+      protoPayload.methodName:"compute.networks.updatePeering" OR 
+      protoPayload.methodName:"compute.networks.removePeering"
+    )
+    ```
+  mimeType: text/markdown
+conditions:
+  - displayName: 'Log match condition: network changes'
+    conditionMatchedLog:
+      filter: >-
+        resource.type="gce_network" AND 
+        (
+          protoPayload.methodName:"compute.networks.insert" OR 
+          protoPayload.methodName:"compute.networks.patch" OR 
+          protoPayload.methodName:"compute.networks.delete" OR 
+          protoPayload.methodName:"compute.networks.addPeering" OR 
+          protoPayload.methodName:"compute.networks.updatePeering" OR 
+          protoPayload.methodName:"compute.networks.removePeering"
+        )
+      labelExtractors:
+        principal: "EXTRACT(protoPayload.authenticationInfo.principalEmail)"
+        method_name: "EXTRACT(protoPayload.methodName)"
+        project_id: "EXTRACT(labels.project_id)"
+        network_id: "EXTRACT(labels.network_id)"
+combiner: OR
+#@ if alert.has_notification_channels():
+_: #@ template.replace(generate_notification_channels())
+#@ end
+alertStrategy:
+  notificationRateLimit:
+    period: 300s
+  autoClose: 604800s
+#@ end
