@@ -1,16 +1,3 @@
-# Copyright 2025 Google LLC
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     https://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
 
 # Terraform Google Cloud IAM Deny and Organization Policies
 
@@ -18,17 +5,21 @@ This Terraform configuration demonstrates how to implement a series of security 
 
 ## Table of Contents
 
-* [Features](#features)
-* [Prerequisites](#prerequisites)
-* [Installation and Deployment](#installation-and-deployment)
-* [Resources Created](#resources-created)
-* [Inputs](#inputs)
-* [Outputs](#outputs)
-* [Providers](#providers)
-* [Modules](#modules)
-* [Related Modules & Concepts](#related-modules--concepts)
-* [Contributing](#contributing)
-* [License](#license)
+- [Terraform Google Cloud IAM Deny and Organization Policies](#terraform-google-cloud-iam-deny-and-organization-policies)
+  - [Table of Contents](#table-of-contents)
+  - [Description](#description)
+  - [Features](#features)
+  - [Prerequisites](#prerequisites)
+  - [Installation and Deployment](#installation-and-deployment)
+  - [Resources Created](#resources-created)
+  - [Inputs](#inputs)
+  - [Outputs](#outputs)
+  - [Providers](#providers)
+  - [Modules](#modules)
+  - [Related Modules \& Concepts](#related-modules--concepts)
+    - [Privileged Access Management (PAM)](#privileged-access-management-pam)
+  - [Contributing](#contributing)
+  - [License](#license)
 
 ## Description
 
@@ -70,8 +61,8 @@ Key components include:
 1.  **Clone Repository:** If you haven't already, clone the repository containing this example to your local machine.
     ```bash
     # Example: Replace with the actual repository URL
-    git clone https://github.com/GoogleCloudPlatform/terraform-google-iam.git
-    cd terraform-google-iam/examples/iam-deny
+    git clone https://github.com/kevinschmidtG/professional-services.git
+    cd examples/iam-deny
     ```
 2.  **Navigate to Terraform Directory:** Change into the Terraform configuration directory for this example.
     ```bash
