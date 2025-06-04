@@ -1,3 +1,17 @@
+# Copyright 2025 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 # iamdeny-next2025
 Repo for Next 2025
 
@@ -34,7 +48,7 @@ Key components include:
 4.  **Organization ID:** Your Google Cloud Organization ID.
 5.  **Target Folder ID:** The ID of the specific Google Cloud Folder (`folder_id`) where folder-level policies will be applied.
 6.  **Tag Setup:** You need to create a suitable tag (e.g., `iam_deny=enabled`) within your Google Cloud organization. Obtain the specific numeric IDs for the Tag Key and Tag Value.
-    * **Crucially, you must replace the placeholder tag key ID and tag value ID** in the `google_iam_deny_policy.top_level_deny` resource within your `main.tf` file with your actual IDs. Look for the `resource.matchTagId(...)` expression.
+    * **Crucially, you must replace the placeholder tag key ID and tag value ID** in the `google_iam_deny_policy.top_level_deny` resource within your `main.tf` file (around line 32) with your actual IDs. Look for the `resource.matchTagId('tagKeys/*', 'tagValues/*')` expression.
 7.  **Permission Files:** The required profile JSON files (`billing.json`, `networking.json`, `securitycenter.json`) are located within the `/terraform/profiles/` directory of this repository.
 
 ## Usage
@@ -48,14 +62,14 @@ Key components include:
     cd terraform
     ```
     *(All subsequent commands should be run from this `/terraform` directory)*
-3.  **Update `main.tf` Tag IDs:** **Replace the placeholder tag key ID and tag value ID** in the `main.tf` file within the `google_iam_deny_policy.top_level_deny` resource's `denial_condition` block with your actual tag IDs created in the prerequisites step.
+3.  **Update `main.tf` Tag IDs:** **This is a critical step.** Open the `main.tf` file. Locate the `google_iam_deny_policy.top_level_deny` resource. Inside its `denial_condition` block (around line 32), you **must replace** the generic `'tagKeys/*'` and `'tagValues/*'` in the `expression = "resource.matchTagId('tagKeys/*', 'tagValues/*')"` line with your specific TagKey ID and TagValue ID that you created as part of the prerequisites.
 4.  **Prepare Variables File:**
     * Copy the example variables file (`terraform.tfvars.example`) to the name Terraform automatically loads (`terraform.tfvars`):
       ```bash
       cp terraform.tfvars.example terraform.tfvars
       ```
     * Edit the new `terraform.tfvars` file.
-    * **Replace all placeholder values** (like `123456789012`, `987654321098`, group emails `...@example.com`) with your actual Organization ID, target Folder ID (`folder_id`), and principal group emails/identifiers for the exceptions.
+    * **IMPORTANT: Replace all placeholder values** (like `YOUR_ORG_ID`, `YOUR_FOLDER_ID`, group emails `...@example.com`) with your actual Organization ID, target Folder ID (`folder_id`), and principal group emails/identifiers for the exceptions. Refer to the "Inputs" section for details on each variable.
 5.  **Initialize Terraform:**
     ```bash
     terraform init
@@ -73,26 +87,27 @@ Key components include:
 
 This configuration will create the following Google Cloud resources:
 
-* **`google_iam_deny_policy.top_level_deny`**: An IAM Deny Policy attached at the organization level, denying a broad set of permissions on resources tagged with your specified tag.
-* **`google_iam_deny_policy.profile-deny-policy`**: An IAM Deny Policy attached at the folder level (`var.folder_id`), denying specific Billing, Security, and Networking permissions on resources without any tags.
-* **`google_org_policy_custom_constraint.constraint`**: A Custom Organization Policy Constraint preventing the assignment of `roles/owner`.
-* **`google_organization_policy` (via module `gcp_org_policy_v2`)**: An Organization Policy attached at the folder level (`var.folder_id`) enforcing `gcp.restrictServiceUsage` to deny specific services.
+* **`google_iam_deny_policy.top_level_deny`**: An IAM Deny Policy attached at the organization level, denying a broad set of permissions on resources tagged with your specified tag (defined by `resource.matchTagId` in `main.tf`).
+* **`google_iam_deny_policy.profile-deny-policy`**: An IAM Deny Policy attached at the folder level (`var.folder_id`), denying specific Billing, Security, and Networking permissions on resources that *do not* have any tags applied.
+* **`google_org_policy_custom_constraint.deny_owner`**: A Custom Organization Policy Constraint (`custom.denyOwner`) defined at the organization level, which specifies a condition to deny the `roles/owner` primitive role.
+* **`google_org_policy_policy.bool`**: An Organization Policy that enforces the `custom.denyOwner` constraint at the organization level.
+* **`module "gcp_org_policy_v2"`**: This module is used to create an Organization Policy attached at the folder level (`var.folder_id`) that enforces `gcp.restrictServiceUsage` to deny the usage of specified services (e.g., `securitycenter.googleapis.com`, `accessapproval.googleapis.com`).
 
 ## Inputs
 
-| Name                            | Description                                                                                                                | Type         | Default                  | Required |
-| ------------------------------- | -------------------------------------------------------------------------------------------------------------------------- | ------------ | ------------------------ | :------: |
-| `org_id`                        | Your Google Cloud Organization ID.                                                                                         | `string`     | `""`                     |   Yes    |
-| `folder_id`                     | The folder ID where folder-level policies will be attached.                                                                | `string`     | `""`                     |   Yes    |
-| `networking_exception_principals` | List of principals (e.g., groups) exempt from the networking deny rule. Format: `principalSet://goog/group/GROUP_EMAIL` | `list(string)` | `[""]`                   |    No    |
-| `billing_exception_principals`  | List of principals (e.g., groups) exempt from the billing deny rule. Format: `principalSet://goog/group/GROUP_EMAIL`      | `list(string)` | `[""]`                   |    No    |
-| `sec_exception_principals`      | List of principals (e.g., groups) exempt from the security deny rule. Format: `principalSet://goog/group/GROUP_EMAIL`     | `list(string)` | `[""]`                   |    No    |
-| `top_exception_principals`      | List of principals (e.g., groups) exempt from the organization-level deny policy. Format: `principalSet://goog/group/GROUP_EMAIL` | `list(string)` | `[]`                   |    No    |
-| `folder_path`                   | The prefix for the folder resource path.                                                                                   | `string`     | `"cloudresourcema..."` |    No    |
-| `region`                        | The default Google Cloud region for the provider.                                                                          | `string`     | `"us-central1"`          |    No    |
-| `zone`                          | The default Google Cloud zone for the provider.                                                                            | `string`     | `"us-central1-c"`        |    No    |
+| Name                            | Description                                                                                                                               | Type         | Default                                      | Required |
+| ------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- | ------------ | -------------------------------------------- | :------: |
+| `org_id`                        | Your Google Cloud Organization ID. **Must be set in `terraform.tfvars`.**                                                                 | `string`     | `""` (Effectively N/A - Must be provided)  |   Yes    |
+| `folder_id`                     | The folder ID where folder-level policies will be attached. **Must be set in `terraform.tfvars`.**                                         | `string`     | `""` (Effectively N/A - Must be provided)  |   Yes    |
+| `networking_exception_principals` | List of principals exempt from the networking deny rule. Format: `principalSet://goog/group/GROUP_EMAIL_ADDRESS`. See [IAM Principals](https://cloud.google.com/iam/docs/principal-identifiers). | `list(string)` | `[]`                                         |    No    |
+| `billing_exception_principals`  | List of principals exempt from the billing deny rule. Format: `principalSet://goog/group/GROUP_EMAIL_ADDRESS`.                              | `list(string)` | `[]`                                         |    No    |
+| `sec_exception_principals`      | List of principals exempt from the security deny rule. Format: `principalSet://goog/group/GROUP_EMAIL_ADDRESS`.                               | `list(string)` | `[]`                                         |    No    |
+| `top_exception_principals`      | List of principals exempt from the organization-level deny policy. Format: `principalSet://goog/group/GROUP_EMAIL_ADDRESS`.                  | `list(string)` | `[]`                                         |    No    |
+| `folder_path`                   | The prefix for the folder resource path.                                                                                                  | `string`     | `"cloudresourcemanager.googleapis.com/folders/"` |    No    |
+| `region`                        | The default Google Cloud region for the provider.                                                                                         | `string`     | `"us-central1"`                              |    No    |
+| `zone`                          | The default Google Cloud zone for the provider.                                                                                           | `string`     | `"us-central1-c"`                            |    No    |
 
-*(Note: Defaults for `org_id`, `folder_id`, and exception principals must be updated in `terraform.tfvars`)*
+**Important Note on `terraform.tfvars`:** The `terraform.tfvars.example` file provides the structure for your `terraform.tfvars` file. You **must** update `org_id`, `folder_id`, and any desired exception principals in `terraform.tfvars` before applying the configuration. The default empty string `""` for `org_id` and `folder_id` in the table above are placeholders in the variable definitions; they will cause errors if not overridden. Exception principal lists default to empty `[]` if not specified, meaning no exceptions.
 
 ## Outputs
 
