@@ -6,6 +6,11 @@ conditions:
 - displayName: 'Log match condition: route changes'
   conditionMatchedLog:
     filter: "resource.type=\"gce_route\" AND  (\n  protoPayload.methodName:\"compute.routes.insert\" OR \n  protoPayload.methodName:\"compute.routes.delete\"\n)"
+    labelExtractors:
+      principal: EXTRACT(protoPayload.authenticationInfo.principalEmail)
+      method_name: EXTRACT(protoPayload.methodName)
+      project_id: EXTRACT(labels.project_id)
+      route_id: EXTRACT(labels.route_id)
 combiner: OR
 notificationChannels:
 - projects/my-project/notificationChannels/11111111111111

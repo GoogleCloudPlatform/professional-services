@@ -6,6 +6,11 @@ conditions:
 - displayName: 'Log match condition: network changes'
   conditionMatchedLog:
     filter: "resource.type=\"gce_network\" AND  (\n  protoPayload.methodName:\"compute.networks.insert\" OR \n  protoPayload.methodName:\"compute.networks.patch\" OR \n  protoPayload.methodName:\"compute.networks.delete\" OR \n  protoPayload.methodName:\"compute.networks.addPeering\" OR \n  protoPayload.methodName:\"compute.networks.updatePeering\" OR \n  protoPayload.methodName:\"compute.networks.removePeering\"\n)"
+    labelExtractors:
+      principal: EXTRACT(protoPayload.authenticationInfo.principalEmail)
+      method_name: EXTRACT(protoPayload.methodName)
+      project_id: EXTRACT(labels.project_id)
+      network_id: EXTRACT(labels.network_id)
 combiner: OR
 notificationChannels:
 - projects/my-project/notificationChannels/11111111111111

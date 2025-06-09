@@ -8,6 +8,12 @@ conditions:
 - displayName: 'Log match condition: audit configuration changes'
   conditionMatchedLog:
     filter: protoPayload.methodName="SetIamPolicy" AND protoPayload.serviceData.policyDelta.auditConfigDeltas:*
+    labelExtractors:
+      principal: EXTRACT(protoPayload.authenticationInfo.principalEmail)
+      method_name: EXTRACT(protoPayload.methodName)
+      organization_id: EXTRACT(labels.organization_id)
+      folder_id: EXTRACT(labels.folder_id)
+      project_id: EXTRACT(labels.project_id)
 combiner: OR
 notificationChannels:
 - projects/my-project/notificationChannels/11111111111111
