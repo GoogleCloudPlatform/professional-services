@@ -19,6 +19,11 @@ conditions:
     conditionMatchedLog:
       filter: >-
         protoPayload.methodName="cloudsql.instances.update"
+      labelExtractors:
+        principal: "EXTRACT(protoPayload.authenticationInfo.principalEmail)"
+        method_name: "EXTRACT(protoPayload.methodName)"
+        project_id: "EXTRACT(labels.project_id)"
+        database_id: "EXTRACT(labels.database_id)"
 combiner: OR
 #@ if alert.has_notification_channels():
 _: #@ template.replace(generate_notification_channels())

@@ -1,0 +1,45 @@
+# -----------------------------------------------------------------------------
+# Example terraform.tfvars file (save as terraform.tfvars.example)
+#
+# Instructions:
+# 1. Copy this file to terraform.tfvars
+# 2. Replace placeholder values with your actual configuration.
+# -----------------------------------------------------------------------------
+
+# --- Required Configuration ---
+
+org_id = "123456789012" # Replace with your actual Google Cloud Organization ID (e.g., from `gcloud organizations list`)
+
+folder_id = "987654321098" # Replace with the numeric ID of the folder where profile-specific deny policies will be attached
+
+# --- Principal Exceptions ---
+# Replace with the actual email addresses of your Google Groups.
+# Use the format listed for IAM Deny Principal Identifiers: https://cloud.google.com/iam/docs/principal-identifiers#deny
+# User - principal://goog/subject/USER_EMAIL_ADDRESS
+# Service account - 	principal://iam.googleapis.com/projects/-/serviceAccounts/SA_EMAIL_ADDRESS
+# Group	- principalSet://goog/group/GROUP_EMAIL_ADDRESS
+# You can add multiple principals to each list if needed.
+
+networking_exception_principals = [
+  # "principalSet://goog/user/individual-user@example.com" # Example of adding a user
+]
+
+billing_exception_principals = [
+  #"principalSet://goog/group/gcp-billing-admins@example.com" #Example of adding a group
+]
+
+sec_exception_principals = [
+ # principal://iam.googleapis.com/projects/-/serviceAccounts/SA_EMAIL_ADDRESS
+]
+
+top_exception_principals = [
+  # "principalSet://goog/group/gcp-breakglass-admins@example.com" # Example of adding another group
+]
+
+
+# --- Optional Configuration (Defaults from variables.tf) ---
+# You generally don't need to set these unless you want to override the defaults.
+
+# region = "us-central1"
+# zone   = "us-central1-c"
+# folder_path = "cloudresourcemanager.googleapis.com/folders/"

@@ -6,6 +6,12 @@ conditions:
 - displayName: 'Log match condition: custom role changes'
   conditionMatchedLog:
     filter: "resource.type=\"iam_role\" AND  (\n  protoPayload.methodName=\"google.iam.admin.v1.CreateRole\" OR \n  protoPayload.methodName=\"google.iam.admin.v1.UpdateRole\" OR \n  protoPayload.methodName=\"google.iam.admin.v1.DeleteRole\"\n)"
+    labelExtractors:
+      principal: EXTRACT(protoPayload.authenticationInfo.principalEmail)
+      method_name: EXTRACT(protoPayload.methodName)
+      organization_id: EXTRACT(labels.organization_id)
+      project_id: EXTRACT(labels.project_id)
+      role_name: EXTRACT(labels.role_name)
 combiner: OR
 notificationChannels:
 - projects/my-project/notificationChannels/11111111111111

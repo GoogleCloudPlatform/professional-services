@@ -17,7 +17,11 @@ required_apis = [
     "aiplatform.googleapis.com"
 ]
 
+
+//Please change the following variables
 //Project ID where resources will be created
 project_id = "project_id"
 //Location where resources will be created
 location = "location"
+//Staging Cloud function bucket where the source code will be stored
+stg_cf_bucket = "staging-bucket" 

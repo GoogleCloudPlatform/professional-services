@@ -19,6 +19,9 @@ conditions:
     conditionMatchedLog:
       filter: >-
         resource.type="dns_query" AND jsonPayload.responseCode="FORMERR"
+      labelExtractors:
+        principal: "EXTRACT(protoPayload.authenticationInfo.principalEmail)"
+        project_id: "EXTRACT(labels.project_id)"
 combiner: OR
 #@ if alert.has_notification_channels():
 _: #@ template.replace(generate_notification_channels())

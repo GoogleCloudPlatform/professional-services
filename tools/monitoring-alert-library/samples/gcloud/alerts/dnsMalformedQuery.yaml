@@ -10,6 +10,9 @@ conditions:
 - displayName: 'Log match condition: dns malformed queries'
   conditionMatchedLog:
     filter: resource.type="dns_query" AND jsonPayload.responseCode="FORMERR"
+    labelExtractors:
+      principal: EXTRACT(protoPayload.authenticationInfo.principalEmail)
+      project_id: EXTRACT(labels.project_id)
 combiner: OR
 notificationChannels:
 - projects/my-project/notificationChannels/11111111111111
