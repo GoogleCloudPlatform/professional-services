@@ -1,0 +1,122 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.example</groupId>
+    <artifactId>agent-gcptoolbox-claude-slack</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <packaging>jar</packaging>
+    <name>Hotels Agent for Slack</name>
+
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>3.5.0</version>
+        <relativePath/> <!-- lookup parent from repository -->
+    </parent>
+
+    <properties>
+        <java.version>21</java.version>
+        <spring.ai.version>1.0.0</spring.ai.version>
+    </properties>
+
+    <dependencies>
+        <!-- Spring Boot Starter WebFlux (for WebClient) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webflux</artifactId>
+        </dependency>
+        <!-- Spring Boot Starter Actuator -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+        <!-- indexer to speed up bootstrap -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context-indexer</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.ai</groupId>
+            <artifactId>spring-ai-starter-model-anthropic</artifactId>
+            <version>${spring.ai.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.ai</groupId>
+            <artifactId>spring-ai-starter-mcp-client-webflux</artifactId>
+            <version>${spring.ai.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.slack.api</groupId>
+            <artifactId>bolt</artifactId>
+            <version>1.45.3</version>
+        </dependency>
+        <!-- Spring Boot Starter Test (for testing) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <!-- For JSON logging with Logback -->
+        <dependency>
+            <groupId>net.logstash.logback</groupId>
+            <artifactId>logstash-logback-encoder</artifactId>
+            <version>8.1</version> 
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin> <!-- enforces code formatting -->
+            <plugin>
+                <groupId>com.diffplug.spotless</groupId>
+                <artifactId>spotless-maven-plugin</artifactId>
+                <version>2.43.0</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                        <phase>validate</phase>
+                    </execution>
+                </executions>
+                <configuration>
+                    <java>
+                        <!-- These are the defaults, you can override if you want -->
+                        <includes>
+                            <include>src/main/java/**/*.java</include>
+                            <include>src/test/java/**/*.java</include>
+                        </includes>
+                        <cleanthat />
+                        <googleJavaFormat>
+                            <version>1.27.0</version>
+                        </googleJavaFormat>
+                        <importOrder />
+                        <removeUnusedImports />
+                        <formatAnnotations />
+                        <licenseHeader>
+                            <file>${maven.multiModuleProjectDirectory}/license-header</file>
+                        </licenseHeader>
+                    </java>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+    
+    <repositories>
+        <repository>
+            <id>spring-snapshots</id>
+            <name>Spring Snapshots</name>
+            <url>https://repo.spring.io/snapshot</url>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+        </repository>
+    </repositories>
+
+</project>

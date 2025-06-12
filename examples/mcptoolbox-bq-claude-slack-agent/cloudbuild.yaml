@@ -1,0 +1,29 @@
+steps:
+  # Build the Docker image
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '-t'
+      - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_ARTIFACT_REGISTRY_REPO_NAME}/${_SERVICE_NAME}:latest'
+      - '.'
+    id: 'Build Docker Image'
+
+  # Push the Docker image to Artifact Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'push'
+      - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_ARTIFACT_REGISTRY_REPO_NAME}/${_SERVICE_NAME}:latest'
+    id: 'Push to Artifact Registry'
+
+images:
+  - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_ARTIFACT_REGISTRY_REPO_NAME}/${_SERVICE_NAME}:latest'
+
+# Substitutions - these can be set in the Cloud Build trigger
+# or passed during a manual build (which is what the terraform local-exec does)
+substitutions:
+  _SERVICE_NAME: 'spring-boot-app' # Default value
+  _REGION: 'us-central1' # Default value
+  _ARTIFACT_REGISTRY_REPO_NAME: 'spring-boot-app-images' # Default value
+
+options:
+  logging: CLOUD_LOGGING_ONLY
