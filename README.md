@@ -28,10 +28,10 @@ them to fit your particular use case.
 *   [Audio Content Profiling](examples/ml-audio-content-profiling) - A tool that
     builds a pipeline to scale the process of moderating audio files for
     inappropriate content using machine learning APIs.
-*   [Bigdata generator](tools/bigdata-generator/) - 
-    Solution that generates large amounts of data for stress-testing bigdata solutions (e.g BigQuery). 
+*   [Bigdata generator](tools/bigdata-generator/) -
+    Solution that generates large amounts of data for stress-testing bigdata solutions (e.g BigQuery).
     For each of the fields you want to generate, you can specify rules for generating their values. The generated data can stored in BigQuery or GCS (Avro, CSV).
-*   [BigQuery Analyze Realtime Reddit Data](examples/bigquery-analyze-realtime-reddit-data/) - 
+*   [BigQuery Analyze Realtime Reddit Data](examples/bigquery-analyze-realtime-reddit-data/) -
     Solution to deploy a ([reddit](https://www.reddit.com)) social media data collection
     architecture on Google Cloud Platform.  Analyzes reddit comments in realtime and
     provides free natural-language processing / sentiment.
@@ -60,14 +60,14 @@ them to fit your particular use case.
     Dataset/Table where all Source tables are of same schema (like Billing Exports!); specifically
     useful for data consolidation and further reporting in Cloud FinOps engagements.
 *   [BigQuery DDL Validator](examples/bigquery-ddl-validator) -
-    A utility that will read the Legacy DDL and compare it against the previously extracted DDL and 
+    A utility that will read the Legacy DDL and compare it against the previously extracted DDL and
     produce an output with the name of the objects where the DDL is no longer matching.
 *   [BigQuery Group Sync For Row Level Access](examples/bigquery-row-access-groups) -
     Sample code to synchronize group membership from G Suite/Cloud Identity into
     BigQuery and join that with your data to control access at row level.
 *   [BigQuery Long Running Optimization Utility](examples/bigquery-long-running-optimizer) -
     A utility that reads the entire SQL and provides a list of suggestions that would help to optimize the query and avoid the long running issues.
-*   [BigQuery Oracle DDL Migration Utility](examples/bigquery-oracle-ddl-migration-utility) - 
+*   [BigQuery Oracle DDL Migration Utility](examples/bigquery-oracle-ddl-migration-utility) -
     Oracle DDL Migration Utility to migrate the tables schema (DDL) from Oracle DB to BigQuery.
     The utility leverages BigQuery Translation API and offers additional features
     such as adding partitioning, clustering, metadata columns and prefixes to table names.
@@ -75,7 +75,7 @@ them to fit your particular use case.
     defining data pipelines in BigQuery.
 *   [BigQuery Remote Function](examples/bq-remote-function) - It allows user to implement custom
     services or libraries in languages other than SQL or Javascript which are not part of UDFs.
-    The utility contains sample string format Java code to deploy cloud run gen2 instance and invoke 
+    The utility contains sample string format Java code to deploy cloud run gen2 instance and invoke
     the service from BigQuery using remote function.
 *   [BigQuery Amazon S3 Migration Tool](tools/bigquery-s3tobq) - Bigquery Migration Tool to transfer data
     from files in Amazon S3 to BigQuery Tables based on configuration provided.
@@ -95,7 +95,7 @@ them to fit your particular use case.
     BigQuery query and returns the output as an XML string.
 *   [BigQuery Translation Validator](examples/bigquery-translation-validator-utility) - A python utility to compare 2 SQL Files and  point basic differences like column names,
     table names, joins, function names, is-Null and query syntax.
-*   [BigQuery Generic DDL Migration Utility](examples/bigquery-generic-ddl-migration-utility) - 
+*   [BigQuery Generic DDL Migration Utility](examples/bigquery-generic-ddl-migration-utility) -
     Generic DDL Migration Utility to migrate the tables schema (DDL) from Database(Oracle, Snowflake, MSSQL, Vertica, Neteeza) DB to BigQuery.
     The utility leverages BigQuery Translation API and offers additional features
     such as adding partitioning, clustering, metadata columns and prefixes to table names.
@@ -109,12 +109,12 @@ them to fit your particular use case.
     table. It works with any table, regardless the schema. It shows how to
     update your key for a table with existing data, to try out different
     alternatives to improve performance.
-*   [Carbon Footprint Reporting](examples/carbon-foortprint-dashboard) - Example of 
+*   [Carbon Footprint Reporting](examples/carbon-foortprint-dashboard) - Example of
     using the prebuilt Data studio & Looker template for analysing GCP Carbon Footprint Estimates.
 *   [Cloud Audit Log Samples](examples/audit-log-examples/) - A sample
     collection of Audit Logs for Users and Customers to better the structure,
     contents, and values contained in various log events.
-*   [Cloud Build Application CICD Examples](examples/cloudbuild-application-cicd) - 
+*   [Cloud Build Application CICD Examples](examples/cloudbuild-application-cicd) -
     Cloud Build CI/CD Examples for Applications like containerization &
     deployment to Cloud Run.
 *   [Cloud Build with Proxy Running in Background](examples/cloudbuild-with-tcp-proxy) -
@@ -209,7 +209,7 @@ them to fit your particular use case.
     and continuous deployment.
 *   [Dataflow XML to BigQuery](examples/dataflow-xmlio-to-bq) - Example of
     loading XML data into BigQuery with DataFlow via XMLIO.
-*   [Data Loss Prevention hybrid inspection for MongoDB](examples/mongodb-hybrid-dlp) - 
+*   [Data Loss Prevention hybrid inspection for MongoDB](examples/mongodb-hybrid-dlp) -
     A Cloud Function using MongoDB Change Streams that uses Sensitive Data Protection's
     hybrid Data Loss Prevention inspection API in near real-time.
 *   [Dataproc Spanner](examples/dataproc-spanner) - Dataproc cluster write to Spanner using Apache Spark in Scala.
@@ -248,7 +248,7 @@ them to fit your particular use case.
 *   [GCE Access to Google AdminSDK](examples/gce-to-adminsdk) - Example to help
     manage access to Google's AdminSDK using GCE's service account identity
 *   [GCS Client Side Encryption via Sidecar](examples/gcs-client-encrypt/) - Example to show how to implement GCS client side encyrption via a sidecar
-*   [GCS Hive External Table File Optimization](examples/gcs-hive-external-table-file-optimization) - 
+*   [GCS Hive External Table File Optimization](examples/gcs-hive-external-table-file-optimization) -
     Example solution to showcase impact of file count, file size, and file
     type on Hive external tables and query speeds.
 *   [GCS to BQ using serverless services](examples/gcs-to-bq-serverless-services) -
@@ -263,7 +263,7 @@ them to fit your particular use case.
     Basic example of a Grpc server that is connected to a Spanner database.
 *   [Grpc Server connected to Redis](examples/grpc_redis_example) - Basic
     example of a Grpc server that is connected to Redis.
-*   [Gitlab KAS agent for GKE](examples/gitlab-kas-gke) - Terraform solution for          deploying a Gitlab KAS agent for synchronizing container deployments from Gitlab repos into a GKE cluster 
+*   [Gitlab KAS agent for GKE](examples/gitlab-kas-gke) - Terraform solution for          deploying a Gitlab KAS agent for synchronizing container deployments from Gitlab repos into a GKE cluster
 *   [Home Appliance Status Monitoring from Smart Power Readings](examples/e2e-home-appliance-status-monitoring) -
     An end-to-end demo system featuring a suite of Google Cloud Platform
     products such as IoT Core, ML Engine, BigQuery, etc.
@@ -297,18 +297,18 @@ them to fit your particular use case.
     Batching in Pub/Sub's Java client API.
 *   [QAOA](examples/qaoa) - Examples of parsing a max-SAT problem in a
     proprietary format, for Quantum Approximate Optimization Algorithm (QAOA)
-*   [React single-page app on Cloud Run + Cloud Storage](examples/react-spa-app) - End-to-end example of deploying 
+*   [React single-page app on Cloud Run + Cloud Storage](examples/react-spa-app) - End-to-end example of deploying
     a React SPA on serverless Google Cloud services.
 *   [Redis Cluster on GKE Example](examples/redis-cluster-gke) - Deploying Redis
     cluster on GKE.
-*   [Risk Analysis Asset](examples/risk-analysis-asset) - Deploying Reliability Risk analysis tool on Cloud Run. 
+*   [Risk Analysis Asset](examples/risk-analysis-asset) - Deploying Reliability Risk analysis tool on Cloud Run.
 *   [Spanner Interleave Subquery](examples/spanner-interleave-subquery) -
     Example code to benchmark Cloud Spanner's subqueries for interleaved tables.
-*   [Spanner Change Stream to BigQuery using Dataflow](examples/spanner-changestreams-bigquery) - 
+*   [Spanner Change Stream to BigQuery using Dataflow](examples/spanner-changestreams-bigquery) -
     Terraform code to deploy Spanner change stream and publish changes to BigQuery using Dataflow Streaming Job.
 *   [Spinnaker](examples/spinnaker) - Example pipelines for a Canary /
     Production deployment process.
-*   [STS Metrics from STS Notification](examples/sts-metrics) - Example code to 
+*   [STS Metrics from STS Notification](examples/sts-metrics) - Example code to
     generate custom metrics from STS notification.
 *   [TensorFlow Serving on GKE and Load Testing](examples/tf-load-testing) -
     Examples how to implement Tensorflow model inference on GKE and to perform a
@@ -342,9 +342,9 @@ Platform usage.
     using LIME through simple post request.
 *   [Airflow DAG Metadata Generator](tools/airflow-dag-metadata-generator) - Use Google's
     generative models to analyze Airflow DAGs and supplement them with generated `description`,
-    `tags`, and `doc_md` values.      
+    `tags`, and `doc_md` values.
 *   [Airflow States Collector](tools/airflow-states-collector) -
-      A tool that creates and uploads an airflow dag to the dags GCS folder. The dag incrementally collect airflow task states and stores to BQ. It also autogenerates a LookerStudio dashboard querying the BQ view. 
+      A tool that creates and uploads an airflow dag to the dags GCS folder. The dag incrementally collect airflow task states and stores to BQ. It also autogenerates a LookerStudio dashboard querying the BQ view.
 *   [Airpiler](tools/airpiler) - A python script to convert Autosys JIL files to
     dag-factory format to be executed in Cloud Composer (managed airflow
     environment).
@@ -388,7 +388,7 @@ Platform usage.
 *   [Capacity Planner CLI](tools/capacity-planner-cli) - A stand-alone tool to
     extract peak resource usage values and corresponding timestamps for a given
     GCP project, time range and timezone.
-*   [Capacity Planner Sheets Extension](tools/capacity-planner-sheets-extension) - 
+*   [Capacity Planner Sheets Extension](tools/capacity-planner-sheets-extension) -
     A Google Sheets extension to extract peak resource usage values and corresponding
     timestamps for a given GCP project, time range and timezone.
 *   [CloudConnect](tools/cloudconnect) - A package that automates the setup of
@@ -418,11 +418,11 @@ Platform usage.
     prioritize a specific scope (e.g. project or folder) to attribute CUDs first
     before letting any unconsumed discount float to other parts of an
     organization.
-*   [Custom Module for Security Health Analytics Library](tools/custom-module-security-health-analytics-library) - 
-    A library of custom modules for SCC Security Health Analytics. It includes 
+*   [Custom Module for Security Health Analytics Library](tools/custom-module-security-health-analytics-library) -
+    A library of custom modules for SCC Security Health Analytics. It includes
     tools to easily generate custom modules and provisioning them on your organization.
     This library helps organization to detect configuration and compliance drifts.
-*   [Custom Organization Policy Library](tools/custom-organization-policy-library) - A library 
+*   [Custom Organization Policy Library](tools/custom-organization-policy-library) - A library
     of custom organization policy constraints and samples. It includes tools to easily generate policies for provisioning across your organization using either Google Cloud (gcloud) or Terraform.
 *   [Custom Role Analyzer](tools/custom-roles-analyzer) - This tool will provide
     useful insights with respect to custom roles at organization level as well
@@ -432,7 +432,7 @@ Platform usage.
     project-level custom roles by combining predefined roles and including and
     removing permissions with wildcards. Can run as Cloud Function or output
     Terraform resources.
-*   [Dataproc Event Driven Spark Recommendations](tools/dataproc-event-driven-spark-recommendations/) - 
+*   [Dataproc Event Driven Spark Recommendations](tools/dataproc-event-driven-spark-recommendations/) -
     Use Google Cloud Functions to analyze Cloud Dataproc clusters and recommend
     best practices for Apache Spark jobs.  Also logs cluster configurations for
     future reference.
@@ -447,11 +447,11 @@ Platform usage.
     Instances and load balancers are added to the cloud DNS zone as they start
     from compute_engine_activity log events sent from a pub/sub push
     subscription. Can sync multiple projects to a single Cloud DNS zone.
-*   [DynamoDB to Bigtable Migration](tools/dynamodb-bigtable-migration) - 
-    DynamoDB to Bigtable Migration tool is a powerful solution designed to streamline data transfer 
+*   [DynamoDB to Bigtable Migration](tools/dynamodb-bigtable-migration) -
+    DynamoDB to Bigtable Migration tool is a powerful solution designed to streamline data transfer
     from DynamoDB to Cloud Bigtable.
-    This tool automates schema translation, ensuring your data structure is mapped to Bigtable. 
-    It also provides options to accelerate and scale data transfer efficiently using dataflow, 
+    This tool automates schema translation, ensuring your data structure is mapped to Bigtable.
+    It also provides options to accelerate and scale data transfer efficiently using dataflow,
     minimizing downtime and maximizing performance.
 *   [Firewall Enforcer](tools/firewall-enforcer) - Automatically watch & remove
     illegal firewall rules across organization. Firewall rules are monitored by
@@ -495,7 +495,7 @@ Platform usage.
 *   [GenAI-Powered Code Modification Cloud Function](tools/genai-code-mod-auto) - A deployable Google Cloud Function that, powered by the Vertex AI Gemini API, automates code modification. It reads files from GitHub, processes them with an LLM to generate new versions, and then saves those modifications back to the repositories.
 *   [GKE AutoPSC Controller](tools/gke-autopsc-controller) - Google Kubernetes Engine
     controller, to setup PSC ServiceAttachment for Gateway API managed Forwarding Rules.
-*   [Global DNS -> Zonal DNS Project Bulk Migration](tools/gdns-zdns-project-bulk-migration) - 
+*   [Global DNS -> Zonal DNS Project Bulk Migration](tools/gdns-zdns-project-bulk-migration) -
     A shell script for gDNS-zDNS project bulk migration.
 *   [GKE Billing Export](tools/gke-billing-export) - Google Kubernetes Engine
     fine grained billing export.
@@ -562,11 +562,11 @@ Platform usage.
     enables querying private documents with Large Language Models (LLMs), powerfully augmented by context
     from Vertex AI RAG Engine and Vector Search. While a simple Streamlit UI is included, it serves
     primarily to demonstrate the capabilities of the underlying backend services.
-*   [Ranger Hive Assessment for BigQuery/BigLake IAM migration](tools/ranger-to-bigquery-biglake-assessment) - 
-    A tool that assesses which Ranger authorization rules can be migrated 
+*   [Ranger Hive Assessment for BigQuery/BigLake IAM migration](tools/ranger-to-bigquery-biglake-assessment) -
+    A tool that assesses which Ranger authorization rules can be migrated
     or not to BigQuery/BigLake IAM.
-*   [Reddit Comment Streaming](tools/reddit-comment-streaming/) - 
-    Use PRAW, TextBlob, and Google Python API to collect and analyze 
+*   [Reddit Comment Streaming](tools/reddit-comment-streaming/) -
+    Use PRAW, TextBlob, and Google Python API to collect and analyze
     reddit comments. Pushes comments to a Google Pub/sub Topic.
 *   [Secret Manager Helper](tools/secret-manager-helper) - A Java library to
     make it easy to replace placeholder strings with Secret Manager secret
@@ -589,16 +589,16 @@ Platform usage.
 *   [STS Job Manager](tools/sts-job-manager/) - A petabyte-scale bucket
     migration tool utilizing
     [Storage Transfer Service](https://cloud.google.com/storage-transfer-service)
-*   [Vector Search Load Testing Framework](tools/vector-search-load-testing-framework) - This 
+*   [Vector Search Load Testing Framework](tools/vector-search-load-testing-framework) - This
     framework provides a streamlined solution for distributed load testing of Vertex AI
     Vector Search endpoints on Google Kubernetes Engine (GKE) using
     [Locust](https://locust.io/). It enables you to simulate production-like workloads to effectively benchmark performance, analyze scalability, and validate deployment
     configurations.
-*   [Vertex AI Endpoint Tester] (tools/vertex-ai-endpoint-load-tester) - This 
+*   [Vertex AI Endpoint Tester] (tools/vertex-ai-endpoint-load-tester) - This
     utility helps to methodically test variety of Vertex AI Endpoints by their
     sizes so that one can decide the right size to deploy an ML Model on Vertex
     AI given a sample request JSON and some idea(s) on expected queries per second.
-*   [Vertex AI Endpoint Tester](tools/vertex-ai-endpoint-load-tester) - This 
+*   [Vertex AI Endpoint Tester](tools/vertex-ai-endpoint-load-tester) - This
     utility helps to methodically test variety of Vertex AI Endpoints by their
     sizes so that one can decide the right size to deploy an ML Model on Vertex
     AI given a sample request JSON and some idea(s) on expected queries per second.
@@ -629,17 +629,18 @@ Platform usage.
     Cloud SQL for PostgreSQL, and Google Cloud Storage.
 *   [Cloud Composer Stress Testing](tools/cloud-composer-stress-testing) - A collection
     of tools aimed at testing, benchmarking, and simulating workloads within Composer. Great for
-    integration testing and experimenting with different environment configurations. 
+    integration testing and experimenting with different environment configurations.
 *   [Cloud Composer Environment Rotator](tools/cloud-composer-environment-rotator) - Rotate Airflow
     resources from an old composer environment to a new composer environment with minimal downtime. Ideal
     for non in-place environment updates, downgrading environment versions, or migrating to different regions.
-*   [Gradio and Generative AI Example](examples/genai-gradio-example) - The example code allows developers 
+*   [Gradio and Generative AI Example](examples/genai-gradio-example) - The example code allows developers
     to create rapid Generative AI PoC applications with Gradio and Gen AI agents.
-*   [Memorystore Cluster Ops Framework](tools/memorystore-cluster-ops-framework) - This is a framework that 
-    provides the tools to apply cluster level operations that enable capabilities like cluster backups, migration & validation, etc. 
-    The framework can be extended for other use cases as required. 
+*   [Memorystore Cluster Ops Framework](tools/memorystore-cluster-ops-framework) - This is a framework that
+    provides the tools to apply cluster level operations that enable capabilities like cluster backups, migration & validation, etc.
+    The framework can be extended for other use cases as required.
     The framework uses RIOT to bridge current product gaps with Memorystore Clusters
 *   [ML Project Generator](tools/ml-project-generator) - A utility to create a Production grade ML project template with the best productivity tools installed like auto-formatting, license checks, linting, etc.
+*   [MCP Toolbox & Claude Integration] - A Hotel's booking specialized GenAI agent for Slack built using Spring Boot AI, BigQuery, CloudRun, MCP Toolbox and Claude LLM.
 
 
 ## Contributing
