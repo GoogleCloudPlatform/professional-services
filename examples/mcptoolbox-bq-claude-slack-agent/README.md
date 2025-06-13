@@ -16,7 +16,7 @@ Once all the solution's components are deployed to GCP and Slack application set
 
 First, let's examine the BigQuery table containing the hotel data that our conversational Agent will access.
 
-![BigQuery table with Hotel's data before interaction](/images/bq1.png)
+![BigQuery table with Hotel's data before interaction](/examples/mcptoolbox-bq-claude-slack-agent/images/bq1.png)
 
 The table includes hotel entries with details like internal identifier, name, city, location, price tier, available check-in/check-out dates, and booking status.
 
@@ -31,14 +31,14 @@ LLMs excel at interpreting natural language, recognizing patterns, and formulati
 
 For example, we can test the agent by requesting hotels in multiple locations at once (even if the direct tool interface expects a single location) and by performing multiple cancellations, bookings, and check-in/check-out updates within a single conversational turn.
 
-![Chat interaction with the Hotel Booking Agent](/images/chat1.png)
+![Chat interaction with the Hotel Booking Agent](/examples/mcptoolbox-bq-claude-slack-agent/images/chat1.png)
 *Caption: A user interacts with the Slackbot, requesting to find hotels in Basel and Barcelona, cancel a booking, book a new hotel, and update check-in/check-out dates for another booking, all in one message.*
 
 In this scenario, the Agent correctly identifies the user's intent and triggers multiple calls to the configured tools. This results in finding three hotels in Basel and none in Barcelona, as requested. The Agent also successfully completes the cancellation, booking, and update requests.
 
 We can then verify that the requested changes have been correctly persisted in the BigQuery table.
 
-![BigQuery table with Hotel's data after interaction](/images/bq2.png)
+![BigQuery table with Hotel's data after interaction](/examples/mcptoolbox-bq-claude-slack-agent/images/bq2.png)
 
 This example demonstrates the power of a conversational UX implemented through a specialized Agent, MCP, and a well-defined toolset to accomplish complex tasks within a specific domain.
 
