@@ -51,12 +51,6 @@ dataproc:
     bundles:
       pci-dss: false
       cis: false
-  dataprocAllowedVpcNetwork:
-    #@schema/validation one_of=["default", "skip", "include"]
-    generation: "default"
-    bundles:
-      pci-dss: false
-      cis: false
   dataprocRequireInternalIp:
     #@schema/validation one_of=["default", "skip", "include"]
     generation: "default"
@@ -64,30 +58,6 @@ dataproc:
       pci-dss: false
       cis: false
   dataprocDisableDefaultServiceAccount:
-    #@schema/validation one_of=["default", "skip", "include"]
-    generation: "default"
-    bundles:
-      pci-dss: false
-      cis: false
-  dataprocAllowedImages:
-    #@schema/validation one_of=["default", "skip", "include"]
-    generation: "default"
-    bundles:
-      pci-dss: false
-      cis: false
-  dataprocAllowedMachineType:
-    #@schema/validation one_of=["default", "skip", "include"]
-    generation: "default"
-    bundles:
-      pci-dss: false
-      cis: false
-  dataprocRequireMonitoring:
-    #@schema/validation one_of=["default", "skip", "include"]
-    generation: "default"
-    bundles:
-      pci-dss: false
-      cis: false
-  dataprocAllowedComponents:
     #@schema/validation one_of=["default", "skip", "include"]
     generation: "default"
     bundles:
