@@ -1,4 +1,0 @@
-name: organizations/11111111/policies/custom.firewallRestrictOpenWorldRule
-spec:
-  rules:
-  - enforce: true

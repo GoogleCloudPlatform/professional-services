@@ -14,14 +14,14 @@
 
 load("@ytt:data", "data")
 load("@ytt:struct", "struct")
-load("/config.lib.star", "include", "get_service")
+load("/config.lib.star", "include_constraint", "get_service")
 
 def _constraint_name(self):
    return "organizations/" + data.values.organization + "/customConstraints/custom." + self.constraint
 end
 
 def _to_generate(self):
-  return include(data.values[self.service][self.constraint], data.values.bundles)
+  return include_constraint(data.values[self.service][self.constraint], data.values.bundles)
 end
 
 def _params(self):

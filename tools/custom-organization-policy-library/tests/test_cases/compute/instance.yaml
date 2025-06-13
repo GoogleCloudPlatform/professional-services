@@ -2,14 +2,17 @@ shared_config:
   command:  gcloud compute instances create {{ identifier }} --zone asia-southeast2-a
   teardown_command: gcloud compute instances delete  {{ identifier }} --zone asia-southeast2-a
   default_command_flags: 
-    machine-type: e2-medium 
+    machine-type: e2-medium  # n2-standard-1
     image-family: debian-11
     image-project: debian-cloud 
     boot-disk-size: 10GB 
     boot-disk-type: pd-ssd 
     address: no # no external IP
-    network: cuop-vpc-network
+    network: vpc-dev-cuop-library
     subnet: subnet-vm
+    shielded-integrity-monitoring: true 
+    shielded-secure-boot: true 
+    shielded-vtpm: true
   default_markers:
     - compute
     - compute-instance
@@ -43,7 +46,7 @@ compute_instance_ip_forward:
       can-ip-forward: true
     expected_result:
       return_code: 1
-      stderr: customConstraints/custom.computeDisableIPForwarding
+      stderr: constraints/compute.vmCanIpForward
 
 compute_instance_no_confidential:
   steps:

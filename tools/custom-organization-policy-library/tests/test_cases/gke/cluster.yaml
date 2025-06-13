@@ -3,7 +3,7 @@ shared_config:
   teardown_command: gcloud container clusters delete {{ identifier }} --region=asia-southeast2
   default_command_flags: 
     enable-basic-auth: false
-    cluster-version: 1.32.2-gke.1182003
+    cluster-version: 1.33.0-gke.2248000
     release-channel: regular
     machine-type: n2d-standard-2
     image-type: COS_CONTAINERD
@@ -11,7 +11,7 @@ shared_config:
     enable-private-endpoint: true
     enable-private-nodes: true
     enable-ip-alias: true
-    network: projects/{{ project }}/global/networks/cuop-vpc-network
+    network: projects/{{ project }}/global/networks/vpc-dev-cuop-library
     subnetwork: projects/{{ project }}/regions/asia-southeast2/subnetworks/subnet-gke
     enable-intra-node-visibility: true
     workload-vulnerability-scanning: disabled
@@ -30,6 +30,7 @@ shared_config:
     enable-confidential-nodes: true
     shielded-secure-boot: true
     shielded-integrity-monitoring: true
+    service-account: "{{ prefix }}-iam-sa@{{ project }}.iam.gserviceaccount.com"
   default_markers:
     - gke
 
@@ -82,7 +83,7 @@ gke_absent_secure_boot:
 gke_version_1_29:
   steps:
   - command_flags:
-      cluster-version: 1.31.6-gke.1064001
+      cluster-version: 1.32.4-gke.1236007
     expected_result:
       return_code: 1
       stderr: customConstraints/custom.gkeAllowedInitialClusterVersions

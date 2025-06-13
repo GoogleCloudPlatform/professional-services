@@ -22,7 +22,7 @@ dns_private_managed_zones_allowed:
       visibility: private
       log-dns-queries: absent
       dnssec-state: "absent"
-      networks: cuop-vpc-network
+      networks: vpc-dev-cuop-library
     expected_result:
       return_code: 0
 

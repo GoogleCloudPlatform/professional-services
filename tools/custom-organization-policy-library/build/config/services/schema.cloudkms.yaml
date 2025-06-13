@@ -18,7 +18,7 @@
 #@overlay/match missing_ok=True
 cloudkms:
   cloudkmsAllowedAlgorithms:
-    #@schema/validation one_of=["default", "skip", "include"]
+    #@schema/validation one_of=["default", "skip", "include", "skip-policy"]
     generation: "default"
     bundles:
       pci-dss: false
@@ -28,7 +28,7 @@ cloudkms:
       algorithms:
       - ""
   cloudkmsAllowedProtectionLevel:
-    #@schema/validation one_of=["default", "skip", "include"]
+    #@schema/validation one_of=["default", "skip", "include", "skip-policy"]
     generation: "default"
     bundles:
       pci-dss: false
@@ -38,7 +38,7 @@ cloudkms:
       protection_levels:
       - ""
   cloudkmsAllowedRotationPeriod:
-    #@schema/validation one_of=["default", "skip", "include"]
+    #@schema/validation one_of=["default", "skip", "include", "skip-policy"]
     generation: "default"
     bundles:
       pci-dss: true

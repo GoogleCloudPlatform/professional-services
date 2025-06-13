@@ -1,12 +1,13 @@
 shared_config:
-  command:  gcloud compute firewall-rules create {{ identifier }}
-  teardown_command: gcloud compute firewall-rules delete {{ identifier }}
+  command:  gcloud compute firewall-rules create allow-ssh-{{ identifier }}
+  teardown_command: gcloud compute firewall-rules delete allow-ssh-{{ identifier }}
   default_command_flags: 
       action: ALLOW
       direction: INGRESS
-      network: cuop-vpc-network
+      network: vpc-dev-cuop-library
       priority: 1000  
       rules: tcp:22
+      description: Testing firewall rule
   default_markers:
     - firewall
     - firewall-vpc-rule
