@@ -1,0 +1,6 @@
+{
+    "deniedPermissions": [
+        "cloudresourcemanager.googleapis.com/projects.deleteBillingAssignment",
+        "cloudresourcemanager.googleapis.com/projects.createBillingAssignment"
+    ]
+}

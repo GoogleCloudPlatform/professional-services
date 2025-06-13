@@ -1,0 +1,60 @@
+logging:
+    level:
+        org.springframework.web: INFO
+        org.springframework.core.codec: INFO
+        org.springframework.ai: INFO
+        org.springframework: INFO
+        org.springframework.web.reactive.function.client: INFO
+        io.modelcontextprotocol: INFO
+        reactor.netty.http.client: INFO
+slack:
+    bot-token: ${SLACK_BOT_TOKEN:}
+    signing-secret: ${SLACK_SIGNING_SECRET:}
+    grouped-lines-count: 5
+# Spring Boot Actuator - GCP uses /health
+management:
+    endpoints:
+        web:
+            exposure:
+                include: health,info
+    endpoint:
+        health:
+            show-details: always
+# Server port (useful for local testing, GCP Cloud Functions can use this as well)
+server:
+    port: 8080
+spring:
+    threads:
+        virtual:
+            enabled: false
+    # web clients that interact will LLM needs more patience
+    http:
+        client:
+            reactive:
+              read-timeout: 20s
+              connect-timeout: 5s
+              response-timeout: 120s
+    # Claude API Configuration
+    ai:
+        retry:
+            max-attempts: 5
+        anthropic:
+            api-key: ${CLAUDE_API_KEY:}
+            chat:
+                options:
+                    model: claude-opus-4-20250514
+                    temperature: 0.7
+                    max-tokens: 500
+        mcp:
+            client:
+                enabled: false
+                initialized: false
+                request-timeout: 30s
+                name: gcpdatabasetoolbox
+                toolcallback:
+                    enabled: false
+                sse:
+                    connections:
+                        gcptoolbox:
+                            url: ${MCPTOOLBOX_URL:}
+                            sse-endpoint: /mcp/sse
