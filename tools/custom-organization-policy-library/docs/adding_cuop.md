@@ -87,7 +87,7 @@ Schema file example **(build/config/services/schema.compute.yaml)** which can be
 Here is an example of schema for a constraint:
 ```
 computeAllowedDiskTypes:
-   #@schema/validation one_of=["default", "skip", "include"]
+   #@schema/validation one_of=["default", "skip", "include", "skip-policy"]
    generation: "default"
    bundles:
      pci-dss: false

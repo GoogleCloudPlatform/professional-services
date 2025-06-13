@@ -1,3 +1,0 @@
-custom.dataprocAllowedMachineType:
-  rules:
-  - enforce: true

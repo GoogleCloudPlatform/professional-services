@@ -52,11 +52,40 @@ def has_bundle(bundles):
    return False
 end
 
-# Check if the constraint the and the policy should be included in the generation
+# Check if the constraint should be included in the generation
 # Behavior is:
 # - No bundle definied, constraint is generated except if specifically "skip"
-# - Bundle definied, constraint is not generated except if specifically "include" or part of the bundle
-def include(constraint, bundles):
+# - Bundle definied, constraint is not generated except if specifically "include" or part of the bundle or "skip-policy"
+def include_constraint(constraint, bundles):
+  if not has_bundle(bundles):
+    return constraint["generation"] == "default" or constraint["generation"] == "include"  or constraint["generation"] == "skip-policy" 
+  end
+
+  # Bundle defined
+  if constraint["generation"] == "include" or constraint["generation"] == "skip-policy":
+    return True
+  end
+  if constraint["generation"] == "skip":
+    return False
+  end
+
+  # Default value, checking if constraint is include in bundle
+  for bundle in bundles:
+    if not bundles[bundle]:
+      continue
+     end
+     if constraint.bundles[bundle]:
+       return True
+     end
+  end
+  return False
+end
+
+# Check if the policy should be included in the generation
+# Behavior is:
+# - No bundle definied, policy is generated except if specifically "skip" or "skip-policy"
+# - Bundle definied, policy is not generated except if specifically "include" or part of the bundle
+def include_policy(constraint, bundles):
   if not has_bundle(bundles):
     return constraint["generation"] == "default" or constraint["generation"] == "include" 
   end
@@ -65,7 +94,7 @@ def include(constraint, bundles):
   if constraint["generation"] == "include":
     return True
   end
-  if constraint["generation"] == "skip":
+  if constraint["generation"] == "skip" or constraint["generation"] == "skip-policy":
     return False
   end
 
@@ -96,7 +125,7 @@ def generate_config():
     for name in values[service]:
       constraint = values[service][name] 
 
-      if include(constraint, values["bundles"]):
+      if include_constraint(constraint, values["bundles"]):
         # Remove information not relevant for endusers
         constraint.pop("generation") 
         constraint.pop("bundles")

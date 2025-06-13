@@ -18,7 +18,7 @@
 #@overlay/match missing_ok=True
 cloudbuild:
   cloudbuildAllowedNetworkPeering:
-    #@schema/validation one_of=["default", "skip", "include"]
+    #@schema/validation one_of=["default", "skip", "include", "skip-policy"]
     generation: "default"
     bundles:
       pci-dss: false
@@ -28,7 +28,7 @@ cloudbuild:
       peered_network_ranges:
       - ""
   cloudbuildAllowedPubSubTopic:
-    #@schema/validation one_of=["default", "skip", "include"]
+    #@schema/validation one_of=["default", "skip", "include", "skip-policy"]
     generation: "default"
     bundles:
       pci-dss: false
@@ -38,7 +38,7 @@ cloudbuild:
       topics:
       - ""
   cloudbuildDisableWorkerPoolExternalIP:
-    #@schema/validation one_of=["default", "skip", "include"]
+    #@schema/validation one_of=["default", "skip", "include", "skip-policy"]
     generation: "default"
     bundles:
       pci-dss: false

@@ -1,7 +1,7 @@
 name: organizations/11111111/customConstraints/custom.gkeAllowedInitialClusterVersions
 resource_types:
 - container.googleapis.com/Cluster
-condition: resource.initialClusterVersion in ["1.32.2-gke.1182003"] == false
+condition: resource.initialClusterVersion.matches("(1.33.0-gke.2248000)$") == false
 action_type: DENY
 method_types:
 - CREATE
