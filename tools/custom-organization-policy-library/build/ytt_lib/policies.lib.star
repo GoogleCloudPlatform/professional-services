@@ -14,7 +14,7 @@
 
 load("@ytt:data", "data")
 load("@ytt:struct", "struct")
-load("/config.lib.star", "include", "get_service")
+load("/config.lib.star", "include_policy", "get_service")
 
 def _name(self):
   if data.values.deployment and  data.values.deployment.parent != "":
@@ -25,7 +25,7 @@ end
 
 def _to_generate(self):
   service = get_service(self.name)
-  return include(data.values[service][self.name], data.values.bundles)
+  return include_policy(data.values[service][self.name], data.values.bundles)
 end
 
 def _filename(self):

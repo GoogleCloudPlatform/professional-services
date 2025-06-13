@@ -18,7 +18,7 @@
 #@overlay/match missing_ok=True
 dataproc:
   dataprocAllowedLabels:
-    #@schema/validation one_of=["default", "skip", "include"]
+    #@schema/validation one_of=["default", "skip", "include", "skip-policy"]
     generation: "default"
     bundles:
       pci-dss: false
@@ -28,37 +28,37 @@ dataproc:
       labels:
       - ""
   dataprocRequireDiskCmekEncryption:
-    #@schema/validation one_of=["default", "skip", "include"]
+    #@schema/validation one_of=["default", "skip", "include", "skip-policy"]
     generation: "default"
     bundles:
       pci-dss: true
       cis: true
   dataprocDisableAmPreemptibleWorker:
-    #@schema/validation one_of=["default", "skip", "include"]
+    #@schema/validation one_of=["default", "skip", "include", "skip-policy"]
     generation: "default"
     bundles:
       pci-dss: false
       cis: false
   dataprocRequireComponentGateway:
-    #@schema/validation one_of=["default", "skip", "include"]
+    #@schema/validation one_of=["default", "skip", "include", "skip-policy"]
     generation: "default"
     bundles:
       pci-dss: false
       cis: false
   dataprocRequireKerberos:
-    #@schema/validation one_of=["default", "skip", "include"]
+    #@schema/validation one_of=["default", "skip", "include", "skip-policy"]
     generation: "default"
     bundles:
       pci-dss: false
       cis: false
   dataprocRequireInternalIp:
-    #@schema/validation one_of=["default", "skip", "include"]
+    #@schema/validation one_of=["default", "skip", "include", "skip-policy"]
     generation: "default"
     bundles:
       pci-dss: false
       cis: false
   dataprocDisableDefaultServiceAccount:
-    #@schema/validation one_of=["default", "skip", "include"]
+    #@schema/validation one_of=["default", "skip", "include", "skip-policy"]
     generation: "default"
     bundles:
       pci-dss: false

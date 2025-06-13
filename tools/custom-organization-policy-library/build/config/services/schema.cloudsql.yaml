@@ -18,7 +18,7 @@
 #@overlay/match missing_ok=True
 cloudsql:
   cloudsqlAllowedBackupLocations:
-    #@schema/validation one_of=["default", "skip", "include"]
+    #@schema/validation one_of=["default", "skip", "include", "skip-policy"]
     generation: "default"
     bundles:
       pci-dss: false
@@ -28,7 +28,7 @@ cloudsql:
       locations:
       - ""
   cloudsqlAllowedDiskTypes:
-    #@schema/validation one_of=["default", "skip", "include"]
+    #@schema/validation one_of=["default", "skip", "include", "skip-policy"]
     generation: "default"
     bundles:
       pci-dss: false
@@ -38,7 +38,7 @@ cloudsql:
       disk_types:
       - ""
   cloudsqlAllowedVersions:
-    #@schema/validation one_of=["default", "skip", "include"]
+    #@schema/validation one_of=["default", "skip", "include", "skip-policy"]
     generation: "default"
     bundles:
       pci-dss: false
@@ -48,19 +48,19 @@ cloudsql:
       versions:
       - ""
   cloudsqlDisableExternalIP:
-    #@schema/validation one_of=["default", "skip", "include"]
+    #@schema/validation one_of=["default", "skip", "include", "skip-policy"]
     generation: "default"
     bundles:
       pci-dss: true
       cis: true
   cloudsqlDisablePublicAuthorizedNetworks:
-    #@schema/validation one_of=["default", "skip", "include"]
+    #@schema/validation one_of=["default", "skip", "include", "skip-policy"]
     generation: "default"
     bundles:
       pci-dss: true
       cis: true
   cloudsqlEnforcePasswordComplexity:
-    #@schema/validation one_of=["default", "skip", "include"]
+    #@schema/validation one_of=["default", "skip", "include", "skip-policy"]
     generation: "default"
     bundles:
       pci-dss: false
@@ -69,55 +69,55 @@ cloudsql:
       #@schema/validation min=1
       min_length: 0
   cloudsqlRequireAutomatedBackup:
-    #@schema/validation one_of=["default", "skip", "include"]
+    #@schema/validation one_of=["default", "skip", "include", "skip-policy"]
     generation: "default"
     bundles:
       pci-dss: false
       cis: true
   cloudsqlRequireHighAvailibility:
-    #@schema/validation one_of=["default", "skip", "include"]
+    #@schema/validation one_of=["default", "skip", "include", "skip-policy"]
     generation: "default"
     bundles:
       pci-dss: false
       cis: false
   cloudsqlRequireMySQLDatabaseFlags:
-      #@schema/validation one_of=["default", "skip", "include"]
+      #@schema/validation one_of=["default", "skip", "include", "skip-policy"]
       generation: "default"
       bundles:
         pci-dss: true
         cis: true
   cloudsqlRequirePointInTimeRecovery:
-    #@schema/validation one_of=["default", "skip", "include"]
+    #@schema/validation one_of=["default", "skip", "include", "skip-policy"]
     generation: "default"
     bundles:
       pci-dss: false
       cis: false
   cloudsqlRequirePostgreSQLDatabaseFlags:
-    #@schema/validation one_of=["default", "skip", "include"]
+    #@schema/validation one_of=["default", "skip", "include", "skip-policy"]
     generation: "default"
     bundles:
       pci-dss: true
       cis: true
   cloudsqlRequireQueryInsights:
-    #@schema/validation one_of=["default", "skip", "include"]
+    #@schema/validation one_of=["default", "skip", "include", "skip-policy"]
     generation: "default"
     bundles:
       pci-dss: false
       cis: false
   cloudsqlRequireRootPassword:
-    #@schema/validation one_of=["default", "skip", "include"]
+    #@schema/validation one_of=["default", "skip", "include", "skip-policy"]
     generation: "default"
     bundles:
       pci-dss: false
       cis: true
   cloudsqlRequireSQLServerDatabaseFlags:
-    #@schema/validation one_of=["default", "skip", "include"]
+    #@schema/validation one_of=["default", "skip", "include", "skip-policy"]
     generation: "default"
     bundles:
       pci-dss: true
       cis: true
   cloudsqlRequireSSLConnection:
-    #@schema/validation one_of=["default", "skip", "include"]
+    #@schema/validation one_of=["default", "skip", "include", "skip-policy"]
     generation: "default"
     bundles:
       pci-dss: false
