@@ -21,7 +21,7 @@ idna==3.10
 numpy==2.2.5
 packaging==25.0
 proto-plus==1.26.1
-protobuf==6.30.2
+protobuf==6.31.1
 pyasn1==0.6.1
 pyasn1_modules==0.4.2
 pydantic==2.11.3
