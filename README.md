@@ -330,6 +330,8 @@ them to fit your particular use case.
 *   [TSOP object transfer Log prosessor](examples/tsop-log-processor/) - This example shows
     how to log object transfer logs by TSOP to Cloud Logging.
 *   [GCS CSV files to BigQuery](https://github.com/GoogleCloudPlatform/DataflowTemplates/blob/main/v1/README_GCS_CSV_to_BigQuery.md) - This example shows how to load files in CSV format stored in GCS to load to BigQuery tables. The files can be uncompressed or be compressed in formats such as Bzip2, GZIP and etc. See https://beam.apache.org/releases/javadoc/current/org/apache/beam/sdk/io/Compression.html for the list of support compression method.
+*   [MCP Toolbox & Claude Integration](examples/mcptoolbox-bq-claude-slack-agent) - A Hotel's booking specialized GenAI agent for Slack built using Spring Boot AI, BigQuery, CloudRun, MCP Toolbox and Claude LLM.
+
 
 ## Tools
 
@@ -640,7 +642,6 @@ Platform usage.
     The framework can be extended for other use cases as required.
     The framework uses RIOT to bridge current product gaps with Memorystore Clusters
 *   [ML Project Generator](tools/ml-project-generator) - A utility to create a Production grade ML project template with the best productivity tools installed like auto-formatting, license checks, linting, etc.
-*   [MCP Toolbox & Claude Integration] - A Hotel's booking specialized GenAI agent for Slack built using Spring Boot AI, BigQuery, CloudRun, MCP Toolbox and Claude LLM.
 
 
 ## Contributing
