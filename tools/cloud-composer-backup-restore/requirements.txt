@@ -43,7 +43,7 @@ six==1.16.0
 toml==0.10.2
 typing-extensions==4.0.1
 uritemplate==4.1.1
-urllib3==1.26.19
+urllib3==2.5.0
 websocket-client==1.2.3
 wrapt==1.13.3
 yapf==0.32.0
