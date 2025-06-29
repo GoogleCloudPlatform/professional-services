@@ -1,0 +1,6 @@
+google-cloud-aiplatform==1.56.0
+pandas==2.2.2
+google-genai==1.10.0
+vertexai==1.43.0
+torch
+pillow
