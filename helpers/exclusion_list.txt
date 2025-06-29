@@ -88,3 +88,4 @@
 ./examples/tensorflow-profiling-examples
 ./examples/ccai-agentassist-five9-grpc
 ./examples/vertex_mlops_enterprise
+./examples/mcptoolbox-bq-claude-slack-agent

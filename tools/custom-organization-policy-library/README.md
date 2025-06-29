@@ -35,7 +35,10 @@ For more details about other type of installation, please refer to official docu
 
 ### Install 
 ```bash
-pip3 install -r scripts/requirements.txt
+python3 -m venv venv
+source venv/bin/activate
+python3 -m pip install -r scripts/requirements.txt
+python3 -m pip install -r tests/requirements.txt
 ```
 
 ## Organization of the repository

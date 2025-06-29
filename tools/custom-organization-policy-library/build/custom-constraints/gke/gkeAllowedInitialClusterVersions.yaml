@@ -2,7 +2,7 @@
 #@ constraint = build_constraint("gkeAllowedInitialClusterVersions")
 
 #@ def condition(initial_cluster_versions):
-#@   return 'resource.initialClusterVersion in ' +  str(initial_cluster_versions) + " == false"
+#@   return 'resource.initialClusterVersion.matches("(' +  "|".join(initial_cluster_versions) + ')$") == false'
 #@ end
 
 #@ if constraint.to_generate():

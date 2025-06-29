@@ -18,7 +18,7 @@
 #@overlay/match missing_ok=True
 dns:
   dnsAllowedSigningAlgorithms:
-    #@schema/validation one_of=["default", "skip", "include"]
+    #@schema/validation one_of=["default", "skip", "include", "skip-policy"]
     generation: "default"
     bundles:
       pci-dss: false
@@ -28,19 +28,19 @@ dns:
       algorithms:
       - ""
   dnsRequireManageZoneDNSSEC:
-    #@schema/validation one_of=["default", "skip", "include"]
+    #@schema/validation one_of=["default", "skip", "include", "skip-policy"]
     generation: "default"
     bundles:
       pci-dss: true
       cis: true
   dnsRequirePolicyLogging:
-    #@schema/validation one_of=["default", "skip", "include"]
+    #@schema/validation one_of=["default", "skip", "include", "skip-policy"]
     generation: "default"
     bundles:
       pci-dss: true
       cis: true
   dnsRequireManageZoneLogging:
-    #@schema/validation one_of=["default", "skip", "include"]
+    #@schema/validation one_of=["default", "skip", "include", "skip-policy"]
     generation: "default"
     bundles:
       pci-dss: false
