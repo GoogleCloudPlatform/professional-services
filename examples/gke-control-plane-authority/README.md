@@ -24,16 +24,6 @@ You create the following resources for GKE to use when issuing identities:
 5. **etcd API CA**: issue signed certificates for communication with the etcd API server.
 6. **Aggregation CA**: issue signed certificates for enabling communication between the Kubernetes API server and extension servers.
 
-### Encryption
-
-By default, GKE encrypts control plane VM boot disks and etcd data with Google-managed keys. You can optionally use your own encryption keys that you manage using Cloud KMS to encrypt the following resources:
-
-* **Control plane boot disk**: the Compute Engine disk that each control plane VM uses to boot.
-* **etcd disk**: the Compute Engine disk that's attached to each control plane VM and stores data for * etcd instances in the cluster.
-* **etcd internal operational backup**: the internal Google Cloud backup of etcd that's used for operational purposes like disaster recovery.
-
-This backup is an emergency measure internal to Google Cloud. If you want to back up and restore your clusters, use backup for GKE instead.
-
 ### Access/Identity Issuance Logs
 
 GKE control plane authority provides a comprehensive audit trail for control plane events, including direct access, identity issuance/verification, identity usage in Kubernetes, and Access Transparency.
