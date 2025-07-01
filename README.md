@@ -256,6 +256,8 @@ them to fit your particular use case.
     Function, Pub/Sub and Serverless Spark.
 *   [GDCE Terraform Example](examples/gdce-terraform-example) - Example for provisioning GDCE
     resources using terraform.
+*   [GKE Control Plane Authority](examples/gke-control-plane-authority/) -
+    Example for running advanced controls with bring your own keys and certificate authorities and related logs for control plane functions
 *   [GKE HA setup using spot VMs](examples/gke-ha-setup-using-spot-vms/) -
     Example for running an application with high availability requirements on
     GKE spot nodes using on-demand nodes as fallback
