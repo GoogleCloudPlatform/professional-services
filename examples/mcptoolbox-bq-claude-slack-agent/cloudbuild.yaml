@@ -3,20 +3,35 @@ steps:
   - name: 'gcr.io/cloud-builders/docker'
     args:
       - 'build'
+      - '--build-arg'
+      - 'PROFILE=claude_api'
+      - '--target'
+      - 'app-image'
       - '-t'
-      - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_ARTIFACT_REGISTRY_REPO_NAME}/${_SERVICE_NAME}:latest'
+      - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_ARTIFACT_REGISTRY_REPO_NAME}/${_SERVICE_NAME}:claudeapi'
       - '.'
-    id: 'Build Docker Image'
+    id: 'Build Claude API Docker Image'
+    waitFor: ['-']
 
-  # Push the Docker image to Artifact Registry
+  # Build the Docker image
   - name: 'gcr.io/cloud-builders/docker'
     args:
-      - 'push'
-      - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_ARTIFACT_REGISTRY_REPO_NAME}/${_SERVICE_NAME}:latest'
-    id: 'Push to Artifact Registry'
+      - 'build'
+      - '--build-arg'
+      - 'PROFILE=gemini'
+      - '--build-arg'
+      - 'GCP_PROJECT=$PROJECT_ID'
+      - '--target'
+      - 'app-image'
+      - '-t'
+      - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_ARTIFACT_REGISTRY_REPO_NAME}/${_SERVICE_NAME}:gemini'
+      - '.'
+    id: 'Build Gemini on VertexAI Docker Image'
+    waitFor: ['-']
 
 images:
-  - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_ARTIFACT_REGISTRY_REPO_NAME}/${_SERVICE_NAME}:latest'
+  - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_ARTIFACT_REGISTRY_REPO_NAME}/${_SERVICE_NAME}:claudeapi'
+  - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_ARTIFACT_REGISTRY_REPO_NAME}/${_SERVICE_NAME}:gemini'
 
 # Substitutions - these can be set in the Cloud Build trigger
 # or passed during a manual build (which is what the terraform local-exec does)

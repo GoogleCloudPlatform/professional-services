@@ -51,3 +51,8 @@ variable "artifact_registry_repository_name" {
   type        = string
   default     = "slack-claude-mcptoolbox-integration-images"
 }
+
+variable model {
+  description = "which model to use for the agent: gemini, claude_api are supported."
+  default = "gemini"
+}
