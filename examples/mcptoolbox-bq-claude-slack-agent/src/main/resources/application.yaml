@@ -25,7 +25,7 @@ server:
     port: 8080
 spring:
     profiles:
-        default: claude_api
+        default: claude_vertexai
         active: @spring.profiles.active@
     threads:
         virtual:
