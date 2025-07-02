@@ -256,6 +256,8 @@ them to fit your particular use case.
     Function, Pub/Sub and Serverless Spark.
 *   [GDCE Terraform Example](examples/gdce-terraform-example) - Example for provisioning GDCE
     resources using terraform.
+*   [GKE Control Plane Authority](examples/gke-control-plane-authority/) -
+    Example for running advanced controls with bring your own keys and certificate authorities and related logs for control plane functions
 *   [GKE HA setup using spot VMs](examples/gke-ha-setup-using-spot-vms/) -
     Example for running an application with high availability requirements on
     GKE spot nodes using on-demand nodes as fallback
@@ -415,6 +417,7 @@ Platform usage.
 *   [Cloud Composer Migration Terraform Generator](tools/cloud-composer-migration-terraform-generator) - Analyzes an existing Cloud Composer 1
     / Airflow 1 environment and generates terraform. Configures new Cloud Composer 2
     environment to meet your workload demands.
+*   [ComfyUI Custom Nodes for VertexAI](tools/comfyui_custom_nodes) - A collection of custom nodes for ComfyUI that allows you to use VertexAI models in ComfyUI workflows.
 *   [CUD Prioritized Attribution](tools/cuds-prioritized-attribution) - A tool
     that allows GCP customers who purchased Committed Use Discounts (CUDs) to
     prioritize a specific scope (e.g. project or folder) to attribute CUDs first
