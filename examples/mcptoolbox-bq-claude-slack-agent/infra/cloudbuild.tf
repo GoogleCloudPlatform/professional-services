@@ -23,8 +23,8 @@ resource "google_artifact_registry_repository" "default" {
 
 resource "null_resource" "cloud_build_on_change" {
   triggers = {
-    app_src_hash = data.archive_file.app_src_archive.output_sha,
-    pom_xml_hash = filesha256("../pom.xml")
+    app_src_hash    = data.archive_file.app_src_archive.output_sha,
+    pom_xml_hash    = filesha256("../pom.xml")
     dockerfile_hash = filesha256("../Dockerfile")
   }
 

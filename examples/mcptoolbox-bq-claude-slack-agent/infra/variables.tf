@@ -52,7 +52,12 @@ variable "artifact_registry_repository_name" {
   default     = "slack-claude-mcptoolbox-integration-images"
 }
 
-variable model {
-  description = "which model to use for the agent: gemini, claude_api are supported."
-  default = "gemini"
+variable "model" {
+  description = "Which model to use for the agent: claude_vertexai, gemini, claude_api are supported."
+  default     = "claude_vertexai"
+
+  validation {
+    condition     = contains(["claude_vertexai", "gemini", "claude_api"], var.model)
+    error_message = "Invalid model provider specified. Allowed values are 'claude_vertexai', 'gemini', or 'claude_api'."
+  }
 }

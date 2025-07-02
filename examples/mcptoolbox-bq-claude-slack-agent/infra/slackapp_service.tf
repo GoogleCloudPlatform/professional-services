@@ -21,8 +21,8 @@ resource "google_cloud_run_v2_service" "slackapp_service" {
   template {
     # Add annotations to force a new revision when code changes
     annotations = {
-      "app-code-version-src" = null_resource.cloud_build_on_change.triggers.app_src_hash
-      "app-code-version-pom" = null_resource.cloud_build_on_change.triggers.pom_xml_hash
+      "app-code-version-src"        = null_resource.cloud_build_on_change.triggers.app_src_hash
+      "app-code-version-pom"        = null_resource.cloud_build_on_change.triggers.pom_xml_hash
       "app-code-version-dockerfile" = null_resource.cloud_build_on_change.triggers.dockerfile_hash
     }
     service_account = google_service_account.slackapp.email
