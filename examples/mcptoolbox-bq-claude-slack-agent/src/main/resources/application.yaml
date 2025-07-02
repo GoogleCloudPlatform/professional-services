@@ -5,8 +5,8 @@ logging:
         org.springframework.ai: INFO
         org.springframework: INFO
         org.springframework.web.reactive.function.client: INFO
-        io.modelcontextprotocol: DEBUG
-        reactor.netty.http.client: DEBUG
+        io.modelcontextprotocol: INFO
+        reactor.netty.http.client: INFO
 slack:
     bot-token: ${SLACK_BOT_TOKEN:}
     signing-secret: ${SLACK_SIGNING_SECRET:}
@@ -83,3 +83,19 @@ spring:
                             model: gemini-2.5-pro
                             temperature: 1.5
                             max-tokens: 1000
+---
+spring:
+    config:
+        activate:
+            on-profile: claude_vertexai
+    ai:
+        anthropic:
+            api-key: "DUMMY-KEY"
+            base-url: "https://${REGION:us-east5}-aiplatform.googleapis.com"
+            completions-path: "/v1/projects/${GCP_PROJECT:}/locations/${REGION:us-east5}/publishers/anthropic/models/claude-opus-4@20250514:streamRawPredict"
+            beta-version: ""
+            chat:
+                options:
+                    temperature: 0.7
+                    max-tokens: 500
+                    

@@ -58,6 +58,10 @@ resource "google_cloud_run_v2_service" "slackapp_service" {
         name  = "GCP_PROJECT"
         value = var.project_id
       }
+      env {
+        name  = "REGION"
+        value = var.region
+      }
     }
   }
 

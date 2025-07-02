@@ -54,6 +54,7 @@ override.tf.json
 *_override.tf.json
 .terraformrc
 terraform.rc
+.terraform.lock*
 /cloudbuild/.terraform.lock.hcl
 .vscode/
 tools/ipam-autopilot/provider/bin/terraform-provider-ipam_0.3_darwin_amd64
@@ -69,3 +70,4 @@ tools/bq-visualizer/.angular
 terraform.tfvars
 
 tools/dynamodb-bigtable-migration/scripts/.env
+/examples/mcptoolbox-bq-claude-slack-agent/nbproject/

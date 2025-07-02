@@ -29,8 +29,25 @@ steps:
     id: 'Build Gemini on VertexAI Docker Image'
     waitFor: ['-']
 
+  # Build the Docker image
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '--build-arg'
+      - 'PROFILE=claude_vertexai'
+      - '--build-arg'
+      - 'GCP_PROJECT=$PROJECT_ID'
+      - '--target'
+      - 'app-image'
+      - '-t'
+      - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_ARTIFACT_REGISTRY_REPO_NAME}/${_SERVICE_NAME}:claude_vertexai'
+      - '.'
+    id: 'Build Claude on VertexAI Docker Image'
+    waitFor: ['-']
+
 images:
   - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_ARTIFACT_REGISTRY_REPO_NAME}/${_SERVICE_NAME}:claudeapi'
+  - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_ARTIFACT_REGISTRY_REPO_NAME}/${_SERVICE_NAME}:claude_vertexai'
   - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_ARTIFACT_REGISTRY_REPO_NAME}/${_SERVICE_NAME}:gemini'
 
 # Substitutions - these can be set in the Cloud Build trigger
