@@ -216,6 +216,7 @@ def main(cloud_event: "functions_framework.CloudEvent"):
         bq_client = bigquery.Client()
         storage_client = storage.Client()
     except Exception as e:
+        logging.error(f"Error during initialization: {e}")
         return
 
     file_name = cloud_event.data.get("name")

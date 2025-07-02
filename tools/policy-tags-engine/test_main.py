@@ -1,6 +1,5 @@
 import unittest
-from unittest.mock import patch, MagicMock
-import json
+from unittest.mock import patch
 import os
 
 # Assuming the classes and functions are in a file named 'main.py'
