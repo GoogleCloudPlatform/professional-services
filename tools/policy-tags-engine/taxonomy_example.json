@@ -1,0 +1,26 @@
+{
+  "resources": [{
+    "resourceName": "test_resource",
+    "projects": [{
+      "projectName": "your-gcp-project-id",
+      "datasets": [{
+        "datasetName": "my_test_dataset",
+        "tables": [{
+          "tableName": "customer_info",
+          "columns": [
+            {
+              "columnName": "id",
+              "PII": false,
+              "securityClassification": "Confidential"
+            },
+            {
+              "columnName": "email",
+              "PII": true,
+              "securityClassification": "Highly Confidential"
+            }
+          ]
+        }]
+      }]
+    }]
+  }]
+}
