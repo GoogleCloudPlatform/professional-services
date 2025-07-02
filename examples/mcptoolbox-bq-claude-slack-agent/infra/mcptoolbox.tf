@@ -19,7 +19,7 @@ locals {
     project_id = var.project_id
     dataset_id = local.bq_dataset
   })
-  mcp_server_uri = "${google_cloud_run_v2_service.mcptoolbox.uri}"
+  mcp_server_uri = google_cloud_run_v2_service.mcptoolbox.uri
 }
 
 resource "google_secret_manager_secret" "tools_yaml" {

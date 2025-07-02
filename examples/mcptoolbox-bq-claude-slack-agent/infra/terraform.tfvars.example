@@ -1,5 +1,6 @@
 project_id               = "your-gcp-project-id"
-region                   = "us-central1"
+region                   = "us-east5"
 claude_apikey            = "api key value"
 slackbot_workspace_token = "slackbot token value"
 slackapp_signing_secret  = "slack app secret value"
+model                    = "gemini or claude_vertexai or claude_api depending on the desired deployment"

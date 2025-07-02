@@ -28,9 +28,12 @@ This directory contains Terraform code to provision the necessary Google Cloud i
       ```
     - Edit `terraform.tfvars` and replace `your-gcp-project-id` with your actual Google Cloud Project ID. You can also change the `region` and other variables as needed.
       ```terraform
-      project_id = "your-actual-gcp-project-id"
-      region     = "us-central1" // Or your preferred region
-      # Update other variables as per your requirements
+        project_id               = "your-gcp-project-id"
+        region                   = "us-east5"                // Or your preferred region, when using VertexAI models check for region availability
+        slackbot_workspace_token = "slackbot token value"
+        slackapp_signing_secret  = "slack app secret value"
+        model                    = "claude_vertexai"         // you can use gemini or claude_api here as well
+        claude_apikey            = "api key value"           // only valid when using claude_api model configuration
       ```
 
 3.  **Initialize Terraform:**

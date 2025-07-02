@@ -24,6 +24,9 @@ management:
 server:
     port: 8080
 spring:
+    profiles:
+        default: claude_vertexai
+        active: @spring.profiles.active@
     threads:
         virtual:
             enabled: false
@@ -38,13 +41,6 @@ spring:
     ai:
         retry:
             max-attempts: 5
-        anthropic:
-            api-key: ${CLAUDE_API_KEY:}
-            chat:
-                options:
-                    model: claude-opus-4-20250514
-                    temperature: 0.7
-                    max-tokens: 500
         mcp:
             client:
                 enabled: false
@@ -58,3 +54,48 @@ spring:
                         gcptoolbox:
                             url: ${MCPTOOLBOX_URL:}
                             sse-endpoint: /mcp/sse
+---
+spring:
+    config:
+        activate:
+            on-profile: claude_api
+    ai:
+        anthropic:
+            api-key: ${CLAUDE_API_KEY:}
+            chat:
+                options:
+                    model: claude-opus-4-20250514
+                    temperature: 0.7
+                    max-tokens: 500
+---
+spring:
+    config:
+        activate:
+            on-profile: gemini
+    ai:
+        vertex:
+            ai:
+                gemini:
+                    project-id: ${GCP_PROJECT:}
+                    location: ${REGION:us-central1}
+                    chat:
+                        options:
+                            model: gemini-2.5-pro
+                            temperature: 1.5
+                            max-tokens: 1000
+---
+spring:
+    config:
+        activate:
+            on-profile: claude_vertexai
+    ai:
+        anthropic:
+            api-key: "DUMMY-KEY"
+            base-url: "https://${REGION:us-east5}-aiplatform.googleapis.com"
+            completions-path: "/v1/projects/${GCP_PROJECT:}/locations/${REGION:us-east5}/publishers/anthropic/models/claude-opus-4@20250514:streamRawPredict"
+            beta-version: ""
+            chat:
+                options:
+                    temperature: 0.7
+                    max-tokens: 500
+                    
