@@ -6,7 +6,7 @@ The integrated solution features:
 *   **Anthropic's Claude and Google's Gemini LLMs:** The LLM serves as the agent's "brain" for understanding and processing requests. This demo can be configured to use Claude or Gemini through GCP Vertex AI Model Garden, or also Claude can be accessed through Anthropic's APIs. **By Default, Claude on Vertex AI is configured out of the box.**
 *   **Google Cloud Platform (GCP) Data Services:** Hotel data is stored in BigQuery and accessed via a ready to deploy MCP server implemented by [MCP Toolbox for Databases](https://googleapis.github.io/genai-toolbox/getting-started/introduction/).
 *   **Slack Application:** Provides the conversational UX. Slack also stores conversation history, acting as the agent's memory (based on threaded conversations).
-*   **Java and Spring Boot AI Starters:** The agent's service application is built using these technologies.
+*   **Java and Spring Boot AI Starters:** The agent's service application is built using these technologies. Curious on why Spring AI? There aren't many Java Agent application examples and Spring is hugely adopted in [enterprise-grade deployments](https://spring.io/blog/2024/11/19/why-spring-ai).
 
 **Important Note:** All code in this project is for demonstration purposes only and is not intended for production environments. The permissions granted to underlying resources are intentionally broad for ease of demonstration. Deploy with caution and avoid using production infrastructure or sensitive data.
 
