@@ -645,6 +645,7 @@ Platform usage.
     The framework can be extended for other use cases as required.
     The framework uses RIOT to bridge current product gaps with Memorystore Clusters
 *   [ML Project Generator](tools/ml-project-generator) - A utility to create a Production grade ML project template with the best productivity tools installed like auto-formatting, license checks, linting, etc.
+*   [Policy Tags Engine](tools/policy-tags-engine) - The tool allows developers to automatically apply BigQuery column-level security (Policy Tags) based on metadata files uploaded to a Google Cloud Storage (GCS) bucket.
 
 
 ## Contributing
