@@ -3,10 +3,10 @@
 The Conversational Hotel Booking Agent is a custom Generative AI (GenAI) agent specialized in handling hotel bookings through a conversational user experience (UX). This repository contains the agent's source code and deployment instructions.
 
 The integrated solution features:
-*   **Anthropic's Claude LLM:** Serves as the agent's "brain" for understanding and processing requests.
+*   **Anthropic's Claude and Google's Gemini LLMs:** The LLM serves as the agent's "brain" for understanding and processing requests. This demo can be configured to use Claude or Gemini through GCP Vertex AI Model Garden, or also Claude can be accessed through Anthropic's APIs. **By Default, Claude on Vertex AI is configured out of the box.**
 *   **Google Cloud Platform (GCP) Data Services:** Hotel data is stored in BigQuery and accessed via a ready to deploy MCP server implemented by [MCP Toolbox for Databases](https://googleapis.github.io/genai-toolbox/getting-started/introduction/).
 *   **Slack Application:** Provides the conversational UX. Slack also stores conversation history, acting as the agent's memory (based on threaded conversations).
-*   **Java and Spring Boot AI Starters:** The agent's service application is built using these technologies.
+*   **Java and Spring Boot AI Starters:** The agent's service application is built using these technologies. Curious on why Spring AI? There aren't many Java Agent application examples and Spring is hugely adopted in [enterprise-grade deployments](https://spring.io/blog/2024/11/19/why-spring-ai).
 
 **Important Note:** All code in this project is for demonstration purposes only and is not intended for production environments. The permissions granted to underlying resources are intentionally broad for ease of demonstration. Deploy with caution and avoid using production infrastructure or sensitive data.
 
@@ -51,7 +51,7 @@ This solution integrates the following components:
 * **Slack**: Provides the conversational interface via a Slackbot implemented with Bolt's SDK for Java.
 * **GCP CloudRun**: Serves as the serverless runtime for our services.
 * **BigQuery**: Acts as the data repository for hotel information, exposed to the Agent.
-* **Anthropic's Claude LLM**: Orchestrates tool usage (which datasources to use) and triggers necessary queries or updates.
+* **Anthropic's Claude or Google's Gemini LLM**: Orchestrates tool usage (which datasources to use) and triggers necessary queries or updates.
 * **MCP Toolbox for Databases**: A framework (deployed here as a CloudRun service) that exposes access to GCP databases (like BigQuery) to LLMs through a standardized Multi-Cloud Platform (MCP) interface. See the [official documentation](https://googleapis.github.io/genai-toolbox/getting-started/introduction/) for more details.
 * **Spring Boot Service**: The core application exposing the Slackbot functionality, built with Spring Boot AI starters which simplify the integration of AI capabilities.
 
@@ -122,13 +122,13 @@ To integrate the bot with your Slack workspace, you need to create and configure
 ### Deployment Steps
 
 1.  **GCP Project Setup**:
-    Ensure you have a Google Cloud Project with billing enabled. You also need to enable the necessary APIs for the services used (e.g., Cloud Run, Artifact Registry, BigQuery).
+    Ensure you have a Google Cloud Project with billing enabled. You also need to enable the necessary APIs for the services used (e.g., Cloud Run, Artifact Registry, BigQuery) and the desired LLMs in Vertex AI Model Garden (Anthropic's Claude or Gemini).
 
 2.  **Terraform Configuration**:
     The GCP infrastructure is managed by Terraform.
     -   Navigate to the `infra/` directory.
     -   Refer to the `infra/README.md` for detailed instructions on:
-        -   Configuring necessary Terraform variables (e.g., `project_id`, `region`, Slackbot tokens and Claude's API key).
+        -   Configuring necessary Terraform variables (e.g., `project_id`, `region`, Slackbot tokens, the model profile to be used or Claude's API key).
         -   Understanding the GCP resources that will be created by the Terraform scripts.
 
 3.  **Deploy the Application and Infrastructure**:
@@ -147,7 +147,7 @@ To integrate the bot with your Slack workspace, you need to create and configure
 
     After the script completes successfully, the Slackbot will be deployed and running on Cloud Run.
 
-Once these steps are completed and the application is deployed with the correct Slack tokens and Claude API key, your bot should connect to your Slack workspace and respond to user mentions.
+Once these steps are completed and the application is deployed with the correct Slack tokens and Claude API key (in case of using Anthropic's APIs, in case of using VertexAI model garden this is not necessary), your bot should connect to your Slack workspace and respond to user mentions.
 
 Please be aware that some responses may take longer than others. A single user request can involve multiple roundtrips: Slackbot service to LLM, LLM back to Slackbot service, Slackbot service to MCP, MCP interaction with BigQuery, potential new LLM interaction, and finally, the response back to Slack.
 
