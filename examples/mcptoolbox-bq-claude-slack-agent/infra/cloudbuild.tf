@@ -23,8 +23,8 @@ resource "google_artifact_registry_repository" "default" {
 
 resource "null_resource" "cloud_build_on_change" {
   triggers = {
-    app_src_hash = data.archive_file.app_src_archive.output_sha,
-    pom_xml_hash = filesha256("../pom.xml")
+    app_src_hash    = data.archive_file.app_src_archive.output_sha,
+    pom_xml_hash    = filesha256("../pom.xml")
     dockerfile_hash = filesha256("../Dockerfile")
   }
 
@@ -33,7 +33,9 @@ resource "null_resource" "cloud_build_on_change" {
       echo "Code changes detected, triggering Cloud Build..."
       gcloud builds submit . \
         --project ${var.project_id} \
+        --region ${var.region} \
         --config cloudbuild.yaml \
+        --ignore-file .cloudignore \
         --substitutions _SERVICE_NAME=${var.service_name},_REGION=${var.region},_ARTIFACT_REGISTRY_REPO_NAME=${google_artifact_registry_repository.default.repository_id} \
         --quiet
     EOT

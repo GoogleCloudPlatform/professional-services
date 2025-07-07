@@ -21,8 +21,8 @@ resource "google_cloud_run_v2_service" "slackapp_service" {
   template {
     # Add annotations to force a new revision when code changes
     annotations = {
-      "app-code-version-src" = null_resource.cloud_build_on_change.triggers.app_src_hash
-      "app-code-version-pom" = null_resource.cloud_build_on_change.triggers.pom_xml_hash
+      "app-code-version-src"        = null_resource.cloud_build_on_change.triggers.app_src_hash
+      "app-code-version-pom"        = null_resource.cloud_build_on_change.triggers.pom_xml_hash
       "app-code-version-dockerfile" = null_resource.cloud_build_on_change.triggers.dockerfile_hash
     }
     service_account = google_service_account.slackapp.email
@@ -31,7 +31,7 @@ resource "google_cloud_run_v2_service" "slackapp_service" {
       max_instance_count = 1
     }
     containers {
-      image = "${var.region}-docker.pkg.dev/${var.project_id}/${google_artifact_registry_repository.default.repository_id}/${var.service_name}:latest"
+      image = "${var.region}-docker.pkg.dev/${var.project_id}/${google_artifact_registry_repository.default.repository_id}/${var.service_name}:${var.model}"
       resources {
         startup_cpu_boost = true
       }
@@ -53,6 +53,14 @@ resource "google_cloud_run_v2_service" "slackapp_service" {
       env {
         name  = "MCPTOOLBOX_URL"
         value = local.mcp_server_uri
+      }
+      env {
+        name  = "GCP_PROJECT"
+        value = var.project_id
+      }
+      env {
+        name  = "REGION"
+        value = var.region
       }
     }
   }
@@ -81,6 +89,12 @@ resource "google_cloud_run_service_iam_member" "slack_allow_unauthenticated" {
 resource "google_project_iam_member" "cloudrun_slackapp" {
   project = var.project_id
   role    = "roles/run.invoker"
+  member  = "serviceAccount:${google_service_account.slackapp.email}"
+}
+
+resource "google_project_iam_member" "vertex_ai_member" {
+  project = var.project_id
+  role    = "roles/aiplatform.user"
   member  = "serviceAccount:${google_service_account.slackapp.email}"
 }
 
