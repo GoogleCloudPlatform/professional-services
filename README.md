@@ -1,3 +1,5 @@
+[![MseeP.ai Security Assessment Badge](https://mseep.net/pr/googlecloudplatform-professional-services-badge.png)](https://mseep.ai/app/googlecloudplatform-professional-services)
+
 # Professional Services
 
 Common solutions and tools developed by Google Cloud's Professional Services
