@@ -9,11 +9,11 @@ from google import genai
 import time
 from fpdf import FPDF
 
-GEMINI_API_KEY=os.environ.get("GEMINI_API_KEY")
-GEMINI_MODEL=os.environ.get("GEMINI_MODEL")
-CORPUS_PATH=os.environ.get("CORPUS_PATH")
-PROJECT_ID=os.environ.get("PROJECT_ID")
-REGION=os.environ.get("REGION")
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
+GEMINI_MODEL = os.environ.get("GEMINI_MODEL")
+CORPUS_PATH = os.environ.get("CORPUS_PATH")
+PROJECT_ID = os.environ.get("PROJECT_ID")
+REGION = os.environ.get("REGION")
 
 if not GEMINI_API_KEY:
     raise ValueError("GEMINI_API_KEY environment variable not set!")
@@ -40,6 +40,7 @@ storage_client = storage.Client()
 
 # Initialize the Vertex AI SDK
 vertexai.init(project=PROJECT_ID, location=REGION)
+
 
 def create_pdf_from_text(text, output_dir, filename):
     """
@@ -68,38 +69,39 @@ def create_pdf_from_text(text, output_dir, filename):
     return full_path
 
 
-
 def upload_gemini_file(file_name):
-  file = client.files.upload(file=file_name)
+    file = client.files.upload(file=file_name)
 
-  while file.state == "PROCESSING":
-      print('Waiting for Gemini file to be processed.')
-      time.sleep(10)
-      file = client.files.get(name=file.name)
+    while file.state == "PROCESSING":
+        print("Waiting for Gemini file to be processed.")
+        time.sleep(10)
+        file = client.files.get(name=file.name)
 
-  if file.state == "FAILED":
-    raise ValueError(file.state)
-  print(f'Gemini File processing complete: {file.uri}')
+    if file.state == "FAILED":
+        raise ValueError(file.state)
+    print(f"Gemini File processing complete: {file.uri}")
 
-  return file
+    return file
+
 
 def upload_to_vertex_rag(file_path):
     """Uploads a file to the specified Vertex AI RAG corpus."""
     filename = os.path.basename(file_path)
     try:
-      rag_file = rag.upload_file(
-        corpus_name=CORPUS_PATH,
-        path=file_path,
-        display_name=filename,
-        description=filename,
+        rag_file = rag.upload_file(
+            corpus_name=CORPUS_PATH,
+            path=file_path,
+            display_name=filename,
+            description=filename,
         )
-      print(rag_file)  
+        print(rag_file)
     except Exception as e:
         print(f"Error uploading to Vertex AI RAG: {e}")
 
+
 def process_image(image_path, image_filename):
     """Uses Gemini API to understand an image and uploads the response as a PDF."""
-    print(f'processing image...{image_path}')
+    print(f"processing image...{image_path}")
     try:
         gemini_file = upload_gemini_file(image_path)
 
@@ -109,11 +111,14 @@ def process_image(image_path, image_filename):
         )
         print(response.text)
         if response.text:
-            uploaded_image_pdf_path = create_pdf_from_text(response.text, LOCAL_IMAGE_PDF_FOLDER_PATH, image_filename)
+            uploaded_image_pdf_path = create_pdf_from_text(
+                response.text, LOCAL_IMAGE_PDF_FOLDER_PATH, image_filename
+            )
             upload_to_vertex_rag(uploaded_image_pdf_path)
             os.remove(uploaded_image_pdf_path)
     except Exception as e:
         print(f"Error processing image with Gemini: {e}")
+
 
 def process_pdf(file_path):
     """Extracts text and images from a PDF, processes images, and uploads the PDF."""
@@ -147,15 +152,19 @@ def process_pdf(file_path):
     except Exception as e:
         print(f"Error processing PDF {file_path}: {e}")
 
+
 def remove_file_from_rag(file_path):
     rag.delete_file(name=file_path)
     print(f"File {file_path} deleted.")
+
 
 def delete_files_from_rag(file_name):
     # Extract file and bucket information from the CloudEvent
     files = rag.list_files(corpus_name=CORPUS_PATH)
     for file in files:
-        print(f"comparing file name from RAG = {file.display_name} and file_name = {file_name}")
+        print(
+            f"comparing file name from RAG = {file.display_name} and file_name = {file_name}"
+        )
         if os.path.splitext(file.display_name)[0] == os.path.splitext(file_name)[0]:
             remove_file_from_rag(file.name)
 
@@ -166,22 +175,25 @@ def process_media(file_path, media_type):
         if media_type == "audio":
             gemini_file = upload_gemini_file(file_path)
             response = client.models.generate_content(
-                    model=GEMINI_MODEL, contents=["Describe this audio clip", gemini_file]
-                )
-        elif media_type ==  "video":
+                model=GEMINI_MODEL, contents=["Describe this audio clip", gemini_file]
+            )
+        elif media_type == "video":
             gemini_file = upload_gemini_file(file_path)
             response = client.models.generate_content(
-                    model=GEMINI_MODEL, contents=["Describe the video", gemini_file]
-                )
-            
+                model=GEMINI_MODEL, contents=["Describe the video", gemini_file]
+            )
+
         if response.text:
             media_filename = os.path.basename(file_path)
-            uploaded_media_pdf_path = create_pdf_from_text(response.text, LOCAL_MEDIA_PDF_FOLDER_PATH, media_filename)
+            uploaded_media_pdf_path = create_pdf_from_text(
+                response.text, LOCAL_MEDIA_PDF_FOLDER_PATH, media_filename
+            )
             upload_to_vertex_rag(uploaded_media_pdf_path)
             os.remove(uploaded_media_pdf_path)
 
     except Exception as e:
         print(f"Error processing {media_type} file {file_path}: {e}")
+
 
 @functions_framework.cloud_event
 def process_event(cloud_event):
@@ -195,7 +207,7 @@ def process_event(cloud_event):
     file_name = data["name"]
     print(f"Processing file: {file_name} from bucket: {bucket_name}.")
 
-    if cloud_event['type'] == "google.cloud.storage.object.v1.finalized":
+    if cloud_event["type"] == "google.cloud.storage.object.v1.finalized":
 
         # Download the file
         bucket = storage_client.bucket(bucket_name)
@@ -206,7 +218,7 @@ def process_event(cloud_event):
         file_path = f"/tmp/{file_name}"
         blob.download_to_filename(file_path)
 
-        #Delete exisiting file from RAG
+        # Delete exisiting file from RAG
         delete_files_from_rag(file_name)
 
         print(f"File {file_name} downloaded to {file_path}.")
@@ -214,19 +226,51 @@ def process_event(cloud_event):
             if file_name.lower().endswith(".pdf"):
                 print(f"--- Processing PDF: {file_name} ---")
                 process_pdf(file_path)
-            elif file_name.lower().endswith(".png") or file_name.lower().endswith(".jpg") or file_name.lower().endswith(".jpeg") or file_name.lower().endswith(".webp"):
+            elif (
+                file_name.lower().endswith(".png")
+                or file_name.lower().endswith(".jpg")
+                or file_name.lower().endswith(".jpeg")
+                or file_name.lower().endswith(".webp")
+            ):
                 print(f"--- Processing Images: {file_name} ---")
                 process_image(file_path, file_name)
-            elif file_name.lower().endswith((".mp3", ".m4a", ".aac", ".flac", ".wav", ".opus", ".mpga", ".mp4", ".pcm", ".webm")):
+            elif file_name.lower().endswith(
+                (
+                    ".mp3",
+                    ".m4a",
+                    ".aac",
+                    ".flac",
+                    ".wav",
+                    ".opus",
+                    ".mpga",
+                    ".mp4",
+                    ".pcm",
+                    ".webm",
+                )
+            ):
                 print(f"--- Processing MP3: {file_name} ---")
                 process_media(file_path, "audio")
-            elif file_name.lower().endswith((".mp4", ".mov", ".qt", ".flv", ".mpeg", ".mpg", ".webm", ".wmv", ".3gp")):
+            elif file_name.lower().endswith(
+                (
+                    ".mp4",
+                    ".mov",
+                    ".qt",
+                    ".flv",
+                    ".mpeg",
+                    ".mpg",
+                    ".webm",
+                    ".wmv",
+                    ".3gp",
+                )
+            ):
                 print(f"--- Processing MP4: {file_name} ---")
                 process_media(file_path, "video")
             else:
                 print(f"--- Skipping unsupported file: {file_name} ---")
-    elif cloud_event['type'] == "google.cloud.storage.object.v1.deleted":
+    elif cloud_event["type"] == "google.cloud.storage.object.v1.deleted":
         delete_files_from_rag(file_name)
     else:
         print(f"Unknown event type: {cloud_event['type']}")
-  # --- End of your processing logic ---
+
+
+# --- End of your processing logic ---

@@ -22,7 +22,9 @@ load_dotenv()
 
 # Google Cloud Project Settings
 PROJECT_ID = os.environ.get("GOOGLE_CLOUD_PROJECT")  # Replace with your project ID
-LOCATION = os.environ.get("GOOGLE_CLOUD_LOCATION", "us-central1")  # Default location for Vertex AI and GCS resources
+LOCATION = os.environ.get(
+    "GOOGLE_CLOUD_LOCATION", "us-central1"
+)  # Default location for Vertex AI and GCS resources
 
 # RAG Corpus Settings
 CORPUS_PATH = os.environ.get("VERTEX_AI_RAG_CORPUS_ID")  # Replace with your project ID

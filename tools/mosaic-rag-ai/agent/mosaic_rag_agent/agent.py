@@ -17,9 +17,7 @@ from . import corpus_tools
 mosaic_rag_agent = Agent(
     name="mosaic_rag_corpus_agent",
     model="gemini-2.0-flash",
-    description=(
-        "Agent for managing and searching Vertex AI RAG corpora."
-    ),
+    description=("Agent for managing and searching Vertex AI RAG corpora."),
     instruction=(
         """
            You are a helpful assistant that searches RAG corpora in Vertex AI 
