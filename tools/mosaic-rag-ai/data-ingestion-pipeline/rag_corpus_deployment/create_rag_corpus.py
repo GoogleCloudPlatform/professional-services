@@ -11,7 +11,11 @@ print(location)
 print(corpus_display_name)
 
 
-def create_rag_corpus(project_id: str, location: str, corpus_display_name: str):
+def create_rag_corpus(
+    project_id: str,
+    location: str,
+    corpus_display_name: str
+):
     """
     Creates a Vertex AI RAG Corpus and imports a file.
 
@@ -38,15 +42,16 @@ def create_rag_corpus(project_id: str, location: str, corpus_display_name: str):
             rag_embedding_model_config=embedding_model_config
         ),
     )
-
+    
     corpus_id = rag_corpus.name.split("/")[-1]
     print(f"Successfully created RAG Corpus with path: {rag_corpus.name}")
     print(f"Corpus ID: {corpus_id}")
     print(f"Display name: {rag_corpus.display_name}\n")
 
     return rag_corpus
-
-
+    
 create_rag_corpus(
-    project_id=project_id, location=location, corpus_display_name=corpus_display_name
+    project_id=project_id,
+    location=location,
+    corpus_display_name=corpus_display_name
 )

@@ -9,7 +9,7 @@ from fpdf import FPDF
 import os
 
 load_dotenv()
-API_KEY = os.getenv("GEMINI_API_KEY")
+API_KEY=os.getenv("GEMINI_API_KEY")
 
 LOCAL_FOLDER_PATH = "./"
 LOCAL_IMAGE_FOLDER_PATH = "./images"
@@ -17,11 +17,10 @@ LOCAL_IMAGE_PDF_FOLDER_PATH = "./images-pdf"
 LOCAL_MEDIA_PDF_FOLDER_PATH = "./media-pdf"
 IMAGE_PATH = "./images"
 PROJECT_ID = "agents-stg"
-REGION = "us-central1"
+REGION="us-central1"
 CORPUS_ID = "projects/agents-stg/locations/us-central1/ragCorpora/7991637538768945152"
 # The client gets the API key from the environment variable `GEMINI_API_KEY`.
 client = genai.Client(api_key=API_KEY)
-
 
 def create_pdf_from_text(text, output_dir, filename):
     """
@@ -50,39 +49,37 @@ def create_pdf_from_text(text, output_dir, filename):
     return full_path
 
 
+
 def upload_gemini_file(file_name):
-    file = client.files.upload(file=file_name)
+  file = client.files.upload(file=file_name)
 
-    while file.state == "PROCESSING":
-        print("Waiting for Gemini file to be processed.")
-        time.sleep(10)
-        file = client.files.get(name=file.name)
+  while file.state == "PROCESSING":
+      print('Waiting for Gemini file to be processed.')
+      time.sleep(10)
+      file = client.files.get(name=file.name)
 
-    if file.state == "FAILED":
-        raise ValueError(file.state)
-    print(f"Gemini File processing complete: {file.uri}")
+  if file.state == "FAILED":
+    raise ValueError(file.state)
+  print(f'Gemini File processing complete: {file.uri}')
 
-    return file
-
-
+  return file
 def upload_to_vertex_rag(file_path):
     """Uploads a file to the specified Vertex AI RAG corpus."""
     filename = os.path.basename(file_path)
     try:
-        rag_file = rag.upload_file(
-            corpus_name=CORPUS_ID,
-            path=file_path,
-            display_name=filename,
-            description="pdf file",
+      rag_file = rag.upload_file(
+        corpus_name=CORPUS_ID,
+        path=file_path,
+        display_name=filename,
+        description='pdf file',
         )
-        print(rag_file)
+      print(rag_file)  
     except Exception as e:
         print(f"Error uploading to Vertex AI RAG: {e}")
 
-
 def process_image(image_path, image_filename):
     """Uses Gemini API to understand an image and uploads the response as a PDF."""
-    print(f"processing image...{image_path}")
+    print(f'processing image...{image_path}')
     try:
         gemini_file = upload_gemini_file(image_path)
 
@@ -92,14 +89,11 @@ def process_image(image_path, image_filename):
         )
         print(response.text)
         if response.text:
-            uploaded_image_pdf_path = create_pdf_from_text(
-                response.text, LOCAL_IMAGE_PDF_FOLDER_PATH, image_filename
-            )
+            uploaded_image_pdf_path = create_pdf_from_text(response.text, LOCAL_IMAGE_PDF_FOLDER_PATH, image_filename)
             upload_to_vertex_rag(uploaded_image_pdf_path)
             os.remove(uploaded_image_pdf_path)
     except Exception as e:
         print(f"Error processing image with Gemini: {e}")
-
 
 def process_pdf(file_path):
     """Extracts text and images from a PDF, processes images, and uploads the PDF."""
@@ -133,38 +127,33 @@ def process_pdf(file_path):
     except Exception as e:
         print(f"Error processing PDF {file_path}: {e}")
 
-
 def process_media(file_path, media_type):
     """Uses Gemini API for audio/video understanding and uploads the response as a PDF."""
     try:
         if media_type == "audio":
             gemini_file = upload_gemini_file(file_path)
             response = client.models.generate_content(
-                model="gemini-2.5-flash",
-                contents=["Describe this audio clip", gemini_file],
-            )
-        elif media_type == "video":
+                    model="gemini-2.5-flash", contents=["Describe this audio clip", gemini_file]
+                )
+        elif media_type ==  "video":
             gemini_file = upload_gemini_file(file_path)
             response = client.models.generate_content(
-                model="gemini-2.5-flash", contents=["Describe the video", gemini_file]
-            )
-
+                    model="gemini-2.5-flash", contents=["Describe the video", gemini_file]
+                )
+            
         if response.text:
             media_filename = os.path.basename(file_path)
-            uploaded_media_pdf_path = create_pdf_from_text(
-                response.text, LOCAL_MEDIA_PDF_FOLDER_PATH, media_filename
-            )
+            uploaded_media_pdf_path = create_pdf_from_text(response.text, LOCAL_MEDIA_PDF_FOLDER_PATH, media_filename)
             upload_to_vertex_rag(uploaded_media_pdf_path)
             os.remove(uploaded_media_pdf_path)
 
     except Exception as e:
         print(f"Error processing {media_type} file {file_path}: {e}")
 
-
 def main():
     """Main function to iterate through the local folder and process files."""
-    for filename in os.listdir(LOCAL_FOLDER_PATH + "/data"):
-        file_path = os.path.join(LOCAL_FOLDER_PATH + "/data", filename)
+    for filename in os.listdir(LOCAL_FOLDER_PATH+"/data"):
+        file_path = os.path.join(LOCAL_FOLDER_PATH+"/data", filename)
         if os.path.isfile(file_path):
             if filename.lower().endswith(".pdf"):
                 print(f"--- Processing PDF: {filename} ---")
@@ -177,7 +166,6 @@ def main():
                 process_media(file_path, "video")
             else:
                 print(f"--- Skipping unsupported file: {filename} ---")
-
 
 if __name__ == "__main__":
     main()
