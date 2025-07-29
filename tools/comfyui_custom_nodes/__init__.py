@@ -1,22 +1,11 @@
-# Copyright 2025 Google LLC
-
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-
-#    http://www.apache.org/licenses/LICENSE-2.0
-
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
+# Copyright 2025 Google. This software is provided as-is, without warranty
+# or representation for any use or purpose. Your use of it is subject to
+# your agreement with Google.
 
 """Init nodes"""
 
-from .src.vertexai_nodes.nodes.flash import (
-    GeminiFlashNode
+from .src.vertexai_nodes.nodes.gemini import (
+    GeminiNode
 )
 
 from .src.vertexai_nodes.nodes.imagen import (
@@ -49,7 +38,7 @@ from .src.vertexai_nodes.nodes.imagen_outpaint import (
 )
 
 from .src.vertexai_nodes.nodes.veo import (
-    Veo2Node,
+    VeoNode,
     VideoPreviewNode,
     ImageToBase64Node
 )
@@ -60,8 +49,8 @@ WEB_DIRECTORY = "./src/vertexai_nodes/web"
 # that will be displayed in the UI.
 NODE_CLASS_MAPPINGS = {
 
-    "Gemini Flash 2.0": GeminiFlashNode,
-    "Veo 2 Video Generation": Veo2Node,
+    "Gemini": GeminiNode,
+    "Veo Video Generation": VeoNode,
     "VideoPreviewNode": VideoPreviewNode,
     "Image to B64 Node": ImageToBase64Node,
 
