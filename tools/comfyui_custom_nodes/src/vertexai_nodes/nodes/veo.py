@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+
 """Custom ComfyUI Node for Google Veo 2 via Google GenAI."""
 
 import time
@@ -40,7 +41,7 @@ from ..modules.consts import (
 )
 
 
-class Veo2Node:
+class VeoNode:
     """
     ComfyUI node to generate videos using Google's Veo 2 model.
     It initiates a long-running operation, polls for completion, and returns
@@ -144,13 +145,13 @@ class Veo2Node:
             error_message = "Google GenAI client is not initialized. \
                 Ensure the GOOGLE_API_KEY environment variable is set"
             print(f"[Veo2Node] Error: {error_message}")
-            return (error_message,)
+            raise RuntimeError(error_message)
 
         if not is_valid_gcs_uri(output_gcs_uri):
             error_message = f"Invalid 'output_gcs_uri': '{output_gcs_uri}'. \
                     Must start with 'gs://', specify a bucket/path, \
                     and not end with '/'. Example: gs://bucket/path/prefix"
-            return (error_message,)
+            raise RuntimeError(error_message)
 
         config = GenerateVideosConfig(
             number_of_videos=number_of_videos,
@@ -213,7 +214,7 @@ class Veo2Node:
                     error_message = f"Operation {operation_name} not found \
                         during polling. It might have expired or been deleted."
                     print(f"[Veo2Node] Error: {error_message}")
-                    return (error_message,)
+                    raise RuntimeError(error_message)
                 except Exception as poll_error:  # pylint: disable=W0718
                     # Log non-critical polling errors but continue polling
                     print(
@@ -226,7 +227,7 @@ class Veo2Node:
                 error_message = f"Video generation failed. \
                     Error: {operation.error}"
                 print(f"[Veo2Node] Error: {error_message}")
-                return (error_message,)
+                raise RuntimeError(error_message)
 
             print(operation.response)
 
@@ -250,38 +251,35 @@ class Veo2Node:
                 print(
                     f"[Veo2Node] Warning: {error_message}. \
                         Full response: {operation.response}")
-                return (error_message,)
+                raise RuntimeError(error_message)
 
         except api_exceptions.PermissionDenied as e:
             error_message = f"Permission Denied: Check API key permissions \
                 and GCS write access to '{output_gcs_uri}'. Details: {e}"
             print(f"[Veo2Node] Error: {error_message}")
-            return (error_message,)
+            raise RuntimeError(error_message)
         except api_exceptions.InvalidArgument as e:
             error_message = f"InvalidArgument: Model name('{model_name}'), \
                 parameters, prompt, or GCS path format. Details: {e}"
             print(f"[Veo2Node] Error: {error_message}")
-            return (error_message,)
+            raise RuntimeError(error_message)
         except api_exceptions.ResourceExhausted as e:
             error_message = f"Quota Exceeded: Check Google Cloud API \
                 quotas for the GenAI service. Details: {e}"
             print(f"[Veo2Node] Error: {error_message}")
-            return (error_message,)
+            raise RuntimeError(error_message)
         except api_exceptions.NotFound as e:
             error_message = f"Not Found: Ensure the model '{model_name}' \
                 is available or the specified GCS path exists. Details: {e}"
             print(f"[Veo2Node] Error: {error_message}")
-            return (error_message,)
+            raise RuntimeError(error_message)
         except Exception as e:  # pylint: disable=W0718
             error_message = f"An unexpected error occurred: \
                 {type(e).__name__} - {e}"
             if operation and hasattr(operation, 'name'):
                 error_message += f" (Related Operation: {operation.name})"
             print(f"[Veo2Node] Error: {error_message}")
-
-            # import traceback
-            # print(traceback.format_exc())
-            return (error_message,)
+            raise RuntimeError(error_message)
 
 
 class VideoPreviewNode:
@@ -347,8 +345,9 @@ class VideoPreviewNode:
             return file_paths
 
         except Exception as e:  # pylint: disable=W0718
-            print(f"Error downloading video from GCS: {e}")
-            return None
+            error_message = f"Error downloading video from GCS: {e}"
+            print(error_message)
+            raise RuntimeError(error_message)
 
     def load_video(self, gcs_urls):
         "Load video from temp file"
@@ -397,7 +396,8 @@ class ImageToBase64Node:
             or an error message.
         """
         if not isinstance(image, torch.Tensor):
-            return ("Error: Input 'image' is not a valid tensor.",)
+            error_message = "Error: Input 'image' must be a torch.Tensor."
+            raise RuntimeError(error_message)
 
         if image.dim() == 4 and image.shape[0] > 0:
             # Select the first image from the batch
@@ -406,8 +406,9 @@ class ImageToBase64Node:
             # Assume it's a single image without batch dimension
             img_tensor = image
         else:
-            return (f"Error: Input image tensor has unexpected\
-                    dimensions: {image.shape}",)
+            error_message = f"Error: Input image tensor has unexpected \
+                dimensions: {image.shape}"
+            raise RuntimeError(error_message)
 
         try:
             # Convert tensor values from [0.0, 1.0] to [0, 255]
@@ -434,4 +435,4 @@ class ImageToBase64Node:
         except Exception as e:  # pylint: disable=W0718
             error_message = f"Error encoding image to base64: {e}"
             print(f"[ImageToBase64Node] {error_message}")
-            return (error_message,)
+            raise RuntimeError(error_message)

@@ -105,5 +105,6 @@ class Imagen3Node:
             return (torch.stack(image_tensors),)
 
         except Exception as e:  # pylint: disable=W0718
-            print(f"Error generating image: {e}")
-            return (torch.empty(1, 512, 512, 3),)
+            error_message = f"Error generating image: {e}"
+            print(error_message)
+            raise RuntimeError(error_message)

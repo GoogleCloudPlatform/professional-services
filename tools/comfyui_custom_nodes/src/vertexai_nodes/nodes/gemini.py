@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+
 """Custom ComfyUI Node for Google Gemini Flash via Vertex AI"""
 
 from typing import Tuple, Dict, Any, Optional, List
@@ -34,10 +35,11 @@ from ..modules.utils import (
 )
 
 
-class GeminiFlashNode:
+class GeminiNode:
     """
-    A ComfyUI node to interact with Google's Gemini Flash model via Vertex AI.
-    Takes a text prompt and generation parameters, returns the generated text.
+    A ComfyUI node to interact with Gemini Flash, Pro model via Vertex AI.
+    Takes a text, image, video prompt and generation parameters,
+    returns the generated text.
     """
 
     CATEGORY = "VertexAI"
@@ -153,7 +155,7 @@ class GeminiFlashNode:
             error_message = "Gemini Model not initialized. \
                 Check errors during ComfyUI startup/console logs."
             print(f"Error in execute_generation: {error_message}")
-            return (error_message,)
+            raise RuntimeError(error_message)
 
         gen_config_dict: Dict[str, Any] = {
             "temperature": temperature,
@@ -236,13 +238,15 @@ class GeminiFlashNode:
                 print(
                     f"Warning: Could not extract text directly. {error_info}.\
                         Full Response: {response}")
-                generated_text = f"Error: {error_info}"
+                error_message = f"Error: {error_info}"
+                raise RuntimeError(error_message)
             except Exception as e:  # pylint: disable=W0718
                 # Catch other unexpected errors during text extraction
                 print(
                     f"Error processing response: {e}. \
                         Full Response: {response}")
-                generated_text = f"Error: Failed to process response - {e}"
+                error_message = f"Error: Failed to process response - {e}"
+                raise RuntimeError(error_message)
 
             return (generated_text,)
 
@@ -265,4 +269,5 @@ class GeminiFlashNode:
                 error_message += " - The model may be temporarily overloaded \
                     or you've hit a rate limit. Try again later."
 
-            return (error_message,)
+            print(f"Critical Error: {error_message}")
+            raise RuntimeError(error_message)

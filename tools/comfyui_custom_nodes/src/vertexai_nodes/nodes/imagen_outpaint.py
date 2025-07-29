@@ -13,6 +13,7 @@
 # limitations under the License.
 
 
+
 from PIL import Image as PIL_Image, ImageDraw as PIL_ImageDraw
 
 from google.genai.types import (

@@ -16,24 +16,41 @@
 "Consts used in custom nodes"
 
 import os
+from ast import literal_eval
 
+# This will be replaced by Cloud Run service.yaml
+from ..modules.utils import load_config_and_set_env_vars
+
+# Check if PROJECT_ID or REGION are set as environment variables.
+# If not, load the config.yaml file.
+if (
+    not os.environ.get("PROJECT_ID")
+    or not os.environ.get("REGION")
+    or not os.environ.get("FLASH_MODELS")
+):
+    config_path = os.path.join(os.path.dirname(__file__), '../config.yaml')
+    load_config_and_set_env_vars(config_path=config_path)
 
 PROJECT_ID = os.environ.get("PROJECT_ID")
-REGION = os.environ.get("REGION", "us-central1")
-
-FLASH_MODELS = ['gemini-2.0-flash-001']
-IMAGEN_MODELS = ['imagen-3.0-generate-002']
-IMAGEN3_EDIT_MODELS = ['imagen-3.0-capability-001']
-IMAGEN3_GENERATION_MODELS = ['imagen-3.0-generate-002']
-VEO_MODELS = ['veo-2.0-generate-001']
-
-AUTO_MASK_MODES = ['MASK_MODE_FOREGROUND', 'MASK_MODE_BACKGROUND']
-VEO_ASPECT_RATIOS = ["16:9", "9:16"]
-
-PERSON_GENERATION_MODES = ['ALLOW_ADULT', 'ALLOW_ALL', 'DONT_ALLOW']
-VEO_PERSON_GENERATION_MODES = ['allow_adult', 'disallow']
-
-SAFETY_FILTER_LEVELS = ['BLOCK_LOW_AND_ABOVE', 'BLOCK_MEDIUM_AND_ABOVE',
-                        'BLOCK_ONLY_HIGH', 'BLOCK_NONE']
-
+REGION = os.environ.get("REGION")
+FLASH_MODELS = literal_eval(os.environ.get("FLASH_MODELS"))
+IMAGEN3_EDIT_MODELS = literal_eval(os.environ.get("IMAGEN3_EDIT_MODELS"))
+SAFETY_FILTER_LEVELS = literal_eval(os.environ.get("SAFETY_FILTER_LEVELS"))
+PERSON_GENERATION_MODES = literal_eval(
+    os.environ.get("PERSON_GENERATION_MODES")
+)
+AUTO_MASK_MODES = literal_eval(os.environ.get("AUTO_MASK_MODES"))
+IMAGEN3_GENERATION_MODELS = literal_eval(
+    os.environ.get("IMAGEN3_GENERATION_MODELS")
+)
+VEO_MODELS = literal_eval(os.environ.get("VEO_MODELS"))
+VEO_PERSON_GENERATION_MODES = literal_eval(
+    os.environ.get("VEO_PERSON_GENERATION_MODES")
+)
+VEO_ASPECT_RATIOS = literal_eval(
+    os.environ.get("VEO_ASPECT_RATIOS")
+)
+IMAGEN_MODELS = literal_eval(
+    os.environ.get("IMAGEN_MODELS")
+)
 INPAINT_CATEGORY = "VertexAI/Imagen3/Inpainting"

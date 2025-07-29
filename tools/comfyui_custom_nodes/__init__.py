@@ -15,8 +15,8 @@
 
 """Init nodes"""
 
-from .src.vertexai_nodes.nodes.flash import (
-    GeminiFlashNode
+from .src.vertexai_nodes.nodes.gemini import (
+    GeminiNode
 )
 
 from .src.vertexai_nodes.nodes.imagen import (
@@ -49,7 +49,7 @@ from .src.vertexai_nodes.nodes.imagen_outpaint import (
 )
 
 from .src.vertexai_nodes.nodes.veo import (
-    Veo2Node,
+    VeoNode,
     VideoPreviewNode,
     ImageToBase64Node
 )
@@ -60,8 +60,8 @@ WEB_DIRECTORY = "./src/vertexai_nodes/web"
 # that will be displayed in the UI.
 NODE_CLASS_MAPPINGS = {
 
-    "Gemini Flash 2.0": GeminiFlashNode,
-    "Veo 2 Video Generation": Veo2Node,
+    "Gemini": GeminiNode,
+    "Veo Video Generation": VeoNode,
     "VideoPreviewNode": VideoPreviewNode,
     "Image to B64 Node": ImageToBase64Node,
 
