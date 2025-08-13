@@ -29,7 +29,7 @@ google-crc32c==1.5.0
 google-resumable-media==2.4.1
 googleapis-common-protos==1.56.4
 grpc-google-iam-v1==0.12.4
-grpcio==1.51.3
+grpcio==1.53.2
 grpcio-status==1.48.2
 hdfs==2.7.0
 httplib2==0.20.4
