@@ -2,7 +2,7 @@
 #@ constraint = build_constraint("computeAllowedInstanceMachineTypes")
 
 #@ def condition(machine_types):
-#@   return "(" + str(machine_types) + ".exists(type, resource.machineType.contains(type))) == false"
+#@   return 'resource.machineType.matches("machineTypes/(' +  "|".join(machine_types) + ')$") == false'
 #@ end
 
 #@ if constraint.to_generate():

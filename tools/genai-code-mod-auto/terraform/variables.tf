@@ -18,3 +18,9 @@ variable "required_apis" {
   description = "List of the required apis for the resources"
   
 }
+
+variable "stg_cf_bucket" {
+  type = string
+  description = "Name for the bucket where the source code for the cloud function will be stored"
+  
+}

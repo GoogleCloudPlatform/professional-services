@@ -18,7 +18,7 @@ numpy==2.2.4
 packaging==24.2
 pandas==2.2.3
 pillow==11.1.0
-protobuf==5.29.4
+protobuf==5.29.5
 pyarrow==19.0.1
 pyasn1==0.6.1
 pyasn1_modules==0.4.2
@@ -38,5 +38,5 @@ toml==0.10.2
 tornado==6.5.1
 typing_extensions==4.13.1
 tzdata==2025.2
-urllib3==2.3.0
+urllib3==2.5.0
 watchdog==6.0.0

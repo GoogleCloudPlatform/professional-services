@@ -3,7 +3,7 @@ shared_config:
   teardown_command: gcloud dns policies delete {{ identifier }}
   default_command_flags: 
     enable-logging: true
-    networks: cuop-vpc-network
+    networks: vpc-dev-cuop-library
     description: Creation of DNS policy
   default_markers:
     - dns

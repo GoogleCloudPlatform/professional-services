@@ -1,0 +1,29 @@
+# GCP Cloud Build Configuration
+
+# Define global substitution variables.
+# You can override these when you trigger the build.
+# Example: gcloud builds submit --config cloudbuild.yaml --substitutions=_PROJECT_PREFIX=my-awesome-project
+substitutions:
+  _PROJECT_ID: "agents-stg"
+  _LOCATION: "us-central1"
+  _CORPUS_DISPLAY_NAME: "mosaic-rag-corpus"
+
+steps:
+# ==============================================================================
+# STEP 1: Run Python Script
+# This step runs the Python script to process the global variable and generate
+# a configuration file for Terraform.
+# ==============================================================================
+- name: 'python:3.9-slim'
+  id: 'Create RAG Corpus'
+  entrypoint: 'bash'
+  args:
+  - '-c'
+  - |
+    pip install -r requirements.txt && \
+    python create_rag_corpus.py
+  # Pass the substitution variable as an environment variable to the script.
+  env:
+  - 'PROJECT_ID=${_PROJECT_ID}'
+  - 'LOCATION=${_LOCATION}'
+  - 'CORPUS_DISPLAY_NAME=${_CORPUS_DISPLAY_NAME}'
