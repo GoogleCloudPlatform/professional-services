@@ -1,8 +1,7 @@
 custom.iamDisableBasicRoles:
   action_type: DENY
-  condition: resource.bindings.exists(bind, RoleNameMatches(bind.role, ["roles/viewer"])
-    || RoleNameMatches(bind.role, ["roles/editor"]) || RoleNameMatches(bind.role,
-    ["roles/owner"]))
+  condition: |-
+    resource.bindings.exists(bind, RoleNameMatches(bind.role, ["roles/viewer"]) || RoleNameMatches(bind.role, ["roles/editor"]) || RoleNameMatches(bind.role, ["roles/owner"]))
   description: Ensure no use of the basic roles (viewer, editor and owner)
   display_name: Deny use of the basic roles
   method_types:

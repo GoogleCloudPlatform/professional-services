@@ -1,6 +1,7 @@
 custom.gkeRequireLogging:
   action_type: DENY
-  condition: resource.loggingService != 'logging.googleapis.com/kubernetes'
+  condition: |-
+    resource.loggingService != 'logging.googleapis.com/kubernetes'
   description: Enforce that GKE clusters logging is enabled
   display_name: Enable logging
   method_types:

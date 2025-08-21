@@ -1,6 +1,7 @@
 custom.storageBucketEnforceNamingConvention:
   action_type: DENY
-  condition: resource.name.matches("(sin|cgk)$") == false
+  condition: |-
+    resource.name.matches("(sin|cgk)$") == false
   description: Prevent the creation of bucket rule that are not following the naming
     convention
   display_name: Enforce bucket naming convention

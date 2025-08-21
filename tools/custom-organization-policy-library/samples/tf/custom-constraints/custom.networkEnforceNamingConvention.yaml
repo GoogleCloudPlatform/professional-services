@@ -1,6 +1,7 @@
 custom.networkEnforceNamingConvention:
   action_type: DENY
-  condition: resource.name.matches("^(vpc)-(dev|prd|uat)-[a-z0-9-]*") == false
+  condition: |-
+    resource.name.matches("^(vpc)-(dev|prd|uat)-[a-z0-9-]*") == false
   description: Prevent the creation of VPC that are not following the naming convention
   display_name: Enforce VPC naming convention
   method_types:

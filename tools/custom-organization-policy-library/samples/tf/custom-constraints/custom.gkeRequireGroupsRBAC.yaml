@@ -1,6 +1,7 @@
 custom.gkeRequireGroupsRBAC:
   action_type: DENY
-  condition: resource.authenticatorGroupsConfig.enabled == false
+  condition: |-
+    resource.authenticatorGroupsConfig.enabled == false
   description: Enforce that GKE is configured so Google Groups can be used with RBAC
   display_name: Enable Google Groups usage with RBAC
   method_types:

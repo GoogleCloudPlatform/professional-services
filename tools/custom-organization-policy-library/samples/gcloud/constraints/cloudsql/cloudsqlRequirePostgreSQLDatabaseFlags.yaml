@@ -4,7 +4,17 @@ resourceTypes:
 methodTypes:
 - CREATE
 - UPDATE
-condition: "resource.databaseVersion.startsWith('POSTGRES') && (\n  !resource.settings.databaseFlags.exists(flag, flag.name == 'log_connections' && flag.value == 'on') || \n  !resource.settings.databaseFlags.exists(flag, flag.name == 'log_disconnections' && flag.value == 'on') ||\n  !resource.settings.databaseFlags.exists(flag, flag.name == 'log_min_duration_statement' && flag.value == '-1') ||\n  !resource.settings.databaseFlags.exists(flag, flag.name == 'cloudsql.enable_pgaudit' && flag.value == 'on') ||\n  resource.settings.databaseFlags.exists(flag, flag.name == 'log_min_messages' && flag.value in ['error' , 'log', 'fatal', 'panic']) ||\n  resource.settings.databaseFlags.exists(flag, flag.name == 'log_min_error_statement' && flag.value in ['log', 'fatal', 'panic']) ||\n  resource.settings.databaseFlags.exists(flag, flag.name == 'log_error_verbosity' && flag.value in ['terse']) ||\n  resource.settings.databaseFlags.exists(flag, flag.name == 'log_statement' && flag.value in ['none'])\n)"
+condition: |-
+  resource.databaseVersion.startsWith('POSTGRES') && (
+    !resource.settings.databaseFlags.exists(flag, flag.name == 'log_connections' && flag.value == 'on') ||
+    !resource.settings.databaseFlags.exists(flag, flag.name == 'log_disconnections' && flag.value == 'on') ||
+    !resource.settings.databaseFlags.exists(flag, flag.name == 'log_min_duration_statement' && flag.value == '-1') ||
+    !resource.settings.databaseFlags.exists(flag, flag.name == 'cloudsql.enable_pgaudit' && flag.value == 'on') ||
+    resource.settings.databaseFlags.exists(flag, flag.name == 'log_min_messages' && flag.value in ['error' , 'log', 'fatal', 'panic']) ||
+    resource.settings.databaseFlags.exists(flag, flag.name == 'log_min_error_statement' && flag.value in ['log', 'fatal', 'panic']) ||
+    resource.settings.databaseFlags.exists(flag, flag.name == 'log_error_verbosity' && flag.value in ['terse']) ||
+    resource.settings.databaseFlags.exists(flag, flag.name == 'log_statement' && flag.value in ['none'])
+  )
 actionType: DENY
 display_name: Require Cloud SQL for PostgreSQL instance database flags to be configured correctly (e.g log_connections)
 description: Ensure Cloud SQL for PostgreSQL instance database flags are set correctly (e.g log_connections)

@@ -1,6 +1,7 @@
 custom.gkeRequireGKEMetadataServer:
   action_type: DENY
-  condition: resource.config.workloadMetadataConfig.mode != 'GKE_METADATA'
+  condition: |-
+    resource.config.workloadMetadataConfig.mode != 'GKE_METADATA'
   description: Enforce that GKE clusters are configured with GKE metadata server enabled
   display_name: Require GKE metadata server
   method_types:

@@ -1,6 +1,7 @@
 custom.gkeRequireWorkloadIdentity:
   action_type: DENY
-  condition: resource.workloadIdentityConfig.workloadPool == ""
+  condition: |-
+    resource.workloadIdentityConfig.workloadPool == ""
   description: Enforce that GKE clusters are enabled with Workload Identity
   display_name: Enable Workload Identity
   method_types:

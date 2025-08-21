@@ -1,6 +1,7 @@
 custom.gkeRequireShieldedNodes:
   action_type: DENY
-  condition: resource.shieldedNodes.enabled == false
+  condition: |-
+    resource.shieldedNodes.enabled == false
   description: Enforce that GKE nodes is configured with shielded GKE nodes
   display_name: Require shielded GKE nodes
   method_types:

@@ -1,6 +1,7 @@
 custom.cloudkmsAllowedProtectionLevel:
   action_type: DENY
-  condition: resource.versionTemplate.protectionLevel in ["SOFTWARE"] == false
+  condition: |-
+    resource.versionTemplate.protectionLevel in ["SOFTWARE"] == false
   description: Ensure the protection level for Cloud KMS keys is configured correctly
   display_name: Require Cloud KMS keys protection level to be configured correctly
   method_types:
