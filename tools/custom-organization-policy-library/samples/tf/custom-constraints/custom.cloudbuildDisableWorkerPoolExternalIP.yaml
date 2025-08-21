@@ -1,10 +1,10 @@
 custom.cloudbuildDisableWorkerPoolExternalIP:
-  actionType: DENY
+  action_type: DENY
   condition: (resource.privatePoolV1Config.networkConfig.egressOption != "NO_PUBLIC_EGRESS")
   description: Ensure no unauthorized worker pools external ip used for each build
-  displayName: Deny unauthorized worker pools external ip used for each build
-  methodTypes:
+  display_name: Deny unauthorized worker pools external ip used for each build
+  method_types:
   - CREATE
   - UPDATE
-  resourceTypes:
+  resource_types:
   - cloudbuild.googleapis.com/WorkerPool

@@ -7,4 +7,5 @@ custom.iamDisablePublicBindings:
   method_types:
   - CREATE
   - UPDATE
-  resource_types: iam.googleapis.com/AllowPolicy
+  resource_types:
+  - iam.googleapis.com/AllowPolicy

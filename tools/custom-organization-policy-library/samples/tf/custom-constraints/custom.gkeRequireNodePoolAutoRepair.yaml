@@ -1,10 +1,10 @@
 custom.gkeRequireNodePoolAutoRepair:
-  actionType: DENY
+  action_type: DENY
   condition: resource.management.autoRepair == false
   description: Enforce that GKE clusters are configured with node auto-repair enabled
   display_name: Enable node auto-repair
-  methodTypes:
+  method_types:
   - CREATE
   - UPDATE
-  resourceTypes:
+  resource_types:
   - container.googleapis.com/NodePool

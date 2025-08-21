@@ -1,11 +1,11 @@
 custom.cloudsqlRequireQueryInsights:
-  actionType: DENY
+  action_type: DENY
   condition: resource.settings.insightsConfig.queryInsightsEnabled == false
   description: Ensure that Cloud SQL instance is configured to have Query Insights
     feature enabled
   display_name: Require Cloud SQL instances to have Query Insights feature enabled
-  methodTypes:
+  method_types:
   - CREATE
   - UPDATE
-  resourceTypes:
+  resource_types:
   - sqladmin.googleapis.com/Instance

@@ -1,7 +1,0 @@
-name: organizations/11111111/customConstraints/custom.computeRequireConfidentialComputing
-resource_types: compute.googleapis.com/Instance
-condition: '["n2d-standard-2"].exists(machine_type, resource.machineType.endsWith(machine_type)) && (has(resource.confidentialInstanceConfig) == false)'
-action_type: DENY
-method_types: CREATE
-display_name: Require Compute Instances to have confidential computing enabled for certain machine types
-description: Ensure that Compute Instances have confidential computing enabled for certain machine types

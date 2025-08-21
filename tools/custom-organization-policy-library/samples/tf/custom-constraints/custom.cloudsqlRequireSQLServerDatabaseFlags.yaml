@@ -1,5 +1,5 @@
 custom.cloudsqlRequireSQLServerDatabaseFlags:
-  actionType: DENY
+  action_type: DENY
   condition: "resource.databaseVersion.startsWith('SQLSERVER') && (\n  resource.settings.databaseFlags.exists(flag,\
     \ flag.name == 'external scripts enabled' && flag.value == 'on') ||\n  resource.settings.databaseFlags.exists(flag,\
     \ flag.name == 'cross db ownership chaining' && flag.value == 'on') ||\n  resource.settings.databaseFlags.exists(flag,\
@@ -13,8 +13,8 @@ custom.cloudsqlRequireSQLServerDatabaseFlags:
     (e.g external scripts enabled ...)
   display_name: Require Cloud SQL for SQLServer instance database flags to be configured
     correctly (e.g external scripts enabled ...)
-  methodTypes:
+  method_types:
   - CREATE
   - UPDATE
-  resourceTypes:
+  resource_types:
   - sqladmin.googleapis.com/Instance

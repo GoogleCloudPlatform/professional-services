@@ -20,11 +20,23 @@ import yaml
 
 def convert_terraform_factory(doc):
     try:
+        if "resourceTypes" in doc:
+            doc["resource_types"] = doc.pop("resourceTypes")
+
+        if "actionType" in doc:
+            doc["action_type"] = doc.pop("actionType")
+
+        if "displayName" in doc:
+            doc["display_name"] = doc.pop("displayName")
+
+        if "methodTypes" in doc:
+            doc["method_types"] = doc.pop("methodTypes")
+
         tf_yaml = {}
         _, _, root_key = doc.get("name").rpartition("/")
+        root_prefix_key = root_key # root_key.replace("custom.", "custom.${prefix}")
         del doc["name"]
-        tf_yaml[root_key] = doc
-
+        tf_yaml[root_prefix_key] = doc
         return root_key, tf_yaml
 
     except:
