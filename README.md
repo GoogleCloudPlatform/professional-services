@@ -198,6 +198,7 @@ them to fit your particular use case.
     approach
 *   [Dataflow Streaming XML to GCS](examples/dataflow-xml-pubsub-to-gcs) -
     Dataflow example to handle streaming of xml encoded messages and write them to Google Cloud Storage
+*   [Dataflow – DLP Flex De-ID (CSV from GCS to BigQuery)](examples/dataflow-dlp-flex-deid) - Dataflow Flex Template that batches CSV rows from Cloud Storage, de-identifies with Sensitive Data Protection (DLP), and writes to BigQuery.
 *   [Dataflow DLP Hashpipeline](examples/dataflow-dlp-hash-pipeline) - Match DLP
     Social Security Number findings against a hashed dictionary in Firestore.
     Use Secret Manager for the hash key.
