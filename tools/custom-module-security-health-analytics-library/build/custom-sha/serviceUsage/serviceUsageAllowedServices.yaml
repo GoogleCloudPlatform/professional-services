@@ -1,5 +1,5 @@
 #@ load("/sha.lib.star", "build_sha")
-#@ sha = build_sha("serviceUsageAllowedServices")
+#@ sha = build_sha("serviceusageAllowedServices")
 
 #@ def expression(services):
 #@   return '(!' + str(services) + '.exists(service, resource.name == service && resource.state == "ENABLED"))'

@@ -29,7 +29,7 @@ cloudfunctions:
     bundles:
       pci-dss: false
       cis: false
-  cloudfunctionsV1RequireIngressInternalAndLoabBalancer:
+  cloudfunctionsV1RequireIngressInternalAndLoadBalancer:
     #@schema/validation one_of=["default", "skip", "include"]
     generation: "default"
     bundles:

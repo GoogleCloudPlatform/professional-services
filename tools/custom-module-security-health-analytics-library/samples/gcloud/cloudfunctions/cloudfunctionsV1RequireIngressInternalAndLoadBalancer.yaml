@@ -1,4 +1,4 @@
-severity: Medium
+severity: MEDIUM
 description: Detect if Gen1 Cloud Functions are not configured to allow only internal traffic and traffic from load balancer
 recommendation: Ensure Gen1 Cloud Functions are configured to allow only internal traffic and traffic from load balancer
 resource_selector:

@@ -1,0 +1,12 @@
+cloudrunRequireEgressAllTraffic:
+  description: Detect if Cloud Run services and jobs are not configured to route all
+    traffic through the VPC connector
+  predicate:
+    expression: (!resource.spec.template.metadata.annotations['run.googleapis.com/vpc-access-egress'].matches('all-traffic'))
+  recommendation: Ensure Cloud Run services and jobs are configured to route all traffic
+    through the VPC connector
+  resource_selector:
+    resource_types:
+    - run.googleapis.com/Service
+    - run.googleapis.com/Job
+  severity: HIGH
