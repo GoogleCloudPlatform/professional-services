@@ -1,6 +1,6 @@
-# Airflow v1 to v2 Code Translation with Vertex AI Gemini API
+# Airflow v1 to v2 Dag Code Translation with Vertex AI Gemini API
 
-This Cloud Run service reads files from a Google Cloud Storage (GCS) bucket, performs a dag code translation from Airflow v1 to v2 using a Vertex AI Generative Model based on a provided prompt, and writes the resulting dag files to another GCS bucket.
+This Cloud Run service reads dag code files from a Google Cloud Storage (GCS) bucket, performs a code translation from Airflow v1 to v2 using a Vertex AI Generative Model based on the provided prompt, and writes the resulting dag files to another GCS bucket.
 
 ## Prerequisites
 
@@ -150,5 +150,5 @@ Send the request:
 # If your service allows unauthenticated access:
 curl -X POST -H "Content-Type: application/json" -d @payload.json ${SERVICE_URL}
 ```
-Output will be a JSON response summarizing the processing done along with the converted dags in output folder if translation has succeeded.
+Output will be a JSON response summarizing the processing done along with the converted dags in the specified output folder. Gemini provides detailed comments about the code changes done within the translated dag files itself.
 
