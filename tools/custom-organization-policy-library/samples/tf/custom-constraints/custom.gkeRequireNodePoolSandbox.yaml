@@ -1,7 +1,7 @@
 custom.gkeRequireNodePoolSandbox:
-  actionType: DENY
-  condition: resource.name.matches("default-pool") == false && has(resource.config.sandboxConfig)
-    == false && resource.config.sandboxConfig.type != 'GVISOR'
+  action_type: DENY
+  condition: |-
+    resource.name.matches("default-pool") == false && has(resource.config.sandboxConfig) == false && resource.config.sandboxConfig.type != 'GVISOR'
   description: Enforce that the GKE clusters nodes are isolated using GKE sandbox
     (excepting the default node pool)
   display_name: Require GKE Sandbox runtime

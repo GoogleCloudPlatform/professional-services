@@ -1,6 +1,7 @@
 custom.firewallRequireDescription:
   action_type: DENY
-  condition: resource.description == ""
+  condition: |-
+    resource.description == ""
   description: Prevent the creation of VPC firewall rule that does not have description
     provided. Description can be used for auditing to refer to security control
   display_name: Require description on Firewall rule

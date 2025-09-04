@@ -1,11 +1,11 @@
 custom.cloudkmsAllowedAlgorithms:
-  actionType: DENY
-  condition: resource.versionTemplate.algorithm in ["GOOGLE_SYMMETRIC_ENCRYPTION"]
-    == false
+  action_type: DENY
+  condition: |-
+    resource.versionTemplate.algorithm in ["GOOGLE_SYMMETRIC_ENCRYPTION"] == false
   description: Ensure the algorithm for Cloud KMS keys is configured correctly
-  displayName: Require Cloud KMS keys algorithm to be configured correctly
-  methodTypes:
+  display_name: Require Cloud KMS keys algorithm to be configured correctly
+  method_types:
   - CREATE
   - UPDATE
-  resourceTypes:
+  resource_types:
   - cloudkms.googleapis.com/CryptoKey

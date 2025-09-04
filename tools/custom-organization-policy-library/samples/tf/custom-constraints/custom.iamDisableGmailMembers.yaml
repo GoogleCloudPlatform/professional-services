@@ -1,11 +1,11 @@
 custom.iamDisableGmailMembers:
-  actionType: DENY
-  condition: resource.bindings.exists(binding, binding.members.exists(member, MemberSubjectEndsWith(member,
-    ['@gmail.com'])))
+  action_type: DENY
+  condition: |-
+    resource.bindings.exists(binding, binding.members.exists(member, MemberSubjectEndsWith(member, ['@gmail.com'])))
   description: Ensure no binding are done by using gmail members
-  displayName: Deny use of gmail members
-  methodTypes:
+  display_name: Deny use of gmail members
+  method_types:
   - CREATE
   - UPDATE
-  resourceTypes:
+  resource_types:
   - iam.googleapis.com/AllowPolicy

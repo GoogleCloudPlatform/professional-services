@@ -32,7 +32,7 @@ services = [
   "logging",
   "network", 
   "secretmanager",
-  "serviceUsage",
+  "serviceusage",
   "storage",
   ]
 

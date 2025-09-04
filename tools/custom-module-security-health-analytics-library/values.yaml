@@ -14,7 +14,7 @@
 
 #@data/values
 ---
-organization: '741724935092'
+organization: '11111111'
 bundles:
   pci-dss: false
   cis: false
@@ -90,8 +90,8 @@ secretmanager:
       topics:
       - "topic-1"
       - "topic-2"
-serviceUsage:
-  serviceUsageAllowedServices:
+serviceusage:
+  serviceusageAllowedServices:
     params:
       services:
       - "storage.googleapis.com"

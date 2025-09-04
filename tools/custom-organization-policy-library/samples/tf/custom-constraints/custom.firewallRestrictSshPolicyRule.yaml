@@ -1,10 +1,17 @@
 custom.firewallRestrictSshPolicyRule:
   action_type: DENY
-  condition: "resource.rules.exists(rule, \n    rule.priority < 2147483644 && \n \
-    \   rule.direction == 'INGRESS' &&\n    !rule.match.srcIpRanges.all(ipRange, \n\
-    \        ipRange.startsWith('192.168.') || ipRange == '35.235.240.0/20' || ipRange.startsWith('10.')\n\
-    \    ) &&\n    rule.match.layer4Configs.all(l4config, \n        l4config.ipProtocol\
-    \ == 'tcp' && \n        l4config.ports.all(port, port == '22')\n    )\n)"
+  condition: |-
+    resource.rules.exists(rule,
+        rule.priority < 2147483644 &&
+        rule.direction == 'INGRESS' &&
+        !rule.match.srcIpRanges.all(ipRange,
+            ipRange.startsWith('192.168.') || ipRange == '35.235.240.0/20' || ipRange.startsWith('10.')
+        ) &&
+        rule.match.layer4Configs.all(l4config,
+            l4config.ipProtocol == 'tcp' &&
+            l4config.ports.all(port, port == '22')
+        )
+    )
   description: Ensure that SSH access is restricted from the Internet when using Firewall
     Policy Rule
   display_name: Restrict Firewall Policy rules allowing SSH access from the Internet

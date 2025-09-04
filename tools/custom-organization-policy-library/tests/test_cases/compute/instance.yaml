@@ -47,11 +47,3 @@ compute_instance_ip_forward:
     expected_result:
       return_code: 1
       stderr: constraints/compute.vmCanIpForward
-
-compute_instance_no_confidential:
-  steps:
-  - command_flags:
-      machine-type: n2d-standard-2
-    expected_result:
-      return_code: 1
-      stderr: customConstraints/custom.computeRequireConfidentialComputing

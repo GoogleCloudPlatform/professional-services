@@ -2,7 +2,7 @@
 #@ sha = build_sha("cloudfunctionsV1RequireGen2")
 
 #@ if sha.to_generate():
-severity: Medium
+severity: MEDIUM
 description: "Detect if Gen1 Cloud Functions are in use"
 recommendation: "Ensure only Gen 2 Cloud Functions are used"
 resource_selector:

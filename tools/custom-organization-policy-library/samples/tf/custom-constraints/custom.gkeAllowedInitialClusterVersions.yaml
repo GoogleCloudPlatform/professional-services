@@ -1,6 +1,7 @@
 custom.gkeAllowedInitialClusterVersions:
   action_type: DENY
-  condition: resource.initialClusterVersion.matches("(1.33.0-gke.2248000)$") == false
+  condition: |-
+    resource.initialClusterVersion.matches("(1.33.0-gke.2248000)$") == false
   description: Enforce that GKE cluster are using authorized cluster versions
   display_name: Allow only authorized cluster versions when creating GKE cluster
   method_types:

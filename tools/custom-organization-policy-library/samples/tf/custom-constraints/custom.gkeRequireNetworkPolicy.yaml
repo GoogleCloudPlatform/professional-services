@@ -1,7 +1,7 @@
 custom.gkeRequireNetworkPolicy:
   action_type: DENY
-  condition: resource.networkConfig.datapathProvider != 'ADVANCED_DATAPATH' && resource.addonsConfig.networkPolicyConfig.disabled
-    == true
+  condition: |-
+    resource.networkConfig.datapathProvider != 'ADVANCED_DATAPATH' && resource.addonsConfig.networkPolicyConfig.disabled == true
   description: Enforce that GKE clusters are configured with Network Policy enabled
   display_name: Enable network policy
   method_types:

@@ -1,10 +1,11 @@
 custom.cloudkmsAllowedRotationPeriod:
-  actionType: DENY
-  condition: has(resource.rotationPeriod) && resource.rotationPeriod > duration("31536000s")
+  action_type: DENY
+  condition: |-
+    has(resource.rotationPeriod) && resource.rotationPeriod > duration("31536000s")
   description: Ensure the rotation period for Cloud KMS keys is configured correctly
-  displayName: Require Cloud KMS keys to have rotation period configured correctly
-  methodTypes:
+  display_name: Require Cloud KMS keys to have rotation period configured correctly
+  method_types:
   - CREATE
   - UPDATE
-  resourceTypes:
+  resource_types:
   - cloudkms.googleapis.com/CryptoKey

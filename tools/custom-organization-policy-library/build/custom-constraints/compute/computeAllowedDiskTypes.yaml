@@ -7,10 +7,12 @@
 
 #@ if constraint.to_generate():
 name: #@ constraint.constraint_name()
-resource_types: compute.googleapis.com/Disk
+resource_types: 
+- compute.googleapis.com/Disk
 condition: #@  condition(constraint.params().disk_types)
 action_type: DENY
-method_types: CREATE
+method_types: 
+- CREATE
 display_name: Allow only specific disk types
 description:  "Prevent the creation of VMs not using specific disk type"
 #@ end

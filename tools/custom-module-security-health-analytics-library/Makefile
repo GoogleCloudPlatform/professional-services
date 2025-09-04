@@ -2,6 +2,7 @@
 SHELL 	:= /usr/bin/env bash
 CONFIG := -f build/config/schema.yaml -f build/config/services/ -f values.yaml -f build/ytt_lib/
 OUTPUT_GCLOUD 	:= samples/gcloud
+OUTPUT_TF := samples/tf
 
 YQ := $(shell command -v yq 2> /dev/null)
 ifndef YQ
@@ -12,15 +13,25 @@ ORGANIZATION_ID := $(shell $(YQ) '.organization' values.yaml)
 
 .PHONY: sha
 sha: 
-	rm -rf $(OUTPUT_GCLOUD)/sha
-	ytt $(CONFIG) -f build/custom-sha/  --output-files $(OUTPUT_GCLOUD)/custom-sha
+	rm -rf $(OUTPUT_GCLOUD)
+	ytt $(CONFIG) -f build/custom-sha/  --output-files $(OUTPUT_GCLOUD)
+
+.PHONY: sha-tf
+sha-tf: sha
+	python3 scripts/cvt-tf-custom-sha-modules.py $(OUTPUT_GCLOUD) $(OUTPUT_TF)
 
 .PHONY: build
 build: clean sha
 
+.PHONY: build-tf
+build-tf: clean sha-tf
+
+.PHONY: all
+all: clean build build-tf
+
 .PHONY: deploy-sha
 deploy-sha:
-	sh scripts/deploy.sh sha $(OUTPUT_GCLOUD)/custom-sha/ --organization $(ORGANIZATION_ID)
+	sh scripts/deploy.sh sha $(OUTPUT_GCLOUD) --organization $(ORGANIZATION_ID)
 
 .PHONY: deploy
 deploy: build deploy-sha

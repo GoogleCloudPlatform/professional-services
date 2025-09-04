@@ -1,6 +1,7 @@
 custom.networkRequireCustomModeVpc:
   action_type: DENY
-  condition: resource.autoCreateSubnetworks == true
+  condition: |-
+    resource.autoCreateSubnetworks == true
   description: Enforce that the subnets creation is using custom mode for a VPC network
   display_name: Require custom mode VPC network
   method_types:

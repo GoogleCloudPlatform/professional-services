@@ -1,6 +1,7 @@
 custom.dataprocAllowedLabels:
   action_type: DENY
-  condition: resource.labels.all(label, (label in ["label-0", "label-1"])) == false
+  condition: |-
+    resource.labels.all(label, (label in ["label-0", "label-1"])) == false
   description: Prevent the creation of Dataproc cluster not having the labels that
     are expected
   display_name: Allow only specific labels for Dataproc

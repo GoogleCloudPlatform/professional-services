@@ -1,6 +1,7 @@
 custom.gkeRequireDataplaneV2:
   action_type: DENY
-  condition: resource.networkConfig.datapathProvider != 'ADVANCED_DATAPATH'
+  condition: |-
+    resource.networkConfig.datapathProvider != 'ADVANCED_DATAPATH'
   description: Enforce that the GKE clusters is configured to use dataplane v2
   display_name: Require dataplane v2
   method_types:
