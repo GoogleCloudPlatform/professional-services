@@ -44,7 +44,9 @@ def main():
 
     input_dir = sys.argv[1]
     output_dir = sys.argv[2]
-    print(f"[{py_filename}] processing: {input_dir}, output directory: {output_dir}")
+    print(
+        f"[{py_filename}] processing: {input_dir}, output directory: {output_dir}"
+    )
     os.makedirs(output_dir, exist_ok=True)
 
     for filepath in glob.iglob(f"{input_dir}/**/*.yaml", recursive=True):

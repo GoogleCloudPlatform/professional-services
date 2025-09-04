@@ -1,5 +1,6 @@
 name: organizations/11111111/customConstraints/custom.iamDisablePublicBindings
-resource_types: iam.googleapis.com/AllowPolicy
+resource_types:
+- iam.googleapis.com/AllowPolicy
 method_types:
 - CREATE
 - UPDATE

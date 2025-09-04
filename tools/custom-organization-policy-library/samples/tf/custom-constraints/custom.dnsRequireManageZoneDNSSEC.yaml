@@ -1,7 +1,7 @@
 custom.dnsRequireManageZoneDNSSEC:
   action_type: DENY
-  condition: resource.visibility == "PUBLIC" && (resource.dnssecConfig.state in ["ON",
-    "TRANSFER"] == false)
+  condition: |-
+    resource.visibility == "PUBLIC" && (resource.dnssecConfig.state in ["ON", "TRANSFER"] == false)
   description: Ensure that Cloud DNS DNSSEC is enabled when configuring a DNS Public
     Managed Zone
   display_name: Require Cloud DNS DNSSEC enabled when configuring a DNS Public Managed
