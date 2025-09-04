@@ -2,9 +2,9 @@ from typing import Any
 from datetime import datetime,timedelta
 import google.auth
 from google.auth.transport.requests import AuthorizedSession
-import requests
+#import requests
 import sys, time
-from google.oauth2 import service_account
+#from google.oauth2 import service_account
 import argparse
 
 AUTH_SCOPE = "https://www.googleapis.com/auth/cloud-platform"
