@@ -17,8 +17,10 @@ import os
 import sys
 import yaml
 
+
 class LiteralString(str):
     pass
+
 
 def literal_representer(dumper, data):
     """
@@ -29,7 +31,9 @@ def literal_representer(dumper, data):
     """
     return dumper.represent_scalar('tag:yaml.org,2002:str', data, style='|')
 
+
 yaml.add_representer(LiteralString, literal_representer)
+
 
 def convert_terraform_factory(doc):
     try:
@@ -44,14 +48,14 @@ def convert_terraform_factory(doc):
 
         if "methodTypes" in doc:
             doc["method_types"] = doc.pop("methodTypes")
-                
+
         if "condition" in doc:
             condition_value = doc["condition"].strip()
             doc["condition"] = LiteralString(condition_value)
 
         tf_yaml = {}
         _, _, root_key = doc.get("name").rpartition("/")
-        root_prefix_key =  root_key # root_key.replace("custom.", "custom.${prefix}")
+        root_prefix_key = root_key  # root_key.replace("custom.", "custom.${prefix}")
         del doc["name"]
         tf_yaml[root_prefix_key] = doc
         return root_key, tf_yaml
@@ -68,7 +72,9 @@ def main():
 
     input_dir = sys.argv[1]
     output_dir = sys.argv[2]
-    print(f"[{py_filename}] processing: {input_dir}, output directory: {output_dir}")
+    print(
+        f"[{py_filename}] processing: {input_dir}, output directory: {output_dir}"
+    )
     os.makedirs(output_dir, exist_ok=True)
 
     for filepath in glob.iglob(f"{input_dir}/**/*.yaml", recursive=True):
@@ -77,7 +83,7 @@ def main():
                 yaml_data = yaml.safe_load(file)
                 if not yaml_data:
                     continue
-                    
+
                 root_key, tf_yaml_data = convert_terraform_factory(yaml_data)
 
                 if root_key and tf_yaml_data:
