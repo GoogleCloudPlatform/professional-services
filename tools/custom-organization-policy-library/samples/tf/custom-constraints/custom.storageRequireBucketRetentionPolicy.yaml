@@ -1,6 +1,7 @@
 custom.storageRequireBucketRetentionPolicy:
   action_type: DENY
-  condition: has(resource.retentionPolicy) == false
+  condition: |-
+    has(resource.retentionPolicy) == false
   description: Enforce Cloud Storage bucket retention policy to be configured
   display_name: Require rentention policy
   method_types:

@@ -1,6 +1,7 @@
 custom.gkeRequireConfidentialNodes:
   action_type: DENY
-  condition: resource.confidentialNodes.enabled == false
+  condition: |-
+    resource.confidentialNodes.enabled == false
   description: Enforce that the GKE clusters is using confidential nodes
   display_name: Require confidential nodes
   method_types:

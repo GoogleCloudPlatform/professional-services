@@ -97,10 +97,6 @@ compute:
   computeRestrictDiskSize:
     params:
       max_disksize: 100
-  computeRequireConfidentialComputing:
-    params:
-      machine_types:
-      - "n2d-standard-2"
 dataproc:
   dataprocAllowedLabels:
     params:

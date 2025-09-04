@@ -22,7 +22,9 @@ def main():
 
     input_file = sys.argv[1]
     output_dir = sys.argv[2]
-    print(f"[{py_filename}] processing: {input_file}, output directory: {output_dir}")
+    print(
+        f"[{py_filename}] processing: {input_file}, output directory: {output_dir}"
+    )
 
     with open(input_file, "r") as infile:
         for i, doc in enumerate(yaml.safe_load_all(infile)):

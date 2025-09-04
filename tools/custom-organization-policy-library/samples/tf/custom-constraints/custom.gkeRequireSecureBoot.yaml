@@ -1,6 +1,7 @@
 custom.gkeRequireSecureBoot:
   action_type: DENY
-  condition: resource.config.shieldedInstanceConfig.enableSecureBoot == false
+  condition: |-
+    resource.config.shieldedInstanceConfig.enableSecureBoot == false
   description: Enforce that GKE nodes are configured with secure boot enabled
   display_name: Enable secure boot
   method_types:

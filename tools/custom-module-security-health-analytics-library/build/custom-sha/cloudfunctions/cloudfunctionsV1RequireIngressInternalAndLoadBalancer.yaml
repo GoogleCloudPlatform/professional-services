@@ -1,8 +1,8 @@
 #@ load("/sha.lib.star", "build_sha")
-#@ sha = build_sha("cloudfunctionsV1RequireIngressInternalAndLoabBalancer")
+#@ sha = build_sha("cloudfunctionsV1RequireIngressInternalAndLoadBalancer")
 
 #@ if sha.to_generate():
-severity: Medium
+severity: MEDIUM
 description: "Detect if Gen1 Cloud Functions are not configured to allow only internal traffic and traffic from load balancer"
 recommendation: "Ensure Gen1 Cloud Functions are configured to allow only internal traffic and traffic from load balancer"
 resource_selector:

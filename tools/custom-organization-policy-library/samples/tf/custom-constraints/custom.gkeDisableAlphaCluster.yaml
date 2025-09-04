@@ -1,6 +1,7 @@
 custom.gkeDisableAlphaCluster:
   action_type: DENY
-  condition: resource.enableKubernetesAlpha == true
+  condition: |-
+    resource.enableKubernetesAlpha == true
   description: Enforce that GKE clusters are not using alpha features for production
     workloads
   display_name: Disable alpha features for production workloads

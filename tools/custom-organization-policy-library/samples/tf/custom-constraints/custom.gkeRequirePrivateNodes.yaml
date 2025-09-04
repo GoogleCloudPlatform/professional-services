@@ -1,6 +1,7 @@
 custom.gkeRequirePrivateNodes:
   action_type: DENY
-  condition: resource.privateClusterConfig.enablePrivateNodes == false
+  condition: |-
+    resource.privateClusterConfig.enablePrivateNodes == false
   description: Enforce that GKE clusters are created as private clusters with private
     nodes
   display_name: Require GKE private nodes
