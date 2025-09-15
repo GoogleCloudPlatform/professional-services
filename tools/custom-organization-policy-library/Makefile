@@ -1,7 +1,10 @@
-SHELL 	:= /usr/bin/env bash	# Make will use bash instead of sh
-CONFIG 	:= -f build/config/schema.yaml -f build/config/services/ -f values.yaml -f build/ytt_lib/
-OUTPUT_GCLOUD 	:= samples/gcloud
-OUTPUT_TF := samples/tf
+SHELL 	:= /usr/bin/env bash
+
+INPUT_VALUES    := $(or $(CUSTOM_OP_INPUT_VALUES), values.yaml)
+OUTPUT_GCLOUD   := $(or $(CUSTOM_OP_OUTPUT_GCLOUD), samples/gcloud)
+OUTPUT_TF       := $(or $(CUSTOM_OP_OUTPUT_TF), samples/tf)
+
+CONFIG 	:= -f build/config/schema.yaml -f build/config/services/ -f $(INPUT_VALUES) -f build/ytt_lib/
 
 # By default, generating all services 
 # For testing, can be set SERVICE := "cloudsql"

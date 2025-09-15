@@ -4,18 +4,23 @@ documentation:
   mimeType: text/markdown
 conditions:
 - displayName: 'Log match condition: custom role changes'
-  conditionMatchedLog:
-    filter: "resource.type=\"iam_role\" AND  (\n  protoPayload.methodName=\"google.iam.admin.v1.CreateRole\" OR \n  protoPayload.methodName=\"google.iam.admin.v1.UpdateRole\" OR \n  protoPayload.methodName=\"google.iam.admin.v1.DeleteRole\"\n)"
-    labelExtractors:
-      principal: EXTRACT(protoPayload.authenticationInfo.principalEmail)
-      method_name: EXTRACT(protoPayload.methodName)
-      organization_id: EXTRACT(labels.organization_id)
-      project_id: EXTRACT(labels.project_id)
-      role_name: EXTRACT(labels.role_name)
+  conditionThreshold:
+    filter: resource.type = "logging_bucket" AND metric.type = "logging.googleapis.com/user/customRoleChanges"
+    aggregations:
+    - perSeriesAligner: ALIGN_SUM
+      alignmentPeriod: 60s
+      crossSeriesReducer: REDUCE_SUM
+      groupByFields:
+      - metric.label.principal
+      - metric.label.method_name
+      - metric.label.organization_id
+      - metric.label.project_id
+      - metric.label.role_name
+    comparison: COMPARISON_GT
+    thresholdValue: 0
+    duration: 0s
+    trigger:
+      count: 1
 combiner: OR
 notificationChannels:
 - projects/my-project/notificationChannels/11111111111111
-alertStrategy:
-  notificationRateLimit:
-    period: 300s
-  autoClose: 604800s

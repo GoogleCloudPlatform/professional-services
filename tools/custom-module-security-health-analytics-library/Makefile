@@ -1,15 +1,17 @@
-# Make will use bash instead of sh
 SHELL 	:= /usr/bin/env bash
-CONFIG := -f build/config/schema.yaml -f build/config/services/ -f values.yaml -f build/ytt_lib/
-OUTPUT_GCLOUD 	:= samples/gcloud
-OUTPUT_TF := samples/tf
+
+INPUT_VALUES    := $(or $(CUSTOM_SHA_INPUT_VALUES), values.yaml)
+OUTPUT_GCLOUD   := $(or $(CUSTOM_SHA_OUTPUT_GCLOUD), samples/gcloud)
+OUTPUT_TF       := $(or $(CUSTOM_SHA_OUTPUT_TF), samples/tf)
+
+CONFIG := -f build/config/schema.yaml -f build/config/services/ -f $(INPUT_VALUES) -f build/ytt_lib/
 
 YQ := $(shell command -v yq 2> /dev/null)
 ifndef YQ
     $(error "yq is not installed or not in PATH. Please install yq: https://github.com/mikefarah/yq/#install")
 endif
 
-ORGANIZATION_ID := $(shell $(YQ) '.organization' values.yaml)
+ORGANIZATION_ID := $(shell $(YQ) '.organization' ${INPUT_VALUES})
 
 .PHONY: sha
 sha: 

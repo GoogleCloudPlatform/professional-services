@@ -23,29 +23,26 @@ documentation:
     ```
   mimeType: text/markdown
 conditions:
-  - displayName: 'Log match condition: network changes'
-    conditionMatchedLog:
-      filter: >-
-        resource.type="gce_network" AND 
-        (
-          protoPayload.methodName:"compute.networks.insert" OR 
-          protoPayload.methodName:"compute.networks.patch" OR 
-          protoPayload.methodName:"compute.networks.delete" OR 
-          protoPayload.methodName:"compute.networks.addPeering" OR 
-          protoPayload.methodName:"compute.networks.updatePeering" OR 
-          protoPayload.methodName:"compute.networks.removePeering"
-        )
-      labelExtractors:
-        principal: "EXTRACT(protoPayload.authenticationInfo.principalEmail)"
-        method_name: "EXTRACT(protoPayload.methodName)"
-        project_id: "EXTRACT(labels.project_id)"
-        network_id: "EXTRACT(labels.network_id)"
+- displayName: 'Log match condition: VPC Network Changes'
+  conditionThreshold:
+    filter: >-
+      resource.type = "logging_bucket" AND metric.type = "logging.googleapis.com/user/networkChanges"
+    aggregations:
+    - perSeriesAligner: ALIGN_SUM
+      alignmentPeriod: 60s
+      crossSeriesReducer: REDUCE_SUM
+      groupByFields:
+      - metric.label.principal
+      - metric.label.method_name
+      - metric.label.project_id
+      - metric.label.network_id
+    comparison: COMPARISON_GT
+    thresholdValue: 0
+    duration: 0s
+    trigger:
+      count: 1
 combiner: OR
 #@ if alert.has_notification_channels():
 _: #@ template.replace(generate_notification_channels())
 #@ end
-alertStrategy:
-  notificationRateLimit:
-    period: 300s
-  autoClose: 604800s
 #@ end

@@ -16,24 +16,20 @@
 # Function to print usage instructions
 function print_usage() {
   echo "Usage:"
-  echo "  $0 <project_id> <folder>"
+  echo "  $0 <project_id> <log_metrics_folder> <alerts_folder>"
   echo ""
   echo "Arguments:"
-  echo "  project_id: The Google Cloud Project ID where the monitoring policies will be created."
-  echo "  folder:     The directory containing the alert policy definition files (YAML or JSON)."
+  echo "  project_id: The Google Cloud Project ID where the resources will be created."
+  echo "  log_metrics_folder: The directory containing the log-based metrics definition files (YAML)."
+  echo "  alerts_folder:     The directory containing the alert policy definition files (YAML or JSON)."
   echo ""
   echo "Description:"
-  echo "  This script recursively searches the specified <folder> for .yaml files"
-  echo "  and attempts to create a Google Cloud Monitoring Alert Policy from each file"
-  echo "  in the target <project_id> using 'gcloud alpha monitoring policies create'."
+  echo "  This script first deploys log-based metrics and then alert policies."
+  echo "  It recursively searches the specified folders for .yaml/.json files"
+  echo "  and attempts to create or update the corresponding resources in the target <project_id>."
   echo ""
   echo "Examples:"
-  echo "  $0 my-gcp-project-id ./alert-policies/"
-  echo "  $0 production-project-123 ../../monitoring/alerts"
-  echo ""
-  echo "Note: This script uses 'gcloud alpha' commands."
-  echo "      It attempts to *create* policies. If a policy with the same display name"
-  echo "      already exists, the 'gcloud' command might fail for that specific file."
+  echo "  $0 my-gcp-project-id ./log-metrics/ ./alert-policies/"
 }
 
 # Function to check if gcloud is installed
@@ -61,6 +57,7 @@ function install_gcloud() {
 }
 
 # Function to extract display name from YAML or JSON file
+# shellcheck disable=SC2329
 get_display_name() {
   local file="$1"
   if [[ "$file" == *.yaml || "$file" == *.yml ]]; then
@@ -71,11 +68,57 @@ get_display_name() {
 }
 
 
+
+# Function to process a single log-based metric file
+# Arguments:
+#   $1: project_id
+#   $2: file path
+# shellcheck disable=SC2329
+function process_log_metric_file() {
+  local project_id="$1"
+  local file="$2"
+  local output
+  local metric_name
+
+  if [[ ! "$file" == *.yaml && ! "$file" == *.yml ]]; then
+     echo "Skipping non-YAML file: $file"
+     return
+  fi
+
+  echo "---------------"
+  echo "Processing log-based metric file: $file for project $project_id"
+
+  metric_name=$(basename "$file" .yaml)
+
+  echo "Found metric name in file: '$metric_name'"
+  echo "Checking for existing metric with name: '$metric_name' in project '$project_id'..."
+  existing_metric=$(gcloud logging metrics list --project="$project_id" --filter="name=\"$metric_name\"" --format="value(name)" 2>/dev/null)
+
+  if [[ -n "$existing_metric" ]]; then
+    echo "Metric with name '$metric_name' found. Attempting to update..."
+    if ! output=$(gcloud logging metrics update "$metric_name" --project="$project_id" --config-from-file="$file" 2>&1); then
+      echo "Error updating Log-based Metric '$metric_name' from '$file' in project '$project_id':"
+      echo "$output"
+    else
+      echo "Log-based Metric '$metric_name' from '$file' updated successfully in project '$project_id'."
+    fi
+  else
+    echo "Metric with name '$metric_name' not found. Attempting to create..."
+    if ! output=$(gcloud logging metrics create "$metric_name" --project="$project_id" --config-from-file="$file" 2>&1); then
+      echo "Error creating Log-based Metric from '$file' in project '$project_id':"
+      echo "$output"
+    else
+      echo "Log-based Metric from '$file' created successfully in project '$project_id'."
+    fi
+  fi
+}
+
 # Function to process a single alert policy file
 # Arguments:
 #   $1: project_id
 #   $2: file path
-function process_file() {
+# shellcheck disable=SC2329
+function process_alert_file() {
   local project_id="$1"
   local file="$2"
   local output
@@ -87,7 +130,7 @@ function process_file() {
   fi
 
   echo "---------------"
-  echo "Processing file: $file for project $project_id"
+  echo "Processing alert file: $file for project $project_id"
 
   display_name=$(get_display_name "$file")
 
@@ -129,22 +172,22 @@ function process_file() {
   fi
 }
 
-# Recursive function to traverse the file structure
+# Recursive function to traverse a folder and process files
 # Arguments:
 #   $1: project_id
 #   $2: current directory path
+#   $3: processing function
 function traverse_folder() {
   local project_id="$1"
   local current_dir="$2"
+  local process_function="$3"
   local item
 
-  # Check if the directory exists and is a directory
   if [[ ! -d "$current_dir" ]]; then
-    echo "Error: Directory '$current_dir' not found or is not a directory. Stopping traversal for this path."
+    echo "Error: Directory '$current_dir' not found or is not a directory."
     return 1
   fi
 
-  # Check if the directory is readable
    if [[ ! -r "$current_dir" ]]; then
     echo "Warning: Directory '$current_dir' is not readable. Skipping."
     return 0
@@ -155,9 +198,9 @@ function traverse_folder() {
   local has_error=0
   for item in "$current_dir"/*; do
     if [[ -f "$item" && -r "$item" ]]; then
-      process_file "$project_id" "$item"
+      "$process_function" "$project_id" "$item"
     elif [[ -d "$item" ]]; then
-      if ! traverse_folder "$project_id" "$item"; then
+      if ! traverse_folder "$project_id" "$item" "$process_function"; then
           has_error=1
       fi
     fi
@@ -170,14 +213,15 @@ if ! check_gcloud; then
   exit 1
 fi
 
-if [[ $# -ne 2 ]]; then
+if [[ $# -ne 3 ]]; then
   echo "Error: Incorrect number of arguments."
   print_usage
   exit 1
 fi
 
 PROJECT_ID="$1"
-FOLDER_PATH="$2"
+LOG_METRICS_FOLDER_PATH="$2"
+ALERTS_FOLDER_PATH="$3"
 
 if [[ -z "$PROJECT_ID" ]]; then
    echo "Error: Project ID cannot be empty."
@@ -185,24 +229,43 @@ if [[ -z "$PROJECT_ID" ]]; then
    exit 1
 fi
 
-if [[ -z "$FOLDER_PATH" ]]; then
-   echo "Error: Folder path cannot be empty."
+if [[ -z "$LOG_METRICS_FOLDER_PATH" ]]; then
+   echo "Error: Log-based metrics folder path cannot be empty."
    print_usage
    exit 1
 fi
 
-echo "Starting monitoring policy deployment..."
+if [[ -z "$ALERTS_FOLDER_PATH" ]]; then
+   echo "Error: Alerts folder path cannot be empty."
+   print_usage
+   exit 1
+fi
+
+echo "Starting deployment..."
 echo "Project ID: $PROJECT_ID"
-echo "Policy Folder: $FOLDER_PATH"
 echo "========================================="
 
-# Start the traversal
-if traverse_folder "$PROJECT_ID" "$FOLDER_PATH"; then
+echo "Deploying Log-based Metrics..."
+echo "Log Metrics Folder: $LOG_METRICS_FOLDER_PATH"
+echo "-----------------------------------------"
+if ! traverse_folder "$PROJECT_ID" "$LOG_METRICS_FOLDER_PATH" process_log_metric_file; then
+    echo "========================================="
+    echo "Script finished with errors during log-based metric deployment."
+    exit 1
+fi
+echo "Log-based Metrics deployment finished."
+echo "========================================="
+
+
+echo "Deploying Monitoring Alert Policies..."
+echo "Alerts Folder: $ALERTS_FOLDER_PATH"
+echo "-----------------------------------------"
+if traverse_folder "$PROJECT_ID" "$ALERTS_FOLDER_PATH" process_alert_file; then
     echo "========================================="
     echo "Script finished successfully."
     exit 0
 else
     echo "========================================="
-    echo "Script finished with errors (directory not found or not accessible)."
+    echo "Script finished with errors during alert policy deployment."
     exit 1
 fi

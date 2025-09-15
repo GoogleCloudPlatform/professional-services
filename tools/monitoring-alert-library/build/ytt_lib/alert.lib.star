@@ -28,9 +28,13 @@ def _has_notification_channels(self):
   return len(data.values.notification_channels) >= 1 and data.values.notification_channels[0] != ""
 end
 
+def _log_bucket_name(self):
+  return data.values["log_bucket_name"]
+end
+
 def build_alert(alert):
   alert = struct.make(alert=alert)
-  alert = struct.make_and_bind(alert, to_generate= _to_generate, params=_params, has_notification_channels=_has_notification_channels)
+  alert = struct.make_and_bind(alert, to_generate= _to_generate, params=_params, has_notification_channels=_has_notification_channels, log_bucket_name=_log_bucket_name)
   return alert
 end
 

@@ -16,23 +16,27 @@ documentation:
     ```
   mimeType: text/markdown
 conditions:
-  - displayName: 'Log match condition: storage IAM permission changes'
-    conditionMatchedLog:
-      filter: >-
-        resource.type="gcs_bucket"
-        AND protoPayload.methodName="storage.setIamPermissions"
-      labelExtractors:
-        principal: "EXTRACT(protoPayload.authenticationInfo.principalEmail)"
-        method_name: "EXTRACT(protoPayload.methodName)"
-        project_id: "EXTRACT(labels.project_id)"
-        location: "EXTRACT(labels.location)"
-        bucket_name: "EXTRACT(labels.bucket_name)"
+- displayName: 'Cloud Storage IAM Permission Changes'
+  conditionThreshold:
+    filter: >-
+      resource.type = "logging_bucket" AND metric.type = "logging.googleapis.com/user/storageIamChanges"
+    aggregations:
+    - perSeriesAligner: ALIGN_SUM
+      alignmentPeriod: 60s
+      crossSeriesReducer: REDUCE_SUM
+      groupByFields:
+      - metric.label.principal
+      - metric.label.method_name
+      - metric.label.project_id
+      - metric.label.location
+      - metric.label.bucket_name
+    comparison: COMPARISON_GT
+    thresholdValue: 0
+    duration: 0s
+    trigger:
+      count: 1
 combiner: OR
 #@ if alert.has_notification_channels():
 _: #@ template.replace(generate_notification_channels())
 #@ end
-alertStrategy:
-  notificationRateLimit:
-    period: 300s
-  autoClose: 604800s
 #@ end
