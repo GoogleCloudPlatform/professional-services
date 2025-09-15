@@ -24,33 +24,27 @@ documentation:
     ```
   mimeType: text/markdown
 conditions:
-  - displayName: 'Log match condition: project ownership changes'
-    conditionMatchedLog:
-      filter: >-
-        (protoPayload.serviceName="cloudresourcemanager.googleapis.com") AND 
-        (ProjectOwnership OR projectOwnerInvitee) 
-        OR 
-        (
-          protoPayload.serviceData.policyDelta.bindingDeltas.action="REMOVE" AND 
-          protoPayload.serviceData.policyDelta.bindingDeltas.role="roles/owner"
-        ) 
-        OR 
-        (
-          protoPayload.serviceData.policyDelta.bindingDeltas.action="ADD" AND 
-          protoPayload.serviceData.policyDelta.bindingDeltas.role="roles/owner"
-        )
-      labelExtractors:
-        principal: "EXTRACT(protoPayload.authenticationInfo.principalEmail)"
-        method_name: "EXTRACT(protoPayload.methodName)"
-        organization_id: "EXTRACT(labels.organization_id)"
-        folder_id: "EXTRACT(labels.folder_id)"
-        project_id: "EXTRACT(labels.project_id)"
+- displayName: 'Project Ownership Changes'
+  conditionThreshold:
+    filter: >-
+      resource.type = "logging_bucket" AND metric.type = "logging.googleapis.com/user/projectOwnershipChange"
+    aggregations:
+    - perSeriesAligner: ALIGN_SUM
+      alignmentPeriod: 60s
+      crossSeriesReducer: REDUCE_SUM
+      groupByFields:
+      - metric.label.principal
+      - metric.label.method_name
+      - metric.label.organization_id
+      - metric.label.folder_id
+      - metric.label.project_id
+    comparison: COMPARISON_GT
+    thresholdValue: 0
+    duration: 0s
+    trigger:
+      count: 1
 combiner: OR
 #@ if alert.has_notification_channels():
 _: #@ template.replace(generate_notification_channels())
 #@ end
-alertStrategy:
-  notificationRateLimit:
-    period: 300s
-  autoClose: 604800s
 #@ end

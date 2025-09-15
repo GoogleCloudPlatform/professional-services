@@ -19,6 +19,7 @@ project: my-project
 bundles:
   pci-dss: false
   cis: false
+log_bucket_name: ""
 notification_channels:
   - ""
 alerts:
@@ -87,4 +88,4 @@ alerts:
     generation: "default"
     bundles:
       pci-dss: true
-      cis: faltruese
+      cis: true

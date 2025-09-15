@@ -19,6 +19,7 @@ project: my-project
 bundles:
   pci-dss: false
   cis: false
+log_bucket_name: projects/my-project/locations/asia-southeast1/buckets/org-logging-bucket
 notification_channels:
   - projects/my-project/notificationChannels/11111111111111
 alerts:

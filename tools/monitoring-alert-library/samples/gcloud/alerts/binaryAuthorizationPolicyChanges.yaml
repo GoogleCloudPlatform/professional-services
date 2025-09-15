@@ -4,16 +4,21 @@ documentation:
   mimeType: text/markdown
 conditions:
 - displayName: 'Log match condition: Cloud SQL instance configuration changes'
-  conditionMatchedLog:
-    filter: protoPayload.methodName="google.cloud.binaryauthorization.v1.BinauthzManagementServiceV1.UpdatePolicy" AND  protoPayload.serviceName="binaryauthorization.googleapis.com" AND  ("ALWAYS_ALLOW" OR "DRYRUN_AUDIT_LOG_ONLY")
-    labelExtractors:
-      principal: EXTRACT(protoPayload.authenticationInfo.principalEmail)
-      method_name: EXTRACT(protoPayload.methodName)
-      project_id: EXTRACT(labels.project_id)
+  conditionThreshold:
+    filter: resource.type = "logging_bucket" AND metric.type = "logging.googleapis.com/user/binaryAuthorizationPolicyChanges"
+    aggregations:
+    - perSeriesAligner: ALIGN_SUM
+      alignmentPeriod: 60s
+      crossSeriesReducer: REDUCE_SUM
+      groupByFields:
+      - metric.label.principal
+      - metric.label.method_name
+      - metric.label.project_id
+    comparison: COMPARISON_GT
+    thresholdValue: 0
+    duration: 0s
+    trigger:
+      count: 1
 combiner: OR
 notificationChannels:
 - projects/my-project/notificationChannels/11111111111111
-alertStrategy:
-  notificationRateLimit:
-    period: 300s
-  autoClose: 604800s

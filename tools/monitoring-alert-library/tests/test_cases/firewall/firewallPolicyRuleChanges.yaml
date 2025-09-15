@@ -23,8 +23,7 @@ firewall_policy_creation_audit_log:
       return_code: 0
       attributes:
         'protoPayload.resourceName': "projects/{{ project }}/global/firewallPolicies/monitoring-alert-fw-policy"
-        'protoPayload.methodName': "compute.networkFirewallPolicies.addRule"
-        'protoPayload.request.priority': "1000"
+        'protoPayload.methodName': "v1.compute.networkFirewallPolicies.addRule"
 
 firewall_policy_update_audit_log:
   steps:

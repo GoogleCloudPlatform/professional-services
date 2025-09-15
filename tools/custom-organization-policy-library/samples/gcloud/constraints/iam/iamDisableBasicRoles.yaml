@@ -4,7 +4,15 @@ resourceTypes:
 methodTypes:
 - CREATE
 - UPDATE
-condition: resource.bindings.exists(bind, RoleNameMatches(bind.role, ["roles/viewer"]) || RoleNameMatches(bind.role, ["roles/editor"]) || RoleNameMatches(bind.role, ["roles/owner"]))
+condition: |-
+  resource.bindings.exists(binding,
+    binding.members.exists(member,MemberSubjectStartsWith(member, ['user:', 'group'])) &&
+    (
+        RoleNameMatches(binding.role, ["roles/editor"]) ||
+        RoleNameMatches(binding.role, ["roles/owner"]) ||
+        RoleNameContains(binding.role, ["roles/viewer"])
+    )
+  )
 actionType: DENY
 displayName: Deny use of the basic roles
 description: Ensure no use of the basic roles (viewer, editor and owner)

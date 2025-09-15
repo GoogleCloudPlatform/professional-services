@@ -1,0 +1,42 @@
+#@ load("/alert.lib.star", "build_alert")
+#@ load("/alert.lib.yaml", "generate_notification_channels")
+#@ load("@ytt:template", "template")
+#@ alert = build_alert("customRoleChanges")
+
+#@ if alert.to_generate():
+description:  "Custom Role Changes"
+bucketName: #@ alert.log_bucket_name()
+filter: >-
+  resource.type="iam_role" AND
+  (
+    protoPayload.methodName="google.iam.admin.v1.CreateRole" OR
+    protoPayload.methodName="google.iam.admin.v1.UpdateRole" OR
+    protoPayload.methodName="google.iam.admin.v1.DeleteRole"
+  )
+metricDescriptor:
+  metricKind: "DELTA"
+  valueType: "INT64"
+  unit: "1"
+  labels:
+    - key: "principal"
+      description: "principal"
+      valueType: STRING
+    - key: "method_name"
+      description: "method_name"
+      valueType: STRING
+    - key: "organization_id"
+      description: "organization_id"
+      valueType: STRING
+    - key: "project_id"
+      description: "project_id"
+      valueType: STRING
+    - key: "role_name"
+      description: "role_name"
+      valueType: STRING
+labelExtractors:
+  principal: "EXTRACT(protoPayload.authenticationInfo.principalEmail)"
+  method_name: "EXTRACT(protoPayload.methodName)"
+  organization_id: "EXTRACT(labels.organization_id)"
+  project_id: "EXTRACT(labels.project_id)"
+  role_name: "EXTRACT(labels.role_name)"
+#@ end

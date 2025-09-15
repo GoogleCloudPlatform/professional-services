@@ -7,16 +7,21 @@ documentation:
     ```
   mimeType: text/markdown
 conditions:
-- displayName: 'Log match condition: dns malformed queries'
-  conditionMatchedLog:
-    filter: resource.type="dns_query" AND jsonPayload.responseCode="FORMERR"
-    labelExtractors:
-      principal: EXTRACT(protoPayload.authenticationInfo.principalEmail)
-      project_id: EXTRACT(labels.project_id)
+- displayName: 'Log match condition: DNS Malformed Queries'
+  conditionThreshold:
+    filter: resource.type = "logging_bucket" AND metric.type = "logging.googleapis.com/user/dnsMalformedQuery"
+    aggregations:
+    - perSeriesAligner: ALIGN_SUM
+      alignmentPeriod: 60s
+      crossSeriesReducer: REDUCE_SUM
+      groupByFields:
+      - metric.label.principal
+      - metric.label.project_id
+    comparison: COMPARISON_GT
+    thresholdValue: 0
+    duration: 0s
+    trigger:
+      count: 1
 combiner: OR
 notificationChannels:
 - projects/my-project/notificationChannels/11111111111111
-alertStrategy:
-  notificationRateLimit:
-    period: 300s
-  autoClose: 604800s

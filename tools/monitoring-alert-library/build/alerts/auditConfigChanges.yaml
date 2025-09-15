@@ -16,23 +16,27 @@ documentation:
     ```
   mimeType: text/markdown
 conditions:
-  - displayName: 'Log match condition: audit configuration changes'
-    conditionMatchedLog:
-      filter: >-
-        protoPayload.methodName="SetIamPolicy" AND
-        protoPayload.serviceData.policyDelta.auditConfigDeltas:*
-      labelExtractors:
-        principal: "EXTRACT(protoPayload.authenticationInfo.principalEmail)"
-        method_name: "EXTRACT(protoPayload.methodName)"
-        organization_id: "EXTRACT(labels.organization_id)"
-        folder_id: "EXTRACT(labels.folder_id)"
-        project_id: "EXTRACT(labels.project_id)"
+- displayName: 'Log match condition: Audit Configuration Changes'
+  conditionThreshold:
+    filter: >-
+      resource.type = "logging_bucket" AND metric.type = "logging.googleapis.com/user/auditConfigChanges"
+    aggregations:
+    - perSeriesAligner: ALIGN_SUM
+      alignmentPeriod: 60s
+      crossSeriesReducer: REDUCE_SUM
+      groupByFields:
+      - metric.label.principal
+      - metric.label.method_name
+      - metric.label.organization_id
+      - metric.label.folder_id
+      - metric.label.project_id
+    comparison: COMPARISON_GT
+    thresholdValue: 0
+    duration: 0s
+    trigger:
+      count: 1
 combiner: OR
 #@ if alert.has_notification_channels():
 _: #@ template.replace(generate_notification_channels())
 #@ end
-alertStrategy:
-  notificationRateLimit:
-    period: 300s
-  autoClose: 604800s
 #@ end
