@@ -1,0 +1,17 @@
+azure-core==1.35.0
+azure-identity==1.24.0
+azure-mgmt-containerservice==39.1.0
+azure-mgmt-core==1.6.0
+azure-mgmt-resource==23.3.0
+boto3==1.40.8
+eks_token==0.3.0
+google-api-core==2.25.1
+google-auth==2.40.3
+google-cloud-container==2.59.0
+google-cloud-resource-manager==1.14.2
+kubernetes==33.1.0
+microsoft-security-utilities-secret-masker==1.0.0b4
+pandas==2.3.1
+pyinstaller==6.15.0
+pyinstaller-hooks-contrib==2025.8
+typer==0.16.0
