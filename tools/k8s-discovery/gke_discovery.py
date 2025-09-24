@@ -6,7 +6,10 @@ from google.cloud import container_v1, resourcemanager_v3
 
 from k8s_resources import get_k8s_details_for_gke_cluster
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
+
 
 def get_available_projects(credentials, organization_id):
     """
@@ -23,12 +26,17 @@ def get_available_projects(credentials, organization_id):
         projects = client.search_projects(query=query, timeout=120.0)
 
         project_ids = []
-        logging.info("Iterating through projects to build a list. This may take a while for accounts with many projects...")
+        logging.info(
+            "Iterating through projects to build a list. This may take a while for accounts with many projects..."
+        )
         for i, project in enumerate(projects):
             project_ids.append(project.project_id)
             if (i + 1) % 100 == 0:
                 logging.info("... discovered %d projects so far.", i + 1)
-        logging.info("Finished project discovery. Found a total of %d projects.", len(project_ids))
+        logging.info(
+            "Finished project discovery. Found a total of %d projects.",
+            len(project_ids),
+        )
         return project_ids
     except (DefaultCredentialsError, google_exceptions.PermissionDenied) as e:
         logging.error(

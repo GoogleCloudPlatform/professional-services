@@ -6,7 +6,10 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from k8s_resources import get_k8s_details_for_eks
 from common import save_to_json
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
+
 
 def get_available_regions(session, service_name):
     return session.get_available_regions(service_name)

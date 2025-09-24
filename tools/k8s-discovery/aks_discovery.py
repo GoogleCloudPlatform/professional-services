@@ -9,7 +9,10 @@ from azure.mgmt.resource import SubscriptionClient
 from k8s_resources import get_k8s_details_for_aks
 from common import save_to_json
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
+
 
 def get_available_subscriptions(credential):
     """Lists all subscriptions the user has access to."""
@@ -18,8 +21,12 @@ def get_available_subscriptions(credential):
         subscriptions = subscription_client.subscriptions.list()
         return [sub.subscription_id for sub in subscriptions]
     except (ClientAuthenticationError, HttpResponseError) as e:
-        logging.error("Azure authentication failed. Please run 'az login' or configure credentials. Error: %s", e)
+        logging.error(
+            "Azure authentication failed. Please run 'az login' or configure credentials. Error: %s",
+            e,
+        )
         return []
+
 
 def get_aks_data_for_subscription(credential, subscription_id):
     """Fetches all AKS cluster data for a given subscription."""
@@ -35,27 +42,32 @@ def get_aks_data_for_subscription(credential, subscription_id):
                 subscription_id,
             )
             try:
-                resource_group = parse_resource_id(cluster.id)['resource_group']
+                resource_group = parse_resource_id(cluster.id)["resource_group"]
             except KeyError:
-                logging.error("Could not parse resource group from cluster ID: %s", cluster.id)
+                logging.error(
+                    "Could not parse resource group from cluster ID: %s", cluster.id
+                )
                 continue
 
             cluster_details = cluster.as_dict()
 
             agent_pools = []
             try:
-                pool_iterator = aks_client.agent_pools.list(resource_group, cluster.name)
+                pool_iterator = aks_client.agent_pools.list(
+                    resource_group, cluster.name
+                )
                 for pool in pool_iterator:
                     logging.info("  - Found agent pool '%s'.", pool.name)
-                    agent_pools.append(pool.as_dict())               
+                    agent_pools.append(pool.as_dict())
             except HttpResponseError as e:
-                 logging.error(
+                logging.error(
                     "Could not describe agent pools for %s in %s: %s",
                     cluster.name,
                     resource_group,
-                    e)
+                    e,
+                )
 
-            cluster_details['agentPools'] = agent_pools
+            cluster_details["agentPools"] = agent_pools
 
             # Only attempt to get Kubernetes details if the cluster's provisioning state is 'Succeeded'.
             if cluster.provisioning_state == "Succeeded":
@@ -80,11 +92,20 @@ def get_aks_data_for_subscription(credential, subscription_id):
 
         return clusters_data
     except HttpResponseError as e:
-        logging.warning("Could not access AKS in subscription %s. Skipping. Error: %s", subscription_id, e)
+        logging.warning(
+            "Could not access AKS in subscription %s. Skipping. Error: %s",
+            subscription_id,
+            e,
+        )
         return []
     except Exception as e:
-        logging.error("An unexpected error occurred while scanning subscription %s: %s", subscription_id, e)
+        logging.error(
+            "An unexpected error occurred while scanning subscription %s: %s",
+            subscription_id,
+            e,
+        )
         return []
+
 
 def run_aks_discovery(credential, subscriptions_to_scan):
     """Runs AKS discovery across multiple subscriptions in parallel."""
@@ -104,20 +125,34 @@ def run_aks_discovery(credential, subscriptions_to_scan):
                 logging.error("Subscription %r generated an exception: %s", sub_id, exc)
     return all_aks_data
 
+
 def main():
     parser = argparse.ArgumentParser(description="Fetch AKS cluster data from Azure.")
-    parser.add_argument('--subscription-ids', nargs='*', help='Specific Azure subscription IDs to scan. If not provided, all accessible subscriptions will be scanned.')
-    parser.add_argument('--output-file', default='aks_data.json', help='The file to write the JSON output to.')
+    parser.add_argument(
+        "--subscription-ids",
+        nargs="*",
+        help="Specific Azure subscription IDs to scan. If not provided, all accessible subscriptions will be scanned.",
+    )
+    parser.add_argument(
+        "--output-file",
+        default="aks_data.json",
+        help="The file to write the JSON output to.",
+    )
     args = parser.parse_args()
 
     try:
         credential = DefaultAzureCredential()
         credential.get_token("https://management.azure.com/.default")
     except Exception as e:
-        logging.error("Failed to acquire a token. Please check your Azure authentication setup (e.g., 'az login'). Error: %s", e)
+        logging.error(
+            "Failed to acquire a token. Please check your Azure authentication setup (e.g., 'az login'). Error: %s",
+            e,
+        )
         return
 
-    subscriptions_to_scan = args.subscription_ids or get_available_subscriptions(credential)
+    subscriptions_to_scan = args.subscription_ids or get_available_subscriptions(
+        credential
+    )
     if not subscriptions_to_scan:
         logging.warning("No subscriptions found or specified to scan.")
         return
@@ -126,6 +161,7 @@ def main():
 
     all_aks_data = run_aks_discovery(credential, subscriptions_to_scan)
     save_to_json(all_aks_data, args.output_file)
+
 
 if __name__ == "__main__":
     main()
