@@ -36,20 +36,20 @@ before_tests:
   # IAM Bindings
   - command: gcloud projects add-iam-policy-binding {{ project }} --member=serviceAccount:{{ project_number }}-compute@developer.gserviceaccount.com  --role=roles/cloudbuild.builds.builder
 after_tests:
-  # General
-  - command: gcloud iam service-accounts delete {{ prefix }}-iam-sa@{{ project }}.iam.gserviceaccount.com
-  # Storage
-  - command: gcloud storage buckets delete gs://{{ prefix }}-cuop-bucket-cgk
-  # IAM CuOP
-  - command: gcloud iam service-accounts delete iam-sa-binding-allowed@{{ project }}.iam.gserviceaccount.com
-  - command: gcloud iam service-accounts delete iam-sa-binding-unallowed@{{ project }}.iam.gserviceaccount.com
-  # Network for VPC
-  - command: gcloud compute networks delete vpc-dev-cuop-library
-  - command: gcloud compute networks subnets delete subnet-vm --region=asia-southeast2
-  - command: gcloud compute networks subnets delete subnet-gke --region=asia-southeast2
-  # Network CuOP for Load Balancer
-  - command: gcloud compute addresses delete {{ prefix }}-cuop--ip --global
-  - command: gcloud compute backend-buckets delete {{ prefix }}-be-bucket 
-  - command: gcloud compute url-maps delete {{ prefix }}-http-lb 
-  # Firewall CuOP
-  - command: gcloud compute network-firewall-policies delete cuop-fw-policy --global
+ # General
+ - command: gcloud iam service-accounts delete {{ prefix }}-iam-sa@{{ project }}.iam.gserviceaccount.com
+ # Storage
+ - command: gcloud storage buckets delete gs://{{ prefix }}-cuop-bucket-cgk
+ # IAM CuOP
+ - command: gcloud iam service-accounts delete iam-sa-binding-allowed@{{ project }}.iam.gserviceaccount.com
+ - command: gcloud iam service-accounts delete iam-sa-binding-unallowed@{{ project }}.iam.gserviceaccount.com
+ # Network for VPC
+ - command: gcloud compute networks delete vpc-dev-cuop-library
+ - command: gcloud compute networks subnets delete subnet-vm --region=asia-southeast2
+ - command: gcloud compute networks subnets delete subnet-gke --region=asia-southeast2
+ # Network CuOP for Load Balancer
+ - command: gcloud compute addresses delete {{ prefix }}-cuop--ip --global
+ - command: gcloud compute backend-buckets delete {{ prefix }}-be-bucket 
+ - command: gcloud compute url-maps delete {{ prefix }}-http-lb 
+ # Firewall CuOP
+ - command: gcloud compute network-firewall-policies delete cuop-fw-policy --global

@@ -1,3 +1,0 @@
-custom.gkeAllowedInitialClusterVersions:
-  rules:
-  - enforce: true
