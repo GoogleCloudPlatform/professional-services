@@ -1,0 +1,10 @@
+name: organizations/11111111/customConstraints/custom.firewallEnforceRuleLogging
+resource_types:
+- compute.googleapis.com/Firewall
+condition: has(resource.logConfig) == false || resource.logConfig.enable == false
+action_type: DENY
+method_types:
+- CREATE
+- UPDATE
+display_name: Require VPC Firewall rules to have logging enabled
+description: Ensure that VPC Firewall rules have logging enabled

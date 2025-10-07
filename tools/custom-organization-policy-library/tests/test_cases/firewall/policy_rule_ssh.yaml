@@ -5,6 +5,7 @@ shared_config:
       action: ALLOW
       direction: INGRESS
       layer4-configs: tcp:22
+      enable-logging: true
   default_markers:
     - firewall
     - firewall-policy
