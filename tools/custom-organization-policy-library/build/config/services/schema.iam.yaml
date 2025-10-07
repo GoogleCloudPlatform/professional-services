@@ -33,6 +33,10 @@ iam:
     bundles:
       pci-dss: false
       cis: true  
+    params:
+      #@schema/validation min_len=1
+      exceptions:
+      - ""
   iamDisableBasicRoles:
     #@schema/validation one_of=["default", "skip", "include", "skip-policy"]
     generation: "default"
@@ -51,6 +55,10 @@ iam:
     bundles:
       pci-dss: true
       cis: true
+    params:
+      #@schema/validation min_len=1
+      exceptions:
+      - ""
   iamDisablePublicBindings:
     #@schema/validation one_of=["default", "skip", "include", "skip-policy"]
     generation: "default"

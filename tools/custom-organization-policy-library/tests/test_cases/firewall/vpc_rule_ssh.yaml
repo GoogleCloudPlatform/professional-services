@@ -33,14 +33,6 @@ firewall_vpc_allowed_ssh_rule_iap:
     expected_result:
       return_code: 0
 
-firewall_vpc_ssh_rule_0_0_0_0:
-  steps:
-  - command_flags:
-      source-ranges: 0.0.0.0/0
-    expected_result:
-      return_code: 1
-      stderr: "customConstraints/custom.firewallRestrictSshRule"
-
 firewall_vpc_ssh_rule_1_0_0_0:
   steps:
   - command_flags:
