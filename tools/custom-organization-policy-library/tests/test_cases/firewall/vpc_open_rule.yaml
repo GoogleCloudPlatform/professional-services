@@ -8,6 +8,7 @@ shared_config:
       priority: 1000  
       rules: tcp:3838
       description: Testing firewall rule
+      enable-logging: true
   default_markers:
     - firewall
     - firewall-vpc-rule

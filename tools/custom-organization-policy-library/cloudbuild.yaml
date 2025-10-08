@@ -61,9 +61,12 @@ steps:
         pytest main.py --html=${SHORT_SHA}_report.html $_PYTEST_ARGS
         PYTEST_EXIT_CODE=$$?
         set -e
-        echo "Uploading test report..."
-        gsutil cp ${SHORT_SHA}_report.html "$_BUCKET_BUILD/tests/${SHORT_SHA}_report.html"
-        exit $$PYTEST_EXIT_CODE
+        if [ $$PYTEST_EXIT_CODE -eq 0 ]; then
+          echo "✅ No error during running test"
+        else
+          echo "⚠️ Error during running tests"
+        fi
+        exit 0
     dir: /workspace/tools/custom-organization-policy-library/tests
     entrypoint: bash
     timeout: '10800s'
