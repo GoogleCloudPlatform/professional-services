@@ -505,6 +505,7 @@ Platform usage.
     A shell script for gDNS-zDNS project bulk migration.
 *   [GKE Billing Export](tools/gke-billing-export) - Google Kubernetes Engine
     fine grained billing export.
+*   [GKE GPU Driver Version](tools/gke-gpu-driver-version) - A tool to find the supported GPU driver version for a given GKE cluster version and GPU type.
 *   [gmon](tools/gmon/) - A command-line interface (CLI) for Cloud Monitoring
     written in Python.
 *   [Google Cloud Support Slackbot](tools/google-cloud-support-slackbot) - Slack
