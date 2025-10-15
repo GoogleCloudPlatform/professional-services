@@ -243,7 +243,7 @@ setup_repo() {
 	# --- Automatic Project Path Detection ---
     info "Automatically detecting project structure..."
     local RELATIVE_PROJECT_PATH=""
-    local FALLBACK_PATH="tools/gcc-creative-studio"
+    local FALLBACK_PATH="examples/creative-studio"
 
     # Check if the project is at the top level
     if [[ -d "$REPO_CLONE_DIR/infra" && -f "$REPO_CLONE_DIR/bootstrap.sh" ]]; then
