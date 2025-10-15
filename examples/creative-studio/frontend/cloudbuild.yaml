@@ -18,7 +18,7 @@ steps:
     id: 'Install Dependencies'
     entrypoint: 'npm'
     args: ['ci']
-    dir: frontend
+    dir: examples/creative-studio/frontend
 
   # 2. Build Angular application based on environment
   - name: 'node:20-alpine'
@@ -30,7 +30,7 @@ steps:
     env:
       - 'NODE_OPTIONS=--max_old_space_size=4096'
     waitFor: ['Install Dependencies']
-    dir: frontend
+    dir: examples/creative-studio/frontend
 
   # 3. Trigger deployment in the target project
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'

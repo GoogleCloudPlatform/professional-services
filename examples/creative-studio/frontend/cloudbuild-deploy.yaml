@@ -18,7 +18,7 @@ steps:
     id: 'Install Dependencies'
     entrypoint: 'npm'
     args: ['ci']
-    dir: frontend
+    dir: examples/creative-studio/frontend
 
   # 2. Inject Secrets and Config from the build environment
   - name: 'gcr.io/cloud-builders/gcloud'
@@ -65,7 +65,7 @@ steps:
     env:
       - 'NODE_OPTIONS=--max_old_space_size=4096'
     waitFor: ['Inject Environment Variables']
-    dir: frontend
+    dir: examples/creative-studio/frontend
 
   # 4. Deploy to Firebase Hosting
   - name: 'node:20-alpine' # Use the same version
@@ -78,7 +78,7 @@ steps:
       - '--only=hosting:${PROJECT_ID}'
       - '--non-interactive'
     waitFor: ['Build Angular App']
-    dir: frontend
+    dir: examples/creative-studio/frontend
 
 # This section makes the secrets available as environment variables during the build
 availableSecrets:
