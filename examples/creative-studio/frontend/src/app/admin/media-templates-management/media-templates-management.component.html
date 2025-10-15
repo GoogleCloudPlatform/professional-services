@@ -1,0 +1,170 @@
+<!--
+ Copyright 2025 Google LLC
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+<div class="p-4">
+  <div class="flex justify-between items-center mb-4">
+    <h1 class="text-3xl font-semibold">Manage Media Templates</h1>
+    <button mat-raised-button color="primary" (click)="createTemplate()">
+      <mat-icon>add</mat-icon>
+      <span>Create Template</span>
+    </button>
+  </div>
+
+  <!-- Filter Input -->
+  <mat-form-field appearance="outline" class="w-full mb-4">
+    <mat-label>Filter Templates</mat-label>
+    <input
+      matInput
+      (keyup)="applyFilter($event)"
+      placeholder="Ex. Rolex"
+      #input
+    />
+    <mat-icon matSuffix>search</mat-icon>
+  </mat-form-field>
+
+  <!-- Loading Indicator -->
+  <div *ngIf="isLoading" class="flex justify-center items-center py-10">
+    <mat-spinner diameter="50"></mat-spinner>
+  </div>
+
+  <!-- Error Message -->
+  <div
+    *ngIf="errorLoading && !isLoading"
+    class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4"
+    role="alert"
+  >
+    <strong class="font-bold">Error! </strong>
+    <span class="block sm:inline">{{ errorLoading }}</span>
+  </div>
+
+  <!-- Table -->
+  <div
+    *ngIf="!isLoading && !errorLoading"
+    class="mat-elevation-z8 rounded-lg overflow-auto"
+  >
+    <table mat-table [dataSource]="dataSource" matSort class="w-full">
+      <!-- Thumbnail Column -->
+      <ng-container matColumnDef="thumbnail">
+        <th mat-header-cell *matHeaderCellDef class="!pl-4">Thumbnail</th>
+        <td mat-cell *matCellDef="let template" class="!pl-4">
+          <img
+            [src]="
+              template?.presignedThumbnailUrls?.[0] ||
+              'assets/images/default-avatar.png'
+            "
+            alt="Media Template Thumbnail"
+            class="w-10 h-10 rounded-full object-cover"
+          />
+        </td>
+      </ng-container>
+
+      <!-- Name Column -->
+      <ng-container matColumnDef="name">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Name</th>
+        <td mat-cell *matCellDef="let template">{{ template.name }}</td>
+      </ng-container>
+
+      <!-- Description Column -->
+      <ng-container matColumnDef="description">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Description</th>
+        <td
+          mat-cell
+          *matCellDef="let template"
+          class="truncate"
+          [matTooltip]="template.description"
+        >
+          {{ template.description }}
+        </td>
+      </ng-container>
+
+      <!-- MimeType Column -->
+      <ng-container matColumnDef="mimeType">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Media Type</th>
+        <td mat-cell *matCellDef="let template">
+          <mat-chip
+            [ngClass]="{
+              '!bg-blue-500/20 !text-blue-300':
+                template.mimeType === 'video/mp4',
+              '!bg-purple-500/20 !text-purple-300':
+                template.mimeType === 'image/png',
+            }"
+          >
+            {{ template.mimeType }}
+          </mat-chip>
+        </td>
+      </ng-container>
+
+      <!-- Industry Column -->
+      <ng-container matColumnDef="industry">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Industry</th>
+        <td mat-cell *matCellDef="let template">{{ template.industry }}</td>
+      </ng-container>
+
+      <!-- Brand Column -->
+      <ng-container matColumnDef="brand">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Brand</th>
+        <td mat-cell *matCellDef="let template">
+          {{ template.brand || 'N/A' }}
+        </td>
+      </ng-container>
+
+      <!-- Actions Column -->
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef>Actions</th>
+        <td mat-cell *matCellDef="let template" class="action-buttons">
+          <button
+            mat-icon-button
+            color="primary"
+            (click)="editTemplate(template)"
+            matTooltip="Edit Template"
+          >
+            <mat-icon>edit</mat-icon>
+          </button>
+          <button
+            mat-icon-button
+            color="warn"
+            (click)="deleteTemplate(template)"
+            matTooltip="Delete Template"
+          >
+            <mat-icon>delete</mat-icon>
+          </button>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr
+        mat-row
+        *matRowDef="let row; columns: displayedColumns"
+        class="hover:bg-blue-100 dark:hover:bg-gray-700 cursor-pointer"
+      ></tr>
+
+      <!-- Row shown when there is no matching data. -->
+      <tr class="mat-row" *matNoDataRow>
+        <td
+          class="mat-cell text-center py-4"
+          [attr.colspan]="displayedColumns.length"
+        >
+          No data matching the filter "{{ input.value }}" or no template found
+        </td>
+      </tr>
+    </table>
+
+    <mat-paginator
+      [pageSizeOptions]="[10, 25, 100]"
+      aria-label="Select page of templates"
+    ></mat-paginator>
+  </div>
+</div>

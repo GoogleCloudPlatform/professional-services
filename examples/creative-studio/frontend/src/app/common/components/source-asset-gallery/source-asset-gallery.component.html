@@ -1,0 +1,94 @@
+<!--
+ Copyright 2025 Google LLC
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+<div *ngIf="isLoading" class="loading-container">
+  <mat-progress-spinner
+    color="primary"
+    mode="indeterminate"
+  ></mat-progress-spinner>
+  <p class="!mt-5">Loading your assets...</p>
+</div>
+
+<div *ngIf="!isLoading && assets.length === 0" class="no-assets-container">
+  <p *ngIf="!filterByType">You have not uploaded any assets yet.</p>
+  <p *ngIf="filterByType">
+    You have not uploaded any {{ filterByType.split('/')[0] }} assets yet.
+  </p>
+</div>
+
+<div class="flex flex-row gap-4" *ngIf="columns.length > 0 && !isLoading">
+  <div *ngFor="let column of columns" class="flex flex-1 flex-col gap-4">
+    <div
+      *ngFor="let asset of column; trackBy: trackByAsset"
+      class="asset-item relative group block rounded-lg overflow-hidden cursor-pointer"
+      (click)="selectAsset(asset)"
+      [class.deleting]="deletingAssetId === asset.id"
+    >
+      <div
+        [style.aspect-ratio]="(asset.aspectRatio || '1:1').replace(':', ' / ')"
+      ></div>
+
+      <img
+        class="absolute top-0 left-0 w-full h-full object-cover transition-transform duration-300 ease-in-out group-hover:scale-105"
+        [src]="asset.presignedThumbnailUrl || asset.presignedUrl"
+        [alt]="asset.originalFilename"
+      />
+
+      <div *ngIf="deletingAssetId === asset.id" class="delete-loading-overlay">
+        <mat-progress-spinner
+          mode="indeterminate"
+          [diameter]="40"
+        ></mat-progress-spinner>
+      </div>
+
+      <button
+        mat-icon-button
+        class="delete-button opacity-0 group-hover:opacity-100 transition-opacity"
+        (click)="confirmDelete(asset, $event)"
+        matTooltip="Delete Asset"
+      >
+        <mat-icon>close</mat-icon>
+      </button>
+
+      <div
+        *ngIf="asset.mimeType?.startsWith('video/')"
+        class="play-indicator-overlay opacity-50 group-hover:opacity-0 transition-opacity"
+      >
+        <svg
+          class="play-indicator-icon"
+          fill="currentColor"
+          viewBox="0 0 20 20"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            fill-rule="evenodd"
+            d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z"
+            clip-rule="evenodd"
+          ></path>
+        </svg>
+      </div>
+
+      <mat-icon
+        *ngIf="asset.mimeType?.startsWith('video/')"
+        class="video-indicator"
+        >videocam</mat-icon
+      >
+    </div>
+  </div>
+</div>
+
+<!-- Sentinel element for infinite scroll -->
+<div #sentinel></div>

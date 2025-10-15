@@ -1,0 +1,146 @@
+/**
+ * Copyright 2025 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by a`p`plicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+// --- Start: Mobile Fix ---
+:host {
+  // This positions the workspace switcher at the top on mobile
+  app-workspace-switcher {
+    position: fixed;
+    bottom: 10vh;
+    left: 20vw;
+    transform: translateX(-10%);
+    z-index: 100;
+    width: 80vw;
+  }
+}
+// --- End: Mobile Fix ---
+
+.mat-menu-floating {
+  // Mobile styles
+  bottom: 2.5vh;
+  left: 2.5vw;
+  width: 95vw;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: row;
+  padding: 16px;
+  gap: 0.5rem;
+  transition: height 0.3s ease-in-out;
+  overflow: hidden; // --- Start: Mobile Fix --- This clips the scrolling content
+
+  .menu-items {
+    display: flex;
+    flex-direction: row;
+    gap: 0.5rem;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+
+    > div {
+      flex-shrink: 0;
+    }
+
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+    &::-webkit-scrollbar {
+      display: none;
+    }
+  }
+}
+
+// Small devices (landscape phones, 576px and up)
+@media (min-width: 576px) {
+}
+
+// Medium devices (tablets, 768px and up)
+@media (min-width: 768px) {
+  // --- Start: Mobile Fix ---
+  :host {
+    // This resets the switcher's position on larger screens
+    app-workspace-switcher {
+      position: static;
+      transform: none;
+    }
+  }
+  // --- End: Mobile Fix ---
+
+  .mat-menu-floating {
+    bottom: auto;
+    top: 10vh;
+    left: 5vw;
+    width: 4.5rem;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    flex-direction: column;
+    padding: 7px 0 8px 0;
+    max-height: 4.5rem;
+    transition: max-height 0.4s ease-in-out;
+
+    .user-profile-button {
+      flex-shrink: 0;
+    }
+
+    .menu-items {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    &:hover,
+    &.fixed-menu {
+      max-height: 50rem;
+    }
+  }
+}
+
+// Large devices (desktops, 992px and up)
+@media (min-width: 992px) {
+}
+
+// X-Large devices (large desktops, 1200px and up)
+@media (min-width: 1200px) {
+}
+
+// XX-Large devices (larger desktops, 1400px and up)
+@media (min-width: 1400px) {
+  .mat-menu-floating {
+    top: 11vh;
+    left: 3vw;
+    width: 4.5rem;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    flex-direction: column;
+    max-height: 4.5rem;
+    transition: max-height 0.4s ease-in-out;
+
+    .user-profile-button {
+      flex-shrink: 0;
+    }
+
+    .menu-items {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    &:hover,
+    &.fixed-menu {
+      max-height: 50rem;
+    }
+  }
+}
