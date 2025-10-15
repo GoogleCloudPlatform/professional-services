@@ -44,7 +44,7 @@ Creative Studio goes beyond simple demos, implementing advanced, real-world feat
 ## Deploy in 20min!!
 Just run this script which has a step by step approach for you to deploy the infrastructure and start the app, just follow the instructions
 ```
-curl https://raw.githubusercontent.com/GoogleCloudPlatform/professional-services/refs/heads/main/examples/gcc-creative-studio/bootstrap.sh | bash
+curl https://raw.githubusercontent.com/GoogleCloudPlatform/professional-services/refs/heads/main/examples/creative-studio/bootstrap.sh | bash
 ```
 
 For better guidance, we recorded a video to showcase how to deploy Creative Studio in a completely new and fresh GCP Account:
