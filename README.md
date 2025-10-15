@@ -172,6 +172,8 @@ them to fit your particular use case.
     Sentiment analysis for movie reviews using TensorFlow `RNNEstimator`.
 *   [CloudML TensorFlow Profiling](examples/tensorflow-profiling-examples) -
     TensorFlow profiling examples for training models with CloudML
+*   [🚀 Creative Studio](examples/creative-studio) - Creative Studio is a comprehensive, all-in-one Generative AI platform designed as a deployable solution for your own Google Cloud project. It serves as a powerful reference implementation and creative suite, showcasing the full spectrum of Google's state-of-the-art generative AI models on Vertex AI.
+Built for creators, marketers, and developers, this application provides a hands-on, interactive experience with cutting-edge multimodal capabilities.
 *   [Data Generator](examples/dataflow-data-generator) - Generate random data
     with a custom schema at scale for integration tests or demos.
 *   [Dataflow BigQuery Transpose Example](examples/dataflow-bigquery-transpose) -
@@ -246,8 +248,6 @@ them to fit your particular use case.
     Creation and update of entities for Dialogflow in Python.
 *   [DLP API Examples](examples/dlp) - Examples of the DLP API usage.
 *   [Ephemeral Projects](examples/ephemeral-projects) - Creating short lived gcp projects for sandbox purposes.
-*   [🚀 GCC Creative Studio](examples/gcc-creative-studio) - Creative Studio is a comprehensive, all-in-one Generative AI platform designed as a deployable solution for your own Google Cloud project. It serves as a powerful reference implementation and creative suite, showcasing the full spectrum of Google's state-of-the-art generative AI models on Vertex AI.
-Built for creators, marketers, and developers, this application provides a hands-on, interactive experience with cutting-edge multimodal capabilities.
 *   [GCE Access to Google AdminSDK](examples/gce-to-adminsdk) - Example to help
     manage access to Google's AdminSDK using GCE's service account identity
 *   [GCS Client Side Encryption via Sidecar](examples/gcs-client-encrypt/) - Example to show how to implement GCS client side encyrption via a sidecar
