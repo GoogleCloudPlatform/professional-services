@@ -1,0 +1,146 @@
+<!--
+ Copyright 2025 Google LLC
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+<h2 mat-dialog-title>Crop Your Image</h2>
+<mat-dialog-content>
+  <div *ngIf="isConverting" class="loading-overlay">
+    <mat-progress-spinner
+      mode="indeterminate"
+      [diameter]="50"
+    ></mat-progress-spinner>
+    <p>Converting image...</p>
+  </div>
+
+  <div *ngIf="!isConverting">
+    <div class="controls-toolbar">
+      <mat-form-field
+        appearance="outline"
+        class="aspect-ratio-dropdown mt-3"
+        *ngIf="aspectRatios.length > 1"
+      >
+        <mat-label>Aspect Ratio</mat-label>
+        <mat-select
+          [value]="currentAspectRatio"
+          (selectionChange)="onAspectRatioChange($event.value)"
+        >
+          <mat-option *ngFor="let ratio of aspectRatios" [value]="ratio.value">
+            {{ ratio.label }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <div class="control-group">
+        <button mat-icon-button (click)="zoomOut()" matTooltip="Zoom Out">
+          <mat-icon>zoom_out</mat-icon>
+        </button>
+        <button mat-icon-button (click)="zoomIn()" matTooltip="Zoom In">
+          <mat-icon>zoom_in</mat-icon>
+        </button>
+      </div>
+
+      <div class="control-group">
+        <button mat-icon-button (click)="rotateLeft()" matTooltip="Rotate Left">
+          <mat-icon>rotate_left</mat-icon>
+        </button>
+        <button
+          mat-icon-button
+          (click)="rotateRight()"
+          matTooltip="Rotate Right"
+        >
+          <mat-icon>rotate_right</mat-icon>
+        </button>
+      </div>
+
+      <div class="control-group">
+        <button
+          mat-icon-button
+          (click)="flipHorizontal()"
+          matTooltip="Flip Horizontal"
+        >
+          <mat-icon>flip</mat-icon>
+        </button>
+        <button
+          mat-icon-button
+          (click)="flipVertical()"
+          matTooltip="Flip Vertical"
+          class="flip-vertical"
+        >
+          <mat-icon>flip</mat-icon>
+        </button>
+      </div>
+
+      <div class="control-group">
+        <button mat-icon-button (click)="moveLeft()" matTooltip="Move Left">
+          <mat-icon>keyboard_arrow_left</mat-icon>
+        </button>
+        <button mat-icon-button (click)="moveRight()" matTooltip="Move Right">
+          <mat-icon>keyboard_arrow_right</mat-icon>
+        </button>
+        <button mat-icon-button (click)="moveUp()" matTooltip="Move Up">
+          <mat-icon>keyboard_arrow_up</mat-icon>
+        </button>
+        <button mat-icon-button (click)="moveDown()" matTooltip="Move Down">
+          <mat-icon>keyboard_arrow_down</mat-icon>
+        </button>
+      </div>
+    </div>
+
+    <div class="cropper-container">
+      <image-cropper
+        [imageFile]="imageFile || undefined"
+        [options]="options"
+        [canvasRotation]="canvasRotation"
+        [(transform)]="transform"
+        [containWithinAspectRatio]="containWithinAspectRatio"
+        format="png"
+        (imageCropped)="imageCropped($event)"
+      ></image-cropper>
+    </div>
+  </div>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <div class="footer-controls">
+    <label class="text-white">Fill Aspect Ratio</label>
+    <mat-slide-toggle [(ngModel)]="containWithinAspectRatio"></mat-slide-toggle>
+
+    <div class="color-picker">
+      <label class="text-white">Background</label>
+      <input
+        type="color"
+        [ngModel]="backgroundColor"
+        (ngModelChange)="onBackgroundColorChange($event)"
+      />
+    </div>
+  </div>
+  <span class="flex-spacer"></span>
+  <button mat-stroked-button mat-dialog-close [disabled]="isUploading">
+    Cancel
+  </button>
+  <button
+    mat-flat-button
+    color="primary"
+    (click)="uploadCroppedImage()"
+    [disabled]="!croppedImageBlob || isUploading"
+    class="crop-upload-btn"
+  >
+    <mat-progress-spinner
+      *ngIf="isUploading"
+      mode="indeterminate"
+      [diameter]="20"
+    ></mat-progress-spinner>
+    <span *ngIf="!isUploading">Crop & Upload</span>
+  </button>
+</mat-dialog-actions>

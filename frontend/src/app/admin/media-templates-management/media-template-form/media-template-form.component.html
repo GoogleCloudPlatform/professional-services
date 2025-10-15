@@ -1,0 +1,237 @@
+<!--
+ Copyright 2025 Google LLC
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+<h1 mat-dialog-title class="text-2xl font-semibold">
+  {{ data.template.id ? 'Edit' : 'Create' }} Media Template
+</h1>
+<div mat-dialog-content>
+  <form
+    [formGroup]="form"
+    class="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-1 pt-3"
+  >
+    <!-- Basic Info -->
+    <mat-form-field appearance="outline" class="md:col-span-2">
+      <mat-label>Name</mat-label>
+      <input matInput formControlName="name" required />
+      <mat-error *ngIf="form.get('name')?.hasError('required')"
+        >Name is required</mat-error
+      >
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="md:col-span-2">
+      <mat-label>Description</mat-label>
+      <textarea
+        matInput
+        formControlName="description"
+        required
+        cdkTextareaAutosize
+        cdkAutosizeMinRows="2"
+      ></textarea>
+      <mat-error *ngIf="form.get('description')?.hasError('required')"
+        >Description is required</mat-error
+      >
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Mime Type</mat-label>
+      <mat-select formControlName="mimeType" required>
+        <mat-option *ngFor="let type of mimeTypes" [value]="type">{{
+          type
+        }}</mat-option>
+      </mat-select>
+      <mat-error *ngIf="form.get('mimeType')?.hasError('required')"
+        >Mime Type is required</mat-error
+      >
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Industry</mat-label>
+      <mat-select formControlName="industry">
+        <mat-option *ngFor="let industry of industries" [value]="industry">{{
+          industry
+        }}</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Brand</mat-label>
+      <input matInput formControlName="brand" />
+    </mat-form-field>
+
+    <mat-form-field class="md:col-span-2">
+      <mat-label>Tags</mat-label>
+      <mat-chip-grid #chipGrid>
+        <mat-chip-row
+          *ngFor="let tag of tags.controls; let i = index"
+          (removed)="removeTag(i)"
+        >
+          {{ tag.value }}
+          <button matChipRemove>
+            <mat-icon>cancel</mat-icon>
+          </button>
+        </mat-chip-row>
+      </mat-chip-grid>
+      <input
+        placeholder="New tag..."
+        [matChipInputFor]="chipGrid"
+        (matChipInputTokenEnd)="addTag($event)"
+      />
+    </mat-form-field>
+
+    <!-- URIs -->
+    <div formArrayName="gcsUris" class="md:col-span-2 space-y-2">
+      <h3 class="text-lg font-medium">GCS URIs</h3>
+      <div
+        *ngFor="let uriControl of gcsUris.controls; let i = index"
+        class="flex items-center gap-2"
+      >
+        <mat-form-field appearance="outline" class="flex-grow">
+          <mat-label>GCS URI {{ i + 1 }}</mat-label>
+          <input matInput [formControlName]="i" />
+        </mat-form-field>
+        <button
+          mat-icon-button
+          color="warn"
+          (click)="removeGcsUri(i)"
+          matTooltip="Remove URI"
+        >
+          <mat-icon>delete</mat-icon>
+        </button>
+      </div>
+      <button mat-stroked-button type="button" (click)="addGcsUri()">
+        Add GCS URI
+      </button>
+    </div>
+
+    <div formArrayName="thumbnailUris" class="md:col-span-2 space-y-2 mt-4">
+      <h3 class="text-lg font-medium">Thumbnail URIs</h3>
+      <div
+        *ngFor="let uriControl of thumbnailUris.controls; let i = index"
+        class="flex items-center gap-2"
+      >
+        <mat-form-field appearance="outline" class="flex-grow">
+          <mat-label>Thumbnail URI {{ i + 1 }}</mat-label>
+          <input matInput [formControlName]="i" />
+        </mat-form-field>
+        <button
+          mat-icon-button
+          color="warn"
+          (click)="removeThumbnailUri(i)"
+          matTooltip="Remove URI"
+        >
+          <mat-icon>delete</mat-icon>
+        </button>
+      </div>
+      <button mat-stroked-button type="button" (click)="addThumbnailUri()">
+        Add Thumbnail URI
+      </button>
+    </div>
+
+    <!-- Generation Parameters -->
+    <div
+      formGroupName="generationParameters"
+      class="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-1 border-t pt-4 mt-4"
+    >
+      <h2 class="text-xl font-semibold md:col-span-2">Generation Parameters</h2>
+      <mat-form-field appearance="outline" class="md:col-span-2">
+        <mat-label>Prompt</mat-label>
+        <textarea
+          matInput
+          formControlName="prompt"
+          cdkTextareaAutosize
+          cdkAutosizeMinRows="3"
+        ></textarea>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Model</mat-label>
+        <mat-select formControlName="model">
+          <mat-option
+            *ngFor="let model of filteredGenerationModels"
+            [value]="model"
+            >{{ model }}</mat-option
+          >
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Aspect Ratio</mat-label>
+        <mat-select formControlName="aspectRatio">
+          <mat-option *ngFor="let ratio of aspectRatios" [value]="ratio">{{
+            ratio
+          }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Style</mat-label>
+        <mat-select formControlName="style">
+          <mat-option *ngFor="let style of styles" [value]="style">{{
+            style
+          }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Lighting</mat-label>
+        <mat-select formControlName="lighting">
+          <mat-option *ngFor="let light of lightings" [value]="light">{{
+            light
+          }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Color & Tone</mat-label>
+        <mat-select formControlName="colorAndTone">
+          <mat-option *ngFor="let color of colorsAndTones" [value]="color">{{
+            color
+          }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Composition</mat-label>
+        <mat-select formControlName="composition">
+          <mat-option *ngFor="let comp of compositions" [value]="comp">{{
+            comp
+          }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="md:col-span-2">
+        <mat-label>Negative Prompt</mat-label>
+        <textarea
+          matInput
+          formControlName="negativePrompt"
+          cdkTextareaAutosize
+          cdkAutosizeMinRows="2"
+        ></textarea>
+      </mat-form-field>
+    </div>
+  </form>
+</div>
+<div mat-dialog-actions align="end">
+  <button mat-button (click)="onCancel()">Cancel</button>
+  <button
+    mat-raised-button
+    color="primary"
+    (click)="onSave()"
+    [disabled]="!form.valid"
+  >
+    Save
+  </button>
+</div>

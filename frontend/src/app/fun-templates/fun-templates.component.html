@@ -1,0 +1,464 @@
+<!--
+ Copyright 2025 Google LLC
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+<div class="lg:container lg:mx-auto">
+  <div class="home-margin grid grid-cols-1">
+    <div class="video-container mb-8">
+      <!-- Text for Tablet and beyond -->
+      <div
+        class="hidden md:flex justify-center items-center w-full h-full absolute flex-col"
+      >
+        <h1
+          class="text-center justify-center text-white text-2xl font-bold !m-0 !z-[50]"
+        >
+          Creative Studio Fun Templates
+        </h1>
+        <p class="mt-4 text-lg leading-8 text-white !z-[50]">
+          A showcase of Templates for images, videos, audio and more ✨
+        </p>
+      </div>
+      <div
+        class="gradient-bg hidden md:block !relative !w-full !h-full !z-[10]"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <filter id="goo">
+              <feGaussianBlur
+                in="SourceGraphic"
+                stdDeviation="10"
+                result="blur"
+              />
+              <feColorMatrix
+                in="blur"
+                mode="matrix"
+                values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 18 -8"
+                result="goo"
+              />
+              <feBlend in="SourceGraphic" in2="goo" />
+            </filter>
+          </defs>
+        </svg>
+        <div class="gradients-container absolute top-0 left-0">
+          <div class="g1"></div>
+          <div class="g2"></div>
+          <div class="g3"></div>
+          <div class="g4"></div>
+          <div class="g5"></div>
+          <div #interactiveBubble class="interactive"></div>
+        </div>
+      </div>
+
+      <!-- Text for mobile -->
+      <div
+        class="flex flex-col justify-center items-center w-full h-full md:hidden"
+      >
+        <!-- As this svg uses a gradient, it needs to have a different fill id, therefore we have one for mobile and other for larger devices -->
+        <div class="flex">
+          <mat-icon
+            svgIcon="mobile-white-gemini-spark-icon"
+            class="!w-6 !h-6 mr-2 md:mr-[1rem]"
+          ></mat-icon>
+          <div
+            class="text-center justify-center text-white title-font font-bold"
+          >
+            Creative Studio Fun Templates
+          </div>
+        </div>
+        <p class="mt-4 text-white text-center md:text-lg md:leading-8">
+          A showcase of Templates for images, videos, audio and more ✨
+        </p>
+      </div>
+    </div>
+
+    <div
+      *ngIf="isLoading"
+      class="flex flex-col items-center justify-center mt-8 text-center"
+    >
+      <mat-progress-spinner
+        color="primary"
+        mode="indeterminate"
+      ></mat-progress-spinner>
+      <p class="pt-5 text-white">Loading Creative Templates...</p>
+    </div>
+
+    <div *ngIf="!isLoading">
+      <div class="flex flex-wrap items-center gap-2 mb-6">
+        <mat-form-field appearance="outline" class="filter-field">
+          <mat-label>Industry</mat-label>
+          <mat-select
+            [(ngModel)]="templateFilter.industry"
+            (selectionChange)="applyFilters()"
+          >
+            <mat-option *ngFor="let industry of industries" [value]="industry">
+              {{ industry }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="filter-field">
+          <mat-label>Media Type</mat-label>
+          <mat-select
+            [(ngModel)]="templateFilter.mediaType"
+            (selectionChange)="applyFilters()"
+          >
+            <mat-option *ngFor="let type of mediaTypes" [value]="type">
+              {{ type | titlecase }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="filter-field">
+          <mat-label>Search by Name</mat-label>
+          <input
+            matInput
+            [(ngModel)]="templateFilter.name"
+            (input)="applyFilters()"
+            placeholder="e.g., Rolex"
+          />
+        </mat-form-field>
+
+        <button
+          mat-stroked-button
+          (click)="clearFilters()"
+          class="clear-filters-btn"
+        >
+          Clear Filters
+        </button>
+      </div>
+
+      <div
+        *ngIf="filteredTemplates.length > 0; else noResults"
+        class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+      >
+        <div
+          *ngFor="let template of filteredTemplates; trackBy: trackById"
+          class="template-card group"
+          (mouseenter)="onMouseEnter(template)"
+          (mouseleave)="onMouseLeave(template)"
+        >
+          <div
+            class="relative overflow-hidden rounded-t-lg cursor-pointer"
+            (click)="
+              openGallery(template, currentImageIndices[template.id] || 0)
+            "
+          >
+            <div
+              class="absolute top-2 right-2 z-40 p-1.5 text-white bg-black/40 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-5 w-5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M4 8V4m0 0h4M4 4l5 5m11-1v4m0 0h-4m4 0l-5-5M4 16v4m0 0h4m-4 0l5-5m11 5v-4m0 0h-4m4 0l-5 5"
+                />
+              </svg>
+            </div>
+
+            <ng-container [ngSwitch]="template.mimeType">
+              <ng-container *ngSwitchCase="'image/png'">
+                <img
+                  *ngFor="let url of template.presignedUrls; let i = index"
+                  class="absolute top-0 left-0 object-cover w-full h-full transition-opacity duration-500"
+                  [src]="url"
+                  [alt]="template.name"
+                  [style.opacity]="
+                    (currentImageIndices[template.id] || 0) === i ? 1 : 0
+                  "
+                />
+                <!-- Spacer for aspect ratio -->
+                <div
+                  class="w-full"
+                  [style.aspect-ratio]="
+                    (
+                      template.generationParameters.aspectRatio || '1:1'
+                    ).replace(':', ' / ')
+                  "
+                ></div>
+              </ng-container>
+
+              <ng-container *ngSwitchCase="'video/mp4'">
+                <!-- Video on hover -->
+                <ng-container *ngIf="hoveredVideoId === template.id">
+                  <video
+                    *ngFor="let url of template.presignedUrls; let i = index"
+                    class="absolute top-0 left-0 object-cover w-full h-full transition-opacity duration-500"
+                    [style.opacity]="
+                      (currentImageIndices[template.id] || 0) === i ? 1 : 0
+                    "
+                    oncanplay="this.play()"
+                    onloadedmetadata="this.muted = true"
+                    muted
+                    playsinline
+                    loop
+                    autoplay
+                  >
+                    <source [src]="url" [type]="template.mimeType" />
+                  </video>
+                </ng-container>
+
+                <!-- Show thumbnail by default -->
+                <ng-container *ngIf="hoveredVideoId !== template.id">
+                  <ng-container
+                    *ngIf="
+                      template.presignedThumbnailUrls &&
+                        template.presignedThumbnailUrls.length > 0;
+                      else videoFallback
+                    "
+                  >
+                    <img
+                      *ngFor="
+                        let url of template.presignedThumbnailUrls;
+                        let i = index
+                      "
+                      class="absolute top-0 left-0 h-full w-full cursor-pointer object-cover transition-opacity duration-500"
+                      [src]="url"
+                      [alt]="template.name"
+                      [style.opacity]="
+                        (currentImageIndices[template.id] || 0) === i ? 1 : 0
+                      "
+                    />
+                    <!-- Play Button Overlay -->
+                    <div
+                      class="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/20 opacity-50 transition-opacity duration-300 group-hover:opacity-0"
+                    >
+                      <svg
+                        class="h-16 w-16 text-white"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          fill-rule="evenodd"
+                          d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z"
+                          clip-rule="evenodd"
+                        ></path>
+                      </svg>
+                    </div>
+                  </ng-container>
+                  <ng-template #videoFallback>
+                    <video
+                      *ngFor="let url of template.presignedUrls; let i = index"
+                      class="absolute top-0 left-0 object-cover w-full h-full transition-opacity duration-500"
+                      [style.opacity]="
+                        (currentImageIndices[template.id] || 0) === i ? 1 : 0
+                      "
+                      oncanplay="this.play()"
+                      onloadedmetadata="this.muted = true"
+                      muted
+                      playsinline
+                      loop
+                      autoplay
+                    >
+                      <source [src]="url" [type]="template.mimeType" />
+                    </video>
+                  </ng-template>
+                </ng-container>
+
+                <!-- Spacer for aspect ratio -->
+                <div
+                  class="w-full"
+                  [style.aspect-ratio]="
+                    (
+                      template.generationParameters.aspectRatio || '16:9'
+                    ).replace(':', ' / ')
+                  "
+                ></div>
+              </ng-container>
+            </ng-container>
+
+            <!-- Carousel Controls -->
+            <ng-container
+              *ngIf="
+                template.presignedUrls && template.presignedUrls.length > 1
+              "
+            >
+              <button
+                (click)="
+                  prevImage(template.id, template.presignedUrls.length, $event)
+                "
+                class="absolute top-1/2 left-2 z-30 p-1 text-white -translate-y-1/2 transition-opacity bg-black/50 rounded-full opacity-0 group-hover:opacity-100 focus:outline-none hover:bg-black/70"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="w-6 h-6"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M15 19l-7-7 7-7"
+                  />
+                </svg>
+              </button>
+              <button
+                (click)="
+                  nextImage(template.id, template.presignedUrls.length, $event)
+                "
+                class="absolute top-1/2 right-2 z-30 p-1 text-white -translate-y-1/2 transition-opacity bg-black/50 rounded-full opacity-0 group-hover:opacity-100 focus:outline-none hover:bg-black/70"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="w-6 h-6"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M9 5l7 7-7 7"
+                  />
+                </svg>
+              </button>
+              <div
+                class="absolute bottom-2 left-1/2 z-30 flex -translate-x-1/2 transition-opacity opacity-0 space-x-1.5 group-hover:opacity-100"
+              >
+                <ng-container *ngIf="template.mimeType === 'video/mp4'">
+                  <span
+                    *ngFor="let url of template.presignedUrls; let i = index"
+                    class="block w-2 h-2 rounded-full"
+                    [class.bg-white]="
+                      (currentImageIndices[template.id] || 0) === i
+                    "
+                    [class.bg-gray-400]="
+                      (currentImageIndices[template.id] || 0) !== i
+                    "
+                  ></span>
+                </ng-container>
+                <ng-container *ngIf="template.mimeType === 'image/png'">
+                  <span
+                    *ngFor="let url of template.presignedUrls; let i = index"
+                    class="block w-2 h-2 rounded-full"
+                    [class.bg-white]="
+                      (currentImageIndices[template.id] || 0) === i
+                    "
+                    [class.bg-gray-400]="
+                      (currentImageIndices[template.id] || 0) !== i
+                    "
+                  ></span>
+                </ng-container>
+              </div>
+            </ng-container>
+          </div>
+
+          <div class="p-4">
+            <div class="flex flex-wrap items-center justify-between">
+              <h3 class="text-lg font-bold text-white">{{ template.name }}</h3>
+              <div
+                class="mb-2 flex flex-wrap gap-2 w-full"
+                *ngIf="template.brand || template.industry"
+              >
+                <mat-chip
+                  *ngIf="template.brand"
+                  class="!bg-gray-700 !text-gray-300 !font-semibold"
+                  [matTooltip]="'Brand: ' + template.brand"
+                >
+                  {{ template.brand }}
+                </mat-chip>
+                <mat-chip
+                  *ngIf="template.industry"
+                  class="!font-semibold"
+                  [ngClass]="getIndustryColor(template.industry)"
+                  [matTooltip]="'Industry: ' + template.industry"
+                >
+                  {{ template.industry }}
+                </mat-chip>
+              </div>
+              <span
+                class="mb-2 px-2 py-1 text-xs font-semibold rounded-full"
+                [ngClass]="{
+                  'bg-blue-500/20 text-blue-300':
+                    template.mimeType === 'video/mp4',
+                  'bg-purple-500/20 text-purple-300':
+                    template.mimeType === 'image/png',
+                }"
+              >
+                {{ template.mimeType }}
+              </span>
+            </div>
+            <p class="mt-2 text-sm text-gray-400">
+              {{ template.description }}
+            </p>
+            <div class="mt-3">
+              <mat-chip-listbox aria-label="Template Tags">
+                <mat-chip
+                  *ngFor="let tag of template.tags.slice(0, 5)"
+                  matTooltip="Tag for the Template"
+                  >{{ tag }}</mat-chip
+                >
+              </mat-chip-listbox>
+            </div>
+          </div>
+
+          <button
+            (click)="useTemplate(template); $event.stopPropagation()"
+            class="p-2 px-4 text-sm font-bold text-white transition-opacity duration-300 opacity-0 rounded-full bg-black/50 group-hover:opacity-100 focus:outline-none"
+          >
+            Use Template
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <ng-template #noResults>
+      <div class="py-16 text-center text-gray-500">
+        <p>No templates found matching your criteria.</p>
+        <button mat-button (click)="clearFilters()" class="mt-4">
+          Reset Filters
+        </button>
+      </div>
+    </ng-template>
+  </div>
+</div>
+
+<!-- Lightbox Overlay -->
+<div
+  *ngIf="selectedTemplateForLightbox"
+  class="fixed inset-0 bg-black/80 z-[1000] flex items-center justify-center p-4"
+  (click)="closeLightbox()"
+>
+  <div
+    (click)="$event.stopPropagation()"
+    class="relative w-full h-full max-w-7xl max-h-[90vh] flex"
+  >
+    <app-media-lightbox
+      class="w-full h-full"
+      [mediaItem]="selectedTemplateForLightbox"
+      [initialIndex]="lightboxInitialIndex"
+      [showSeeMoreInfoButton]="false"
+      [showShareButton]="false"
+      [showDownloadButton]="true"
+    ></app-media-lightbox>
+  </div>
+  <button
+    (click)="closeLightbox()"
+    class="absolute top-4 right-4 z-[101] text-white bg-black/40 rounded-full p-2 hover:bg-black/60 transition-colors"
+    aria-label="Close lightbox"
+  >
+    <mat-icon>close</mat-icon>
+  </button>
+</div>
