@@ -1,0 +1,18 @@
+__pycache__
+venv
+local/
+.env
+.DS_Store
+
+.aider*
+.vscode
+
+# Terraform state and providers
+/.terraform/
+
+# Ignore all content inside environments directories...
+**/environments/*
+
+# ...but re-include the dev-infra-example directory and its content.
+!**/environments/dev-infra-example/
+

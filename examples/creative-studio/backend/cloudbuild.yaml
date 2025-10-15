@@ -1,0 +1,68 @@
+# Copyright 2025 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+steps:
+  # Step 1: Build the container image using the standard Docker builder.
+  # Using SHORT_SHA for the tag is a best practice for traceability.
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'Build'
+    env: ['DOCKER_BUILDKIT=1']
+    args:
+      [
+        'build',
+        '-t',
+        '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO_NAME}/${_SERVICE_NAME}:$SHORT_SHA',
+        '.',
+      ]
+    # This ensures the build context is the 'backend' folder
+    dir: 'examples/creative-studio/backend'
+
+  # Step 2: Push the container image to Google Artifact Registry.
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'Push'
+    args:
+      [
+        'push',
+        '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO_NAME}/${_SERVICE_NAME}:$SHORT_SHA',
+      ]
+
+  # Step 3: Deploy to Cloud Run using the gcloud CLI builder.
+  # This command updates the service with the new image, creating a new revision.
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'Deploy'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - '${_SERVICE_NAME}'
+      - '--image=${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO_NAME}/${_SERVICE_NAME}:$SHORT_SHA'
+      - '--region'
+      - '${_REGION}'
+      - '--quiet' # Suppress interactive prompts for CI/CD environments
+
+# BEST PRACTICE: Explicitly declare the image(s) built by this pipeline.
+# This integrates the build with Google Cloud's security features, like showing
+# vulnerability scan results in the Cloud Build UI.
+images:
+  - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO_NAME}/${_SERVICE_NAME}:$SHORT_SHA'
+
+# Substitutions will be passed in from the Cloud Build trigger.
+# You can override these for manual runs.
+substitutions:
+  _SERVICE_NAME: 'creative-studio-backend'
+  _REPO_NAME: 'cs-be-development-repo' # This matches local.artifact_repo_id
+  _REGION: 'us-central1' # TODO: Make Region generic from users input
+
+options:
+  logging: CLOUD_LOGGING_ONLY

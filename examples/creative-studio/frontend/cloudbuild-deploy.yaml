@@ -1,0 +1,105 @@
+# Copyright 2025 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+steps:
+  # 1. Install dependencies
+  - name: 'node:20-alpine' # Standardized version
+    id: 'Install Dependencies'
+    entrypoint: 'npm'
+    args: ['ci']
+    dir: examples/creative-studio/frontend
+
+  # 2. Inject Secrets and Config from the build environment
+  - name: 'gcr.io/cloud-builders/gcloud'
+    id: 'Inject Environment Variables'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        # Inject into Angular app (environment.prod.ts)
+        sed -i "s|BACKEND_URL_PLACEHOLDER|$${_BACKEND_URL}/api|g" src/environments/environment.prod.ts
+        sed -i "s|GOOGLE_CLIENT_ID_PLACEHOLDER|$${GOOGLE_CLIENT_ID}|g" src/environments/environment.prod.ts
+        # Inject Firebase config
+        sed -i "s|FIREBASE_API_KEY_PLACEHOLDER|$${FIREBASE_API_KEY}|g" src/environments/environment.prod.ts
+        sed -i "s|FIREBASE_AUTH_DOMAIN_PLACEHOLDER|$${FIREBASE_AUTH_DOMAIN}|g" src/environments/environment.prod.ts
+        sed -i "s|FIREBASE_PROJECT_ID_PLACEHOLDER|$${FIREBASE_PROJECT_ID}|g" src/environments/environment.prod.ts
+        sed -i "s|FIREBASE_STORAGE_BUCKET_PLACEHOLDER|$${FIREBASE_STORAGE_BUCKET}|g" src/environments/environment.prod.ts
+        sed -i "s|FIREBASE_SENDER_ID_PLACEHOLDER|$${FIREBASE_MESSAGING_SENDER_ID}|g" src/environments/environment.prod.ts
+        sed -i "s|FIREBASE_APP_ID_PLACEHOLDER|$${FIREBASE_APP_ID}|g" src/environments/environment.prod.ts
+        sed -i "s|FIREBASE_MEASUREMENT_ID_PLACEHOLDER|$${FIREBASE_MEASUREMENT_ID}|g" src/environments/environment.prod.ts
+
+        # Inject into Firebase config (firebase.json)
+        sed -i "s|SITE_ID_PLACEHOLDER|${PROJECT_ID}|g" firebase.json
+        sed -i "s|BACKEND_SERVICE_ID_PLACEHOLDER|$${_BACKEND_SERVICE_ID}|g" firebase.json
+    dir: examples/creative-studio/frontend
+    env:
+      - '_BACKEND_URL=${_BACKEND_URL}'
+      - '_FE_SERVICE_NAME=${_FE_SERVICE_NAME}'
+      - '_BACKEND_SERVICE_ID=${_BACKEND_SERVICE_ID}'
+    secretEnv:
+      - FIREBASE_API_KEY
+      - FIREBASE_AUTH_DOMAIN
+      - FIREBASE_PROJECT_ID
+      - FIREBASE_STORAGE_BUCKET
+      - FIREBASE_MESSAGING_SENDER_ID
+      - FIREBASE_APP_ID
+      - FIREBASE_MEASUREMENT_ID
+      - GOOGLE_CLIENT_ID
+
+  # 3. Build the application
+  - name: 'node:20-alpine' # Use the same version
+    id: 'Build Angular App'
+    entrypoint: 'npm'
+    args: ['run', 'build', '--', '--configuration=production']
+    env:
+      - 'NODE_OPTIONS=--max_old_space_size=4096'
+    waitFor: ['Inject Environment Variables']
+    dir: examples/creative-studio/frontend
+
+  # 4. Deploy to Firebase Hosting
+  - name: 'node:20-alpine' # Use the same version
+    id: 'Deploy to Firebase Hosting'
+    entrypoint: 'npx'
+    args:
+      - 'firebase'
+      - 'deploy'
+      - '--project=${PROJECT_ID}'
+      - '--only=hosting:${PROJECT_ID}'
+      - '--non-interactive'
+    waitFor: ['Build Angular App']
+    dir: examples/creative-studio/frontend
+
+# This section makes the secrets available as environment variables during the build
+availableSecrets:
+  secretManager:
+    - versionName: projects/${PROJECT_ID}/secrets/GOOGLE_CLIENT_ID/versions/latest
+      env: 'GOOGLE_CLIENT_ID'
+    # Firebase secrets
+    - versionName: projects/${PROJECT_ID}/secrets/FIREBASE_API_KEY/versions/latest
+      env: 'FIREBASE_API_KEY'
+    - versionName: projects/${PROJECT_ID}/secrets/FIREBASE_AUTH_DOMAIN/versions/latest
+      env: 'FIREBASE_AUTH_DOMAIN'
+    - versionName: projects/${PROJECT_ID}/secrets/FIREBASE_PROJECT_ID/versions/latest
+      env: 'FIREBASE_PROJECT_ID'
+    - versionName: projects/${PROJECT_ID}/secrets/FIREBASE_STORAGE_BUCKET/versions/latest
+      env: 'FIREBASE_STORAGE_BUCKET'
+    - versionName: projects/${PROJECT_ID}/secrets/FIREBASE_MESSAGING_SENDER_ID/versions/latest
+      env: 'FIREBASE_MESSAGING_SENDER_ID'
+    - versionName: projects/${PROJECT_ID}/secrets/FIREBASE_APP_ID/versions/latest
+      env: 'FIREBASE_APP_ID'
+    - versionName: projects/${PROJECT_ID}/secrets/FIREBASE_MEASUREMENT_ID/versions/latest
+      env: 'FIREBASE_MEASUREMENT_ID'
+
+options:
+  logging: CLOUD_LOGGING_ONLY
