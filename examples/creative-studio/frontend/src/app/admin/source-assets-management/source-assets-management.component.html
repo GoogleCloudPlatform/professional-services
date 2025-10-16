@@ -1,0 +1,177 @@
+<!--
+ Copyright 2025 Google LLC
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+<div class="p-4">
+  <div class="flex justify-between items-center mb-4">
+    <h1 class="text-3xl font-semibold">Manage Source Assets</h1>
+    <button mat-raised-button color="primary" (click)="createAsset()">
+      <mat-icon>add</mat-icon>
+      <span>Create Asset</span>
+    </button>
+  </div>
+
+  <!-- Filter Inputs -->
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4 items-center">
+    <mat-form-field appearance="outline">
+      <mat-label>Filter by Scope</mat-label>
+      <mat-select [(ngModel)]="filterScope">
+        <mat-option [value]="null">All Scopes</mat-option>
+        <mat-option *ngFor="let scope of assetScopes" [value]="scope">
+          {{ scope | titlecase }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Filter by Type</mat-label>
+      <mat-select [(ngModel)]="filterAssetType">
+        <mat-option [value]="null">All Types</mat-option>
+        <mat-option *ngFor="let type of assetTypes" [value]="type">
+          {{ type | titlecase }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+  </div>
+  <div class="flex justify-end mb-4">
+    <button
+      mat-stroked-button
+      (click)="
+        filterName = '';
+        filterScope = null;
+        filterAssetType = null;
+        fetchAssets()
+      "
+      class="mr-2"
+    >
+      Clear
+    </button>
+    <button mat-raised-button color="primary" (click)="fetchAssets()">
+      Search
+    </button>
+  </div>
+
+  <!-- Loading Indicator -->
+  <div *ngIf="isLoading" class="flex justify-center items-center py-10">
+    <mat-spinner diameter="50"></mat-spinner>
+  </div>
+
+  <!-- Error Message -->
+  <div
+    *ngIf="errorLoading && !isLoading"
+    class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4"
+    role="alert"
+  >
+    <strong class="font-bold">Error! </strong>
+    <span class="block sm:inline">{{ errorLoading }}</span>
+  </div>
+
+  <!-- Table -->
+  <div
+    *ngIf="!isLoading && !errorLoading"
+    class="mat-elevation-z8 rounded-lg overflow-auto"
+  >
+    <table mat-table [dataSource]="dataSource" matSort class="w-full">
+      <!-- Thumbnail Column -->
+      <ng-container matColumnDef="thumbnail">
+        <th mat-header-cell *matHeaderCellDef class="!pl-4">Thumbnail</th>
+        <td mat-cell *matCellDef="let asset" class="!pl-4">
+          <img
+            [src]="
+              asset.presignedThumbnailUrl ||
+              asset.presignedUrl ||
+              'assets/images/default-avatar.png'
+            "
+            alt="Asset Thumbnail"
+            class="w-10 h-10 rounded-md object-cover"
+          />
+        </td>
+      </ng-container>
+
+      <!-- Name Column -->
+      <ng-container matColumnDef="originalFilename">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Filename</th>
+        <td mat-cell *matCellDef="let asset">{{ asset.originalFilename }}</td>
+      </ng-container>
+
+      <!-- Type Column -->
+      <ng-container matColumnDef="assetType">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Type</th>
+        <td mat-cell *matCellDef="let asset">
+          <mat-chip>{{ asset.assetType | titlecase }}</mat-chip>
+        </td>
+      </ng-container>
+
+      <!-- Created At Column -->
+      <ng-container matColumnDef="createdAt">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Created At</th>
+        <td mat-cell *matCellDef="let asset">
+          {{ asset.createdAt | date: 'medium' }}
+        </td>
+      </ng-container>
+
+      <!-- Actions Column -->
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef>Actions</th>
+        <td mat-cell *matCellDef="let asset" class="action-buttons">
+          <button
+            mat-icon-button
+            color="primary"
+            (click)="editAsset(asset)"
+            matTooltip="Edit Asset"
+          >
+            <mat-icon>edit</mat-icon>
+          </button>
+          <button
+            mat-icon-button
+            color="warn"
+            (click)="deleteAsset(asset)"
+            matTooltip="Delete Asset"
+          >
+            <mat-icon>delete</mat-icon>
+          </button>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr
+        mat-row
+        *matRowDef="let row; columns: displayedColumns"
+        class="hover:bg-blue-100 dark:hover:bg-gray-700 cursor-pointer"
+      ></tr>
+
+      <!-- Row shown when there is no matching data. -->
+      <tr class="mat-row" *matNoDataRow>
+        <td
+          class="mat-cell text-center py-4"
+          [attr.colspan]="displayedColumns.length"
+        >
+          No data matching the filter or no assets found
+        </td>
+      </tr>
+    </table>
+
+    <mat-paginator
+      [length]="totalAssets"
+      [pageSize]="limit"
+      [pageIndex]="currentPageIndex"
+      [pageSizeOptions]="[10, 25, 100]"
+      (page)="handlePageEvent($event)"
+      showFirstLastButtons
+      aria-label="Select page of assets"
+    >
+    </mat-paginator>
+  </div>
+</div>

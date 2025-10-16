@@ -1,0 +1,73 @@
+<!--
+ Copyright 2025 Google LLC
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+<h2 mat-dialog-title>Select your Media</h2>
+<mat-dialog-content>
+  <mat-tab-group>
+    <mat-tab label="Upload Media">
+      <div
+        class="upload-area"
+        [class.uploading]="isUploading"
+        (click)="!isUploading && fileInput.click()"
+        (dragover)="onDragOver($event)"
+        (drop)="!isUploading && onDrop($event)"
+      >
+        <ng-container *ngIf="!isUploading; else uploading">
+          <mat-icon>upload_file</mat-icon>
+          <p>Drag & drop a file here or click to select a file</p>
+        </ng-container>
+
+        <ng-template #uploading>
+          <mat-progress-spinner
+            color="primary"
+            mode="indeterminate"
+            [diameter]="50"
+          ></mat-progress-spinner>
+          <p>Uploading video...</p>
+        </ng-template>
+
+        <input
+          hidden
+          type="file"
+          #fileInput
+          (change)="onFileSelected($event)"
+          [accept]="data.mimeType || 'image/*,video/mp4'"
+          [disabled]="isUploading"
+        />
+      </div>
+      <div class="my-uploads-container">
+        <h3 class="mat-h3">My Uploads</h3>
+        <app-source-asset-gallery
+          [filterByMimeType]="data.mimeType"
+          [filterByType]="data.assetType"
+          (assetSelected)="onAssetSelected($event)"
+        ></app-source-asset-gallery>
+      </div>
+    </mat-tab>
+    <mat-tab label="From Gallery">
+      <app-media-gallery
+        (mediaItemSelected)="onMediaItemSelected($event)"
+        [filterByType]="
+          data.mimeType
+            ? data.mimeType.startsWith('video/')
+              ? 'video/mp4'
+              : 'image/png'
+            : null
+        "
+      ></app-media-gallery>
+    </mat-tab>
+  </mat-tab-group>
+</mat-dialog-content>

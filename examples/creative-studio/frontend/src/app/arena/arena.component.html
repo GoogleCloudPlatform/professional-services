@@ -1,0 +1,88 @@
+<!--
+ Copyright 2025 Google LLC
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+<div class="lg:container lg:mx-auto">
+  <div class="home-margin grid grid-cols-1">
+    <!-- Video Homepage -->
+    <!-- <img priority width="2392" height="408" ngSrc="assets/images/model-arena-homepage.png" class="w-full rounded-xl" alt="Model Arena Homepage"> -->
+    <div class="video-container mb-8">
+      <!-- Text for Tablet and beyond -->
+      <div
+        class="hidden md:flex justify-center items-center w-full h-full absolute flex-col"
+      >
+        <h1
+          class="text-center justify-center text-white text-2xl font-bold !m-0 !z-[50]"
+        >
+          Model Arena
+        </h1>
+        <p class="mt-4 text-lg leading-8 text-white !z-[50]">
+          Compare models to find what fits best 🚀
+        </p>
+      </div>
+      <div
+        class="gradient-bg hidden md:block !relative !w-full !h-full !z-[10]"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <filter id="goo">
+              <feGaussianBlur
+                in="SourceGraphic"
+                stdDeviation="10"
+                result="blur"
+              />
+              <feColorMatrix
+                in="blur"
+                mode="matrix"
+                values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 18 -8"
+                result="goo"
+              />
+              <feBlend in="SourceGraphic" in2="goo" />
+            </filter>
+          </defs>
+        </svg>
+        <div class="gradients-container absolute top-0 left-0">
+          <div class="g1"></div>
+          <div class="g2"></div>
+          <div class="g3"></div>
+          <div class="g4"></div>
+          <div class="g5"></div>
+          <div #interactiveBubble class="interactive"></div>
+        </div>
+      </div>
+
+      <!-- Text for mobile -->
+      <div
+        class="flex flex-col justify-center items-center w-full h-full md:hidden"
+      >
+        <!-- As this svg uses a gradient, it needs to have a different fill id, therefore we have one for mobile and other for larger devices -->
+        <div class="flex">
+          <mat-icon
+            svgIcon="mobile-white-gemini-spark-icon"
+            class="!w-6 !h-6 mr-2 md:mr-[1rem]"
+          ></mat-icon>
+          <div
+            class="text-center justify-center text-white title-font font-bold"
+          >
+            Model Arena
+          </div>
+        </div>
+        <p class="mt-4 text-white text-center md:text-lg md:leading-8">
+          Compare models to find what fits best 🚀
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
