@@ -10,16 +10,32 @@ This tool helps you find the supported GPU driver version for a given GKE cluste
 
 ## Usage
 
+### List supported GPU types
+
 ```bash
-cargo run -- --gke-version <CLUSTER_VERSION> --gpu-type <GPU_TYPE>
+cargo run -- list-gpu-types --gke-version <CLUSTER_VERSION>
+```
+
+### Get driver versions
+
+```bash
+cargo run -- get --gke-version <CLUSTER_VERSION> --gpu-type <GPU_TYPE>
 ```
 
 ## Example
 
+### List available GPU types
+
 ```bash
-cargo run -- --gke-version 1.33.5-gke.1080000 --gpu-type NVIDIA_H100_80GB
+cargo run -- list-gpu-types --gke-version 1.33.5-gke.1080000
+```
+
+### Get driver versions
+
+```bash
+cargo run -- get --gke-version 1.33.5-gke.1080000 --gpu-type NVIDIA_H100_80GB
 
 or
 
-cargo run -- --gke-version v1.33.5-gke.1080000 --gpu-type NVIDIA_H100_80GB
+cargo run -- get --gke-version v1.33.5-gke.1080000 --gpu-type NVIDIA_H100_80GB
 ```

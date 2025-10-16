@@ -36,10 +36,15 @@ async fn main() -> anyhow::Result<()> {
 
     let args = Args::parse();
 
+    let gke_version = match &args.command {
+        Commands::Get(cmd) => &cmd.gke_version,
+        Commands::ListGpuTypes(cmd) => &cmd.gke_version,
+    };
+
     let cos_version = gke_to_cos_versions
         .entries
         .into_iter()
-        .find(|v| args.gke_version.contains(&v.gke_version))
+        .find(|v| gke_version.contains(&v.gke_version))
         .map(|v| v.image);
 
     match cos_version {
@@ -58,25 +63,38 @@ async fn main() -> anyhow::Result<()> {
             .await?;
 
             let list: GpuDriverVersionInfoList = serde_yml::from_str(&proto)?;
-            let mut result = GpuVersionData::default();
-            result.creation_time = gke_to_cos_versions.creation_time;
-            result.cos_version = v;
-            list.gpu_driver_version_info
-                .into_iter()
-                .filter(|v| match &v.gpu_device {
-                    Some(device) => device.gpu_type == args.gpu_type,
-                    None => false,
-                })
-                .flat_map(|v| v.supported_driver_versions)
-                .for_each(|v| {
-                    if v.label == "DEFAULT" {
-                        result.default_driver_version = v.version.clone();
-                    }
-                    if v.label == "LATEST" {
-                        result.latest_driver_version = v.version.clone();
-                    }
-                });
-            println!("{}", serde_json::to_string_pretty(&result)?);
+
+            match &args.command {
+                Commands::Get(cmd) => {
+                    let mut result = GpuVersionData::default();
+                    result.creation_time = gke_to_cos_versions.creation_time;
+                    result.cos_version = v;
+                    list.gpu_driver_version_info
+                        .into_iter()
+                        .filter(|v| match &v.gpu_device {
+                            Some(device) => device.gpu_type == cmd.gpu_type,
+                            None => false,
+                        })
+                        .flat_map(|v| v.supported_driver_versions)
+                        .for_each(|v| {
+                            if v.label == "DEFAULT" {
+                                result.default_driver_version = v.version.clone();
+                            }
+                            if v.label == "LATEST" {
+                                result.latest_driver_version = v.version.clone();
+                            }
+                        });
+                    println!("{}", serde_json::to_string_pretty(&result)?);
+                }
+                Commands::ListGpuTypes(_cmd) => {
+                    let gpu_types: std::collections::HashSet<String> = list
+                        .gpu_driver_version_info
+                        .into_iter()
+                        .filter_map(|v| v.gpu_device.map(|d| d.gpu_type))
+                        .collect();
+                    println!("{}", serde_json::to_string_pretty(&gpu_types)?);
+                }
+            }
         }
         None => error!("cos version not found for cluster version"),
     }
@@ -87,10 +105,30 @@ async fn main() -> anyhow::Result<()> {
 #[derive(Parser, Debug)]
 #[clap(author, version, about, long_about = None)]
 struct Args {
+    #[clap(subcommand)]
+    command: Commands,
+}
+
+#[derive(clap::Subcommand, Debug)]
+enum Commands {
+    /// Get driver versions for a specific GPU type
+    Get(GetCommand),
+    /// List supported GPU types for a GKE version
+    ListGpuTypes(ListGpuTypesCommand),
+}
+
+#[derive(clap::Args, Debug)]
+struct GetCommand {
     #[arg(long)]
     gke_version: String,
     #[arg(long)]
     gpu_type: String,
+}
+
+#[derive(clap::Args, Debug)]
+struct ListGpuTypesCommand {
+    #[arg(long)]
+    gke_version: String,
 }
 
 #[derive(serde::Deserialize, Debug)]
