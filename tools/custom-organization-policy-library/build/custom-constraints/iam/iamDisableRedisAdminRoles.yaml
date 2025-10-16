@@ -1,0 +1,40 @@
+#@ load("/constraints.lib.star", "build_constraint")
+#@ constraint = build_constraint("iamDisableRedisAdminRoles")
+
+#@ def exceptions(principals):
+#@   quoted_principals = ["'%s'" % d for d in principals]
+#@   joined_principals = ", ".join(quoted_principals)
+#@   return "!MemberSubjectMatches(member, [%s])" % joined_principals
+#@ end
+
+#@ def condition(principal_exceptions):
+#@   lines = [
+#@     "resource.bindings.exists(binding,",
+#@     "  binding.members.exists(member,",
+#@     "    {exceptions} &&",
+#@     "    (",
+#@     "      RoleNameMatches(binding.role, ['roles/redis.admin']) ||",
+#@     "      RoleNameMatches(binding.role, ['roles/redis.editor']) ||",
+#@     "      RoleNameContains(binding.role, ['roles/redis.viewer'])",
+#@     "    )",
+#@     "  )",
+#@     ")"
+#@   ]
+#@   
+#@   full_string = "\n".join(lines)
+#@   return full_string.format(exceptions=exceptions(principal_exceptions))
+#@ end
+
+
+#@ if constraint.to_generate():
+name: #@ constraint.constraint_name()
+resourceTypes:
+- iam.googleapis.com/AllowPolicy
+methodTypes:
+- CREATE
+- UPDATE
+condition: #@ condition(constraint.params().exceptions)
+actionType: DENY
+displayName: Deny use of the basic roles
+description: Ensure no use of the basic roles (viewer, editor and owner)
+#@ end

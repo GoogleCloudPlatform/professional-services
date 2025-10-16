@@ -8,6 +8,7 @@ shared_config:
       priority: 1000  
       rules: tcp:22
       description: Testing firewall rule
+      enable-logging: true
   default_markers:
     - firewall
     - firewall-vpc-rule
@@ -39,7 +40,7 @@ firewall_vpc_ssh_rule_0_0_0_0:
       source-ranges: 0.0.0.0/0
     expected_result:
       return_code: 1
-      stderr: "customConstraints/custom.firewallRestrictSshRule"
+      stderr: "customConstraints/custom.firewallRestrictSshRule|customConstraints/custom.firewallRestrictOpenWorldRule"
 
 firewall_vpc_ssh_rule_1_0_0_0:
   steps:

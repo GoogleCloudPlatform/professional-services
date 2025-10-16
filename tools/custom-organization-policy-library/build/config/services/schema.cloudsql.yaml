@@ -92,6 +92,12 @@ cloudsql:
     bundles:
       pci-dss: false
       cis: false
+  cloudsqlRequirePostgreSQLDatabaseAdditionalFlags:
+    #@schema/validation one_of=["default", "skip", "include", "skip-policy"]
+    generation: "default"
+    bundles:
+      pci-dss: true
+      cis: true
   cloudsqlRequirePostgreSQLDatabaseFlags:
     #@schema/validation one_of=["default", "skip", "include", "skip-policy"]
     generation: "default"

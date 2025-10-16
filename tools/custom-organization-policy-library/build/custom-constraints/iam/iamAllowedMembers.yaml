@@ -1,9 +1,26 @@
 #@ load("/constraints.lib.star", "build_constraint")
 #@ constraint = build_constraint("iamAllowedMembers")
 
-#@ def condition(domains):
-#@   return "resource.bindings.exists(binding, binding.members.exists(member, !MemberSubjectEndsWith(member, " + str(domains) + ")))"
+#@ def allowed_domains(domains):
+#@   quoted_domains = ["'%s'" % d for d in domains]
+#@   joined_domains = ", ".join(quoted_domains)
+#@ 
+#@   return "!MemberSubjectEndsWith(member, [%s])" % joined_domains
 #@ end
+
+#@ def condition(domains):
+#@   lines = [
+#@     "resource.bindings.exists(binding,",
+#@     "  binding.members.exists(member,",
+#@     "    {domains}",
+#@     "  )",
+#@     ")"
+#@   ]
+#@   
+#@   full_string = "\n".join(lines)
+#@   return full_string.format(domains=allowed_domains(domains))
+#@ end
+
 
 #@ if constraint.to_generate():
 name: #@ constraint.constraint_name()
@@ -12,7 +29,7 @@ resourceTypes:
 methodTypes:
 - CREATE
 - UPDATE
-condition: #@  condition(constraint.params().domains)
+condition: #@ condition(constraint.params().domains)
 actionType: DENY
 displayName: Deny principals and members outside the organization domain
 description: Ensure no binding are done with members outside the organization domain

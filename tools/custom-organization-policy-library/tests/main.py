@@ -1,4 +1,5 @@
 import os
+import re
 import sys
 import logging
 import shlex
@@ -115,12 +116,21 @@ def parse_gcloud_output(step, output):
             "Expected stdout substring: %s, got: %s", expected_stdout_substring, stdout
         )
         return False
-
-    expected_stderr_substring = expected_result.get("stderr", "")
-    if expected_stderr_substring and expected_stderr_substring not in stderr:
+    
+    expected_stderr_pattern = expected_result.get("stderr", "")
+    if expected_stderr_pattern and not re.search(expected_stderr_pattern, stderr):
         logging.debug(
-            "Expected stderr substring: %s, got: %s", expected_stderr_substring, stderr
+            "Expected stderr pattern: '%s' not found in: '%s'",
+            expected_stderr_pattern,
+            stderr,
         )
         return False
+
+    # expected_stderr_substring = expected_result.get("stderr", "")
+    # if expected_stderr_substring and expected_stderr_substring not in stderr:
+    #     logging.debug(
+    #         "Expected stderr substring: %s, got: %s", expected_stderr_substring, stderr
+    #     )
+    #     return False
 
     return True

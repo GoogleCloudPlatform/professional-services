@@ -2,7 +2,7 @@
 #@ constraint = build_constraint("computeAllowedInstanceLabels")
 
 #@ def condition(labels):
-#@   return "resource.labels.all(label, (label in " + str(labels) + ")) == false"
+#@   return "resource.labels.all(label, (label in " + str(labels) + ") || label.startsWith('goog-')) == false"
 #@ end
 
 #@ if constraint.to_generate():

@@ -3,6 +3,7 @@
 .terraform.tfstate*
 *.out
 *.bak
+*.env
 */**/terraform.tfstate*
 terraform/
 tests/venv/

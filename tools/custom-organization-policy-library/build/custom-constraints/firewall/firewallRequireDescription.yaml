@@ -1,11 +1,26 @@
 #@ load("/constraints.lib.star", "build_constraint")
 #@ constraint = build_constraint("firewallRequireDescription")
 
+#@ def condition():
+#@   lines = [
+#@     '(',
+#@     '  resource.description == "" &&',
+#@     '  !resource.name.startsWith("gke-") &&',
+#@     '  !resource.name.startsWith("k8s-") &&',
+#@     '  !resource.name.endsWith("-hc") &&',
+#@     '  !resource.name.startsWith("k8s2-") &&',
+#@     '  !resource.name.startsWith("gkegw1-l7-") &&',
+#@     '  !resource.name.startsWith("gkemcg1-l7-")',
+#@     ')'
+#@   ]
+#@   return "\n".join(lines)
+#@ end
+
 #@ if constraint.to_generate():
 name: #@ constraint.constraint_name()
 resource_types: 
 - compute.googleapis.com/Firewall 
-condition: resource.description == ""
+condition: #@ condition()
 action_type: DENY
 method_types: 
 - CREATE 

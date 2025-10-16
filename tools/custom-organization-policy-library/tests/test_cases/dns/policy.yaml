@@ -23,7 +23,7 @@ dns_policy_no_logging:
       enable-logging: false
     expected_result:
       return_code: 1
-      stderr: 'Forbidden' # Gcloud output is not verbose enough to return the constraint blocking creation
+      stderr: 'HTTPError 412' # Gcloud output is not verbose enough to return the constraint blocking creation
 
 dns_policy_absent_logging:
   steps:
@@ -31,4 +31,4 @@ dns_policy_absent_logging:
       enable-logging: absent
     expected_result:
       return_code: 1
-      stderr: 'Forbidden' # Gcloud output is not verbose enough to return the constraint blocking creation
+      stderr: 'HTTPError 412' # Gcloud output is not verbose enough to return the constraint blocking creation

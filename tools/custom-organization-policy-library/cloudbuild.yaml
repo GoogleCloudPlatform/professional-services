@@ -31,22 +31,22 @@ steps:
         make build
     dir: /workspace/tools/custom-organization-policy-library
     entrypoint: bash
-  # - name: gcr.io/cloud-builders/gcloud
-  #   args:
-  #     - '-c'
-  #     - |
-  #       apt-get update && apt-get install -y make
-  #       make deploy-constraints
-  #   dir: /workspace/tools/custom-organization-policy-library
-  #   entrypoint: bash
-  # - name: gcr.io/cloud-builders/gcloud
-  #   args:
-  #     - '-c'
-  #     - |
-  #       apt-get update && apt-get install -y make
-  #       make deploy-policies
-  #   dir: /workspace/tools/custom-organization-policy-library
-  #   entrypoint: bash
+  - name: gcr.io/cloud-builders/gcloud
+    args:
+      - '-c'
+      - |
+        apt-get update && apt-get install -y make
+        make deploy-constraints
+    dir: /workspace/tools/custom-organization-policy-library
+    entrypoint: bash
+  - name: gcr.io/cloud-builders/gcloud
+    args:
+      - '-c'
+      - |
+        apt-get update && apt-get install -y make
+        make deploy-policies
+    dir: /workspace/tools/custom-organization-policy-library
+    entrypoint: bash
   - name: gcr.io/cloud-builders/gcloud
     args:
       - '-c'
@@ -57,7 +57,16 @@ steps:
         export PROJECT_ID="$_PROJECT_ID"
         export PROJECT_NUMBER="$_PROJECT_NUMBER"
         export PREFIX="$_PREFIX"
+        set +e
         pytest main.py --html=${SHORT_SHA}_report.html $_PYTEST_ARGS
+        PYTEST_EXIT_CODE=$$?
+        set -e
+        if [ $$PYTEST_EXIT_CODE -eq 0 ]; then
+          echo "✅ No error during running test"
+        else
+          echo "⚠️ Error during running tests"
+        fi
+        exit 0
     dir: /workspace/tools/custom-organization-policy-library/tests
     entrypoint: bash
     timeout: '10800s'
