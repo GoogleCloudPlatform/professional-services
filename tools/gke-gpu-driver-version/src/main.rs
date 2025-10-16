@@ -39,7 +39,7 @@ async fn main() -> anyhow::Result<()> {
     let cos_version = gke_to_cos_versions
         .entries
         .into_iter()
-        .find(|v| args.cluster_version.eq(&v.gke_version))
+        .find(|v| args.gke_version.contains(&v.gke_version))
         .map(|v| v.image);
 
     match cos_version {
@@ -87,9 +87,9 @@ async fn main() -> anyhow::Result<()> {
 #[derive(Parser, Debug)]
 #[clap(author, version, about, long_about = None)]
 struct Args {
-    #[arg(long, default_value = "")]
-    cluster_version: String,
-    #[arg(long, default_value = "")]
+    #[arg(long)]
+    gke_version: String,
+    #[arg(long)]
     gpu_type: String,
 }
 
