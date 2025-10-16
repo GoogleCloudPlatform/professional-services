@@ -87,7 +87,7 @@ async fn main() -> anyhow::Result<()> {
                     println!("{}", serde_json::to_string_pretty(&result)?);
                 }
                 Commands::ListGpuTypes(_cmd) => {
-                    let gpu_types: std::collections::HashSet<String> = list
+                    let gpu_types: std::collections::BTreeSet<String> = list
                         .gpu_driver_version_info
                         .into_iter()
                         .filter_map(|v| v.gpu_device.map(|d| d.gpu_type))
