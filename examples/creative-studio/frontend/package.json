@@ -33,7 +33,7 @@
     "@angular/material": "^18.2.1",
     "@angular/platform-browser": "^18.1.0",
     "@angular/platform-browser-dynamic": "^18.1.0",
-    "@angular/platform-server": "^18.1.0",
+    "@angular/platform-server": "^18.2.14",
     "@angular/router": "^18.1.0",
     "@angular/ssr": "^18.1.2",
     "express": "^4.18.2",
