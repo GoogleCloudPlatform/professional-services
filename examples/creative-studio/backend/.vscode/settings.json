@@ -1,0 +1,25 @@
+{
+    "files.trimTrailingWhitespace": true,
+    "editor.renderWhitespace": "trailing",
+    "editor.indentSize": "tabSize",
+    "[python]": {
+        "editor.insertSpaces": true,
+        "editor.tabSize": 2,
+        "editor.detectIndentation": false,
+        "editor.defaultFormatter": "ms-python.black-formatter",
+        "editor.formatOnSave": true
+    },
+    "editor.tabSize": 2,
+    "git.autofetch": true,
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+        "source.organizeImports": "always"
+    },
+    "files.autoSave": "off",
+    "python.testing.pytestArgs": [
+        "tests"
+    ],
+    "python.testing.unittestEnabled": false,
+    "python.testing.pytestEnabled": true,
+    "editor.rulers": [79]
+}

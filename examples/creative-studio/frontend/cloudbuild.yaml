@@ -1,0 +1,56 @@
+# Copyright 2025 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+steps:
+  # 1. Install dependencies. 'npm ci' is generally faster and more reliable for CI.
+  - name: 'node:20-alpine'
+    id: 'Install Dependencies'
+    entrypoint: 'npm'
+    args: ['ci']
+    dir: examples/creative-studio/frontend
+
+  # 2. Build Angular application based on environment
+  - name: 'node:20-alpine'
+    id: 'Build Angular'
+    entrypoint: 'npm'
+    args:
+      - 'run'
+      - '${_ANGULAR_BUILD_COMMAND}'
+    env:
+      - 'NODE_OPTIONS=--max_old_space_size=4096'
+    waitFor: ['Install Dependencies']
+    dir: examples/creative-studio/frontend
+
+  # 3. Trigger deployment in the target project
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'Trigger Deployment'
+    entrypoint: 'gcloud'
+    args:
+      - 'builds'
+      - 'submit'
+      - '--project=${_TARGET_PROJECT_ID}'
+      - '--config=frontend/cloudbuild-deploy.yaml' # Path to the deployment config
+      - '--substitutions=_FIREBASE_PROJECT_ID=${_FIREBASE_PROJECT_ID}'
+      - '--async' # Run the triggered build asynchronously
+    waitFor: ['Build Angular']
+
+# You can define substitution variables that can be overridden by triggers.
+# These are default values.
+substitutions:
+  _TARGET_PROJECT_ID: 'creative-studio-dev' # Default project
+  _ANGULAR_BUILD_COMMAND: 'build-dev' # Default Angular build command
+  _FIREBASE_PROJECT_ID: 'creative-studio-dev' # Replace with actual Firebase project IDs
+
+options:
+  logging: CLOUD_LOGGING_ONLY
