@@ -35,7 +35,7 @@
     "@angular/platform-browser-dynamic": "^18.1.0",
     "@angular/platform-server": "^18.2.14",
     "@angular/router": "^18.1.0",
-    "@angular/ssr": "^18.1.2",
+    "@angular/ssr": "^18.2.21",
     "express": "^4.18.2",
     "file-saver": "^2.0.5",
     "ngx-image-cropper": "^9.1.5",
