@@ -26,6 +26,18 @@ firewall:
     params:
       #@schema/validation min_len=1
       name_regex: ""
+  firewallEnforcePolicyRuleLogging:
+    #@schema/validation one_of=["default", "skip", "include", "skip-policy"]
+    generation: "default"
+    bundles:
+      pci-dss: false
+      cis: false
+  firewallEnforceRuleLogging:
+    #@schema/validation one_of=["default", "skip", "include", "skip-policy"]
+    generation: "default"
+    bundles:
+      pci-dss: false
+      cis: false
   firewallRequireDescription:
     #@schema/validation one_of=["default", "skip", "include", "skip-policy"]
     generation: "default"

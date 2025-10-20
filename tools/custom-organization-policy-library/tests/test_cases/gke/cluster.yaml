@@ -3,7 +3,7 @@ shared_config:
   teardown_command: gcloud container clusters delete {{ identifier }} --region=asia-southeast2
   default_command_flags: 
     enable-basic-auth: false
-    cluster-version: 1.33.0-gke.2248000
+    cluster-version: latest
     release-channel: regular
     machine-type: n2d-standard-2
     image-type: COS_CONTAINERD
@@ -23,7 +23,7 @@ shared_config:
     enable-autorepair: true
     workload-pool: "{{ project }}.svc.id.goog"
     enable-shielded-nodes: true
-    security-group: gke-security-groups@vannick.joonix.net
+    security-group: gke-security-groups@vannick.altostrat.com
     binauthz-evaluation-mode: PROJECT_SINGLETON_POLICY_ENFORCE
     boot-disk-kms-key: projects/{{ project }}/locations/asia-southeast2/keyRings/{{ prefix }}-key-ring-1/cryptoKeys/{{ prefix }}-key-1 
     database-encryption-key: projects/{{ project }}/locations/asia-southeast2/keyRings/{{ prefix }}-key-ring-1/cryptoKeys/{{ prefix }}-key-1 
@@ -79,11 +79,3 @@ gke_absent_secure_boot:
     expected_result:
       return_code: 1
       stderr: customConstraints/custom.gkeRequireSecureBoot
-
-gke_version_1_29:
-  steps:
-  - command_flags:
-      cluster-version: 1.32.4-gke.1236007
-    expected_result:
-      return_code: 1
-      stderr: customConstraints/custom.gkeAllowedInitialClusterVersions

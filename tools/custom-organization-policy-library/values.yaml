@@ -96,7 +96,7 @@ compute:
       - "pd-balanced"
   computeRestrictDiskSize:
     params:
-      max_disksize: 100
+      max_disksize: 1000
 dataproc:
   dataprocAllowedLabels:
     params:
@@ -125,10 +125,6 @@ dns:
       algorithms:
       - ECDSAP256SHA256
 gke:
-  gkeAllowedInitialClusterVersions:
-    params:
-      initial_cluster_versions: 
-      - 1.33.0-gke.2248000
   gkeAllowedNodePoolImages:
     params:
       images:
@@ -144,6 +140,14 @@ iam:
       domains:
       - "@google.com"
       - ".gserviceaccount.com"
+  iamDisableProjectServiceAccountImpersonationRoles:
+    params:
+      exceptions:
+      - "user:my-user@my-project.com"
+  iamDisableAdminServiceAccount:
+    params:
+      exceptions:
+      - "serviceAccount:my-service-account@my-project.iam.gserviceaccount.com"
 network:
   networkEnforceNamingConvention:
     params:
