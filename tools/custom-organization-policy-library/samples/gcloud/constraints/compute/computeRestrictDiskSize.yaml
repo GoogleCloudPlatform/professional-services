@@ -1,7 +1,7 @@
 name: organizations/11111111/customConstraints/custom.computeRestrictDiskSize
 resource_types:
 - compute.googleapis.com/Disk
-condition: resource.sizeGb >= 100
+condition: resource.sizeGb >= 1000
 action_type: DENY
 method_types:
 - CREATE

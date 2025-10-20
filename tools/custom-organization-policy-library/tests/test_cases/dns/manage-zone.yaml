@@ -2,7 +2,7 @@ shared_config:
   command: gcloud dns managed-zones create {{ identifier }} 
   teardown_command: gcloud dns managed-zones delete {{ identifier }}
   default_command_flags: 
-    dns-name: cuop.vannick.joonix.net.
+    dns-name: cuop.vannick.altostrat.com.
     description: description
     visibility: public
     log-dns-queries: true
@@ -43,7 +43,7 @@ dns_public_managed_zones_no_logging:
       log-dns-queries: false
     expected_result:
       return_code: 1
-      stderr: 'Forbidden' # Gcloud output is not verbose enough to return the constraint blocking creation
+      stderr: 'HTTPError 412' # Gcloud output is not verbose enough to return the constraint blocking creation
 
 dns_public_managed_zones_absent_logging:
   steps:
@@ -51,7 +51,7 @@ dns_public_managed_zones_absent_logging:
       log-dns-queries: absent
     expected_result:
       return_code: 1
-      stderr: 'Forbidden' # Gcloud output is not verbose enough to return the constraint blocking creation
+      stderr: 'HTTPError 412' # Gcloud output is not verbose enough to return the constraint blocking creation
 
 dns_public_managed_zones_no_dnssec:
   steps:
@@ -59,7 +59,7 @@ dns_public_managed_zones_no_dnssec:
       dnssec-state: "off"
     expected_result:
       return_code: 1
-      stderr: 'Forbidden' # Gcloud output is not verbose enough to return the constraint blocking creation
+      stderr: 'HTTPError 412' # Gcloud output is not verbose enough to return the constraint blocking creation
 
 dns_public_managed_zones_absent_dnssec:
   steps:
@@ -67,7 +67,7 @@ dns_public_managed_zones_absent_dnssec:
       dnssec-state: "absent"
     expected_result:
       return_code: 1
-      stderr: 'Forbidden' # Gcloud output is not verbose enough to return the constraint blocking creation
+      stderr: 'HTTPError 412' # Gcloud output is not verbose enough to return the constraint blocking creation
 
 dns_public_managed_zones_ksk_unallowed:
   steps:
@@ -79,7 +79,7 @@ dns_public_managed_zones_ksk_unallowed:
       denial-of-existence: NSEC
     expected_result:
       return_code: 1
-      stderr: 'Forbidden' # Gcloud output is not verbose enough to return the constraint blocking creation
+      stderr: 'HTTPError 412' # Gcloud output is not verbose enough to return the constraint blocking creation
 
 dns_public_managed_zones_zsk_unallowed:
   steps:
@@ -91,5 +91,5 @@ dns_public_managed_zones_zsk_unallowed:
       denial-of-existence: NSEC
     expected_result:
       return_code: 1
-      stderr: 'Forbidden' # Gcloud output is not verbose enough to return the constraint blocking creation
+      stderr: 'HTTPError 412' # Gcloud output is not verbose enough to return the constraint blocking creation
 
