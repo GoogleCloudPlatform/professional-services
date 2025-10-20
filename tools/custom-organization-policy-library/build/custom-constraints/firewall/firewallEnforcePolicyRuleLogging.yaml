@@ -1,0 +1,15 @@
+#@ load("/constraints.lib.star", "build_constraint")
+#@ constraint = build_constraint("firewallEnforcePolicyRuleLogging")
+
+#@ if constraint.to_generate():
+name: #@ constraint.constraint_name()
+resource_types: 
+- compute.googleapis.com/FirewallPolicy
+condition: resource.rules.exists(rule, rule.action != 'goto_next' && rule.enableLogging == false)
+action_type: DENY
+method_types: 
+- CREATE 
+- UPDATE
+display_name: Require Firewall Policy rules to have logging enabled
+description: Ensure that Firewall Policy rules have logging enabled
+#@ end
