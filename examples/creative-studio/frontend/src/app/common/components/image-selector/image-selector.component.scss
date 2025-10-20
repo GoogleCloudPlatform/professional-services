@@ -1,0 +1,81 @@
+/**
+ * Copyright 2025 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+.upload-area {
+  border: 2px dashed #ccc;
+  border-radius: 8px;
+  padding: 40px;
+  text-align: center;
+  cursor: pointer;
+  transition:
+    border-color 0.3s,
+    background-color 0.3s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 150px;
+}
+
+.upload-area:hover {
+  border-color: #007bff;
+  background-color: #f0f8ff;
+}
+
+.upload-area.uploading {
+  cursor: not-allowed;
+  background-color: #333;
+  border-color: #555;
+}
+
+.upload-area.uploading:hover {
+  background-color: #333;
+  border-color: #555;
+}
+
+.upload-area p {
+  margin-top: 1rem;
+}
+
+.my-uploads-container {
+  margin-top: 1.5rem;
+  border-top: 1px solid #444;
+  padding-top: 1.5rem;
+
+  h3 {
+    color: white;
+    margin-bottom: 1rem;
+  }
+}
+
+.cropper-container {
+  max-height: 400px;
+  width: 100%;
+  margin-bottom: 1rem;
+}
+
+.cropper-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 1rem;
+}
+
+::ng-deep .image-selector-dialog .mat-mdc-tab-body-content {
+  padding-top: 20px;
+  height: 100%;
+  overflow-y: auto;
+}

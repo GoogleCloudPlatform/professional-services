@@ -172,6 +172,8 @@ them to fit your particular use case.
     Sentiment analysis for movie reviews using TensorFlow `RNNEstimator`.
 *   [CloudML TensorFlow Profiling](examples/tensorflow-profiling-examples) -
     TensorFlow profiling examples for training models with CloudML
+*   [🚀 Creative Studio](examples/creative-studio) - Creative Studio is a comprehensive, all-in-one Generative AI platform designed as a deployable solution for your own Google Cloud project. It serves as a powerful reference implementation and creative suite, showcasing the full spectrum of Google's state-of-the-art generative AI models on Vertex AI.
+Built for creators, marketers, and developers, this application provides a hands-on, interactive experience with cutting-edge multimodal capabilities.
 *   [Data Generator](examples/dataflow-data-generator) - Generate random data
     with a custom schema at scale for integration tests or demos.
 *   [Dataflow BigQuery Transpose Example](examples/dataflow-bigquery-transpose) -
@@ -505,6 +507,7 @@ Platform usage.
     A shell script for gDNS-zDNS project bulk migration.
 *   [GKE Billing Export](tools/gke-billing-export) - Google Kubernetes Engine
     fine grained billing export.
+*   [GKE GPU Driver Version](tools/gke-gpu-driver-version) - A tool to find the supported GPU driver version for a given GKE cluster version and GPU type.
 *   [gmon](tools/gmon/) - A command-line interface (CLI) for Cloud Monitoring
     written in Python.
 *   [Google Cloud Support Slackbot](tools/google-cloud-support-slackbot) - Slack
