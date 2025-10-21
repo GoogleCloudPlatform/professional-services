@@ -34,6 +34,7 @@ from google.cloud.logging import Client as LoggerClient
 from google.cloud.logging.handlers import CloudLoggingHandler
 from pypdf import PdfReader, PdfWriter
 
+from src.workspaces.schema.workspace_model import WorkspaceScopeEnum
 from src.auth.iam_signer_credentials_service import IamSignerCredentials
 from src.brand_guidelines.dto.brand_guideline_response_dto import (
     BrandGuidelineResponseDto,
@@ -444,12 +445,16 @@ class BrandGuidelineService:
                 detail=f"Workspace with ID '{workspace_id}' not found.",
             )
 
-        is_system_admin = UserRoleEnum.ADMIN in current_user.roles
-        if not is_system_admin and current_user.id not in workspace.member_ids:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="You are not a member of this workspace.",
-            )
+        if not workspace.scope == WorkspaceScopeEnum.PUBLIC:
+            is_system_admin = UserRoleEnum.ADMIN in current_user.roles
+            if (
+                not is_system_admin
+                and current_user.id not in workspace.member_ids
+            ):
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="You are not a member of this workspace.",
+                )
 
         search_dto = BrandGuidelineSearchDto(workspace_id=workspace_id, limit=1)
         workspace_filter = FieldFilter("workspace_id", "==", workspace_id)
