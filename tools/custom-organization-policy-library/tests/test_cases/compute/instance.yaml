@@ -1,6 +1,6 @@
 shared_config:
-  command:  gcloud compute instances create {{ identifier }} --zone asia-southeast2-a
-  teardown_command: gcloud compute instances delete  {{ identifier }} --zone asia-southeast2-a
+  command:  gcloud compute instances create {{ identifier }} --zone asia-southeast2-c
+  teardown_command: gcloud compute instances delete  {{ identifier }} --zone asia-southeast2-c
   default_command_flags: 
     machine-type: e2-medium  # n2-standard-1
     image-family: debian-11
