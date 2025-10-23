@@ -58,7 +58,7 @@ class CreateVeoDto(BaseDto):
         min_length=1, description="The ID of the workspace for this generation."
     )
     generation_model: GenerationModelEnum = Field(
-        default=GenerationModelEnum.VEO_3_FAST,
+        default=GenerationModelEnum.VEO_3_1_PREVIEW,
         description="Model used for image generation.",
     )
     aspect_ratio: AspectRatioEnum = Field(
@@ -213,6 +213,7 @@ class CreateVeoDto(BaseDto):
     ) -> GenerationModelEnum:
         """Ensures that only supported generation models for video are used."""
         valid_video_ratios = [
+            GenerationModelEnum.VEO_3_1_PREVIEW,
             GenerationModelEnum.VEO_3_FAST,
             GenerationModelEnum.VEO_3_QUALITY,
             GenerationModelEnum.VEO_3_FAST_PREVIEW,

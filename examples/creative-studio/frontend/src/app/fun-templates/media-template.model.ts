@@ -101,6 +101,7 @@ export enum GenerationModelEnum {
   IMAGEN_4_FAST = 'imagen-4.0-fast-generate-001',
 
   // Video-Specific Models
+  VEO_3_1_PREVIEW = 'veo-3.1-generate-preview',
   VEO_3_FAST = 'veo-3.0-fast-generate-001',
   VEO_3_QUALITY = 'veo-3.0-generate-001',
   VEO_2_FAST = 'veo-2.0-fast-generate-001',
