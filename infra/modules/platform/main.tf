@@ -595,7 +595,7 @@ module "frontend_service" {
   resource_prefix      = "cs-fe"
   github_branch_name   = var.github_branch_name
   cloudbuild_yaml_path = "examples/creative-studio/frontend/cloudbuild-deploy.yaml"
-  included_files_glob  = ["**/creative-studio/backend/**"]
+  included_files_glob  = ["**/creative-studio/frontend/**"]
 
   build_substitutions = merge(
     var.fe_build_substitutions,
