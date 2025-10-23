@@ -1,9 +1,0 @@
-name: organizations/11111111/customConstraints/custom.networkAllowedSubnetIpRanges
-resource_types:
-- compute.googleapis.com/Subnetwork
-condition: resource.ipCidrRange in ["10.10.0.0/24", "10.10.1.0/24", "192.168.0.0/16"] == false
-action_type: DENY
-method_types:
-- CREATE
-display_name: Allow only specific subnet IP ranges
-description: Enforce that the subnets configured at part of a specific subnet IP ranges

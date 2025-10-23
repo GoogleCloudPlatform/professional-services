@@ -1,9 +1,0 @@
-name: organizations/11111111/customConstraints/custom.networkRequireCustomModeVpc
-resource_types:
-- compute.googleapis.com/Network
-condition: resource.autoCreateSubnetworks == true
-action_type: DENY
-method_types:
-- CREATE
-display_name: Require custom mode VPC network
-description: Enforce that the subnets creation is using custom mode for a VPC network

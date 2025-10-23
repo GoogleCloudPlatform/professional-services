@@ -1,3 +1,0 @@
-custom.cloudsqlRequirePostgreSQLDatabaseFlags:
-  rules:
-  - enforce: true

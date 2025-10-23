@@ -1,3 +1,0 @@
-custom.cloudsqlAllowedVersions:
-  rules:
-  - enforce: true

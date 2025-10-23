@@ -1,3 +1,0 @@
-custom.firewallRestrictSshPolicyRule:
-  rules:
-  - enforce: true

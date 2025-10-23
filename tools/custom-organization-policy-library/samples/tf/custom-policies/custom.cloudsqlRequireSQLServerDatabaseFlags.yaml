@@ -1,3 +1,0 @@
-custom.cloudsqlRequireSQLServerDatabaseFlags:
-  rules:
-  - enforce: true

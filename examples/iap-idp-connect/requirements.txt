@@ -1,7 +1,0 @@
-google-cloud-compute
-google-auth
-firebase-admin
-google-cloud-iap
-google-cloud-api-keys
-pytest
-pylint[spelling]

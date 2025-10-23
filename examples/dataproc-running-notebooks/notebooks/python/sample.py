@@ -1,1 +1,0 @@
-print("sample python file in GCS bucket")

@@ -1,3 +1,0 @@
-custom.gkeRequireNetworkPolicy:
-  rules:
-  - enforce: true

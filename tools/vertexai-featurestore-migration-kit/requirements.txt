@@ -1,6 +1,0 @@
-PyYAML
-google-cloud-bigquery
-google-cloud-aiplatform
-loguru
-openpyxl
-pandas

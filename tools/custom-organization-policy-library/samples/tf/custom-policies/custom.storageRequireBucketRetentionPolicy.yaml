@@ -1,3 +1,0 @@
-custom.storageRequireBucketRetentionPolicy:
-  rules:
-  - enforce: true

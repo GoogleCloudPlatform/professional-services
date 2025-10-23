@@ -1,3 +1,0 @@
-custom.cloudbuildDisableWorkerPoolExternalIP:
-  rules:
-  - enforce: true

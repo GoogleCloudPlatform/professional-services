@@ -1,3 +1,0 @@
-custom.networkRequireSubnetPrivateGoogleAccess:
-  rules:
-  - enforce: true

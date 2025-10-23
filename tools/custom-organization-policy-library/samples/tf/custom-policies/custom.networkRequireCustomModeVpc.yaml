@@ -1,3 +1,0 @@
-custom.networkRequireCustomModeVpc:
-  rules:
-  - enforce: true

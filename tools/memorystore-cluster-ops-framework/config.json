@@ -1,5 +1,0 @@
-{
-    "riot_bin_path": "/var/opt/riot-3.1.5/bin",
-    "SLACK_WEBHOOK_URL": "hooks.slack.com/services/testing",
-    "OUTPUT_LOGS":  "both"
-}

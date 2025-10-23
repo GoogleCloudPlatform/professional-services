@@ -1,9 +1,0 @@
-Flask==0.12.2
-Flask-restful==0.3.6
-Werkzeug<0.13.0,>=0.12.0
-requests==2.20.0
-gunicorn==19.7.1
-google-cloud-speech==1.2.0
-google-cloud-storage==1.18.0
-google-cloud-language==1.3.0
-google-api-python-client==1.7.11

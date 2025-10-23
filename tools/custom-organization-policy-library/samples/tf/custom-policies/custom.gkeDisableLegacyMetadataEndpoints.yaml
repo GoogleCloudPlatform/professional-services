@@ -1,3 +1,0 @@
-custom.gkeDisableLegacyMetadataEndpoints:
-  rules:
-  - enforce: true

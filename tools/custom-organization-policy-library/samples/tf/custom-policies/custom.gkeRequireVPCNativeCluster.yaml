@@ -1,3 +1,0 @@
-custom.gkeRequireVPCNativeCluster:
-  rules:
-  - enforce: true

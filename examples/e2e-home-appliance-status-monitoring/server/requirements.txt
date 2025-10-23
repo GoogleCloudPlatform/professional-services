@@ -1,5 +1,0 @@
-google-api-python-client
-google-cloud-bigquery
-google-cloud-pubsub
-Flask==1.0.2
-requests==2.20.0

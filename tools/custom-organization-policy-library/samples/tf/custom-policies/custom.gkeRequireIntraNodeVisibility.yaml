@@ -1,3 +1,0 @@
-custom.gkeRequireIntraNodeVisibility:
-  rules:
-  - enforce: true

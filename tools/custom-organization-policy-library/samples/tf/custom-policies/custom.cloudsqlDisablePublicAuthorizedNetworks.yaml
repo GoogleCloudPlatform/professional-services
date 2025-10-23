@@ -1,3 +1,0 @@
-custom.cloudsqlDisablePublicAuthorizedNetworks:
-  rules:
-  - enforce: true

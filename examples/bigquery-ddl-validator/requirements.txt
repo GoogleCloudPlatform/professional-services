@@ -1,7 +1,0 @@
-google-cloud-secret-manager
-pandas
-mysql-connector-python
-snowflake-connector-python
-cloud-sql-python-connector
-google-cloud-storage
-oracledb

@@ -1,6 +1,0 @@
-project_id = "gitlab-kas-gke"
-cluster_name = "gitlab-kas-agent-cluster"
-cluster_location = "us-central1-c"
-gitlab_repo_name = "<user/org>/test-gitlab-kas-gke"
-product_name = "test-kas"
-agentk_image_tag = "v15.9.0-rc1"

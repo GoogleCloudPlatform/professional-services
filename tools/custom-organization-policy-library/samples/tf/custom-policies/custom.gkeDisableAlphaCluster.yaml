@@ -1,3 +1,0 @@
-custom.gkeDisableAlphaCluster:
-  rules:
-  - enforce: true

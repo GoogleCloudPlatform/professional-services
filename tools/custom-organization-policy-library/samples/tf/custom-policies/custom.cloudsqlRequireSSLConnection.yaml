@@ -1,3 +1,0 @@
-custom.cloudsqlRequireSSLConnection:
-  rules:
-  - enforce: true

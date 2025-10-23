@@ -1,4 +1,0 @@
-!lib
-*.json
-.venv
-.mypy_cache

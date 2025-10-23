@@ -1,3 +1,0 @@
-custom.cloudbuildAllowedNetworkPeering:
-  rules:
-  - enforce: true

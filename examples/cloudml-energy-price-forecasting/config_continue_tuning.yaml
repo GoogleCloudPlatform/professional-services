@@ -1,7 +1,0 @@
-trainingInput:
-  scaleTier: STANDARD_1
-  hyperparameters:
-    enableTrialEarlyStopping: True
-    maxTrials: 100
-    resumePreviousJobId: hyper1_1
-    maxParallelTrials: 5

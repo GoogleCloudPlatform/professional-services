@@ -1,3 +1,0 @@
-custom.dnsRequirePolicyLogging:
-  rules:
-  - enforce: true
