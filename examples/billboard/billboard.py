@@ -65,19 +65,17 @@ def check_billboard_dataset_exists(dataset_id):
         print("Dataset {} is not found.".format(dataset_id))
         return False
 
-
 # Creates billboard dataset.
 # Location is taken from the billing export table provided by the user.
 def create_dataset(args):
 
-    global detailedBBDataset
     standard_source_id = "{}.{}.{}".format(
-        args.PROJECT_ID, args.STANDARD_BILLING_EXPORT_DATASET_NAME,
-        args.standard_table)
+    args.BILLING_EXPORT_PROJECT_ID, args.STANDARD_BILLING_EXPORT_DATASET_NAME,
+    args.standard_table)
 
     detailed_source_id = "{}.{}.{}".format(
-        args.PROJECT_ID, args.DETAILED_BILLING_EXPORT_DATASET_NAME,
-        args.detailed_table)
+    args.BILLING_EXPORT_PROJECT_ID, args.DETAILED_BILLING_EXPORT_DATASET_NAME,
+    args.detailed_table)
 
     standard_table_info = None
     detailed_table_info = None
@@ -87,9 +85,11 @@ def create_dataset(args):
         standard_table_info = bq_client.get_table(standard_source_id)
         print("Exported {} in GEO Location={}".format(
             standard_source_id, standard_table_info.location))
+
         # Create dataset for BB for standard export.
-        dataset_id = "{}.{}".format(args.PROJECT_ID,
-                                    args.BILLBOARD_DATASET_NAME_TO_BE_CREATED)
+        dataset_id = "{}.{}".format(args.VIEW_PROJECT_ID,
+                            args.BILLBOARD_DATASET_NAME_TO_BE_CREATED)
+
         create_dataset_by_loc(dataset_id, standard_table_info.location)
     except NotFound:
         print("Table {} is not found check the export and proceed.".format(
@@ -147,10 +147,10 @@ def create_billboard_view(args, isStandard):
     global detailedBBDataset
 
     if isStandard is True:
-        source_id = "{}.{}.{}".format(args.PROJECT_ID,
+        source_id = "{}.{}.{}".format(args.BILLING_EXPORT_PROJECT_ID,
                                       args.STANDARD_BILLING_EXPORT_DATASET_NAME,
                                       args.standard_table)
-        view_id = "{}.{}.{}".format(args.PROJECT_ID,
+        view_id = "{}.{}.{}".format(args.VIEW_PROJECT_ID,
                                     args.BILLBOARD_DATASET_NAME_TO_BE_CREATED,
                                     args.bb_standard)
     else:
@@ -190,14 +190,14 @@ def create_billboard_view(args, isStandard):
     """.format(view_id, source_id)
 
     # Not sure why this need project_id
-    bq_view_client = bigquery.Client(project=args.PROJECT_ID)
+    bq_view_client = bigquery.Client(project=args.VIEW_PROJECT_ID)
 
     job = bq_view_client.query(sql)  # API request.
     job.result()  # Waits for the query to finish.
 
     if isStandard is True:
         output_url = report_base_url + standard_view_url.format(
-            args.PROJECT_ID, args.BILLBOARD_DATASET_NAME_TO_BE_CREATED,
+            args.VIEW_PROJECT_ID, args.BILLBOARD_DATASET_NAME_TO_BE_CREATED,
             args.bb_standard)
     # not using detailed datasource yet so commenting
     # else:
@@ -244,12 +244,7 @@ def main(argv):
     parser.add_argument('-v',
                         action='version',
                         version='Version of %(prog)s ' + app_version)
-
-    parser.add_argument('-pr',
-                        dest='PROJECT_ID',
-                        type=str,
-                        help='Project Id',
-                        required=True)
+                    
     parser.add_argument('-se',
                         dest='STANDARD_BILLING_EXPORT_DATASET_NAME',
                         type=str,
@@ -269,6 +264,12 @@ def main(argv):
                         type=str,
                         help='Only when you need cleanup, provide "yes"')
 
+    parser.add_argument('-vpr', dest='VIEW_PROJECT_ID', type=str,
+                    help='Project Id where Billboard views will be created', required=True)
+
+    parser.add_argument('-bepr', dest='BILLING_EXPORT_PROJECT_ID', type=str,
+                    help='Project Id where billing export datasets are located', required=True)
+
     args = parser.parse_args()
     print('Version of billboard.py  ' + app_version + "\n")
 
@@ -282,7 +283,7 @@ def main(argv):
     # So we are storing in global variable.
     detailedBBDataset = '{}'.format(args.BILLBOARD_DATASET_NAME_TO_BE_CREATED)
 
-    project_id_temp = "projects/{}".format(args.PROJECT_ID)
+    project_id_temp = "projects/{}".format(args.BILLING_EXPORT_PROJECT_ID)
 
     # Check if billing api is enabled.
     # service = discovery.build('serviceusage', 'v1')
