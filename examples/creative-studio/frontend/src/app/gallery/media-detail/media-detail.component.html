@@ -185,10 +185,9 @@
                 <!-- From uploaded assets -->
                 <a
                   *ngFor="let asset of mediaItem.enrichedSourceAssets"
-                  [href]="asset.presignedUrl"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  class="block w-20 h-20 rounded-md overflow-hidden hover:opacity-80 transition-opacity"
+                  href="#"
+                  (click)="openSourceAssetInLightbox(asset, $event)"
+                  class="block w-20 h-20 rounded-md overflow-hidden hover:opacity-80 transition-opacity cursor-pointer"
                 >
                   <img
                     [src]="asset?.presignedThumbnailUrl || asset.presignedUrl"
@@ -203,7 +202,7 @@
                   [queryParams]="{img_index: source.mediaIndex}"
                   target="_blank"
                   rel="noopener noreferrer"
-                  class="block w-20 h-20 rounded-md overflow-hidden hover:opacity-80 transition-opacity"
+                  class="block w-20 h-20 rounded-md overflow-hidden hover:opacity-80 transition-opacity cursor-pointer"
                 >
                   <img
                     [src]="source?.presignedThumbnailUrl || source.presignedUrl"
@@ -735,4 +734,32 @@
       </mat-tab-group>
     </div>
   </div>
+</div>
+
+<!-- Lightbox Overlay for Source Assets -->
+<div
+  *ngIf="selectedAssetForLightbox"
+  class="fixed inset-0 bg-black/80 z-[1000] flex items-center justify-center p-4"
+  (click)="closeLightbox()"
+>
+  <div
+    (click)="$event.stopPropagation()"
+    class="relative w-full h-full max-w-7xl max-h-[90vh] flex"
+  >
+    <app-media-lightbox
+      class="w-full h-full"
+      [mediaItem]="selectedAssetForLightbox"
+      [initialIndex]="lightboxInitialIndex"
+      [showSeeMoreInfoButton]="false"
+      [showShareButton]="false"
+      [showDownloadButton]="true"
+    ></app-media-lightbox>
+  </div>
+  <button
+    (click)="closeLightbox()"
+    class="absolute top-4 right-4 z-[101] text-white bg-black/40 rounded-full p-2 hover:bg-black/60 transition-colors"
+    aria-label="Close lightbox"
+  >
+    <mat-icon>close</mat-icon>
+  </button>
 </div>

@@ -146,14 +146,14 @@
         <div
           *ngFor="let template of filteredTemplates; trackBy: trackById"
           class="template-card group"
-          (mouseenter)="onMouseEnter(template)"
-          (mouseleave)="onMouseLeave(template)"
         >
           <div
             class="relative overflow-hidden rounded-t-lg cursor-pointer"
             (click)="
               openGallery(template, currentImageIndices[template.id] || 0)
             "
+            (mouseenter)="onMouseEnter(template)"
+            (mouseleave)="onMouseLeave(template)"
           >
             <div
               class="absolute top-2 right-2 z-40 p-1.5 text-white bg-black/40 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
@@ -363,6 +363,29 @@
                 </ng-container>
               </div>
             </ng-container>
+
+            <!-- Source Assets Overlay -->
+            <div
+              *ngIf="
+                template.enrichedSourceAssets &&
+                template.enrichedSourceAssets.length > 0
+              "
+              class="source-assets-container"
+            >
+              <div class="source-assets-list">
+                <div
+                  *ngFor="let sourceAsset of template.enrichedSourceAssets"
+                  class="source-asset-item"
+                  [matTooltip]="'Input Type: ' + sourceAsset.role"
+                  (click)="openSourceAssetInLightbox(sourceAsset, $event)"
+                >
+                  <img
+                    [src]="sourceAsset.presignedUrl"
+                    [alt]="sourceAsset.role"
+                  />
+                </div>
+              </div>
+            </div>
           </div>
 
           <div class="p-4">

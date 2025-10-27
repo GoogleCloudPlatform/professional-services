@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import {EnrichedSourceAsset} from './media-template.model';
 
 import {Component, inject, OnDestroy, OnInit} from '@angular/core';
 import {MatIconRegistry} from '@angular/material/icon';
@@ -110,6 +111,7 @@ export class FunTemplatesComponent implements OnInit, OnDestroy {
               tags: mediaTemplate.tags || [],
               thumbnailUris: mediaTemplate.thumbnailUris || [],
               industry: mediaTemplate.industry || IndustryEnum.OTHER,
+              enrichedSourceAssets: mediaTemplate.enrichedSourceAssets || [],
             } as MediaTemplate;
           });
 
@@ -208,6 +210,7 @@ export class FunTemplatesComponent implements OnInit, OnDestroy {
       {
         state: {
           templateParams: template.generationParameters,
+          sourceAssets: template.enrichedSourceAssets,
         },
       },
     );
@@ -326,6 +329,27 @@ export class FunTemplatesComponent implements OnInit, OnDestroy {
       }
     }
     this.selectedTemplateForLightbox = null;
+  }
+
+  public openSourceAssetInLightbox(
+    sourceAsset: EnrichedSourceAsset,
+    event: MouseEvent,
+  ): void {
+    event.stopPropagation(); // Prevent card's openGallery from firing
+
+    // Construct a MediaItem-like object for the lightbox
+    const mediaItem: MediaItem = {
+      id: sourceAsset.assetId,
+      mimeType: MimeTypeEnum.IMAGE, // Assuming source assets are images
+      presignedUrls: [sourceAsset.presignedUrl],
+      presignedThumbnailUrls: [sourceAsset.presignedUrl],
+      originalPrompt: `Input: ${sourceAsset.role}`,
+      gcsUris: [sourceAsset.presignedUrl]
+      // Add any other required fields for MediaItem with default values
+    };
+
+    this.selectedTemplateForLightbox = mediaItem;
+    this.lightboxInitialIndex = 0;
   }
 
   ngOnDestroy(): void {
