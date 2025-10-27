@@ -22,11 +22,14 @@ export interface EnrichedSourceAsset {
   presignedUrl: string;
   presignedThumbnailUrl: string;
   gcsUri: string;
+  mimeType?: string;
+  role: string;
 }
 
 export interface EnrichedSourceMediaItem extends SourceMediaItemLink {
   presignedUrl: string;
   presignedThumbnailUrl: string;
+  mimeType?: string;
   gcsUri: string;
 }
 

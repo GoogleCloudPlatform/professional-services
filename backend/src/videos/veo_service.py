@@ -128,7 +128,9 @@ def _process_video_in_background(
                     request_dto.source_video_asset_id
                 )
                 if video_asset:
-                    source_video_for_api = types.Video(uri=video_asset.gcs_uri)
+                    source_video_for_api = types.Video(
+                        uri=video_asset.gcs_uri, mime_type=video_asset.mime_type
+                    )
                 else:
                     worker_logger.warning(
                         f"Could not find source video asset: {request_dto.source_video_asset_id}"
@@ -211,7 +213,9 @@ def _process_video_in_background(
                             gen_input.role
                             == AssetRoleEnum.VIDEO_EXTENSION_SOURCE
                         ):
-                            source_video_for_api = types.Video(uri=gcs_uri)
+                            source_video_for_api = types.Video(
+                                uri=gcs_uri, mime_type=parent_item.mime_type
+                            )
                         elif (
                             gen_input.role
                             == AssetRoleEnum.IMAGE_REFERENCE_ASSET

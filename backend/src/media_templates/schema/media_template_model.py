@@ -13,18 +13,24 @@
 # limitations under the License.
 
 from enum import Enum
-from typing import Annotated, Optional, List
+from typing import Annotated, List, Optional
+
 from pydantic import BaseModel, ConfigDict, Field
-from src.common.base_repository import BaseDocument
+from pydantic.alias_generators import to_camel
+
 from src.common.base_dto import (
     AspectRatioEnum,
-    MimeTypeEnum,
-    StyleEnum,
-    LightingEnum,
     ColorAndToneEnum,
     CompositionEnum,
+    LightingEnum,
+    MimeTypeEnum,
+    StyleEnum,
 )
-from pydantic.alias_generators import to_camel
+from src.common.base_repository import BaseDocument
+from src.common.schema.media_item_model import (
+    SourceAssetLink,
+    SourceMediaItemLink,
+)
 
 
 class IndustryEnum(str, Enum):
@@ -128,3 +134,9 @@ class MediaTemplateModel(BaseDocument):
 
     # --- Nested Generation Parameters ---
     generation_parameters: GenerationParameters
+
+    # --- Source Asset Information ---
+    source_assets: Optional[List[SourceAssetLink]] = Field(
+        default=None,
+        description="Links to source assets from the 'user_assets' collection used for generation.",
+    )

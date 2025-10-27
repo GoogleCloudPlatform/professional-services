@@ -18,7 +18,10 @@ import {Component, OnDestroy} from '@angular/core';
 import {ActivatedRoute, NavigationExtras, Router} from '@angular/router';
 import {Location} from '@angular/common';
 import {first, Subscription} from 'rxjs';
-import {MediaItem} from '../../common/models/media-item.model';
+import {
+  EnrichedSourceMediaItem,
+  MediaItem,
+} from '../../common/models/media-item.model';
 import {GalleryService} from '../gallery.service';
 import {LoadingService} from '../../common/services/loading.service';
 import {MatSnackBar} from '@angular/material/snack-bar';
@@ -26,6 +29,8 @@ import {ToastMessageComponent} from '../../common/components/toast-message/toast
 import {CreatePromptMediaDto} from '../../common/models/prompt.model';
 import {AuthService} from '../../common/services/auth.service';
 import {SourceMediaItemLink} from '../../common/models/search.model';
+import {MimeTypeEnum} from '../../fun-templates/media-template.model';
+import {EnrichedSourceAsset} from '../../common/models/media-item.model';
 
 @Component({
   selector: 'app-media-detail',
@@ -42,6 +47,8 @@ export class MediaDetailComponent implements OnDestroy {
   public initialSlideIndex = 0;
   promptJson: CreatePromptMediaDto | undefined;
   isPromptExpanded = false;
+  public selectedAssetForLightbox: MediaItem | null = null;
+  public lightboxInitialIndex = 0;
 
   constructor(
     private route: ActivatedRoute,
@@ -57,8 +64,6 @@ export class MediaDetailComponent implements OnDestroy {
     // Get the media item from the router state
     this.mediaItem =
       this.router.getCurrentNavigation()?.extras.state?.['mediaItem'];
-
-    console.log('constructor - mediaItem', this.mediaItem);
 
     if (this.mediaItem) {
       // If we have the media item, we don't need to load it
@@ -342,5 +347,40 @@ export class MediaDetailComponent implements OnDestroy {
     };
 
     this.router.navigate(['/video'], {state: {remixState}});
+  }
+
+  public openSourceAssetInLightbox(
+    sourceAsset: EnrichedSourceAsset,
+    event: MouseEvent,
+  ): void {
+    event.preventDefault();
+    event.stopPropagation();
+
+    const isVideo =
+      sourceAsset.mimeType?.startsWith('video/') === true ||
+      sourceAsset.presignedUrl.includes('.mp4');
+
+    if (isVideo) {
+      // PhotoSwipe lightbox doesn't support videos, so open in a new tab.
+      window.open(sourceAsset.presignedUrl, '_blank');
+      return;
+    }
+
+    // Existing logic for images
+    // Construct a MediaItem-like object for the lightbox
+    const mediaItem: MediaItem = {
+      id: sourceAsset.sourceAssetId,
+      mimeType: MimeTypeEnum.IMAGE,
+      presignedUrls: [sourceAsset.presignedUrl],
+      presignedThumbnailUrls: [sourceAsset.presignedThumbnailUrl],
+      originalPrompt: `Input: ${sourceAsset.role}`,
+      gcsUris: [sourceAsset.gcsUri],
+    };
+    this.selectedAssetForLightbox = mediaItem;
+    this.lightboxInitialIndex = 0;
+  }
+
+  public closeLightbox(): void {
+    this.selectedAssetForLightbox = null;
   }
 }

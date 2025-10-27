@@ -262,10 +262,7 @@ export class MediaLightboxComponent
     // Otherwise, it can cause unintended navigations and state loss.
     console.log('this.router.url', this.router.url);
     if (!this.router.url.startsWith('/gallery/')) {
-      console.log(
-        'MediaLightbox: Skipping URL update because we are not on a gallery detail page. Current URL:',
-        this.router.url,
-      );
+      // MediaLightbox: Skipping URL update because we are not on a gallery detail page.
       return;
     }
     const url = this.router

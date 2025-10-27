@@ -41,7 +41,10 @@ import {
   ImageSelectorComponent,
   MediaItemSelection,
 } from '../common/components/image-selector/image-selector.component';
-import {GenerationParameters} from '../fun-templates/media-template.model';
+import {
+  EnrichedSourceAsset,
+  GenerationParameters,
+} from '../fun-templates/media-template.model';
 import {handleErrorSnackbar} from '../utils/handleErrorSnackbar';
 import {JobStatus, MediaItem} from '../common/models/media-item.model';
 import {
@@ -224,14 +227,22 @@ export class VideoComponent implements AfterViewInit {
         this.setPath(`${this.path}/gemini-spark-icon.svg`),
       );
 
+    const navigation = this.router.getCurrentNavigation();
     this.templateParams =
-      this.router.getCurrentNavigation()?.extras.state?.['templateParams'] ||
+      navigation?.extras.state?.['templateParams'] ||
       history.state?.templateParams;
     this.applyTemplateParameters();
 
-    const remixState = history.state?.remixState;
+    const remixState = navigation?.extras.state?.['remixState'];
     if (remixState) {
       this.applyRemixState(remixState);
+    }
+
+    const sourceAssets = navigation?.extras.state?.[
+      'sourceAssets'
+    ] as EnrichedSourceAsset[];
+    if (sourceAssets) {
+      this.applySourceAssets(sourceAssets);
     }
   }
 
@@ -918,9 +929,6 @@ export class VideoComponent implements AfterViewInit {
   }
 
   private updateModeAndNotify() {
-    const wasInExtensionMode = this.isExtensionMode;
-    const wasInConcatenateMode = this.isConcatenateMode;
-
     if (this._input1IsVideo && this._input2IsVideo) {
       if (!this.isConcatenateMode) {
         this.isConcatenateMode = true;
@@ -933,6 +941,21 @@ export class VideoComponent implements AfterViewInit {
         this.isExtensionMode = true;
         this.isConcatenateMode = false;
         this.searchRequest.prompt = '';
+        // Fallback to a model that supports video extension.
+        const isVeo3 = this.searchRequest.generationModel.startsWith('veo-3');
+        if (isVeo3) {
+          const veo2Model = this.generationModels.find(
+            m => m.value === 'veo-2.0-generate-001',
+          );
+          if (veo2Model) {
+            this.selectModel(veo2Model);
+            this._snackBar.open(
+              "Switched to Veo 2.0, as it's required for video extension.",
+              'OK',
+              {duration: 6000, panelClass: ['green-toast']},
+            );
+          }
+        }
         this._showModeNotification('extend');
       }
     } else {
@@ -1190,5 +1213,47 @@ export class VideoComponent implements AfterViewInit {
   clearReferenceImage(index: number, event: MouseEvent) {
     event.stopPropagation();
     this.referenceImages.splice(index, 1);
+  }
+
+  private applySourceAssets(sourceAssets: EnrichedSourceAsset[]): void {
+    if (!sourceAssets || sourceAssets.length === 0) {
+      return;
+    }
+
+    this.resetInputs();
+
+    let hasAddedReferenceImage = false;
+
+    for (const asset of sourceAssets) {
+      if (asset.role === 'image_reference_asset') {
+        if (this.referenceImages.length < 3) {
+          this.referenceImages.push({
+            sourceAssetId: asset.assetId,
+            previewUrl: asset.presignedUrl,
+          });
+          hasAddedReferenceImage = true;
+        }
+      } else {
+        // Assume other roles like 'input' are for start/end frames.
+        // Currently, we only process the first one.
+        if (!this.image1Preview) {
+          this.processInput(
+            // Construct a valid SourceAssetResponseDto from the EnrichedSourceAsset
+            {
+              id: asset.assetId,
+              gcsUri: asset.gcsUri,
+              presignedUrl: asset.presignedUrl,
+              // Add other required fields with default/null values
+            } as SourceAssetResponseDto,
+            1,
+          );
+        }
+      }
+    }
+
+    if (hasAddedReferenceImage) {
+      this.handleReferenceImageAdded();
+    }
+    this.updateModeAndNotify();
   }
 }
