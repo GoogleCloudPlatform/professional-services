@@ -169,10 +169,13 @@ class CreateVeoDto(BaseDto):
 
         if has_any_references:
             # Enforce model compatibility for any reference image usage
-            if model != GenerationModelEnum.VEO_2_GENERATE_EXP:
+            if (
+                model != GenerationModelEnum.VEO_2_GENERATE_EXP
+                and model != GenerationModelEnum.VEO_3_1_PREVIEW
+            ):
                 raise ValueError(
                     "Reference images are only supported by the "
-                    f"'{GenerationModelEnum.VEO_2_GENERATE_EXP.value}' model."
+                    f"'{GenerationModelEnum.VEO_3_1_PREVIEW.value}' model."
                 )
 
             # Check for other conflicting fields from the main DTO

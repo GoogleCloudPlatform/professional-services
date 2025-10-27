@@ -373,7 +373,6 @@ export class MediaGalleryComponent implements OnInit, OnDestroy, AfterViewInit {
     if (this.statusFilter) {
       filters['status'] = this.statusFilter;
     }
-    console.log('Searching gallery with filters:', filters);
     this.galleryService.setFilters(filters);
   }
 }

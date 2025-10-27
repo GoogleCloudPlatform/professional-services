@@ -34,6 +34,50 @@
   color: white !important;
 }
 
+/* --- New Styles for Source Assets Overlay --- */
+
+.source-assets-container {
+  position: absolute;
+  bottom: 8px;
+  left: 8px;
+  z-index: 20; /* Ensure it's on top of other elements */
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.source-assets-list {
+  display: flex;
+  gap: 8px;
+  padding: 4px;
+  background-color: rgba(0, 0, 0, 0.4);
+  border-radius: 8px;
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+}
+
+.source-asset-item {
+  position: relative;
+  width: 48px;
+  height: 48px;
+  border-radius: 4px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: transform 0.2s ease-in-out;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  &:hover {
+    transform: scale(1.05);
+  }
+}
+
 // Small devices (landscape phones, 576px and up)
 @media (min-width: 576px) {
 }

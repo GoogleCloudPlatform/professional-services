@@ -19,6 +19,8 @@ import {MatTableDataSource} from '@angular/material/table';
 import {MatPaginator} from '@angular/material/paginator';
 import {MatSort} from '@angular/material/sort';
 import {MediaTemplatesService} from './media-templates.service';
+import {MatSnackBar} from '@angular/material/snack-bar';
+import {ToastMessageComponent} from '../../common/components/toast-message/toast-message.component';
 import {MatDialog} from '@angular/material/dialog';
 import {MediaTemplateFormComponent} from './media-template-form/media-template-form.component';
 import {of} from 'rxjs';
@@ -51,6 +53,7 @@ export class MediaTemplatesManagementComponent
   constructor(
     private mediaTemplatesService: MediaTemplatesService,
     public dialog: MatDialog,
+    private snackBar: MatSnackBar,
   ) {
     this.dataSource = new MatTableDataSource<MediaTemplate>([]);
   }
@@ -99,9 +102,17 @@ export class MediaTemplatesManagementComponent
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        const saveObservable = result.id
-          ? this.mediaTemplatesService.updateMediaTemplate(result)
-          : this.mediaTemplatesService.createMediaTemplate(result);
+        let saveObservable;
+        if (result.id) {
+          const {id, mimeType, ...updatePayload} = result;
+          saveObservable = this.mediaTemplatesService.updateMediaTemplate(
+            id,
+            updatePayload,
+          );
+        } else {
+          saveObservable =
+            this.mediaTemplatesService.createMediaTemplate(result);
+        }
 
         // TODO: Replace with actual service call
         // For now, just simulating a successful save.
@@ -136,7 +147,30 @@ export class MediaTemplatesManagementComponent
   }
 
   deleteTemplate(template: MediaTemplate): void {
-    // TODO: Implement delete functionality, e.g., show a confirmation dialog
-    console.log('Deleting template:', template);
+    if (
+      template.id &&
+      confirm(`Are you sure you want to delete template "${template.name}"?`)
+    ) {
+      this.mediaTemplatesService.deleteMediaTemplate(template.id).subscribe({
+        next: () => {
+          this.fetchTemplates();
+          this.snackBar.openFromComponent(ToastMessageComponent, {
+            panelClass: ['green-toast'],
+            duration: 3000,
+            data: {
+              text: 'Template deleted successfully',
+              matIcon: 'check_circle',
+            },
+          });
+        },
+        error: (err: Error) => {
+          this.snackBar.openFromComponent(ToastMessageComponent, {
+            panelClass: ['red-toast'],
+            duration: 5000,
+            data: {text: 'Error deleting template', matIcon: 'error'},
+          });
+        },
+      });
+    }
   }
 }
