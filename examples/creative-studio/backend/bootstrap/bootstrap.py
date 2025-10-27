@@ -16,8 +16,8 @@ import logging
 
 # --- Setup Logging Globally First ---
 from src.common.base_dto import AspectRatioEnum
-from src.users.user_model import UserModel, UserRoleEnum
 from src.config.logger_config import setup_logging
+from src.users.user_model import UserModel, UserRoleEnum
 
 setup_logging()
 
@@ -31,7 +31,7 @@ from bootstrap.seed_data import (
     TEMPLATES,
 )  # pylint: disable=wrong-import-position
 from src.auth import firebase_client_service
-
+from src.common.schema.media_item_model import AssetRoleEnum
 from src.common.storage_service import GcsService
 from src.config.config_service import config_service
 from src.media_templates.repository.media_template_repository import (
@@ -39,6 +39,7 @@ from src.media_templates.repository.media_template_repository import (
 )
 from src.media_templates.schema.media_template_model import (
     GenerationParameters,
+    IndustryEnum,
     MediaTemplateModel,
 )
 from src.source_assets.repository.source_asset_repository import (
@@ -203,6 +204,8 @@ def seed_media_templates():
     """
     logger.info("--- Starting Media Template Seeding ---")
     template_repo = MediaTemplateRepository()
+    asset_repo = SourceAssetRepository()
+    workspace_repo = WorkspaceRepository()
 
     # 1. Upload all assets first
     uri_map = upload_assets_from_folder(
@@ -218,34 +221,101 @@ def seed_media_templates():
             logger.info(f"Template '{template_name}' already exists. Skipping.")
             continue
 
-        logger.info(f"Creating template: '{template_name}'")
+        logger.info(f"Processing template: '{template_name}'")
 
-        # Map local URIs to GCS URIs
+        # Map local URIs to GCS URIs and create system assets
         gcs_uris = [
             uri
             for local_uri in template_data.get("local_uris", [])
             if (uri := uri_map.get(local_uri)) is not None
         ]
 
-        if not gcs_uris:
+        thumbnail_gcs_uris = [
+            uri
+            for local_uri in template_data.get("local_thumbnail_uris", [])
+            if (uri := uri_map.get(local_uri)) is not None
+        ]
+
+        if not gcs_uris and template_data.get("local_uris"):
             logger.warning(
                 f"  - No assets found/uploaded for template '{template_name}'. Skipping."
             )
             continue
+
+        public_workspace = workspace_repo.get_public_workspace()
+        if not public_workspace:
+            logger.error(
+                "Public workspace not found. Cannot create system assets for templates."
+            )
+            return
+
+        new_source_asset_links = []
+        # We only care about the first GCS URI as the main media.
+        # The rest are considered input assets for generation.
+        main_gcs_uri = gcs_uris[0] if gcs_uris else None
+        input_assets_data = template_data.get("input_gcs_uris", [])
+
+        for asset_data in input_assets_data:
+            local_uri = asset_data.get("local_uri")
+            mime_type = asset_data.get("mime_type")
+            role = asset_data.get(
+                "role", AssetRoleEnum.INPUT
+            )  # Default to INPUT
+
+            if not local_uri or not mime_type:
+                logger.warning(
+                    f"  - Skipping invalid input asset data in '{template_name}': {asset_data}"
+                )
+                continue
+
+            gcs_uri = uri_map.get(local_uri)
+            if not gcs_uri:
+                logger.warning(
+                    f"  - GCS URI not found for local file '{local_uri}'."
+                )
+                continue
+
+            # Check if an asset with this GCS URI already exists
+            if asset_repo.find_by_filter(FieldFilter("gcs_uri", "==", gcs_uri)):
+                logger.info(
+                    f"  - Asset for '{local_uri}' already exists. Skipping asset creation."
+                )
+                continue
+
+            new_asset = SourceAssetModel(
+                workspace_id=public_workspace.id,
+                original_filename=local_uri,
+                gcs_uri=gcs_uri,
+                mime_type=mime_type,
+                scope=AssetScope.SYSTEM,
+                asset_type=AssetType.GENERIC_IMAGE,  # Default type for templates
+                user_id=get_admin_user(),
+                file_hash="",  # Not strictly needed for system assets
+            )
+            asset_repo.save(new_asset)
+            new_source_asset_links.append(
+                {"asset_id": new_asset.id, "role": role}
+            )
 
         # Create the Pydantic models
         gen_params = GenerationParameters(
             **template_data["generation_parameters"]
         )
         new_template = MediaTemplateModel(
+            id=template_data["id"],
             name=template_name,
             description=template_data["description"],
             mime_type=template_data["mime_type"],
-            industry=template_data.get("industry"),
+            industry=(
+                IndustryEnum(template_data["industry"])
+                if template_data.get("industry")
+                else None
+            ),
             brand=template_data.get("brand"),
             tags=template_data.get("tags", []),
-            gcs_uris=gcs_uris,
-            thumbnail_uris=[],  # Can be generated later if needed
+            gcs_uris=[main_gcs_uri] if main_gcs_uri else [],
+            thumbnail_uris=thumbnail_gcs_uris,
+            source_assets=new_source_asset_links or None,
             generation_parameters=gen_params,
         )
 

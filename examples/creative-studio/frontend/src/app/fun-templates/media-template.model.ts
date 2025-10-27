@@ -123,6 +123,14 @@ export interface GenerationParameters {
   durationSeconds?: number;
 }
 
+/** This mirrors the backend's `SourceAssetLinkResponse` */
+export interface EnrichedSourceAsset {
+  assetId: string;
+  role: string; // e.g., 'input', 'style_reference'
+  presignedUrl: string;
+  gcsUri: string;
+}
+
 export interface MediaTemplate {
   id: string; // Unique identifier for the template
   name: string;
@@ -135,6 +143,7 @@ export interface MediaTemplate {
   thumbnailUris?: string[];
   presignedUrls: string[];
   presignedThumbnailUrls?: string[];
+  enrichedSourceAssets?: EnrichedSourceAsset[];
   generationParameters: GenerationParameters; // All generator settings bundled
 }
 

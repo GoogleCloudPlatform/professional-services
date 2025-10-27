@@ -35,7 +35,10 @@ import {
   SourceMediaItemLink,
 } from '../common/models/search.model';
 import {MatSnackBar} from '@angular/material/snack-bar';
-import {GenerationParameters} from '../fun-templates/media-template.model';
+import {
+  EnrichedSourceAsset,
+  GenerationParameters,
+} from '../fun-templates/media-template.model';
 import {handleErrorSnackbar} from '../utils/handleErrorSnackbar';
 import {MediaItem} from '../common/models/media-item.model';
 import {
@@ -274,15 +277,22 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
         this.setPath(`${this.path}/mobile-white-gemini-spark-icon.svg`),
       );
 
-    const remixState =
-      this.router.getCurrentNavigation()?.extras.state?.['remixState'];
+    const navigation = this.router.getCurrentNavigation();
+    const remixState = navigation?.extras.state?.['remixState'];
+    const sourceAssets = navigation?.extras.state?.[
+      'sourceAssets'
+    ] as EnrichedSourceAsset[];
+
     if (remixState) {
       this.applyRemixState(remixState);
     } else {
       // Only apply template params if there's no remix state.
-      this.templateParams =
-        this.router.getCurrentNavigation()?.extras.state?.['templateParams'];
+      this.templateParams = navigation?.extras.state?.['templateParams'];
       this.applyTemplateParameters();
+    }
+
+    if (sourceAssets) {
+      this.applySourceAssets(sourceAssets);
     }
 
     this.activeWorkspaceId$ = this.workspaceStateService.activeWorkspaceId$;
@@ -806,5 +816,28 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       },
     };
     this.router.navigate(['/vto'], navigationExtras);
+  }
+
+  private applySourceAssets(sourceAssets: EnrichedSourceAsset[]): void {
+    if (!sourceAssets || sourceAssets.length === 0) {
+      return;
+    }
+
+    // Clear any existing inputs
+    this.sourceAssetId1 = null;
+    this.image1Preview = null;
+    this.sourceAssetId2 = null;
+    this.image2Preview = null;
+    this.sourceMediaItems = [];
+
+    // Assign the first source asset to the first input box
+    this.sourceAssetId1 = sourceAssets[0].assetId;
+    this.image1Preview = sourceAssets[0].presignedUrl;
+
+    // If there's a second source asset, assign it to the second box
+    if (sourceAssets.length > 1) {
+      this.sourceAssetId2 = sourceAssets[1].assetId;
+      this.image2Preview = sourceAssets[1].presignedUrl;
+    }
   }
 }
