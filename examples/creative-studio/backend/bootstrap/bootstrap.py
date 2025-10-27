@@ -198,6 +198,46 @@ def upload_assets_from_folder(
     return uri_map
 
 
+def upload_specific_assets(
+    local_filenames: set[str], local_folder: str, gcs_prefix: str
+) -> Dict[str, str]:
+    """
+    Uploads a specific list of files from a local folder to a GCS path.
+
+    Args:
+        local_filenames: A set of specific filenames to upload.
+        local_folder: The local directory containing assets.
+        gcs_prefix: The prefix (subfolder) in GCS to upload to.
+
+    Returns:
+        A dictionary mapping local filename to its new GCS URI.
+    """
+    gcs_service = GcsService()
+    uri_map = {}
+    logger.info(
+        f"Uploading {len(local_filenames)} specific assets from '{local_folder}' to GCS..."
+    )
+
+    abs_local_folder = os.path.join(SCRIPT_DIR, "assets", local_folder)
+
+    for filename in local_filenames:
+        local_path = os.path.join(abs_local_folder, filename)
+        if os.path.isfile(local_path):
+            destination_blob_name = f"{gcs_prefix}/{filename}"
+            mime_type, _ = mimetypes.guess_type(local_path)
+            mime_type = mime_type or "application/octet-stream"
+
+            gcs_uri = gcs_service.upload_file_to_gcs(  # type: ignore
+                local_path=local_path,
+                destination_blob_name=destination_blob_name,
+                mime_type=mime_type,
+            )
+            if gcs_uri:
+                uri_map[filename] = gcs_uri
+                logger.info(f"  - Uploaded {filename} to {gcs_uri}")
+    return uri_map
+
+
 def seed_media_templates():
     """
     Uploads media template assets and seeds the media_templates collection.
@@ -207,11 +247,8 @@ def seed_media_templates():
     asset_repo = SourceAssetRepository()
     workspace_repo = WorkspaceRepository()
 
-    # 1. Upload all assets first
-    uri_map = upload_assets_from_folder(
-        "media-template", "media_template_assets"
-    )
-    # 2. Iterate through template data and create documents
+    # 1. Identify which templates need to be created
+    templates_to_create = []
     for template_data in TEMPLATES:
         template_name = template_data["name"]
         existing = template_repo.find_by_filter(
@@ -219,8 +256,30 @@ def seed_media_templates():
         )
         if existing:
             logger.info(f"Template '{template_name}' already exists. Skipping.")
-            continue
+        else:
+            templates_to_create.append(template_data)
 
+    if not templates_to_create:
+        logger.info("All media templates are already seeded. Nothing to do.")
+        return
+
+    # 2. Collect all unique asset filenames needed for the new templates
+    required_filenames = set()
+    for template_data in templates_to_create:
+        required_filenames.update(template_data.get("local_uris", []))
+        required_filenames.update(template_data.get("local_thumbnail_uris", []))
+        for asset_info in template_data.get("input_gcs_uris", []):
+            if "local_uri" in asset_info:
+                required_filenames.add(asset_info["local_uri"])
+
+    # 3. Upload only the required assets
+    uri_map = upload_specific_assets(
+        required_filenames, "media-template", "media_template_assets"
+    )
+
+    # 4. Iterate through the new templates and create documents
+    for template_data in templates_to_create:
+        template_name = template_data["name"]
         logger.info(f"Processing template: '{template_name}'")
 
         # Map local URIs to GCS URIs and create system assets
@@ -275,27 +334,36 @@ def seed_media_templates():
                 )
                 continue
 
-            # Check if an asset with this GCS URI already exists
-            if asset_repo.find_by_filter(FieldFilter("gcs_uri", "==", gcs_uri)):
-                logger.info(
-                    f"  - Asset for '{local_uri}' already exists. Skipping asset creation."
-                )
-                continue
+            asset_id_to_link: str | None = None
+            existing_assets = asset_repo.find_by_filter(
+                FieldFilter("gcs_uri", "==", gcs_uri)
+            )
 
-            new_asset = SourceAssetModel(
-                workspace_id=public_workspace.id,
-                original_filename=local_uri,
-                gcs_uri=gcs_uri,
-                mime_type=mime_type,
-                scope=AssetScope.SYSTEM,
-                asset_type=AssetType.GENERIC_IMAGE,  # Default type for templates
-                user_id=get_admin_user(),
-                file_hash="",  # Not strictly needed for system assets
-            )
-            asset_repo.save(new_asset)
-            new_source_asset_links.append(
-                {"asset_id": new_asset.id, "role": role}
-            )
+            if existing_assets:
+                # If asset already exists, get its ID to link it.
+                asset_id_to_link = existing_assets[0].id
+                logger.info(
+                    f"  - Found existing asset for '{local_uri}'. Re-using ID: {asset_id_to_link}"
+                )
+            else:
+                # If asset does not exist, create it and get the new ID.
+                new_asset = SourceAssetModel(
+                    workspace_id=public_workspace.id,
+                    original_filename=local_uri,
+                    gcs_uri=gcs_uri,
+                    mime_type=mime_type,
+                    scope=AssetScope.SYSTEM,
+                    asset_type=AssetType.GENERIC_IMAGE,  # Default type for templates
+                    user_id=get_admin_user(),
+                    file_hash="",  # Not strictly needed for system assets
+                )
+                asset_repo.save(new_asset)
+                asset_id_to_link = new_asset.id
+
+            if asset_id_to_link:
+                new_source_asset_links.append(
+                    {"asset_id": asset_id_to_link, "role": role}
+                )
 
         # Create the Pydantic models
         gen_params = GenerationParameters(
