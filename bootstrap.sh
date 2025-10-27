@@ -235,8 +235,13 @@ setup_repo() {
         warn "Directory '$REPO_CLONE_DIR' already exists."; prompt "Do you want to use this existing directory? (y/n)"; read -r REPLY < /dev/tty
         if [[ ! $REPLY =~ ^[Yy]$ ]]; then fail "Please remove the directory or run the script from a different location."; fi
     else
-        info "Cloning a lightweight copy of the '$DEFAULT_BRANCH_NAME' branch into './${REPO_CLONE_DIR}'..."
-        git clone --single-branch --branch "$DEFAULT_BRANCH_NAME" --depth=1 "$GITHUB_REPO_URL"
+        info "Performing a sparse checkout of 'examples/creative-studio' into './${REPO_CLONE_DIR}'..."
+        git clone --filter=blob:none --no-checkout --depth 1 --sparse "$GITHUB_REPO_URL" "$REPO_CLONE_DIR"
+        cd "$REPO_CLONE_DIR"
+        git sparse-checkout set "examples/creative-studio"
+        git checkout
+        cd ..
+
         success "Repository cloned successfully."
     fi
 
