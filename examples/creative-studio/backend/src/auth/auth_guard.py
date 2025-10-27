@@ -68,7 +68,7 @@ def get_current_user(token: str = Depends(oauth2_scheme)) -> UserModel:
 
         email = decoded_token.get("email")
         name = decoded_token.get("name")
-        picture = decoded_token.get("picture")
+        picture = decoded_token.get("picture", "")
         token_info_hd = decoded_token.get("hd")
 
         # Restrict by particular organizations if it's a closed environment
