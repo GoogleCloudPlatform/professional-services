@@ -90,7 +90,3 @@ The server is run as a standard Spring Boot application using Maven.
     ```
 
     The server will start (by default on port `8081`) and will be ready to serve tools to your LLM.
-
-## 📄 License
-
-This project is licensed under the Apache 2.0 License. See the LICENSE file for details.
