@@ -1,0 +1,26 @@
+custom.firewallRestrictCacheSearchDatabasesPolicyRule:
+  action_type: DENY
+  condition: |-
+    resource.rules.exists(rule,
+      rule.priority < 2147483644 &&
+      rule.direction == 'INGRESS' &&
+      rule.match.srcIpRanges.exists(range, range == '0.0.0.0/0') &&
+      rule.match.layer4Configs.exists(l4config,
+        (l4config.ipProtocol == 'tcp' || l4config.ipProtocol == 'udp') &&
+        l4config.ports.exists(port,
+          port == '9200' || port == '9300' || port == '11211'
+          || port == '11214' || port == '11215' || port == '6379'
+        )
+      )
+    )
+  description: 'Ensure that cache and search database ports (Elasticsearch, Memcached,
+    Redis) are not accessible
+
+    from the Internet when using Firewall Policy Rule'
+  display_name: Restrict Firewall Policy rules allowing cache/search database port
+    access from the Internet
+  method_types:
+  - CREATE
+  - UPDATE
+  resource_types:
+  - compute.googleapis.com/FirewallPolicy

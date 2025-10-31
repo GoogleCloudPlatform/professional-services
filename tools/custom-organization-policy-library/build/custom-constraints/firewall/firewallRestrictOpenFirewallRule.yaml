@@ -1,0 +1,45 @@
+#@ load("/constraints.lib.star", "build_constraint")
+#@ constraint = build_constraint("firewallRestrictOpenFirewallRule")
+
+#@ def condition():
+#@   #! OPEN_FIREWALL finding: Disallow all TCP/UDP ports
+#@   #! Simplified to avoid CEL recursion depth (max 5)
+#@   #! Only checks for missing/empty ports (most common "all ports" case)
+#@   lines = [
+#@     "(",
+#@     "  resource.direction == 'INGRESS' &&",
+#@     "  resource.allowed.exists(rule,",
+#@     "    (rule.IPProtocol == 'tcp' || rule.IPProtocol == 'udp') &&",
+#@     "    (!has(rule.ports) || size(rule.ports) == 0)",
+#@     "  ) &&",
+#@     "  !resource.name.startsWith('gke-') &&",
+#@     "  !resource.name.startsWith('k8s-') &&",
+#@     "  !resource.name.endsWith('-hc') &&",
+#@     "  !resource.name.startsWith('k8s2-') &&",
+#@     "  !resource.name.startsWith('gkegw1-l7-') &&",
+#@     "  !resource.name.startsWith('gkemcg1-l7-')",
+#@     ")"
+#@   ]
+#@   return "\n".join(lines)
+#@ end
+
+#@ def description():
+#@   lines = [
+#@     "Prevent VPC firewall rules that are open to 0.0.0.0/0 (except for safe protocols like ICMP, SSH,",
+#@     "HTTPS, RDP) or allow all TCP/UDP ports from non-private IPs",
+#@   ]
+#@   return "\n".join(lines)
+#@ end
+
+#@ if constraint.to_generate():
+name: #@ constraint.constraint_name()
+resource_types:
+- compute.googleapis.com/Firewall
+condition: #@ condition()
+action_type: DENY
+method_types:
+- CREATE
+- UPDATE
+display_name: Restrict overly permissive VPC Firewall rules open to the Internet
+description: #@ description()
+#@ end

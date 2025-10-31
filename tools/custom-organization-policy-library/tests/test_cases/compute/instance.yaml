@@ -46,4 +46,4 @@ compute_instance_ip_forward:
       can-ip-forward: true
     expected_result:
       return_code: 1
-      stderr: constraints/compute.vmCanIpForward
+      stderr: 'constraints/compute.vmCanIpForward'

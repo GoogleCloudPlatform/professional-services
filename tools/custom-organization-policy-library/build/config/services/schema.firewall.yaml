@@ -44,7 +44,13 @@ firewall:
     bundles:
       pci-dss: false
       cis: false
-  firewallRestrictOpenWorldRule:
+  firewallRestrictPublicAccessRule:
+    #@schema/validation one_of=["default", "skip", "include", "skip-policy"]
+    generation: "default"
+    bundles:
+      pci-dss: false
+      cis: false
+  firewallRestrictPublicAccessPolicyRule:
     #@schema/validation one_of=["default", "skip", "include", "skip-policy"]
     generation: "default"
     bundles:
@@ -86,3 +92,187 @@ firewall:
     bundles:
       pci-dss: false
       cis: true
+  firewallRestrictSQLDatabasesRule:
+    #@schema/validation one_of=["default", "skip", "include", "skip-policy"]
+    generation: "default"
+    bundles:
+      pci-dss: false
+      cis: false
+    params:
+      #! Optional; when empty, no source ranges are allow‑listed (deny applies to all sources)
+      allowed_source_ranges:
+      - ""
+  firewallRestrictSQLDatabasesPolicyRule:
+    #@schema/validation one_of=["default", "skip", "include", "skip-policy"]
+    generation: "default"
+    bundles:
+      pci-dss: false
+      cis: false
+    params:
+      #! Optional; when empty, no source ranges are allow‑listed (deny applies to all sources)
+      allowed_source_ranges:
+      - ""
+  firewallRestrictNoSQLDatabasesRule:
+    #@schema/validation one_of=["default", "skip", "include", "skip-policy"]
+    generation: "default"
+    bundles:
+      pci-dss: false
+      cis: false
+    params:
+      #! Optional; when empty, no source ranges are allow‑listed (deny applies to all sources)
+      allowed_source_ranges:
+      - ""
+  firewallRestrictNoSQLDatabasesPolicyRule:
+    #@schema/validation one_of=["default", "skip", "include", "skip-policy"]
+    generation: "default"
+    bundles:
+      pci-dss: false
+      cis: false
+    params:
+      #! Optional; when empty, no source ranges are allow‑listed (deny applies to all sources)
+      allowed_source_ranges:
+      - ""
+  firewallRestrictCacheSearchDatabasesRule:
+    #@schema/validation one_of=["default", "skip", "include", "skip-policy"]
+    generation: "default"
+    bundles:
+      pci-dss: false
+      cis: false
+    params:
+      #! Optional; when empty, no source ranges are allow‑listed (deny applies to all sources)
+      allowed_source_ranges:
+      - ""
+  firewallRestrictCacheSearchDatabasesPolicyRule:
+    #@schema/validation one_of=["default", "skip", "include", "skip-policy"]
+    generation: "default"
+    bundles:
+      pci-dss: false
+      cis: false
+    params:
+      #! Optional; when empty, no source ranges are allow‑listed (deny applies to all sources)
+      allowed_source_ranges:
+      - ""
+  firewallRestrictInsecureProtocolsRule:
+    #@schema/validation one_of=["default", "skip", "include", "skip-policy"]
+    generation: "default"
+    bundles:
+      pci-dss: false
+      cis: false
+    params:
+      #! Optional; when empty, no source ranges are allow‑listed (deny applies to all sources)
+      allowed_source_ranges:
+      - ""
+  firewallRestrictInsecureProtocolsPolicyRule:
+    #@schema/validation one_of=["default", "skip", "include", "skip-policy"]
+    generation: "default"
+    bundles:
+      pci-dss: false
+      cis: false
+    params:
+      #! Optional; when empty, no source ranges are allow‑listed (deny applies to all sources)
+      allowed_source_ranges:
+      - ""
+  firewallRestrictDirectoryServicesRule:
+    #@schema/validation one_of=["default", "skip", "include", "skip-policy"]
+    generation: "default"
+    bundles:
+      pci-dss: false
+      cis: false
+    params:
+      #! Optional; when empty, no source ranges are allow‑listed (deny applies to all sources)
+      allowed_source_ranges:
+      - ""
+  firewallRestrictDirectoryServicesPolicyRule:
+    #@schema/validation one_of=["default", "skip", "include", "skip-policy"]
+    generation: "default"
+    bundles:
+      pci-dss: false
+      cis: false
+    params:
+      #! Optional; when empty, no source ranges are allow‑listed (deny applies to all sources)
+      allowed_source_ranges:
+      - ""
+  firewallRestrictNetworkServicesRule:
+    #@schema/validation one_of=["default", "skip", "include", "skip-policy"]
+    generation: "default"
+    bundles:
+      pci-dss: false
+      cis: false
+    params:
+      #! Optional; when empty, no source ranges are allow‑listed (deny applies to all sources)
+      allowed_source_ranges:
+      - ""
+  firewallRestrictNetworkServicesPolicyRule:
+    #@schema/validation one_of=["default", "skip", "include", "skip-policy"]
+    generation: "default"
+    bundles:
+      pci-dss: false
+      cis: false
+    params:
+      #! Optional; when empty, no source ranges are allow‑listed (deny applies to all sources)
+      allowed_source_ranges:
+      - ""
+  firewallRestrictMailProtocolsRule:
+    #@schema/validation one_of=["default", "skip", "include", "skip-policy"]
+    generation: "default"
+    bundles:
+      pci-dss: false
+      cis: false
+    params:
+      #! Optional; when empty, no source ranges are allow‑listed (deny applies to all sources)
+      allowed_source_ranges:
+      - ""
+  firewallRestrictMailProtocolsPolicyRule:
+    #@schema/validation one_of=["default", "skip", "include", "skip-policy"]
+    generation: "default"
+    bundles:
+      pci-dss: false
+      cis: false
+    params:
+      #! Optional; when empty, no source ranges are allow‑listed (deny applies to all sources)
+      allowed_source_ranges:
+      - ""
+  firewallRestrictManagementPortsRule:
+    #@schema/validation one_of=["default", "skip", "include", "skip-policy"]
+    generation: "default"
+    bundles:
+      pci-dss: false
+      cis: false
+    params:
+      #! Optional; when empty, no source ranges are allow‑listed (deny applies to all sources)
+      allowed_source_ranges:
+      - ""
+  firewallRestrictManagementPortsPolicyRule:
+    #@schema/validation one_of=["default", "skip", "include", "skip-policy"]
+    generation: "default"
+    bundles:
+      pci-dss: false
+      cis: false
+    params:
+      #! Optional; when empty, no source ranges are allow‑listed (deny applies to all sources)
+      allowed_source_ranges:
+      - ""
+  firewallRestrictOpenFirewallRule:
+    #@schema/validation one_of=["default", "skip", "include", "skip-policy"]
+    generation: "default"
+    bundles:
+      pci-dss: false
+      cis: false
+  firewallRestrictOpenFirewallPolicyRule:
+    #@schema/validation one_of=["default", "skip", "include", "skip-policy"]
+    generation: "default"
+    bundles:
+      pci-dss: false
+      cis: false
+  firewallRestrictExplicitAllPortsRule:
+    #@schema/validation one_of=["default", "skip", "include", "skip-policy"]
+    generation: "default"
+    bundles:
+      pci-dss: false
+      cis: false
+  firewallRestrictExplicitAllPortsPolicyRule:
+    #@schema/validation one_of=["default", "skip", "include", "skip-policy"]
+    generation: "default"
+    bundles:
+      pci-dss: false
+      cis: false

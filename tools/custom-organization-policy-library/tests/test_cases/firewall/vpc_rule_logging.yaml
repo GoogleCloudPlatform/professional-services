@@ -9,7 +9,7 @@ shared_config:
       rules: tcp:22
       description: Testing firewall rule
       enable-logging: true
-      source-ranges: 192.168.1.0/24
+      source-ranges: 192.168.0.0/16
   default_markers:
     - firewall
     - firewall-vpc-rule
@@ -26,4 +26,4 @@ firewall_vpc_logging_disabled:
       enable-logging: false
     expected_result:
       return_code: 1
-      stderr: "customConstraints/custom.firewallEnforceRuleLogging"
+      stderr: 'customConstraints/custom\.firewallEnforceRuleLogging'
