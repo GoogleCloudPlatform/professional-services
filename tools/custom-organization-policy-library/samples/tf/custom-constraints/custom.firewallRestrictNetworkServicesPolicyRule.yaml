@@ -14,10 +14,8 @@ custom.firewallRestrictNetworkServicesPolicyRule:
         l4config.ports.exists(port, port == '53' || port == '137' || port == '138' || port == '139')
       )
     )
-  description: 'Ensure that network infrastructure services (DNS, NetBIOS) are not
-    accessible from the Internet when
-
-    using Firewall Policy Rule'
+  description: Ensure that network infrastructure services (DNS, NetBIOS) are not
+    accessible from the Internet when using Firewall Policy Rule
   display_name: Restrict Firewall Policy rules allowing network service access from
     the Internet
   method_types:

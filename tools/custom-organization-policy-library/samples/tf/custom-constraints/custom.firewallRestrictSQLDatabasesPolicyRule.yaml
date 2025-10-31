@@ -16,10 +16,8 @@ custom.firewallRestrictSQLDatabasesPolicyRule:
         l4config.ports.exists(port, port == '2483' || port == '2484' || port == '5432')
       )
     )
-  description: 'Ensure that SQL database ports (MySQL, Oracle, PostgreSQL) are not
-    accessible from the Internet when
-
-    using Firewall Policy Rule'
+  description: Ensure that SQL database ports (MySQL, Oracle, PostgreSQL) are not
+    accessible from the Internet when using Firewall Policy Rule
   display_name: Restrict Firewall Policy rules allowing SQL database port access from
     the Internet
   method_types:

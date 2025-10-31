@@ -11,10 +11,8 @@ custom.firewallRestrictSQLDatabasesRule:
             rule.IPProtocol == 'udp' && port in ['2483', '2484', '5432']
         )
       )
-  description: 'Ensure that SQL database ports (MySQL, Oracle, PostgreSQL) are not
-    accessible from the Internet when
-
-    using VPC Firewall Rule'
+  description: Ensure that SQL database ports (MySQL, Oracle, PostgreSQL) are not
+    accessible from the Internet when using VPC Firewall Rule
   display_name: Restrict VPC Firewall rules allowing SQL database port access from
     the Internet
   method_types:
