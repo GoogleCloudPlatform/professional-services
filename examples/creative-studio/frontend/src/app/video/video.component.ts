@@ -99,7 +99,7 @@ export class VideoComponent implements AfterViewInit {
   // This object holds the current state of all user selections.
   searchRequest: VeoRequest = {
     prompt: '',
-    generationModel: 'veo-3.0-generate-001',
+    generationModel: 'veo-3.1-generate-preview',
     aspectRatio: '16:9',
     numberOfMedia: 4,
     style: null,
@@ -118,6 +118,10 @@ export class VideoComponent implements AfterViewInit {
 
   // --- Dropdown Options ---
   generationModels = [
+    {
+      value: 'veo-3.1-generate-preview',
+      viewValue: 'Veo 3.1 \n (Beta Audio)',
+    },
     {
       value: 'veo-3.0-generate-001',
       viewValue: 'Veo 3 Quality \n (Beta Audio)',
@@ -415,16 +419,16 @@ export class VideoComponent implements AfterViewInit {
       !this.isExtensionMode &&
       !this.isConcatenateMode
     ) {
-      const veo2Model = this.generationModels.find(
-        m => m.value === 'veo-2.0-generate-001',
+      const veo31Model = this.generationModels.find(
+        m => m.value === 'veo-3.1-generate-preview',
       );
-      if (veo2Model) {
-        this.selectModel(veo2Model);
+      if (veo31Model) {
+        this.selectModel(veo31Model);
         this._snackBar.openFromComponent(ToastMessageComponent, {
           panelClass: ['green-toast'],
           duration: 8000,
           data: {
-            text: "Veo 3 Fast doesn't support images as input, so we've switched to Veo 2 for you.",
+            text: "Veo 3 doesn't support images as input, so we've switched to Veo 3.1 for you.",
             matIcon: 'info_outline',
           },
         });
@@ -1166,16 +1170,16 @@ export class VideoComponent implements AfterViewInit {
         this._snackBar.open(snackbarMessage, 'OK', {duration: 5000});
       }
 
-      const expModel = this.generationModels.find(
-        m => m.value === 'veo-2.0-generate-exp',
+      const veo31Model = this.generationModels.find(
+        m => m.value === 'veo-3.1-generate-preview',
       );
-      if (expModel) {
-        this.selectModel(expModel);
+      if (veo31Model) {
+        this.selectModel(veo31Model);
         this._snackBar.openFromComponent(ToastMessageComponent, {
           panelClass: ['green-toast'],
           duration: 8000,
           data: {
-            text: "We've switched to the Veo 2 Exp model for you, as it's the only one that supports reference images.",
+            text: "We've switched to the Veo 3.1 model for you, as this one supports reference images.",
             matIcon: 'info_outline',
           },
         });

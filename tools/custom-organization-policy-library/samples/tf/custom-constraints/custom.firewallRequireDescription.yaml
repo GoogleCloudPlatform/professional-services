@@ -10,10 +10,8 @@ custom.firewallRequireDescription:
       !resource.name.startsWith("gkegw1-l7-") &&
       !resource.name.startsWith("gkemcg1-l7-")
     )
-  description: 'Prevent the creation of VPC firewall rule that does not have description
-    provided. Description can
-
-    be used for auditing to refer to security control'
+  description: Prevent the creation of VPC firewall rule that does not have description
+    provided. Description can be used for auditing to refer to security control
   display_name: Require description on Firewall rule
   method_types:
   - CREATE

@@ -47,8 +47,13 @@ Just run this script which has a step by step approach for you to deploy the inf
 curl https://raw.githubusercontent.com/GoogleCloudPlatform/professional-services/refs/heads/main/examples/creative-studio/bootstrap.sh | bash
 ```
 
-For better guidance, we recorded a video to showcase how to deploy Creative Studio in a completely new and fresh GCP Account:
-https://the-deploy-example-video
+For better guidance, [we recorded a video](./screenshots/how_to_deploy_creative_studio.mp4) to showcase how to deploy Creative Studio in a completely new and fresh GCP Account.
+
+<video controls autoplay loop width="100%" style="max-width: 1200px;">
+  <source src="./screenshots/how_to_deploy_creative_studio.mp4" type="video/mp4">
+  Your browser does not support the video tag. You can <a href="./screenshots/how_to_deploy_creative_studio.mp4">download the video here</a>.
+</video>
+
 
 > **IMPORTANT:** In order to run this app, you will have to enable the [Vertex AI API](https://console.developers.google.com/apis/api/aiplatform.googleapis.com/overview) and the [IAM Service Account Credentials API](https://console.developers.google.com/apis/api/iamcredentials.googleapis.com/overview).
 

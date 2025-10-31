@@ -101,6 +101,10 @@ def get_current_user(token: str = Depends(oauth2_scheme)) -> UserModel:
                 detail="Could not create or retrieve user profile.",
             )
 
+        if not user_doc.picture:
+            user_doc.picture = picture
+            user_service.user_repo.update(user_doc.id, user_doc.model_dump())
+
         return user_doc
 
     except auth.ExpiredIdTokenError:
