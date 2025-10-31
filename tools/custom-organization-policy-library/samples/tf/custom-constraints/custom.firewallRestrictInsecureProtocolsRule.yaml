@@ -10,10 +10,8 @@ custom.firewallRestrictInsecureProtocolsRule:
             rule.IPProtocol == 'tcp' && port in ['21', '23', '80']
         )
       )
-  description: 'Ensure that insecure legacy protocols (Telnet, FTP, HTTP) are not
-    accessible from the Internet when
-
-    using VPC Firewall Rule'
+  description: Ensure that insecure legacy protocols (Telnet, FTP, HTTP) are not accessible
+    from the Internet when using VPC Firewall Rule
   display_name: Restrict VPC Firewall rules allowing insecure protocol access from
     the Internet
   method_types:

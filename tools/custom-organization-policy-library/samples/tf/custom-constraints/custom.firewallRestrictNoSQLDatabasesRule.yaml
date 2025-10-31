@@ -11,10 +11,8 @@ custom.firewallRestrictNoSQLDatabasesRule:
             port in ["7000", "7001", "7199", "8888", "9042", "9160", "61620", "61621", "27017", "27018", "27019"]
         )
       )
-  description: 'Ensure that NoSQL database ports (Cassandra, MongoDB) are not accessible
-    from the Internet when
-
-    using Firewall Policy Rule'
+  description: Ensure that NoSQL database ports (Cassandra, MongoDB) are not accessible
+    from the Internet when using Firewall Policy Rule
   display_name: Restrict VPC Firewall rules allowing NoSQL database port access from
     the Internet
   method_types:

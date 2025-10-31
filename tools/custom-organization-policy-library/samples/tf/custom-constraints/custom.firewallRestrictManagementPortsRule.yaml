@@ -11,10 +11,8 @@ custom.firewallRestrictManagementPortsRule:
             port in ['9090']
         )
       )
-  description: 'Ensure that management interfaces (Cisco Secure WebSM) are not accessible
-    from the Internet when
-
-    using VPC Firewall Rule'
+  description: Ensure that management interfaces (Cisco Secure WebSM) are not accessible
+    from the Internet when using VPC Firewall Rule
   display_name: Restrict VPC Firewall rules allowing management port access from the
     Internet
   method_types:

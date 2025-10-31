@@ -13,10 +13,8 @@ custom.firewallRestrictCacheSearchDatabasesPolicyRule:
         )
       )
     )
-  description: 'Ensure that cache and search database ports (Elasticsearch, Memcached,
-    Redis) are not accessible
-
-    from the Internet when using Firewall Policy Rule'
+  description: Ensure that cache and search database ports (Elasticsearch, Memcached,
+    Redis) are not accessible from the Internet when using Firewall Policy Rule
   display_name: Restrict Firewall Policy rules allowing cache/search database port
     access from the Internet
   method_types:
