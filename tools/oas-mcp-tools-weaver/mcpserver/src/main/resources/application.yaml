@@ -1,0 +1,21 @@
+server:
+    port: 8081
+spring:
+    ai:
+        mcp:
+            server:
+                capabilities.prompt: true
+    application:
+        name: mcpserver
+logging:
+    level:
+        poc.google.mcpserver.tool.DynamicOpenApiToolCallbackProvider: DEBUG
+
+management:
+    endpoints:
+        web:
+            exposure:
+                include: "*"
+
+api:
+    envUrl: ${API_ENV_URL}
