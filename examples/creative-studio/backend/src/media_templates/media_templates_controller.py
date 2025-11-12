@@ -14,17 +14,16 @@
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
+from src.auth.auth_guard import RoleChecker, get_current_user
+from src.common.dto.pagination_response_dto import PaginationResponseDto
 from src.media_templates.dto.media_template_response_dto import (
     MediaTemplateResponse,
 )
-from src.common.dto.pagination_response_dto import PaginationResponseDto
-from src.users.user_model import UserRoleEnum
-from src.media_templates.media_templates_service import MediaTemplateService
-from src.auth.auth_guard import RoleChecker
-
-from src.media_templates.schema.media_template_model import MediaTemplateModel
 from src.media_templates.dto.template_search_dto import TemplateSearchDto
 from src.media_templates.dto.update_template_dto import UpdateTemplateDto
+from src.media_templates.media_templates_service import MediaTemplateService
+from src.media_templates.schema.media_template_model import MediaTemplateModel
+from src.users.user_model import UserModel, UserRoleEnum
 
 # Define role checkers for convenience
 admin_only = Depends(RoleChecker(allowed_roles=[UserRoleEnum.ADMIN]))
@@ -46,15 +45,18 @@ router = APIRouter(
     status_code=status.HTTP_201_CREATED,
     dependencies=[admin_only],
 )
-def create_template(
+async def create_template(
     media_item_id: str,
     service: MediaTemplateService = Depends(),
+    current_user: UserModel = Depends(get_current_user),
 ):
     """
     Creates a new template by copying and enhancing data from an existing MediaItem.
     (Admin role required)
     """
-    template = service.create_template_from_media_item(media_item_id)
+    template = await service.create_template_from_media_item(
+        media_item_id, current_user
+    )
     if not template:
         raise HTTPException(
             status_code=404, detail="Source MediaItem not found."

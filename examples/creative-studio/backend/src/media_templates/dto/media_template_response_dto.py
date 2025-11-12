@@ -12,8 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import List
+from typing import List, Optional
 
+from src.galleries.dto.gallery_response_dto import (
+    SourceAssetLinkResponse,
+    SourceMediaItemLinkResponse,
+)
 from src.media_templates.schema.media_template_model import MediaTemplateModel
 
 
@@ -26,3 +30,4 @@ class MediaTemplateResponse(MediaTemplateModel):
 
     presigned_urls: List[str] = []
     presigned_thumbnail_urls: List[str] = []
+    enriched_source_assets: Optional[List[SourceAssetLinkResponse]] = []
