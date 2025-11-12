@@ -1,7 +1,7 @@
 shared_config:
   command:  gcloud storage buckets create gs://{{ identifier }}-cgk
   teardown_command: gcloud storage buckets delete  gs://{{ identifier }}-cgk
-  default_command_flags: 
+  default_command_flags:
     location: asia-southeast2
     uniform-bucket-level-access: true
     retention-period: 30d

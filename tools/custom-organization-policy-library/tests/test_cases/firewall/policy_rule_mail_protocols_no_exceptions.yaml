@@ -1,0 +1,24 @@
+shared_config:
+  command:  gcloud compute network-firewall-policies rules create 1000 --firewall-policy cuop-fw-policy --global-firewall-policy
+  teardown_command: gcloud compute network-firewall-policies rules delete 1000 --firewall-policy cuop-fw-policy --global-firewall-policy
+  default_command_flags:
+      action: ALLOW
+      direction: INGRESS
+      enable-logging: true
+  default_markers:
+    - firewall
+    - firewall-policy
+    - mail-protocols
+    - firewall_no_exceptions
+
+# With no allowed_source_ranges, SMTP from private ranges should be denied
+
+firewall_policy_smtp_private_denied_when_no_exceptions:
+  steps:
+  - command_flags:
+      layer4-configs: tcp:25
+      src-ip-ranges: 10.0.0.0/8
+    expected_result:
+      return_code: 1
+      stderr: 'customConstraints/custom\.firewallRestrictMailProtocolsPolicyRule'
+

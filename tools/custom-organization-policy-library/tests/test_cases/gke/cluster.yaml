@@ -1,7 +1,7 @@
 shared_config:
   command: gcloud container clusters create  {{ identifier }} --region=asia-southeast2
   teardown_command: gcloud container clusters delete {{ identifier }} --region=asia-southeast2
-  default_command_flags: 
+  default_command_flags:
     enable-basic-auth: false
     cluster-version: latest
     release-channel: regular
@@ -25,8 +25,8 @@ shared_config:
     enable-shielded-nodes: true
     security-group: gke-security-groups@vannick.altostrat.com
     binauthz-evaluation-mode: PROJECT_SINGLETON_POLICY_ENFORCE
-    boot-disk-kms-key: projects/{{ project }}/locations/asia-southeast2/keyRings/{{ prefix }}-key-ring-1/cryptoKeys/{{ prefix }}-key-1 
-    database-encryption-key: projects/{{ project }}/locations/asia-southeast2/keyRings/{{ prefix }}-key-ring-1/cryptoKeys/{{ prefix }}-key-1 
+    boot-disk-kms-key: projects/{{ project }}/locations/asia-southeast2/keyRings/{{ prefix }}-key-ring-1/cryptoKeys/{{ prefix }}-key-1
+    database-encryption-key: projects/{{ project }}/locations/asia-southeast2/keyRings/{{ prefix }}-key-ring-1/cryptoKeys/{{ prefix }}-key-1
     enable-confidential-nodes: true
     shielded-secure-boot: true
     shielded-integrity-monitoring: true
@@ -45,7 +45,7 @@ gke_no_private_endpoint:
       enable-private-endpoint: false
     expected_result:
       return_code: 1
-      stderr: customConstraints/custom.gkeRequirePrivateEndpoint
+      stderr: 'customConstraints/custom\.gkeRequirePrivateEndpoint'
 
 gke_absent_private_endpoint:
   steps:
@@ -53,7 +53,7 @@ gke_absent_private_endpoint:
       enable-private-endpoint: absent
     expected_result:
       return_code: 1
-      stderr: customConstraints/custom.gkeRequirePrivateEndpoint
+      stderr: 'customConstraints/custom\.gkeRequirePrivateEndpoint'
 
 gke_no_boot_disk_encryption:
   steps:
@@ -61,7 +61,7 @@ gke_no_boot_disk_encryption:
       boot-disk-kms-key: absent
     expected_result:
       return_code: 1
-      stderr: customConstraints/custom.gkeRequireNodePoolCMEKEncryption
+      stderr: 'customConstraints/custom\.gkeRequireNodePoolCMEKEncryption'
 
 gke_no_secure_boot:
   steps:
@@ -69,7 +69,7 @@ gke_no_secure_boot:
       shielded-secure-boot: false
     expected_result:
       return_code: 1
-      stderr: customConstraints/custom.gkeRequireSecureBoot
+      stderr: 'customConstraints/custom\.gkeRequireSecureBoot'
 
 gke_absent_secure_boot:
   steps:
@@ -78,4 +78,4 @@ gke_absent_secure_boot:
       shielded-integrity-monitoring: absent
     expected_result:
       return_code: 1
-      stderr: customConstraints/custom.gkeRequireSecureBoot
+      stderr: 'customConstraints/custom\.gkeRequireSecureBoot'
