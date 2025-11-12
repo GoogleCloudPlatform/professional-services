@@ -27,7 +27,7 @@ cloudbuild:
   cloudbuildAllowedNetworkPeering:
     params:
       peered_network_ranges:
-      - "10.0.0.0/24" 
+      - "10.0.0.0/24"
       - "10.0.1.0/24"
   cloudbuildAllowedPubSubTopic:
     params:
@@ -106,10 +106,10 @@ dataproc:
 firewall:
   firewallEnforceNamingConvention:
     params:
-      name_regex: "^(allow|deny)-(all|rdp|ssh|tcp|udp|icmp|custom)[a-z0-9-]*"
-  firewallRestrictOpenWorldRule:
-    generation: "skip-policy" #! Not needed for testing
-  firewallRestrictRule: 
+      name_regex: "^(allow|deny)-(all|rdp|ssh|tcp|udp|icmp|custom|insecure|open|network|directory|mail|nosql-db|sql-db|mgmt|cache-search-db)[a-z0-9-]*"
+  firewallRestrictPublicAccessRule:
+    generation: "default"
+  firewallRestrictRule:
     generation: "skip-policy" #! Not needed for testing
     params:
       direction: "INGRESS"
@@ -119,6 +119,120 @@ firewall:
       destination_ranges:
       - "192.168.32.0/24"
       - "10.16.0.0/16"
+  firewallRestrictSQLDatabasesPolicyRule:
+    params:
+      allowed_source_ranges:
+      - "10.0.0.0/8"
+      - "172.16.0.0/12"
+      - "192.168.0.0/16"
+      - "35.235.240.0/20"
+  firewallRestrictNoSQLDatabasesPolicyRule:
+    params:
+      allowed_source_ranges:
+      - "10.0.0.0/8"
+      - "172.16.0.0/12"
+      - "192.168.0.0/16"
+      - "35.235.240.0/20"
+  firewallRestrictSQLDatabasesRule:
+    params:
+      allowed_source_ranges:
+      - "10.0.0.0/8"
+      - "172.16.0.0/12"
+      - "192.168.0.0/16"
+      - "35.235.240.0/20"
+  firewallRestrictNoSQLDatabasesRule:
+    params:
+      allowed_source_ranges:
+      - "10.0.0.0/8"
+      - "172.16.0.0/12"
+      - "192.168.0.0/16"
+      - "35.235.240.0/20"
+  firewallRestrictCacheSearchDatabasesRule:
+    params:
+      allowed_source_ranges:
+      - "10.0.0.0/8"
+      - "172.16.0.0/12"
+      - "192.168.0.0/16"
+      - "35.235.240.0/20"
+  firewallRestrictCacheSearchDatabasesPolicyRule:
+    params:
+      allowed_source_ranges:
+      - "10.0.0.0/8"
+      - "172.16.0.0/12"
+      - "192.168.0.0/16"
+      - "35.235.240.0/20"
+  firewallRestrictInsecureProtocolsRule:
+    params:
+      allowed_source_ranges:
+      - "10.0.0.0/8"
+      - "172.16.0.0/12"
+      - "192.168.0.0/16"
+      - "35.235.240.0/20"
+  firewallRestrictInsecureProtocolsPolicyRule:
+    params:
+      allowed_source_ranges:
+      - "10.0.0.0/8"
+      - "172.16.0.0/12"
+      - "192.168.0.0/16"
+      - "35.235.240.0/20"
+  firewallRestrictDirectoryServicesRule:
+    params:
+      allowed_source_ranges:
+      - "10.0.0.0/8"
+      - "172.16.0.0/12"
+      - "192.168.0.0/16"
+      - "35.235.240.0/20"
+  firewallRestrictDirectoryServicesPolicyRule:
+    params:
+      allowed_source_ranges:
+      - "10.0.0.0/8"
+      - "172.16.0.0/12"
+      - "192.168.0.0/16"
+      - "35.235.240.0/20"
+  firewallRestrictNetworkServicesRule:
+    params:
+      allowed_source_ranges:
+      - "10.0.0.0/8"
+      - "172.16.0.0/12"
+      - "192.168.0.0/16"
+      - "35.235.240.0/20"
+  firewallRestrictNetworkServicesPolicyRule:
+    params:
+      allowed_source_ranges:
+      - "10.0.0.0/8"
+      - "172.16.0.0/12"
+      - "192.168.0.0/16"
+      - "35.235.240.0/20"
+  firewallRestrictMailProtocolsRule:
+    params:
+      allowed_source_ranges:
+      - "10.0.0.0/8"
+      - "172.16.0.0/12"
+      - "192.168.0.0/16"
+      - "35.235.240.0/20"
+  firewallRestrictMailProtocolsPolicyRule:
+    params:
+      allowed_source_ranges:
+      - "10.0.0.0/8"
+      - "172.16.0.0/12"
+      - "192.168.0.0/16"
+      - "35.235.240.0/20"
+  firewallRestrictManagementPortsRule:
+    params:
+      allowed_source_ranges:
+      - "10.0.0.0/8"
+      - "172.16.0.0/12"
+      - "192.168.0.0/16"
+      - "35.235.240.0/20"
+  firewallRestrictManagementPortsPolicyRule:
+    params:
+      allowed_source_ranges:
+      - "10.0.0.0/8"
+      - "172.16.0.0/12"
+      - "192.168.0.0/16"
+      - "35.235.240.0/20"
+  firewallRestrictOpenFirewallRule: {}
+  firewallRestrictOpenFirewallPolicyRule: {}
 dns:
   dnsAllowedSigningAlgorithms:
     params:
@@ -131,7 +245,7 @@ gke:
       - "COS_CONTAINERD"
   gkeAllowedReleaseChannels:
     params:
-      release_channels: 
+      release_channels:
       - "REGULAR"
       - "STABLE"
 iam:

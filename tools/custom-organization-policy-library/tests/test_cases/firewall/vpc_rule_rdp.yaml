@@ -16,14 +16,14 @@ shared_config:
 firewall_vpc_allowed_rdp_rule_192:
   steps:
   - command_flags:
-      source-ranges: 192.168.1.0/24
+      source-ranges: 192.168.0.0/16
     expected_result:
       return_code: 0
 
 firewall_vpc_allowed_rdp_rule_10:
   steps:
   - command_flags:
-      source-ranges: 10.0.1.0/24
+      source-ranges: 10.0.0.0/8
     expected_result:
       return_code: 0
 
@@ -40,7 +40,7 @@ firewall_vpc_rdp_rule_0_0_0_0:
       source-ranges: 0.0.0.0/0
     expected_result:
       return_code: 1
-      stderr: "customConstraints/custom.firewallRestrictRdpRule|customConstraints/custom.firewallRestrictOpenWorldRule"
+      stderr: 'customConstraints/custom\.firewallRestrictRdpRule|customConstraints/custom\.firewallRestrictPublicAccessRule'
 
 firewall_vpc_rdp_rule_1_0_0_0:
   steps:
@@ -48,4 +48,4 @@ firewall_vpc_rdp_rule_1_0_0_0:
       source-ranges: 1.0.0.0/32
     expected_result:
       return_code: 1
-      stderr: "customConstraints/custom.firewallRestrictRdpRule"
+      stderr: 'customConstraints/custom\.firewallRestrictRdpRule'

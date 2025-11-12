@@ -1,0 +1,55 @@
+#@ load("/constraints.lib.star", "build_constraint")
+#@ constraint = build_constraint("firewallRestrictNoSQLDatabasesPolicyRule")
+
+#@ def condition(allowed_source_ranges):
+#@   #! NoSQL Databases
+#@   #! Cassandra: TCP 7000-7001, 7199, 8888, 9042, 9160, 61620-61621
+#@   #! MongoDB: TCP 27017-27019
+#@   #! Deny unless every source IP range is explicitly allow-listed
+#@   #! Using flattened structure to avoid CEL recursion depth limit (5)
+#@   sanitized_allowed_ranges = [rng for rng in allowed_source_ranges if rng] or []
+#@   ports = ['7000', '7001', '7199', '8888', '9042', '9160', '61620', '61621', '27017', '27018', '27019']
+#@   # Break port checks into groups to keep lines under 120 chars
+#@   port_checks = ["port == '" + p + "'" for p in ports]
+#@   port_line1 = " || ".join(port_checks[0:5])  # First 5 ports
+#@   port_line2 = " || ".join(port_checks[5:])   # Remaining ports
+#@
+#@   lines = [
+#@     "resource.rules.exists(rule,",
+#@     "  rule.priority < 2147483644 &&",
+#@     "  rule.direction == 'INGRESS' &&",
+#@     "  !rule.match.srcIpRanges.all(ipRange,",
+#@     "    ipRange in " + str(sanitized_allowed_ranges),
+#@     "  ) &&",
+#@     "  rule.match.layer4Configs.exists(l4config,",
+#@     "    l4config.ipProtocol == 'tcp' &&",
+#@     "    l4config.ports.exists(port,",
+#@     "      " + port_line1 + " ||",
+#@     "      " + port_line2,
+#@     "    )",
+#@     "  )",
+#@     ")"
+#@   ]
+#@   return "\n".join(lines)
+#@ end
+
+#@ def description():
+#@   lines = [
+#@     "Ensure that NoSQL database ports (Cassandra, MongoDB) are not accessible from the Internet when",
+#@     "using Firewall Policy Rule",
+#@   ]
+#@   return "\n".join(lines)
+#@ end
+
+#@ if constraint.to_generate():
+name: #@ constraint.constraint_name()
+resource_types:
+- compute.googleapis.com/FirewallPolicy
+condition: #@ condition(constraint.params().allowed_source_ranges)
+action_type: DENY
+method_types:
+- CREATE
+- UPDATE
+display_name: Restrict Firewall Policy rules allowing NoSQL database port access from the Internet
+description: #@ description()
+#@ end
