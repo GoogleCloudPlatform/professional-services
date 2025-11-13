@@ -4,9 +4,7 @@ custom.firewallRestrictNetworkServicesPolicyRule:
     resource.rules.exists(rule,
       rule.priority < 2147483644 &&
       rule.direction == 'INGRESS' &&
-      !rule.match.srcIpRanges.all(ipRange,
-          ipRange in ["10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16", "35.235.240.0/20"]
-      ) &&
+      rule.match.srcIpRanges.exists(range, range == '0.0.0.0/0') &&
       rule.match.layer4Configs.exists(l4config,
         l4config.ipProtocol == 'tcp' &&
         l4config.ports.exists(port, port == '53' || port == '137' || port == '138' || port == '139') ||
@@ -14,12 +12,12 @@ custom.firewallRestrictNetworkServicesPolicyRule:
         l4config.ports.exists(port, port == '53' || port == '137' || port == '138' || port == '139')
       )
     )
-  description: Ensure that network infrastructure services (DNS, NetBIOS) are not
-    accessible from the Internet when using Firewall Policy Rule
-  display_name: Restrict Firewall Policy rules allowing network service access from
-    the Internet
+  description:
+    Ensure that network infrastructure services (DNS, NetBIOS) are not accessible from any source when using Firewall
+    Policy Rule
+  display_name: Restrict Firewall Policy rules allowing network service access from any source
   method_types:
-  - CREATE
-  - UPDATE
+    - CREATE
+    - UPDATE
   resource_types:
-  - compute.googleapis.com/FirewallPolicy
+    - compute.googleapis.com/FirewallPolicy

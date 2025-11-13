@@ -46,6 +46,8 @@ build-tf: clean constraints-tf policies-tf
 
 .PHONY: all
 all: clean build build-tf
+	prettier $(OUTPUT_GCLOUD) -c .prettierrc --write --prose-wrap always
+	prettier $(OUTPUT_TF) -c .prettierrc --write --prose-wrap always
 
 .PHONY: simulate
 simulate: clean constraints policies

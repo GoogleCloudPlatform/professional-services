@@ -1,10 +1,10 @@
 name: organizations/11111111/customConstraints/custom.gkeDisableAlphaCluster
 resource_types:
-- container.googleapis.com/Cluster
+  - container.googleapis.com/Cluster
 condition: resource.enableKubernetesAlpha == true
 action_type: DENY
 method_types:
-- CREATE
-- UPDATE
+  - CREATE
+  - UPDATE
 display_name: Disable alpha features for production workloads
 description: Enforce that GKE clusters are not using alpha features for production workloads

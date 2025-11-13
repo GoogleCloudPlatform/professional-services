@@ -1,3 +1,3 @@
 custom.computeAllowedDiskTypes:
   rules:
-  - enforce: true
+    - enforce: true

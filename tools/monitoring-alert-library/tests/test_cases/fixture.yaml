@@ -7,7 +7,7 @@ before_tests:
   - command: gcloud compute networks subnets create subnet-vm --network=monitoring-alert-vpc-network --range=10.10.0.0/24 --region=asia-southeast2
   - command: gcloud compute networks subnets create subnet-gke --network=monitoring-alert-vpc-network --range=10.10.1.0/24 --region=asia-southeast2
   - command: gcloud compute addresses create google-managed-services-monitoring-alert-vpc-network  --global --purpose=VPC_PEERING --prefix-length=24 --network=projects/{{ project }}/global/networks/monitoring-alert-vpc-network 
-  - command: gcloud services vpc-peerings connect --service=servicenetworking.googleapis.com --ranges=google-managed-services-monitoring-alert-vpc-network  --network=monitoring-alert-vpc-network  --project dbs-validator-kcc-29ae
+  - command: gcloud services vpc-peerings connect --service=servicenetworking.googleapis.com --ranges=google-managed-services-monitoring-alert-vpc-network  --network=monitoring-alert-vpc-network
   # Firewall Policy
   - command: gcloud compute network-firewall-policies create monitoring-alert-fw-policy --global
 after_tests:

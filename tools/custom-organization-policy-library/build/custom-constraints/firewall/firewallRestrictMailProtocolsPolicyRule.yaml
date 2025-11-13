@@ -1,21 +1,18 @@
 #@ load("/constraints.lib.star", "build_constraint")
 #@ constraint = build_constraint("firewallRestrictMailProtocolsPolicyRule")
 
-#@ def condition(allowed_source_ranges):
+#@ def condition():
 #@   #! Email transfer protocols
 #@   #! SMTP: TCP:25
 #@   #! POP3: TCP:110
-#@   #! Deny unless every source range is explicitly allow-listed
-#@   sanitized_allowed_ranges = [rng for rng in allowed_source_ranges if rng] or []
+#@   #! Deny if source range is 0.0.0.0/0 (any source)
 #@   tcp_ports = "port == '25' || port == '110'"
 #@
 #@   lines = [
 #@     "resource.rules.exists(rule,",
 #@     "  rule.priority < 2147483644 &&",
 #@     "  rule.direction == 'INGRESS' &&",
-#@     "  !rule.match.srcIpRanges.all(ipRange,",
-#@     "      ipRange in " + str(sanitized_allowed_ranges),
-#@     "  ) &&",
+#@     "  rule.match.srcIpRanges.exists(range, range == '0.0.0.0/0') &&",
 #@     "  rule.match.layer4Configs.exists(l4config,",
 #@     "    l4config.ipProtocol == 'tcp' &&",
 #@     "    l4config.ports.exists(port, " + tcp_ports + ")",
@@ -29,13 +26,13 @@
 name: #@ constraint.constraint_name()
 resource_types:
 - compute.googleapis.com/FirewallPolicy
-condition: #@ condition(constraint.params().allowed_source_ranges)
+condition: #@ condition()
 action_type: DENY
 method_types:
 - CREATE
 - UPDATE
-display_name: Restrict Firewall Policy rules allowing mail protocol access from the Internet
+display_name: Restrict Firewall Policy rules allowing mail protocol access from any source
 description: >
-  Ensure that mail protocols (SMTP, POP3) are not accessible from the Internet
+  Ensure that mail protocols (SMTP, POP3) are not accessible from any source
   when using Firewall Policy Rule
 #@ end

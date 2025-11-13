@@ -2,21 +2,19 @@ custom.firewallRestrictNoSQLDatabasesRule:
   action_type: DENY
   condition: |-
     resource.direction.matches('INGRESS') &&
-      !resource.sourceRanges.all(range,
-          range in ["10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16", "35.235.240.0/20"]
-      ) &&
+      resource.sourceRanges.exists(range, range == '0.0.0.0/0') &&
       resource.allowed.exists(rule,
         rule.ports.exists(port,
             rule.IPProtocol == 'tcp' &&
             port in ["7000", "7001", "7199", "8888", "9042", "9160", "61620", "61621", "27017", "27018", "27019"]
         )
       )
-  description: Ensure that NoSQL database ports (Cassandra, MongoDB) are not accessible
-    from the Internet when using Firewall Policy Rule
-  display_name: Restrict VPC Firewall rules allowing NoSQL database port access from
-    the Internet
+  description:
+    Ensure that NoSQL database ports (Cassandra, MongoDB) are not accessible from any source when using Firewall Policy
+    Rule
+  display_name: Restrict VPC Firewall rules allowing NoSQL database port access from any source
   method_types:
-  - CREATE
-  - UPDATE
+    - CREATE
+    - UPDATE
   resource_types:
-  - compute.googleapis.com/Firewall
+    - compute.googleapis.com/Firewall

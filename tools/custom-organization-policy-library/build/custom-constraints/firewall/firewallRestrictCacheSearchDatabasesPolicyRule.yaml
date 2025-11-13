@@ -1,14 +1,13 @@
 #@ load("/constraints.lib.star", "build_constraint")
 #@ constraint = build_constraint("firewallRestrictCacheSearchDatabasesPolicyRule")
 
-#@ def condition(allowed_source_ranges):
+#@ def condition():
 #@   #! Cache and Search Systems
 #@   #! Elasticsearch: TCP 9200, 9300
 #@   #! Memcached: TCP/UDP 11211, 11214-11215
 #@   #! Redis: TCP 6379
-#@   #! Simplified to avoid CEL recursion depth limit (5)
-#@   #! Check for source range 0.0.0.0/0 instead of allow-list
-#@   #! Use individual port checks instead of 'in' operator
+#@   #! Deny if source range is 0.0.0.0/0 (any source)
+#@   #! Use individual port checks to keep lines under 120 characters
 #@   port_checks = "port == '9200' || port == '9300' || port == '11211'"
 #@   port_checks2 = "|| port == '11214' || port == '11215' || port == '6379'"
 #@
@@ -32,7 +31,7 @@
 #@ def description():
 #@   lines = [
 #@     "Ensure that cache and search database ports (Elasticsearch, Memcached, Redis) are not accessible",
-#@     "from the Internet when using Firewall Policy Rule",
+#@     "from any source when using Firewall Policy Rule",
 #@   ]
 #@   return "\n".join(lines)
 #@ end
@@ -41,11 +40,11 @@
 name: #@ constraint.constraint_name()
 resource_types:
 - compute.googleapis.com/FirewallPolicy
-condition: #@ condition(constraint.params().allowed_source_ranges)
+condition: #@ condition()
 action_type: DENY
 method_types:
 - CREATE
 - UPDATE
-display_name: Restrict Firewall Policy rules allowing cache/search database port access from the Internet
+display_name: Restrict Firewall Policy rules allowing cache/search database port access from any source
 description: #@ description()
 #@ end

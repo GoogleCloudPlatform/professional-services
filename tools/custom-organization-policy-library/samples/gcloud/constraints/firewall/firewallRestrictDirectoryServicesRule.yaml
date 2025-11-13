@@ -1,11 +1,9 @@
 name: organizations/11111111/customConstraints/custom.firewallRestrictDirectoryServicesRule
 resource_types:
-- compute.googleapis.com/Firewall
+  - compute.googleapis.com/Firewall
 condition: |-
   resource.direction.matches('INGRESS') &&
-    !resource.sourceRanges.all(range,
-        range in ["10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16", "35.235.240.0/20"]
-    ) &&
+    resource.sourceRanges.exists(range, range == '0.0.0.0/0') &&
     resource.allowed.exists(rule,
       rule.ports.exists(port,
           rule.IPProtocol == 'tcp' && port in ['445', '389', '636'] ||
@@ -14,9 +12,9 @@ condition: |-
     )
 action_type: DENY
 method_types:
-- CREATE
-- UPDATE
-display_name: Restrict VPC Firewall rules allowing directory service access from the Internet
+  - CREATE
+  - UPDATE
+display_name: Restrict VPC Firewall rules allowing directory service access from any source
 description: |-
   Ensure that directory and authentication services (SMB/CIFS, LDAP) are not accessible from the
   Internet when using VPC Firewall Rule

@@ -11,11 +11,11 @@ custom.firewallRestrictExplicitAllPortsPolicyRule:
         )
       )
     )
-  description: Prevent Firewall Policy rules that explicitly specify all TCP/UDP ports
-    using ranges like 0-65535 or 1-65535
+  description:
+    Prevent Firewall Policy rules that explicitly specify all TCP/UDP ports using ranges like 0-65535 or 1-65535
   display_name: Restrict Firewall Policy rules with explicit all-ports specifications
   method_types:
-  - CREATE
-  - UPDATE
+    - CREATE
+    - UPDATE
   resource_types:
-  - compute.googleapis.com/FirewallPolicy
+    - compute.googleapis.com/FirewallPolicy

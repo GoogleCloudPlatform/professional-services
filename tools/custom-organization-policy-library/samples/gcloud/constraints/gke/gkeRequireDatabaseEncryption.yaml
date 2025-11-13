@@ -1,9 +1,9 @@
 name: organizations/11111111/customConstraints/custom.gkeRequireDatabaseEncryption
 resourceTypes:
-- container.googleapis.com/Cluster
+  - container.googleapis.com/Cluster
 methodTypes:
-- CREATE
-- UPDATE
+  - CREATE
+  - UPDATE
 condition: resource.databaseEncryption.state != 'ENCRYPTED'
 actionType: DENY
 display_name: Require secret encryption in etcd

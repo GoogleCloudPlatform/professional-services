@@ -1,10 +1,10 @@
 name: organizations/11111111/customConstraints/custom.gkeRequireConfidentialNodes
 resource_types:
-- container.googleapis.com/Cluster
+  - container.googleapis.com/Cluster
 condition: resource.confidentialNodes.enabled == false
 action_type: DENY
 method_types:
-- CREATE
-- UPDATE
+  - CREATE
+  - UPDATE
 display_name: Require confidential nodes
 description: Enforce that the GKE clusters is using confidential nodes

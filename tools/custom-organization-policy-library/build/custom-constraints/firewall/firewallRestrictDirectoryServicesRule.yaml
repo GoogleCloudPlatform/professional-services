@@ -1,18 +1,15 @@
 #@ load("/constraints.lib.star", "build_constraint")
 #@ constraint = build_constraint("firewallRestrictDirectoryServicesRule")
 
-#@ def condition(allowed_source_ranges):
+#@ def condition():
 #@   #! Directory and Authentication Services
 #@   #! SMB/CIFS: TCP/UDP 445
 #@   #! LDAP: TCP 389, 636; UDP 389
-#@   #! Deny unless every source range is explicitly allow-listed
-#@   sanitized_allowed_ranges = [rng for rng in allowed_source_ranges if rng] or []
+#@   #! Deny if source range is 0.0.0.0/0 (any source)
 #@
 #@   lines = [
 #@     "resource.direction.matches('INGRESS') &&",
-#@     "  !resource.sourceRanges.all(range,",
-#@     "      range in " + str(sanitized_allowed_ranges),
-#@     "  ) &&",
+#@     "  resource.sourceRanges.exists(range, range == '0.0.0.0/0') &&",
 #@     "  resource.allowed.exists(rule,",
 #@     "    rule.ports.exists(port,",
 #@     "        rule.IPProtocol == 'tcp' && port in ['445', '389', '636'] ||",
@@ -35,11 +32,11 @@
 name: #@ constraint.constraint_name()
 resource_types:
 - compute.googleapis.com/Firewall
-condition: #@ condition(constraint.params().allowed_source_ranges)
+condition: #@ condition()
 action_type: DENY
 method_types:
 - CREATE
 - UPDATE
-display_name: Restrict VPC Firewall rules allowing directory service access from the Internet
+display_name: Restrict VPC Firewall rules allowing directory service access from any source
 description: #@ description()
 #@ end

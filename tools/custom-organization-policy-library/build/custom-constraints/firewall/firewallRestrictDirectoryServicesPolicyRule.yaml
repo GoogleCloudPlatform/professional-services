@@ -1,12 +1,11 @@
 #@ load("/constraints.lib.star", "build_constraint")
 #@ constraint = build_constraint("firewallRestrictDirectoryServicesPolicyRule")
 
-#@ def condition(allowed_source_ranges):
+#@ def condition():
 #@   #! Directory and Authentication Services
 #@   #! SMB/CIFS: TCP/UDP 445
 #@   #! LDAP: TCP 389, 636; UDP 389
-#@   #! Deny unless every source range is explicitly allow-listed
-#@   sanitized_allowed_ranges = [rng for rng in allowed_source_ranges if rng] or []
+#@   #! Deny if source range is 0.0.0.0/0 (any source)
 #@   tcp_ports = ['445', '389', '636']
 #@   udp_ports = ['445', '389']
 #@   tcp_check = " || ".join(["port == '" + p + "'" for p in tcp_ports])
@@ -16,9 +15,7 @@
 #@     "resource.rules.exists(rule,",
 #@     "  rule.priority < 2147483644 &&",
 #@     "  rule.direction == 'INGRESS' &&",
-#@     "  !rule.match.srcIpRanges.all(ipRange,",
-#@     "      ipRange in " + str(sanitized_allowed_ranges),
-#@     "  ) &&",
+#@     "  rule.match.srcIpRanges.exists(range, range == '0.0.0.0/0') &&",
 #@     "  rule.match.layer4Configs.exists(l4config,",
 #@     "    l4config.ipProtocol == 'tcp' &&",
 #@     "    l4config.ports.exists(port, " + tcp_check + ") ||",
@@ -42,11 +39,11 @@
 name: #@ constraint.constraint_name()
 resource_types:
 - compute.googleapis.com/FirewallPolicy
-condition: #@ condition(constraint.params().allowed_source_ranges)
+condition: #@ condition()
 action_type: DENY
 method_types:
 - CREATE
 - UPDATE
-display_name: Restrict Firewall Policy rules allowing directory service access from the Internet
+display_name: Restrict Firewall Policy rules allowing directory service access from any source
 description: #@ description()
 #@ end

@@ -2,21 +2,19 @@ custom.firewallRestrictCacheSearchDatabasesRule:
   action_type: DENY
   condition: |-
     resource.direction.matches('INGRESS') &&
-      !resource.sourceRanges.all(range,
-          range in ["10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16", "35.235.240.0/20"]
-      ) &&
+      resource.sourceRanges.exists(range, range == '0.0.0.0/0') &&
       resource.allowed.exists(rule,
         rule.ports.exists(port,
             rule.IPProtocol == 'tcp' && port in ['9200', '9300', '11211', '11214', '11215', '6379'] ||
             rule.IPProtocol == 'udp' && port in ['11211', '11214', '11215']
         )
       )
-  description: Ensure that cache and search database ports (Elasticsearch, Memcached,
-    Redis) are not accessible from the Internet when using VPC Firewall Rule.
-  display_name: Restrict VPC Firewall rules allowing cache/search database port access
-    from the Internet
+  description:
+    Ensure that cache and search database ports (Elasticsearch, Memcached, Redis) are not accessible from any source
+    when using VPC Firewall Rule.
+  display_name: Restrict VPC Firewall rules allowing cache/search database port access from any source
   method_types:
-  - CREATE
-  - UPDATE
+    - CREATE
+    - UPDATE
   resource_types:
-  - compute.googleapis.com/Firewall
+    - compute.googleapis.com/Firewall

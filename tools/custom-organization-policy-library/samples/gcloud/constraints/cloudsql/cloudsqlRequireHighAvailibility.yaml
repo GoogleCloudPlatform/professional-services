@@ -1,9 +1,9 @@
 name: organizations/11111111/customConstraints/custom.cloudsqlRequireHighAvailibility
 resourceTypes:
-- sqladmin.googleapis.com/Instance
+  - sqladmin.googleapis.com/Instance
 methodTypes:
-- CREATE
-- UPDATE
+  - CREATE
+  - UPDATE
 condition: resource.settings.availabilityType != "REGIONAL"
 actionType: DENY
 display_name: Require Cloud SQL instances to be configured with high availibility

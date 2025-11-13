@@ -1,19 +1,16 @@
 #@ load("/constraints.lib.star", "build_constraint")
 #@ constraint = build_constraint("firewallRestrictInsecureProtocolsRule")
 
-#@ def condition(allowed_source_ranges):
-#@   #! Insecure legacy protocols that should not be exposed to the Internet
+#@ def condition():
+#@   #! Insecure legacy protocols that should not be exposed
 #@   #! Telnet: TCP:23 (unencrypted remote access)
 #@   #! FTP: TCP:21 (unencrypted file transfer)
 #@   #! HTTP: TCP:80 (unencrypted web traffic)
-#@   #! Deny unless every source range is explicitly allow-listed
-#@   sanitized_allowed_ranges = [rng for rng in allowed_source_ranges if rng] or []
+#@   #! Deny if source range is 0.0.0.0/0 (any source)
 #@
 #@   lines = [
 #@     "resource.direction.matches('INGRESS') &&",
-#@     "  !resource.sourceRanges.all(range,",
-#@     "      range in " + str(sanitized_allowed_ranges),
-#@     "  ) &&",
+#@     "  resource.sourceRanges.exists(range, range == '0.0.0.0/0') &&",
 #@     "  resource.allowed.exists(rule,",
 #@     "    rule.ports.exists(port,",
 #@     "        rule.IPProtocol == 'tcp' && port in ['21', '23', '80']",
@@ -25,7 +22,7 @@
 
 #@ def description():
 #@   lines = [
-#@     "Ensure that insecure legacy protocols (Telnet, FTP, HTTP) are not accessible from the Internet when",
+#@     "Ensure that insecure legacy protocols (Telnet, FTP, HTTP) are not accessible from any source when",
 #@     "using VPC Firewall Rule",
 #@   ]
 #@   return "\n".join(lines)
@@ -35,11 +32,11 @@
 name: #@ constraint.constraint_name()
 resource_types:
 - compute.googleapis.com/Firewall
-condition: #@ condition(constraint.params().allowed_source_ranges)
+condition: #@ condition()
 action_type: DENY
 method_types:
 - CREATE
 - UPDATE
-display_name: Restrict VPC Firewall rules allowing insecure protocol access from the Internet
+display_name: Restrict VPC Firewall rules allowing insecure protocol access from any source
 description: #@ description()
 #@ end

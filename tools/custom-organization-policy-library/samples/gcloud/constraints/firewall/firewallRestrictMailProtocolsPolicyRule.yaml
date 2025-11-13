@@ -1,13 +1,11 @@
 name: organizations/11111111/customConstraints/custom.firewallRestrictMailProtocolsPolicyRule
 resource_types:
-- compute.googleapis.com/FirewallPolicy
+  - compute.googleapis.com/FirewallPolicy
 condition: |-
   resource.rules.exists(rule,
     rule.priority < 2147483644 &&
     rule.direction == 'INGRESS' &&
-    !rule.match.srcIpRanges.all(ipRange,
-        ipRange in ["10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16", "35.235.240.0/20"]
-    ) &&
+    rule.match.srcIpRanges.exists(range, range == '0.0.0.0/0') &&
     rule.match.layer4Configs.exists(l4config,
       l4config.ipProtocol == 'tcp' &&
       l4config.ports.exists(port, port == '25' || port == '110')
@@ -15,8 +13,8 @@ condition: |-
   )
 action_type: DENY
 method_types:
-- CREATE
-- UPDATE
-display_name: Restrict Firewall Policy rules allowing mail protocol access from the Internet
+  - CREATE
+  - UPDATE
+display_name: Restrict Firewall Policy rules allowing mail protocol access from any source
 description: |
-  Ensure that mail protocols (SMTP, POP3) are not accessible from the Internet when using Firewall Policy Rule
+  Ensure that mail protocols (SMTP, POP3) are not accessible from any source when using Firewall Policy Rule

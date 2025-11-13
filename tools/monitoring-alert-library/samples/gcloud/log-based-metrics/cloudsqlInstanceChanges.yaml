@@ -6,18 +6,18 @@ metricDescriptor:
   valueType: INT64
   unit: "1"
   labels:
-  - key: principal
-    description: principal
-    valueType: STRING
-  - key: method_name
-    description: method_name
-    valueType: STRING
-  - key: project_id
-    description: project_id
-    valueType: STRING
-  - key: database_id
-    description: database_id
-    valueType: STRING
+    - key: principal
+      description: principal
+      valueType: STRING
+    - key: method_name
+      description: method_name
+      valueType: STRING
+    - key: project_id
+      description: project_id
+      valueType: STRING
+    - key: database_id
+      description: database_id
+      valueType: STRING
 labelExtractors:
   principal: EXTRACT(protoPayload.authenticationInfo.principalEmail)
   method_name: EXTRACT(protoPayload.methodName)

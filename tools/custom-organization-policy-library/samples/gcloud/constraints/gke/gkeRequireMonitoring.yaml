@@ -1,9 +1,9 @@
 name: organizations/11111111/customConstraints/custom.gkeRequireMonitoring
 resourceTypes:
-- container.googleapis.com/Cluster
+  - container.googleapis.com/Cluster
 methodTypes:
-- CREATE
-- UPDATE
+  - CREATE
+  - UPDATE
 condition: resource.monitoringService != 'monitoring.googleapis.com/kubernetes'
 actionType: DENY
 display_name: Enable monitoring

@@ -1,22 +1,19 @@
 #@ load("/constraints.lib.star", "build_constraint")
 #@ constraint = build_constraint("firewallRestrictInsecureProtocolsPolicyRule")
 
-#@ def condition(allowed_source_ranges):
-#@   #! Insecure legacy protocols that should not be exposed to the Internet
+#@ def condition():
+#@   #! Insecure legacy protocols that should not be exposed
 #@   #! Telnet: TCP:23 (unencrypted remote access)
 #@   #! FTP: TCP:21 (unencrypted file transfer)
 #@   #! HTTP: TCP:80 (unencrypted web traffic)
-#@   #! Deny unless every source range is explicitly allow-listed
-#@   sanitized_allowed_ranges = [rng for rng in allowed_source_ranges if rng] or []
+#@   #! Deny if source range is 0.0.0.0/0 (any source)
 #@   tcp_port_check = " || ".join(["port == '" + p + "'" for p in ['21', '23', '80']])
 #@
 #@   lines = [
 #@     "resource.rules.exists(rule,",
 #@     "  rule.priority < 2147483644 &&",
 #@     "  rule.direction == 'INGRESS' &&",
-#@     "  !rule.match.srcIpRanges.all(ipRange,",
-#@     "      ipRange in " + str(sanitized_allowed_ranges),
-#@     "  ) &&",
+#@     "  rule.match.srcIpRanges.exists(range, range == '0.0.0.0/0') &&",
 #@     "  rule.match.layer4Configs.exists(l4config,",
 #@     "    l4config.ports.exists(port,",
 #@     "      l4config.ipProtocol == 'tcp' && " + tcp_port_check,
@@ -29,7 +26,7 @@
 
 #@ def description():
 #@   lines = [
-#@     "Ensure that insecure legacy protocols (Telnet, FTP, HTTP) are not accessible from the Internet when",
+#@     "Ensure that insecure legacy protocols (Telnet, FTP, HTTP) are not accessible from any source when",
 #@     "using Firewall Policy Rule",
 #@   ]
 #@   return "\n".join(lines)
@@ -39,11 +36,11 @@
 name: #@ constraint.constraint_name()
 resource_types:
 - compute.googleapis.com/FirewallPolicy
-condition: #@ condition(constraint.params().allowed_source_ranges)
+condition: #@ condition()
 action_type: DENY
 method_types:
 - CREATE
 - UPDATE
-display_name: Restrict Firewall Policy rules allowing insecure protocol access from the Internet
+display_name: Restrict Firewall Policy rules allowing insecure protocol access from any source
 description: #@ description()
 #@ end

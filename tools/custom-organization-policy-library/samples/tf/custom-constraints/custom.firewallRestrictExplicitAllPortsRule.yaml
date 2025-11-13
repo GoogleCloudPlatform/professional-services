@@ -16,11 +16,10 @@ custom.firewallRestrictExplicitAllPortsRule:
       !resource.name.startsWith('gkegw1-l7-') &&
       !resource.name.startsWith('gkemcg1-l7-')
     )
-  description: Prevent VPC firewall rules that explicitly specify all TCP/UDP ports
-    using ranges like 0-65535 or 1-65535
+  description: Prevent VPC firewall rules that explicitly specify all TCP/UDP ports using ranges like 0-65535 or 1-65535
   display_name: Restrict VPC Firewall rules with explicit all-ports specifications
   method_types:
-  - CREATE
-  - UPDATE
+    - CREATE
+    - UPDATE
   resource_types:
-  - compute.googleapis.com/Firewall
+    - compute.googleapis.com/Firewall

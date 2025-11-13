@@ -1,0 +1,10 @@
+severity: HIGH
+description: Detect if unauthorized services have been enabled
+recommendation: Ensure only authorized services are enabled
+resource_selector:
+  resource_types:
+    - serviceusage.googleapis.com/Service
+predicate:
+  expression:
+    (!["storage.googleapis.com", "compute.googleapis.com"].exists(service, resource.name == service && resource.state ==
+    "ENABLED"))
