@@ -1,0 +1,22 @@
+name: organizations/11111111/customConstraints/custom.firewallRestrictSQLDatabasesRule
+resource_types:
+- compute.googleapis.com/Firewall
+condition: |-
+  resource.direction.matches('INGRESS') &&
+    !resource.sourceRanges.all(range,
+        range in ["10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16", "35.235.240.0/20"]
+    ) &&
+    resource.allowed.exists(rule,
+      rule.ports.exists(port,
+          rule.IPProtocol == 'tcp' && port in ['3306', '1521', '2483', '2484', '5432'] ||
+          rule.IPProtocol == 'udp' && port in ['2483', '2484', '5432']
+      )
+    )
+action_type: DENY
+method_types:
+- CREATE
+- UPDATE
+display_name: Restrict VPC Firewall rules allowing SQL database port access from the Internet
+description: |-
+  Ensure that SQL database ports (MySQL, Oracle, PostgreSQL) are not accessible from the Internet when
+  using VPC Firewall Rule

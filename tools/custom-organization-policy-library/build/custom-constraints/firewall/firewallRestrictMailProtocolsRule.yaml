@@ -1,0 +1,35 @@
+#@ load("/constraints.lib.star", "build_constraint")
+#@ constraint = build_constraint("firewallRestrictMailProtocolsRule")
+
+#@ def condition(allowed_source_ranges):
+#@   #! Email transfer protocols
+#@   #! SMTP: TCP:25
+#@   #! POP3: TCP:110
+#@   sanitized_allowed_ranges = [rng for rng in allowed_source_ranges if rng] or []
+#@
+#@   lines = [
+#@     "resource.direction.matches('INGRESS') &&",
+#@     "  !resource.sourceRanges.all(range,",
+#@     "      range in " + str(sanitized_allowed_ranges),
+#@     "  ) &&",
+#@     "  resource.allowed.exists(rule,",
+#@     "    rule.ports.exists(port,",
+#@     "        rule.IPProtocol == 'tcp' && port in ['25', '110']",
+#@     "    )",
+#@     "  )"
+#@   ]
+#@   return "\n".join(lines)
+#@ end
+
+#@ if constraint.to_generate():
+name: #@ constraint.constraint_name()
+resource_types:
+- compute.googleapis.com/Firewall
+condition: #@ condition(constraint.params().allowed_source_ranges)
+action_type: DENY
+method_types:
+- CREATE
+- UPDATE
+display_name: Restrict VPC Firewall rules allowing mail protocol access from the Internet
+description: Ensure that mail protocols (SMTP, POP3) are not accessible from the Internet when using VPC Firewall Rule
+#@ end

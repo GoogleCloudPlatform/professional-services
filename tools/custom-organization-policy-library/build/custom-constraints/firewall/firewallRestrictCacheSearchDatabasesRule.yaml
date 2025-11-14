@@ -1,0 +1,46 @@
+#@ load("/constraints.lib.star", "build_constraint")
+#@ constraint = build_constraint("firewallRestrictCacheSearchDatabasesRule")
+
+#@ def condition(allowed_source_ranges):
+#@   #! Cache and Search Systems
+#@   #! Elasticsearch: TCP 9200, 9300
+#@   #! Memcached: TCP/UDP 11211, 11214-11215
+#@   #! Redis: TCP 6379
+#@   #! Deny unless every source range is explicitly allow-listed
+#@   sanitized_allowed_ranges = [rng for rng in allowed_source_ranges if rng] or []
+#@
+#@   lines = [
+#@     "resource.direction.matches('INGRESS') &&",
+#@     "  !resource.sourceRanges.all(range,",
+#@     "      range in " + str(sanitized_allowed_ranges),
+#@     "  ) &&",
+#@     "  resource.allowed.exists(rule,",
+#@     "    rule.ports.exists(port,",
+#@     "        rule.IPProtocol == 'tcp' && port in ['9200', '9300', '11211', '11214', '11215', '6379'] ||",
+#@     "        rule.IPProtocol == 'udp' && port in ['11211', '11214', '11215']",
+#@     "    )",
+#@     "  )"
+#@   ]
+#@   return "\n".join(lines)
+#@ end
+
+#@ def description():
+#@   lines = [
+#@     "Ensure that cache and search database ports (Elasticsearch, Memcached, Redis) are not accessible",
+#@     "from the Internet when using VPC Firewall Rule.",
+#@   ]
+#@   return "\n".join(lines)
+#@ end
+
+#@ if constraint.to_generate():
+name: #@ constraint.constraint_name()
+resource_types:
+- compute.googleapis.com/Firewall
+condition: #@ condition(constraint.params().allowed_source_ranges)
+action_type: DENY
+method_types:
+- CREATE
+- UPDATE
+display_name: Restrict VPC Firewall rules allowing cache/search database port access from the Internet
+description: #@ description()
+#@ end

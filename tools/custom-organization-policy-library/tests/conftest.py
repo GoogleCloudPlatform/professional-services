@@ -1,5 +1,6 @@
 import logging
 import os
+import re
 import yaml
 import pytest
 from main import run_gcloud_command, GCLOUD_EXIT_CODE_OK_OR_FAIL_ALREADY_EXISTS
@@ -73,6 +74,68 @@ def _substitute_variables(command_template, prefix, project_id, project_number):
     if "{{ prefix }}" in command and prefix:
         command = command.replace("{{ prefix }}", prefix)
     return command
+
+
+def _shorten_gcp_resource_name(name: str, max_len: int = 63) -> str:
+    """Return a name that matches GCP's common DNS-like regex and length limit.
+
+    GCE firewall rule names must match:
+      ^[a-z]([-a-z0-9]{0,61}[a-z0-9])?$
+
+    We normalize to lowercase, replace invalid chars with '-', trim to max_len,
+    ensure first char is a letter, and last char is alphanumeric.
+    """
+    if not name:
+        return "a0"
+    s = name.lower()
+    s = re.sub(r"[^a-z0-9-]", "-", s)
+    s = s[:max_len]
+    # Ensure starts with a letter
+    if not s[0].isalpha():
+        s = ("a" + s[1:]) if len(s) > 1 else "a"
+    # Ensure does not end with '-'
+    s = s.rstrip("-")
+    if not s:
+        s = "a0"
+    # Ensure last char is alphanumeric
+    if not s[-1].isalnum():
+        s = re.sub(r"[^a-z0-9]+$", "", s)
+        if not s:
+            s = "a0"
+    return s
+
+
+def _shorten_firewall_rule_name_in_command(command: str, full_identifier: str) -> str:
+    """Shorten the firewall rule name within the given gcloud command string.
+
+    This handles templates like:
+      gcloud compute firewall-rules create allow-<prefix>-{{ identifier }} ...
+
+    We parse out the token immediately following 'create' (or 'delete') and
+    replace it with a shortened version after substituting the identifier.
+    """
+    try:
+        import shlex
+        # First, replace the identifier placeholder so the name is contiguous
+        command = command.replace("{{ identifier }}", full_identifier)
+        tokens = shlex.split(command)
+        if len(tokens) < 5:
+            return command
+        # Locate operation index and resource name token
+        name_idx = None
+        for i, t in enumerate(tokens):
+            if t in ("create", "delete") and i + 1 < len(tokens):
+                name_idx = i + 1
+                break
+        if name_idx is None:
+            return command
+        name_template = tokens[name_idx]
+        final_name = name_template.replace("{{ identifier }}", full_identifier)
+        final_name = _shorten_gcp_resource_name(final_name)
+        tokens[name_idx] = final_name
+        return " ".join(shlex.quote(t) if " " in t or any(c in t for c in ['"', "'"]) else t for t in tokens)
+    except Exception:  # Fallback to simple replace
+        return command
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -216,6 +279,14 @@ def pytest_collection_modifyitems(session, config, items):
     project_number = os.getenv("PROJECT_NUMBER")
 
     for item in items:
+        # Skip optional 'no exceptions' scenarios unless explicitly enabled
+        try:
+            marks = [m.name for m in item.iter_markers()]
+        except Exception:
+            marks = []
+        if "firewall_no_exceptions" in marks and os.getenv("FIREWALL_NO_EXCEPTIONS") != "1":
+            item.add_marker(pytest.mark.skip(reason="Set FIREWALL_NO_EXCEPTIONS=1 to run no-exceptions scenarios"))
+
         if "steps" in getattr(item, "callspec", {}).params:
             identifier = item.callspec.params.get("name", "").replace("_", "-")
             logging.debug(
@@ -241,10 +312,21 @@ def pytest_collection_modifyitems(session, config, items):
                     command = _substitute_variables(
                         command_template, prefix, project_id, project_number
                     )
-                    if "{{ identifier }}" in command and identifier is not None:
-                        command = command.replace(
-                            "{{ identifier }}", f"{prefix}-{identifier}"
+                    full_identifier = f"{prefix}-{identifier}"
+                    if "gcloud compute firewall-rules" in command:
+                        # Always handle firewall rule names via parser to include any prefixes
+                        new_command = _shorten_firewall_rule_name_in_command(
+                            command, full_identifier
                         )
+                        logging.debug(
+                            "Firewall command rewrite: base_id=%s, old=%s, new=%s",
+                            full_identifier,
+                            command,
+                            new_command,
+                        )
+                        command = new_command
+                    elif "{{ identifier }}" in command and identifier is not None:
+                        command = command.replace("{{ identifier }}", full_identifier)
 
                     logging.debug("Updating command to %s", command)
                     step.update(command=command)
@@ -294,8 +376,14 @@ def pytest_runtest_teardown(item, nextitem):
         teardown_command = _substitute_variables(
             teardown_template, prefix, project_id, project_number
         )
-        if "{{ identifier }}" in teardown_template and identifier is not None:
-            teardown_command = teardown_command.replace("{{ identifier }}", identifier)
+        if "gcloud compute firewall-rules" in teardown_command:
+            teardown_command = _shorten_firewall_rule_name_in_command(
+                teardown_command, identifier
+            )
+        elif "{{ identifier }}" in teardown_template and identifier is not None:
+            teardown_command = teardown_command.replace(
+                "{{ identifier }}", identifier
+            )
 
         logging.info("Executing test step teardown command: %s", teardown_command)
         try:

@@ -1,0 +1,46 @@
+#@ load("/constraints.lib.star", "build_constraint")
+#@ constraint = build_constraint("firewallRestrictNoSQLDatabasesRule")
+
+#@ def condition(allowed_source_ranges):
+#@   #! NoSQL Databases
+#@   #! Cassandra: TCP 7000-7001, 7199, 8888, 9042, 9160, 61620-61621
+#@   #! MongoDB: TCP 27017-27019
+#@   #! Deny unless every source range is explicitly allow-listed
+#@   sanitized_allowed_ranges = [rng for rng in allowed_source_ranges if rng] or []
+#@
+#@   ports = ['7000', '7001', '7199', '8888', '9042', '9160', '61620', '61621', '27017', '27018', '27019']
+#@   lines = [
+#@     "resource.direction.matches('INGRESS') &&",
+#@     "  !resource.sourceRanges.all(range,",
+#@     "      range in " + str(sanitized_allowed_ranges),
+#@     "  ) &&",
+#@     "  resource.allowed.exists(rule,",
+#@     "    rule.ports.exists(port,",
+#@     "        rule.IPProtocol == 'tcp' &&",
+#@     "        port in " + str(ports),
+#@     "    )",
+#@     "  )"
+#@   ]
+#@   return "\n".join(lines)
+#@ end
+
+#@ def description():
+#@   lines = [
+#@     "Ensure that NoSQL database ports (Cassandra, MongoDB) are not accessible from the Internet when",
+#@     "using Firewall Policy Rule",
+#@   ]
+#@   return "\n".join(lines)
+#@ end
+
+#@ if constraint.to_generate():
+name: #@ constraint.constraint_name()
+resource_types:
+- compute.googleapis.com/Firewall
+condition: #@ condition(constraint.params().allowed_source_ranges)
+action_type: DENY
+method_types:
+- CREATE
+- UPDATE
+display_name: Restrict VPC Firewall rules allowing NoSQL database port access from the Internet
+description: #@ description()
+#@ end

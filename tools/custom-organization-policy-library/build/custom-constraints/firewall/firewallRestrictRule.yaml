@@ -2,22 +2,42 @@
 #@ constraint = build_constraint("firewallRestrictRule")
 
 #@ def condition(direction, source_ranges, destination_ranges):
-#@    cond_components = []
+#@    lines = []
 #@    if direction:
-#@        cond_components.append('resource.direction == "' + str(direction) + '"')
+#@        lines.append('resource.direction == "' + str(direction) + '"')
 #@    end
 #@
 #@    if source_ranges and not destination_ranges:
-#@        cond_components.append('!resource.sourceRanges.all(range, range in ' + str(source_ranges)  + ')')
+#@        if len(lines) > 0:
+#@            lines[-1] = lines[-1] + ' &&'
+#@        end
+#@        lines.append('!resource.sourceRanges.all(range,')
+#@        lines.append('  range in ' + str(source_ranges))
+#@        lines.append(')')
 #@    end
 #@    if not source_ranges and destination_ranges:
-#@        cond_components.append('!resource.destinationRanges.all(range, range in ' + str(destination_ranges)  + ')')
+#@        if len(lines) > 0:
+#@            lines[-1] = lines[-1] + ' &&'
+#@        end
+#@        lines.append('!resource.destinationRanges.all(range,')
+#@        lines.append('  range in ' + str(destination_ranges))
+#@        lines.append(')')
 #@    end
 #@    if source_ranges and destination_ranges:
-#@        cond_components.append('(!resource.sourceRanges.all(range, range in ' + str(source_ranges)  + ') || !resource.destinationRanges.all(range, range in ' + str(destination_ranges)  + '))')
+#@        if len(lines) > 0:
+#@            lines[-1] = lines[-1] + ' &&'
+#@        end
+#@        lines.append('(')
+#@        lines.append('  !resource.sourceRanges.all(range,')
+#@        lines.append('    range in ' + str(source_ranges))
+#@        lines.append('  ) ||')
+#@        lines.append('  !resource.destinationRanges.all(range,')
+#@        lines.append('    range in ' + str(destination_ranges))
+#@        lines.append('  )')
+#@        lines.append(')')
 #@    end
 #@
-#@    return ' && '.join(cond_components)
+#@    return '\n'.join(lines)
 #@ end
 
 #@ if constraint.to_generate():
@@ -29,5 +49,7 @@ action_type: DENY
 method_types: 
 - CREATE 
 display_name: Restrict VPC Firewall rules with certain configuration
-description:  Prevent the creation of VPC firewall rule by providing some parameters (such as direction, port, ip range, protocol)
+description: >
+  Prevent the creation of VPC firewall rule by providing some parameters
+  (such as direction, port, ip range, protocol)
 #@ end

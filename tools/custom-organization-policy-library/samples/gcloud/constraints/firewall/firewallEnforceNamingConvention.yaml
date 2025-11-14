@@ -3,7 +3,7 @@ resource_types:
 - compute.googleapis.com/Firewall
 condition: |-
   (
-    resource.name.matches("^(allow|deny)-(all|rdp|ssh|tcp|udp|icmp|custom)[a-z0-9-]*") == false &&
+    resource.name.matches("^(allow|deny)-(all|rdp|ssh|tcp|udp|icmp|custom|insecure|open|network|directory|mail|nosql-db|sql-db|mgmt|cache-search-db)[a-z0-9-]*") == false &&
     !resource.name.startsWith("gke-") &&
     !resource.name.startsWith("k8s-") &&
     !resource.name.endsWith("-hc") &&
