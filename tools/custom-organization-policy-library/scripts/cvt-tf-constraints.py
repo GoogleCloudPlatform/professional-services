@@ -53,6 +53,11 @@ def convert_terraform_factory(doc):
             condition_value = doc["condition"].strip()
             doc["condition"] = LiteralString(condition_value)
 
+        if "description" in doc:
+            # Replace newlines with spaces and normalize whitespace
+            description_value = " ".join(doc["description"].split())
+            doc["description"] = description_value
+
         tf_yaml = {}
         _, _, root_key = doc.get("name").rpartition("/")
         root_prefix_key = root_key  # root_key.replace("custom.", "custom.${prefix}")

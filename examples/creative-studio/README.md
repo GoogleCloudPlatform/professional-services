@@ -12,6 +12,8 @@ Creative Studio is a comprehensive, all-in-one Generative AI platform designed a
 
 Built for creators, marketers, and developers, this application provides a hands-on, interactive experience with cutting-edge multimodal capabilities.
 
+> ###### _This is not an officially supported Google product. This project is not eligible for the [Google Open Source Software Vulnerability Rewards Program](https://bughunters.google.com/open-source-security)._
+
 ## Core Features 🎨
 Creative Studio goes beyond simple demos, implementing advanced, real-world features that developers can learn from and build upon:
 
@@ -168,17 +170,6 @@ Install the required Python libraries.
 ```
 pip install -r requirements.txt
 ```
-
-### Run with mesop
-
-To run locally, use the `mesop` command and open the browser to the URL provided:
-
-```
-mesop main.py
-```
-
-> **NOTE:** The mesop application may request you to allow it to accept incoming network connections. Please accept to avoid limiting the application's behavior.
-
 
 ## Deploy to Cloud Run
 

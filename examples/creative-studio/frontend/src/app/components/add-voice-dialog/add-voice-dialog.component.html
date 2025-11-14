@@ -1,0 +1,39 @@
+<h2 mat-dialog-title>Instant Voice Cloning (Coming Soon!!!)</h2>
+<mat-dialog-content class="dialog-content">
+  <p class="subtitle">Create a custom voice model for TTS.</p>
+
+  <mat-form-field appearance="fill" class="full-width cursor-not-allowed">
+    <mat-label>Voice Name</mat-label>
+    <input matInput [(ngModel)]="voiceName" placeholder="e.g. My Custom Voice" disabled>
+  </mat-form-field>
+
+  <div class="file-section cursor-not-allowed">
+    <h3>Sample 1: Normal conversation</h3>
+    <p class="desc">Please upload a recording of you speaking in a normal, conversational tone (max 10s).</p>
+    <button mat-stroked-button disabled>
+      <mat-icon>upload_file</mat-icon>
+      Upload WAV
+    </button>
+  </div>
+
+  <div class="file-section cursor-not-allowed">
+    <h3>Sample 2: Consent</h3>
+    <p class="desc">Record and upload the following statement: <br>
+    <em>"I am the owner of this voice and I consent to using this voice to create a synthetic voice model."</em></p>
+    <button mat-stroked-button disabled>
+      <mat-icon>policy</mat-icon>
+      Upload WAV
+    </button>
+    <p class="hint">Supported format: WAV only</p>
+  </div>
+
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-button mat-dialog-close>Cancel</button>
+  <button mat-raised-button color="primary"
+          class="cursor-not-allowed"
+          disabled
+          (click)="submit()">
+    Create Voice
+  </button>
+</mat-dialog-actions>

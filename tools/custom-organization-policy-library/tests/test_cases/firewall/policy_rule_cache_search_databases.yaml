@@ -1,0 +1,98 @@
+shared_config:
+  command:  gcloud compute network-firewall-policies rules create 1000 --firewall-policy cuop-fw-policy --global-firewall-policy
+  teardown_command: gcloud compute network-firewall-policies rules delete 1000 --firewall-policy cuop-fw-policy --global-firewall-policy
+  default_command_flags:
+      action: ALLOW
+      direction: INGRESS
+      enable-logging: true
+  default_markers:
+    - firewall
+    - firewall-policy
+    - cache-search-databases
+
+# Redis tests - TCP 6379
+firewall_policy_allowed_redis_rule_10:
+  steps:
+  - command_flags:
+      layer4-configs: tcp:6379
+      src-ip-ranges: 10.0.0.0/8
+    expected_result:
+      return_code: 0
+
+firewall_policy_redis_rule_allowed_public:
+  steps:
+  - command_flags:
+      layer4-configs: tcp:6379
+      src-ip-ranges: 203.0.113.0/24
+    expected_result:
+      return_code: 0
+
+# Elasticsearch tests - TCP 9200, 9300
+firewall_policy_allowed_elasticsearch_rule_10:
+  steps:
+  - command_flags:
+      layer4-configs: tcp:9200
+      src-ip-ranges: 10.0.0.0/8
+    expected_result:
+      return_code: 0
+
+firewall_policy_elasticsearch_rule_denied:
+  steps:
+  - command_flags:
+      layer4-configs: tcp:9200
+      src-ip-ranges: 0.0.0.0/0
+    expected_result:
+      return_code: 1
+      stderr: 'customConstraints/custom\.firewallRestrict(PublicAccess|CacheSearchDatabases)PolicyRule'
+
+firewall_policy_elasticsearch_9300_rule_allowed_public:
+  steps:
+  - command_flags:
+      layer4-configs: tcp:9300
+      src-ip-ranges: 1.0.0.0/32
+    expected_result:
+      return_code: 0
+
+# Memcached tests - TCP/UDP 11211, 11214-11215
+firewall_policy_allowed_memcached_rule_10:
+  steps:
+  - command_flags:
+      layer4-configs: udp:11211
+      src-ip-ranges: 10.0.0.0/8
+    expected_result:
+      return_code: 0
+
+firewall_policy_memcached_tcp_rule_denied:
+  steps:
+  - command_flags:
+      layer4-configs: tcp:11211
+      src-ip-ranges: 0.0.0.0/0
+    expected_result:
+      return_code: 1
+      stderr: 'customConstraints/custom\.firewallRestrict(PublicAccess|CacheSearchDatabases)PolicyRule'
+
+firewall_policy_memcached_udp_rule_denied:
+  steps:
+  - command_flags:
+      layer4-configs: udp:11211
+      src-ip-ranges: 0.0.0.0/0
+    expected_result:
+      return_code: 1
+      stderr: 'customConstraints/custom\.firewallRestrict(PublicAccess|CacheSearchDatabases)PolicyRule'
+
+firewall_policy_memcached_11215_rule_allowed_public:
+  steps:
+  - command_flags:
+      layer4-configs: udp:11215
+      src-ip-ranges: 203.0.113.0/24
+    expected_result:
+      return_code: 0
+
+# Multiple cache/search database ports test
+firewall_policy_multiple_cache_search_ports_allowed_public:
+  steps:
+  - command_flags:
+      layer4-configs: tcp:6379,tcp:9200,tcp:11211
+      src-ip-ranges: 1.0.0.0/32
+    expected_result:
+      return_code: 0

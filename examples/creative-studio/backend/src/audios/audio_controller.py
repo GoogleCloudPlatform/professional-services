@@ -14,19 +14,21 @@
 
 
 import logging
-from fastapi import APIRouter
-from fastapi import File, UploadFile
-from google.cloud import speech
-from fastapi import APIRouter, Depends
 
-from src.users.user_model import UserRoleEnum
-from src.auth.auth_guard import RoleChecker
+from fastapi import APIRouter, Depends, File, UploadFile
+from google.cloud import speech
+
+from src.audios.audio_service import AudioService
+from src.audios.dto.create_audio_dto import CreateAudioDto
+from src.auth.auth_guard import RoleChecker, get_current_user
+from src.galleries.dto.gallery_response_dto import MediaItemResponse
+from src.users.user_model import UserModel, UserRoleEnum
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(
     prefix="/api/audios",
-    tags=["Google Audio APIs"],
+    tags=["Audio Generation - Chirp 3 HD, Lyria, Google TTS"],
     responses={404: {"description": "Not found"}},
     dependencies=[
         Depends(
@@ -41,8 +43,20 @@ router = APIRouter(
 )
 
 
+@router.post("/generate", response_model=MediaItemResponse)
+async def generate_audio(
+    create_audio_dto: CreateAudioDto,
+    current_user: UserModel = Depends(get_current_user),
+    audio_service: AudioService = Depends(),
+):
+    """
+    Generates audio based on the selected model (Lyria for music, Chirp/Gemini for speech).
+    """
+    return await audio_service.generate_audio(create_audio_dto, current_user)
+
+
 @router.post("/transcribe")
-async def audio_chat(audio_file: UploadFile = File(...)):
+async def audio_chat(audio_file: UploadFile = File()):
     client = speech.SpeechClient()
     audio_content = await audio_file.read()
     audio = speech.RecognitionAudio(content=audio_content)
@@ -59,10 +73,7 @@ async def audio_chat(audio_file: UploadFile = File(...)):
 
     logger.info("Waiting for operation to complete...")
     response = operation.result(timeout=90)
-
     text = ""
     for result in response.results:
-        logger.info(f"Transcript: {result.alternatives[0].transcript}")
         text = result.alternatives[0].transcript
-
     return text, 200

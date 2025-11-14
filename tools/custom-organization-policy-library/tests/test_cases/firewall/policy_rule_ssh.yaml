@@ -13,14 +13,14 @@ shared_config:
 firewall_policy_allowed_rdp_rule_192:
   steps:
   - command_flags:
-      src-ip-ranges: 192.168.1.0/24
+      src-ip-ranges: 192.168.0.0/16
     expected_result:
       return_code: 0
 
 firewall_policy_allowed_rdp_rule_10:
   steps:
   - command_flags:
-      src-ip-ranges: 10.0.1.0/24
+      src-ip-ranges: 10.0.0.0/8
     expected_result:
       return_code: 0
 
@@ -37,7 +37,7 @@ firewall_policy_rdp_rule_0_0_0_0:
       src-ip-ranges: 0.0.0.0/0
     expected_result:
       return_code: 1
-      stderr: "customConstraints/custom.firewallRestrictSshPolicyRule"
+      stderr: 'customConstraints/custom\.(firewallRestrictSshPolicyRule|firewallRestrictPublicAccessPolicyRule)'
 
 firewall_policy_rdp_rule_1_0_0_0:
   steps:
@@ -45,4 +45,4 @@ firewall_policy_rdp_rule_1_0_0_0:
       src-ip-ranges: 1.0.0.0/32
     expected_result:
       return_code: 1
-      stderr: "customConstraints/custom.firewallRestrictSshPolicyRule"
+      stderr: 'customConstraints/custom\.firewallRestrictSshPolicyRule'

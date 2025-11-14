@@ -80,8 +80,12 @@ import {MatDialogModule} from '@angular/material/dialog';
 import {SourceAssetGalleryComponent} from './common/components/source-asset-gallery/source-asset-gallery.component';
 import {SharedModule} from './common/shared.module';
 import {MatSlideToggleModule} from '@angular/material/slide-toggle';
+import {MatSliderModule} from '@angular/material/slider';
 import {ImageCropperComponent} from 'ngx-image-cropper';
 import {ImageCropperDialogComponent} from './common/components/image-cropper-dialog/image-cropper-dialog.component';
+import {AudioComponent} from './audio/audio.component';
+import {AddVoiceDialogComponent} from './components/add-voice-dialog/add-voice-dialog.component';
+import {MatButtonToggleModule} from '@angular/material/button-toggle';
 
 @NgModule({
   declarations: [
@@ -102,6 +106,8 @@ import {ImageCropperDialogComponent} from './common/components/image-cropper-dia
     ImageSelectorComponent,
     SourceAssetGalleryComponent,
     ImageCropperDialogComponent,
+    AudioComponent,
+    AddVoiceDialogComponent,
   ],
   imports: [
     BrowserModule,
@@ -134,6 +140,8 @@ import {ImageCropperDialogComponent} from './common/components/image-cropper-dia
     SharedModule,
     MatSlideToggleModule,
     ImageCropperComponent,
+    MatButtonToggleModule,
+    MatSliderModule,
   ],
   providers: [
     provideClientHydration(),

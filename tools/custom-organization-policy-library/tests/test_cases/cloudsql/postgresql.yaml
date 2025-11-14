@@ -32,7 +32,7 @@ cloud_psql_instance_no_ssl_mode_encrypted:
       ssl-mode: absent
     expected_result:
       return_code: 1
-      stderr: "customConstraints/custom.cloudsqlRequireSSLConnection"
+      stderr: 'customConstraints/custom\.cloudsqlRequireSSLConnection'
 
 cloud_psql_instance_no_public_networks:
   steps:
@@ -40,7 +40,7 @@ cloud_psql_instance_no_public_networks:
       authorized-networks: 0.0.0.0/0
     expected_result:
       return_code: 1
-      stderr: "customConstraints/custom.cloudsqlDisablePublicAuthorizedNetworks"
+      stderr: 'customConstraints/custom\.cloudsqlDisablePublicAuthorizedNetworks'
 
 cloud_psql_instance_no_backup:
   steps:
@@ -50,7 +50,7 @@ cloud_psql_instance_no_backup:
       enable-point-in-time-recovery : absent
     expected_result:
       return_code: 1
-      stderr: "customConstraints/custom.cloudsqlRequireAutomatedBackup"
+      stderr: 'customConstraints/custom\.cloudsqlRequireAutomatedBackup'
 
 cloud_psql_instance_external_ip:
   steps:
@@ -58,7 +58,7 @@ cloud_psql_instance_external_ip:
       assign-ip: true
     expected_result:
       return_code: 1
-      stderr: "customConstraints/custom.cloudsqlDisableExternalIP"
+      stderr: 'customConstraints/custom\.cloudsqlDisableExternalIP'
 
 cloud_psql_instance_no_query_insights:
   steps:
@@ -66,7 +66,7 @@ cloud_psql_instance_no_query_insights:
       insights-config-query-insights-enabled: false
     expected_result:
       return_code: 1
-      stderr: "customConstraints/custom.cloudsqlRequireQueryInsights"
+      stderr: 'customConstraints/custom\.cloudsqlRequireQueryInsights'
 
 cloud_psql_instance_no_log_conn_on_flag:
   steps:
@@ -74,7 +74,7 @@ cloud_psql_instance_no_log_conn_on_flag:
       database-flags: log_connections=off,log_disconnections=on,log_min_messages=warning,log_min_error_statement=error,log_min_duration_statement=-1,cloudsql.enable_pgaudit=on,log_error_verbosity=default,log_statement=ddl,log_checkpoints=on,log_executor_stats=off,log_lock_waits=on
     expected_result:
       return_code: 1
-      stderr: "customConstraints/custom.cloudsqlRequirePostgreSQLDatabaseFlags"
+      stderr: 'customConstraints/custom\.cloudsqlRequirePostgreSQLDatabaseFlags'
 
 cloud_psql_instance_no_log_discon_on_flag:
   steps:
@@ -82,7 +82,7 @@ cloud_psql_instance_no_log_discon_on_flag:
       database-flags: log_connections=on,log_disconnections=off,log_min_messages=warning,log_min_error_statement=error,log_min_duration_statement=-1,cloudsql.enable_pgaudit=on,log_error_verbosity=default,log_statement=ddl,log_checkpoints=on,log_executor_stats=off,log_lock_waits=on
     expected_result:
       return_code: 1
-      stderr: "customConstraints/custom.cloudsqlRequirePostgreSQLDatabaseFlags"
+      stderr: 'customConstraints/custom\.cloudsqlRequirePostgreSQLDatabaseFlags'
 
 cloud_psql_instance_log_min_messages_error:
   steps:
@@ -90,7 +90,7 @@ cloud_psql_instance_log_min_messages_error:
       database-flags: log_connections=on,log_disconnections=on,log_min_messages=error,log_min_error_statement=error,log_min_duration_statement=-1,cloudsql.enable_pgaudit=on,log_error_verbosity=default,log_statement=ddl.log_checkpoints=on,log_executor_stats=off,log_lock_waits=on
     expected_result:
       return_code: 1
-      stderr: "customConstraints/custom.cloudsqlRequirePostgreSQLDatabaseFlags"
+      stderr: 'customConstraints/custom\.cloudsqlRequirePostgreSQLDatabaseFlags'
 
 cloud_psql_instance_log_min_error_stmt_fatal:
   steps:
@@ -98,7 +98,7 @@ cloud_psql_instance_log_min_error_stmt_fatal:
       database-flags: log_connections=on,log_disconnections=on,log_min_messages=warning,log_min_error_statement=fatal,log_min_duration_statement=-1,cloudsql.enable_pgaudit=on,log_error_verbosity=default,log_statement=ddl,log_checkpoints=on,log_executor_stats=off,log_lock_waits=on
     expected_result:
       return_code: 1
-      stderr: "customConstraints/custom.cloudsqlRequirePostgreSQLDatabaseFlags"
+      stderr: 'customConstraints/custom\.cloudsqlRequirePostgreSQLDatabaseFlags'
 
 cloud_psql_instance_wrong_log_min_duration_statement:
   steps:
@@ -106,7 +106,7 @@ cloud_psql_instance_wrong_log_min_duration_statement:
       database-flags: log_connections=on,log_disconnections=on,log_min_messages=warning,log_min_error_statement=error,log_min_duration_statement=3600,cloudsql.enable_pgaudit=on,log_error_verbosity=default,log_statement=ddl,log_checkpoints=on,log_executor_stats=off,log_lock_waits=on
     expected_result:
       return_code: 1
-      stderr: "customConstraints/custom.cloudsqlRequirePostgreSQLDatabaseFlags"
+      stderr: 'customConstraints/custom\.cloudsqlRequirePostgreSQLDatabaseFlags'
 
 cloud_psql_instance_no_enable_pgaudit:
   steps:
@@ -114,7 +114,7 @@ cloud_psql_instance_no_enable_pgaudit:
       database-flags: log_connections=on,log_disconnections=on,log_min_messages=warning,log_min_error_statement=error,log_min_duration_statement=-1,cloudsql.enable_pgaudit=off,log_error_verbosity=default,log_statement=ddl,log_checkpoints=on,log_executor_stats=off,log_lock_waits=on
     expected_result:
       return_code: 1
-      stderr: "customConstraints/custom.cloudsqlRequirePostgreSQLDatabaseFlags"
+      stderr: 'customConstraints/custom\.cloudsqlRequirePostgreSQLDatabaseFlags'
 
 cloud_psql_instance_wrong_log_error_verbosity:
   steps:
@@ -122,7 +122,7 @@ cloud_psql_instance_wrong_log_error_verbosity:
       database-flags: log_connections=on,log_disconnections=on,log_min_messages=warning,log_min_error_statement=error,log_min_duration_statement=-1,cloudsql.enable_pgaudit=on,log_error_verbosity=terse,log_statement=ddl,log_checkpoints=on,log_executor_stats=off,log_lock_waits=on
     expected_result:
       return_code: 1
-      stderr: "customConstraints/custom.cloudsqlRequirePostgreSQLDatabaseFlags"
+      stderr: 'customConstraints/custom\.cloudsqlRequirePostgreSQLDatabaseFlags'
 
 cloud_psql_instance_wrong_log_statement:
   steps:
@@ -130,7 +130,7 @@ cloud_psql_instance_wrong_log_statement:
       database-flags: log_connections=on,log_disconnections=on,log_min_messages=warning,log_min_error_statement=error,log_min_duration_statement=-1,cloudsql.enable_pgaudit=on,log_error_verbosity=default,log_statement=none,log_checkpoints=on,log_executor_stats=off,log_lock_waits=on
     expected_result:
       return_code: 1
-      stderr: "customConstraints/custom.cloudsqlRequirePostgreSQLDatabaseFlags"
+      stderr: 'customConstraints/custom\.cloudsqlRequirePostgreSQLDatabaseFlags'
 
 cloud_psql_instance_wrong_no_log_checkpoints:
   steps:
@@ -138,7 +138,7 @@ cloud_psql_instance_wrong_no_log_checkpoints:
       database-flags: log_connections=on,log_disconnections=on,log_min_messages=warning,log_min_error_statement=error,log_min_duration_statement=-1,cloudsql.enable_pgaudit=on,log_error_verbosity=default,log_statement=ddl,log_executor_stats=off,log_lock_waits=on
     expected_result:
       return_code: 1
-      stderr: "customConstraints/custom.cloudsqlRequirePostgreSQLDatabaseAdditionalFlags"
+      stderr: 'customConstraints/custom\.cloudsqlRequirePostgreSQLDatabaseAdditionalFlags'
 
 cloud_psql_instance_wrong_wrong_log_checkpoints:
   steps:
@@ -146,7 +146,7 @@ cloud_psql_instance_wrong_wrong_log_checkpoints:
       database-flags: log_connections=on,log_disconnections=on,log_min_messages=warning,log_min_error_statement=error,log_min_duration_statement=-1,cloudsql.enable_pgaudit=on,log_error_verbosity=default,log_statement=ddl,log_checkpoints=off,log_executor_stats=off,log_lock_waits=on
     expected_result:
       return_code: 1
-      stderr: "customConstraints/custom.cloudsqlRequirePostgreSQLDatabaseAdditionalFlags"
+      stderr: 'customConstraints/custom\.cloudsqlRequirePostgreSQLDatabaseAdditionalFlags'
 
 cloud_psql_instance_wrong_wrong_log_executor_stats:
   steps:
@@ -154,7 +154,7 @@ cloud_psql_instance_wrong_wrong_log_executor_stats:
       database-flags: log_connections=on,log_disconnections=on,log_min_messages=warning,log_min_error_statement=error,log_min_duration_statement=-1,cloudsql.enable_pgaudit=on,log_error_verbosity=default,log_statement=ddl,log_checkpoints=on,log_executor_stats=on,log_lock_waits=on
     expected_result:
       return_code: 1
-      stderr: "customConstraints/custom.cloudsqlRequirePostgreSQLDatabaseAdditionalFlags"
+      stderr: 'customConstraints/custom\.cloudsqlRequirePostgreSQLDatabaseAdditionalFlags'
 
 cloud_psql_instance_wrong_no_log_lock_waits:
   steps:
@@ -162,7 +162,7 @@ cloud_psql_instance_wrong_no_log_lock_waits:
       database-flags: log_connections=on,log_disconnections=on,log_min_messages=warning,log_min_error_statement=error,log_min_duration_statement=-1,cloudsql.enable_pgaudit=on,log_error_verbosity=default,log_statement=ddl,log_checkpoints=on,log_executor_stats=off
     expected_result:
       return_code: 1
-      stderr: "customConstraints/custom.cloudsqlRequirePostgreSQLDatabaseAdditionalFlags"
+      stderr: 'customConstraints/custom\.cloudsqlRequirePostgreSQLDatabaseAdditionalFlags'
 
 cloud_psql_instance_wrong_wrong_log_lock_waits:
   steps:
@@ -170,4 +170,4 @@ cloud_psql_instance_wrong_wrong_log_lock_waits:
       database-flags: log_connections=on,log_disconnections=on,log_min_messages=warning,log_min_error_statement=error,log_min_duration_statement=-1,cloudsql.enable_pgaudit=on,log_error_verbosity=default,log_statement=ddl,log_checkpoints=on,log_executor_stats=off,log_lock_waits=off
     expected_result:
       return_code: 1
-      stderr: "customConstraints/custom.cloudsqlRequirePostgreSQLDatabaseAdditionalFlags"
+      stderr: 'customConstraints/custom\.cloudsqlRequirePostgreSQLDatabaseAdditionalFlags'
