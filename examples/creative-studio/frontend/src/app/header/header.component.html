@@ -122,76 +122,66 @@
         *ngIf="toolsMenuHovered"
         (mouseenter)="onToolsEnter()"
         (mouseleave)="onToolsLeave()"
-        class="absolute left-[70px] top-0 p-3 flex flex-col gap-3 bg-gradient-to-b from-zinc-500/50 to-neutral-700/20 rounded-[24px] shadow-[2px_2px_12px_0px_rgba(0,0,0,0.10)] outline outline-1 outline-offset-[-1px] outline-stone-300/80 backdrop-blur-[10px] z-[1001]"
+        class="absolute left-[70px] top-0 p-3 flex flex-col gap-3 bg-gradient-to-b from-zinc-500/50 to-neutral-700/20 rounded-[24px] shadow-[2px_2px_12px_0px_rgba(0,0,0,0.10)] outline outline-1 outline-offset-[-1px] outline-stone-300/80 backdrop-blur-[10px] z-[1001] min-w-[220px]"
         [@fadeSlideInOut]
       >
         <div class="absolute -left-[20px] top-0 bottom-0 w-[20px] bg-transparent"></div>
 
         <div
-          routerLink="/fun-templates"
-          matTooltip="Fun Templates"
-          matTooltipPosition="right"
-          class="cursor-pointer w-14 h-14 bg-blend-soft-light bg-white/40 rounded-[48px] shadow-[0px_4px_4px_0px_rgba(0,0,0,0.25)] outline outline-1 outline-offset-[-1px] outline-stone-300/80 backdrop-blur-2xl inline-flex justify-start items-start gap-2.5 overflow-hidden"
-        >
-          <div
-            *ngIf="router.isActive('/fun-templates', true)"
-            class="flex-1 h-14 bg-gradient-to-r from-blue-500 via-violet-500 to-red-400 rounded-full blur-[3px] backdrop-blur-md"
-          ></div>
-          <div class="w-6 h-6 left-[16px] top-[16px] absolute overflow-hidden">
-            <button matFab class="cursor-pointer w-6 h-6 left-0 top-0 absolute text-center justify-center text-neutral-200 text-2xl">
-              <mat-icon svgIcon="fun-templates-icon"></mat-icon>
-            </button>
-          </div>
-        </div>
-
-        <div
           routerLink="/vto"
-          matTooltip="Virtual Try-On"
-          matTooltipPosition="right"
-          class="cursor-pointer w-14 h-14 bg-blend-soft-light bg-white/40 rounded-[48px] shadow-[0px_4px_4px_0px_rgba(0,0,0,0.25)] outline outline-1 outline-offset-[-1px] outline-stone-300/80 backdrop-blur-2xl inline-flex justify-start items-start gap-2.5 overflow-hidden"
+          class="cursor-pointer w-full h-12 bg-blend-soft-light bg-white/40 rounded-xl shadow-[0px_4px_4px_0px_rgba(0,0,0,0.25)] outline outline-1 outline-offset-[-1px] outline-stone-300/80 backdrop-blur-2xl relative overflow-hidden flex items-center group hover:bg-white/50 transition-all"
         >
           <div
             *ngIf="router.isActive('/vto', false)"
-            class="flex-1 h-14 bg-gradient-to-r from-blue-500 via-violet-500 to-red-400 rounded-full blur-[3px] backdrop-blur-md"
+             class="absolute inset-0 bg-gradient-to-r from-blue-500 via-violet-500 to-red-400 opacity-80 blur-[3px] backdrop-blur-md"
           ></div>
-          <div class="w-6 h-6 left-[16px] top-[16px] absolute overflow-hidden">
-            <button matFab class="cursor-pointer w-6 h-6 left-0 top-0 absolute text-center justify-center text-neutral-200 text-2xl">
-              <mat-icon>checkroom</mat-icon>
-            </button>
+
+          <div class="relative flex items-center px-4 w-full z-10">
+             <mat-icon class="text-neutral-200 mr-3">checkroom</mat-icon>
+             <span class="text-neutral-200 font-medium text-sm whitespace-nowrap">Virtual Try-On</span>
           </div>
         </div>
 
         <div
-          matTooltip="Imagen Upscale (Coming Soon!)"
-          matTooltipPosition="right"
-          class="cursor-not-allowed opacity-50 grayscale w-14 h-14 bg-blend-soft-light bg-white/20 rounded-[48px] shadow-none outline outline-1 outline-offset-[-1px] outline-stone-400/50 backdrop-blur-md inline-flex justify-start items-start gap-2.5 overflow-hidden"
+          routerLink="/fun-templates"
+          class="cursor-pointer w-full h-12 bg-blend-soft-light bg-white/40 rounded-xl shadow-[0px_4px_4px_0px_rgba(0,0,0,0.25)] outline outline-1 outline-offset-[-1px] outline-stone-300/80 backdrop-blur-2xl relative overflow-hidden flex items-center group hover:bg-white/50 transition-all"
         >
-          <div class="w-6 h-6 left-[16px] top-[16px] absolute overflow-hidden">
-            <button matFab disabled class="cursor-not-allowed w-6 h-6 left-0 top-0 absolute text-center justify-center text-neutral-300 text-2xl">
-              <mat-icon>hd</mat-icon>
-            </button>
+          <div
+            *ngIf="router.isActive('/fun-templates', true)"
+            class="absolute inset-0 bg-gradient-to-r from-blue-500 via-violet-500 to-red-400 opacity-80 blur-[3px] backdrop-blur-md"
+          ></div>
+
+          <div class="relative flex items-center px-4 w-full z-10">
+             <mat-icon svgIcon="fun-templates-icon" class="text-neutral-200 mr-3"></mat-icon>
+             <span class="text-neutral-200 font-medium text-sm whitespace-nowrap">Fun Templates</span>
+          </div>
+        </div>
+
+        <div
+          matTooltip="Coming Soon!"
+          matTooltipPosition="right"
+          class="cursor-not-allowed opacity-50 grayscale w-full h-12 bg-blend-soft-light bg-white/20 rounded-xl shadow-none outline outline-1 outline-offset-[-1px] outline-stone-400/50 backdrop-blur-md relative overflow-hidden flex items-center"
+        >
+          <div class="relative flex items-center px-4 w-full z-10">
+             <mat-icon class="text-neutral-300 mr-3">hd</mat-icon>
+             <span class="text-neutral-300 font-medium text-sm whitespace-nowrap">Imagen Upscale</span>
           </div>
         </div>
 
         <div
           routerLink="/workflows"
-          matTooltip="Workflows (Coming Soon!!)"
+          matTooltip="Coming Soon!"
           matTooltipPosition="right"
-          class="cursor-not-allowed opacity-50 grayscale md:mb-[10px] w-14 h-14 bg-blend-soft-light bg-white/40 rounded-[48px] shadow-[0px_4px_4px_0px_rgba(0,0,0,0.25)] outline outline-1 outline-offset-[-1px] outline-stone-300/80 backdrop-blur-2xl inline-flex justify-start items-start gap-2.5 overflow-hidden"
+          class="cursor-not-allowed opacity-50 grayscale w-full h-12 bg-blend-soft-light bg-white/40 rounded-xl shadow-[0px_4px_4px_0px_rgba(0,0,0,0.25)] outline outline-1 outline-offset-[-1px] outline-stone-300/80 backdrop-blur-2xl relative overflow-hidden flex items-center"
         >
           <div
             *ngIf="router.isActive('/workflows', false)"
-            class="flex-1 h-14 bg-gradient-to-r from-blue-500 via-violet-500 to-red-400 rounded-full blur-[3px] backdrop-blur-md"
+             class="absolute inset-0 bg-gradient-to-r from-blue-500 via-violet-500 to-red-400 opacity-80 blur-[3px] backdrop-blur-md"
           ></div>
-          <div class="w-6 h-6 left-[16px] top-[16px] absolute overflow-hidden">
-            <button
-              matFab
-              disabled
-              aria-label="Workflows"
-              class="cursor-not-allowed w-6 h-6 left-0 top-0 absolute text-center justify-center text-neutral-200 text-2xl"
-            >
-              <mat-icon>hub</mat-icon>
-            </button>
+
+          <div class="relative flex items-center px-4 w-full z-10">
+             <mat-icon class="text-neutral-200 mr-3">hub</mat-icon>
+             <span class="text-neutral-200 font-medium text-sm whitespace-nowrap">Workflows</span>
           </div>
         </div>
 
