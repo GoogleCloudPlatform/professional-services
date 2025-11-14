@@ -1,0 +1,6 @@
+.dialog-content { display: flex; flex-direction: column; gap: 1rem; min-width: 400px; }
+    .full-width { width: 100%; }
+    .file-section { border: 1px dashed #ccc; padding: 15px; border-radius: 8px; margin-bottom: 10px; }
+    .desc { font-size: 0.85rem; color: #666; margin-bottom: 10px; }
+    .hint { font-size: 0.75rem; color: #888; margin-top: 5px; }
+    h3 { margin: 0 0 5px 0; font-size: 1rem; }
