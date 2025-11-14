@@ -6,8 +6,14 @@ custom.firewallRestrictNetworkServicesPolicyRule:
       rule.direction == 'INGRESS' &&
       rule.match.srcIpRanges.exists(range, range == '0.0.0.0/0') &&
       rule.match.layer4Configs.exists(l4config,
-        (l4config.ipProtocol == 'tcp' && l4config.ports.exists(port, port == '53' || port == '137' || port == '138' || port == '139')) ||
-        (l4config.ipProtocol == 'udp' && l4config.ports.exists(port, port == '53' || port == '137' || port == '138' || port == '139'))
+        (
+          l4config.ipProtocol == 'tcp' &&
+          l4config.ports.exists(port, port == '53' || port == '137' || port == '138' || port == '139')
+        ) ||
+        (
+          l4config.ipProtocol == 'udp' &&
+          l4config.ports.exists(port, port == '53' || port == '137' || port == '138' || port == '139')
+        )
       )
     )
   description:

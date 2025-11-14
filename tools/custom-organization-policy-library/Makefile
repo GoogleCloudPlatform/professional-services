@@ -73,4 +73,6 @@ clean:
 	rm -rf $(OUTPUT_GCLOUD)
 	rm -rf $(OUTPUT_TF)
 
-
+.PHONY: check
+check:
+	yamllint -c .yamllint .
