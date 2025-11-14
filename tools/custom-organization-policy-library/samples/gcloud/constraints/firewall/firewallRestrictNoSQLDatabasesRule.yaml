@@ -7,7 +7,7 @@ condition: |-
     resource.allowed.exists(rule,
       rule.ports.exists(port,
           rule.IPProtocol == 'tcp' &&
-          port in ["7000", "7001", "7199", "8888", "9042", "9160", "61620", "61621", "27017", "27018", "27019"]
+          port in ['7000', '7001', '7199', '8888', '9042', '9160', '61620', '61621', '27017', '27018', '27019']
       )
     )
 action_type: DENY

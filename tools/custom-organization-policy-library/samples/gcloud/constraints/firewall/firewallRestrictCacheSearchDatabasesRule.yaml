@@ -6,8 +6,8 @@ condition: |-
     resource.sourceRanges.exists(range, range == '0.0.0.0/0') &&
     resource.allowed.exists(rule,
       rule.ports.exists(port,
-          (rule.IPProtocol == 'tcp' && port in ['9200', '9300', '11211', '11214', '11215', '6379']) ||
-          (rule.IPProtocol == 'udp' && port in ['11211', '11214', '11215'])
+          rule.IPProtocol == 'tcp' && port in ['9200', '9300', '11211', '11214', '11215', '6379'] ||
+          rule.IPProtocol == 'udp' && port in ['11211', '11214', '11215']
       )
     )
 action_type: DENY

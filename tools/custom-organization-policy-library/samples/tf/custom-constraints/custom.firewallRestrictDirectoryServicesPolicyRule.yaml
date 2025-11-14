@@ -6,8 +6,8 @@ custom.firewallRestrictDirectoryServicesPolicyRule:
       rule.direction == 'INGRESS' &&
       rule.match.srcIpRanges.exists(range, range == '0.0.0.0/0') &&
       rule.match.layer4Configs.exists(l4config,
-        (l4config.ipProtocol == 'udp' && l4config.ports.exists(port, port == '445' || port == '389')) ||
-        (l4config.ipProtocol == 'tcp' && l4config.ports.exists(port, port == '445' || port == '389' || port == '636'))
+        l4config.ipProtocol == 'udp' && l4config.ports.exists(port, port == '445' || port == '389') ||
+        l4config.ipProtocol == 'tcp' && l4config.ports.exists(port, port == '445' || port == '389' || port == '636')
       )
     )
   description:

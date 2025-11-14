@@ -7,14 +7,13 @@
 #@   #! MongoDB: TCP 27017-27019
 #@   #! Deny if source range is 0.0.0.0/0 (any source)
 #@
-#@   ports = ['7000', '7001', '7199', '8888', '9042', '9160', '61620', '61621', '27017', '27018', '27019']
 #@   lines = [
 #@     "resource.direction.matches('INGRESS') &&",
 #@     "  resource.sourceRanges.exists(range, range == '0.0.0.0/0') &&",
 #@     "  resource.allowed.exists(rule,",
 #@     "    rule.ports.exists(port,",
 #@     "        rule.IPProtocol == 'tcp' &&",
-#@     "        port in " + str(ports),
+#@     "        port in ['7000', '7001', '7199', '8888', '9042', '9160', '61620', '61621', '27017', '27018', '27019']",
 #@     "    )",
 #@     "  )"
 #@   ]

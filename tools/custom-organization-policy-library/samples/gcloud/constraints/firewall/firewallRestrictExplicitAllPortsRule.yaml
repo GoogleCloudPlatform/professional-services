@@ -5,9 +5,9 @@ condition: |-
   (
     resource.direction == 'INGRESS' &&
     resource.allowed.exists(rule,
-      (rule.IPProtocol == 'tcp' || rule.IPProtocol == 'udp') &&
-      has(rule.ports) && rule.ports.exists(port,
-       (port == '0-65535') || (port == '1-65535')
+      rule.IPProtocol in ['tcp','udp'] && has(rule.ports) &&
+      rule.ports.exists(port,
+        port == '0-65535' || port == '1-65535'
       )
     ) &&
     !resource.name.startsWith('gke-') &&

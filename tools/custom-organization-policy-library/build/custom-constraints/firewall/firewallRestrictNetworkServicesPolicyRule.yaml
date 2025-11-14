@@ -6,8 +6,7 @@
 #@   #! DNS: TCP/UDP:53
 #@   #! NetBIOS: TCP/UDP:137-139
 #@   #! Deny if source range is 0.0.0.0/0 (any source)
-#@   tcp_ports = "port == '53' || port == '137' || port == '138' || port == '139'"
-#@   udp_ports = "port == '53' || port == '137' || port == '138' || port == '139'"
+#@   ports = "port == '53' || port == '137' || port == '138' || port == '139'"
 #@
 #@   lines = [
 #@     "resource.rules.exists(rule,",
@@ -15,14 +14,8 @@
 #@     "  rule.direction == 'INGRESS' &&",
 #@     "  rule.match.srcIpRanges.exists(range, range == '0.0.0.0/0') &&",
 #@     "  rule.match.layer4Configs.exists(l4config,",
-#@     "    (",
-#@     "      l4config.ipProtocol == 'tcp' &&",
-#@     "      l4config.ports.exists(port, " + tcp_ports + ")",
-#@     "    ) ||",
-#@     "    (",
-#@     "      l4config.ipProtocol == 'udp' &&",
-#@     "      l4config.ports.exists(port, " + udp_ports + ")",
-#@     "    )",
+#@     "      l4config.ipProtocol in ['tcp', 'udp'] &&",
+#@     "      l4config.ports.exists(port, " + ports + ")",
 #@     "  )",
 #@     ")"
 #@   ]

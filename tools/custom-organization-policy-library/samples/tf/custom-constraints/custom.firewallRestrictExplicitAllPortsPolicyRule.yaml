@@ -5,9 +5,9 @@ custom.firewallRestrictExplicitAllPortsPolicyRule:
       rule.priority < 2147483644 &&
       rule.direction == 'INGRESS' &&
       rule.match.layer4Configs.exists(l4,
-        (l4.ipProtocol == 'tcp' || l4.ipProtocol == 'udp') &&
-        has(l4.ports) && l4.ports.exists(port,
-          (port == '0-65535') || (port == '1-65535')
+        l4.ipProtocol in ['tcp','udp'] && has(l4.ports) &&
+        l4.ports.exists(port,
+          port == '0-65535' || port == '1-65535'
         )
       )
     )
