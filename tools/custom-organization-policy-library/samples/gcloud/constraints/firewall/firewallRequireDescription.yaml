@@ -15,4 +15,6 @@ action_type: DENY
 method_types:
 - CREATE
 display_name: Require description on Firewall rule
-description: Prevent the creation of VPC firewall rule that does not have description provided. Description can be used for auditing to refer to security control
+description: |-
+  Prevent the creation of VPC firewall rule that does not have description provided. Description can
+  be used for auditing to refer to security control

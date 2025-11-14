@@ -16,7 +16,7 @@ shared_config:
 firewall_vpc_allowed_custom_rule_192:
   steps:
   - command_flags:
-      source-ranges: 192.168.1.0/24
+      source-ranges: 192.168.0.0/16
     expected_result:
       return_code: 0
 
@@ -26,5 +26,5 @@ firewall_vpc_custom_rule_0_0_0_0:
       source-ranges: 0.0.0.0/0
     expected_result:
       return_code: 1
-      stderr: "customConstraints/custom.firewallRestrictOpenWorldRule"
+      stderr: 'customConstraints/custom\.firewallRestrictPublicAccessRule'
 

@@ -24,6 +24,7 @@ class MimeTypeEnum(str, Enum):
     IMAGE_JPEG = "image/jpeg"
     IMAGE_PNG = "image/png"
     VIDEO_MP4 = "video/mp4"
+    AUDIO_WAV = "audio/wav"
 
 
 class GenerationModelEnum(str, Enum):
@@ -55,6 +56,13 @@ class GenerationModelEnum(str, Enum):
     VEO_2_FAST = "veo-2.0-generate-001"
     VEO_2_QUALITY = "veo-2.0-fast-generate-001"
     VEO_2_GENERATE_EXP = "veo-2.0-generate-exp"
+
+    # Audio-Specific Models
+    LYRIA_002 = "lyria-002"
+    CHIRP_3 = "chirp_3"
+    GEMINI_2_5_FLASH_TTS = "gemini-2.5-flash-tts"
+    GEMINI_2_5_FLASH_LITE_PREVIEW_TTS = "gemini-2.5-flash-lite-preview-tts"
+    GEMINI_2_5_PRO_TTS = "gemini-2.5-pro-tts"
 
 
 class AspectRatioEnum(str, Enum):
