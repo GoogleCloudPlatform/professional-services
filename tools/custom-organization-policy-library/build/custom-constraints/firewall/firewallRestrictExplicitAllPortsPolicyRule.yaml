@@ -12,7 +12,7 @@
 #@     "  rule.match.layer4Configs.exists(l4,",
 #@     "    (l4.ipProtocol == 'tcp' || l4.ipProtocol == 'udp') &&",
 #@     "    has(l4.ports) && l4.ports.exists(port,",
-#@     "      port == '0-65535' || port == '1-65535'",
+#@     "      (port == '0-65535') || (port == '1-65535')",
 #@     "    )",
 #@     "  )",
 #@     ")"

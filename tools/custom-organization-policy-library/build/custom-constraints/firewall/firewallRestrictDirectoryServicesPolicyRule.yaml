@@ -17,10 +17,8 @@
 #@     "  rule.direction == 'INGRESS' &&",
 #@     "  rule.match.srcIpRanges.exists(range, range == '0.0.0.0/0') &&",
 #@     "  rule.match.layer4Configs.exists(l4config,",
-#@     "    l4config.ipProtocol == 'tcp' &&",
-#@     "    l4config.ports.exists(port, " + tcp_check + ") ||",
-#@     "    l4config.ipProtocol == 'udp' &&",
-#@     "    l4config.ports.exists(port, " + udp_check + ")",
+#@     "    (l4config.ipProtocol == 'tcp' && l4config.ports.exists(port, " + tcp_check + ")) ||",
+#@     "    (l4config.ipProtocol == 'udp' && l4config.ports.exists(port, " + udp_check + "))",
 #@     "  )",
 #@     ")"
 #@   ]

@@ -7,7 +7,7 @@ custom.firewallRestrictInsecureProtocolsPolicyRule:
       rule.match.srcIpRanges.exists(range, range == '0.0.0.0/0') &&
       rule.match.layer4Configs.exists(l4config,
         l4config.ports.exists(port,
-          l4config.ipProtocol == 'tcp' && port == '21' || port == '23' || port == '80'
+          l4config.ipProtocol == 'tcp' && (port == '21' || port == '23' || port == '80')
         )
       )
     )

@@ -20,8 +20,8 @@
 #@     "  rule.match.layer4Configs.exists(l4config,",
 #@     "    l4config.ipProtocol == 'tcp' &&",
 #@     "    l4config.ports.exists(port,",
-#@     "      " + port_line1 + " ||",
-#@     "      " + port_line2,
+#@     "      (" + port_line1 + ") ||",
+#@     "      (" + port_line2 + ")",
 #@     "    )",
 #@     "  )",
 #@     ")"

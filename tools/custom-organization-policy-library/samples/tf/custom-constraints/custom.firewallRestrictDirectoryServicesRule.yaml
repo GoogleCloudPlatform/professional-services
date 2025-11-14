@@ -5,8 +5,8 @@ custom.firewallRestrictDirectoryServicesRule:
       resource.sourceRanges.exists(range, range == '0.0.0.0/0') &&
       resource.allowed.exists(rule,
         rule.ports.exists(port,
-            rule.IPProtocol == 'tcp' && port in ['445', '389', '636'] ||
-            rule.IPProtocol == 'udp' && port in ['445', '389']
+            (rule.IPProtocol == 'tcp' && port in ['445', '389', '636']) ||
+            (rule.IPProtocol == 'udp' && port in ['445', '389'])
         )
       )
   description:

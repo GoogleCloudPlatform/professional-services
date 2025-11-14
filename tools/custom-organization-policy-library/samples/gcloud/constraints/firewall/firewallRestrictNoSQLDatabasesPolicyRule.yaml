@@ -9,8 +9,8 @@ condition: |-
     rule.match.layer4Configs.exists(l4config,
       l4config.ipProtocol == 'tcp' &&
       l4config.ports.exists(port,
-        port == '7000' || port == '7001' || port == '7199' || port == '8888' || port == '9042' ||
-        port == '9160' || port == '61620' || port == '61621' || port == '27017' || port == '27018' || port == '27019'
+        (port == '7000' || port == '7001' || port == '7199' || port == '8888' || port == '9042') ||
+        (port == '9160' || port == '61620' || port == '61621' || port == '27017' || port == '27018' || port == '27019')
       )
     )
   )
