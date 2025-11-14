@@ -70,4 +70,5 @@ apis_to_enable = [
   "iamcredentials.googleapis.com",
   "aiplatform.googleapis.com",
   "firestore.googleapis.com",
+  "texttospeech.googleapis.com",
 ]

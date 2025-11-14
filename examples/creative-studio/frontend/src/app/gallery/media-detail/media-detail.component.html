@@ -103,6 +103,16 @@
                   </p>
                 </div>
 
+                <div *ngIf="mediaItem.voiceName" class="contents">
+                  <strong class="font-semibold text-gray-400">Voice:</strong>
+                  <p class="text-right">{{ mediaItem.voiceName }}</p>
+                </div>
+
+                <div *ngIf="mediaItem.languageCode" class="contents">
+                  <strong class="font-semibold text-gray-400">Language:</strong>
+                  <p class="text-right">{{ mediaItem.languageCode }}</p>
+                </div>
+
                 <div *ngIf="mediaItem.seed" class="contents">
                   <strong class="font-semibold text-gray-400">Seed:</strong>
                   <p class="text-right">{{ mediaItem.seed }}</p>

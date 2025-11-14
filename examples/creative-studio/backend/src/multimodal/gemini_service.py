@@ -59,6 +59,7 @@ logger = logging.getLogger(__name__)
 class PromptTargetEnum(str, Enum):
     IMAGE = "image"
     VIDEO = "video"
+    AUDIO = "audio"
 
 
 class ResponseMimeTypeEnum(str, Enum):

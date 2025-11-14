@@ -44,7 +44,12 @@ import {GallerySearchDto} from '../../common/models/search.model';
 })
 export class MediaGalleryComponent implements OnInit, OnDestroy, AfterViewInit {
   @Output() mediaItemSelected = new EventEmitter<MediaItemSelection>();
-  @Input() filterByType: 'image/png' | 'video/mp4' | 'audio/mpeg' | null = null;
+  @Input() filterByType:
+    | 'image/png'
+    | 'video/mp4'
+    | 'audio/mpeg'
+    | 'audio/wav'
+    | null = null;
   @Input() statusFilter: JobStatus | null = JobStatus.COMPLETED;
 
   public images: MediaItem[] = [];
@@ -75,10 +80,44 @@ export class MediaGalleryComponent implements OnInit, OnDestroy, AfterViewInit {
       value: 'imagen-4.0-fast-generate-001',
       viewValue: 'Imagen 4 Ultra',
     },
+    // Video
+    {
+      value: 'veo-3.1-generate-preview',
+      viewValue: 'Veo 3.1 \n (Beta Audio)',
+    },
+    {
+      value: 'veo-3.0-generate-001',
+      viewValue: 'Veo 3 Quality \n (Beta Audio)',
+    },
+    {
+      value: 'veo-3.0-fast-generate-001',
+      viewValue: 'Veo 3 Fast \n (Beta Audio)',
+    },
+    {value: 'veo-2.0-generate-001', viewValue: 'Veo 2 Quality \n (No Audio)'},
+    {value: 'veo-2.0-fast-generate-001', viewValue: 'Veo 2 Fast \n (No Audio)'},
+    {
+      value: 'veo-2.0-generate-exp',
+      viewValue: 'Veo 2 Exp \n (Reference Image)',
+    },
+    // Audio
+    {
+      value: 'lyria-002',
+      viewValue: 'Lyria',
+    },
+    {
+      value: 'gemini-2.5-flash-tts',
+      viewValue: 'Gemini TTS',
+    },
+    {
+      value: 'chirp_3',
+      viewValue: 'Chirp',
+    },
   ];
   private autoSlideIntervals: {[id: string]: any} = {};
   public currentImageIndices: {[id: string]: number} = {};
   public hoveredVideoId: string | null = null;
+  public hoveredAudioId: string | null = null;
+
   constructor(
     private galleryService: GalleryService,
     private sanitizer: DomSanitizer,
@@ -255,13 +294,27 @@ export class MediaGalleryComponent implements OnInit, OnDestroy, AfterViewInit {
   public onMouseEnter(media: MediaItem): void {
     if (media.mimeType === 'video/mp4') this.playVideo(media.id);
 
+    // 2. ADD THIS CHECK
+    if (media.mimeType?.startsWith('audio/')) this.playAudio(media.id);
+
     this.stopAutoSlide(media.id);
   }
 
   public onMouseLeave(media: MediaItem): void {
     if (media.mimeType === 'video/mp4') this.stopVideo();
 
+    // 3. ADD THIS CHECK
+    if (media.mimeType?.startsWith('audio/')) this.stopAudio();
+
     this.startAutoSlide(media);
+  }
+
+  public playAudio(mediaId: string): void {
+    this.hoveredAudioId = mediaId;
+  }
+
+  public stopAudio(): void {
+    this.hoveredAudioId = null;
   }
 
   public getShortPrompt(

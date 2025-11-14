@@ -20,6 +20,7 @@ from google.genai import types
 from pydantic import BaseModel, ConfigDict, Field, HttpUrl
 from pydantic.alias_generators import to_camel
 
+from src.audios.audio_constants import LanguageEnum, VoiceEnum
 from src.common.base_dto import (
     AspectRatioEnum,
     ColorAndToneEnum,
@@ -186,6 +187,14 @@ class MediaItemModel(BaseDocument):
 
     # Music specific
     audio_analysis: Optional[Dict] = None
+    voice_name: Optional[VoiceEnum] = Field(
+        default=None,
+        description="The specific voice ID used (e.g., 'Puck', 'Fenrir').",
+    )
+    language_code: Optional[LanguageEnum] = Field(
+        default=None,
+        description="The BCP-47 language code used (e.g., 'en-US').",
+    )
 
     # Debugging field
     raw_data: Optional[Dict] = Field(default_factory=dict)

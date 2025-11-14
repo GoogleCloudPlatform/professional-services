@@ -128,7 +128,7 @@
               <mat-option>None</mat-option>
               <mat-option value="image/png">Image</mat-option>
               <mat-option value="video/mp4">Video</mat-option>
-              <mat-option value="audio/mpeg">Audio</mat-option>
+              <mat-option value="audio/wav">Audio</mat-option>
             </mat-select>
           </mat-form-field>
         </div>
@@ -265,8 +265,28 @@
                 "
               ></div>
             </ng-container>
-            <ng-container *ngIf="media.mimeType === 'audio/mpeg'">
+
+            <ng-container *ngIf="media.mimeType === 'audio/wav' || media.mimeType === 'audio/mpeg'">
+              <div class="audio-card-preview">
+
+                <mat-icon *ngIf="hoveredAudioId !== media.id">graphic_eq</mat-icon>
+
+                <ng-container *ngIf="hoveredAudioId === media.id">
+                    <mat-icon class="playing-icon">volume_up</mat-icon>
+
+                    <audio autoplay [src]="getCurrentImageUrl(media)" (ended)="stopAudio()"></audio>
+                </ng-container>
+
+              </div>
+
+              <div
+                class="w-full"
+                [style.aspect-ratio]="
+                  (media.aspectRatio || '1:1').replace(':', ' / ')
+                "
+              ></div>
             </ng-container>
+
           </a>
 
           <!-- Carousel Controls: Only show if there's more than one image -->
