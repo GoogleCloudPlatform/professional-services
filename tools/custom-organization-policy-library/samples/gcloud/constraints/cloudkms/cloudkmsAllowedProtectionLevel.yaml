@@ -4,7 +4,8 @@ resourceTypes:
 methodTypes:
   - CREATE
   - UPDATE
-condition: resource.versionTemplate.protectionLevel in ["SOFTWARE"] == false
+condition:
+  has(resource.versionTemplate.protectionLevel) && resource.versionTemplate.protectionLevel in ["SOFTWARE"] == false
 actionType: DENY
 displayName: Require Cloud KMS keys protection level to be configured correctly
 description: Ensure the protection level for Cloud KMS keys is configured correctly
