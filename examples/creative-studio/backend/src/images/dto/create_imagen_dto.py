@@ -119,6 +119,7 @@ class CreateImagenDto(BaseDto):
             GenerationModelEnum.IMAGEN_4_ULTRA,
             GenerationModelEnum.IMAGEN_4_001,
             GenerationModelEnum.GEMINI_2_5_FLASH_IMAGE_PREVIEW,
+            GenerationModelEnum.GEMINI_3_PRO_IMAGE_PREVIEW,
         ]
         if value not in valid_generation_models:
             raise ValueError("Invalid generation model for imagen.")
@@ -143,8 +144,7 @@ class CreateImagenDto(BaseDto):
             return self  # No inputs, nothing to validate here.
 
         is_gemini_flash = (
-            self.generation_model
-            == GenerationModelEnum.GEMINI_2_5_FLASH_IMAGE_PREVIEW
+            self.generation_model in [GenerationModelEnum.GEMINI_2_5_FLASH_IMAGE_PREVIEW, GenerationModelEnum.GEMINI_3_PRO_IMAGE_PREVIEW]
         )
 
         if is_gemini_flash:
