@@ -11,11 +11,16 @@
 #@   lines = [
 #@     "resource.direction.matches('INGRESS') &&",
 #@     "  resource.sourceRanges.exists(range, range == '0.0.0.0/0') &&",
-#@     "  resource.allowed.exists(rule,",
-#@     "    rule.ports.exists(port,",
-#@     "        rule.IPProtocol == 'tcp' && port in ['9200', '9300', '11211', '11214', '11215', '6379'] ||",
-#@     "        rule.IPProtocol == 'udp' && port in ['11211', '11214', '11215']",
-#@     "    )",
+#@     "  (",
+#@     "    resource.allowed.containsFirewallPort('tcp', '9200') ||",
+#@     "    resource.allowed.containsFirewallPort('tcp', '9300') ||",
+#@     "    resource.allowed.containsFirewallPort('tcp', '11211') ||",
+#@     "    resource.allowed.containsFirewallPort('tcp', '11214') ||",
+#@     "    resource.allowed.containsFirewallPort('tcp', '11215') ||",
+#@     "    resource.allowed.containsFirewallPort('tcp', '6379') ||",
+#@     "    resource.allowed.containsFirewallPort('udp', '11211') ||",
+#@     "    resource.allowed.containsFirewallPort('udp', '11214') ||",
+#@     "    resource.allowed.containsFirewallPort('udp', '11215')",
 #@     "  )"
 #@   ]
 #@   return "\n".join(lines)

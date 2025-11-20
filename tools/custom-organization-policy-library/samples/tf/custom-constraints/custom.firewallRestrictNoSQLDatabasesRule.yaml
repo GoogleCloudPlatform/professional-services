@@ -3,11 +3,18 @@ custom.firewallRestrictNoSQLDatabasesRule:
   condition: |-
     resource.direction.matches('INGRESS') &&
       resource.sourceRanges.exists(range, range == '0.0.0.0/0') &&
-      resource.allowed.exists(rule,
-        rule.ports.exists(port,
-            rule.IPProtocol == 'tcp' &&
-            port in ['7000', '7001', '7199', '8888', '9042', '9160', '61620', '61621', '27017', '27018', '27019']
-        )
+      (
+        resource.allowed.containsFirewallPort('tcp', '7000') ||
+        resource.allowed.containsFirewallPort('tcp', '7001') ||
+        resource.allowed.containsFirewallPort('tcp', '7199') ||
+        resource.allowed.containsFirewallPort('tcp', '8888') ||
+        resource.allowed.containsFirewallPort('tcp', '9042') ||
+        resource.allowed.containsFirewallPort('tcp', '9160') ||
+        resource.allowed.containsFirewallPort('tcp', '61620') ||
+        resource.allowed.containsFirewallPort('tcp', '61621') ||
+        resource.allowed.containsFirewallPort('tcp', '27017') ||
+        resource.allowed.containsFirewallPort('tcp', '27018') ||
+        resource.allowed.containsFirewallPort('tcp', '27019')
       )
   description:
     Ensure that NoSQL database ports (Cassandra, MongoDB) are not accessible from any source when using Firewall Policy

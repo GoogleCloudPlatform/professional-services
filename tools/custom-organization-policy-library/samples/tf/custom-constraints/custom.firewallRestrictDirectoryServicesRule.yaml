@@ -3,11 +3,12 @@ custom.firewallRestrictDirectoryServicesRule:
   condition: |-
     resource.direction.matches('INGRESS') &&
       resource.sourceRanges.exists(range, range == '0.0.0.0/0') &&
-      resource.allowed.exists(rule,
-        rule.ports.exists(port,
-            rule.IPProtocol == 'tcp' && port in ['445', '389', '636'] ||
-            rule.IPProtocol == 'udp' && port in ['445', '389']
-        )
+      (
+        resource.allowed.containsFirewallPort('tcp', '445') ||
+        resource.allowed.containsFirewallPort('tcp', '389') ||
+        resource.allowed.containsFirewallPort('tcp', '636') ||
+        resource.allowed.containsFirewallPort('udp', '445') ||
+        resource.allowed.containsFirewallPort('udp', '389')
       )
   description:
     Ensure that directory and authentication services (SMB/CIFS, LDAP) are not accessible from the Internet when using

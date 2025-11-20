@@ -9,12 +9,7 @@
 #@   lines = [
 #@     "resource.direction.matches('INGRESS') &&",
 #@     "  resource.sourceRanges.exists(range, range == '0.0.0.0/0') &&",
-#@     "  resource.allowed.exists(rule,",
-#@     "    rule.IPProtocol == 'tcp' &&",
-#@     "    rule.ports.exists(port,",
-#@     "        port in ['9090']",
-#@     "    )",
-#@     "  )"
+#@     "  resource.allowed.containsFirewallPort('tcp', '9090')",
 #@   ]
 #@   return "\n".join(lines)
 #@ end

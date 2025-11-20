@@ -3,10 +3,9 @@ custom.firewallRestrictMailProtocolsRule:
   condition: |-
     resource.direction.matches('INGRESS') &&
       resource.sourceRanges.exists(range, range == '0.0.0.0/0') &&
-      resource.allowed.exists(rule,
-        rule.ports.exists(port,
-            rule.IPProtocol == 'tcp' && port in ['25', '110']
-        )
+      (
+        resource.allowed.containsFirewallPort('tcp', '25') ||
+        resource.allowed.containsFirewallPort('tcp', '110')
       )
   description: Ensure that mail protocols (SMTP, POP3) are not accessible from any source when using VPC Firewall Rule
   display_name: Restrict VPC Firewall rules allowing mail protocol access from any source
