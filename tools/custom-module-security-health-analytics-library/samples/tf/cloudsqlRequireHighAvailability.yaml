@@ -1,4 +1,4 @@
-cloudsqlRequireHighAvailibility:
+cloudsqlRequireHighAvailability:
   description: Detect if the high availability (HA) configuration for Cloud SQL instances is not set to regional
   predicate:
     expression: (resource.settings.availabilityType != "REGIONAL")
