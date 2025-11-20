@@ -20,7 +20,7 @@ import logging
 import os
 import time
 import uuid
-from typing import List, Optional
+from typing import List, Optional, Literal
 
 from google.cloud import aiplatform
 from google.genai import Client, types
@@ -65,6 +65,10 @@ def gemini_flash_image_preview_generate_image(
     gcs_service: GcsService,
     vertexai_client: Client,
     prompt: str,
+    model: Literal[
+        GenerationModelEnum.GEMINI_2_5_FLASH_IMAGE_PREVIEW,
+        GenerationModelEnum.GEMINI_3_PRO_IMAGE_PREVIEW,
+    ],
     bucket_name: str,
     reference_images: Optional[List[types.Image]] = None,
 ) -> types.GeneratedImage | None:
@@ -75,8 +79,6 @@ def gemini_flash_image_preview_generate_image(
     Returns:
         A types.GeneratedImage object, or None if failed.
     """
-    model = GenerationModelEnum.GEMINI_2_5_FLASH_IMAGE_PREVIEW
-
     # Build the parts for the content, including the prompt and any reference images
     parts = [types.Part.from_text(text=prompt)]
     if reference_images:
@@ -217,7 +219,10 @@ class ImagenService:
             if not reference_images_for_api:
                 if (
                     request_dto.generation_model
-                    == GenerationModelEnum.GEMINI_2_5_FLASH_IMAGE_PREVIEW
+                    in [
+                        GenerationModelEnum.GEMINI_2_5_FLASH_IMAGE_PREVIEW,
+                        GenerationModelEnum.GEMINI_3_PRO_IMAGE_PREVIEW,
+                    ]
                 ):
                     # --- GEMINI FLASH TEXT-TO-IMAGE ---
                     tasks = [
@@ -226,6 +231,7 @@ class ImagenService:
                             gcs_service=self.gcs_service,
                             vertexai_client=client,
                             prompt=request_dto.prompt,
+                            model=request_dto.generation_model,
                             bucket_name=self.gcs_service.bucket_name,
                         )
                         for _ in range(request_dto.number_of_media)
@@ -256,7 +262,10 @@ class ImagenService:
             else:
                 if (
                     request_dto.generation_model
-                    == GenerationModelEnum.GEMINI_2_5_FLASH_IMAGE_PREVIEW
+                    in [
+                        GenerationModelEnum.GEMINI_2_5_FLASH_IMAGE_PREVIEW,
+                        GenerationModelEnum.GEMINI_3_PRO_IMAGE_PREVIEW,
+                    ]
                 ):
                     # --- GEMINI FLASH IMAGE-TO-IMAGE ---
                     tasks = [
@@ -264,6 +273,7 @@ class ImagenService:
                             gemini_flash_image_preview_generate_image,
                             gcs_service=self.gcs_service,
                             vertexai_client=client,
+                            model=request_dto.generation_model,
                             prompt=request_dto.prompt,
                             bucket_name=self.gcs_service.bucket_name,
                             reference_images=reference_images_for_api,
