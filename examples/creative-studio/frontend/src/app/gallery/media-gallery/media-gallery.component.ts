@@ -15,27 +15,27 @@
  */
 
 import {
-  Component,
-  EventEmitter,
   AfterViewInit,
+  Component,
+  ElementRef,
+  EventEmitter,
+  Input,
+  NgZone,
   OnDestroy,
   OnInit,
-  Input,
   Output,
-  ElementRef,
   ViewChild,
-  NgZone,
 } from '@angular/core';
-import {Subscription, fromEvent} from 'rxjs';
-import {debounceTime} from 'rxjs/operators';
-import {DomSanitizer, SafeResourceUrl} from '@angular/platform-browser';
-import {MatIconRegistry} from '@angular/material/icon';
-import {JobStatus, MediaItem} from '../../common/models/media-item.model';
-import {MatCheckboxChange} from '@angular/material/checkbox';
-import {GalleryService} from '../gallery.service';
-import {MediaItemSelection} from '../../common/components/image-selector/image-selector.component';
-import {UserService} from '../../common/services/user.service';
-import {GallerySearchDto} from '../../common/models/search.model';
+import { MatCheckboxChange } from '@angular/material/checkbox';
+import { MatIconRegistry } from '@angular/material/icon';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import { Subscription, fromEvent } from 'rxjs';
+import { debounceTime } from 'rxjs/operators';
+import { MediaItemSelection } from '../../common/components/image-selector/image-selector.component';
+import { JobStatus, MediaItem } from '../../common/models/media-item.model';
+import { GallerySearchDto } from '../../common/models/search.model';
+import { UserService } from '../../common/services/user.service';
+import { GalleryService } from '../gallery.service';
 
 @Component({
   selector: 'app-media-gallery',
@@ -69,6 +69,10 @@ export class MediaGalleryComponent implements OnInit, OnDestroy, AfterViewInit {
   public showOnlyMyMedia = false;
   public generationModels = [
     {
+      value: 'gemini-3-pro-image-preview',
+      viewValue: 'Nano Banana Pro',
+    },
+    {
       value: 'gemini-2.5-flash-image-preview',
       viewValue: 'Nano Banana',
     },
@@ -93,8 +97,8 @@ export class MediaGalleryComponent implements OnInit, OnDestroy, AfterViewInit {
       value: 'veo-3.0-fast-generate-001',
       viewValue: 'Veo 3 Fast \n (Beta Audio)',
     },
-    {value: 'veo-2.0-generate-001', viewValue: 'Veo 2 Quality \n (No Audio)'},
-    {value: 'veo-2.0-fast-generate-001', viewValue: 'Veo 2 Fast \n (No Audio)'},
+    { value: 'veo-2.0-generate-001', viewValue: 'Veo 2 Quality \n (No Audio)' },
+    { value: 'veo-2.0-fast-generate-001', viewValue: 'Veo 2 Fast \n (No Audio)' },
     {
       value: 'veo-2.0-generate-exp',
       viewValue: 'Veo 2 Exp \n (Reference Image)',
@@ -113,8 +117,8 @@ export class MediaGalleryComponent implements OnInit, OnDestroy, AfterViewInit {
       viewValue: 'Chirp',
     },
   ];
-  private autoSlideIntervals: {[id: string]: any} = {};
-  public currentImageIndices: {[id: string]: number} = {};
+  private autoSlideIntervals: { [id: string]: any } = {};
+  public currentImageIndices: { [id: string]: number } = {};
   public hoveredVideoId: string | null = null;
   public hoveredAudioId: string | null = null;
 
@@ -287,7 +291,7 @@ export class MediaGalleryComponent implements OnInit, OnDestroy, AfterViewInit {
     if (this.isSelectionMode) {
       const selectedIndex = this.currentImageIndices[mediaItem.id] || 0;
       // Emit the full media item and the selected index
-      this.mediaItemSelected.emit({mediaItem, selectedIndex});
+      this.mediaItemSelected.emit({ mediaItem, selectedIndex });
     }
   }
 
@@ -398,7 +402,7 @@ export class MediaGalleryComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   private updateColumns(): void {
-    this.columns = Array.from({length: this.numColumns}, () => []);
+    this.columns = Array.from({ length: this.numColumns }, () => []);
     this.images.forEach((image, index) => {
       this.columns[index % this.numColumns].push(image);
     });
@@ -408,7 +412,7 @@ export class MediaGalleryComponent implements OnInit, OnDestroy, AfterViewInit {
     // Reset local component state for a new search to show the main loader
     this.images = [];
 
-    const filters: GallerySearchDto = {limit: 20};
+    const filters: GallerySearchDto = { limit: 20 };
     if (this.userEmailFilter) {
       filters['userEmail'] = this.userEmailFilter;
     }

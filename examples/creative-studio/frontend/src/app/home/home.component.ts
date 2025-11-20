@@ -14,45 +14,44 @@
  * limitations under the License.
  */
 
+import { HttpClient } from '@angular/common/http';
 import {
-  Component,
-  OnInit,
-  OnDestroy,
   AfterViewInit,
+  Component,
   ElementRef,
-  Inject,
-  ViewChild,
   HostListener,
+  Inject,
+  OnDestroy,
+  OnInit,
+  ViewChild,
 } from '@angular/core';
-import {NavigationExtras, Router} from '@angular/router';
-import {DomSanitizer, SafeResourceUrl} from '@angular/platform-browser';
-import {MatIconRegistry} from '@angular/material/icon';
-import {finalize, Observable, of} from 'rxjs';
-import {MatDialog} from '@angular/material/dialog';
-import {SearchService} from '../services/search/search.service';
-import {
-  ImagenRequest,
-  SourceMediaItemLink,
-} from '../common/models/search.model';
-import {MatSnackBar} from '@angular/material/snack-bar';
-import {
-  EnrichedSourceAsset,
-  GenerationParameters,
-} from '../fun-templates/media-template.model';
-import {handleErrorSnackbar} from '../utils/handleErrorSnackbar';
-import {MediaItem} from '../common/models/media-item.model';
+import { MatChipInputEvent } from '@angular/material/chips';
+import { MatDialog } from '@angular/material/dialog';
+import { MatIconRegistry } from '@angular/material/icon';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import { NavigationExtras, Router } from '@angular/router';
+import { finalize, Observable } from 'rxjs';
+import { AssetTypeEnum } from '../admin/source-assets-management/source-asset.model';
+import { ImageCropperDialogComponent } from '../common/components/image-cropper-dialog/image-cropper-dialog.component';
 import {
   ImageSelectorComponent,
   MediaItemSelection,
 } from '../common/components/image-selector/image-selector.component';
-import {HttpClient} from '@angular/common/http';
-import {MatChipInputEvent} from '@angular/material/chips';
-import {SourceAssetResponseDto} from '../common/services/source-asset.service';
-import {environment} from '../../environments/environment';
-import {ToastMessageComponent} from '../common/components/toast-message/toast-message.component';
-import {WorkspaceStateService} from '../services/workspace/workspace-state.service';
-import {AssetTypeEnum} from '../admin/source-assets-management/source-asset.model';
-import {ImageCropperDialogComponent} from '../common/components/image-cropper-dialog/image-cropper-dialog.component';
+import { ToastMessageComponent } from '../common/components/toast-message/toast-message.component';
+import { MediaItem } from '../common/models/media-item.model';
+import {
+  ImagenRequest,
+  SourceMediaItemLink,
+} from '../common/models/search.model';
+import { SourceAssetResponseDto } from '../common/services/source-asset.service';
+import {
+  EnrichedSourceAsset,
+  GenerationParameters,
+} from '../fun-templates/media-template.model';
+import { SearchService } from '../services/search/search.service';
+import { WorkspaceStateService } from '../services/workspace/workspace-state.service';
+import { handleErrorSnackbar } from '../utils/handleErrorSnackbar';
 
 @Component({
   selector: 'app-home',
@@ -84,7 +83,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   // This object holds the current state of all user selections.
   searchRequest: ImagenRequest = {
     prompt: '',
-    generationModel: 'gemini-2.5-flash-image-preview',
+    generationModel: 'gemini-3-pro-image-preview',
     aspectRatio: '1:1',
     numberOfMedia: 4,
     style: null,
@@ -101,6 +100,12 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
 
   // --- Dropdown Options ---
   generationModels = [
+    {
+      value: 'gemini-3-pro-image-preview',
+      viewValue: 'Nano Banana Pro',
+      isImage: true,
+      imageSrc: 'assets/images/banana-peel.png',
+    },
     {
       value: 'gemini-2.5-flash-image-preview',
       viewValue: 'Nano Banana',
@@ -144,37 +149,37 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     disabled: boolean;
     icon: string;
   }[] = [
-    {
-      value: '1:1',
-      viewValue: '1:1 \n Square',
-      disabled: false,
-      icon: 'crop_square',
-    },
-    {
-      value: '16:9',
-      viewValue: '16:9 \n Horizontal',
-      disabled: false,
-      icon: 'crop_16_9',
-    },
-    {
-      value: '9:16',
-      viewValue: '9:16 \n Vertical',
-      disabled: false,
-      icon: 'crop_portrait',
-    },
-    {
-      value: '3:4',
-      viewValue: '3:4 \n Portrait',
-      disabled: false,
-      icon: 'crop_portrait',
-    },
-    {
-      value: '4:3',
-      viewValue: '4:3 \n Pin',
-      disabled: false,
-      icon: 'crop_landscape',
-    },
-  ];
+      {
+        value: '1:1',
+        viewValue: '1:1 \n Square',
+        disabled: false,
+        icon: 'crop_square',
+      },
+      {
+        value: '16:9',
+        viewValue: '16:9 \n Horizontal',
+        disabled: false,
+        icon: 'crop_16_9',
+      },
+      {
+        value: '9:16',
+        viewValue: '9:16 \n Vertical',
+        disabled: false,
+        icon: 'crop_portrait',
+      },
+      {
+        value: '3:4',
+        viewValue: '3:4 \n Portrait',
+        disabled: false,
+        icon: 'crop_portrait',
+      },
+      {
+        value: '4:3',
+        viewValue: '4:3 \n Pin',
+        disabled: false,
+        icon: 'crop_landscape',
+      },
+    ];
   selectedAspectRatio = this.aspectRatioOptions[0].viewValue;
   imageStyles = [
     'Cinematic',
@@ -224,8 +229,8 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     'Wide angle',
   ];
   watermarkOptions = [
-    {value: true, viewValue: 'Yes'},
-    {value: false, viewValue: 'No'},
+    { value: true, viewValue: 'Yes' },
+    { value: false, viewValue: 'No' },
   ];
   selectedWatermark = this.watermarkOptions.find(
     o => o.value === this.searchRequest.addWatermark,
@@ -420,7 +425,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     this.selectedGenerationModelObject = model;
 
     // Nano Banana only supports 1:1 aspect ratio for now.
-    if (model.value === 'gemini-2.5-flash-image-preview') {
+    if (model.value === 'gemini-2.5-flash-image-preview' || model.value === 'gemini-3-pro-image-preview') {
       const oneToOneRatio = this.aspectRatioOptions.find(
         r => r.value === '1:1',
       );
@@ -437,7 +442,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
-  selectAspectRatio(ratio: {value: string; viewValue: string}): void {
+  selectAspectRatio(ratio: { value: string; viewValue: string }): void {
     this.searchRequest.aspectRatio = ratio.value;
     this.selectedAspectRatio = ratio.viewValue;
   }
@@ -472,7 +477,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       : (this.searchRequest.composition = composition);
   }
 
-  selectWatermark(option: {value: boolean; viewValue: string}): void {
+  selectWatermark(option: { value: boolean; viewValue: string }): void {
     this.searchRequest.addWatermark = option.value;
     this.selectedWatermark = option.viewValue;
   }
@@ -571,7 +576,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       })
       .pipe(finalize(() => (this.isLoading = false)))
       .subscribe({
-        next: (response: {prompt: string}) => {
+        next: (response: { prompt: string }) => {
           this.searchRequest.prompt = response.prompt;
         },
         error: error => {
@@ -584,10 +589,10 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     this.isLoading = true;
     this.searchRequest.prompt = '';
     this.service
-      .getRandomPrompt({target_type: 'image'})
+      .getRandomPrompt({ target_type: 'image' })
       .pipe(finalize(() => (this.isLoading = false)))
       .subscribe({
-        next: (response: {prompt: string}) => {
+        next: (response: { prompt: string }) => {
           this.searchRequest.prompt = response.prompt;
         },
         error: error => {
@@ -599,7 +604,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   resetAllFilters() {
     this.searchRequest = {
       prompt: '',
-      generationModel: 'gemini-2.5-flash-image-preview',
+      generationModel: 'gemini-3-pro-image-preview',
       aspectRatio: '1:1',
       numberOfMedia: 4,
       style: null,
@@ -664,7 +669,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
             };
             this[targetPreview] =
               selection.mediaItem.presignedUrls?.[
-                selection.selectedIndex || 0
+              selection.selectedIndex || 0
               ] || null;
             this[targetAssetId] = null;
           }
@@ -740,7 +745,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
 
     // Switch to Nano Banana model for editing
     const nanoBananaModel = this.generationModels.find(
-      m => m.value === 'gemini-2.5-flash-image-preview',
+      m => (m.value === 'gemini-2.5-flash-image-preview' || m.value === 'gemini-3-pro-image-preview'),
     );
     if (nanoBananaModel) this.selectModel(nanoBananaModel);
   }
@@ -770,7 +775,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     if (remixState.prompt) this.searchRequest.prompt = remixState.prompt;
   }
 
-  generateVideoWithImage(event: {role: 'start' | 'end'; index: number}) {
+  generateVideoWithImage(event: { role: 'start' | 'end'; index: number }) {
     if (!this.imagenDocuments) {
       return;
     }
@@ -795,7 +800,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     };
 
     const navigationExtras: NavigationExtras = {
-      state: {remixState},
+      state: { remixState },
     };
     this.router.navigate(['/video'], navigationExtras);
   }
