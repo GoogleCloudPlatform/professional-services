@@ -6,25 +6,26 @@
 #@   #! Cassandra: TCP 7000-7001, 7199, 8888, 9042, 9160, 61620-61621
 #@   #! MongoDB: TCP 27017-27019
 #@   #! Deny if source range is 0.0.0.0/0 (any source)
-#@   ports = ['7000', '7001', '7199', '8888', '9042', '9160', '61620', '61621', '27017', '27018', '27019']
-#@   # Break port checks into groups to keep lines under 120 chars
-#@   port_checks = ["p == '" + p + "'" for p in ports]
-#@   port_line1 = " || ".join(port_checks[0:5])  # First 5 ports
-#@   port_line2 = " || ".join(port_checks[5:])   # Remaining ports
 #@
 #@   lines = [
 #@     "resource.rules.exists(rule,",
 #@     "  rule.priority < 2147483644 &&",
 #@     "  rule.direction == 'INGRESS' &&",
 #@     "  rule.match.srcIpRanges.exists(range, range == '0.0.0.0/0') &&",
-#@     "  rule.match.layer4Configs.exists(l4config,",
-#@     "    l4config.ipProtocol == 'tcp' &&",
-#@     "    l4config.ports.exists(p,",
-#@     "      " + port_line1 + " ||",
-#@     "      " + port_line2 + "",
-#@     "    )",
+#@     "  (",
+#@     "    rule.match.layer4Configs.containsIpProtocolAndPort('tcp', '7000') ||",
+#@     "    rule.match.layer4Configs.containsIpProtocolAndPort('tcp', '7001') ||",
+#@     "    rule.match.layer4Configs.containsIpProtocolAndPort('tcp', '7199') ||",
+#@     "    rule.match.layer4Configs.containsIpProtocolAndPort('tcp', '8888') ||",
+#@     "    rule.match.layer4Configs.containsIpProtocolAndPort('tcp', '9042') ||",
+#@     "    rule.match.layer4Configs.containsIpProtocolAndPort('tcp', '9160') ||",
+#@     "    rule.match.layer4Configs.containsIpProtocolAndPort('tcp', '61620') ||",
+#@     "    rule.match.layer4Configs.containsIpProtocolAndPort('tcp', '61621') ||",
+#@     "    rule.match.layer4Configs.containsIpProtocolAndPort('tcp', '27017') ||",
+#@     "    rule.match.layer4Configs.containsIpProtocolAndPort('tcp', '27018') ||",
+#@     "    rule.match.layer4Configs.containsIpProtocolAndPort('tcp', '27019')",
 #@     "  )",
-#@     ")"
+#@     ")",
 #@   ]
 #@   return "\n".join(lines)
 #@ end

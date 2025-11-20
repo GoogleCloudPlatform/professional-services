@@ -6,21 +6,20 @@
 #@   #! SMB/CIFS: TCP/UDP 445
 #@   #! LDAP: TCP 389, 636; UDP 389
 #@   #! Deny if source range is 0.0.0.0/0 (any source)
-#@   tcp_ports = ['445', '389', '636']
-#@   udp_ports = ['445', '389']
-#@   tcp_check = " || ".join(["port == '" + p + "'" for p in tcp_ports])
-#@   udp_check = " || ".join(["port == '" + p + "'" for p in udp_ports])
 #@
 #@   lines = [
 #@     "resource.rules.exists(rule,",
 #@     "  rule.priority < 2147483644 &&",
 #@     "  rule.direction == 'INGRESS' &&",
 #@     "  rule.match.srcIpRanges.exists(range, range == '0.0.0.0/0') &&",
-#@     "  rule.match.layer4Configs.exists(l4config,",
-#@     "    l4config.ipProtocol == 'udp' && l4config.ports.exists(port, " + udp_check + ") ||",
-#@     "    l4config.ipProtocol == 'tcp' && l4config.ports.exists(port, " + tcp_check + ")",
+#@     "  (",
+#@     "    rule.match.layer4Configs.containsIpProtocolAndPort('udp', '445') ||",
+#@     "    rule.match.layer4Configs.containsIpProtocolAndPort('udp', '389') ||",
+#@     "    rule.match.layer4Configs.containsIpProtocolAndPort('tcp', '445') ||",
+#@     "    rule.match.layer4Configs.containsIpProtocolAndPort('tcp', '389') ||",
+#@     "    rule.match.layer4Configs.containsIpProtocolAndPort('tcp', '636')",
 #@     "  )",
-#@     ")"
+#@     ")",
 #@   ]
 #@   return "\n".join(lines)
 #@ end

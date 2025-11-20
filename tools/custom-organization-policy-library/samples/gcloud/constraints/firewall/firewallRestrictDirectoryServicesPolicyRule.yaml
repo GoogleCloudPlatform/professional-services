@@ -6,9 +6,12 @@ condition: |-
     rule.priority < 2147483644 &&
     rule.direction == 'INGRESS' &&
     rule.match.srcIpRanges.exists(range, range == '0.0.0.0/0') &&
-    rule.match.layer4Configs.exists(l4config,
-      l4config.ipProtocol == 'udp' && l4config.ports.exists(port, port == '445' || port == '389') ||
-      l4config.ipProtocol == 'tcp' && l4config.ports.exists(port, port == '445' || port == '389' || port == '636')
+    (
+      rule.match.layer4Configs.containsIpProtocolAndPort('udp', '445') ||
+      rule.match.layer4Configs.containsIpProtocolAndPort('udp', '389') ||
+      rule.match.layer4Configs.containsIpProtocolAndPort('tcp', '445') ||
+      rule.match.layer4Configs.containsIpProtocolAndPort('tcp', '389') ||
+      rule.match.layer4Configs.containsIpProtocolAndPort('tcp', '636')
     )
   )
 action_type: DENY

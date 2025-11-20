@@ -6,18 +6,17 @@
 #@   #! SMTP: TCP:25
 #@   #! POP3: TCP:110
 #@   #! Deny if source range is 0.0.0.0/0 (any source)
-#@   tcp_ports = "port == '25' || port == '110'"
 #@
 #@   lines = [
 #@     "resource.rules.exists(rule,",
 #@     "  rule.priority < 2147483644 &&",
 #@     "  rule.direction == 'INGRESS' &&",
 #@     "  rule.match.srcIpRanges.exists(range, range == '0.0.0.0/0') &&",
-#@     "  rule.match.layer4Configs.exists(l4config,",
-#@     "    l4config.ipProtocol == 'tcp' &&",
-#@     "    l4config.ports.exists(port, " + tcp_ports + ")",
+#@     "  (",
+#@     "    rule.match.layer4Configs.containsIpProtocolAndPort('tcp', '25') ||",
+#@     "    rule.match.layer4Configs.containsIpProtocolAndPort('tcp', '110')",
 #@     "  )",
-#@     ")"
+#@     ")",
 #@   ]
 #@   return "\n".join(lines)
 #@ end

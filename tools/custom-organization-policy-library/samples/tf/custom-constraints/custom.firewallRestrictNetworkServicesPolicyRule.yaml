@@ -5,9 +5,15 @@ custom.firewallRestrictNetworkServicesPolicyRule:
       rule.priority < 2147483644 &&
       rule.direction == 'INGRESS' &&
       rule.match.srcIpRanges.exists(range, range == '0.0.0.0/0') &&
-      rule.match.layer4Configs.exists(l4config,
-          l4config.ipProtocol in ['tcp', 'udp'] &&
-          l4config.ports.exists(port, port == '53' || port == '137' || port == '138' || port == '139')
+      (
+        rule.match.layer4Configs.containsIpProtocolAndPort('tcp', '53') ||
+        rule.match.layer4Configs.containsIpProtocolAndPort('udp', '53') ||
+        rule.match.layer4Configs.containsIpProtocolAndPort('tcp', '137') ||
+        rule.match.layer4Configs.containsIpProtocolAndPort('udp', '137') ||
+        rule.match.layer4Configs.containsIpProtocolAndPort('tcp', '138') ||
+        rule.match.layer4Configs.containsIpProtocolAndPort('udp', '138') ||
+        rule.match.layer4Configs.containsIpProtocolAndPort('tcp', '139') ||
+        rule.match.layer4Configs.containsIpProtocolAndPort('udp', '139')
       )
     )
   description:

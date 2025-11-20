@@ -7,23 +7,21 @@
 #@   #! Oracle: TCP 1521, 2483-2484; UDP 2483-2484
 #@   #! PostgreSQL: TCP/UDP 5432
 #@   #! Deny if source range is 0.0.0.0/0 (any source)
-#@   #! Split port checks to keep lines under 120 characters
-#@   tcp_ports = "port == '3306' || port == '1521' || port == '2483'"
-#@   tcp_ports2 = "port == '2484' || port == '5432'"
-#@   udp_ports = "port == '2483' || port == '2484' || port == '5432'"
 #@
 #@   lines = [
 #@     "resource.rules.exists(rule,",
 #@     "  rule.priority < 2147483644 &&",
 #@     "  rule.direction == 'INGRESS' &&",
 #@     "  rule.match.srcIpRanges.exists(range, range == '0.0.0.0/0') &&",
-#@     "  rule.match.layer4Configs.exists(l4config,",
-#@     "    l4config.ipProtocol == 'tcp' &&",
-#@     "    l4config.ports.exists(port,",
-#@     "      " + tcp_ports + " || " + tcp_ports2,
-#@     "    ) ||",
-#@     "    l4config.ipProtocol == 'udp' &&",
-#@     "    l4config.ports.exists(port, " + udp_ports + ")",
+#@     "  (",
+#@     "    rule.match.layer4Configs.containsIpProtocolAndPort('tcp', '3306') ||",
+#@     "    rule.match.layer4Configs.containsIpProtocolAndPort('tcp', '1521') ||",
+#@     "    rule.match.layer4Configs.containsIpProtocolAndPort('tcp', '2483') ||",
+#@     "    rule.match.layer4Configs.containsIpProtocolAndPort('tcp', '2484') ||",
+#@     "    rule.match.layer4Configs.containsIpProtocolAndPort('tcp', '5432') ||",
+#@     "    rule.match.layer4Configs.containsIpProtocolAndPort('udp', '2483') ||",
+#@     "    rule.match.layer4Configs.containsIpProtocolAndPort('udp', '2484') ||",
+#@     "    rule.match.layer4Configs.containsIpProtocolAndPort('udp', '5432')",
 #@     "  )",
 #@     ")"
 #@   ]

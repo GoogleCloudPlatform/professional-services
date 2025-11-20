@@ -2,16 +2,21 @@ name: organizations/11111111/customConstraints/custom.firewallRestrictCacheSearc
 resource_types:
   - compute.googleapis.com/FirewallPolicy
 condition: |-
-  resource.rules.exists(rule,
-    rule.priority < 2147483644 &&
-    rule.direction == 'INGRESS' &&
-    rule.match.srcIpRanges.exists(range, range == '0.0.0.0/0') &&
-    rule.match.layer4Configs.exists(l4config,
-      (l4config.ipProtocol == 'tcp' || l4config.ipProtocol == 'udp') &&
-      l4config.ports.exists(port,
-        port == '9200' || port == '9300' || port == '11211'
-        || port == '11214' || port == '11215' || port == '6379'
-      )
+  resource.rules.exists(r, r.priority < 2147483644 && r.direction == 'INGRESS' &&
+    r.match.srcIpRanges.exists(r, r == '0.0.0.0/0') &&
+    (
+      r.match.layer4Configs.containsIpProtocolAndPort('tcp', '6379') ||
+      r.match.layer4Configs.containsIpProtocolAndPort('udp', '6379') ||
+      r.match.layer4Configs.containsIpProtocolAndPort('tcp', '9200') ||
+      r.match.layer4Configs.containsIpProtocolAndPort('udp', '9200') ||
+      r.match.layer4Configs.containsIpProtocolAndPort('tcp', '9300') ||
+      r.match.layer4Configs.containsIpProtocolAndPort('udp', '9300') ||
+      r.match.layer4Configs.containsIpProtocolAndPort('tcp', '11211') ||
+      r.match.layer4Configs.containsIpProtocolAndPort('udp', '11211') ||
+      r.match.layer4Configs.containsIpProtocolAndPort('tcp', '11214') ||
+      r.match.layer4Configs.containsIpProtocolAndPort('udp', '11214') ||
+      r.match.layer4Configs.containsIpProtocolAndPort('tcp', '11215') ||
+      r.match.layer4Configs.containsIpProtocolAndPort('udp', '11215')
     )
   )
 action_type: DENY

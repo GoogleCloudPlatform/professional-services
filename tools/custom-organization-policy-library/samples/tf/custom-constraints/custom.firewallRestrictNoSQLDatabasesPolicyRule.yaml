@@ -5,12 +5,18 @@ custom.firewallRestrictNoSQLDatabasesPolicyRule:
       rule.priority < 2147483644 &&
       rule.direction == 'INGRESS' &&
       rule.match.srcIpRanges.exists(range, range == '0.0.0.0/0') &&
-      rule.match.layer4Configs.exists(l4config,
-        l4config.ipProtocol == 'tcp' &&
-        l4config.ports.exists(p,
-          p == '7000' || p == '7001' || p == '7199' || p == '8888' || p == '9042' ||
-          p == '9160' || p == '61620' || p == '61621' || p == '27017' || p == '27018' || p == '27019'
-        )
+      (
+        rule.match.layer4Configs.containsIpProtocolAndPort('tcp', '7000') ||
+        rule.match.layer4Configs.containsIpProtocolAndPort('tcp', '7001') ||
+        rule.match.layer4Configs.containsIpProtocolAndPort('tcp', '7199') ||
+        rule.match.layer4Configs.containsIpProtocolAndPort('tcp', '8888') ||
+        rule.match.layer4Configs.containsIpProtocolAndPort('tcp', '9042') ||
+        rule.match.layer4Configs.containsIpProtocolAndPort('tcp', '9160') ||
+        rule.match.layer4Configs.containsIpProtocolAndPort('tcp', '61620') ||
+        rule.match.layer4Configs.containsIpProtocolAndPort('tcp', '61621') ||
+        rule.match.layer4Configs.containsIpProtocolAndPort('tcp', '27017') ||
+        rule.match.layer4Configs.containsIpProtocolAndPort('tcp', '27018') ||
+        rule.match.layer4Configs.containsIpProtocolAndPort('tcp', '27019')
       )
     )
   description:

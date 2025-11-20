@@ -5,12 +5,7 @@ custom.firewallRestrictManagementPortsPolicyRule:
       rule.priority < 2147483644 &&
       rule.direction == 'INGRESS' &&
       rule.match.srcIpRanges.exists(range, range == '0.0.0.0/0') &&
-      rule.match.layer4Configs.exists(l4config,
-        l4config.ipProtocol == 'tcp' &&
-        l4config.ports.exists(port,
-            port == '9090'
-        )
-      )
+      rule.match.layer4Configs.containsIpProtocolAndPort('tcp', '9090')
     )
   description:
     Ensure that management interfaces (Cisco Secure WebSM) are not accessible from any source when using Firewall Policy
