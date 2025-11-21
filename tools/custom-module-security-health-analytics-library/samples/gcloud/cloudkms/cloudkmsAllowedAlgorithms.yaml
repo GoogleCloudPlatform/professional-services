@@ -3,6 +3,6 @@ description: Detect if the the algorithm for Cloud KMS keys is not configured co
 recommendation: Ensure the algorithm for Cloud KMS keys is configured correctly
 resource_selector:
   resource_types:
-  - cloudkms.googleapis.com/CryptoKeyVersion
+    - cloudkms.googleapis.com/CryptoKeyVersion
 predicate:
   expression: resource.algorithm in ["GOOGLE_SYMMETRIC_ENCRYPTION", "EXTERNAL_SYMMETRIC_ENCRYPTION"] == false

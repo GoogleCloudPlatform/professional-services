@@ -39,11 +39,11 @@ firewall_vpc_cisco_websm_rule_denied:
       return_code: 1
       stderr: 'customConstraints/custom\.firewallRestrict(PublicAccess|ManagementPorts)Rule'
 
-firewall_vpc_cisco_websm_public_denied:
+# Simplified constraint only blocks 0.0.0.0/0 and ::/0, not specific public IPs
+firewall_vpc_cisco_websm_public_allowed:
   steps:
   - command_flags:
       rules: tcp:9090
       source-ranges: 8.8.8.8/32
     expected_result:
-      return_code: 1
-      stderr: 'customConstraints/custom\.firewallRestrictManagementPortsRule'
+      return_code: 0

@@ -1,22 +1,27 @@
 name: organizations/11111111/customConstraints/custom.firewallRestrictNoSQLDatabasesRule
 resource_types:
-- compute.googleapis.com/Firewall
+  - compute.googleapis.com/Firewall
 condition: |-
   resource.direction.matches('INGRESS') &&
-    !resource.sourceRanges.all(range,
-        range in ["10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16", "35.235.240.0/20"]
-    ) &&
-    resource.allowed.exists(rule,
-      rule.ports.exists(port,
-          rule.IPProtocol == 'tcp' &&
-          port in ["7000", "7001", "7199", "8888", "9042", "9160", "61620", "61621", "27017", "27018", "27019"]
-      )
+    resource.sourceRanges.exists(range, range == '0.0.0.0/0') &&
+    (
+      resource.allowed.containsFirewallPort('tcp', '7000') ||
+      resource.allowed.containsFirewallPort('tcp', '7001') ||
+      resource.allowed.containsFirewallPort('tcp', '7199') ||
+      resource.allowed.containsFirewallPort('tcp', '8888') ||
+      resource.allowed.containsFirewallPort('tcp', '9042') ||
+      resource.allowed.containsFirewallPort('tcp', '9160') ||
+      resource.allowed.containsFirewallPort('tcp', '61620') ||
+      resource.allowed.containsFirewallPort('tcp', '61621') ||
+      resource.allowed.containsFirewallPort('tcp', '27017') ||
+      resource.allowed.containsFirewallPort('tcp', '27018') ||
+      resource.allowed.containsFirewallPort('tcp', '27019')
     )
 action_type: DENY
 method_types:
-- CREATE
-- UPDATE
-display_name: Restrict VPC Firewall rules allowing NoSQL database port access from the Internet
+  - CREATE
+  - UPDATE
+display_name: Restrict VPC Firewall rules allowing NoSQL database port access from any source
 description: |-
-  Ensure that NoSQL database ports (Cassandra, MongoDB) are not accessible from the Internet when
+  Ensure that NoSQL database ports (Cassandra, MongoDB) are not accessible from any source when
   using Firewall Policy Rule

@@ -22,6 +22,24 @@ import re
 class LiteralString(str):
     pass
 
+def format_existing_data(data):
+    """
+    Recursively traverses the data structure. 
+    If a string contains a newline, convert it to LiteralString 
+    so it dumps as a block style (|).
+    Keys are left unchanged.
+    """
+    if isinstance(data, dict):
+        return {k: format_existing_data(v) for k, v in data.items()}
+    elif isinstance(data, list):
+        return [format_existing_data(i) for i in data]
+    elif isinstance(data, str) and '\n' in data:
+        # Clean whitespace and wrap in LiteralString
+        clean_lines = [line.rstrip() for line in data.split('\n')]
+        return LiteralString('\n'.join(clean_lines))
+    else:
+        return data
+
 def literal_representer(dumper, data):
     """
     This function tells the YAML dumper to use the literal block style ('|')
@@ -50,6 +68,8 @@ def convert_keys_to_snake_case(item):
         return {to_snake_case(k): convert_keys_to_snake_case(v) for k, v in item.items()}
     elif isinstance(item, list):
         return [convert_keys_to_snake_case(i) for i in item]
+    elif isinstance(item, str) and '\n' in item:
+        return LiteralString(item)
     else:
         return item
 
@@ -98,9 +118,12 @@ def main():
                     print(f"[{py_filename}] existing file found: {output_file}")
                     with open(output_file, "r") as infile:
                         try:
-                            existing_data = yaml.safe_load(infile)
-                            if not existing_data:
+                            loaded_content = yaml.safe_load(infile)
+                            if not loaded_content:
                                 existing_data = {}
+                            else:
+                                existing_data = format_existing_data(loaded_content)
+
                         except yaml.YAMLError as exc:
                             print(f"[{py_filename}] Error loading YAML from {output_file}: {exc}")
                             continue

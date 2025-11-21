@@ -5,7 +5,7 @@ custom.iamDisableGmailMembers:
   description: Ensure no binding are done by using gmail members
   display_name: Deny use of gmail members
   method_types:
-  - CREATE
-  - UPDATE
+    - CREATE
+    - UPDATE
   resource_types:
-  - iam.googleapis.com/AllowPolicy
+    - iam.googleapis.com/AllowPolicy

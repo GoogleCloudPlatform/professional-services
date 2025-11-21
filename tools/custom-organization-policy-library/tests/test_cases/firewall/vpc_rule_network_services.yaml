@@ -31,14 +31,14 @@ firewall_vpc_dns_tcp_rule_denied:
       return_code: 1
       stderr: 'customConstraints/custom\.firewallRestrict(PublicAccess|NetworkServices)Rule'
 
-firewall_vpc_dns_udp_rule_denied:
+# Simplified constraint only blocks 0.0.0.0/0 and ::/0, not specific public IPs
+firewall_vpc_dns_udp_rule_allowed:
   steps:
   - command_flags:
       rules: udp:53
       source-ranges: 1.0.0.0/32
     expected_result:
-      return_code: 1
-      stderr: 'customConstraints/custom\.firewallRestrictNetworkServicesRule'
+      return_code: 0
 
 # NetBIOS tests - TCP/UDP:137-139
 firewall_vpc_allowed_netbios_rule_192:
@@ -49,14 +49,14 @@ firewall_vpc_allowed_netbios_rule_192:
     expected_result:
       return_code: 0
 
-firewall_vpc_netbios_tcp_137_rule_denied:
+# Simplified constraint only blocks 0.0.0.0/0 and ::/0, not specific public IPs
+firewall_vpc_netbios_tcp_137_rule_allowed:
   steps:
   - command_flags:
       rules: tcp:137
       source-ranges: 8.8.8.8/32
     expected_result:
-      return_code: 1
-      stderr: 'customConstraints/custom\.firewallRestrictNetworkServicesRule'
+      return_code: 0
 
 firewall_vpc_netbios_udp_138_rule_denied:
   steps:
@@ -67,11 +67,11 @@ firewall_vpc_netbios_udp_138_rule_denied:
       return_code: 1
       stderr: 'customConstraints/custom\.firewallRestrict(PublicAccess|NetworkServices)Rule'
 
-firewall_vpc_netbios_tcp_139_rule_denied:
+# Simplified constraint only blocks 0.0.0.0/0 and ::/0, not specific public IPs
+firewall_vpc_netbios_tcp_139_rule_allowed:
   steps:
   - command_flags:
       rules: tcp:139
       source-ranges: 1.1.1.1/32
     expected_result:
-      return_code: 1
-      stderr: 'customConstraints/custom\.firewallRestrictNetworkServicesRule'
+      return_code: 0

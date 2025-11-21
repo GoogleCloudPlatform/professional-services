@@ -1,9 +1,9 @@
 name: organizations/11111111/customConstraints/custom.networkDisableTargetHTTPProxy
 resourceTypes:
-- compute.googleapis.com/TargetHttpProxy
+  - compute.googleapis.com/TargetHttpProxy
 methodTypes:
-- CREATE
-- UPDATE
+  - CREATE
+  - UPDATE
 condition: true == true
 actionType: DENY
 displayName: Deny usage and creation of Target HTTP Proxy

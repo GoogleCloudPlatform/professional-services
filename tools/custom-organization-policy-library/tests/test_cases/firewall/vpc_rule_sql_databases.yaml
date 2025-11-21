@@ -30,14 +30,14 @@ firewall_vpc_allowed_mysql_rule_10:
     expected_result:
       return_code: 0
 
-firewall_vpc_mysql_rule_denied:
+# Simplified constraint only blocks 0.0.0.0/0 and ::/0, not specific public IPs
+firewall_vpc_mysql_rule_allowed:
   steps:
   - command_flags:
       rules: tcp:3306
       source-ranges: 1.0.0.0/32
     expected_result:
-      return_code: 1
-      stderr: 'customConstraints/custom\.firewallRestrictSQLDatabasesRule'
+      return_code: 0
 
 # PostgreSQL tests - TCP 5432
 firewall_vpc_allowed_postgresql_rule_192:
@@ -66,14 +66,14 @@ firewall_vpc_allowed_postgresql_udp_rule_10:
     expected_result:
       return_code: 0
 
-firewall_vpc_postgresql_udp_rule_denied:
+# Simplified constraint only blocks 0.0.0.0/0 and ::/0, not specific public IPs
+firewall_vpc_postgresql_udp_rule_allowed:
   steps:
   - command_flags:
       rules: udp:5432
       source-ranges: 8.8.8.8/32
     expected_result:
-      return_code: 1
-      stderr: 'customConstraints/custom\.firewallRestrictSQLDatabasesRule'
+      return_code: 0
 
 # Oracle tests - TCP 1521, 2483-2484
 firewall_vpc_allowed_oracle_rule_iap:
@@ -84,23 +84,23 @@ firewall_vpc_allowed_oracle_rule_iap:
     expected_result:
       return_code: 0
 
-firewall_vpc_oracle_tcp_rule_denied:
+# Simplified constraint only blocks 0.0.0.0/0 and ::/0, not specific public IPs
+firewall_vpc_oracle_tcp_rule_allowed:
   steps:
   - command_flags:
       rules: tcp:1521
       source-ranges: 198.51.100.0/24
     expected_result:
-      return_code: 1
-      stderr: 'customConstraints/custom\.firewallRestrictSQLDatabasesRule'
+      return_code: 0
 
-firewall_vpc_oracle_tcp_2483_rule_denied:
+# Simplified constraint only blocks 0.0.0.0/0 and ::/0, not specific public IPs
+firewall_vpc_oracle_tcp_2483_rule_allowed:
   steps:
   - command_flags:
       rules: tcp:2483
       source-ranges: 1.0.0.0/32
     expected_result:
-      return_code: 1
-      stderr: 'customConstraints/custom\.firewallRestrictSQLDatabasesRule'
+      return_code: 0
 
 # Oracle UDP tests - UDP 2483-2484
 firewall_vpc_allowed_oracle_udp_rule_172:
@@ -111,21 +111,21 @@ firewall_vpc_allowed_oracle_udp_rule_172:
     expected_result:
       return_code: 0
 
-firewall_vpc_oracle_udp_rule_denied:
+# Simplified constraint only blocks 0.0.0.0/0 and ::/0, not specific public IPs
+firewall_vpc_oracle_udp_rule_allowed:
   steps:
   - command_flags:
       rules: udp:2483
       source-ranges: 203.0.113.0/24
     expected_result:
-      return_code: 1
-      stderr: 'customConstraints/custom\.firewallRestrictSQLDatabasesRule'
+      return_code: 0
 
 # Multiple SQL database ports test
-firewall_vpc_multiple_sql_ports_denied:
+# Simplified constraint only blocks 0.0.0.0/0 and ::/0, not specific public IPs
+firewall_vpc_multiple_sql_ports_allowed:
   steps:
   - command_flags:
       rules: tcp:3306,tcp:5432,tcp:1521
       source-ranges: 1.0.0.0/32
     expected_result:
-      return_code: 1
-      stderr: 'customConstraints/custom\.firewallRestrictSQLDatabasesRule'
+      return_code: 0

@@ -3,22 +3,28 @@
 #@ load("@ytt:template", "template")
 #@ alert = build_alert("projectOwnershipChange")
 
+#@ def filter():
+#@   lines = [
+#@     '(protoPayload.serviceName="cloudresourcemanager.googleapis.com") AND',
+#@     '(ProjectOwnership OR projectOwnerInvitee)',
+#@     'OR',
+#@     '(',
+#@     '  protoPayload.serviceData.policyDelta.bindingDeltas.action="REMOVE" AND',
+#@     '  protoPayload.serviceData.policyDelta.bindingDeltas.role="roles/owner"',
+#@     ')',
+#@     'OR',
+#@     '(',
+#@     '  protoPayload.serviceData.policyDelta.bindingDeltas.action="ADD" AND',
+#@     '  protoPayload.serviceData.policyDelta.bindingDeltas.role="roles/owner"',
+#@     ')'
+#@   ]
+#@   return "\n".join(lines)
+#@ end
+
 #@ if alert.to_generate():
 description:  "Project Ownership Changes"
 bucketName: #@ alert.log_bucket_name()
-filter: >-
-  (protoPayload.serviceName="cloudresourcemanager.googleapis.com") AND
-  (ProjectOwnership OR projectOwnerInvitee)
-  OR
-  (
-    protoPayload.serviceData.policyDelta.bindingDeltas.action="REMOVE" AND
-    protoPayload.serviceData.policyDelta.bindingDeltas.role="roles/owner"
-  )
-  OR
-  (
-    protoPayload.serviceData.policyDelta.bindingDeltas.action="ADD" AND
-    protoPayload.serviceData.policyDelta.bindingDeltas.role="roles/owner"
-  )
+filter: #@ filter()
 metricDescriptor:
   metricKind: "DELTA"
   valueType: "INT64"

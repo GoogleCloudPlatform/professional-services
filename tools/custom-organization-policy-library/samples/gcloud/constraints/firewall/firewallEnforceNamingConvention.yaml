@@ -1,6 +1,6 @@
 name: organizations/11111111/customConstraints/custom.firewallEnforceNamingConvention
 resource_types:
-- compute.googleapis.com/Firewall
+  - compute.googleapis.com/Firewall
 condition: |-
   (
     resource.name.matches("^(allow|deny)-(all|rdp|ssh|tcp|udp|icmp|custom|insecure|open|network|directory|mail|nosql-db|sql-db|mgmt|cache-search-db)[a-z0-9-]*") == false &&
@@ -13,6 +13,6 @@ condition: |-
   )
 action_type: DENY
 method_types:
-- CREATE
+  - CREATE
 display_name: Enforce VPC Firewall rule naming convention
 description: Prevent the creation of VPC Firewall rule that are not following the naming convention

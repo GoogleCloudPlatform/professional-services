@@ -14,12 +14,12 @@ custom.firewallRestrictOpenFirewallRule:
       !resource.name.startsWith('gkegw1-l7-') &&
       !resource.name.startsWith('gkemcg1-l7-')
     )
-  description: Prevent VPC firewall rules that are open to 0.0.0.0/0 (except for safe
-    protocols like ICMP, SSH, HTTPS, RDP) or allow all TCP/UDP ports from non-private
-    IPs
+  description:
+    Prevent VPC firewall rules that are open to 0.0.0.0/0 (except for safe protocols like ICMP, SSH, HTTPS, RDP) or
+    allow all TCP/UDP ports from non-private IPs
   display_name: Restrict overly permissive VPC Firewall rules open to the Internet
   method_types:
-  - CREATE
-  - UPDATE
+    - CREATE
+    - UPDATE
   resource_types:
-  - compute.googleapis.com/Firewall
+    - compute.googleapis.com/Firewall

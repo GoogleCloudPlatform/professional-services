@@ -2,11 +2,10 @@ custom.storageRequireBucketCmekEncryption:
   action_type: DENY
   condition: |-
     has(resource.encryption.defaultKmsKeyName) == false
-  description: Enforce Cloud Storage bucket encryption using customer managed encryption
-    key stored in Cloud KMS
+  description: Enforce Cloud Storage bucket encryption using customer managed encryption key stored in Cloud KMS
   display_name: Enable bucket CMEK encryption
   method_types:
-  - CREATE
-  - UPDATE
+    - CREATE
+    - UPDATE
   resource_types:
-  - storage.googleapis.com/Bucket
+    - storage.googleapis.com/Bucket

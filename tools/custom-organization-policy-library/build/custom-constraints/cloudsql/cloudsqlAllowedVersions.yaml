@@ -2,9 +2,13 @@
 #@ constraint = build_constraint("cloudsqlAllowedVersions")
 
 #@ def condition(versions):
-#@   return '(!' + str(versions) + '.exists(version, version.matches(resource.databaseVersion)))'
+#@  lines = [
+#@   "(!" + str(versions) + ".exists(version,",
+#@   "  version.matches(resource.databaseVersion))",
+#@   ")",
+#@  ]
+#@  return "\n".join(lines)
 #@ end
-
 
 #@ if constraint.to_generate():
 name: #@ constraint.constraint_name()

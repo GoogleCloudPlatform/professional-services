@@ -1,0 +1,8 @@
+# Source: https://cloud.google.com/sdk/gcloud/reference/scc/manage/custom-modules/sha/simulate#--asset-data-file
+resourceType: cloudkms.googleapis.com/CryptoKey
+resourceData:
+  name: "projects/my-project/locations/us-central1/keyRings/my-keyring/cryptoKeys/test-key-bad"
+  primary:
+    name: "projects/my-project/locations/us-central1/keyRings/my-keyring/cryptoKeys/test-key-bad/cryptoKeyVersions/1"
+    state: "ENABLED"
+  purpose: "ENCRYPT_DECRYPT"

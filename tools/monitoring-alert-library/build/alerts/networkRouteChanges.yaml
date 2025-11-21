@@ -3,20 +3,25 @@
 #@ load("@ytt:template", "template")
 #@ alert = build_alert("networkRouteChanges")
 
+#@ def documentation_content():
+#@   lines = [
+#@     'Log-based alerting policy in project ${project} detected VPC Network Route changes.',
+#@     '',
+#@     'This alert helps ensure security by monitoring creation or deletion of network routes.',
+#@     '```',
+#@     'resource.type="gce_route" AND (',
+#@     '  protoPayload.methodName:"compute.routes.insert" OR',
+#@     '  protoPayload.methodName:"compute.routes.delete"',
+#@     ')',
+#@     '```'
+#@   ]
+#@   return "\n".join(lines)
+#@ end
+
 #@ if alert.to_generate():
 displayName: 'VPC Network Route Changes'
 documentation:
-  content: >-
-    Log-based alerting policy in project ${project} detected VPC Network Route changes.
-
-    This alert helps ensure security by monitoring creation or deletion of network routes.
-    ```
-    resource.type="gce_route" AND 
-    (
-      protoPayload.methodName:"compute.routes.insert" OR 
-      protoPayload.methodName:"compute.routes.delete"
-    )
-    ```
+  content: #@ documentation_content()
   mimeType: text/markdown
 conditions:
 - displayName: 'Log match condition: VPC Network Route Changes'

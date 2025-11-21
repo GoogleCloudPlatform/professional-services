@@ -1,3 +1,3 @@
 custom.dataprocRequireInternalIp:
   rules:
-  - enforce: true
+    - enforce: true

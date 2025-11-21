@@ -5,5 +5,5 @@ cloudfunctionsV1RequireVPCConnector:
   recommendation: Ensure Gen1 Cloud Functions are configured with VPC Connector
   resource_selector:
     resource_types:
-    - cloudfunctions.googleapis.com/CloudFunction
+      - cloudfunctions.googleapis.com/CloudFunction
   severity: MEDIUM

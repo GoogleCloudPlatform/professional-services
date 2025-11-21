@@ -3,17 +3,22 @@
 #@ load("@ytt:template", "template")
 #@ alert = build_alert("storageIamChanges")
 
+#@ def documentation_content():
+#@   lines = [
+#@     'Log-based alerting policy in project ${project} detected Cloud Storage Bucket IAM changes.',
+#@     '',
+#@     'This alert helps ensure security by monitoring IAM permission changes to Cloud Storage buckets.',
+#@     '```',
+#@     'resource.type="gcs_bucket" AND protoPayload.methodName="storage.setIamPermissions"',
+#@     '```'
+#@   ]
+#@   return "\n".join(lines)
+#@ end
+
 #@ if alert.to_generate():
 displayName: 'Cloud Storage IAM Permission Changes'
 documentation:
-  content: >-
-    Log-based alerting policy in project ${project} detected Cloud Storage Bucket IAM changes.
-
-    This alert helps ensure security by monitoring IAM permission changes to Cloud Storage buckets.
-    ```
-    resource.type="gcs_bucket"
-    AND protoPayload.methodName="storage.setIamPermissions"
-    ```
+  content: #@ documentation_content()
   mimeType: text/markdown
 conditions:
 - displayName: 'Cloud Storage IAM Permission Changes'
