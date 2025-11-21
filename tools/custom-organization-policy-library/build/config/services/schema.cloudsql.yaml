@@ -74,7 +74,7 @@ cloudsql:
     bundles:
       pci-dss: false
       cis: true
-  cloudsqlRequireHighAvailibility:
+  cloudsqlRequireHighAvailability:
     #@schema/validation one_of=["default", "skip", "include", "skip-policy"]
     generation: "default"
     bundles:

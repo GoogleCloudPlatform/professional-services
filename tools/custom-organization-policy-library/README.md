@@ -39,6 +39,7 @@ python3 -m venv venv
 source venv/bin/activate
 python3 -m pip install -r scripts/requirements.txt
 python3 -m pip install -r tests/requirements.txt
+npm install --global prettier # Install prettier globally for formatting YAML file
 ```
 
 ## Organization of the repository

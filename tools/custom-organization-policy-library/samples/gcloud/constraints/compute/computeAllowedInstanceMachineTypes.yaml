@@ -1,9 +1,9 @@
 name: organizations/11111111/customConstraints/custom.computeAllowedInstanceMachineTypes
 resource_types:
-- compute.googleapis.com/Instance
+  - compute.googleapis.com/Instance
 condition: resource.machineType.matches("machineTypes/(n2-standard-1|n2-standard-2|n2d-standard-2|e2-medium)$") == false
 action_type: DENY
 method_types:
-- CREATE
+  - CREATE
 display_name: Allow only specific machine types
 description: Prevent the creation of VMs not using specific machine types

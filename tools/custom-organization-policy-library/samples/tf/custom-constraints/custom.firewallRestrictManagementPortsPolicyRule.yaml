@@ -4,22 +4,15 @@ custom.firewallRestrictManagementPortsPolicyRule:
     resource.rules.exists(rule,
       rule.priority < 2147483644 &&
       rule.direction == 'INGRESS' &&
-      !rule.match.srcIpRanges.all(ipRange,
-          ipRange in ["10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16", "35.235.240.0/20"]
-      ) &&
-      rule.match.layer4Configs.exists(l4config,
-        l4config.ipProtocol == 'tcp' &&
-        l4config.ports.exists(port,
-            port == '9090'
-        )
-      )
+      rule.match.srcIpRanges.exists(range, range == '0.0.0.0/0') &&
+      rule.match.layer4Configs.containsIpProtocolAndPort('tcp', '9090')
     )
-  description: Ensure that management interfaces (Cisco Secure WebSM) are not accessible
-    from the Internet when using Firewall Policy Rule
-  display_name: Restrict Firewall Policy rules allowing management port access from
-    the Internet
+  description:
+    Ensure that management interfaces (Cisco Secure WebSM) are not accessible from any source when using Firewall Policy
+    Rule
+  display_name: Restrict Firewall Policy rules allowing management port access from any source
   method_types:
-  - CREATE
-  - UPDATE
+    - CREATE
+    - UPDATE
   resource_types:
-  - compute.googleapis.com/FirewallPolicy
+    - compute.googleapis.com/FirewallPolicy

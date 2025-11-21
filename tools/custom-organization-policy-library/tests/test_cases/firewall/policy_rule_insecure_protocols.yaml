@@ -37,14 +37,14 @@ firewall_policy_allowed_ftp_rule_10:
     expected_result:
       return_code: 0
 
-firewall_policy_ftp_rule_denied:
+# Simplified constraint only blocks 0.0.0.0/0 and ::/0, not specific public IPs
+firewall_policy_ftp_rule_allowed:
   steps:
   - command_flags:
       layer4-configs: tcp:21
       src-ip-ranges: 1.0.0.0/32
     expected_result:
-      return_code: 1
-      stderr: 'customConstraints/custom\.firewallRestrictInsecureProtocolsPolicyRule'
+      return_code: 0
 
 # HTTP tests - TCP:80
 firewall_policy_allowed_http_rule_172:

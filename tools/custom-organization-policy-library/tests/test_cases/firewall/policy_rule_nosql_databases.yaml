@@ -19,14 +19,14 @@ firewall_policy_allowed_mongodb_rule_iap:
     expected_result:
       return_code: 0
 
-firewall_policy_mongodb_rule_denied:
+# Simplified constraint only blocks 0.0.0.0/0 and ::/0, not specific public IPs
+firewall_policy_mongodb_rule_allowed:
   steps:
   - command_flags:
       layer4-configs: tcp:27017
       src-ip-ranges: 1.1.1.1/32
     expected_result:
-      return_code: 1
-      stderr: 'customConstraints/custom\.firewallRestrictNoSQLDatabasesPolicyRule'
+      return_code: 0
 
 firewall_policy_mongodb_27018_rule_denied:
   steps:
@@ -55,30 +55,30 @@ firewall_policy_cassandra_rule_denied:
       return_code: 1
       stderr: 'customConstraints/custom\.firewallRestrict(PublicAccess|NoSQLDatabases)PolicyRule'
 
-firewall_policy_cassandra_7000_rule_denied:
+# Simplified constraint only blocks 0.0.0.0/0 and ::/0, not specific public IPs
+firewall_policy_cassandra_7000_rule_allowed:
   steps:
   - command_flags:
       layer4-configs: tcp:7000
       src-ip-ranges: 1.0.0.0/32
     expected_result:
-      return_code: 1
-      stderr: 'customConstraints/custom\.firewallRestrictNoSQLDatabasesPolicyRule'
+      return_code: 0
 
-firewall_policy_cassandra_9160_rule_denied:
+# Simplified constraint only blocks 0.0.0.0/0 and ::/0, not specific public IPs
+firewall_policy_cassandra_9160_rule_allowed:
   steps:
   - command_flags:
       layer4-configs: tcp:9160
       src-ip-ranges: 203.0.113.0/24
     expected_result:
-      return_code: 1
-      stderr: 'customConstraints/custom\.firewallRestrictNoSQLDatabasesPolicyRule'
+      return_code: 0
 
 # Multiple NoSQL database ports test
-firewall_policy_multiple_nosql_ports_denied:
+# Simplified constraint only blocks 0.0.0.0/0 and ::/0, not specific public IPs
+firewall_policy_multiple_nosql_ports_allowed:
   steps:
   - command_flags:
       layer4-configs: tcp:27017,tcp:9042,tcp:7000
       src-ip-ranges: 1.0.0.0/32
     expected_result:
-      return_code: 1
-      stderr: 'customConstraints/custom\.firewallRestrictNoSQLDatabasesPolicyRule'
+      return_code: 0

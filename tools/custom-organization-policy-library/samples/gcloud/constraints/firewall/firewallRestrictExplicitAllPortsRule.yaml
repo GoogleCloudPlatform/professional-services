@@ -1,12 +1,12 @@
 name: organizations/11111111/customConstraints/custom.firewallRestrictExplicitAllPortsRule
 resource_types:
-- compute.googleapis.com/Firewall
+  - compute.googleapis.com/Firewall
 condition: |-
   (
     resource.direction == 'INGRESS' &&
     resource.allowed.exists(rule,
-      (rule.IPProtocol == 'tcp' || rule.IPProtocol == 'udp') &&
-      has(rule.ports) && rule.ports.exists(port,
+      rule.IPProtocol in ['tcp','udp'] && has(rule.ports) &&
+      rule.ports.exists(port,
         port == '0-65535' || port == '1-65535'
       )
     ) &&
@@ -19,7 +19,7 @@ condition: |-
   )
 action_type: DENY
 method_types:
-- CREATE
-- UPDATE
+  - CREATE
+  - UPDATE
 display_name: Restrict VPC Firewall rules with explicit all-ports specifications
 description: Prevent VPC firewall rules that explicitly specify all TCP/UDP ports using ranges like 0-65535 or 1-65535

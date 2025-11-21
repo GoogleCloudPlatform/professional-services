@@ -5,7 +5,7 @@ custom.gkeDisableKubernetesDashboard:
   description: Enforce that GKE clusters does not have Web UI dashboard enabled
   display_name: Disable Web UI dashboard
   method_types:
-  - CREATE
-  - UPDATE
+    - CREATE
+    - UPDATE
   resource_types:
-  - container.googleapis.com/Cluster
+    - container.googleapis.com/Cluster

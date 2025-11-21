@@ -1,9 +1,9 @@
 name: organizations/11111111/customConstraints/custom.iamDisableRedisAdminRoles
 resourceTypes:
-- iam.googleapis.com/AllowPolicy
+  - iam.googleapis.com/AllowPolicy
 methodTypes:
-- CREATE
-- UPDATE
+  - CREATE
+  - UPDATE
 condition: |-
   resource.bindings.exists(binding,
     binding.members.exists(member,

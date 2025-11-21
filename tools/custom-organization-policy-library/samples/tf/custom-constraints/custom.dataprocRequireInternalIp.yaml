@@ -5,7 +5,7 @@ custom.dataprocRequireInternalIp:
   description: Enforce that the Dataproc cluster is created with Internal IPs only
   display_name: Require Dataproc with internal IPs
   method_types:
-  - CREATE
-  - UPDATE
+    - CREATE
+    - UPDATE
   resource_types:
-  - dataproc.googleapis.com/Cluster
+    - dataproc.googleapis.com/Cluster

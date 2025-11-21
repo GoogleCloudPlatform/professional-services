@@ -17,6 +17,8 @@
 #@ load("/config.lib.star", "generate_config")
 
 organization: #@ data.values.organization
+deployment:
+  parent: #@ data.values.deployment.parent
 bundles: #@ data.values.bundles
 dryrun: #@ data.values.dryrun
 policies:

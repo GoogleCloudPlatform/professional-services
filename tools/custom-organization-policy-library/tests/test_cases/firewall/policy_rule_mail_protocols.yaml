@@ -37,21 +37,21 @@ firewall_policy_allowed_pop3_rule_192:
     expected_result:
       return_code: 0
 
-firewall_policy_pop3_rule_denied:
+# Simplified constraint only blocks 0.0.0.0/0 and ::/0, not specific public IPs
+firewall_policy_pop3_rule_allowed:
   steps:
   - command_flags:
       layer4-configs: tcp:110
       src-ip-ranges: 1.0.0.0/32
     expected_result:
-      return_code: 1
-      stderr: 'customConstraints/custom\.firewallRestrictMailProtocolsPolicyRule'
+      return_code: 0
 
 # Multiple mail protocols test
-firewall_policy_multiple_mail_denied:
+# Simplified constraint only blocks 0.0.0.0/0 and ::/0, not specific public IPs
+firewall_policy_multiple_mail_allowed:
   steps:
   - command_flags:
       layer4-configs: tcp:25,tcp:110
       src-ip-ranges: 8.8.8.8/32
     expected_result:
-      return_code: 1
-      stderr: 'customConstraints/custom\.firewallRestrictMailProtocolsPolicyRule'
+      return_code: 0

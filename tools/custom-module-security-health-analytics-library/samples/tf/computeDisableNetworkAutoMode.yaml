@@ -5,5 +5,5 @@ computeDisableNetworkAutoMode:
   recommendation: Ensure auto-mode is idsabled when using VPC networks
   resource_selector:
     resource_types:
-    - compute.googleapis.com/Network
+      - compute.googleapis.com/Network
   severity: HIGH

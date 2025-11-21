@@ -3,16 +3,24 @@
 #@ load("@ytt:template", "template")
 #@ alert = build_alert("dnsMalformedQuery")
 
+#@ def documentation_content():
+#@   lines = [
+#@     'Log-based alerting policy in project ${project} detected where DNS queries are malformed',
+#@     'or cannot be processed by the DNS server.',
+#@     '',
+#@     'This alert helps monitoring the DNS logs for response code "FORMERR" when malformed DNS queries',
+#@     'are sent to the DNS server.',
+#@     '```',
+#@     'resource.type="dns_query" AND jsonPayload.responseCode="FORMERR"',
+#@     '```'
+#@   ]
+#@   return "\n".join(lines)
+#@ end
+
 #@ if alert.to_generate():
 displayName: 'DNS Malformed Queries'
 documentation:
-  content: >-
-    Log-based alerting policy in project ${project} detected where DNS queries are malformed or cannot be processed by the DNS server.
-
-    This alert helps monitoring the DNS logs for response code "FORMERR" when malformed DNS queries are sent to the DNS server.
-    ```
-      resource.type="dns_query" AND jsonPayload.responseCode="FORMERR"
-    ```
+  content: #@ documentation_content()
   mimeType: text/markdown
 conditions:
 - displayName: 'Log match condition: DNS Malformed Queries'

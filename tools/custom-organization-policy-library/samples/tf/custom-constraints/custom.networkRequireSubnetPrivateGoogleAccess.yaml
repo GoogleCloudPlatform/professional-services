@@ -1,11 +1,10 @@
 custom.networkRequireSubnetPrivateGoogleAccess:
   action_type: DENY
   condition: |-
-    resource.privateIpGoogleAccess == false
-  description: Enforce that the VPC network subnets are configured with private Google
-    access
+    !resource.privateIpGoogleAccess && resource.purpose in ['REGIONAL_MANAGED_PROXY', 'GLOBAL_MANAGED_PROXY'] == false
+  description: Enforce that the VPC network subnets are configured with private Google access
   display_name: Require Private Google Access
   method_types:
-  - CREATE
+    - CREATE
   resource_types:
-  - compute.googleapis.com/Subnetwork
+    - compute.googleapis.com/Subnetwork

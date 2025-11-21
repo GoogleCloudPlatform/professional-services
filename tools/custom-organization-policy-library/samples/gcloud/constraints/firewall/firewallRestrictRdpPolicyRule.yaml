@@ -1,12 +1,15 @@
 name: organizations/11111111/customConstraints/custom.firewallRestrictRdpPolicyRule
 resource_types:
-- compute.googleapis.com/FirewallPolicy
+  - compute.googleapis.com/FirewallPolicy
 condition: |-
   resource.rules.exists(rule,
       rule.priority < 2147483644 &&
       rule.direction == 'INGRESS' &&
       !rule.match.srcIpRanges.all(ipRange,
-          ipRange.startsWith('192.168.') || ipRange == '35.235.240.0/20' || ipRange.startsWith('10.')
+          ipRange == '35.235.240.0/20' ||
+          ipRange.startsWith('192.168.') ||
+          ipRange.matches('^172\\.(?:1[6-9]|2\\d|3[0-1]).*') ||
+          ipRange.startsWith('10.')
       ) &&
       rule.match.layer4Configs.all(l4config,
           l4config.ipProtocol == 'tcp' &&
@@ -15,7 +18,7 @@ condition: |-
   )
 action_type: DENY
 method_types:
-- CREATE
-- UPDATE
-display_name: Restrict Firewall Policy rules allowing RDP access from the Internet
-description: Ensure that RDP access is restricted from the Internet when using Firewall Policy Rule
+  - CREATE
+  - UPDATE
+display_name: Restrict Firewall Policy rules allowing RDP access from any source
+description: Ensure that RDP access is restricted from any source when using Firewall Policy Rule

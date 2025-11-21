@@ -3,19 +3,26 @@
 #@ load("@ytt:template", "template")
 #@ alert = build_alert("firewallRuleChanges")
 
+#@ def documentation_content():
+#@   lines = [
+#@     'Log-based alerting policy in project ${project} detected VPC Network Firewall rule changes.',
+#@     '',
+#@     'This alert helps ensure security by monitoring creation, modification, or deletion of firewall rules.',
+#@     '```',
+#@     'resource.type="gce_firewall_rule" AND (',
+#@     '  protoPayload.methodName:"compute.firewalls.patch" OR',
+#@     '  protoPayload.methodName:"compute.firewalls.insert" OR',
+#@     '  protoPayload.methodName:"compute.firewalls.delete"',
+#@     ')',
+#@     '```'
+#@   ]
+#@   return "\n".join(lines)
+#@ end
+
 #@ if alert.to_generate():
 displayName: 'VPC Network Firewall Rule Changes'
 documentation:
-  content: >-
-    Log-based alerting policy in project ${project} detected VPC Network Firewall rule changes.
-
-    This alert helps ensure security by monitoring creation, modification, or deletion of firewall rules.
-    ```
-    resource.type="gce_firewall_rule"
-    AND (protoPayload.methodName:"compute.firewalls.patch"
-    OR protoPayload.methodName:"compute.firewalls.insert"
-    OR protoPayload.methodName:"compute.firewalls.delete")
-    ```
+  content: #@ documentation_content()
   mimeType: text/markdown
 conditions:
 - displayName: 'Log match condition: VPC Network Firewall Rule Changes'

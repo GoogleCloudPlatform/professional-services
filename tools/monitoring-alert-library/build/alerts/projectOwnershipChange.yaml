@@ -3,25 +3,31 @@
 #@ load("@ytt:template", "template")
 #@ alert = build_alert("projectOwnershipChange")
 
+#@ def documentation_content():
+#@   lines = [
+#@     'Log-based alerting policy in project ${project} detected a project ownership assignments or changes.',
+#@     '```',
+#@     '(protoPayload.serviceName="cloudresourcemanager.googleapis.com") AND',
+#@     '(ProjectOwnership OR projectOwnerInvitee)',
+#@     'OR',
+#@     '(',
+#@     '  protoPayload.serviceData.policyDelta.bindingDeltas.action="REMOVE" AND',
+#@     '  protoPayload.serviceData.policyDelta.bindingDeltas.role="roles/owner"',
+#@     ')',
+#@     'OR',
+#@     '(',
+#@     '  protoPayload.serviceData.policyDelta.bindingDeltas.action="ADD" AND',
+#@     '  protoPayload.serviceData.policyDelta.bindingDeltas.role="roles/owner"',
+#@     ')',
+#@     '```'
+#@   ]
+#@   return "\n".join(lines)
+#@ end
+
 #@ if alert.to_generate():
 displayName: 'Project Ownership Changes'
 documentation:
-  content: >-
-    Log-based alerting policy in project ${project} detected a project ownership assignments or changes.
-    ```
-    (protoPayload.serviceName="cloudresourcemanager.googleapis.com") AND 
-    (ProjectOwnership OR projectOwnerInvitee) 
-    OR 
-    (
-      protoPayload.serviceData.policyDelta.bindingDeltas.action="REMOVE" AND 
-      protoPayload.serviceData.policyDelta.bindingDeltas.role="roles/owner"
-    ) 
-    OR 
-    (
-      protoPayload.serviceData.policyDelta.bindingDeltas.action="ADD" AND 
-      protoPayload.serviceData.policyDelta.bindingDeltas.role="roles/owner"
-    )
-    ```
+  content: #@ documentation_content()
   mimeType: text/markdown
 conditions:
 - displayName: 'Project Ownership Changes'

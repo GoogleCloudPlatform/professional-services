@@ -2,7 +2,16 @@
 #@ constraint = build_constraint("cloudrunDisableEnvironmentVariablePattern")
 
 #@ def condition(patterns):
-#@   return "resource.spec.template.spec.containers.exists(container, container.env.exists(env, " + str(patterns) + ".exists(pattern, env.name.matches(pattern))))"
+#@   lines = [
+#@     "resource.spec.template.spec.containers.exists(container,",
+#@     "  container.env.exists(env,",
+#@     "    " + str(patterns) + ".exists(", 
+#@     "      pattern, env.name.matches(pattern)",
+#@     "    )",
+#@     "  )",
+#@     ")",
+#@   ]
+#@   return "\n".join(lines)
 #@ end
 
 #@ if constraint.to_generate():

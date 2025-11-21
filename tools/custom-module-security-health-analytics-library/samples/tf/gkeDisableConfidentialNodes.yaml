@@ -5,5 +5,5 @@ gkeDisableConfidentialNodes:
   recommendation: Ensure GKE clusters are running without Confidential GKE nodes enabled
   resource_selector:
     resource_types:
-    - container.googleapis.com/Cluster
+      - container.googleapis.com/Cluster
   severity: MEDIUM
