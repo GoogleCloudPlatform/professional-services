@@ -40,14 +40,14 @@ firewall_vpc_allowed_ftp_rule_10:
     expected_result:
       return_code: 0
 
-firewall_vpc_ftp_rule_denied:
+# Simplified constraint only blocks 0.0.0.0/0 and ::/0, not specific public IPs
+firewall_vpc_ftp_rule_allowed:
   steps:
   - command_flags:
       rules: tcp:21
       source-ranges: 1.0.0.0/32
     expected_result:
-      return_code: 1
-      stderr: 'customConstraints/custom\.firewallRestrictInsecureProtocolsRule'
+      return_code: 0
 
 # HTTP tests - TCP:80
 firewall_vpc_allowed_http_rule_iap:
@@ -68,11 +68,11 @@ firewall_vpc_http_rule_denied:
       stderr: 'customConstraints/custom\.firewallRestrict(PublicAccess|InsecureProtocols)Rule'
 
 # Multiple insecure protocols test
-firewall_vpc_multiple_insecure_denied:
+# Simplified constraint only blocks 0.0.0.0/0 and ::/0, not specific public IPs
+firewall_vpc_multiple_insecure_allowed:
   steps:
   - command_flags:
       rules: tcp:21,tcp:23,tcp:80
       source-ranges: 8.8.8.8/32
     expected_result:
-      return_code: 1
-      stderr: 'customConstraints/custom\.firewallRestrictInsecureProtocolsRule'
+      return_code: 0

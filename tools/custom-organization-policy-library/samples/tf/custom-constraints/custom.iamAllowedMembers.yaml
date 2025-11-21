@@ -9,7 +9,7 @@ custom.iamAllowedMembers:
   description: Ensure no binding are done with members outside the organization domain
   display_name: Deny principals and members outside the organization domain
   method_types:
-  - CREATE
-  - UPDATE
+    - CREATE
+    - UPDATE
   resource_types:
-  - iam.googleapis.com/AllowPolicy
+    - iam.googleapis.com/AllowPolicy

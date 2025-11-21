@@ -1,9 +1,9 @@
 name: organizations/11111111/customConstraints/custom.gkeRequireGroupsRBAC
 resourceTypes:
-- container.googleapis.com/Cluster
+  - container.googleapis.com/Cluster
 methodTypes:
-- CREATE
-- UPDATE
+  - CREATE
+  - UPDATE
 condition: resource.authenticatorGroupsConfig.enabled == false
 actionType: DENY
 display_name: Enable Google Groups usage with RBAC

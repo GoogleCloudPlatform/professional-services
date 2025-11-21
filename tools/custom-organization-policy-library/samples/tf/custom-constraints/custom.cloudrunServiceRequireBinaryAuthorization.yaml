@@ -5,7 +5,7 @@ custom.cloudrunServiceRequireBinaryAuthorization:
   description: Enforce that Cloud Run Service are using binary authorization
   display_name: Disable creation of Cloud Run Service without Binary Authorization
   method_types:
-  - CREATE
-  - UPDATE
+    - CREATE
+    - UPDATE
   resource_types:
-  - run.googleapis.com/Service
+    - run.googleapis.com/Service

@@ -125,15 +125,14 @@ firewall_vpc_denied_all_udp_public_range:
       return_code: 1
       stderr: 'customConstraints/custom\.(firewallRestrictExplicitAllPortsRule|firewallRestrictRdpRule)'
 
-# Allowed: Specific port from public IP (not all ports)
+# Simplified constraint only blocks 0.0.0.0/0 and ::/0, not specific public IPs
 firewall_vpc_allowed_http_public_specific:
   steps:
   - command_flags:
       rules: tcp:80
       source-ranges: 8.8.8.8/32
     expected_result:
-      return_code: 1
-      stderr: 'customConstraints/custom\.firewallRestrictInsecureProtocolsRule'
+      return_code: 0
 
 # Allowed: All TCP/UDP from private IP
 firewall_vpc_allowed_all_tcp_private:

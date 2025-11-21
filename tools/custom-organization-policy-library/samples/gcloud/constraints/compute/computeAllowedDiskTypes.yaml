@@ -1,9 +1,9 @@
 name: organizations/11111111/customConstraints/custom.computeAllowedDiskTypes
 resource_types:
-- compute.googleapis.com/Disk
+  - compute.googleapis.com/Disk
 condition: (["pd-ssd", "pd-standard", "pd-balanced"].exists(disktype, resource.type.contains(disktype))) == false
 action_type: DENY
 method_types:
-- CREATE
+  - CREATE
 display_name: Allow only specific disk types
 description: Prevent the creation of VMs not using specific disk type

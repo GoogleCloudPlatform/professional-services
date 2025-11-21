@@ -3,20 +3,26 @@
 #@ load("@ytt:template", "template")
 #@ alert = build_alert("firewallPolicyRuleChanges")
 
+#@ def documentation_content():
+#@   lines = [
+#@     'Log-based alerting policy in project ${project} detected Firewall Policy rule changes.',
+#@     '',
+#@     'This alert helps ensure security by monitoring creation, modification, or deletion of firewall rules.',
+#@     '```',
+#@     'resource.labels.method:"compute.networkFirewallPolicies" AND (',
+#@     '  protoPayload.methodName:"compute.networkFirewallPolicies.addRule" OR',
+#@     '  protoPayload.methodName:"compute.networkFirewallPolicies.removeRule" OR',
+#@     '  protoPayload.methodName:"compute.networkFirewallPolicies.patchRule"',
+#@     ')',
+#@     '```'
+#@   ]
+#@   return "\n".join(lines)
+#@ end
+
 #@ if alert.to_generate():
 displayName: 'Network Firewall Policy Rule Changes'
 documentation:
-  content: >-
-    Log-based alerting policy in project ${project} detected Firewall Policy rule changes.
-
-    This alert helps ensure security by monitoring creation, modification, or deletion of firewall rules.
-    ```
-    resource.labels.method:"compute.networkFirewallPolicies" AND 
-    (
-      protoPayload.methodName:"compute.networkFirewallPolicies.addRule" OR 
-      protoPayload.methodName:"compute.networkFirewallPolicies.removeRule" OR 
-      protoPayload.methodName:"compute.networkFirewallPolicies.patchRule")
-    ```
+  content: #@ documentation_content()
   mimeType: text/markdown
 conditions:
 - displayName: 'Log match condition: Network Firewall Policy Rule Changes'

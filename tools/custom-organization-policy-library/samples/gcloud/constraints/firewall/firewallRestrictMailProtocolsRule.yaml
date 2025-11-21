@@ -1,19 +1,16 @@
 name: organizations/11111111/customConstraints/custom.firewallRestrictMailProtocolsRule
 resource_types:
-- compute.googleapis.com/Firewall
+  - compute.googleapis.com/Firewall
 condition: |-
   resource.direction.matches('INGRESS') &&
-    !resource.sourceRanges.all(range,
-        range in ["10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16", "35.235.240.0/20"]
-    ) &&
-    resource.allowed.exists(rule,
-      rule.ports.exists(port,
-          rule.IPProtocol == 'tcp' && port in ['25', '110']
-      )
+    resource.sourceRanges.exists(range, range == '0.0.0.0/0') &&
+    (
+      resource.allowed.containsFirewallPort('tcp', '25') ||
+      resource.allowed.containsFirewallPort('tcp', '110')
     )
 action_type: DENY
 method_types:
-- CREATE
-- UPDATE
-display_name: Restrict VPC Firewall rules allowing mail protocol access from the Internet
-description: Ensure that mail protocols (SMTP, POP3) are not accessible from the Internet when using VPC Firewall Rule
+  - CREATE
+  - UPDATE
+display_name: Restrict VPC Firewall rules allowing mail protocol access from any source
+description: Ensure that mail protocols (SMTP, POP3) are not accessible from any source when using VPC Firewall Rule

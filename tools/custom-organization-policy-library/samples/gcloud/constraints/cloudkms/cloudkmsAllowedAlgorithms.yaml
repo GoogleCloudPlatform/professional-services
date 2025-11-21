@@ -1,9 +1,9 @@
 name: organizations/11111111/customConstraints/custom.cloudkmsAllowedAlgorithms
 resourceTypes:
-- cloudkms.googleapis.com/CryptoKey
+  - cloudkms.googleapis.com/CryptoKey
 methodTypes:
-- CREATE
-- UPDATE
+  - CREATE
+  - UPDATE
 condition: resource.versionTemplate.algorithm in ["GOOGLE_SYMMETRIC_ENCRYPTION"] == false
 actionType: DENY
 displayName: Require Cloud KMS keys algorithm to be configured correctly

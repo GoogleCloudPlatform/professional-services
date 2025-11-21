@@ -3,17 +3,24 @@
 #@ load("@ytt:template", "template")
 #@ alert = build_alert("auditConfigChanges")
 
+#@ def documentation_content():
+#@   lines = [
+#@     'Log-based alerting policy in project ${project} detected audit configuration changes.',
+#@     '',
+#@     'This alert helps track GCP services audit log configuration changes to ensure appropriate.',
+#@     'audit logs are being collected',
+#@     '```',
+#@     'protoPayload.methodName="SetIamPolicy" AND',
+#@     'protoPayload.serviceData.policyDelta.auditConfigDeltas:*',
+#@     '```'
+#@   ]
+#@   return "\n".join(lines)
+#@ end
+
 #@ if alert.to_generate():
 displayName: 'Audit Configuration Changes'
 documentation:
-  content: >-
-    Log-based alerting policy in project ${project} detected audit configuration changes.
-
-    This alert helps track GCP services audit log configuration changes to ensure appropriate audit logs are being collected.
-    ```
-    protoPayload.methodName="SetIamPolicy" AND
-    protoPayload.serviceData.policyDelta.auditConfigDeltas:*
-    ```
+  content: #@ documentation_content()
   mimeType: text/markdown
 conditions:
 - displayName: 'Log match condition: Audit Configuration Changes'

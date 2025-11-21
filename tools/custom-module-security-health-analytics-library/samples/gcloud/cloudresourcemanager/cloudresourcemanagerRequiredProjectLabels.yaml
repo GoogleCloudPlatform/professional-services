@@ -3,6 +3,6 @@ description: Detect if project is missing required labels
 recommendation: Ensure project has required labels
 resource_selector:
   resource_types:
-  - cloudresourcemanager.googleapis.com/Project
+    - cloudresourcemanager.googleapis.com/Project
 predicate:
   expression: (!["bu", "app", "env"].all(required_label, resource.labels.exists(label, label.matches(required_label))))

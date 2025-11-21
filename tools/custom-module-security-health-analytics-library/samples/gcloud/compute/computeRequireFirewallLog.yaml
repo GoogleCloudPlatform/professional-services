@@ -3,6 +3,6 @@ description: Detect if some firewall rules have logging disabled or wrong config
 recommendation: Ensure every firewall rule has logging enabled with the proper config
 resource_selector:
   resource_types:
-  - compute.googleapis.com/Firewall
+    - compute.googleapis.com/Firewall
 predicate:
   expression: (!resource.logConfig.enable || !resource.logConfig.metadata.matches('INCLUDE_ALL_METADATA'))

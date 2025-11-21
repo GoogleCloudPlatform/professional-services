@@ -25,10 +25,7 @@ class LiteralString(str):
 
 def literal_representer(dumper, data):
     """
-    This function tells the YAML dumper to use the literal block style ('|')
-    for any string that is an instance of the LiteralString class.
-    The '-' for chomping is handled automatically by ensuring the string
-    has no trailing newline before dumping.
+    Forces the YAML dumper to use block style ('|') for LiteralString instances.
     """
     return dumper.represent_scalar("tag:yaml.org,2002:str", data, style="|")
 
@@ -36,10 +33,25 @@ def literal_representer(dumper, data):
 yaml.add_representer(LiteralString, literal_representer)
 
 
+def preserve_literal_style(data):
+    """
+    Recursively traverses a dictionary/list. If a string contains a newline,
+    convert it to a LiteralString object so PyYAML dumps it as a block.
+    """
+    if isinstance(data, dict):
+        return {k: preserve_literal_style(v) for k, v in data.items()}
+    elif isinstance(data, list):
+        return [preserve_literal_style(i) for i in data]
+    elif isinstance(data, str) and '\n' in data:
+        return LiteralString(data)
+    return data
+
+
 def convert_terraform_factory(filename, doc):
     try:
+        processed_doc = preserve_literal_style(doc)
         tf_yaml = {}
-        tf_yaml[filename] = doc
+        tf_yaml[filename] = processed_doc
         return filename, tf_yaml
 
     except Exception as e:

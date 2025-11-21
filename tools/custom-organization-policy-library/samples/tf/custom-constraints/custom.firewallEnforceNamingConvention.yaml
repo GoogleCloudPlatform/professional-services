@@ -10,10 +10,9 @@ custom.firewallEnforceNamingConvention:
       !resource.name.startsWith("gkegw1-l7-") &&
       !resource.name.startsWith("gkemcg1-l7-")
     )
-  description: Prevent the creation of VPC Firewall rule that are not following the
-    naming convention
+  description: Prevent the creation of VPC Firewall rule that are not following the naming convention
   display_name: Enforce VPC Firewall rule naming convention
   method_types:
-  - CREATE
+    - CREATE
   resource_types:
-  - compute.googleapis.com/Firewall
+    - compute.googleapis.com/Firewall

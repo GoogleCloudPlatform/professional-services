@@ -16,6 +16,7 @@
 ---
 organization: "111111"
 project: my-project
+project_number: "1234567890"
 bundles:
   pci-dss: false
   cis: false

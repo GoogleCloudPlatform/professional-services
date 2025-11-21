@@ -99,6 +99,7 @@ function process_log_metric_file() {
     if ! output=$(gcloud logging metrics update "$metric_name" --project="$project_id" --config-from-file="$file" 2>&1); then
       echo "Error updating Log-based Metric '$metric_name' from '$file' in project '$project_id':"
       echo "$output"
+      exit 1
     else
       echo "Log-based Metric '$metric_name' from '$file' updated successfully in project '$project_id'."
     fi
@@ -107,6 +108,7 @@ function process_log_metric_file() {
     if ! output=$(gcloud logging metrics create "$metric_name" --project="$project_id" --config-from-file="$file" 2>&1); then
       echo "Error creating Log-based Metric from '$file' in project '$project_id':"
       echo "$output"
+      exit 1
     else
       echo "Log-based Metric from '$file' created successfully in project '$project_id'."
     fi
@@ -156,6 +158,7 @@ function process_alert_file() {
         2>&1); then
       echo "Error updating Monitoring Policy '$existing_policy_id' from '$file' in project '$project_id':"
       echo "$output"
+      exit 1
     else
       echo "Monitoring Policy '$existing_policy_id' from '$file' updated successfully in project '$project_id'."
     fi
@@ -166,6 +169,7 @@ function process_alert_file() {
         2>&1); then
       echo "Error creating Monitoring Policy from '$file' in project '$project_id':"
       echo "$output"
+      exit 1
     else
       echo "Monitoring Policy from '$file' created successfully in project '$project_id'."
     fi
