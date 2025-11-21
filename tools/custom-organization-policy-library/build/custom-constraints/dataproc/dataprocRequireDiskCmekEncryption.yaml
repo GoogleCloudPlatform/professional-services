@@ -11,5 +11,5 @@ method_types:
 - CREATE
 - UPDATE 
 display_name: Enable Dataproc CMEK encryption
-description:  Enforce that the Dataproc cluster is created with the encryption key using a customer-managed key stored in Cloud KMS 
+description:  Enforce that the Dataproc cluster is created with an CMEK encryption key.
 #@ end

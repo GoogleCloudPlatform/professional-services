@@ -1,30 +1,22 @@
 #@ load("/constraints.lib.star", "build_constraint")
 #@ constraint = build_constraint("firewallRestrictManagementPortsRule")
 
-#@ def condition(allowed_source_ranges):
+#@ def condition():
 #@   #! Administrative and management interfaces
 #@   #! Cisco Secure WebSM: TCP:9090
-#@   #! Deny unless every source range is explicitly allow-listed
-#@   sanitized_allowed_ranges = [rng for rng in allowed_source_ranges if rng] or []
+#@   #! Deny if source range is 0.0.0.0/0 (any source)
 #@
 #@   lines = [
 #@     "resource.direction.matches('INGRESS') &&",
-#@     "  !resource.sourceRanges.all(range,",
-#@     "      range in " + str(sanitized_allowed_ranges),
-#@     "  ) &&",
-#@     "  resource.allowed.exists(rule,",
-#@     "    rule.IPProtocol == 'tcp' &&",
-#@     "    rule.ports.exists(port,",
-#@     "        port in ['9090']",
-#@     "    )",
-#@     "  )"
+#@     "  resource.sourceRanges.exists(range, range == '0.0.0.0/0') &&",
+#@     "  resource.allowed.containsFirewallPort('tcp', '9090')",
 #@   ]
 #@   return "\n".join(lines)
 #@ end
 
 #@ def description():
 #@   lines = [
-#@     "Ensure that management interfaces (Cisco Secure WebSM) are not accessible from the Internet when",
+#@     "Ensure that management interfaces (Cisco Secure WebSM) are not accessible from any source when",
 #@     "using VPC Firewall Rule",
 #@   ]
 #@   return "\n".join(lines)
@@ -34,11 +26,11 @@
 name: #@ constraint.constraint_name()
 resource_types:
 - compute.googleapis.com/Firewall
-condition: #@ condition(constraint.params().allowed_source_ranges)
+condition: #@ condition()
 action_type: DENY
 method_types:
 - CREATE
 - UPDATE
-display_name: Restrict VPC Firewall rules allowing management port access from the Internet
+display_name: Restrict VPC Firewall rules allowing management port access from any source
 description: #@ description()
 #@ end

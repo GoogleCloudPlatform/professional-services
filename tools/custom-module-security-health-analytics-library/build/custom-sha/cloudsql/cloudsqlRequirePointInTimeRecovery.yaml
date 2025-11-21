@@ -1,6 +1,16 @@
 #@ load("/sha.lib.star", "build_sha")
 #@ sha = build_sha("cloudsqlRequirePointInTimeRecovery")
 
+#@ def expression():
+#@   lines = [
+#@     '(',
+#@     '  !resource.settings.backupConfiguration.binaryLogEnabled &&',
+#@     '  !resource.settings.backupConfiguration.pointInTimeRecoveryEnabled',
+#@     ')'
+#@   ]
+#@   return "\n".join(lines)
+#@ end
+
 #@ if sha.to_generate():
 severity: HIGH
 description: "Detect if the CloudSQL instances have point in time recovery disabled"
@@ -9,5 +19,5 @@ resource_selector:
   resource_types:
   - sqladmin.googleapis.com/Instance
 predicate:
-  expression: (!resource.settings.backupConfiguration.binaryLogEnabled && !resource.settings.backupConfiguration.pointInTimeRecoveryEnabled )
+  expression: #@ expression()
 #@ end

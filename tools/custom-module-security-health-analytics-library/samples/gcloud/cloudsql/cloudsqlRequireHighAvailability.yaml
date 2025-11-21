@@ -3,6 +3,6 @@ description: Detect if the high availability (HA) configuration for Cloud SQL in
 recommendation: Ensure if the HA configuration for all Cloud SQL instances is set regional
 resource_selector:
   resource_types:
-  - sqladmin.googleapis.com/Instance
+    - sqladmin.googleapis.com/Instance
 predicate:
   expression: (resource.settings.availabilityType != "REGIONAL")

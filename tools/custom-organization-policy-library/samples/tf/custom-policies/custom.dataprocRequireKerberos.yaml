@@ -1,3 +1,3 @@
 custom.dataprocRequireKerberos:
   rules:
-  - enforce: true
+    - enforce: true

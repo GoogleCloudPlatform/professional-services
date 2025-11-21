@@ -1,24 +1,25 @@
 #@ load("/constraints.lib.star", "build_constraint")
 #@ constraint = build_constraint("firewallRestrictSQLDatabasesRule")
 
-#@ def condition(allowed_source_ranges):
+#@ def condition():
 #@   #! SQL Relational Databases
 #@   #! MySQL: TCP 3306
 #@   #! Oracle: TCP 1521, 2483-2484; UDP 2483-2484
 #@   #! PostgreSQL: TCP/UDP 5432
-#@   #! Deny unless every source range is explicitly allow-listed
-#@   sanitized_allowed_ranges = [rng for rng in allowed_source_ranges if rng] or []
+#@   #! Deny if source range is 0.0.0.0/0 (any source)
 #@
 #@   lines = [
 #@     "resource.direction.matches('INGRESS') &&",
-#@     "  !resource.sourceRanges.all(range,",
-#@     "      range in " + str(sanitized_allowed_ranges),
-#@     "  ) &&",
-#@     "  resource.allowed.exists(rule,",
-#@     "    rule.ports.exists(port,",
-#@     "        rule.IPProtocol == 'tcp' && port in ['3306', '1521', '2483', '2484', '5432'] ||",
-#@     "        rule.IPProtocol == 'udp' && port in ['2483', '2484', '5432']",
-#@     "    )",
+#@     "  resource.sourceRanges.exists(range, range == '0.0.0.0/0') &&",
+#@     "  (",
+#@     "    resource.allowed.containsFirewallPort('tcp', '3306') ||",
+#@     "    resource.allowed.containsFirewallPort('tcp', '1521') ||",
+#@     "    resource.allowed.containsFirewallPort('tcp', '2483') ||",
+#@     "    resource.allowed.containsFirewallPort('tcp', '2484') ||",
+#@     "    resource.allowed.containsFirewallPort('tcp', '5432') ||",
+#@     "    resource.allowed.containsFirewallPort('udp', '2483') ||",
+#@     "    resource.allowed.containsFirewallPort('udp', '2484') ||",
+#@     "    resource.allowed.containsFirewallPort('udp', '5432')",
 #@     "  )"
 #@   ]
 #@   return "\n".join(lines)
@@ -26,7 +27,7 @@
 
 #@ def description():
 #@   lines = [
-#@     "Ensure that SQL database ports (MySQL, Oracle, PostgreSQL) are not accessible from the Internet when",
+#@     "Ensure that SQL database ports (MySQL, Oracle, PostgreSQL) are not accessible from any source when",
 #@     "using VPC Firewall Rule",
 #@   ]
 #@   return "\n".join(lines)
@@ -36,11 +37,11 @@
 name: #@ constraint.constraint_name()
 resource_types:
 - compute.googleapis.com/Firewall
-condition: #@ condition(constraint.params().allowed_source_ranges)
+condition: #@ condition()
 action_type: DENY
 method_types:
 - CREATE
 - UPDATE
-display_name: Restrict VPC Firewall rules allowing SQL database port access from the Internet
+display_name: Restrict VPC Firewall rules allowing SQL database port access from any source
 description: #@ description()
 #@ end

@@ -5,5 +5,5 @@ artifactregistryRequireCMEK:
   recommendation: Ensure the Artifact Registry repositoriesa are encrypted using CMEK
   resource_selector:
     resource_types:
-    - artifactregistry.googleapis.com/Repository
+      - artifactregistry.googleapis.com/Repository
   severity: HIGH

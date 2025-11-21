@@ -5,5 +5,5 @@ cloudrunAllowedDomainMapping:
   recommendation: Ensure mapped domain on Cloud Run services is an authorized domain.
   resource_selector:
     resource_types:
-    - run.googleapis.com/DomainMapping
+      - run.googleapis.com/DomainMapping
   severity: HIGH

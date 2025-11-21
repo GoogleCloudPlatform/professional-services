@@ -5,7 +5,7 @@ custom.gkeRequireMonitoring:
   description: Enforce that GKE clusters monitoring is enabled
   display_name: Enable monitoring
   method_types:
-  - CREATE
-  - UPDATE
+    - CREATE
+    - UPDATE
   resource_types:
-  - container.googleapis.com/Cluster
+    - container.googleapis.com/Cluster

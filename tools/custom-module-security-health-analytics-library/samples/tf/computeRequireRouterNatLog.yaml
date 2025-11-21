@@ -5,5 +5,5 @@ computeRequireRouterNatLog:
   recommendation: Ensure logging is enabled on every Cloud NAT
   resource_selector:
     resource_types:
-    - compute.googleapis.com/Router
+      - compute.googleapis.com/Router
   severity: MEDIUM

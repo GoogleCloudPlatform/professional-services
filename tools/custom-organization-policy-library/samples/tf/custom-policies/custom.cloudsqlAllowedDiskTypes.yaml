@@ -1,3 +1,3 @@
 custom.cloudsqlAllowedDiskTypes:
   rules:
-  - enforce: true
+    - enforce: true

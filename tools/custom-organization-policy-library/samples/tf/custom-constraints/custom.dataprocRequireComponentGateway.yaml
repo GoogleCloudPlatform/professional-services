@@ -5,7 +5,7 @@ custom.dataprocRequireComponentGateway:
   description: Enforce that Dataproc cluster is created with component gateway
   display_name: Require Dataproc component gateway
   method_types:
-  - CREATE
-  - UPDATE
+    - CREATE
+    - UPDATE
   resource_types:
-  - dataproc.googleapis.com/Cluster
+    - dataproc.googleapis.com/Cluster

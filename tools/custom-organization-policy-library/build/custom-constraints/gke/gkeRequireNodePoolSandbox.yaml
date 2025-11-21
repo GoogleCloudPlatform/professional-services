@@ -5,7 +5,10 @@
 name: #@ constraint.constraint_name()
 resource_types: 
 - container.googleapis.com/NodePool 
-condition: resource.name.matches("default-pool") == false && has(resource.config.sandboxConfig) == false && resource.config.sandboxConfig.type != 'GVISOR'
+condition: >- 
+  resource.name.matches("default-pool") == false &&
+    has(resource.config.sandboxConfig) == false &&
+    resource.config.sandboxConfig.type != 'GVISOR'
 actionType: DENY
 method_types: 
 - CREATE

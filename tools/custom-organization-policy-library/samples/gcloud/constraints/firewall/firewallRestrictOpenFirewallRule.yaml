@@ -1,6 +1,6 @@
 name: organizations/11111111/customConstraints/custom.firewallRestrictOpenFirewallRule
 resource_types:
-- compute.googleapis.com/Firewall
+  - compute.googleapis.com/Firewall
 condition: |-
   (
     resource.direction == 'INGRESS' &&
@@ -17,8 +17,8 @@ condition: |-
   )
 action_type: DENY
 method_types:
-- CREATE
-- UPDATE
+  - CREATE
+  - UPDATE
 display_name: Restrict overly permissive VPC Firewall rules open to the Internet
 description: |-
   Prevent VPC firewall rules that are open to 0.0.0.0/0 (except for safe protocols like ICMP, SSH,

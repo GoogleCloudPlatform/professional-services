@@ -47,6 +47,7 @@ function process_file() {
     if ! output=$(gcloud org-policies set-custom-constraint "$file" 2>&1); then
         echo "Error occurred during constraint setup:"
         echo "$output"
+        exit 1
     else
         echo "Constraint $file set successfully." 
     fi
@@ -55,6 +56,7 @@ function process_file() {
     if ! output=$(gcloud org-policies set-policy "$file" --update-mask=* 2>&1); then
         echo "Error occurred during policy update:"
         echo "$output"
+        exit 1
     else
         echo "Policy $file set successfully."
     fi
