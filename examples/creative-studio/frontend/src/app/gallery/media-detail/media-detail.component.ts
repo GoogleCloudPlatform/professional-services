@@ -31,6 +31,7 @@ import {AuthService} from '../../common/services/auth.service';
 import {SourceMediaItemLink} from '../../common/models/search.model';
 import {MimeTypeEnum} from '../../fun-templates/media-template.model';
 import {EnrichedSourceAsset} from '../../common/models/media-item.model';
+import {DomSanitizer, SafeHtml} from '@angular/platform-browser';
 
 @Component({
   selector: 'app-media-detail',
@@ -57,6 +58,7 @@ export class MediaDetailComponent implements OnDestroy {
     private loadingService: LoadingService,
     private _snackBar: MatSnackBar,
     private authService: AuthService,
+    private sanitizer: DomSanitizer,
   ) {
     // Check if user is admin
     this.isAdmin = this.authService.isUserAdmin() ?? false;
@@ -382,5 +384,9 @@ export class MediaDetailComponent implements OnDestroy {
 
   public closeLightbox(): void {
     this.selectedAssetForLightbox = null;
+  }
+
+  public getSafeHtml(html: string): SafeHtml {
+    return this.sanitizer.bypassSecurityTrustHtml(html);
   }
 }
