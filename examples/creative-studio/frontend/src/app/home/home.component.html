@@ -415,6 +415,16 @@
         </mat-menu>
       </div>
 
+      <div *ngIf="searchRequest.generationModel === 'gemini-3-pro-image-preview'" matTooltip="Enable Google Search"
+        class="cursor-pointer w-32 inline-flex flex-col justify-start items-center">
+        <mat-slide-toggle [(ngModel)]="searchRequest.googleSearch"
+          class="!w-16 !h-16 !shadow-none text-center !flex justify-center items-center text-stone-300">
+        </mat-slide-toggle>
+        <div class="text-center justify-center text-neutral-200 text-base mt-2">
+          Google Search
+        </div>
+      </div>
+
       <div
         matTooltip="Enable Brand Guidelines"
         class="cursor-pointer w-32 inline-flex flex-col justify-start items-center"
@@ -500,51 +510,37 @@
           </button>
         </div>
       </div>
-      <div class="lg:col-span-1 grid grid-cols-2 gap-4 text-center">
-        <div
-          class="drop-zone"
-          (click)="openImageSelector(1)"
-          (dragover)="$event.preventDefault()"
-          (drop)="onDrop($event, 1)"
-        >
-          <div *ngIf="!image1Preview" class="drop-zone-placeholder">
-            <mat-icon>add_photo_alternate</mat-icon>
-            <span>Drop product/image 1 or click to select</span>
+      <div class="lg:col-span-1">
+        <!-- Reference Images Section -->
+        <div class="reference-images-container" [class.disabled]="searchRequest.generationModel.startsWith('imagen-4')">
+          <div class="section-header">
+            <span class="section-title">Reference Images</span>
+            <span class="section-subtitle" *ngIf="searchRequest.generationModel === 'gemini-3-pro-image-preview'">(Up to
+              14)</span>
+            <span class="section-subtitle"
+              *ngIf="!searchRequest.generationModel.startsWith('imagen-4') && searchRequest.generationModel !== 'gemini-3-pro-image-preview'">(Up
+              to 2)</span>
+            <span class="section-subtitle" *ngIf="searchRequest.generationModel.startsWith('imagen-4')">(Not supported)</span>
           </div>
-          <div *ngIf="image1Preview" class="image-preview-container">
-            <img [src]="image1Preview" alt="Dropped Image 1" />
-            <button
-              (click)="clearImage(1, $event)"
-              class="clear-button"
-              mat-icon-button
-            >
-              <mat-icon>close</mat-icon>
-            </button>
+          <div class="reference-images-list" *ngIf="!searchRequest.generationModel.startsWith('imagen-4')">
+            <div *ngFor="let img of referenceImages; let i = index" class="reference-image-item">
+              <img [src]="img.previewUrl" alt="Reference Image" />
+              <button mat-icon-button class="clear-btn" (click)="clearImage(i, $event)">
+                <mat-icon>close</mat-icon>
+              </button>
+            </div>
+            <div class="add-image-btn" (click)="openImageSelector()" (drop)="onDrop($event)" (dragover)="$event.preventDefault()"
+              *ngIf="referenceImages.length < (searchRequest.generationModel === 'gemini-3-pro-image-preview' ? 14 : 2)">
+              <mat-icon>add</mat-icon>
+              <span>Add Image</span>
+            </div>
           </div>
-        </div>
-        <div
-          class="drop-zone"
-          (click)="openImageSelector(2)"
-          (dragover)="$event.preventDefault()"
-          (drop)="onDrop($event, 2)"
-        >
-          <div *ngIf="!image2Preview" class="drop-zone-placeholder">
-            <mat-icon>add_photo_alternate</mat-icon>
-            <span>Drop scene/image 2 or click to select</span>
-          </div>
-          <div *ngIf="image2Preview" class="image-preview-container">
-            <img [src]="image2Preview" alt="Dropped Image 2" />
-            <button
-              (click)="clearImage(2, $event)"
-              class="clear-button"
-              mat-icon-button
-            >
-              <mat-icon>close</mat-icon>
-            </button>
+          <div class="reference-images-disabled-message" *ngIf="searchRequest.generationModel.startsWith('imagen-4')">
+            <mat-icon>block</mat-icon>
+            <span>This model does not support reference images.</span>
           </div>
         </div>
       </div>
     </div>
   </div>
 </div>
->
