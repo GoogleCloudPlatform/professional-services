@@ -42,6 +42,7 @@ import { ToastMessageComponent } from '../common/components/toast-message/toast-
 import { MediaItem } from '../common/models/media-item.model';
 import {
   ImagenRequest,
+  ReferenceImage,
   SourceMediaItemLink,
 } from '../common/models/search.model';
 import { SourceAssetResponseDto } from '../common/services/source-asset.service';
@@ -64,10 +65,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   isLoading = false;
   templateParams: GenerationParameters | undefined;
   showDefaultDocuments = false;
-  sourceAssetId1: string | null = null;
-  sourceAssetId2: string | null = null;
-  image1Preview: string | null = null;
-  image2Preview: string | null = null;
+  referenceImages: ReferenceImage[] = [];
   sourceMediaItems: (SourceMediaItemLink | null)[] = [];
   activeWorkspaceId$: Observable<string | null>;
 
@@ -93,6 +91,8 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     addWatermark: false,
     negativePrompt: '',
     useBrandGuidelines: false,
+    googleSearch: false,
+    resolution: '4K',
   };
 
   // --- Negative Prompt Chips ---
@@ -178,6 +178,36 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
         viewValue: '4:3 \n Pin',
         disabled: false,
         icon: 'crop_landscape',
+      },
+      {
+        value: '2:3',
+        viewValue: '2:3 \n Portrait',
+        disabled: false,
+        icon: 'crop_portrait',
+      },
+      {
+        value: '3:2',
+        viewValue: '3:2 \n Landscape',
+        disabled: false,
+        icon: 'crop_landscape',
+      },
+      {
+        value: '4:5',
+        viewValue: '4:5 \n Portrait',
+        disabled: false,
+        icon: 'crop_portrait',
+      },
+      {
+        value: '5:4',
+        viewValue: '5:4 \n Landscape',
+        disabled: false,
+        icon: 'crop_landscape',
+      },
+      {
+        value: '21:9',
+        viewValue: '21:9 \n Wide',
+        disabled: false,
+        icon: 'crop_16_9',
       },
     ];
   selectedAspectRatio = this.aspectRatioOptions[0].viewValue;
@@ -424,8 +454,11 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     this.selectedGenerationModel = model.viewValue;
     this.selectedGenerationModelObject = model;
 
-    // Nano Banana only supports 1:1 aspect ratio for now.
-    if (model.value === 'gemini-2.5-flash-image-preview' || model.value === 'gemini-3-pro-image-preview') {
+    if (model.value === 'gemini-3-pro-image-preview') {
+      // Enable all aspect ratios for Gemini 3 Pro
+      this.aspectRatioOptions.forEach(r => (r.disabled = false));
+    } else if (model.value === 'gemini-2.5-flash-image-preview') {
+      // Nano Banana only supports 1:1 aspect ratio for now.
       const oneToOneRatio = this.aspectRatioOptions.find(
         r => r.value === '1:1',
       );
@@ -436,9 +469,34 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       this.aspectRatioOptions.forEach(r => {
         r.disabled = r.value !== '1:1';
       });
+      // Enforce image limit (max 2 for Flash)
+      if (this.referenceImages.length > 2) {
+        this.referenceImages = this.referenceImages.slice(0, 2);
+      }
     } else {
-      // Re-enable all aspect ratios for other models
-      this.aspectRatioOptions.forEach(r => (r.disabled = false));
+      // Imagen models support standard aspect ratios
+      const imagenRatios = ['1:1', '16:9', '9:16', '3:4', '4:3'];
+      this.aspectRatioOptions.forEach(r => {
+        r.disabled = !imagenRatios.includes(r.value);
+      });
+      if (!imagenRatios.includes(this.searchRequest.aspectRatio)) {
+        const oneToOneRatio = this.aspectRatioOptions.find(
+          r => r.value === '1:1',
+        );
+        if (oneToOneRatio) {
+          this.selectAspectRatio(oneToOneRatio);
+        }
+      }
+      // Enforce image limit (max 2 for Imagen 3)
+      if (this.referenceImages.length > 2) {
+        this.referenceImages = this.referenceImages.slice(0, 2);
+      }
+      // Clear images for Imagen 4 as it doesn't support them
+      if (model.value.startsWith('imagen-4')) {
+        this.referenceImages = [];
+      }
+      // Reset Google Search for non-Gemini 3 Pro models
+      this.searchRequest.googleSearch = false;
     }
   }
 
@@ -498,7 +556,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   searchTerm() {
     if (!this.searchRequest.prompt) return;
 
-    const hasSourceAssets = this.sourceAssetId1 || this.sourceAssetId2;
+    const hasSourceAssets = this.referenceImages.length > 0;
     const isImagen4 = [
       'imagen-4.0-generate-001',
       'imagen-4.0-ultra-generate-001',
@@ -523,9 +581,17 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       }
     }
 
-    const validSourceMediaItems = this.sourceMediaItems.filter(
-      Boolean,
-    ) as SourceMediaItemLink[];
+    const validSourceMediaItems: SourceMediaItemLink[] = [];
+    const sourceAssetIds: string[] = [];
+
+    this.referenceImages.forEach(img => {
+      if (img.sourceMediaItem) {
+        validSourceMediaItems.push(img.sourceMediaItem);
+      } else if (img.sourceAssetId) {
+        sourceAssetIds.push(img.sourceAssetId);
+      }
+    });
+
     const activeWorkspaceId = this.workspaceStateService.getActiveWorkspaceId();
     const payload: ImagenRequest = {
       ...this.searchRequest,
@@ -533,19 +599,9 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       sourceMediaItems: validSourceMediaItems.length
         ? validSourceMediaItems
         : undefined,
+      sourceAssetIds: sourceAssetIds.length ? sourceAssetIds : undefined,
       workspaceId: activeWorkspaceId ?? undefined,
     };
-
-    const sourceAssetIds = [];
-    if (this.sourceAssetId1) {
-      sourceAssetIds.push(this.sourceAssetId1);
-    }
-    if (this.sourceAssetId2) {
-      sourceAssetIds.push(this.sourceAssetId2);
-    }
-    if (sourceAssetIds.length > 0) {
-      payload.sourceAssetIds = sourceAssetIds;
-    }
 
     this.isLoading = true;
     this.imagenDocuments = null;
@@ -614,7 +670,77 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       addWatermark: false,
       negativePrompt: '',
       useBrandGuidelines: false,
+      googleSearch: false,
+      resolution: '4K',
     };
+    this.negativePhrases = [];
+    this.referenceImages = [];
+    this.sourceMediaItems = [];
+    this.selectedGenerationModel = this.generationModels[0].viewValue;
+    this.selectedGenerationModelObject = this.generationModels[0];
+    this.selectedAspectRatio = this.aspectRatioOptions[0].viewValue;
+  }
+
+  editResultImage(index: number) {
+    if (!this.imagenDocuments || !this.imagenDocuments.presignedUrls) return;
+    const imageUrl = this.imagenDocuments.presignedUrls[index];
+    const mediaItemId = this.imagenDocuments.id;
+
+    // Add to reference images
+    const refImage: ReferenceImage = {
+      previewUrl: imageUrl,
+      sourceMediaItem: {
+        mediaItemId: mediaItemId,
+        mediaIndex: index,
+        role: 'input',
+      },
+    };
+    this.referenceImages.push(refImage);
+
+    // Scroll to top to show the input
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  applyRemixState(state: any) {
+    this.searchRequest.prompt = state.prompt;
+    this.searchRequest.aspectRatio = state.aspectRatio;
+    this.searchRequest.generationModel = state.generationModel;
+    this.searchRequest.style = state.style;
+    this.searchRequest.lighting = state.lighting;
+    this.searchRequest.colorAndTone = state.colorAndTone;
+    this.searchRequest.composition = state.composition;
+    this.searchRequest.negativePrompt = state.negativePrompt;
+    this.negativePhrases = state.negativePrompt
+      ? state.negativePrompt.split(', ')
+      : [];
+
+    if (state.sourceAssetIds && state.sourceAssetIds.length > 0) {
+      // This is a simplification, we might need to fetch the actual assets to get preview URLs
+      // For now, we just set the IDs, but preview won't work until we have URLs
+      state.sourceAssetIds.forEach((id: string) => {
+        this.referenceImages.push({
+          previewUrl: '', // Need to handle this
+          sourceAssetId: id,
+        });
+      });
+    }
+
+    if (state.sourceMediaItems && state.sourceMediaItems.length > 0) {
+      state.sourceMediaItems.forEach((item: SourceMediaItemLink) => {
+        this.referenceImages.push({
+          previewUrl: '', // Need to handle this
+          sourceMediaItem: item,
+        });
+      });
+    }
+
+    this.selectModel(
+      this.generationModels.find(m => m.value === state.generationModel) ||
+      this.generationModels[0],
+    );
+    this.selectedAspectRatio =
+      this.aspectRatioOptions.find(r => r.value === state.aspectRatio)
+        ?.viewValue || this.aspectRatioOptions[0].viewValue;
   }
 
   private onMouseMove = (event: MouseEvent) => {
@@ -633,7 +759,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     this.animationFrameId = requestAnimationFrame(this.move);
   };
 
-  openImageSelector(imageNumber: 1 | 2) {
+  openImageSelector(index?: number) {
     const dialogRef = this.dialog.open(ImageSelectorComponent, {
       width: '90vw',
       height: '80vh',
@@ -648,36 +774,12 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       .afterClosed()
       .subscribe((result: MediaItemSelection | SourceAssetResponseDto) => {
         if (result) {
-          const targetAssetId =
-            imageNumber === 1 ? 'sourceAssetId1' : 'sourceAssetId2';
-          const targetPreview =
-            imageNumber === 1 ? 'image1Preview' : 'image2Preview';
-
-          if ('gcsUri' in result) {
-            // Uploaded image (SourceAssetResponseDto)
-            this[targetAssetId] = result.id;
-            this[targetPreview] = result.presignedUrl || null;
-            this.clearSourceMediaItem(imageNumber); // Clear the corresponding media item slot
-          } else {
-            // Gallery image (MediaItem)
-            const selection = result as MediaItemSelection;
-            this.clearSourceMediaItem(imageNumber); // Clear the corresponding media item slot
-            this.sourceMediaItems[imageNumber - 1] = {
-              mediaItemId: selection.mediaItem.id,
-              mediaIndex: selection.selectedIndex,
-              role: 'input',
-            };
-            this[targetPreview] =
-              selection.mediaItem.presignedUrls?.[
-              selection.selectedIndex || 0
-              ] || null;
-            this[targetAssetId] = null;
-          }
+          this.processInput(result, index);
         }
       });
   }
 
-  openCropperDialog(file: File, imageNumber: 1 | 2) {
+  openCropperDialog(file: File, index?: number) {
     const dialogRef = this.dialog.open(ImageCropperDialogComponent, {
       data: {
         imageFile: file,
@@ -688,92 +790,68 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
 
     dialogRef.afterClosed().subscribe((result: SourceAssetResponseDto) => {
       if (result && result.id) {
-        const targetAssetId =
-          imageNumber === 1 ? 'sourceAssetId1' : 'sourceAssetId2';
-        const targetPreview =
-          imageNumber === 1 ? 'image1Preview' : 'image2Preview';
-
-        this[targetAssetId] = result.id;
-        this[targetPreview] = result.presignedUrl || null;
-        this.clearSourceMediaItem(imageNumber);
+        this.processInput(result, index);
       }
     });
   }
 
-  onDrop(event: DragEvent, imageNumber: 1 | 2) {
-    event.preventDefault();
-    const file = event.dataTransfer?.files[0];
-    if (file) {
-      // Instead of uploading directly, just open the cropper dialog
-      this.openCropperDialog(file, imageNumber);
-    }
-  }
+  private processInput(
+    result: MediaItemSelection | SourceAssetResponseDto,
+    index?: number,
+  ) {
+    const isGalleryImage = !('gcsUri' in result);
+    let previewUrl: string | null = null;
+    let sourceAssetId: string | null = null;
+    let sourceMediaItem: SourceMediaItemLink | null = null;
 
-  clearImage(imageNumber: 1 | 2, event: MouseEvent) {
-    event.stopPropagation();
-    if (imageNumber === 1) {
-      this.sourceAssetId1 = null;
-      this.image1Preview = null;
+    if (isGalleryImage) {
+      const selection = result as MediaItemSelection;
+      previewUrl =
+        selection.mediaItem.presignedUrls?.[selection.selectedIndex || 0] || null;
+      sourceMediaItem = {
+        mediaItemId: selection.mediaItem.id,
+        mediaIndex: selection.selectedIndex,
+        role: 'input',
+      };
     } else {
-      this.sourceAssetId2 = null;
-      this.image2Preview = null;
-    }
-    this.clearSourceMediaItem(imageNumber); // Clear the corresponding media item slot
-  }
-
-  editResultImage(index: number) {
-    if (!this.imagenDocuments || !this.imagenDocuments.presignedUrls) {
-      return;
+      const asset = result as SourceAssetResponseDto;
+      previewUrl = asset.presignedUrl || null;
+      sourceAssetId = asset.id;
     }
 
-    // Clear existing inputs and set the new one
-    this.sourceMediaItems = [];
-    this.sourceMediaItems[0] = {
-      mediaItemId: this.imagenDocuments.id,
-      mediaIndex: index,
-      role: 'input',
-    };
-    this.sourceMediaItems[1] = null;
+    if (previewUrl) {
+      const refImage: ReferenceImage = {
+        previewUrl,
+        sourceAssetId: sourceAssetId || undefined,
+        sourceMediaItem: sourceMediaItem || undefined,
+      };
 
-    // Set the selected image as the first source asset
-    this.sourceAssetId1 = null; // We don't have a source asset ID for a generated image yet
-    this.image1Preview = this.imagenDocuments.presignedUrls[index];
-
-    // Clear the second source asset
-    this.sourceAssetId2 = null;
-    this.image2Preview = null;
-
-    // Switch to Nano Banana model for editing
-    const nanoBananaModel = this.generationModels.find(
-      m => (m.value === 'gemini-2.5-flash-image-preview' || m.value === 'gemini-3-pro-image-preview'),
-    );
-    if (nanoBananaModel) this.selectModel(nanoBananaModel);
-  }
-
-  private clearSourceMediaItem(imageNumber: 1 | 2) {
-    // Set the specific index to null to clear the slot for that image.
-    if (this.sourceMediaItems.length >= imageNumber) {
-      this.sourceMediaItems[imageNumber - 1] = null;
-    }
-  }
-
-  private applyRemixState(remixState: {
-    sourceMediaItems: SourceMediaItemLink[];
-    prompt?: string;
-    previewUrl?: string;
-  }): void {
-    if (remixState.sourceMediaItems?.length > 0) {
-      this.sourceMediaItems = remixState.sourceMediaItems;
-      // For now, just use the first one for preview
-      if (remixState.previewUrl) {
-        this.image1Preview = remixState.previewUrl;
-        this.sourceAssetId1 = null; // It's not a source asset
-        this.image2Preview = null;
-        this.sourceAssetId2 = null;
+      if (index !== undefined && index < this.referenceImages.length) {
+        this.referenceImages[index] = refImage;
+      } else {
+        this.referenceImages.push(refImage);
       }
     }
-    if (remixState.prompt) this.searchRequest.prompt = remixState.prompt;
   }
+
+  onDrop(event: DragEvent, index?: number) {
+    event.preventDefault();
+    const files = event.dataTransfer?.files;
+    if (files && files.length > 0) {
+      // Handle multiple files if dropped
+      for (let i = 0; i < files.length; i++) {
+        this.openCropperDialog(files[i], index !== undefined ? index + i : undefined);
+      }
+    }
+  }
+
+  clearImage(index: number, event: MouseEvent) {
+    event.stopPropagation();
+    if (index >= 0 && index < this.referenceImages.length) {
+      this.referenceImages.splice(index, 1);
+    }
+  }
+
 
   generateVideoWithImage(event: { role: 'start' | 'end'; index: number }) {
     if (!this.imagenDocuments) {
@@ -829,20 +907,14 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     // Clear any existing inputs
-    this.sourceAssetId1 = null;
-    this.image1Preview = null;
-    this.sourceAssetId2 = null;
-    this.image2Preview = null;
+    this.referenceImages = [];
     this.sourceMediaItems = [];
 
-    // Assign the first source asset to the first input box
-    this.sourceAssetId1 = sourceAssets[0].assetId;
-    this.image1Preview = sourceAssets[0].presignedUrl;
-
-    // If there's a second source asset, assign it to the second box
-    if (sourceAssets.length > 1) {
-      this.sourceAssetId2 = sourceAssets[1].assetId;
-      this.image2Preview = sourceAssets[1].presignedUrl;
-    }
+    sourceAssets.forEach(asset => {
+      this.referenceImages.push({
+        previewUrl: asset.presignedUrl || '',
+        sourceAssetId: asset.assetId,
+      });
+    });
   }
 }

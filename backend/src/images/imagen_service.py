@@ -71,6 +71,9 @@ def gemini_flash_image_preview_generate_image(
     ],
     bucket_name: str,
     reference_images: Optional[List[types.Image]] = None,
+    aspect_ratio: Optional[str] = None,
+    google_search: bool = False,
+    resolution: Optional[str] = None,
 ) -> types.GeneratedImage | None:
     """
     Generates an image using the Gemini API for text-to-image or image-to-image.
@@ -95,48 +98,67 @@ def gemini_flash_image_preview_generate_image(
     contents: list[types.ContentUnionDict] = [
         types.Content(role="user", parts=parts)
     ]
-    generate_content_config = types.GenerateContentConfig(
-        response_modalities=["TEXT", "IMAGE"]
+    
+    image_config = types.ImageConfig(
+        aspect_ratio=aspect_ratio,
+        image_size=resolution,
     )
-    stream = vertexai_client.models.generate_content_stream(
+    
+    tools = []
+
+    if google_search:
+        tools.append(
+            types.Tool(
+            google_search=types.GoogleSearch()
+        ))
+
+    generate_content_config = types.GenerateContentConfig(
+        response_modalities=["Text", "Image"],
+        image_config=image_config,
+        tools=tools if tools else None,
+    )
+    response: types.GenerateContentResponse = vertexai_client.models.generate_content(
         model=model,
         contents=contents,
         config=generate_content_config,
     )
 
-    for chunk in stream:
-        if not chunk.candidates:
-            continue
-        for candidate in chunk.candidates:
-            if candidate.content and candidate.content.parts:
-                for part in candidate.content.parts:
-                    if part.inline_data:
-                        # The API returns image data as a base64 encoded string
-                        image_data_base64 = part.inline_data.data or ""
-                        content_type = part.inline_data.mime_type or "image/png"
+    grounding_metadata = None
 
-                        # Upload using our GCS service
-                        image_url = gcs_service.store_to_gcs(
-                            folder="gemini_images",
-                            file_name=str(uuid.uuid4()),
-                            mime_type=content_type,
-                            contents=image_data_base64,
-                            bucket_name=bucket_name,
-                        )
-                        if not image_url:
-                            logging.debug("Error: image url not generated ")
-                            return None
+    for candidate in response.candidates:
+        if candidate.grounding_metadata and candidate.grounding_metadata.grounding_chunks:
+            # Capture grounding metadata if present
+            grounding_metadata = candidate.grounding_metadata.model_dump()
 
-                        # Create a standard types.Image object
-                        image_object = types.Image(
-                            gcs_uri=image_url,
-                            mime_type=content_type,
-                        )
-                        # Wrap it in a types.GeneratedImage and return
-                        return types.GeneratedImage(image=image_object)
+        if candidate.content and candidate.content.parts:
+            for part in candidate.content.parts:
+                if part.inline_data:
+                    # The API returns image data as a base64 encoded string
+                    image_data_base64 = part.inline_data.data or ""
+                    content_type = part.inline_data.mime_type or "image/png"
 
-    logging.debug("No image data found in the API response stream.")
-    return None  # Return None if no image was found
+                    # Upload using our GCS service
+                    image_url = gcs_service.store_to_gcs(
+                        folder="gemini_images",
+                        file_name=str(uuid.uuid4()),
+                        mime_type=content_type,
+                        contents=image_data_base64,
+                        bucket_name=bucket_name,
+                    )
+                    if not image_url:
+                        logger.debug("Error: image url not generated ")
+                        return None, None
+
+                    # Create a standard types.Image object
+                    image_object = types.Image(
+                        gcs_uri=image_url,
+                        mime_type=content_type,
+                    )
+                    # Wrap it in a types.GeneratedImage and return along with grounding metadata
+                    return types.GeneratedImage(image=image_object), grounding_metadata
+
+    logger.debug("No image data found in the API response stream.")
+    return None, None  # Return None if no image was found
 
 
 class ImagenService:
@@ -168,6 +190,7 @@ class ImagenService:
 
         source_assets: List[SourceAssetLink] = []
         reference_images_for_api: List[types.Image] = []
+        grounding_metadata = None
 
         if request_dto.source_asset_ids:
             for asset_id in request_dto.source_asset_ids:
@@ -233,13 +256,19 @@ class ImagenService:
                             prompt=request_dto.prompt,
                             model=request_dto.generation_model,
                             bucket_name=self.gcs_service.bucket_name,
+                            aspect_ratio=request_dto.aspect_ratio,
+                            google_search=request_dto.google_search,
+                            resolution=request_dto.resolution,
                         )
                         for _ in range(request_dto.number_of_media)
                     ]
                     gemini_images_response = await asyncio.gather(*tasks)
                     all_generated_images = [
-                        img for img in gemini_images_response if img
+                        img for img, _ in gemini_images_response if img
                     ]
+                    # Store grounding metadata from the first image (assuming it applies to all in the batch for now)
+                    if gemini_images_response and gemini_images_response[0][1]:
+                        grounding_metadata = gemini_images_response[0][1]
                 else:
                     # --- OTHER IMAGEN MODELS (TEXT-TO-IMAGE): Single Batch API Call ---
                     images_imagen_response = await asyncio.to_thread(
@@ -277,13 +306,19 @@ class ImagenService:
                             prompt=request_dto.prompt,
                             bucket_name=self.gcs_service.bucket_name,
                             reference_images=reference_images_for_api,
+                            aspect_ratio=request_dto.aspect_ratio,
+                            google_search=request_dto.google_search,
+                            resolution=request_dto.resolution,
                         )
                         for _ in range(request_dto.number_of_media)
                     ]
                     gemini_images_response = await asyncio.gather(*tasks)
                     all_generated_images = [
-                        img for img in gemini_images_response if img
+                        img for img, _ in gemini_images_response if img
                     ]
+                    # Store grounding metadata from the first image
+                    if gemini_images_response and gemini_images_response[0][1]:
+                        grounding_metadata = gemini_images_response[0][1]
                 else:
                     # --- IMAGEN MODELS (IMAGE-TO-IMAGE) ---
                     # The DTO validation ensures we only have one source image here.
@@ -394,6 +429,10 @@ class ImagenService:
                 add_watermark=request_dto.add_watermark,
                 source_assets=source_assets or None,
                 source_media_items=request_dto.source_media_items or None,
+                # Grounding and Resolution
+                google_search=request_dto.google_search,
+                resolution=request_dto.resolution,
+                grounding_metadata=grounding_metadata,
             )
             self.media_repo.save(media_post_to_save)
 
