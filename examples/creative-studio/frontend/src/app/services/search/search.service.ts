@@ -62,7 +62,15 @@ export interface ConcatenateVideosDto {
 export class SearchService {
   private activeVideoJob = new BehaviorSubject<MediaItem | null>(null);
   public activeVideoJob$ = this.activeVideoJob.asObservable();
-  private pollingSubscription: Subscription | null = null;
+  private videoPollingSubscription: Subscription | null = null;
+
+  private activeImageJob = new BehaviorSubject<MediaItem | null>(null);
+  public activeImageJob$ = this.activeImageJob.asObservable();
+  private imagePollingSubscription: Subscription | null = null;
+
+  // Persisted prompts
+  imagePrompt = '';
+  videoPrompt = '';
 
   constructor(
     private http: HttpClient,
@@ -74,6 +82,69 @@ export class SearchService {
     return this.http
       .post(searchURL, searchRequest)
       .pipe(map(response => response as MediaItem));
+  }
+
+  /**
+   * Starts the image generation job by POSTing to the backend.
+   */
+  startImagenGeneration(searchRequest: ImagenRequest): Observable<MediaItem> {
+    const searchURL = `${environment.backendURL}/images/generate-images`;
+    return this.http.post<MediaItem>(searchURL, searchRequest).pipe(
+      tap(initialItem => {
+        this.activeImageJob.next(initialItem);
+        this.startImagenPolling(initialItem.id);
+      }),
+    );
+  }
+
+  clearActiveImageJob() {
+    this.activeImageJob.next(null);
+  }
+
+  private startImagenPolling(mediaId: string): void {
+    this.stopImagenPolling();
+    this.imagePollingSubscription = timer(2000, 5000) // Start after 2s, then every 5s
+      .pipe(
+        switchMap(() => this.getImagenMediaItem(mediaId)),
+        tap(latestItem => {
+          this.activeImageJob.next(latestItem);
+          if (
+            latestItem.status === JobStatus.COMPLETED ||
+            latestItem.status === JobStatus.FAILED
+          ) {
+            this.stopImagenPolling();
+            if (latestItem.status === JobStatus.COMPLETED) {
+              handleSuccessSnackbar(this._snackBar, 'Your images are ready!');
+            } else {
+              handleErrorSnackbar(
+                this._snackBar,
+                {message: latestItem.errorMessage || latestItem.error_message},
+                `Image generation failed: ${latestItem.errorMessage || latestItem.error_message}`,
+              );
+            }
+          }
+        }),
+        catchError(err => {
+          console.error('Polling failed', err);
+          this.stopImagenPolling();
+          return EMPTY;
+        }),
+      )
+      .subscribe();
+  }
+
+  private stopImagenPolling(): void {
+    this.imagePollingSubscription?.unsubscribe();
+    this.imagePollingSubscription = null;
+  }
+
+  getImagenMediaItem(mediaId: string): Observable<MediaItem> {
+    // Note: We need to add this endpoint to the backend or use a generic one.
+    // For now, assuming we'll add /images/{mediaId} or use a common gallery endpoint.
+    // Given the current backend structure, we might need to add this.
+    // Let's assume we'll add it.
+    const getURL = `${environment.backendURL}/gallery/item/${mediaId}`;
+    return this.http.get<MediaItem>(getURL);
   }
 
   /**
@@ -116,7 +187,7 @@ export class SearchService {
   private startVeoPolling(mediaId: string): void {
     this.stopVeoPolling(); // Ensure no other polls are running
 
-    this.pollingSubscription = timer(5000, 15000) // Start after 5s, then every 15s
+    this.videoPollingSubscription = timer(5000, 15000) // Start after 5s, then every 15s
       .pipe(
         switchMap(() => this.getVeoMediaItem(mediaId)),
         tap(latestItem => {
@@ -151,8 +222,8 @@ export class SearchService {
   }
 
   private stopVeoPolling(): void {
-    this.pollingSubscription?.unsubscribe();
-    this.pollingSubscription = null;
+    this.videoPollingSubscription?.unsubscribe();
+    this.videoPollingSubscription = null;
   }
 
   /**
@@ -161,7 +232,7 @@ export class SearchService {
    * @returns An Observable of the MediaItem.
    */
   getVeoMediaItem(mediaId: string): Observable<MediaItem> {
-    const getURL = `${environment.backendURL}/videos/${mediaId}`;
+    const getURL = `${environment.backendURL}/gallery/item/${mediaId}`;
     return this.http.get<MediaItem>(getURL);
   }
 

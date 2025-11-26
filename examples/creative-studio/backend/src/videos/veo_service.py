@@ -686,52 +686,6 @@ class VeoService:
             presigned_thumbnail_urls=[],
         )
 
-    async def get_media_item_with_presigned_urls(
-        self, media_id: str
-    ) -> Optional[MediaItemResponse]:
-        """
-        Fetches a MediaItem by its ID and enriches it with presigned URLs for
-        both the main media and its thumbnails.
-
-        Args:
-            media_id: The unique ID of the media item.
-
-        Returns:
-            A MediaItemResponse object with presigned URLs, or None if not found.
-        """
-        # 1. Fetch the base document from Firestore.
-        media_item = self.media_repo.get_by_id(media_id)
-        if not media_item:
-            return None
-
-        # 2. Create tasks to generate all presigned URLs in parallel.
-        presigned_url_tasks = [
-            asyncio.to_thread(
-                self.iam_signer_credentials.generate_presigned_url, uri
-            )
-            for uri in media_item.gcs_uris
-        ]
-        presigned_thumbnail_url_tasks = [
-            asyncio.to_thread(
-                self.iam_signer_credentials.generate_presigned_url, uri
-            )
-            for uri in media_item.thumbnail_uris
-        ]
-
-        # 3. Execute all URL generation tasks concurrently.
-        presigned_urls, presigned_thumbnail_urls = await asyncio.gather(
-            asyncio.gather(*presigned_url_tasks),
-            asyncio.gather(*presigned_thumbnail_url_tasks),
-        )
-
-        # 4. Construct the final response DTO.
-        # We unpack the original model's data and add the new URL lists.
-        return MediaItemResponse(
-            **media_item.model_dump(),
-            presigned_urls=presigned_urls,
-            presigned_thumbnail_urls=presigned_thumbnail_urls,
-        )
-
     def start_video_concatenation_job(
         self,
         request_dto: ConcatenateVideosDto,
