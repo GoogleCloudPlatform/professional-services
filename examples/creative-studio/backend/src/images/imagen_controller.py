@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi import status as Status
 
 from src.auth.auth_guard import RoleChecker, get_current_user
@@ -42,6 +42,7 @@ router = APIRouter(
 @router.post("/generate-images")
 async def generate_images(
     image_request: CreateImagenDto,
+    request: Request,
     service: ImagenService = Depends(),
     current_user: UserModel = Depends(get_current_user),
 ) -> MediaItemResponse | None:
@@ -52,8 +53,11 @@ async def generate_images(
             workspace_id=image_request.workspace_id, user=current_user
         )
 
-        return await service.generate_images(
-            request_dto=image_request, user=current_user
+        # Get the process pool from the application state
+        executor = request.app.state.process_pool
+
+        return await service.start_image_generation_job(
+            request_dto=image_request, user=current_user, executor=executor
         )
     except HTTPException as http_exception:
         raise http_exception
@@ -142,3 +146,5 @@ async def upscale_image(
             status_code=Status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=str(e),
         )
+
+

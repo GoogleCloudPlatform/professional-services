@@ -105,27 +105,3 @@ async def concatenate_videos(
         )
 
 
-@router.get(
-    "/{media_id}",
-    response_model=MediaItemResponse,
-    summary="Get Media Item by ID",
-)
-async def get_media_item_by_id(
-    media_id: str,
-    media_service: VeoService = Depends(),
-):
-    """
-    Retrieves a single media item by its unique ID, including its current status
-    and presigned URLs for viewing. This is the endpoint to use for polling.
-    """
-    media_item_response = (
-        await media_service.get_media_item_with_presigned_urls(media_id)
-    )
-
-    if not media_item_response:
-        raise HTTPException(
-            status_code=Status.HTTP_404_NOT_FOUND,
-            detail="Media item not found.",
-        )
-
-    return media_item_response

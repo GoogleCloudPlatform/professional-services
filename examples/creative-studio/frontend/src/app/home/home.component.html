@@ -17,7 +17,7 @@
 <div class="lg:container lg:mx-auto">
   <div class="home-margin grid grid-cols-1">
     <!-- Video Homepage -->
-    <ng-container *ngIf="isLoading; else videoOrGallery">
+    <ng-container *ngIf="isLoading && !isImageGenerating; else videoOrGallery">
       <div class="video-container">
         <div class="w-full h-full flex justify-center items-center">
           <mat-progress-spinner
@@ -28,6 +28,18 @@
       </div>
     </ng-container>
     <ng-template #videoOrGallery>
+      <!-- Loading Overlay for Image Generation -->
+      <div *ngIf="isImageGenerating"
+        class="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-black bg-opacity-70 rounded-xl">
+        <mat-progress-spinner mode="indeterminate" [diameter]="50" color="primary"></mat-progress-spinner>
+        <p class="!mt-6 text-white text-lg">
+          Generating Images...
+        </p>
+        <p class="text-gray-400 text-sm">
+          This may take a few moments. You can safely navigate away.
+        </p>
+      </div>
+
       <ng-container
         *ngIf="
           (imagenDocuments?.presignedUrls?.length || 0) === 0;
@@ -468,6 +480,7 @@
           [(ngModel)]="searchRequest.prompt"
           class="self-stretch w-full h-48 p-4 bg-transparent md:bg-zinc-700 rounded-2xl text-stone-300 text-base font-normal leading-7 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
           placeholder="Enter your prompt here..."
+          (ngModelChange)="service.imagePrompt = $event"
         ></textarea>
         <div
           class="inline-flex justify-between items-center grid grid-cols-1 md:flex gap-4"
@@ -481,7 +494,7 @@
               mat-raised-button
               color="primary"
               (click)="rewritePrompt()"
-              [disabled]="isLoading"
+              [disabled]="isLoading || isImageGenerating"
             >
               <mat-icon>drive_file_rename_outline</mat-icon>
               Rewrite
@@ -490,7 +503,7 @@
               mat-raised-button
               class="!bg-white"
               (click)="searchTerm()"
-              [disabled]="isLoading"
+              [disabled]="isLoading || isImageGenerating"
             >
               <mat-icon svgIcon="gemini-spark-icon"></mat-icon>
               <span
@@ -504,7 +517,7 @@
             mat-stroked-button
             class="!text-white"
             (click)="resetAllFilters()"
-            [disabled]="isLoading"
+            [disabled]="isLoading || isImageGenerating"
           >
             Clear All
           </button>

@@ -63,6 +63,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   // --- Component State ---
   imagenDocuments: MediaItem | null = null;
   isLoading = false;
+  isImageGenerating = false;
   templateParams: GenerationParameters | undefined;
   showDefaultDocuments = false;
   referenceImages: ReferenceImage[] = [];
@@ -279,7 +280,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     public router: Router,
     private sanitizer: DomSanitizer,
     public matIconRegistry: MatIconRegistry,
-    private service: SearchService,
+    public service: SearchService,
     private _snackBar: MatSnackBar,
     public dialog: MatDialog,
     private http: HttpClient,
@@ -331,6 +332,18 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     this.activeWorkspaceId$ = this.workspaceStateService.activeWorkspaceId$;
+
+    // Subscribe to the active image job to update the UI
+    this.service.activeImageJob$.subscribe(job => {
+      if (job) {
+        this.processSearchResults(job);
+        if (job.status === 'completed' || job.status === 'failed') {
+          this.isImageGenerating = false;
+        } else {
+          this.isImageGenerating = true;
+        }
+      }
+    });
   }
 
   private path = '../../assets/images';
@@ -368,6 +381,9 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
 
     // Since we start with Nano Banana, apply its restrictions by default.
     this.selectModel(this.selectedGenerationModelObject);
+
+    // Load persisted prompt
+    this.searchRequest.prompt = this.service.imagePrompt;
   }
 
   private applyTemplateParameters(): void {
@@ -603,15 +619,15 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       workspaceId: activeWorkspaceId ?? undefined,
     };
 
-    this.isLoading = true;
+    this.isImageGenerating = true;
     this.imagenDocuments = null;
 
     this.service
-      .searchImagen(payload)
+      .startImagenGeneration(payload)
       .pipe(finalize(() => (this.isLoading = false)))
       .subscribe({
-        next: (searchResponse: MediaItem) => {
-          this.processSearchResults(searchResponse);
+        next: (initialResponse: MediaItem) => {
+          console.log('Image generation job started:', initialResponse);
         },
         error: error => {
           handleErrorSnackbar(this._snackBar, error, 'Search');

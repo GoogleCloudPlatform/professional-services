@@ -57,6 +57,8 @@ from src.source_assets.repository.source_asset_repository import (
     SourceAssetRepository,
 )
 from src.users.user_model import UserModel
+from concurrent.futures import ProcessPoolExecutor
+import sys
 
 logger = logging.getLogger(__name__)
 
@@ -161,29 +163,57 @@ def gemini_flash_image_preview_generate_image(
     return None, None  # Return None if no image was found
 
 
-class ImagenService:
-    def __init__(self):
-        """Initializes the service with its dependencies."""
-        self.iam_signer_credentials = IamSignerCredentials()
-        self.media_repo = MediaRepository()
-        self.gemini_service = GeminiService()
-        self.gcs_service = GcsService()
-        self.source_asset_repo = SourceAssetRepository()
-        self.cfg = config_service
+# --- STANDALONE WORKER FUNCTION ---
+def _process_image_in_background(
+    media_item_id: str, request_dto: CreateImagenDto, current_user: UserModel
+):
+    """
+    Background worker to handle image generation, GCS upload, and DB update.
+    """
+    worker_logger = logging.getLogger(f"image_worker.{media_item_id}")
+    worker_logger.setLevel(logging.INFO)
 
-    async def generate_images(
-        self, request_dto: CreateImagenDto, user: UserModel
-    ) -> MediaItemResponse | None:
-        """
-        Generates a batch of images and saves them as a single MediaItem document.
-        """
+    try:
+        # Configure logging for the worker process
+        if worker_logger.hasHandlers():
+            worker_logger.handlers.clear()
+
+        if os.getenv("ENVIRONMENT") == "production":
+            log_client = LoggerClient()
+            handler = CloudLoggingHandler(
+                log_client, name=f"image_worker.{media_item_id}"
+            )
+            worker_logger.addHandler(handler)
+        else:
+            handler = logging.StreamHandler(sys.stdout)
+            formatter = logging.Formatter(
+                "%(asctime)s - [IMAGE_WORKER] - %(levelname)s - %(message)s"
+            )
+            handler.setFormatter(formatter)
+            worker_logger.addHandler(handler)
+
+        # Create new instances of dependencies within this process
+        media_repo = MediaRepository()
+        gemini_service = GeminiService()
+        gcs_service = GcsService()
+        source_asset_repo = SourceAssetRepository()
+        iam_signer_credentials = IamSignerCredentials()
+        cfg = config_service
+        
+        # Initialize GenAI client in the worker process
+        GenAIModelSetup.init()
+
+        # Create a new event loop for this process
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+
+        # --- RE-IMPLEMENTED GENERATION LOGIC ---
         start_time = time.monotonic()
-
         client = GenAIModelSetup.init()
-        gcs_output_directory = f"gs://{self.cfg.GENMEDIA_BUCKET}"
+        gcs_output_directory = f"gs://{cfg.GENMEDIA_BUCKET}"
 
         original_prompt = request_dto.prompt
-        rewritten_prompt = self.gemini_service.enhance_prompt_from_dto(
+        rewritten_prompt = gemini_service.enhance_prompt_from_dto(
             dto=request_dto, target_type=PromptTargetEnum.IMAGE
         )
         request_dto.prompt = rewritten_prompt
@@ -194,9 +224,7 @@ class ImagenService:
 
         if request_dto.source_asset_ids:
             for asset_id in request_dto.source_asset_ids:
-                source_asset = await asyncio.to_thread(
-                    self.source_asset_repo.get_by_id, asset_id
-                )
+                source_asset = source_asset_repo.get_by_id(asset_id)
                 if source_asset:
                     source_assets.append(
                         SourceAssetLink(
@@ -210,15 +238,13 @@ class ImagenService:
                         )
                     )
                 else:
-                    logger.warning(
+                    worker_logger.warning(
                         f"Source asset with ID {asset_id} not found."
                     )
 
         if request_dto.source_media_items:
             for gen_input in request_dto.source_media_items:
-                parent_item = await asyncio.to_thread(
-                    self.media_repo.get_by_id, gen_input.media_item_id
-                )
+                parent_item = media_repo.get_by_id(gen_input.media_item_id)
                 if (
                     parent_item
                     and parent_item.gcs_uris
@@ -231,7 +257,7 @@ class ImagenService:
                         )
                     )
                 else:
-                    logger.warning(
+                    worker_logger.warning(
                         f"Could not find or use generated_input: {gen_input.media_item_id} at index {gen_input.media_index}"
                     )
 
@@ -248,21 +274,22 @@ class ImagenService:
                     ]
                 ):
                     # --- GEMINI FLASH TEXT-TO-IMAGE ---
+                    # Run async tasks in the worker's event loop
                     tasks = [
                         asyncio.to_thread(
                             gemini_flash_image_preview_generate_image,
-                            gcs_service=self.gcs_service,
+                            gcs_service=gcs_service,
                             vertexai_client=client,
                             prompt=request_dto.prompt,
                             model=request_dto.generation_model,
-                            bucket_name=self.gcs_service.bucket_name,
+                            bucket_name=gcs_service.bucket_name,
                             aspect_ratio=request_dto.aspect_ratio,
                             google_search=request_dto.google_search,
                             resolution=request_dto.resolution,
                         )
                         for _ in range(request_dto.number_of_media)
                     ]
-                    gemini_images_response = await asyncio.gather(*tasks)
+                    gemini_images_response = loop.run_until_complete(asyncio.gather(*tasks))
                     all_generated_images = [
                         img for img, _ in gemini_images_response if img
                     ]
@@ -271,8 +298,8 @@ class ImagenService:
                         grounding_metadata = gemini_images_response[0][1]
                 else:
                     # --- OTHER IMAGEN MODELS (TEXT-TO-IMAGE): Single Batch API Call ---
-                    images_imagen_response = await asyncio.to_thread(
-                        client.models.generate_images,
+                    # Using loop.run_until_complete for synchronous-like call in worker
+                    images_imagen_response = client.models.generate_images(
                         model=request_dto.generation_model,
                         prompt=request_dto.prompt,
                         config=types.GenerateImagesConfig(
@@ -300,11 +327,11 @@ class ImagenService:
                     tasks = [
                         asyncio.to_thread(
                             gemini_flash_image_preview_generate_image,
-                            gcs_service=self.gcs_service,
+                            gcs_service=gcs_service,
                             vertexai_client=client,
                             model=request_dto.generation_model,
                             prompt=request_dto.prompt,
-                            bucket_name=self.gcs_service.bucket_name,
+                            bucket_name=gcs_service.bucket_name,
                             reference_images=reference_images_for_api,
                             aspect_ratio=request_dto.aspect_ratio,
                             google_search=request_dto.google_search,
@@ -312,7 +339,7 @@ class ImagenService:
                         )
                         for _ in range(request_dto.number_of_media)
                     ]
-                    gemini_images_response = await asyncio.gather(*tasks)
+                    gemini_images_response = loop.run_until_complete(asyncio.gather(*tasks))
                     all_generated_images = [
                         img for img, _ in gemini_images_response if img
                     ]
@@ -326,8 +353,7 @@ class ImagenService:
                         reference_id=1,
                         reference_image=reference_images_for_api[0],
                     )
-                    response = await asyncio.to_thread(
-                        client.models.edit_image,
+                    response = client.models.edit_image(
                         model=request_dto.generation_model,
                         prompt=request_dto.prompt,
                         reference_images=[raw_ref_image],
@@ -340,7 +366,11 @@ class ImagenService:
                     all_generated_images.extend(response.generated_images or [])
 
             if not all_generated_images:
-                return None
+                media_repo.update(
+                    media_item_id,
+                    {"status": JobStatusEnum.FAILED, "error_message": "No images generated"},
+                )
+                return
 
             # --- UNIFIED PROCESSING AND SAVING ---
             # Create the list of permanent GCS URIs and the response for the frontend
@@ -374,11 +404,12 @@ class ImagenService:
                     for img in valid_generated_images
                     if img.image
                 ]
-                upscale_images = []
+                # Instantiate a temporary service to use its upscale_image method
+                service = ImagenService()
                 tasks = [
-                    self.upscale_image(request_dto=dto) for dto in upscale_dtos
+                    service.upscale_image(request_dto=dto) for dto in upscale_dtos
                 ]
-                upscale_images = await asyncio.gather(*tasks)
+                upscale_images = loop.run_until_complete(asyncio.gather(*tasks))
 
                 permanent_gcs_uris = [
                     img.image.gcs_uri
@@ -392,58 +423,113 @@ class ImagenService:
                     if img.image and img.image.gcs_uri
                 ]
 
-            # 2. Create and run tasks to generate all presigned URLs in parallel
-            presigned_url_tasks = [
-                asyncio.to_thread(
-                    self.iam_signer_credentials.generate_presigned_url, uri
-                )
-                for uri in permanent_gcs_uris
-            ]
-            presigned_urls = await asyncio.gather(*presigned_url_tasks)
-
             end_time = time.monotonic()
             generation_time = end_time - start_time
 
-            # Create and save a SINGLE MediaItem for the entire batch
-            media_post_to_save = MediaItemModel(
-                # Core Props
-                user_email=user.email,
-                user_id=user.id,
-                mime_type=mime_type,
-                model=request_dto.generation_model,
-                workspace_id=request_dto.workspace_id,
-                # Common Props
-                prompt=rewritten_prompt,
-                original_prompt=original_prompt,
-                num_media=len(permanent_gcs_uris),
-                generation_time=generation_time,
-                aspect_ratio=request_dto.aspect_ratio,
-                gcs_uris=permanent_gcs_uris,
-                status=JobStatusEnum.COMPLETED,
-                # Styling props
-                style=request_dto.style,
-                lighting=request_dto.lighting,
-                color_and_tone=request_dto.color_and_tone,
-                composition=request_dto.composition,
-                negative_prompt=request_dto.negative_prompt,
-                add_watermark=request_dto.add_watermark,
-                source_assets=source_assets or None,
-                source_media_items=request_dto.source_media_items or None,
-                # Grounding and Resolution
-                google_search=request_dto.google_search,
-                resolution=request_dto.resolution,
-                grounding_metadata=grounding_metadata,
-            )
-            self.media_repo.save(media_post_to_save)
-
-            return MediaItemResponse(
-                **media_post_to_save.model_dump(),
-                presigned_urls=presigned_urls,
-            )
+            # Update the MediaItem in Firestore
+            update_data = {
+                "status": JobStatusEnum.COMPLETED,
+                "prompt": rewritten_prompt,
+                "gcs_uris": permanent_gcs_uris,
+                "generation_time": generation_time,
+                "num_media": len(permanent_gcs_uris),
+                "grounding_metadata": grounding_metadata,
+                "source_assets": [sa.model_dump() for sa in source_assets] if source_assets else None,
+                "source_media_items": [smi.model_dump() for smi in request_dto.source_media_items] if request_dto.source_media_items else None,
+                "mime_type": mime_type,
+            }
+            media_repo.update(media_item_id, update_data)
+            worker_logger.info(f"Successfully processed image job {media_item_id}")
 
         except Exception as e:
-            logger.error(f"Image generation API call failed: {e}")
-            raise
+            worker_logger.error(f"Image generation API call failed: {e}")
+            media_repo.update(
+                media_item_id,
+                {"status": JobStatusEnum.FAILED, "error_message": str(e)},
+            )
+        finally:
+            loop.close()
+
+    except Exception as e:
+        worker_logger.error(f"Image generation task failed: {e}", exc_info=True)
+        media_repo = MediaRepository()
+        media_repo.update(
+            media_item_id,
+            {"status": JobStatusEnum.FAILED, "error_message": str(e)},
+        )
+
+
+class ImagenService:
+    def __init__(self):
+        """Initializes the service with its dependencies."""
+        self.iam_signer_credentials = IamSignerCredentials()
+        self.media_repo = MediaRepository()
+        self.gemini_service = GeminiService()
+        self.gcs_service = GcsService()
+        self.source_asset_repo = SourceAssetRepository()
+        self.cfg = config_service
+
+    async def start_image_generation_job(
+        self,
+        request_dto: CreateImagenDto,
+        user: UserModel,
+        executor: ProcessPoolExecutor,
+    ) -> MediaItemResponse:
+        """
+        Immediately creates a placeholder MediaItem and starts the image generation
+        in the background.
+        """
+        media_item_id = str(uuid.uuid4())
+
+        # Create a placeholder document
+        placeholder_item = MediaItemModel(
+            id=media_item_id,
+            workspace_id=request_dto.workspace_id,
+            user_email=user.email,
+            user_id=user.id,
+            mime_type=MimeTypeEnum.IMAGE_PNG,  # Default to PNG, will update if needed
+            model=request_dto.generation_model,
+            original_prompt=request_dto.prompt,
+            status=JobStatusEnum.PROCESSING,
+            aspect_ratio=request_dto.aspect_ratio,
+            style=request_dto.style,
+            lighting=request_dto.lighting,
+            color_and_tone=request_dto.color_and_tone,
+            composition=request_dto.composition,
+            negative_prompt=request_dto.negative_prompt,
+            google_search=request_dto.google_search,
+            resolution=request_dto.resolution,
+            gcs_uris=[],
+        )
+
+        # Save the placeholder to the database immediately
+        self.media_repo.save(placeholder_item)
+
+        # Submit the long-running function to the process pool
+        executor.submit(
+            _process_image_in_background,
+            media_item_id=placeholder_item.id,
+            request_dto=request_dto,
+            current_user=user,
+        )
+
+        logger.info(
+            "Image generation job successfully queued.",
+            extra={
+                "json_fields": {
+                    "media_id": placeholder_item.id,
+                    "user_email": user.email,
+                    "model": request_dto.generation_model,
+                }
+            },
+        )
+
+        return MediaItemResponse(
+            **placeholder_item.model_dump(),
+            presigned_urls=[],
+            presigned_thumbnail_urls=[],
+        )
+
 
     async def _generate_with_gemini(
         self,

@@ -199,7 +199,7 @@ export class VideoComponent implements AfterViewInit {
   constructor(
     private sanitizer: DomSanitizer,
     public matIconRegistry: MatIconRegistry,
-    private service: SearchService,
+    public service: SearchService,
     public router: Router,
     private _snackBar: MatSnackBar,
     public dialog: MatDialog,
@@ -244,6 +244,9 @@ export class VideoComponent implements AfterViewInit {
     if (sourceAssets) {
       this.applySourceAssets(sourceAssets);
     }
+
+    // Load persisted prompt
+    this.searchRequest.prompt = this.service.videoPrompt;
   }
 
   ngAfterViewInit(): void {
