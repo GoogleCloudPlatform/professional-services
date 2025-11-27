@@ -1,0 +1,65 @@
+shared_config:
+  command:  gcloud compute network-firewall-policies rules create 1000 --firewall-policy cuop-fw-policy --global-firewall-policy
+  teardown_command: gcloud compute network-firewall-policies rules delete 1000 --firewall-policy cuop-fw-policy --global-firewall-policy
+  default_command_flags:
+      action: ALLOW
+      direction: INGRESS
+      enable-logging: true
+  default_markers:
+    - firewall
+    - firewall-policy
+    - insecure-protocols
+
+# Telnet tests - TCP:23
+firewall_policy_allowed_telnet_rule_192:
+  steps:
+  - command_flags:
+      layer4-configs: tcp:23
+      src-ip-ranges: 192.168.0.0/16
+    expected_result:
+      return_code: 0
+
+firewall_policy_telnet_rule_denied:
+  steps:
+  - command_flags:
+      layer4-configs: tcp:23
+      src-ip-ranges: 0.0.0.0/0
+    expected_result:
+      return_code: 1
+      stderr: 'customConstraints/custom\.firewallRestrict(PublicAccess|InsecureProtocols)PolicyRule'
+
+# FTP tests - TCP:21
+firewall_policy_allowed_ftp_rule_10:
+  steps:
+  - command_flags:
+      layer4-configs: tcp:21
+      src-ip-ranges: 10.0.0.0/8
+    expected_result:
+      return_code: 0
+
+# Simplified constraint only blocks 0.0.0.0/0 and ::/0, not specific public IPs
+firewall_policy_ftp_rule_allowed:
+  steps:
+  - command_flags:
+      layer4-configs: tcp:21
+      src-ip-ranges: 1.0.0.0/32
+    expected_result:
+      return_code: 0
+
+# HTTP tests - TCP:80
+firewall_policy_allowed_http_rule_172:
+  steps:
+  - command_flags:
+      layer4-configs: tcp:80
+      src-ip-ranges: 172.16.0.0/12
+    expected_result:
+      return_code: 0
+
+firewall_policy_http_rule_denied:
+  steps:
+  - command_flags:
+      layer4-configs: tcp:80
+      src-ip-ranges: 0.0.0.0/0
+    expected_result:
+      return_code: 1
+      stderr: 'customConstraints/custom\.firewallRestrict(PublicAccess|InsecureProtocols)PolicyRule'

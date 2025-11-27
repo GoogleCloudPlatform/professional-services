@@ -1,0 +1,25 @@
+#@ load("/alert.lib.star", "build_alert")
+#@ load("/alert.lib.yaml", "generate_notification_channels")
+#@ load("@ytt:template", "template")
+#@ alert = build_alert("dnsMalformedQuery")
+
+#@ if alert.to_generate():
+description:  "DNS Malformed Queries"
+bucketName: #@ alert.log_bucket_name()
+filter: >-
+  resource.type="dns_query" AND jsonPayload.responseCode="FORMERR"
+metricDescriptor:
+  metricKind: "DELTA"
+  valueType: "INT64"
+  unit: "1"
+  labels:
+    - key: "principal"
+      description: "principal"
+      valueType: STRING
+    - key: "project_id"
+      description: "project_id"
+      valueType: STRING
+labelExtractors:
+  principal: "EXTRACT(protoPayload.authenticationInfo.principalEmail)"
+  project_id: "EXTRACT(labels.project_id)"
+#@ end

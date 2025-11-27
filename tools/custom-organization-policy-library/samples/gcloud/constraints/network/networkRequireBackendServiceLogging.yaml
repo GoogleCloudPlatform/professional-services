@@ -1,0 +1,10 @@
+name: organizations/11111111/customConstraints/custom.networkRequireBackendServiceLogging
+resource_types:
+  - compute.googleapis.com/BackendService
+condition: has(resource.logConfig) == false || resource.logConfig.enable == false
+action_type: DENY
+method_types:
+  - CREATE
+  - UPDATE
+display_name: Require logging to be enabled on Backend Services
+description: Enforce that Backend Services have logging enabled

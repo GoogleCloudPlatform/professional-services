@@ -1,0 +1,104 @@
+shared_config:
+  command:  gcloud compute firewall-rules create allow-nosql-db-{{ identifier }}
+  teardown_command: gcloud compute firewall-rules delete allow-nosql-db-{{ identifier }}
+  default_command_flags:
+      action: ALLOW
+      direction: INGRESS
+      network: vpc-dev-cuop-library
+      priority: 1000
+      description: Testing NoSQL database firewall rule
+      enable-logging: true
+  default_markers:
+    - firewall
+    - firewall-vpc-rule
+    - nosql-databases
+
+# MongoDB tests - TCP 27017-27019
+firewall_vpc_allowed_mongodb_rule_iap:
+  steps:
+  - command_flags:
+      rules: tcp:27017-27019
+      source-ranges: 35.235.240.0/20
+    expected_result:
+      return_code: 0
+
+firewall_vpc_allowed_mongodb_rule_10:
+  steps:
+  - command_flags:
+      rules: tcp:27017
+      source-ranges: 10.0.0.0/8
+    expected_result:
+      return_code: 0
+
+# Simplified constraint only blocks 0.0.0.0/0 and ::/0, not specific public IPs
+firewall_vpc_mongodb_rule_allowed:
+  steps:
+  - command_flags:
+      rules: tcp:27017
+      source-ranges: 1.1.1.1/32
+    expected_result:
+      return_code: 0
+
+firewall_vpc_mongodb_27018_rule_denied:
+  steps:
+  - command_flags:
+      rules: tcp:27018
+      source-ranges: 0.0.0.0/0
+    expected_result:
+      return_code: 1
+      stderr: 'customConstraints/custom\.firewallRestrict(PublicAccess|NoSQLDatabases)Rule'
+
+# Cassandra tests - TCP 7000-7001, 7199, 8888, 9042, 9160, 61620-61621
+firewall_vpc_allowed_cassandra_rule_172:
+  steps:
+  - command_flags:
+      rules: tcp:9042
+      source-ranges: 172.16.0.0/12
+    expected_result:
+      return_code: 0
+
+# Simplified constraint only blocks 0.0.0.0/0 and ::/0, not specific public IPs
+firewall_vpc_cassandra_9042_rule_allowed:
+  steps:
+  - command_flags:
+      rules: tcp:9042
+      source-ranges: 203.0.113.0/24
+    expected_result:
+      return_code: 0
+
+# Simplified constraint only blocks 0.0.0.0/0 and ::/0, not specific public IPs
+firewall_vpc_cassandra_7000_rule_allowed:
+  steps:
+  - command_flags:
+      rules: tcp:7000
+      source-ranges: 1.0.0.0/32
+    expected_result:
+      return_code: 0
+
+# Simplified constraint only blocks 0.0.0.0/0 and ::/0, not specific public IPs
+firewall_vpc_cassandra_7199_rule_allowed:
+  steps:
+  - command_flags:
+      rules: tcp:7199
+      source-ranges: 8.8.8.8/32
+    expected_result:
+      return_code: 0
+
+firewall_vpc_cassandra_9160_rule_denied:
+  steps:
+  - command_flags:
+      rules: tcp:9160
+      source-ranges: 0.0.0.0/0
+    expected_result:
+      return_code: 1
+      stderr: 'customConstraints/custom\.firewallRestrict(PublicAccess|NoSQLDatabases)Rule'
+
+# Multiple NoSQL database ports test
+# Simplified constraint only blocks 0.0.0.0/0 and ::/0, not specific public IPs
+firewall_vpc_multiple_nosql_ports_allowed:
+  steps:
+  - command_flags:
+      rules: tcp:27017,tcp:9042,tcp:7000
+      source-ranges: 1.0.0.0/32
+    expected_result:
+      return_code: 0

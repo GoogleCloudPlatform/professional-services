@@ -1,0 +1,19 @@
+name: organizations/11111111/customConstraints/custom.firewallRestrictInsecureProtocolsRule
+resource_types:
+  - compute.googleapis.com/Firewall
+condition: |-
+  resource.direction.matches('INGRESS') &&
+    resource.sourceRanges.exists(range, range == '0.0.0.0/0') &&
+    (
+      resource.allowed.containsFirewallPort('tcp', '21') ||
+      resource.allowed.containsFirewallPort('tcp', '23') ||
+      resource.allowed.containsFirewallPort('tcp', '80')
+    )
+action_type: DENY
+method_types:
+  - CREATE
+  - UPDATE
+display_name: Restrict VPC Firewall rules allowing insecure protocol access from any source
+description: |-
+  Ensure that insecure legacy protocols (Telnet, FTP, HTTP) are not accessible from any source when
+  using VPC Firewall Rule

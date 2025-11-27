@@ -1,0 +1,98 @@
+/**
+ * Copyright 2025 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+.loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(
+    255,
+    255,
+    255,
+    0.85
+  ); // A semi-transparent white background
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  border-radius: 4px; // To match the dialog's corners
+  backdrop-filter: blur(4px); // Adds a nice "glass" effect
+
+  p {
+    margin-top: 1rem;
+    font-weight: 500;
+    color: rgba(0, 0, 0, 0.7);
+  }
+}
+
+.cropper-container {
+  height: 400px;
+  width: 100%;
+}
+
+.controls-toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 1rem;
+
+  .control-group {
+    display: flex;
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    border-radius: 4px;
+  }
+}
+
+.flip-vertical {
+  transform: rotate(90deg);
+}
+
+.aspect-ratio-dropdown {
+  width: 150px;
+}
+
+mat-dialog-actions {
+  margin-top: 1rem;
+  display: flex;
+  align-items: center;
+
+  .footer-controls {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+
+  .color-picker {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .flex-spacer {
+    flex: 1 1 auto;
+  }
+}
+
+.crop-upload-btn {
+  background: linear-gradient(to right, #3b82f6, #8b5cf6, #f87171);
+  font-weight: bold;
+  margin-top: 1rem;
+}

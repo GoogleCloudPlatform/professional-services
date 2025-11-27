@@ -1,0 +1,48 @@
+#@ load("/alert.lib.star", "build_alert")
+#@ load("/alert.lib.yaml", "generate_notification_channels")
+#@ load("@ytt:template", "template")
+#@ alert = build_alert("firewallPolicyRuleChanges")
+
+#@ def documentation_content():
+#@   lines = [
+#@     'Log-based alerting policy in project ${project} detected Firewall Policy rule changes.',
+#@     '',
+#@     'This alert helps ensure security by monitoring creation, modification, or deletion of firewall rules.',
+#@     '```',
+#@     'resource.labels.method:"compute.networkFirewallPolicies" AND (',
+#@     '  protoPayload.methodName:"compute.networkFirewallPolicies.addRule" OR',
+#@     '  protoPayload.methodName:"compute.networkFirewallPolicies.removeRule" OR',
+#@     '  protoPayload.methodName:"compute.networkFirewallPolicies.patchRule"',
+#@     ')',
+#@     '```'
+#@   ]
+#@   return "\n".join(lines)
+#@ end
+
+#@ if alert.to_generate():
+displayName: 'Network Firewall Policy Rule Changes'
+documentation:
+  content: #@ documentation_content()
+  mimeType: text/markdown
+conditions:
+- displayName: 'Log match condition: Network Firewall Policy Rule Changes'
+  conditionThreshold:
+    filter: >-
+      resource.type = "logging_bucket" AND metric.type = "logging.googleapis.com/user/firewallPolicyRuleChanges"
+    aggregations:
+    - perSeriesAligner: ALIGN_SUM
+      alignmentPeriod: 60s
+      crossSeriesReducer: REDUCE_SUM
+      groupByFields:
+      - metric.label.principal
+      - metric.label.method_name
+    comparison: COMPARISON_GT
+    thresholdValue: 0
+    duration: 0s
+    trigger:
+      count: 1
+combiner: OR
+#@ if alert.has_notification_channels():
+_: #@ template.replace(generate_notification_channels())
+#@ end
+#@ end

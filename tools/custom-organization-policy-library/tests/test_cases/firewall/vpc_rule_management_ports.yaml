@@ -1,0 +1,49 @@
+shared_config:
+  command:  gcloud compute firewall-rules create allow-mgmt-{{ identifier }}
+  teardown_command: gcloud compute firewall-rules delete allow-mgmt-{{ identifier }}
+  default_command_flags:
+      action: ALLOW
+      direction: INGRESS
+      network: vpc-dev-cuop-library
+      priority: 1000
+      description: Testing management port firewall rule
+      enable-logging: true
+  default_markers:
+    - firewall
+    - firewall-vpc-rule
+    - management-ports
+
+# Cisco Secure WebSM tests - TCP:9090
+firewall_vpc_allowed_cisco_websm_rule_10:
+  steps:
+  - command_flags:
+      rules: tcp:9090
+      source-ranges: 10.0.0.0/8
+    expected_result:
+      return_code: 0
+
+firewall_vpc_allowed_cisco_websm_rule_192:
+  steps:
+  - command_flags:
+      rules: tcp:9090
+      source-ranges: 192.168.0.0/16
+    expected_result:
+      return_code: 0
+
+firewall_vpc_cisco_websm_rule_denied:
+  steps:
+  - command_flags:
+      rules: tcp:9090
+      source-ranges: 0.0.0.0/0
+    expected_result:
+      return_code: 1
+      stderr: 'customConstraints/custom\.firewallRestrict(PublicAccess|ManagementPorts)Rule'
+
+# Simplified constraint only blocks 0.0.0.0/0 and ::/0, not specific public IPs
+firewall_vpc_cisco_websm_public_allowed:
+  steps:
+  - command_flags:
+      rules: tcp:9090
+      source-ranges: 8.8.8.8/32
+    expected_result:
+      return_code: 0

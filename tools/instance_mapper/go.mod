@@ -13,7 +13,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/ec2 v1.25.0
 	github.com/aws/aws-sdk-go-v2/service/rds v1.14.0
 	github.com/aws/aws-sdk-go-v2/service/sts v1.11.1
-	github.com/golang/glog v1.0.0
+	github.com/golang/glog v1.2.4
 	github.com/google/cel-go v0.9.0
 	google.golang.org/api v0.61.0
 	google.golang.org/genproto v0.0.0-20211206160659-862468c7d6e0

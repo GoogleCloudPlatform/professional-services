@@ -1,0 +1,26 @@
+shared_config:
+  command:  gcloud compute network-firewall-policies rules create 1000 --firewall-policy cuop-fw-policy --global-firewall-policy
+  teardown_command: gcloud compute network-firewall-policies rules delete 1000 --firewall-policy cuop-fw-policy --global-firewall-policy
+  default_command_flags: 
+      action: ALLOW
+      direction: INGRESS
+      layer4-configs: tcp:22
+      enable-logging: true
+      src-ip-ranges: 192.168.0.0/16
+  default_markers:
+    - firewall
+    - firewall-policy-log
+
+firewall_policy_allowed_logging_enabled:
+  steps:
+  - expected_result:
+      return_code: 0
+
+firewall_policy_logging_disabled:
+  steps:
+  - command_flags:
+      enable-logging: false
+    expected_result:
+      return_code: 1
+      stderr: 'customConstraints/custom\.firewallEnforcePolicyRuleLogging'
+

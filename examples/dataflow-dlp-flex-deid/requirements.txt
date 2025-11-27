@@ -1,0 +1,3 @@
+google-cloud-dlp>=3.14.0,<4.0.0
+# Only needed if you use --headers_gcs_uri
+google-cloud-storage>=2.14.0,<3.0.0

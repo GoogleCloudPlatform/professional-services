@@ -1,0 +1,19 @@
+#@ load("/constraints.lib.star", "build_constraint")
+#@ constraint = build_constraint("cloudkmsAllowedRotationPeriod")
+
+#@ def condition(max_rotation_period):
+#@   return 'has(resource.rotationPeriod) && resource.rotationPeriod > duration("' +  str(max_rotation_period) + '")'
+#@ end
+
+#@ if constraint.to_generate():
+name: #@ constraint.constraint_name()
+resourceTypes:
+- cloudkms.googleapis.com/CryptoKey
+methodTypes:
+- CREATE
+- UPDATE
+condition: #@  condition(constraint.params().max_rotation_period)
+actionType: DENY
+displayName: Require Cloud KMS keys to have rotation period configured correctly
+description: Ensure the rotation period for Cloud KMS keys is configured correctly
+#@ end

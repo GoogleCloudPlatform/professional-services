@@ -1,0 +1,15 @@
+#@ load("/constraints.lib.star", "build_constraint")
+#@ constraint = build_constraint("networkRequireBackendServiceLogging")
+
+#@ if constraint.to_generate():
+name: #@ constraint.constraint_name()
+resource_types: 
+- compute.googleapis.com/BackendService
+condition: has(resource.logConfig) == false || resource.logConfig.enable == false
+action_type: DENY
+method_types: 
+- CREATE
+- UPDATE
+display_name: Require logging to be enabled on Backend Services
+description:  Enforce that Backend Services have logging enabled
+#@ end

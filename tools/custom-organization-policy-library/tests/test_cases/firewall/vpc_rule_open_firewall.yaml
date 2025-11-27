@@ -1,0 +1,156 @@
+shared_config:
+  command:  gcloud compute firewall-rules create allow-open-{{ identifier }}
+  teardown_command: gcloud compute firewall-rules delete allow-open-{{ identifier }}
+  default_command_flags:
+      action: ALLOW
+      direction: INGRESS
+      network: vpc-dev-cuop-library
+      priority: 1000
+      description: Testing open firewall rule
+      enable-logging: true
+  default_markers:
+    - firewall
+    - firewall-vpc-rule
+    - open-firewall
+
+# Allowed: Safe protocols with 0.0.0.0/0
+firewall_vpc_allowed_icmp_world:
+  steps:
+  - command_flags:
+      rules: icmp
+      source-ranges: 0.0.0.0/0
+    expected_result:
+      return_code: 1
+      stderr: 'customConstraints/custom\.firewallRestrictPublicAccessRule'
+
+firewall_vpc_allowed_ssh_world:
+  steps:
+  - command_flags:
+      rules: tcp:22
+      source-ranges: 0.0.0.0/0
+    expected_result:
+      return_code: 1
+      stderr: 'customConstraints/custom\.firewallRestrict(PublicAccess|Ssh)Rule'
+
+firewall_vpc_allowed_https_world:
+  steps:
+  - command_flags:
+      rules: tcp:443
+      source-ranges: 0.0.0.0/0
+    expected_result:
+      return_code: 1
+      stderr: 'customConstraints/custom\.firewallRestrictPublicAccessRule'
+
+firewall_vpc_allowed_rdp_tcp_world:
+  steps:
+  - command_flags:
+      rules: tcp:3389
+      source-ranges: 0.0.0.0/0
+    expected_result:
+      return_code: 1
+      stderr: 'customConstraints/custom\.firewallRestrict(PublicAccess|Rdp)Rule'
+
+firewall_vpc_allowed_rdp_udp_world:
+  steps:
+  - command_flags:
+      rules: udp:3389
+      source-ranges: 0.0.0.0/0
+    expected_result:
+      return_code: 1
+      stderr: 'customConstraints/custom\.firewallRestrictPublicAccessRule'
+
+# Denied: Unsafe protocols with 0.0.0.0/0
+firewall_vpc_denied_http_world:
+  steps:
+  - command_flags:
+      rules: tcp:80
+      source-ranges: 0.0.0.0/0
+    expected_result:
+      return_code: 1
+      stderr: 'customConstraints/custom\.firewallRestrict(PublicAccess|InsecureProtocols)Rule'
+
+firewall_vpc_denied_custom_port_world:
+  steps:
+  - command_flags:
+      rules: tcp:8080
+      source-ranges: 0.0.0.0/0
+    expected_result:
+      return_code: 1
+      stderr: 'customConstraints/custom\.firewallRestrictPublicAccessRule'
+
+firewall_vpc_denied_mysql_world:
+  steps:
+  - command_flags:
+      rules: tcp:3306
+      source-ranges: 0.0.0.0/0
+    expected_result:
+      return_code: 1
+      stderr: 'customConstraints/custom\.(firewallRestrictSQLDatabasesRule|firewallRestrictPublicAccessRule)'
+
+# Denied: All TCP/UDP from public IP
+firewall_vpc_denied_all_tcp_public:
+  steps:
+  - command_flags:
+      rules: tcp
+      source-ranges: 8.8.8.8/32
+    expected_result:
+      return_code: 1
+      stderr: 'customConstraints/custom\.firewallRestrict(OpenFirewall|Ssh|Rdp)Rule'
+
+firewall_vpc_denied_all_udp_public:
+  steps:
+  - command_flags:
+      rules: udp
+      source-ranges: 1.1.1.1/32
+    expected_result:
+      return_code: 1
+      stderr: 'customConstraints/custom\.firewallRestrictOpenFirewallRule'
+
+# Denied: All TCP/UDP from public IP using explicit full ranges
+firewall_vpc_denied_all_tcp_public_range:
+  steps:
+  - command_flags:
+      rules: tcp:0-65535
+      source-ranges: 8.8.8.8/32
+    expected_result:
+      return_code: 1
+      stderr: 'customConstraints/custom\.(firewallRestrictExplicitAllPortsRule|firewallRestrictSshRule|firewallRestrictRdpRule)'
+
+firewall_vpc_denied_all_udp_public_range:
+  steps:
+  - command_flags:
+      rules: udp:1-65535
+      source-ranges: 1.1.1.1/32
+    expected_result:
+      return_code: 1
+      stderr: 'customConstraints/custom\.(firewallRestrictExplicitAllPortsRule|firewallRestrictRdpRule)'
+
+# Simplified constraint only blocks 0.0.0.0/0 and ::/0, not specific public IPs
+firewall_vpc_allowed_http_public_specific:
+  steps:
+  - command_flags:
+      rules: tcp:80
+      source-ranges: 8.8.8.8/32
+    expected_result:
+      return_code: 0
+
+# Allowed: All TCP/UDP from private IP
+firewall_vpc_allowed_all_tcp_private:
+  steps:
+  - command_flags:
+      rules: tcp
+      source-ranges: 10.0.0.0/8
+    expected_result:
+      return_code: 1
+      stderr: 'customConstraints/custom\.firewallRestrictOpenFirewallRule'
+
+firewall_vpc_allowed_all_udp_private:
+  steps:
+  - command_flags:
+      rules: udp
+      source-ranges: 192.168.0.0/16
+    expected_result:
+      return_code: 1
+      stderr: 'customConstraints/custom\.firewallRestrictOpenFirewallRule'
+
+# Allowed/Denied: RFC1918 vs public 172.x

@@ -2,28 +2,45 @@
 ## Overview
 
 This repository provides a library of custom organization policy constraints and samples. It includes tools to easily generate policies for provisioning across your organization using either Google Cloud (gcloud) or Terraform.
+
+For a detailled list of the policies developed, please refer [here](./docs/index.md). 
+
+The library contains more than 100 constraints, including implementation n of policies for these bundles:
+- CIS for GCP v3.0
+- CIS for GKE v1.5
+- PCI-DSS v4.0
+
 For more information on how Custom Organization Policies (CuOP) can help secure your environment, please refer to the  [Google Cloud documentation](./https://cloud.google.com/resource-manager/docs/organization-policy/creating-managing-custom-constraints).
 
 ## Setting up environment 
 You can quickly set up your environment to manage the CuOP library using [ytt](https://carvel.dev/ytt/).
 
 ### Install via script (macOS or Linux)
-Install ytt into specific directory. Note that install.sh script installs other Carvel tools as well.
-```
-$ mkdir local-bin/
-$ curl -L https://carvel.dev/install.sh | K14SIO_INSTALL_BIN_DIR=local-bin bash
-$ export PATH=$PWD/local-bin/:$PATH
-$ ytt version
+Install ytt into specific directory. Note that install.sh script installs other Carvel tools as well. For more detail instruction, you can check [here](https://carvel.dev/ytt/docs/latest/install/)
+```bash
+mkdir local-bin/
+curl -L https://carvel.dev/install.sh | K14SIO_INSTALL_BIN_DIR=local-bin bash
+export PATH=$PWD/local-bin/:$PATH
+ytt version
 ```
 
 ### Install binaries via Homebrew (macOS or Linux) 
 Require Homebrew to be installed
-```
-$ brew tap carvel-dev/carvel
-$ brew install ytt
-$ ytt version
+```bash
+brew tap carvel-dev/carvel
+brew install ytt
+ytt version
 ```
 For more details about other type of installation, please refer to official documentation [here](https://carvel.dev/ytt/docs/latest/install/)
+
+### Install 
+```bash
+python3 -m venv venv
+source venv/bin/activate
+python3 -m pip install -r scripts/requirements.txt
+python3 -m pip install -r tests/requirements.txt
+npm install --global prettier # Install prettier globally for formatting YAML file
+```
 
 ## Organization of the repository
 The repository is organized as follows:
@@ -199,6 +216,7 @@ make policies                       Build policies based using gcloud format
 make policies-tf                    Build policies based using Terraform Cloud Foundation Fabric module factory 
 make build                          Build constraint and policies using gcloud format
 make build-tf                       Build constraint and policies using Terraform Cloud Foundation Fabric module factory
+make all                            Build constraint and policies using gcloud and Terraform Cloud Foundation Fabric module factory format
 make deploy-constraints             Deploy constraints based using gcloud format
 make deploy-policies                Deploy policies based using gcloud format
 make deploy                         Deploy both constraints and policies based using gcloud format

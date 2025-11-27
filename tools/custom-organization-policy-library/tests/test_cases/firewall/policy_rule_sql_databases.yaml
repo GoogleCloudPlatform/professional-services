@@ -1,0 +1,118 @@
+shared_config:
+  command:  gcloud compute network-firewall-policies rules create 1000 --firewall-policy cuop-fw-policy --global-firewall-policy
+  teardown_command: gcloud compute network-firewall-policies rules delete 1000 --firewall-policy cuop-fw-policy --global-firewall-policy
+  default_command_flags:
+      action: ALLOW
+      direction: INGRESS
+      enable-logging: true
+  default_markers:
+    - firewall
+    - firewall-policy
+    - sql-databases
+
+# MySQL tests - TCP 3306
+firewall_policy_allowed_mysql_rule_192:
+  steps:
+  - command_flags:
+      layer4-configs: tcp:3306
+      src-ip-ranges: 192.168.0.0/16
+    expected_result:
+      return_code: 0
+
+firewall_policy_allowed_mysql_rule_10:
+  steps:
+  - command_flags:
+      layer4-configs: tcp:3306
+      src-ip-ranges: 10.0.0.0/8
+    expected_result:
+      return_code: 0
+
+# Simplified constraint only blocks 0.0.0.0/0 and ::/0, not specific public IPs
+firewall_policy_mysql_rule_allowed:
+  steps:
+  - command_flags:
+      layer4-configs: tcp:3306
+      src-ip-ranges: 1.0.0.0/32
+    expected_result:
+      return_code: 0
+
+# PostgreSQL tests - TCP/UDP 5432
+firewall_policy_allowed_postgresql_rule_192:
+  steps:
+  - command_flags:
+      layer4-configs: tcp:5432
+      src-ip-ranges: 192.168.0.0/16
+    expected_result:
+      return_code: 0
+
+firewall_policy_postgresql_rule_denied:
+  steps:
+  - command_flags:
+      layer4-configs: tcp:5432
+      src-ip-ranges: 0.0.0.0/0
+    expected_result:
+      return_code: 1
+      stderr: 'customConstraints/custom\.(firewallRestrictSQLDatabasesPolicyRule|firewallRestrictPublicAccessPolicyRule)'
+
+# Simplified constraint only blocks 0.0.0.0/0 and ::/0, not specific public IPs
+firewall_policy_postgresql_udp_rule_allowed:
+  steps:
+  - command_flags:
+      layer4-configs: udp:5432
+      src-ip-ranges: 8.8.8.8/32
+    expected_result:
+      return_code: 0
+
+# Oracle tests - TCP 1521, 2483-2484 and UDP 2483-2484
+firewall_policy_allowed_oracle_rule_iap:
+  steps:
+  - command_flags:
+      layer4-configs: tcp:1521
+      src-ip-ranges: 35.235.240.0/20
+    expected_result:
+      return_code: 0
+
+# Simplified constraint only blocks 0.0.0.0/0 and ::/0, not specific public IPs
+firewall_policy_oracle_tcp_rule_allowed:
+  steps:
+  - command_flags:
+      layer4-configs: tcp:1521
+      src-ip-ranges: 198.51.100.0/24
+    expected_result:
+      return_code: 0
+
+# Simplified constraint only blocks 0.0.0.0/0 and ::/0, not specific public IPs
+firewall_policy_oracle_tcp_2483_rule_allowed:
+  steps:
+  - command_flags:
+      layer4-configs: tcp:2483
+      src-ip-ranges: 1.0.0.0/32
+    expected_result:
+      return_code: 0
+
+# Simplified constraint only blocks 0.0.0.0/0 and ::/0, not specific public IPs
+firewall_policy_oracle_udp_rule_allowed:
+  steps:
+  - command_flags:
+      layer4-configs: udp:2483
+      src-ip-ranges: 1.0.0.0/32
+    expected_result:
+      return_code: 0
+
+# Simplified constraint only blocks 0.0.0.0/0 and ::/0, not specific public IPs
+firewall_policy_oracle_udp_2484_rule_allowed:
+  steps:
+  - command_flags:
+      layer4-configs: udp:2484
+      src-ip-ranges: 203.0.113.0/24
+    expected_result:
+      return_code: 0
+
+# Multiple SQL database ports test - Simplified constraint only blocks 0.0.0.0/0 and ::/0
+firewall_policy_multiple_sql_ports_allowed:
+  steps:
+  - command_flags:
+      layer4-configs: tcp:3306,tcp:5432,tcp:1521
+      src-ip-ranges: 1.0.0.0/32
+    expected_result:
+      return_code: 0

@@ -1,0 +1,186 @@
+shared_config:
+  command:  gcloud compute network-firewall-policies rules create 1000 --firewall-policy cuop-fw-policy --global-firewall-policy
+  teardown_command: gcloud compute network-firewall-policies rules delete 1000 --firewall-policy cuop-fw-policy --global-firewall-policy
+  default_command_flags:
+      action: ALLOW
+      direction: INGRESS
+      enable-logging: true
+  default_markers:
+    - firewall
+    - firewall-policy
+    - open-firewall
+
+# Allowed: Safe protocols with 0.0.0.0/0
+firewall_policy_allowed_icmp_world:
+  steps:
+  - command_flags:
+      layer4-configs: icmp
+      src-ip-ranges: 0.0.0.0/0
+    expected_result:
+      return_code: 0
+
+firewall_policy_allowed_ssh_world:
+  steps:
+  - command_flags:
+      layer4-configs: tcp:22
+      src-ip-ranges: 0.0.0.0/0
+    expected_result:
+      return_code: 1
+      stderr: 'customConstraints/custom\.firewallRestrict(PublicAccess|Ssh)PolicyRule'
+
+firewall_policy_allowed_https_world:
+  steps:
+  - command_flags:
+      layer4-configs: tcp:443
+      src-ip-ranges: 0.0.0.0/0
+    expected_result:
+      return_code: 0
+
+firewall_policy_allowed_rdp_tcp_world:
+  steps:
+  - command_flags:
+      layer4-configs: tcp:3389
+      src-ip-ranges: 0.0.0.0/0
+    expected_result:
+      return_code: 1
+      stderr: 'customConstraints/custom\.firewallRestrict(PublicAccess|Rdp)PolicyRule'
+
+firewall_policy_allowed_rdp_udp_world:
+  steps:
+  - command_flags:
+      layer4-configs: udp:3389
+      src-ip-ranges: 0.0.0.0/0
+    expected_result:
+      return_code: 0
+
+# Denied: Unsafe protocols with 0.0.0.0/0
+firewall_policy_denied_http_world:
+  steps:
+  - command_flags:
+      layer4-configs: tcp:80
+      src-ip-ranges: 0.0.0.0/0
+    expected_result:
+      return_code: 1
+      stderr: 'customConstraints/custom\.firewallRestrict(PublicAccess|InsecureProtocols)PolicyRule'
+
+firewall_policy_denied_custom_port_world:
+  steps:
+  - command_flags:
+      layer4-configs: tcp:8080
+      src-ip-ranges: 0.0.0.0/0
+    expected_result:
+      return_code: 1
+      stderr: 'customConstraints/custom\.(firewallRestrictPublicAccessPolicyRule|firewallRestrictOpenFirewallPolicyRule|firewallRestrictExplicitAllPortsPolicyRule)'
+
+firewall_policy_denied_mysql_world:
+  steps:
+  - command_flags:
+      layer4-configs: tcp:3306
+      src-ip-ranges: 0.0.0.0/0
+    expected_result:
+      return_code: 1
+      stderr: 'customConstraints/custom\.firewallRestrict(PublicAccess|SQLDatabases)PolicyRule'
+
+# Denied: All TCP/UDP from public IP
+firewall_policy_denied_all_tcp_public:
+  steps:
+  - command_flags:
+      layer4-configs: tcp
+      src-ip-ranges: 8.8.8.8/32
+    expected_result:
+      return_code: 1
+      stderr: 'customConstraints/custom\.(firewallRestrictPublicAccessPolicyRule|firewallRestrictOpenFirewallPolicyRule|firewallRestrictSshPolicyRule|firewallRestrictRdpPolicyRule)'
+
+firewall_policy_denied_all_udp_public:
+  steps:
+  - command_flags:
+      layer4-configs: udp
+      src-ip-ranges: 1.1.1.1/32
+    expected_result:
+      return_code: 1
+      stderr: 'customConstraints/custom\.(firewallRestrictPublicAccessPolicyRule|firewallRestrictOpenFirewallPolicyRule)'
+
+# Simplified constraint only blocks 0.0.0.0/0 and ::/0, not specific public IPs
+firewall_policy_allowed_http_public_specific:
+  steps:
+  - command_flags:
+      layer4-configs: tcp:80
+      src-ip-ranges: 8.8.8.8/32
+    expected_result:
+      return_code: 0
+
+# Allowed: All TCP/UDP from private IP
+firewall_policy_allowed_all_tcp_private:
+  steps:
+  - command_flags:
+      layer4-configs: tcp
+      src-ip-ranges: 10.0.0.0/8
+    expected_result:
+      return_code: 1
+      stderr: 'customConstraints/custom\.(firewallRestrictPublicAccessPolicyRule|firewallRestrictOpenFirewallPolicyRule)'
+
+firewall_policy_allowed_all_udp_private:
+  steps:
+  - command_flags:
+      layer4-configs: udp
+      src-ip-ranges: 192.168.0.0/16
+    expected_result:
+      return_code: 1
+      stderr: 'customConstraints/custom\.(firewallRestrictPublicAccessPolicyRule|firewallRestrictOpenFirewallPolicyRule)'
+
+# Allowed: SCC exception SCTP:22 with 0.0.0.0/0
+firewall_policy_allowed_sctp_22_world:
+  steps:
+  - command_flags:
+      layer4-configs: sctp:22
+      src-ip-ranges: 0.0.0.0/0
+    expected_result:
+      return_code: 0
+
+# Denied: non-exception SCTP port with 0.0.0.0/0
+firewall_policy_denied_sctp_other_world:
+  steps:
+  - command_flags:
+      layer4-configs: sctp:2905
+      src-ip-ranges: 0.0.0.0/0
+    expected_result:
+      return_code: 1
+      stderr: 'customConstraints/custom\.(firewallRestrictPublicAccessPolicyRule|firewallRestrictOpenFirewallPolicyRule|firewallRestrictExplicitAllPortsPolicyRule)'
+
+# Denied: All TCP/UDP from public IP using explicit full ranges
+firewall_policy_denied_all_tcp_public_range:
+  steps:
+  - command_flags:
+      layer4-configs: tcp:0-65535
+      src-ip-ranges: 8.8.8.8/32
+    expected_result:
+      return_code: 1
+      stderr: 'customConstraints/custom\.firewallRestrictExplicitAllPortsPolicyRule'
+
+firewall_policy_denied_all_udp_public_range:
+  steps:
+  - command_flags:
+      layer4-configs: udp:1-65535
+      src-ip-ranges: 1.1.1.1/32
+    expected_result:
+      return_code: 1
+      stderr: 'customConstraints/custom\.firewallRestrictExplicitAllPortsPolicyRule'
+
+# Allowed/Denied: RFC1918 vs public 172.x
+firewall_policy_allowed_all_tcp_private_172_16:
+  steps:
+  - command_flags:
+      layer4-configs: tcp
+      src-ip-ranges: 172.16.0.0/12
+    expected_result:
+      return_code: 1
+      stderr: 'customConstraints/custom\.(firewallRestrictPublicAccessPolicyRule|firewallRestrictOpenFirewallPolicyRule|firewallRestrictSshPolicyRule|firewallRestrictRdpPolicyRule)'
+
+firewall_policy_denied_all_tcp_public_172_15:
+  steps:
+  - command_flags:
+      layer4-configs: tcp
+      src-ip-ranges: 172.15.0.0/16
+    expected_result:
+      return_code: 1
+      stderr: 'customConstraints/custom\.(firewallRestrictPublicAccessPolicyRule|firewallRestrictOpenFirewallPolicyRule|firewallRestrictSshPolicyRule|firewallRestrictRdpPolicyRule)'

@@ -1,0 +1,9 @@
+gkeAllowedAddons:
+  description: Detect if any add-ons outside of GKE clusters mandated add-ons are installed
+  predicate:
+    expression: resource.addonsConfig.networkPolicyConfig.disabled == false
+  recommendation: Ensure only authorized add-ons are installed
+  resource_selector:
+    resource_types:
+      - container.googleapis.com/Cluster
+  severity: MEDIUM

@@ -1,0 +1,84 @@
+shared_config:
+  command:  gcloud compute network-firewall-policies rules create 1000 --firewall-policy cuop-fw-policy --global-firewall-policy
+  teardown_command: gcloud compute network-firewall-policies rules delete 1000 --firewall-policy cuop-fw-policy --global-firewall-policy
+  default_command_flags:
+      action: ALLOW
+      direction: INGRESS
+      enable-logging: true
+  default_markers:
+    - firewall
+    - firewall-policy
+    - nosql-databases
+
+# MongoDB tests - TCP 27017-27019
+firewall_policy_allowed_mongodb_rule_iap:
+  steps:
+  - command_flags:
+      layer4-configs: tcp:27017-27019
+      src-ip-ranges: 35.235.240.0/20
+    expected_result:
+      return_code: 0
+
+# Simplified constraint only blocks 0.0.0.0/0 and ::/0, not specific public IPs
+firewall_policy_mongodb_rule_allowed:
+  steps:
+  - command_flags:
+      layer4-configs: tcp:27017
+      src-ip-ranges: 1.1.1.1/32
+    expected_result:
+      return_code: 0
+
+firewall_policy_mongodb_27018_rule_denied:
+  steps:
+  - command_flags:
+      layer4-configs: tcp:27018
+      src-ip-ranges: 0.0.0.0/0
+    expected_result:
+      return_code: 1
+      stderr: 'customConstraints/custom\.firewallRestrict(PublicAccess|NoSQLDatabases)PolicyRule'
+
+# Cassandra tests - TCP 7000-7001, 7199, 8888, 9042, 9160, 61620-61621
+firewall_policy_allowed_cassandra_rule_172:
+  steps:
+  - command_flags:
+      layer4-configs: tcp:9042
+      src-ip-ranges: 172.16.0.0/12
+    expected_result:
+      return_code: 0
+
+firewall_policy_cassandra_rule_denied:
+  steps:
+  - command_flags:
+      layer4-configs: tcp:9042
+      src-ip-ranges: 0.0.0.0/0
+    expected_result:
+      return_code: 1
+      stderr: 'customConstraints/custom\.firewallRestrict(PublicAccess|NoSQLDatabases)PolicyRule'
+
+# Simplified constraint only blocks 0.0.0.0/0 and ::/0, not specific public IPs
+firewall_policy_cassandra_7000_rule_allowed:
+  steps:
+  - command_flags:
+      layer4-configs: tcp:7000
+      src-ip-ranges: 1.0.0.0/32
+    expected_result:
+      return_code: 0
+
+# Simplified constraint only blocks 0.0.0.0/0 and ::/0, not specific public IPs
+firewall_policy_cassandra_9160_rule_allowed:
+  steps:
+  - command_flags:
+      layer4-configs: tcp:9160
+      src-ip-ranges: 203.0.113.0/24
+    expected_result:
+      return_code: 0
+
+# Multiple NoSQL database ports test
+# Simplified constraint only blocks 0.0.0.0/0 and ::/0, not specific public IPs
+firewall_policy_multiple_nosql_ports_allowed:
+  steps:
+  - command_flags:
+      layer4-configs: tcp:27017,tcp:9042,tcp:7000
+      src-ip-ranges: 1.0.0.0/32
+    expected_result:
+      return_code: 0

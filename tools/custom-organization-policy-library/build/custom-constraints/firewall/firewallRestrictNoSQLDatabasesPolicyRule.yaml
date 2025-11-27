@@ -1,0 +1,52 @@
+#@ load("/constraints.lib.star", "build_constraint")
+#@ constraint = build_constraint("firewallRestrictNoSQLDatabasesPolicyRule")
+
+#@ def condition():
+#@   #! NoSQL Databases
+#@   #! Cassandra: TCP 7000-7001, 7199, 8888, 9042, 9160, 61620-61621
+#@   #! MongoDB: TCP 27017-27019
+#@   #! Deny if source range is 0.0.0.0/0 (any source)
+#@
+#@   lines = [
+#@     "resource.rules.exists(rule,",
+#@     "  rule.priority < 2147483644 &&",
+#@     "  rule.direction == 'INGRESS' &&",
+#@     "  rule.match.srcIpRanges.exists(range, range == '0.0.0.0/0') &&",
+#@     "  (",
+#@     "    rule.match.layer4Configs.containsIpProtocolAndPort('tcp', '7000') ||",
+#@     "    rule.match.layer4Configs.containsIpProtocolAndPort('tcp', '7001') ||",
+#@     "    rule.match.layer4Configs.containsIpProtocolAndPort('tcp', '7199') ||",
+#@     "    rule.match.layer4Configs.containsIpProtocolAndPort('tcp', '8888') ||",
+#@     "    rule.match.layer4Configs.containsIpProtocolAndPort('tcp', '9042') ||",
+#@     "    rule.match.layer4Configs.containsIpProtocolAndPort('tcp', '9160') ||",
+#@     "    rule.match.layer4Configs.containsIpProtocolAndPort('tcp', '61620') ||",
+#@     "    rule.match.layer4Configs.containsIpProtocolAndPort('tcp', '61621') ||",
+#@     "    rule.match.layer4Configs.containsIpProtocolAndPort('tcp', '27017') ||",
+#@     "    rule.match.layer4Configs.containsIpProtocolAndPort('tcp', '27018') ||",
+#@     "    rule.match.layer4Configs.containsIpProtocolAndPort('tcp', '27019')",
+#@     "  )",
+#@     ")",
+#@   ]
+#@   return "\n".join(lines)
+#@ end
+
+#@ def description():
+#@   lines = [
+#@     "Ensure that NoSQL database ports (Cassandra, MongoDB) are not accessible from any source when",
+#@     "using Firewall Policy Rule",
+#@   ]
+#@   return "\n".join(lines)
+#@ end
+
+#@ if constraint.to_generate():
+name: #@ constraint.constraint_name()
+resource_types:
+- compute.googleapis.com/FirewallPolicy
+condition: #@ condition()
+action_type: DENY
+method_types:
+- CREATE
+- UPDATE
+display_name: Restrict Firewall Policy rules allowing NoSQL database port access from any source
+description: #@ description()
+#@ end

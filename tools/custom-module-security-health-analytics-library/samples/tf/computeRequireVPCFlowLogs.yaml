@@ -1,0 +1,11 @@
+computeRequireVPCFlowLogs:
+  description: Detect if every VPC subnets have VPC flow logging enabled with the proper config
+  predicate:
+    expression:
+      (!resource.enableFlowLogs || !resource.logConfig.enable || resource.logConfig.flowSampling != 1.0 ||
+      !resource.logConfig.metadata.matches('INCLUDE_ALL_METADATA'))
+  recommendation: Ensure VPC subnet has VPC flow logging enabled with the proper config
+  resource_selector:
+    resource_types:
+      - compute.googleapis.com/Subnetwork
+  severity: HIGH

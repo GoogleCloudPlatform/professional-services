@@ -1,0 +1,14 @@
+#@ load("/sha.lib.star", "build_sha")
+#@ sha = build_sha("computeRequireBackendServiceLog")
+
+#@ if sha.to_generate():
+severity: HIGH
+description: "Detect logging is disabled on backend services or sampling rate is not set to correct value"
+recommendation: "Ensure backend service has logging enabled with the proper sampling rate"
+resource_selector:
+  resource_types:
+  - compute.googleapis.com/BackendService
+  - compute.googleapis.com/RegionBackendService
+predicate:
+  expression: (!resource.logConfig.enable || resource.logConfig.sampleRate != 1.0)
+#@ end

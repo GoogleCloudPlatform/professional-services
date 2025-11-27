@@ -1,0 +1,11 @@
+custom.dnsRequirePolicyLogging:
+  action_type: DENY
+  condition: |-
+    resource.enableLogging != true
+  description: Ensure that Cloud DNS logging is enabled when configuring a DNS Policy
+  display_name: Require Cloud DNS logging enabled when configuring a DNS Policy
+  method_types:
+    - CREATE
+    - UPDATE
+  resource_types:
+    - dns.googleapis.com/Policy

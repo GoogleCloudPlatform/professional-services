@@ -1,0 +1,3 @@
+custom.firewallRestrictOpenFirewallPolicyRule:
+  rules:
+    - enforce: true

@@ -1,10 +1,11 @@
 custom.storageRequireBucketObjectVersionning:
   action_type: DENY
-  condition: resource.versioning.enabled == false
+  condition: |-
+    resource.versioning.enabled == false
   description: Enforce Cloud Storage bucket object versioning to be configured
   display_name: Require object versioning
   method_types:
-  - CREATE
-  - UPDATE
+    - CREATE
+    - UPDATE
   resource_types:
-  - storage.googleapis.com/Bucket
+    - storage.googleapis.com/Bucket

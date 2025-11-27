@@ -1,0 +1,29 @@
+description: Audit Configuration Changes
+bucketName: projects/my-project/locations/asia-southeast1/buckets/org-logging-bucket
+filter: protoPayload.methodName="SetIamPolicy" AND protoPayload.serviceData.policyDelta.auditConfigDeltas:*
+metricDescriptor:
+  metricKind: DELTA
+  valueType: INT64
+  unit: "1"
+  labels:
+    - key: principal
+      description: principal
+      valueType: STRING
+    - key: method_name
+      description: method_name
+      valueType: STRING
+    - key: organization_id
+      description: organization_id
+      valueType: STRING
+    - key: folder_id
+      description: folder_id
+      valueType: STRING
+    - key: project_id
+      description: project_id
+      valueType: STRING
+labelExtractors:
+  principal: EXTRACT(protoPayload.authenticationInfo.principalEmail)
+  method_name: EXTRACT(protoPayload.methodName)
+  organization_id: EXTRACT(labels.organization_id)
+  folder_id: EXTRACT(labels.folder_id)
+  project_id: EXTRACT(labels.project_id)

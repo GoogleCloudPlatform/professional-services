@@ -1,0 +1,20 @@
+#@ load("/constraints.lib.star", "build_constraint")
+#@ constraint = build_constraint("iamDisablePublicBindings")
+
+#@ if constraint.to_generate():
+name: #@ constraint.constraint_name()
+resource_types: 
+- iam.googleapis.com/AllowPolicy
+method_types:
+- CREATE
+- UPDATE
+condition: >- 
+  resource.bindings.exists(binding,
+    binding.members.exists(member,
+      MemberSubjectMatches(member, ['allUsers', 'allAuthenticatedUsers'])
+    )
+  )
+action_type: DENY
+display_name: Deny use of public access bindings with allUsers or allAuthenticatedUsers
+description: Ensure no use of public bindings (allUsers, allAuthenticatedUsers)
+#@ end

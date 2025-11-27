@@ -17,32 +17,8 @@
 ---
 #@overlay/match missing_ok=True
 storage:
-  storageRequireBucketCmekEncryption:
-    #@schema/validation one_of=["default", "skip", "include"]
-    generation: "default"
-    bundles:
-      pci-dss: false
-      cis: false
-  storageRequireBucketObjectVersionning:
-    #@schema/validation one_of=["default", "skip", "include"]
-    generation: "default"
-    bundles:
-      pci-dss: false
-      cis: false
-  storageRequireBucketRetentionPolicy:
-    #@schema/validation one_of=["default", "skip", "include"]
-    generation: "default"
-    bundles:
-      pci-dss: false
-      cis: false
-  storageRequireBucketLock:
-    #@schema/validation one_of=["default", "skip", "include"]
-    generation: "default"
-    bundles:
-      pci-dss: false
-      cis: false
   storageAllowedBucketLabels:
-    #@schema/validation one_of=["default", "skip", "include"]
+    #@schema/validation one_of=["default", "skip", "include", "skip-policy"]
     generation: "default"
     bundles:
       pci-dss: false
@@ -52,7 +28,7 @@ storage:
       labels:
       - ""
   storageBucketEnforceNamingConvention:
-    #@schema/validation one_of=["default", "skip", "include"]
+    #@schema/validation one_of=["default", "skip", "include", "skip-policy"]
     generation: "default"
     bundles:
       pci-dss: false
@@ -60,3 +36,21 @@ storage:
     params:
       #@schema/validation min_len=1
       name_regex: ""
+  storageRequireBucketCmekEncryption:
+    #@schema/validation one_of=["default", "skip", "include", "skip-policy"]
+    generation: "default"
+    bundles:
+      pci-dss: false
+      cis: false
+  storageRequireBucketObjectVersionning:
+    #@schema/validation one_of=["default", "skip", "include", "skip-policy"]
+    generation: "default"
+    bundles:
+      pci-dss: false
+      cis: false
+  storageRequireBucketRetentionPolicy:
+    #@schema/validation one_of=["default", "skip", "include", "skip-policy"]
+    generation: "default"
+    bundles:
+      pci-dss: false
+      cis: false

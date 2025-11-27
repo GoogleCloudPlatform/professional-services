@@ -1,0 +1,11 @@
+computeDisableOSLoginProject:
+  description: Detect if OS Login is enabled at the project level
+  predicate:
+    expression:
+      (resource.commonInstanceMetadata.items.exists(item, item.key.matches('enable-oslogin') &&
+      item.value.matches('true')))
+  recommendation: Ensure OS Login is disabled at the project level
+  resource_selector:
+    resource_types:
+      - compute.googleapis.com/Project
+  severity: MEDIUM

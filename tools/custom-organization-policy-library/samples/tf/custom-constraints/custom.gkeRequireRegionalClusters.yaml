@@ -1,10 +1,11 @@
 custom.gkeRequireRegionalClusters:
   action_type: DENY
-  condition: resource.location.matches("^[a-z]+(-[a-z, 1-9]+)$") == false
+  condition: |-
+    resource.location.matches("^[a-z]+(-[a-z, 1-9]+)$") == false
   description: Enforce the creation of regional GKE clusters
   display_name: Require regional GKE cluster
   method_types:
-  - CREATE
-  - UPDATE
+    - CREATE
+    - UPDATE
   resource_types:
-  - container.googleapis.com/Cluster
+    - container.googleapis.com/Cluster

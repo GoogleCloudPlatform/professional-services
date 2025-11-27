@@ -1,0 +1,8 @@
+severity: MEDIUM
+description: Detect if Gen1 Cloud Functions are configured without any VPC Connector
+recommendation: Ensure Gen1 Cloud Functions are configured with VPC Connector
+resource_selector:
+  resource_types:
+    - cloudfunctions.googleapis.com/CloudFunction
+predicate:
+  expression: (!has(resource.vpcConnector))

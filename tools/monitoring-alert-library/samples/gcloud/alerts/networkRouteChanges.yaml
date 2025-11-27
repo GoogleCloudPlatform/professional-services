@@ -1,0 +1,34 @@
+displayName: VPC Network Route Changes
+documentation:
+  content: |-
+    Log-based alerting policy in project ${project} detected VPC Network Route changes.
+
+    This alert helps ensure security by monitoring creation or deletion of network routes.
+    ```
+    resource.type="gce_route" AND (
+      protoPayload.methodName:"compute.routes.insert" OR
+      protoPayload.methodName:"compute.routes.delete"
+    )
+    ```
+  mimeType: text/markdown
+conditions:
+  - displayName: "Log match condition: VPC Network Route Changes"
+    conditionThreshold:
+      filter: resource.type = "logging_bucket" AND metric.type = "logging.googleapis.com/user/networkRouteChanges"
+      aggregations:
+        - perSeriesAligner: ALIGN_SUM
+          alignmentPeriod: 60s
+          crossSeriesReducer: REDUCE_SUM
+          groupByFields:
+            - metric.label.principal
+            - metric.label.method_name
+            - metric.label.project_id
+            - metric.label.route_id
+      comparison: COMPARISON_GT
+      thresholdValue: 0
+      duration: 0s
+      trigger:
+        count: 1
+combiner: OR
+notificationChannels:
+  - projects/my-project/notificationChannels/11111111111111

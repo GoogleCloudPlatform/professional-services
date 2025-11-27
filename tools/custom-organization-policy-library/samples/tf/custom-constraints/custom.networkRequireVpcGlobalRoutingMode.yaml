@@ -1,9 +1,10 @@
 custom.networkRequireVpcGlobalRoutingMode:
   action_type: DENY
-  condition: resource.routingConfig.routingMode.contains ('GLOBAL') == false
+  condition: |-
+    resource.routingConfig.routingMode.contains ('GLOBAL') == false
   description: Enforce that a VPC is configured in global routing mode
   display_name: Require VPC with global routing mode
   method_types:
-  - CREATE
+    - CREATE
   resource_types:
-  - compute.googleapis.com/Network
+    - compute.googleapis.com/Network

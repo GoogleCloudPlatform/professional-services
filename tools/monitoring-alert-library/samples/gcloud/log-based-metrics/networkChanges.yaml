@@ -1,0 +1,33 @@
+description: VPC Network Changes
+bucketName: projects/my-project/locations/asia-southeast1/buckets/org-logging-bucket
+filter: |-
+  resource.type="gce_network" AND (
+    protoPayload.methodName:"compute.networks.insert" OR
+    protoPayload.methodName:"compute.networks.patch" OR
+    protoPayload.methodName:"compute.networks.delete" OR
+    protoPayload.methodName:"compute.networks.addPeering" OR
+    protoPayload.methodName:"compute.networks.updatePeering" OR
+    protoPayload.methodName:"compute.networks.removePeering"
+  )
+metricDescriptor:
+  metricKind: DELTA
+  valueType: INT64
+  unit: "1"
+  labels:
+    - key: principal
+      description: principal
+      valueType: STRING
+    - key: method_name
+      description: method_name
+      valueType: STRING
+    - key: project_id
+      description: project_id
+      valueType: STRING
+    - key: network_id
+      description: network_id
+      valueType: STRING
+labelExtractors:
+  principal: EXTRACT(protoPayload.authenticationInfo.principalEmail)
+  method_name: EXTRACT(protoPayload.methodName)
+  project_id: EXTRACT(labels.project_id)
+  network_id: EXTRACT(labels.network_id)

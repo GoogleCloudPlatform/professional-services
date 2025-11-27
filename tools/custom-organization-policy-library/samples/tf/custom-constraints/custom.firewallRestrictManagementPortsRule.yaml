@@ -1,0 +1,15 @@
+custom.firewallRestrictManagementPortsRule:
+  action_type: DENY
+  condition: |-
+    resource.direction.matches('INGRESS') &&
+      resource.sourceRanges.exists(range, range == '0.0.0.0/0') &&
+      resource.allowed.containsFirewallPort('tcp', '9090')
+  description:
+    Ensure that management interfaces (Cisco Secure WebSM) are not accessible from any source when using VPC Firewall
+    Rule
+  display_name: Restrict VPC Firewall rules allowing management port access from any source
+  method_types:
+    - CREATE
+    - UPDATE
+  resource_types:
+    - compute.googleapis.com/Firewall

@@ -1,0 +1,131 @@
+shared_config:
+  command:  gcloud compute firewall-rules create allow-sql-db-{{ identifier }}
+  teardown_command: gcloud compute firewall-rules delete allow-sql-db-{{ identifier }}
+  default_command_flags:
+      action: ALLOW
+      direction: INGRESS
+      network: vpc-dev-cuop-library
+      priority: 1000
+      description: Testing SQL database firewall rule
+      enable-logging: true
+  default_markers:
+    - firewall
+    - firewall-vpc-rule
+    - sql-databases
+
+# MySQL tests - TCP 3306
+firewall_vpc_allowed_mysql_rule_192:
+  steps:
+  - command_flags:
+      rules: tcp:3306
+      source-ranges: 192.168.0.0/16
+    expected_result:
+      return_code: 0
+
+firewall_vpc_allowed_mysql_rule_10:
+  steps:
+  - command_flags:
+      rules: tcp:3306
+      source-ranges: 10.0.0.0/8
+    expected_result:
+      return_code: 0
+
+# Simplified constraint only blocks 0.0.0.0/0 and ::/0, not specific public IPs
+firewall_vpc_mysql_rule_allowed:
+  steps:
+  - command_flags:
+      rules: tcp:3306
+      source-ranges: 1.0.0.0/32
+    expected_result:
+      return_code: 0
+
+# PostgreSQL tests - TCP 5432
+firewall_vpc_allowed_postgresql_rule_192:
+  steps:
+  - command_flags:
+      rules: tcp:5432
+      source-ranges: 192.168.0.0/16
+    expected_result:
+      return_code: 0
+
+firewall_vpc_postgresql_rule_denied:
+  steps:
+  - command_flags:
+      rules: tcp:5432
+      source-ranges: 0.0.0.0/0
+    expected_result:
+      return_code: 1
+      stderr: 'customConstraints/custom\.firewallRestrict(PublicAccess|SQLDatabases)Rule'
+
+# PostgreSQL UDP tests - UDP 5432
+firewall_vpc_allowed_postgresql_udp_rule_10:
+  steps:
+  - command_flags:
+      rules: udp:5432
+      source-ranges: 10.0.0.0/8
+    expected_result:
+      return_code: 0
+
+# Simplified constraint only blocks 0.0.0.0/0 and ::/0, not specific public IPs
+firewall_vpc_postgresql_udp_rule_allowed:
+  steps:
+  - command_flags:
+      rules: udp:5432
+      source-ranges: 8.8.8.8/32
+    expected_result:
+      return_code: 0
+
+# Oracle tests - TCP 1521, 2483-2484
+firewall_vpc_allowed_oracle_rule_iap:
+  steps:
+  - command_flags:
+      rules: tcp:1521
+      source-ranges: 35.235.240.0/20
+    expected_result:
+      return_code: 0
+
+# Simplified constraint only blocks 0.0.0.0/0 and ::/0, not specific public IPs
+firewall_vpc_oracle_tcp_rule_allowed:
+  steps:
+  - command_flags:
+      rules: tcp:1521
+      source-ranges: 198.51.100.0/24
+    expected_result:
+      return_code: 0
+
+# Simplified constraint only blocks 0.0.0.0/0 and ::/0, not specific public IPs
+firewall_vpc_oracle_tcp_2483_rule_allowed:
+  steps:
+  - command_flags:
+      rules: tcp:2483
+      source-ranges: 1.0.0.0/32
+    expected_result:
+      return_code: 0
+
+# Oracle UDP tests - UDP 2483-2484
+firewall_vpc_allowed_oracle_udp_rule_172:
+  steps:
+  - command_flags:
+      rules: udp:2484
+      source-ranges: 172.16.0.0/12
+    expected_result:
+      return_code: 0
+
+# Simplified constraint only blocks 0.0.0.0/0 and ::/0, not specific public IPs
+firewall_vpc_oracle_udp_rule_allowed:
+  steps:
+  - command_flags:
+      rules: udp:2483
+      source-ranges: 203.0.113.0/24
+    expected_result:
+      return_code: 0
+
+# Multiple SQL database ports test
+# Simplified constraint only blocks 0.0.0.0/0 and ::/0, not specific public IPs
+firewall_vpc_multiple_sql_ports_allowed:
+  steps:
+  - command_flags:
+      rules: tcp:3306,tcp:5432,tcp:1521
+      source-ranges: 1.0.0.0/32
+    expected_result:
+      return_code: 0

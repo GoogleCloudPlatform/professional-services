@@ -1,0 +1,13 @@
+#@ load("/sha.lib.star", "build_sha")
+#@ sha = build_sha("computeDisableInstanceIPForwarding")
+
+#@ if sha.to_generate():
+severity: MEDIUM
+description: "Detect if VM IP Forwarding is enabled on Compute Instances"
+recommendation: "Ensure IP Forwarding is disabled on Compute Instances"
+resource_selector:
+  resource_types:
+  - compute.googleapis.com/Instance
+predicate:
+  expression: (resource.canIpForward == true)
+#@ end

@@ -1,0 +1,11 @@
+custom.accesscontextmanagerDisableBridgePerimeters:
+  action_type: DENY
+  condition: |-
+    resource.perimeterType == 'PERIMETER_TYPE_BRIDGE'
+  description: Ensure no perimeter bridges are used. Instead, use ingress and egress rules.
+  display_name: Deny usage of perimeter bridges
+  method_types:
+    - CREATE
+    - UPDATE
+  resource_types:
+    - accesscontextmanager.googleapis.com/ServicePerimeter

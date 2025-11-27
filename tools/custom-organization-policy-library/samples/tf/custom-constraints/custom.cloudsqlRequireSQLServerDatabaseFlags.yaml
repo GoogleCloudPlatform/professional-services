@@ -1,0 +1,36 @@
+custom.cloudsqlRequireSQLServerDatabaseFlags:
+  action_type: DENY
+  condition: |-
+    resource.databaseVersion.startsWith('SQLSERVER') && (
+      resource.settings.databaseFlags.exists(flag,
+        flag.name == 'external scripts enabled' && flag.value == 'on'
+      ) ||
+      resource.settings.databaseFlags.exists(flag,
+        flag.name == 'cross db ownership chaining' && flag.value == 'on'
+      ) ||
+      resource.settings.databaseFlags.exists(flag,
+        flag.name == 'contained database authentication' && flag.value == 'on'
+      ) ||
+      resource.settings.databaseFlags.exists(flag,
+        flag.name == 'user connections' && flag.value != '0'
+      ) ||
+      resource.settings.databaseFlags.exists(flag,
+        flag.name == 'user options' && flag.value != '0'
+      ) ||
+      !resource.settings.databaseFlags.exists(flag,
+        flag.name == 'remote access' && flag.value == 'off'
+      ) ||
+      !resource.settings.databaseFlags.exists(flag,
+        flag.name == '3625' && flag.value == 'on'
+      )
+    )
+  description:
+    Ensure Cloud SQL for SQLServer instance database flags are set correctly (e.g external scripts enabled ...)
+  display_name:
+    Require Cloud SQL for SQLServer instance database flags to be configured correctly (e.g external scripts enabled
+    ...)
+  method_types:
+    - CREATE
+    - UPDATE
+  resource_types:
+    - sqladmin.googleapis.com/Instance

@@ -1,0 +1,23 @@
+before_tests:
+  # Storage
+  - command: gcloud storage buckets create gs://{{ prefix }}-monitoring-alert-bucket --default-storage-class=standard --uniform-bucket-level-access --location asia-southeast2
+  # Network for VPC
+  - command: gcloud compute networks create monitoring-alert-vpc-network --subnet-mode=custom --bgp-routing-mode=global
+  - command: gcloud compute networks create monitoring-alert-vpc-network-peer --subnet-mode=custom --bgp-routing-mode=global
+  - command: gcloud compute networks subnets create subnet-vm --network=monitoring-alert-vpc-network --range=10.10.0.0/24 --region=asia-southeast2
+  - command: gcloud compute networks subnets create subnet-gke --network=monitoring-alert-vpc-network --range=10.10.1.0/24 --region=asia-southeast2
+  - command: gcloud compute addresses create google-managed-services-monitoring-alert-vpc-network  --global --purpose=VPC_PEERING --prefix-length=24 --network=projects/{{ project }}/global/networks/monitoring-alert-vpc-network 
+  - command: gcloud services vpc-peerings connect --service=servicenetworking.googleapis.com --ranges=google-managed-services-monitoring-alert-vpc-network  --network=monitoring-alert-vpc-network
+  # Firewall Policy
+  - command: gcloud compute network-firewall-policies create monitoring-alert-fw-policy --global
+after_tests:
+  # Storage
+  - command: gcloud storage buckets delete gs://{{ prefix }}-monitoring-alert-bucket
+  # Network for VPC
+  - command: gcloud compute networks delete monitoring-alert-vpc-network
+  - command: gcloud compute networks delete monitoring-alert-vpc-network-peer
+  - command: gcloud compute networks subnets delete subnet-vm --region=asia-southeast2
+  - command: gcloud compute networks subnets delete subnet-gke --region=asia-southeast2
+  - command: gcloud compute addresses delete google-managed-services-monitoring-alert-vpc-network --global
+  # Firewall Policy
+  - command: gcloud compute network-firewall-policies delete monitoring-alert-fw-policy --global

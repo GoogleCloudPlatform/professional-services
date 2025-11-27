@@ -1,0 +1,37 @@
+displayName: Custom Role Changes
+documentation:
+  content: |-
+    Log-based alerting policy in project ${project} detected custom IAM role creation,
+    deletion or update activities.
+
+    This alert helps ensure security by monitoring changes to Identity and Access Management (IAM) roles.
+    ```
+    resource.type="iam_role" AND (
+      protoPayload.methodName="google.iam.admin.v1.CreateRole" OR
+      protoPayload.methodName="google.iam.admin.v1.UpdateRole" OR
+      protoPayload.methodName="google.iam.admin.v1.DeleteRole"
+    )
+    ```
+  mimeType: text/markdown
+conditions:
+  - displayName: "Log match condition: custom role changes"
+    conditionThreshold:
+      filter: resource.type = "logging_bucket" AND metric.type = "logging.googleapis.com/user/customRoleChanges"
+      aggregations:
+        - perSeriesAligner: ALIGN_SUM
+          alignmentPeriod: 60s
+          crossSeriesReducer: REDUCE_SUM
+          groupByFields:
+            - metric.label.principal
+            - metric.label.method_name
+            - metric.label.organization_id
+            - metric.label.project_id
+            - metric.label.role_name
+      comparison: COMPARISON_GT
+      thresholdValue: 0
+      duration: 0s
+      trigger:
+        count: 1
+combiner: OR
+notificationChannels:
+  - projects/my-project/notificationChannels/11111111111111

@@ -1,0 +1,78 @@
+shared_config:
+  command:  gcloud run deploy {{ identifier }} --region asia-southeast2
+  teardown_command: gcloud run services delete {{ identifier }} --region asia-southeast2
+  default_command_flags:
+    image: "us-docker.pkg.dev/cloudrun/container/hello:latest"
+    service-account: "{{ prefix }}-iam-sa"
+    binary-authorization: default
+  default_markers:
+    - cloudrun
+    - cloudrun_service
+
+cloudrun_service_allowed:
+  steps:
+  - expected_result:
+      return_code: 0
+
+cloudrun_service_env_var_no_secret:
+  steps:
+  - command_flags:
+      set-env-vars: myEnv1=myValue1,myEnv2=myValue2
+    expected_result:
+      return_code: 0
+
+cloudrun_service_env_var_pattern_lower:
+  steps:
+  - command_flags:
+      set-env-vars: myEnv1=myValue1,mysecret=myValue2
+    expected_result:
+      return_code: 1
+      stderr: 'customConstraints/custom\.cloudrunDisableEnvironmentVariablePattern'
+
+cloudrun_service_env_var_pattern_upper:
+  steps:
+  - command_flags:
+      set-env-vars: myEnv1=myValue1,MYSECRET=myValue2
+    expected_result:
+      return_code: 1
+      stderr: 'customConstraints/custom\.cloudrunDisableEnvironmentVariablePattern'
+
+cloudrun_service_env_var_pattern_mixed:
+  steps:
+  - command_flags:
+      set-env-vars: myEnv1=myValue1,mYsEcReT=myValue2
+    expected_result:
+      return_code: 1
+      stderr: 'customConstraints/custom\.cloudrunDisableEnvironmentVariablePattern'
+
+cloudrun_service_env_var_secret:
+  steps:
+  - command_flags:
+      set-env-vars: myEnv1=myValue1,mySecret=myValue2
+    expected_result:
+      return_code: 1
+      stderr: 'customConstraints/custom\.cloudrunDisableEnvironmentVariablePattern'
+
+cloudrun_service_env_var_key:
+  steps:
+  - command_flags:
+      set-env-vars: myEnv1=myValue1,apiKey=myValue2
+    expected_result:
+      return_code: 1
+      stderr: 'customConstraints/custom\.cloudrunDisableEnvironmentVariablePattern'
+
+cloudrun_service_env_var_token:
+  steps:
+  - command_flags:
+      set-env-vars: myEnv1=myValue1,Token=myValue2
+    expected_result:
+      return_code: 1
+      stderr: 'customConstraints/custom\.cloudrunDisableEnvironmentVariablePattern'
+
+cloudrun_service_env_var_password:
+  steps:
+  - command_flags:
+      set-env-vars: myEnv1=myValue1,myPassword=myValue2
+    expected_result:
+      return_code: 1
+      stderr: 'customConstraints/custom\.cloudrunDisableEnvironmentVariablePattern'

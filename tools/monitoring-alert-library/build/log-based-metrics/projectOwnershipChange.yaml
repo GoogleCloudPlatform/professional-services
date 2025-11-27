@@ -1,0 +1,54 @@
+#@ load("/alert.lib.star", "build_alert")
+#@ load("/alert.lib.yaml", "generate_notification_channels")
+#@ load("@ytt:template", "template")
+#@ alert = build_alert("projectOwnershipChange")
+
+#@ def filter():
+#@   lines = [
+#@     '(protoPayload.serviceName="cloudresourcemanager.googleapis.com") AND',
+#@     '(ProjectOwnership OR projectOwnerInvitee)',
+#@     'OR',
+#@     '(',
+#@     '  protoPayload.serviceData.policyDelta.bindingDeltas.action="REMOVE" AND',
+#@     '  protoPayload.serviceData.policyDelta.bindingDeltas.role="roles/owner"',
+#@     ')',
+#@     'OR',
+#@     '(',
+#@     '  protoPayload.serviceData.policyDelta.bindingDeltas.action="ADD" AND',
+#@     '  protoPayload.serviceData.policyDelta.bindingDeltas.role="roles/owner"',
+#@     ')'
+#@   ]
+#@   return "\n".join(lines)
+#@ end
+
+#@ if alert.to_generate():
+description:  "Project Ownership Changes"
+bucketName: #@ alert.log_bucket_name()
+filter: #@ filter()
+metricDescriptor:
+  metricKind: "DELTA"
+  valueType: "INT64"
+  unit: "1"
+  labels:
+    - key: "principal"
+      description: "principal"
+      valueType: STRING
+    - key: "method_name"
+      description: "method_name"
+      valueType: STRING
+    - key: "organization_id"
+      description: "organization_id"
+      valueType: STRING
+    - key: "folder_id"
+      description: "folder_id"
+      valueType: STRING
+    - key: "project_id"
+      description: "project_id"
+      valueType: STRING
+labelExtractors:
+  principal: "EXTRACT(protoPayload.authenticationInfo.principalEmail)"
+  method_name: "EXTRACT(protoPayload.methodName)"
+  organization_id: "EXTRACT(labels.organization_id)"
+  folder_id: "EXTRACT(labels.folder_id)"
+  project_id: "EXTRACT(labels.project_id)"
+#@ end

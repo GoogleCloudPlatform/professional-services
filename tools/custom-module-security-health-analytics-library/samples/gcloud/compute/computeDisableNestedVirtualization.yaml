@@ -1,0 +1,8 @@
+severity: MEDIUM
+description: Detect Compute Instances with nested virtualization enabled
+recommendation: Ensure Compute Instance does not have nested virtualization enabled
+resource_selector:
+  resource_types:
+    - compute.googleapis.com/Instance
+predicate:
+  expression: resource.advancedMachineFeatures.enableNestedVirtualization

@@ -1,10 +1,13 @@
 name: organizations/11111111/customConstraints/custom.gkeRequireNodePoolSandbox
 resource_types:
-- container.googleapis.com/NodePool
-condition: has(resource.config.sandboxConfig) == false && resource.config.sandboxConfig.type != 'GVISOR'
+  - container.googleapis.com/NodePool
+condition: |-
+  resource.name.matches("default-pool") == false &&
+    has(resource.config.sandboxConfig) == false &&
+    resource.config.sandboxConfig.type != 'GVISOR'
 actionType: DENY
 method_types:
-- CREATE
-- UPDATE
+  - CREATE
+  - UPDATE
 display_name: Require GKE Sandbox runtime
-description: Enforce that the GKE clusters nodes are isolated using GKE sandbox
+description: Enforce that the GKE clusters nodes are isolated using GKE sandbox (excepting the default node pool)

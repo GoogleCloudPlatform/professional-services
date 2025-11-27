@@ -1,0 +1,46 @@
+#@ load("/constraints.lib.star", "build_constraint")
+#@ constraint = build_constraint("firewallRestrictDirectoryServicesPolicyRule")
+
+#@ def condition():
+#@   #! Directory and Authentication Services
+#@   #! SMB/CIFS: TCP/UDP 445
+#@   #! LDAP: TCP 389, 636; UDP 389
+#@   #! Deny if source range is 0.0.0.0/0 (any source)
+#@
+#@   lines = [
+#@     "resource.rules.exists(rule,",
+#@     "  rule.priority < 2147483644 &&",
+#@     "  rule.direction == 'INGRESS' &&",
+#@     "  rule.match.srcIpRanges.exists(range, range == '0.0.0.0/0') &&",
+#@     "  (",
+#@     "    rule.match.layer4Configs.containsIpProtocolAndPort('udp', '445') ||",
+#@     "    rule.match.layer4Configs.containsIpProtocolAndPort('udp', '389') ||",
+#@     "    rule.match.layer4Configs.containsIpProtocolAndPort('tcp', '445') ||",
+#@     "    rule.match.layer4Configs.containsIpProtocolAndPort('tcp', '389') ||",
+#@     "    rule.match.layer4Configs.containsIpProtocolAndPort('tcp', '636')",
+#@     "  )",
+#@     ")",
+#@   ]
+#@   return "\n".join(lines)
+#@ end
+
+#@ def description():
+#@   lines = [
+#@     "Ensure that directory and authentication services (SMB/CIFS, LDAP) are not accessible from the",
+#@     "Internet when using Firewall Policy Rule",
+#@   ]
+#@   return "\n".join(lines)
+#@ end
+
+#@ if constraint.to_generate():
+name: #@ constraint.constraint_name()
+resource_types:
+- compute.googleapis.com/FirewallPolicy
+condition: #@ condition()
+action_type: DENY
+method_types:
+- CREATE
+- UPDATE
+display_name: Restrict Firewall Policy rules allowing directory service access from any source
+description: #@ description()
+#@ end

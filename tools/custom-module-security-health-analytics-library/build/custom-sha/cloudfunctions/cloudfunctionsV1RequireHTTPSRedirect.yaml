@@ -1,0 +1,13 @@
+#@ load("/sha.lib.star", "build_sha")
+#@ sha = build_sha("cloudfunctionsV1RequireHTTPSRedirect")
+
+#@ if sha.to_generate():
+severity: HIGH
+description: "Detect if Gen1 Cloud Functions are configured with HTTPS Trigger not set to SECURITY_ALWAYS configuration"
+recommendation: "Ensure Gen1 Cloud Functions are configured with HTTPS Trigger to automatically redirected to HTTPS by using SECURITY_ALWAYS configuration"
+resource_selector:
+  resource_types:
+  - cloudfunctions.googleapis.com/CloudFunction
+predicate:
+  expression: (has(resource.httpsTrigger) && !resource.httpsTrigger.securityLevel.matches("SECURITY_ALWAYS"))
+#@ end

@@ -1,0 +1,95 @@
+shared_config:
+  command: gcloud dns managed-zones create {{ identifier }} 
+  teardown_command: gcloud dns managed-zones delete {{ identifier }}
+  default_command_flags: 
+    dns-name: cuop.vannick.altostrat.com.
+    description: description
+    visibility: public
+    log-dns-queries: true
+    dnssec-state: "on"
+  default_markers:
+    - dns
+    - dns-managed-zones
+
+dns_public_managed_zones_allowed:
+  steps:
+  - expected_result:
+      return_code: 0
+
+dns_private_managed_zones_allowed:
+  steps:
+  - command_flags:
+      visibility: private
+      log-dns-queries: absent
+      dnssec-state: "absent"
+      networks: vpc-dev-cuop-library
+    expected_result:
+      return_code: 0
+
+dns_public_managed_zones_ksk_zsk_allowed:
+  steps:
+  - command_flags:
+      ksk-algorithm: ECDSAP256SHA256 
+      ksk-key-length: 256
+      zsk-algorithm: ECDSAP256SHA256 
+      zsk-key-length: 256
+      denial-of-existence: NSEC
+    expected_result:
+      return_code: 0
+
+dns_public_managed_zones_no_logging:
+  steps:
+  - command_flags:
+      log-dns-queries: false
+    expected_result:
+      return_code: 1
+      stderr: 'HTTPError 412' # Gcloud output is not verbose enough to return the constraint blocking creation
+
+dns_public_managed_zones_absent_logging:
+  steps:
+  - command_flags:
+      log-dns-queries: absent
+    expected_result:
+      return_code: 1
+      stderr: 'HTTPError 412' # Gcloud output is not verbose enough to return the constraint blocking creation
+
+dns_public_managed_zones_no_dnssec:
+  steps:
+  - command_flags:
+      dnssec-state: "off"
+    expected_result:
+      return_code: 1
+      stderr: 'HTTPError 412' # Gcloud output is not verbose enough to return the constraint blocking creation
+
+dns_public_managed_zones_absent_dnssec:
+  steps:
+  - command_flags:
+      dnssec-state: "absent"
+    expected_result:
+      return_code: 1
+      stderr: 'HTTPError 412' # Gcloud output is not verbose enough to return the constraint blocking creation
+
+dns_public_managed_zones_ksk_unallowed:
+  steps:
+  - command_flags:
+      ksk-algorithm: RSASHA256 
+      ksk-key-length: 256
+      zsk-algorithm: ECDSAP256SHA256 
+      zsk-key-length: 256
+      denial-of-existence: NSEC
+    expected_result:
+      return_code: 1
+      stderr: 'HTTPError 412' # Gcloud output is not verbose enough to return the constraint blocking creation
+
+dns_public_managed_zones_zsk_unallowed:
+  steps:
+  - command_flags:
+      ksk-algorithm: ECDSAP256SHA256 
+      ksk-key-length: 256
+      zsk-algorithm: RSASHA256 
+      zsk-key-length: 256
+      denial-of-existence: NSEC
+    expected_result:
+      return_code: 1
+      stderr: 'HTTPError 412' # Gcloud output is not verbose enough to return the constraint blocking creation
+

@@ -1,0 +1,17 @@
+description: DNS Malformed Queries
+bucketName: projects/my-project/locations/asia-southeast1/buckets/org-logging-bucket
+filter: resource.type="dns_query" AND jsonPayload.responseCode="FORMERR"
+metricDescriptor:
+  metricKind: DELTA
+  valueType: INT64
+  unit: "1"
+  labels:
+    - key: principal
+      description: principal
+      valueType: STRING
+    - key: project_id
+      description: project_id
+      valueType: STRING
+labelExtractors:
+  principal: EXTRACT(protoPayload.authenticationInfo.principalEmail)
+  project_id: EXTRACT(labels.project_id)

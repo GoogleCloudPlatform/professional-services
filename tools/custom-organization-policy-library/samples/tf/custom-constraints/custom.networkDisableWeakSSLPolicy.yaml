@@ -1,0 +1,25 @@
+custom.networkDisableWeakSSLPolicy:
+  action_type: DENY
+  condition: |-
+    (resource.profile == "COMPATIBLE") || (resource.profile == "CUSTOM" &&
+      resource.customFeatures.exists(feature, feature in [
+      "TLS_RSA_WITH_AES_128_GCM_SHA256",
+      "TLS_RSA_WITH_AES_256_GCM_SHA384",
+      "TLS_RSA_WITH_AES_128_CBC_SHA",
+      "TLS_RSA_WITH_AES_256_CBC_SHA",
+      "TLS_RSA_WITH_3DES_EDE_CBC_SHA",
+      ])
+    ) || (resource.profile == "CUSTOM" &&
+      resource.minTlsVersion in ["TLS_1_2", "TLS_1_3"] == false
+    ) || (resource.profile == "MODERN" &&
+      resource.minTlsVersion in ["TLS_1_2", "TLS_1_3"] == false
+    ) || (resource.profile == "RESTRICTED" &&
+      resource.minTlsVersion in ["TLS_1_2", "TLS_1_3"] == false
+    )
+  description: Ensure SSL Policies created does not have weak cipher suites
+  display_name: Deny usage of SSL Policies with weak cipher suites
+  method_types:
+    - CREATE
+    - UPDATE
+  resource_types:
+    - compute.googleapis.com/SslPolicy

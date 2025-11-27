@@ -1,0 +1,19 @@
+custom.cloudsqlRequirePostgreSQLDatabaseAdditionalFlags:
+  action_type: DENY
+  condition: |-
+    resource.databaseVersion.startsWith('POSTGRES') && (
+      !resource.settings.databaseFlags.exists(flag, flag.name == 'log_checkpoints' && flag.value == 'on') ||
+      !resource.settings.databaseFlags.exists(flag, flag.name == 'log_executor_stats' && flag.value == 'off') ||
+      !resource.settings.databaseFlags.exists(flag, flag.name == 'log_lock_waits' && flag.value == 'on')
+    )
+  description:
+    Ensure Cloud SQL for PostgreSQL instance database flags are set correctly (e.g log_checkpoints, log_executor_stats,
+    log_lock_waits)
+  display_name:
+    Require Cloud SQL for PostgreSQL instance database flags to be configured correctly (e.g log_checkpoints,
+    log_executor_stats, log_lock_waits)
+  method_types:
+    - CREATE
+    - UPDATE
+  resource_types:
+    - sqladmin.googleapis.com/Instance

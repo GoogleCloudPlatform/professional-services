@@ -1,0 +1,35 @@
+#@ load("/constraints.lib.star", "build_constraint")
+#@ constraint = build_constraint("firewallRestrictSshRule")
+
+#@ def condition():
+#@   lines = [
+#@     "resource.direction.matches('INGRESS') &&",
+#@     "!resource.name.startsWith('gke-') &&",
+#@     "!resource.name.startsWith('k8s-') &&",
+#@     "!resource.name.endsWith('-hc') &&",
+#@     "!resource.name.startsWith('k8s2-') &&",
+#@     "!resource.name.startsWith('gkegw1-l7-') &&",
+#@     "!resource.name.startsWith('gkemcg1-l7-') &&",
+#@     "resource.allowed.containsFirewallPort('tcp', '22') &&",
+#@     "!resource.sourceRanges.all(range,",
+#@     "  range == '35.235.240.0/20' ||",
+#@     "  range.startsWith('10.') ||",
+#@     "  range.matches('^172\\\.(?:1[6-9]|2\\\d|3[0-1]).*') ||",
+#@     "  range.startsWith('192.168.')",
+#@     ")"
+#@   ]
+#@   return "\n".join(lines)
+#@ end
+
+#@ if constraint.to_generate():
+name: #@ constraint.constraint_name()
+resource_types:
+- compute.googleapis.com/Firewall
+condition: #@ condition()
+action_type: DENY
+method_types: 
+- CREATE 
+- UPDATE
+display_name: Restrict VPC Firewall rules allowing SSH access from any source
+description: Ensure that SSH access is restricted from any source when using VPC Firewall Rule
+#@ end

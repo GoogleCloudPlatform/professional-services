@@ -1,0 +1,10 @@
+name: organizations/11111111/customConstraints/custom.firewallEnforcePolicyRuleLogging
+resource_types:
+  - compute.googleapis.com/FirewallPolicy
+condition: resource.rules.exists(rule, rule.action != 'goto_next' && rule.enableLogging == false)
+action_type: DENY
+method_types:
+  - CREATE
+  - UPDATE
+display_name: Require Firewall Policy rules to have logging enabled
+description: Ensure that Firewall Policy rules have logging enabled

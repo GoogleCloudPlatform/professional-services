@@ -1,3 +1,3 @@
 custom.gkeRequireGroupsRBAC:
   rules:
-  - enforce: true
+    - enforce: true

@@ -1,0 +1,65 @@
+# Copyright 2024 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+experiment_id: sample
+number_of_dags: 1
+min_tasks_per_dag: 10
+paused: 0.5
+
+# Schedules and weights
+schedules:
+  "@daily": 0.5
+  "10 * * * *": 0.1
+  "20 * * * *": 0.1
+  "30 * * * *": 0.1
+  "40 * * * *": 0.1
+  "50 * * * *": 0.1
+
+# Start dates and weights
+start_dates:
+  "9/20/2024": 1
+
+# 27000
+# taskflows and weights
+taskflows:
+  base:
+    EmptyOperator: 0.3
+    PythonOperator: 0.26
+    BashOperator: 0.05
+    BranchPythonOperator: 0.05
+    KubernetesPodOperator: 0
+  google_cloud:
+    BigQueryInsertJobOperator: 0.22
+    DataprocCreateBatchOperator: 0.05
+    GCSToBigQueryOperator: 0.03
+    DataprocSubmitJobOperator: 0
+    BeamRunJavaPipelineOperator: 0
+    GCSToGCSOperator: 0
+    GKEStartPodOperator: 0
+
+# Default settings for every generated DAG.
+default_settings:
+  project_id: your-project
+  region: your-region
+  composer_environment: your-environment
+  deferrable: false
+  retries: 1
+  retry_delay: 2  # minutes
+  catchup: false
+  is_paused_upon_creation: false # True will override and set all dags to paused
+  dagrun_timeout: 60  # minutes 
+  execution_timeout: 30  # minutes
+  sla: 25  # minutes
+  mode: reschedule
+  poke_interval: 60  # seconds

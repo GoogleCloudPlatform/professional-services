@@ -1,0 +1,15 @@
+shared_config:
+  command:  gcloud compute target-http-proxies create {{ identifier }}
+  teardown_command: gcloud compute target-http-proxies delete {{ identifier }}
+  default_command_flags:
+    http-keep-alive-timeout-sec: 600
+    url-map: "{{ prefix }}-http-lb"
+  default_markers:
+    - network
+    - network_lb
+
+lb_target_http_proxy_unallowed:
+  steps:
+  - expected_result:
+      return_code: 1
+      stderr: 'customConstraints/custom\.networkDisableTargetHTTPProxy'

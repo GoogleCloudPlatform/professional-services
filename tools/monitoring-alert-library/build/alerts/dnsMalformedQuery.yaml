@@ -1,0 +1,46 @@
+#@ load("/alert.lib.star", "build_alert")
+#@ load("/alert.lib.yaml", "generate_notification_channels")
+#@ load("@ytt:template", "template")
+#@ alert = build_alert("dnsMalformedQuery")
+
+#@ def documentation_content():
+#@   lines = [
+#@     'Log-based alerting policy in project ${project} detected where DNS queries are malformed',
+#@     'or cannot be processed by the DNS server.',
+#@     '',
+#@     'This alert helps monitoring the DNS logs for response code "FORMERR" when malformed DNS queries',
+#@     'are sent to the DNS server.',
+#@     '```',
+#@     'resource.type="dns_query" AND jsonPayload.responseCode="FORMERR"',
+#@     '```'
+#@   ]
+#@   return "\n".join(lines)
+#@ end
+
+#@ if alert.to_generate():
+displayName: 'DNS Malformed Queries'
+documentation:
+  content: #@ documentation_content()
+  mimeType: text/markdown
+conditions:
+- displayName: 'Log match condition: DNS Malformed Queries'
+  conditionThreshold:
+    filter: >-
+      resource.type = "logging_bucket" AND metric.type = "logging.googleapis.com/user/dnsMalformedQuery"
+    aggregations:
+    - perSeriesAligner: ALIGN_SUM
+      alignmentPeriod: 60s
+      crossSeriesReducer: REDUCE_SUM
+      groupByFields:
+      - metric.label.principal
+      - metric.label.project_id
+    comparison: COMPARISON_GT
+    thresholdValue: 0
+    duration: 0s
+    trigger:
+      count: 1
+combiner: OR
+#@ if alert.has_notification_channels():
+_: #@ template.replace(generate_notification_channels())
+#@ end
+#@ end

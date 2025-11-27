@@ -1,0 +1,39 @@
+#@ load("/constraints.lib.star", "build_constraint")
+#@ constraint = build_constraint("firewallRestrictManagementPortsPolicyRule")
+
+#@ def condition():
+#@   #! Administrative and management interfaces
+#@   #! Cisco Secure WebSM: TCP:9090
+#@   #! Deny if source range is 0.0.0.0/0 (any source)
+#@
+#@   lines = [
+#@     "resource.rules.exists(rule,",
+#@     "  rule.priority < 2147483644 &&",
+#@     "  rule.direction == 'INGRESS' &&",
+#@     "  rule.match.srcIpRanges.exists(range, range == '0.0.0.0/0') &&",
+#@     "  rule.match.layer4Configs.containsIpProtocolAndPort('tcp', '9090')",
+#@     ")"
+#@   ]
+#@   return "\n".join(lines)
+#@ end
+
+#@ def description():
+#@   lines = [
+#@     "Ensure that management interfaces (Cisco Secure WebSM) are not accessible from any source when",
+#@     "using Firewall Policy Rule",
+#@   ]
+#@   return "\n".join(lines)
+#@ end
+
+#@ if constraint.to_generate():
+name: #@ constraint.constraint_name()
+resource_types:
+- compute.googleapis.com/FirewallPolicy
+condition: #@ condition()
+action_type: DENY
+method_types:
+- CREATE
+- UPDATE
+display_name: Restrict Firewall Policy rules allowing management port access from any source
+description: #@ description()
+#@ end

@@ -1,0 +1,26 @@
+#@ load("/constraints.lib.star", "build_constraint")
+#@ constraint = build_constraint("cloudkmsAllowedProtectionLevel")
+
+#@ def condition(protection_levels):
+#@   protection_levels_str = str(protection_levels)
+#@
+#@   if "SOFTWARE" in protection_levels:
+#@     return 'has(resource.versionTemplate.protectionLevel) && resource.versionTemplate.protectionLevel in ' + protection_levels_str + ' == false'
+#@   else:
+#@     return 'resource.versionTemplate.protectionLevel in ' + protection_levels_str + ' == false'
+#@   end
+#@ end
+
+
+#@ if constraint.to_generate():
+name: #@ constraint.constraint_name()
+resourceTypes:
+- cloudkms.googleapis.com/CryptoKey
+methodTypes:
+- CREATE
+- UPDATE
+condition: #@  condition(constraint.params().protection_levels)
+actionType: DENY
+displayName: Require Cloud KMS keys protection level to be configured correctly
+description: Ensure the protection level for Cloud KMS keys is configured correctly
+#@ end

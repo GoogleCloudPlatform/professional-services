@@ -1,0 +1,64 @@
+shared_config:
+  log_filter: >-
+    resource.labels.method:"compute.networkFirewallPolicies" AND 
+    (
+      protoPayload.methodName:"compute.networkFirewallPolicies.addRule" OR 
+      protoPayload.methodName:"compute.networkFirewallPolicies.removeRule" OR 
+      protoPayload.methodName:"compute.networkFirewallPolicies.patchRule"
+    )
+  default_markers:
+    - firewall
+    - firewall-policy-rule
+
+firewall_policy_creation_audit_log:
+  steps:
+  - command:  gcloud compute network-firewall-policies rules create 1000 --firewall-policy monitoring-alert-fw-policy --global-firewall-policy
+    teardown_command: gcloud compute network-firewall-policies rules delete 1000 --firewall-policy  monitoring-alert-fw-policy --global-firewall-policy
+    command_flags: 
+      action: ALLOW
+      direction: INGRESS
+      layer4-configs: tcp:3389
+      src-ip-ranges: 192.168.1.0/24
+    expected_result:
+      return_code: 0
+      attributes:
+        'protoPayload.resourceName': "projects/{{ project }}/global/firewallPolicies/monitoring-alert-fw-policy"
+        'protoPayload.methodName': "v1.compute.networkFirewallPolicies.addRule"
+
+firewall_policy_update_audit_log:
+  steps:
+  - command:  gcloud compute network-firewall-policies rules create 1000 --firewall-policy monitoring-alert-fw-policy --global-firewall-policy
+    teardown_command: gcloud compute network-firewall-policies rules delete 1000 --firewall-policy  monitoring-alert-fw-policy --global-firewall-policy
+    command_flags: 
+      action: ALLOW
+      direction: INGRESS
+      layer4-configs: tcp:3389
+      src-ip-ranges: 192.168.1.0/24
+    expected_result:
+      return_code: 0
+  - command: gcloud compute network-firewall-policies rules update 1000 --firewall-policy monitoring-alert-fw-policy --global-firewall-policy
+    command_flags: 
+      src-ip-ranges: 192.168.2.0/24
+    expected_result:
+      return_code: 0
+      attributes:
+        'protoPayload.resourceName': "projects/{{ project }}/global/firewallPolicies/monitoring-alert-fw-policy"
+        'protoPayload.methodName': "v1.compute.networkFirewallPolicies.patchRule"
+
+firewall_policy_delete_audit_log:
+  steps:
+  - command:  gcloud compute network-firewall-policies rules create 1000 --firewall-policy monitoring-alert-fw-policy --global-firewall-policy
+    command_flags: 
+      action: ALLOW
+      direction: INGRESS
+      layer4-configs: tcp:3389
+      src-ip-ranges: 192.168.1.0/24
+    expected_result:
+      return_code: 0
+  - command: gcloud compute network-firewall-policies rules delete 1000 --firewall-policy  monitoring-alert-fw-policy --global-firewall-policy
+    expected_result:
+      return_code: 0
+      attributes:
+        'protoPayload.resourceName': "projects/{{ project }}/global/firewallPolicies/monitoring-alert-fw-policy"
+        'protoPayload.methodName': "v1.compute.networkFirewallPolicies.removeRule"
+

@@ -1,0 +1,20 @@
+custom.firewallRestrictOpenFirewallPolicyRule:
+  action_type: DENY
+  condition: |-
+    resource.rules.exists(rule,
+      rule.priority < 2147483644 &&
+      rule.direction == 'INGRESS' &&
+      rule.match.layer4Configs.exists(l4,
+        (l4.ipProtocol == 'tcp' || l4.ipProtocol == 'udp') &&
+        (!has(l4.ports) || size(l4.ports) == 0)
+      )
+    )
+  description:
+    Prevent Firewall Policy rules that are open to 0.0.0.0/0 (except ICMP, TCP:22/TCP:443/TCP:3389/UDP:3389/SCTP:22) or
+    that allow all TCP/UDP ports from non-private IPs
+  display_name: Restrict overly permissive Firewall Policy rules open to the Internet
+  method_types:
+    - CREATE
+    - UPDATE
+  resource_types:
+    - compute.googleapis.com/FirewallPolicy

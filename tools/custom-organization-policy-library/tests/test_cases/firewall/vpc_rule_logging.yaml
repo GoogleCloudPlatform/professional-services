@@ -1,0 +1,29 @@
+shared_config:
+  command:  gcloud compute firewall-rules create allow-ssh-{{ identifier }}
+  teardown_command: gcloud compute firewall-rules delete allow-ssh-{{ identifier }}
+  default_command_flags: 
+      action: ALLOW
+      direction: INGRESS
+      network: vpc-dev-cuop-library
+      priority: 1000  
+      rules: tcp:22
+      description: Testing firewall rule
+      enable-logging: true
+      source-ranges: 192.168.0.0/16
+  default_markers:
+    - firewall
+    - firewall-vpc-rule
+
+
+firewall_vpc_allowed_logging_enabled:
+  steps:
+  - expected_result:
+      return_code: 0
+
+firewall_vpc_logging_disabled:
+  steps:
+  - command_flags:
+      enable-logging: false
+    expected_result:
+      return_code: 1
+      stderr: 'customConstraints/custom\.firewallEnforceRuleLogging'

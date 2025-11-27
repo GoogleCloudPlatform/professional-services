@@ -1,0 +1,151 @@
+shared_config:
+  command:  gcloud sql instances create {{ identifier }}
+  teardown_command: gcloud sql instances delete {{ identifier }}
+  default_command_flags:
+    availability-type: REGIONAL
+    region: asia-southeast2
+    cpu: 1
+    memory: 4
+    database-version: SQLSERVER_2022_WEB
+    root-password: R00tP@ss0rd11@@
+    password-policy-min-length: 12
+    password-policy-complexity: COMPLEXITY_DEFAULT
+    backup-location: asia-southeast1
+    retained-backups-count: 10
+    storage-type: SSD
+    ssl-mode: ENCRYPTED_ONLY
+    database-flags: '""external scripts enabled"=off,"cross db ownership chaining"=off,"user connections"=0,"user options"=0,"remote access"=off,"3625"=on,"contained database authentication"=off"'
+    enable-point-in-time-recovery: true
+    enable-password-policy: true
+    insights-config-query-insights-enabled: true
+  default_markers:
+    - cloudsql
+    - sqlserver
+
+cloudsql_sqlserver_instance_allowed:
+  steps:
+  - expected_result:
+      return_code: 0
+
+cloudsql_sqlserver_instance_no_values_allowed:
+  steps:
+  - command_flags:
+      database-flags: '""remote access"=off,"3625"=on"'
+    expected_result:
+      return_code: 0
+
+cloudsql_sqlserver_instance_no_ssl_mode_encrypted:
+  steps:
+  - command_flags:
+      ssl-mode: absent
+    expected_result:
+      return_code: 1
+      stderr: 'customConstraints/custom\.cloudsqlRequireSSLConnection'
+
+cloudsql_sqlserver_instance_no_authorized_networks:
+  steps:
+  - command_flags:
+      authorized-networks: 0.0.0.0/0
+    expected_result:
+      return_code: 1
+      stderr: 'customConstraints/custom\.cloudsqlDisablePublicAuthorizedNetworks'
+
+cloudsql_sqlserver_instance_no_backup:
+  steps:
+  - command_flags:
+      backup-location: absent
+      retained-backups-count: absent
+      enable-point-in-time-recovery : absent
+    expected_result:
+      return_code: 1
+      stderr: 'customConstraints/custom\.cloudsqlRequireAutomatedBackup'
+
+cloudsql_sqlserver_instance_external_ip:
+  steps:
+  - command_flags:
+      assign-ip: true
+    expected_result:
+      return_code: 1
+      stderr: 'customConstraints/custom\.cloudsqlDisableExternalIP'
+
+cloudsql_sqlserver_instance_no_query_insights:
+  steps:
+  - command_flags:
+      insights-config-query-insights-enabled: false
+    expected_result:
+      return_code: 1
+      stderr: 'customConstraints/custom\.cloudsqlRequireQueryInsights'
+
+cloudsql_sqlserver_instance_ext_scripts_enabled_on:
+  steps:
+  - command_flags:
+      database-flags: '""external scripts enabled"=on,"cross db ownership chaining"=off,"user connections"=0,"user options"=0,"remote access"=off,"3625"=on,"contained database authentication"=off"'
+    expected_result:
+      return_code: 1
+      stderr: 'customConstraints/custom\.cloudsqlRequireSQLServerDatabaseFlags'
+
+cloudsql_sqlserver_instance_cross_db_ownership_on:
+  steps:
+  - command_flags:
+      database-flags: '""external scripts enabled"=off,"cross db ownership chaining"=on,"user connections"=0,"user options"=0,"remote access"=off,"3625"=on,"contained database authentication"=off"'
+    expected_result:
+      return_code: 1
+      stderr: 'customConstraints/custom\.cloudsqlRequireSQLServerDatabaseFlags'
+
+cloudsql_sqlserver_instance_contained_db_auth_on:
+  steps:
+  - command_flags:
+      database-flags: '""external scripts enabled"=off,"cross db ownership chaining"=off,"user connections"=0,"user options"=0,"remote access"=off,"3625"=on,"contained database authentication"=on"'
+    expected_result:
+      return_code: 1
+      stderr: 'customConstraints/custom\.cloudsqlRequireSQLServerDatabaseFlags'
+
+cloudsql_sqlserver_instance_user_connections_set:
+  steps:
+  - command_flags:
+      database-flags: '""external scripts enabled"=off,"cross db ownership chaining"=off,"user connections"=100,"remote access"=off,"3625"=on,"contained database authentication"=off"'
+    expected_result:
+      return_code: 1
+      stderr: 'customConstraints/custom\.cloudsqlRequireSQLServerDatabaseFlags'
+
+cloudsql_sqlserver_instance_user_options_set:
+  steps:
+  - command_flags:
+      database-flags: '""external scripts enabled"=off,"cross db ownership chaining"=off,"user connections"=0,"remote access"=off,"3625"=on,"contained database authentication"=off,"user options"=100"'
+    expected_result:
+      return_code: 1
+      stderr: 'customConstraints/custom\.cloudsqlRequireSQLServerDatabaseFlags'
+
+cloudsql_sqlserver_instance_remote_access_on:
+  steps:
+  - command_flags:
+      database-flags: '""external scripts enabled"=off,"cross db ownership chaining"=off,"user connections"=0,"user options"=0,"remote access"=on,"3625"=on,"contained database authentication"=off"'
+    expected_result:
+      return_code: 1
+      stderr: 'customConstraints/custom\.cloudsqlRequireSQLServerDatabaseFlags'
+
+cloudsql_sqlserver_instance_remote_access_unset:
+  steps:
+  - command_flags:
+      database-flags: '""external scripts enabled"=off,"cross db ownership chaining"=off,"user connections"=0,"user options"=0,"3625"=on,"contained database authentication"=off"'
+    expected_result:
+      return_code: 1
+      stderr: 'customConstraints/custom\.cloudsqlRequireSQLServerDatabaseFlags'
+
+cloudsql_sqlserver_instance_trace_3265_off:
+  steps:
+  - command_flags:
+      database-flags: '""external scripts enabled"=off,"cross db ownership chaining"=off,"user connections"=0,"user options"=0,"remote access"=on,"3625"=off,"contained database authentication"=off"'
+    expected_result:
+      return_code: 1
+      stderr: 'customConstraints/custom\.cloudsqlRequireSQLServerDatabaseFlags'
+
+cloudsql_sqlserver_instance_trace_3265_unset:
+  steps:
+  - command_flags:
+      database-flags: '""external scripts enabled"=off,"cross db ownership chaining"=off,"user connections"=0,"user options"=0,"remote access"=on,"contained database authentication"=off"'
+    expected_result:
+      return_code: 1
+      stderr: 'customConstraints/custom\.cloudsqlRequireSQLServerDatabaseFlags'
+
+

@@ -1,0 +1,17 @@
+#@ load("/sha.lib.star", "build_sha")
+#@ sha = build_sha("serviceusageAllowedServices")
+
+#@ def expression(services):
+#@   return '(!' + str(services) + '.exists(service, resource.name == service && resource.state == "ENABLED"))'
+#@ end
+
+#@ if sha.to_generate():
+severity: HIGH
+description: "Detect if unauthorized services have been enabled"
+recommendation: "Ensure only authorized services are enabled"
+resource_selector:  
+  resource_types:  
+  - serviceusage.googleapis.com/Service
+predicate:  
+  expression: #@  expression(sha.params().services)
+#@ end

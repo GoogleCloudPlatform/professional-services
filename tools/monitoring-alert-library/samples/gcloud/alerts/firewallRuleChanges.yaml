@@ -1,0 +1,35 @@
+displayName: VPC Network Firewall Rule Changes
+documentation:
+  content: |-
+    Log-based alerting policy in project ${project} detected VPC Network Firewall rule changes.
+
+    This alert helps ensure security by monitoring creation, modification, or deletion of firewall rules.
+    ```
+    resource.type="gce_firewall_rule" AND (
+      protoPayload.methodName:"compute.firewalls.patch" OR
+      protoPayload.methodName:"compute.firewalls.insert" OR
+      protoPayload.methodName:"compute.firewalls.delete"
+    )
+    ```
+  mimeType: text/markdown
+conditions:
+  - displayName: "Log match condition: VPC Network Firewall Rule Changes"
+    conditionThreshold:
+      filter: resource.type = "logging_bucket" AND metric.type = "logging.googleapis.com/user/firewallRuleChanges"
+      aggregations:
+        - perSeriesAligner: ALIGN_SUM
+          alignmentPeriod: 60s
+          crossSeriesReducer: REDUCE_SUM
+          groupByFields:
+            - metric.label.principal
+            - metric.label.method_name
+            - metric.label.project_id
+            - metric.label.firewall_rule_id
+      comparison: COMPARISON_GT
+      thresholdValue: 0
+      duration: 0s
+      trigger:
+        count: 1
+combiner: OR
+notificationChannels:
+  - projects/my-project/notificationChannels/11111111111111

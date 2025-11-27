@@ -1,0 +1,105 @@
+shared_config:
+  command:  gcloud compute firewall-rules create allow-cache-search-db-{{ identifier }}
+  teardown_command: gcloud compute firewall-rules delete allow-cache-search-db-{{ identifier }}
+  default_command_flags:
+      action: ALLOW
+      direction: INGRESS
+      network: vpc-dev-cuop-library
+      priority: 1000
+      description: Testing cache/search database firewall rule
+      enable-logging: true
+  default_markers:
+    - firewall
+    - firewall-vpc-rule
+    - cache-search-databases
+
+# Redis tests - TCP 6379
+firewall_vpc_allowed_redis_rule_10:
+  steps:
+  - command_flags:
+      rules: tcp:6379
+      source-ranges: 10.0.0.0/8
+    expected_result:
+      return_code: 0
+
+# Simplified constraint only blocks 0.0.0.0/0 and ::/0, not specific public IPs
+firewall_vpc_redis_rule_allowed:
+  steps:
+  - command_flags:
+      rules: tcp:6379
+      source-ranges: 8.8.8.8/32
+    expected_result:
+      return_code: 0
+
+# Elasticsearch tests - TCP 9200, 9300
+firewall_vpc_allowed_elasticsearch_rule_192:
+  steps:
+  - command_flags:
+      rules: tcp:9200
+      source-ranges: 192.168.0.0/16
+    expected_result:
+      return_code: 0
+
+firewall_vpc_elasticsearch_9200_rule_denied:
+  steps:
+  - command_flags:
+      rules: tcp:9200
+      source-ranges: 0.0.0.0/0
+    expected_result:
+      return_code: 1
+      stderr: 'customConstraints/custom\.firewallRestrict(PublicAccess|CacheSearchDatabases)Rule'
+
+# Simplified constraint only blocks 0.0.0.0/0 and ::/0, not specific public IPs
+firewall_vpc_elasticsearch_9300_rule_allowed:
+  steps:
+  - command_flags:
+      rules: tcp:9300
+      source-ranges: 1.0.0.0/32
+    expected_result:
+      return_code: 0
+
+# Memcached tests - TCP/UDP 11211, 11214-11215
+firewall_vpc_allowed_memcached_rule_10:
+  steps:
+  - command_flags:
+      rules: udp:11211
+      source-ranges: 10.0.0.0/8
+    expected_result:
+      return_code: 0
+
+firewall_vpc_memcached_tcp_rule_denied:
+  steps:
+  - command_flags:
+      rules: tcp:11211
+      source-ranges: 0.0.0.0/0
+    expected_result:
+      return_code: 1
+      stderr: 'customConstraints/custom\.firewallRestrict(PublicAccess|CacheSearchDatabases)Rule'
+
+firewall_vpc_memcached_udp_rule_denied:
+  steps:
+  - command_flags:
+      rules: udp:11211
+      source-ranges: 0.0.0.0/0
+    expected_result:
+      return_code: 1
+      stderr: 'customConstraints/custom\.firewallRestrict(PublicAccess|CacheSearchDatabases)Rule'
+
+# Simplified constraint only blocks 0.0.0.0/0 and ::/0, not specific public IPs
+firewall_vpc_memcached_11214_rule_allowed:
+  steps:
+  - command_flags:
+      rules: tcp:11214
+      source-ranges: 203.0.113.0/24
+    expected_result:
+      return_code: 0
+
+# Multiple cache/search database ports test
+# Simplified constraint only blocks 0.0.0.0/0 and ::/0, not specific public IPs
+firewall_vpc_multiple_cache_search_ports_allowed:
+  steps:
+  - command_flags:
+      rules: tcp:6379,tcp:9200,tcp:11211
+      source-ranges: 1.0.0.0/32
+    expected_result:
+      return_code: 0

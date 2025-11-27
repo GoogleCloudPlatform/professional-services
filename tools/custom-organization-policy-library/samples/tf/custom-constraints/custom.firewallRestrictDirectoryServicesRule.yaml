@@ -1,0 +1,21 @@
+custom.firewallRestrictDirectoryServicesRule:
+  action_type: DENY
+  condition: |-
+    resource.direction.matches('INGRESS') &&
+      resource.sourceRanges.exists(range, range == '0.0.0.0/0') &&
+      (
+        resource.allowed.containsFirewallPort('tcp', '445') ||
+        resource.allowed.containsFirewallPort('tcp', '389') ||
+        resource.allowed.containsFirewallPort('tcp', '636') ||
+        resource.allowed.containsFirewallPort('udp', '445') ||
+        resource.allowed.containsFirewallPort('udp', '389')
+      )
+  description:
+    Ensure that directory and authentication services (SMB/CIFS, LDAP) are not accessible from the Internet when using
+    VPC Firewall Rule
+  display_name: Restrict VPC Firewall rules allowing directory service access from any source
+  method_types:
+    - CREATE
+    - UPDATE
+  resource_types:
+    - compute.googleapis.com/Firewall

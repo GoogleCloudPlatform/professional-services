@@ -1,0 +1,14 @@
+loggingAllowedConfiguration:
+  description:
+    Detect if a log buckets have retention periods and regionalization that are not configured as per the security
+    policy
+  predicate:
+    expression:
+      (!has(resource.retentionDays) || !["asia-southeast1", "asia-southeast2"].exists(loc,
+      resource.name.contains("/locations/" + loc + "/")))
+  recommendation:
+    Ensure all log buckets have retention periods and regionalization configured as per the security policy
+  resource_selector:
+    resource_types:
+      - logging.googleapis.com/LogBucket
+  severity: MEDIUM

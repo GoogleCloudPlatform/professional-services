@@ -1,0 +1,67 @@
+alerts:
+  networkRouteChanges:
+    combiner: OR
+    conditions:
+      - condition_threshold:
+          aggregations:
+            - alignment_period: 60s
+              cross_series_reducer: REDUCE_SUM
+              group_by_fields:
+                - metric.label.principal
+                - metric.label.method_name
+                - metric.label.project_id
+                - metric.label.route_id
+              per_series_aligner: ALIGN_SUM
+          comparison: COMPARISON_GT
+          duration: 0s
+          filter: resource.type = "logging_bucket" AND metric.type = "logging.googleapis.com/user/networkRouteChanges"
+          threshold_value: 0
+          trigger:
+            count: 1
+        display_name: "Log match condition: VPC Network Route Changes"
+    display_name: VPC Network Route Changes
+    documentation:
+      content: |-
+        Log-based alerting policy in project ${project} detected VPC Network Route changes.
+
+        This alert helps ensure security by monitoring creation or deletion of network routes.
+        ```
+        resource.type="gce_route" AND (
+          protoPayload.methodName:"compute.routes.insert" OR
+          protoPayload.methodName:"compute.routes.delete"
+        )
+        ```
+      mime_type: text/markdown
+    notification_channels:
+      - projects/my-project/notificationChannels/11111111111111
+logging_metrics:
+  networkRouteChanges:
+    bucket_name: projects/my-project/locations/asia-southeast1/buckets/org-logging-bucket
+    description: VPC Network Route Changes
+    filter: |-
+      resource.type="gce_route" AND (
+        protoPayload.methodName:"compute.routes.insert" OR
+        protoPayload.methodName:"compute.routes.delete"
+      )
+    label_extractors:
+      method_name: EXTRACT(protoPayload.methodName)
+      principal: EXTRACT(protoPayload.authenticationInfo.principalEmail)
+      project_id: EXTRACT(labels.project_id)
+      route_id: EXTRACT(labels.route_id)
+    metric_descriptor:
+      labels:
+        - description: principal
+          key: principal
+          value_type: STRING
+        - description: method_name
+          key: method_name
+          value_type: STRING
+        - description: project_id
+          key: project_id
+          value_type: STRING
+        - description: route_id
+          key: route_id
+          value_type: STRING
+      metric_kind: DELTA
+      unit: "1"
+      value_type: INT64

@@ -1,0 +1,12 @@
+name: organizations/11111111/customConstraints/custom.cloudbuildAllowedPubSubTopic
+resourceTypes:
+  - cloudbuild.googleapis.com/BuildTrigger
+methodTypes:
+  - CREATE
+  - UPDATE
+condition: |-
+  has(resource.pubsubConfig.topic) &&
+    resource.pubsubConfig.topic in ["projects/project1/topics/topic-1", "projects/project2/topics/topic-2"] == false
+actionType: DENY
+displayName: Deny unauthorized Pub/Sub topics to use for trigger Cloud Build
+description: Ensure no unauthorized Pub/Sub topics are for trigger Cloud Build

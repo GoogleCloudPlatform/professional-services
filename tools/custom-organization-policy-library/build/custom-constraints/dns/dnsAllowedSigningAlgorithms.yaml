@@ -1,0 +1,26 @@
+#@ load("/constraints.lib.star", "build_constraint")
+#@ constraint = build_constraint("dnsAllowedSigningAlgorithms")
+
+#@ def condition(algorithms):
+#@   lines = [
+#@     "resource.visibility == 'PUBLIC' &&",
+#@     "resource.dnssecConfig.state == 'ON' &&",
+#@     "resource.dnssecConfig.defaultKeySpecs.exists(spec,",
+#@     "  spec.algorithm in " + str(algorithms) + " == false",
+#@     ")"
+#@   ]
+#@   return "\n".join(lines)
+#@ end
+
+#@ if constraint.to_generate():
+name: #@ constraint.constraint_name()
+resource_types: 
+- dns.googleapis.com/ManagedZone
+condition: #@  condition(constraint.params().algorithms)
+action_type: DENY
+method_types: 
+- CREATE
+- UPDATE 
+display_name: Require Cloud DNS DNSSEC configured to use only allowed algorithms in Cloud DNS DNSSEC
+description:  Ensure that allowed signing algorithms are used for the Key-Signing key and Zone-Signing key in Cloud DNS DNSSEC
+#@ end

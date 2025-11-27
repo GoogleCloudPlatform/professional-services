@@ -1,0 +1,11 @@
+custom.cloudrunServiceRequireVPCConnector:
+  action_type: DENY
+  condition: |-
+    !('run.googleapis.com/vpc-access-connector' in resource.spec.template.metadata.annotations)
+  description: Enforce that Cloud Run Service are configured with VPC connector
+  display_name: Disable creation of Cloud Run Service not using VPC connector
+  method_types:
+    - CREATE
+    - UPDATE
+  resource_types:
+    - run.googleapis.com/Service

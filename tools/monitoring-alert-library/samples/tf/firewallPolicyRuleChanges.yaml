@@ -1,0 +1,60 @@
+alerts:
+  firewallPolicyRuleChanges:
+    combiner: OR
+    conditions:
+      - condition_threshold:
+          aggregations:
+            - alignment_period: 60s
+              cross_series_reducer: REDUCE_SUM
+              group_by_fields:
+                - metric.label.principal
+                - metric.label.method_name
+              per_series_aligner: ALIGN_SUM
+          comparison: COMPARISON_GT
+          duration: 0s
+          filter:
+            resource.type = "logging_bucket" AND metric.type = "logging.googleapis.com/user/firewallPolicyRuleChanges"
+          threshold_value: 0
+          trigger:
+            count: 1
+        display_name: "Log match condition: Network Firewall Policy Rule Changes"
+    display_name: Network Firewall Policy Rule Changes
+    documentation:
+      content: |-
+        Log-based alerting policy in project ${project} detected Firewall Policy rule changes.
+
+        This alert helps ensure security by monitoring creation, modification, or deletion of firewall rules.
+        ```
+        resource.labels.method:"compute.networkFirewallPolicies" AND (
+          protoPayload.methodName:"compute.networkFirewallPolicies.addRule" OR
+          protoPayload.methodName:"compute.networkFirewallPolicies.removeRule" OR
+          protoPayload.methodName:"compute.networkFirewallPolicies.patchRule"
+        )
+        ```
+      mime_type: text/markdown
+    notification_channels:
+      - projects/my-project/notificationChannels/11111111111111
+logging_metrics:
+  firewallPolicyRuleChanges:
+    bucket_name: projects/my-project/locations/asia-southeast1/buckets/org-logging-bucket
+    description: Network Firewall Policy Rule Changes
+    filter: |-
+      resource.labels.method:"compute.networkFirewallPolicies" AND (
+        protoPayload.methodName:"compute.networkFirewallPolicies.addRule" OR
+        protoPayload.methodName:"compute.networkFirewallPolicies.removeRule" OR
+        protoPayload.methodName:"compute.networkFirewallPolicies.patchRule"
+      )
+    label_extractors:
+      method_name: EXTRACT(protoPayload.methodName)
+      principal: EXTRACT(protoPayload.authenticationInfo.principalEmail)
+    metric_descriptor:
+      labels:
+        - description: principal
+          key: principal
+          value_type: STRING
+        - description: method_name
+          key: method_name
+          value_type: STRING
+      metric_kind: DELTA
+      unit: "1"
+      value_type: INT64

@@ -21,17 +21,27 @@
 #@ load("/config.lib.star", "services")
 
 #@ policies = []
+
+#@ if data.values.service != "":
+  #@ services = []
+  #@ services.append(data.values.service)
+#@ end
+
 #@ for service in services:
   #@ for value in data.values[service]:
-    #@ policies.append(value)
+    #@ policy = build_policy(value)
+    #@ if policy.to_generate() == True:
+      #@ policies.append(value)
+    #@ end
   #@ end
 #@ end
 
 #@ for value in policies:
 ---
+  #@ policy = build_policy(value)
   #@ if data.values.dryrun == True:
-    #@ template.replace(generate_policy_dryrun(build_policy(value)))
+    #@ template.replace(generate_policy_dryrun(policy))
   #@ else:
-    #@ template.replace(generate_policy(build_policy(value)))
+    #@ template.replace(generate_policy(policy))
   #@ end
 #@ end

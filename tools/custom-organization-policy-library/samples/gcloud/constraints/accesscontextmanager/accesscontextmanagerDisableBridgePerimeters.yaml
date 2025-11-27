@@ -1,0 +1,10 @@
+name: organizations/11111111/customConstraints/custom.accesscontextmanagerDisableBridgePerimeters
+resourceTypes:
+  - accesscontextmanager.googleapis.com/ServicePerimeter
+methodTypes:
+  - CREATE
+  - UPDATE
+condition: resource.perimeterType == 'PERIMETER_TYPE_BRIDGE'
+actionType: DENY
+displayName: Deny usage of perimeter bridges
+description: Ensure no perimeter bridges are used. Instead, use ingress and egress rules.

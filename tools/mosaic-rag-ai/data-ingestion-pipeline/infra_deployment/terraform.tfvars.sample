@@ -1,0 +1,6 @@
+gcp_project_id = "agents-stg"
+region         = "us-central1"
+gemini_api_key = "<>"
+gemini_model = "gemini-2.5-flash"
+corpus_display_name = "mosaic-rag-corpus"
+corpus_path = "<>"

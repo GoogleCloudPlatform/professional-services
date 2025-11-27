@@ -1,0 +1,49 @@
+#@ load("/alert.lib.star", "build_alert")
+#@ load("/alert.lib.yaml", "generate_notification_channels")
+#@ load("@ytt:template", "template")
+#@ alert = build_alert("auditConfigChanges")
+
+#@ def documentation_content():
+#@   lines = [
+#@     'Log-based alerting policy in project ${project} detected audit configuration changes.',
+#@     '',
+#@     'This alert helps track GCP services audit log configuration changes to ensure appropriate.',
+#@     'audit logs are being collected',
+#@     '```',
+#@     'protoPayload.methodName="SetIamPolicy" AND',
+#@     'protoPayload.serviceData.policyDelta.auditConfigDeltas:*',
+#@     '```'
+#@   ]
+#@   return "\n".join(lines)
+#@ end
+
+#@ if alert.to_generate():
+displayName: 'Audit Configuration Changes'
+documentation:
+  content: #@ documentation_content()
+  mimeType: text/markdown
+conditions:
+- displayName: 'Log match condition: Audit Configuration Changes'
+  conditionThreshold:
+    filter: >-
+      resource.type = "logging_bucket" AND metric.type = "logging.googleapis.com/user/auditConfigChanges"
+    aggregations:
+    - perSeriesAligner: ALIGN_SUM
+      alignmentPeriod: 60s
+      crossSeriesReducer: REDUCE_SUM
+      groupByFields:
+      - metric.label.principal
+      - metric.label.method_name
+      - metric.label.organization_id
+      - metric.label.folder_id
+      - metric.label.project_id
+    comparison: COMPARISON_GT
+    thresholdValue: 0
+    duration: 0s
+    trigger:
+      count: 1
+combiner: OR
+#@ if alert.has_notification_channels():
+_: #@ template.replace(generate_notification_channels())
+#@ end
+#@ end

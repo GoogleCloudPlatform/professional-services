@@ -1,0 +1,15 @@
+#@ load("/constraints.lib.star", "build_constraint")
+#@ constraint = build_constraint("cloudsqlRequireAutomatedBackup")
+
+#@ if constraint.to_generate():
+name: #@ constraint.constraint_name()
+resourceTypes:
+- sqladmin.googleapis.com/Instance
+methodTypes:
+- CREATE
+- UPDATE
+condition: resource.settings.backupConfiguration.enabled != true
+actionType: DENY
+display_name: Require Cloud SQL instances to have automated backup enabled
+description: Ensure that Cloud SQL instance have automated backup enabled
+#@ end

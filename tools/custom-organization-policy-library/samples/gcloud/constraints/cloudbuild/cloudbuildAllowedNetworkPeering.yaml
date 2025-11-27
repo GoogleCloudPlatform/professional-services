@@ -1,0 +1,10 @@
+name: organizations/11111111/customConstraints/custom.cloudbuildAllowedNetworkPeering
+resourceTypes:
+  - cloudbuild.googleapis.com/WorkerPool
+methodTypes:
+  - CREATE
+  - UPDATE
+condition: resource.privatePoolV1Config.networkConfig.peeredNetworkIpRange in ["10.0.0.0/24", "10.0.1.0/24"] == false
+actionType: DENY
+displayName: Deny unauthorized VPC peering connections for Cloud Build private pools
+description: Ensure only authorized VPC peering connections are used for Cloud Build private pools

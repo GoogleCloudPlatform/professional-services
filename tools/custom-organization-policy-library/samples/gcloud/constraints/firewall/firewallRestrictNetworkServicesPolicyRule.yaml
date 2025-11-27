@@ -1,0 +1,27 @@
+name: organizations/11111111/customConstraints/custom.firewallRestrictNetworkServicesPolicyRule
+resource_types:
+  - compute.googleapis.com/FirewallPolicy
+condition: |-
+  resource.rules.exists(rule,
+    rule.priority < 2147483644 &&
+    rule.direction == 'INGRESS' &&
+    rule.match.srcIpRanges.exists(range, range == '0.0.0.0/0') &&
+    (
+      rule.match.layer4Configs.containsIpProtocolAndPort('tcp', '53') ||
+      rule.match.layer4Configs.containsIpProtocolAndPort('udp', '53') ||
+      rule.match.layer4Configs.containsIpProtocolAndPort('tcp', '137') ||
+      rule.match.layer4Configs.containsIpProtocolAndPort('udp', '137') ||
+      rule.match.layer4Configs.containsIpProtocolAndPort('tcp', '138') ||
+      rule.match.layer4Configs.containsIpProtocolAndPort('udp', '138') ||
+      rule.match.layer4Configs.containsIpProtocolAndPort('tcp', '139') ||
+      rule.match.layer4Configs.containsIpProtocolAndPort('udp', '139')
+    )
+  )
+action_type: DENY
+method_types:
+  - CREATE
+  - UPDATE
+display_name: Restrict Firewall Policy rules allowing network service access from any source
+description: |-
+  Ensure that network infrastructure services (DNS, NetBIOS) are not accessible from any source when
+  using Firewall Policy Rule

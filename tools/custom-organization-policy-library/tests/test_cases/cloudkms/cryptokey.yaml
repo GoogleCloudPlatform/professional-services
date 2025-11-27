@@ -1,0 +1,43 @@
+shared_config:
+  command:  gcloud kms keys create {{ identifier }}
+  teardown_command: gcloud kms keys create {{ identifier }}
+  default_command_flags:
+    keyring: "{{ prefix }}-key-ring-1"
+    location: asia-southeast2
+    purpose: encryption
+    default-algorithm: google-symmetric-encryption
+    protection-level: software
+    rotation-period: 1d
+    next-rotation-time: "2026-01-01T01:02:03"
+  default_markers:
+    - cloudkms
+
+cloudkms_key_allowed:
+  steps:
+  - expected_result:
+      return_code: 0_or_1_already_exists
+
+cloudkms_key_unallowed_algorithm:
+  steps:
+  - command_flags:
+      default-algorithm: aes-128-cbc
+      purpose: raw-encryption
+    expected_result:
+      return_code: 1
+      stderr: 'customConstraints/custom\.cloudkmsAllowedAlgorithms'
+
+cloudkms_key_unallowed_protection_level:
+  steps:
+  - command_flags:
+      protection-level: hsm
+    expected_result:
+      return_code: 1
+      stderr: 'customConstraints/custom\.cloudkmsAllowedProtectionLevel'
+
+cloudkms_key_unallowed_retention_period:
+  steps:
+  - command_flags:
+      rotation-period: 31536001s
+    expected_result:
+      return_code: 1
+      stderr: 'customConstraints/custom\.cloudkmsAllowedRotationPeriod'

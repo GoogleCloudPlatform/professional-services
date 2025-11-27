@@ -1,0 +1,54 @@
+#@ load("/alert.lib.star", "build_alert")
+#@ load("/alert.lib.yaml", "generate_notification_channels")
+#@ load("@ytt:template", "template")
+#@ alert = build_alert("networkChanges")
+
+#@ def documentation_content():
+#@   lines = [
+#@     'Log-based alerting policy in project ${project} detected VPC Network changes.',
+#@     '',
+#@     'This alert helps ensure security by monitoring creation, modification, deletion,',
+#@     'or peering changes to VPC networks.',
+#@     '```',
+#@     'resource.type="gce_network" AND (',
+#@     '  protoPayload.methodName:"compute.networks.insert" OR',
+#@     '  protoPayload.methodName:"compute.networks.patch" OR',
+#@     '  protoPayload.methodName:"compute.networks.delete" OR',
+#@     '  protoPayload.methodName:"compute.networks.addPeering" OR',
+#@     '  protoPayload.methodName:"compute.networks.updatePeering" OR',
+#@     '  protoPayload.methodName:"compute.networks.removePeering"',
+#@     ')',
+#@     '```'
+#@   ]
+#@   return "\n".join(lines)
+#@ end
+
+#@ if alert.to_generate():
+displayName: 'VPC Network Changes'
+documentation:
+  content: #@ documentation_content()
+  mimeType: text/markdown
+conditions:
+- displayName: 'Log match condition: VPC Network Changes'
+  conditionThreshold:
+    filter: >-
+      resource.type = "logging_bucket" AND metric.type = "logging.googleapis.com/user/networkChanges"
+    aggregations:
+    - perSeriesAligner: ALIGN_SUM
+      alignmentPeriod: 60s
+      crossSeriesReducer: REDUCE_SUM
+      groupByFields:
+      - metric.label.principal
+      - metric.label.method_name
+      - metric.label.project_id
+      - metric.label.network_id
+    comparison: COMPARISON_GT
+    thresholdValue: 0
+    duration: 0s
+    trigger:
+      count: 1
+combiner: OR
+#@ if alert.has_notification_channels():
+_: #@ template.replace(generate_notification_channels())
+#@ end
+#@ end

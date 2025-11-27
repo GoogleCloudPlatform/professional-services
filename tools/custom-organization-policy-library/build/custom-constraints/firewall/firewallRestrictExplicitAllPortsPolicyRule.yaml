@@ -1,0 +1,36 @@
+#@ load("/constraints.lib.star", "build_constraint")
+#@ constraint = build_constraint("firewallRestrictExplicitAllPortsPolicyRule")
+
+#@ def condition():
+#@   #! OPEN_FIREWALL finding: Disallow explicit "all ports" specifications
+#@   #! Checks for common patterns: 0-65535, 1-65535
+#@   #! Simplified to avoid CEL recursion depth (max 5)
+#@   lines = [
+#@     "resource.rules.exists(rule,",
+#@     "  rule.priority < 2147483644 &&",
+#@     "  rule.direction == 'INGRESS' &&",
+#@     "  rule.match.layer4Configs.exists(l4,",
+#@     "    l4.ipProtocol in ['tcp','udp'] && has(l4.ports) &&",
+#@     "    l4.ports.exists(port,",
+#@     "      port == '0-65535' || port == '1-65535'",
+#@     "    )",
+#@     "  )",
+#@     ")"
+#@   ]
+#@   return "\n".join(lines)
+#@ end
+
+#@ if constraint.to_generate():
+name: #@ constraint.constraint_name()
+resource_types:
+- compute.googleapis.com/FirewallPolicy
+condition: #@ condition()
+action_type: DENY
+method_types:
+- CREATE
+- UPDATE
+display_name: Restrict Firewall Policy rules with explicit all-ports specifications
+description: >
+  Prevent Firewall Policy rules that explicitly specify all TCP/UDP ports
+  using ranges like 0-65535 or 1-65535
+#@ end

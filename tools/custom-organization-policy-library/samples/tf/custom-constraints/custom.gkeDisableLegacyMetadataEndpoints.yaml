@@ -1,12 +1,12 @@
 custom.gkeDisableLegacyMetadataEndpoints:
-  actionType: DENY
-  condition: ('disable-legacy-endpoints' in resource.config.metadata && resource.config.metadata['disable-legacy-endpoints']
-    == 'false')
-  description: Enforce that GKE clusters are created with legacy metadata endpoints
-    disabled
+  action_type: DENY
+  condition: |-
+    ('disable-legacy-endpoints' in resource.config.metadata &&
+    resource.config.metadata['disable-legacy-endpoints'] == 'false')
+  description: Enforce that GKE clusters are created with legacy metadata endpoints disabled
   display_name: Disable legacy metadata endpoints
-  methodTypes:
-  - CREATE
-  - UPDATE
-  resourceTypes:
-  - container.googleapis.com/NodePool
+  method_types:
+    - CREATE
+    - UPDATE
+  resource_types:
+    - container.googleapis.com/NodePool

@@ -1,0 +1,8 @@
+severity: MEDIUM
+description: Detect if the protection level for Cloud KMS keys is not configured correctly
+recommendation: Ensure the protection level for Cloud KMS keys is configured correctly
+resource_selector:
+  resource_types:
+    - cloudkms.googleapis.com/CryptoKey
+predicate:
+  expression: resource.primary.protectionLevel in ["SOFTWARE"] == false

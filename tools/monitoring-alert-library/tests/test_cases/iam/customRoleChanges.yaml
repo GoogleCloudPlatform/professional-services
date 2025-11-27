@@ -1,0 +1,58 @@
+shared_config:
+  log_filter: >-
+    resource.type="iam_role" AND 
+    (
+      protoPayload.methodName="google.iam.admin.v1.CreateRole" OR 
+      protoPayload.methodName="google.iam.admin.v1.UpdateRole" OR 
+      protoPayload.methodName="google.iam.admin.v1.DeleteRole"
+    )
+  default_markers:
+    - iam
+    - iam-role
+
+iam_role_creation_log:
+  steps:
+  - command: gcloud iam roles create ProjectUpdater_{{ random }}
+    teardown_command: gcloud iam roles delete ProjectUpdater_{{ random }}
+    command_flags: 
+      title: ProjectUpdater 
+      permissions: resourcemanager.projects.get,resourcemanager.projects.update
+    expected_result:
+      return_code: 0
+      attributes:
+        'protoPayload.resourceName': projects/{{ project }}/roles/ProjectUpdater_{{ random }}
+        'protoPayload.methodName': "google.iam.admin.v1.CreateRole"
+        
+iam_role_update_log:
+  steps:
+  - command: gcloud iam roles create ProjectUpdater2_{{ random }}
+    teardown_command: gcloud iam roles delete ProjectUpdater2_{{ random }}
+    command_flags: 
+      title: ProjectUpdater 
+      permissions: resourcemanager.projects.get,resourcemanager.projects.update
+    expected_result:
+      return_code: 0
+  - command: gcloud iam roles update ProjectUpdater2_{{ random }}
+    command_flags: 
+      title: ProjectUpdater 
+      permissions: resourcemanager.projects.get
+    expected_result:
+      return_code: 0
+      attributes:
+        'protoPayload.resourceName': projects/{{ project }}/roles/ProjectUpdater2_{{ random }}
+        'protoPayload.methodName': "google.iam.admin.v1.UpdateRole"
+
+iam_role_delete_log:
+  steps:
+  - command: gcloud iam roles create ProjectUpdater3_{{ random }}
+    command_flags: 
+      title: ProjectUpdater 
+      permissions: resourcemanager.projects.get,resourcemanager.projects.update
+    expected_result:
+      return_code: 0
+  - command:  gcloud iam roles delete ProjectUpdater3_{{ random }}
+    expected_result:
+      return_code: 0
+      attributes:
+        'protoPayload.resourceName': projects/{{ project }}/roles/ProjectUpdater3_{{ random }}
+        'protoPayload.methodName': "google.iam.admin.v1.DeleteRole"

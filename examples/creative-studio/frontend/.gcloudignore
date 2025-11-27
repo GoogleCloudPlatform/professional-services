@@ -1,0 +1,7 @@
+# This file specifies files that are *not* sent to the build service.
+# See `gcloud topic gcloudignore` for more details.
+# By creating this file, we override the default behavior which ignores the 'dist' directory.
+
+# We don't need to send node_modules, the deployment build will run `npm ci`.
+node_modules/
+.git/

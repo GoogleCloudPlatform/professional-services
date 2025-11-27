@@ -1,0 +1,3 @@
+PyGithub
+google-cloud-aiplatform
+google-cloud-secret-manager

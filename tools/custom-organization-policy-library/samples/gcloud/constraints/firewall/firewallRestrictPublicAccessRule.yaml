@@ -1,0 +1,14 @@
+name: organizations/11111111/customConstraints/custom.firewallRestrictPublicAccessRule
+resource_types:
+  - compute.googleapis.com/Firewall
+condition: |-
+  (size(resource.allowed) > 0) &&
+  (
+    resource.sourceRanges.exists(range, range == '0.0.0.0/0') ||
+    resource.destinationRanges.exists(range, range == '0.0.0.0/0')
+  )
+action_type: DENY
+method_types:
+  - CREATE
+display_name: Restrict VPC Firewall rules allowing public Internet access
+description: Prevent the creation of VPC firewall rules with source or destination any IP address (0.0.0.0/0)

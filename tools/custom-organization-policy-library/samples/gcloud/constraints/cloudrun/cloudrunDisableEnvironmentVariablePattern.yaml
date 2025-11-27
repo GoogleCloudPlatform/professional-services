@@ -1,0 +1,18 @@
+name: organizations/11111111/customConstraints/custom.cloudrunDisableEnvironmentVariablePattern
+resourceTypes:
+  - run.googleapis.com/Service
+methodTypes:
+  - CREATE
+  - UPDATE
+condition: |-
+  resource.spec.template.spec.containers.exists(container,
+    container.env.exists(env,
+      ["[sS][eE][cC][rR][eE][tT]", "[kK][eE][yY]", "[pP][aA][sS][sS][wW][oO][rR][dD]", "[tT][oO][kK][eE][nN]"].exists(
+        pattern, env.name.matches(pattern)
+      )
+    )
+  )
+actionType: DENY
+displayName: Disable usage of certain patterns in Cloud Run Service or Cloud Run Functions environment variables
+description:
+  Enforce that certain patterns are not used in environment variables of Cloud Run Service or Cloud Run Functions

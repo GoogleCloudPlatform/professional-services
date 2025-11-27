@@ -1,0 +1,12 @@
+severity: HIGH
+description: Detect if the CloudSQL instances have point in time recovery disabled
+recommendation: Ensure the CloudSQL instances have point in time recovery enabled
+resource_selector:
+  resource_types:
+    - sqladmin.googleapis.com/Instance
+predicate:
+  expression: |-
+    (
+      !resource.settings.backupConfiguration.binaryLogEnabled &&
+      !resource.settings.backupConfiguration.pointInTimeRecoveryEnabled
+    )

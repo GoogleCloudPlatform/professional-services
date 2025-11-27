@@ -1,0 +1,55 @@
+before_tests:
+  # General
+  - command: gcloud iam service-accounts create {{ prefix }}-iam-sa
+  # KMS keys
+  - command: >-
+      gcloud kms keyrings create {{ prefix }}-key-ring-1 --location=asia-southeast2
+    expected_result:
+      return_code: 0_or_1_already_exists
+  - command: >-
+      gcloud kms keys create {{ prefix }}-key-1 --keyring="{{ prefix }}-key-ring-1" --location=asia-southeast2 --purpose=encryption --default-algorithm=google-symmetric-encryption --protection-level=software --rotation-period=31536000s --next-rotation-time=2026-05-05T01:02:03
+    expected_result:
+      return_code: 0_or_1_already_exists
+  - command: gcloud storage service-agent --authorize-cmek projects/{{ project }}/locations/asia-southeast2/keyRings/{{ prefix }}-key-ring-1/cryptoKeys/{{ prefix }}-key-1
+  - command: gcloud kms keys add-iam-policy-binding {{ prefix }}-key-1 --keyring="{{ prefix }}-key-ring-1" --location=asia-southeast2 --member=serviceAccount:service-{{ project_number }}@container-engine-robot.iam.gserviceaccount.com --role=roles/cloudkms.cryptoKeyEncrypterDecrypter
+  # Storage
+  - command: >-
+      gcloud storage buckets create gs://{{ prefix }}-cuop-bucket-cgk
+      --default-storage-class=standard
+      --uniform-bucket-level-access
+      --retention-period 30d
+      --default-encryption-key projects/{{ project }}/locations/asia-southeast2/keyRings/{{ prefix }}-key-ring-1/cryptoKeys/{{ prefix }}-key-1
+      --location asia-southeast2
+  # IAM CuOP
+  - command: gcloud iam service-accounts create iam-sa-binding-allowed
+  - command: gcloud iam service-accounts create iam-sa-binding-unallowed
+  # Network for VPC
+  - command: gcloud compute networks create vpc-dev-cuop-library --subnet-mode=custom --bgp-routing-mode=global
+  - command: gcloud compute networks subnets create subnet-vm --network=vpc-dev-cuop-library --range=10.10.0.0/24 --enable-private-ip-google-access --enable-flow-logs --region=asia-southeast2
+  - command: gcloud compute networks subnets create subnet-gke --network=vpc-dev-cuop-library --range=10.10.1.0/24 --enable-private-ip-google-access --enable-flow-logs --region=asia-southeast2
+  # Network CuOP for Load Balancer
+  - command: gcloud compute addresses create {{ prefix }}-cuop--ip --network-tier=PREMIUM --ip-version=IPV4 --global
+  - command: gcloud compute backend-buckets create {{ prefix }}-be-bucket --gcs-bucket-name {{ prefix }}-cuop-bucket-cgk
+  - command: gcloud compute url-maps create {{ prefix }}-http-lb --default-backend-bucket {{ prefix }}-be-bucket
+  # Firewall CuOP
+  - command: gcloud compute network-firewall-policies create cuop-fw-policy --global
+  # IAM Bindings
+  - command: gcloud projects add-iam-policy-binding {{ project }} --member=serviceAccount:{{ project_number }}-compute@developer.gserviceaccount.com  --role=roles/cloudbuild.builds.builder
+after_tests:
+ # General
+ - command: gcloud iam service-accounts delete {{ prefix }}-iam-sa@{{ project }}.iam.gserviceaccount.com
+ # Storage
+ - command: gcloud storage buckets delete gs://{{ prefix }}-cuop-bucket-cgk
+ # IAM CuOP
+ - command: gcloud iam service-accounts delete iam-sa-binding-allowed@{{ project }}.iam.gserviceaccount.com
+ - command: gcloud iam service-accounts delete iam-sa-binding-unallowed@{{ project }}.iam.gserviceaccount.com
+ # Network for VPC
+ - command: gcloud compute networks delete vpc-dev-cuop-library
+ - command: gcloud compute networks subnets delete subnet-vm --region=asia-southeast2
+ - command: gcloud compute networks subnets delete subnet-gke --region=asia-southeast2
+ # Network CuOP for Load Balancer
+ - command: gcloud compute addresses delete {{ prefix }}-cuop--ip --global
+ - command: gcloud compute backend-buckets delete {{ prefix }}-be-bucket
+ - command: gcloud compute url-maps delete {{ prefix }}-http-lb
+ # Firewall CuOP
+ - command: gcloud compute network-firewall-policies delete cuop-fw-policy --global

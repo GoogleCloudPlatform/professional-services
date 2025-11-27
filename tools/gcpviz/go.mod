@@ -16,5 +16,5 @@ require (
 	github.com/willf/bitset v1.1.10 // indirect
 	github.com/willf/bloom v2.0.3+incompatible
 	github.com/yalp/jsonpath v0.0.0-20180802001716-5cc68e5049a0
-	gopkg.in/yaml.v3 v3.0.0
+	gopkg.in/yaml.v3 v3.0.1
 )

@@ -1,10 +1,11 @@
 custom.gkeRequireIntegrityMonitoring:
   action_type: DENY
-  condition: resource.config.shieldedInstanceConfig.enableIntegrityMonitoring == false
+  condition: |-
+    resource.config.shieldedInstanceConfig.enableIntegrityMonitoring == false
   description: Enforce that GKE nodes are configured with integrity monitoring enabled
   display_name: Enable integrity monitoring
   method_types:
-  - CREATE
-  - UPDATE
+    - CREATE
+    - UPDATE
   resource_types:
-  - container.googleapis.com/NodePool
+    - container.googleapis.com/NodePool

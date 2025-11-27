@@ -1,0 +1,8 @@
+severity: MEDIUM
+description: Detect if some firewall rules have logging disabled or wrong configuration
+recommendation: Ensure every firewall rule has logging enabled with the proper config
+resource_selector:
+  resource_types:
+    - compute.googleapis.com/Firewall
+predicate:
+  expression: (!resource.logConfig.enable || !resource.logConfig.metadata.matches('INCLUDE_ALL_METADATA'))

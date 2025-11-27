@@ -1,0 +1,7 @@
+google-genai
+python-dotenv
+pymupdf
+reportlab
+fpdf2
+google-cloud-storage
+google-cloud-aiplatform

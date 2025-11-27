@@ -114,7 +114,6 @@ substitutions:
   _WORKDIR: GITHUB_REPO
 
 options:
-  machineType: 'E2_HIGHCPU_8'
   substitution_option: 'ALLOW_LOOSE'
 
 availableSecrets:

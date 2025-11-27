@@ -1,0 +1,15 @@
+custom.iamDisablePublicBindings:
+  action_type: DENY
+  condition: |-
+    resource.bindings.exists(binding,
+      binding.members.exists(member,
+        MemberSubjectMatches(member, ['allUsers', 'allAuthenticatedUsers'])
+      )
+    )
+  description: Ensure no use of public bindings (allUsers, allAuthenticatedUsers)
+  display_name: Deny use of public access bindings with allUsers or allAuthenticatedUsers
+  method_types:
+    - CREATE
+    - UPDATE
+  resource_types:
+    - iam.googleapis.com/AllowPolicy

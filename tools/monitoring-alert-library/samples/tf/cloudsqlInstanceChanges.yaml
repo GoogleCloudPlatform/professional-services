@@ -1,0 +1,61 @@
+alerts:
+  cloudsqlInstanceChanges:
+    combiner: OR
+    conditions:
+      - condition_threshold:
+          aggregations:
+            - alignment_period: 60s
+              cross_series_reducer: REDUCE_SUM
+              group_by_fields:
+                - metric.label.principal
+                - metric.label.method_name
+                - metric.label.project_id
+                - metric.label.database_id
+              per_series_aligner: ALIGN_SUM
+          comparison: COMPARISON_GT
+          duration: 0s
+          filter:
+            resource.type = "logging_bucket" AND metric.type = "logging.googleapis.com/user/cloudsqlInstanceChanges"
+          threshold_value: 0
+          trigger:
+            count: 1
+        display_name: "Log match condition: Cloud SQL instance configuration changes"
+    display_name: Cloud SQL Instance Configuration Changes
+    documentation:
+      content: |-
+        Log-based alerting policy in project ${project} detected Cloud SQL instance configuration changes.
+
+        This alert helps ensure security by monitoring configuration changes to SQL instances.
+        ```
+        protoPayload.methodName="cloudsql.instances.update"
+        ```
+      mime_type: text/markdown
+    notification_channels:
+      - projects/my-project/notificationChannels/11111111111111
+logging_metrics:
+  cloudsqlInstanceChanges:
+    bucket_name: projects/my-project/locations/asia-southeast1/buckets/org-logging-bucket
+    description: Cloud SQL Instance Configuration Changes
+    filter: protoPayload.methodName="cloudsql.instances.update"
+    label_extractors:
+      database_id: EXTRACT(labels.database_id)
+      method_name: EXTRACT(protoPayload.methodName)
+      principal: EXTRACT(protoPayload.authenticationInfo.principalEmail)
+      project_id: EXTRACT(labels.project_id)
+    metric_descriptor:
+      labels:
+        - description: principal
+          key: principal
+          value_type: STRING
+        - description: method_name
+          key: method_name
+          value_type: STRING
+        - description: project_id
+          key: project_id
+          value_type: STRING
+        - description: database_id
+          key: database_id
+          value_type: STRING
+      metric_kind: DELTA
+      unit: "1"
+      value_type: INT64

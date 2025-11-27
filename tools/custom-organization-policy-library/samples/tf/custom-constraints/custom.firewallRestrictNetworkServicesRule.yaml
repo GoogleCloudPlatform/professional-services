@@ -1,0 +1,24 @@
+custom.firewallRestrictNetworkServicesRule:
+  action_type: DENY
+  condition: |-
+    resource.direction.matches('INGRESS') &&
+      resource.sourceRanges.exists(range, range == '0.0.0.0/0') &&
+      (
+        resource.allowed.containsFirewallPort('tcp', '53') ||
+        resource.allowed.containsFirewallPort('udp', '53') ||
+        resource.allowed.containsFirewallPort('tcp', '137') ||
+        resource.allowed.containsFirewallPort('udp', '137') ||
+        resource.allowed.containsFirewallPort('tcp', '138') ||
+        resource.allowed.containsFirewallPort('udp', '138') ||
+        resource.allowed.containsFirewallPort('tcp', '139') ||
+        resource.allowed.containsFirewallPort('udp', '139')
+      )
+  description:
+    Ensure that network infrastructure services (DNS, NetBIOS) are not accessible from any source when using VPC
+    Firewall Rule
+  display_name: Restrict VPC Firewall rules allowing network service access from any source
+  method_types:
+    - CREATE
+    - UPDATE
+  resource_types:
+    - compute.googleapis.com/Firewall

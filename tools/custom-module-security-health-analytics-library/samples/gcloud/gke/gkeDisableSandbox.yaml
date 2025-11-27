@@ -1,0 +1,8 @@
+severity: MEDIUM
+description: Detect if any GKE node pool is using GKE Sandbox (gVisor)
+recommendation: Ensure GKE nodes are not using GKE Sandbox (gVisor)
+resource_selector:
+  resource_types:
+    - container.googleapis.com/NodePool
+predicate:
+  expression: resource.config.sandboxConfig.type == 'GVISOR'

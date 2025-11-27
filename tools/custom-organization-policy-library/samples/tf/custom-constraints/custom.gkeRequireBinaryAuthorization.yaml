@@ -1,10 +1,11 @@
 custom.gkeRequireBinaryAuthorization:
   action_type: DENY
-  condition: resource.binaryAuthorization.evaluationMode == 'DISABLED'
+  condition: |-
+    resource.binaryAuthorization.evaluationMode == 'DISABLED'
   description: Enforce that GKE clusters have binary authorization enabled
   display_name: Require binary authorization
   method_types:
-  - CREATE
-  - UPDATE
+    - CREATE
+    - UPDATE
   resource_types:
-  - container.googleapis.com/Cluster
+    - container.googleapis.com/Cluster

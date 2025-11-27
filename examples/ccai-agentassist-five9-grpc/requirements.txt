@@ -16,7 +16,7 @@ isort==5.13.2
 mccabe==0.7.0
 platformdirs==4.2.2
 proto-plus==1.24.0
-protobuf==5.27.1
+protobuf==5.29.5
 pyasn1==0.6.0
 pyasn1_modules==0.4.0
 PyAudio==0.2.14
@@ -28,4 +28,4 @@ rsa==4.9
 six==1.16.0
 sounddevice==0.4.7
 tomlkit==0.13.0
-urllib3==2.2.2
+urllib3==2.5.0

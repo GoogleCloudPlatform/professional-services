@@ -1,0 +1,11 @@
+custom.cloudsqlAllowedBackupLocations:
+  action_type: DENY
+  condition: |-
+    resource.settings.backupConfiguration.location in ["asia-southeast1"] == false
+  description: Ensure that Cloud SQL instance is configured with allowed backup locations
+  display_name: Require Cloud SQL instances to use only allowed backup locations
+  method_types:
+    - CREATE
+    - UPDATE
+  resource_types:
+    - sqladmin.googleapis.com/Instance

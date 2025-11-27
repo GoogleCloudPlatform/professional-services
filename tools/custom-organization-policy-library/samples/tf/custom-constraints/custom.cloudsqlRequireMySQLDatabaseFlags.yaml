@@ -1,0 +1,21 @@
+custom.cloudsqlRequireMySQLDatabaseFlags:
+  action_type: DENY
+  condition: |-
+    resource.databaseVersion.startsWith('MYSQL') && (
+      !resource.settings.databaseFlags.exists(flag,
+        flag.name == 'skip_show_database' && flag.value == 'on'
+      ) ||
+      !resource.settings.databaseFlags.exists(flag,
+        flag.name == 'local_infile' && flag.value == 'off'
+      )
+    )
+  description:
+    Ensure Cloud SQL for MySQL instance database flags are set correctly (e.g skip_show_database, local_infile)
+  display_name:
+    Require Cloud SQL for MySQL instance database flags to be configured correctly (e.g skip_show_database,
+    local_infile)
+  method_types:
+    - CREATE
+    - UPDATE
+  resource_types:
+    - sqladmin.googleapis.com/Instance

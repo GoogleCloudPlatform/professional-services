@@ -1,0 +1,11 @@
+cloudfunctionsV1RequireHTTPSRedirect:
+  description: Detect if Gen1 Cloud Functions are configured with HTTPS Trigger not set to SECURITY_ALWAYS configuration
+  predicate:
+    expression: (has(resource.httpsTrigger) && !resource.httpsTrigger.securityLevel.matches("SECURITY_ALWAYS"))
+  recommendation:
+    Ensure Gen1 Cloud Functions are configured with HTTPS Trigger to automatically redirected to HTTPS by using
+    SECURITY_ALWAYS configuration
+  resource_selector:
+    resource_types:
+      - cloudfunctions.googleapis.com/CloudFunction
+  severity: HIGH

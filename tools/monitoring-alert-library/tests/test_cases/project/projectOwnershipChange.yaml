@@ -1,0 +1,44 @@
+shared_config:
+  log_filter: >-
+    (protoPayload.serviceName="cloudresourcemanager.googleapis.com") AND 
+    (ProjectOwnership OR projectOwnerInvitee) 
+    OR 
+    (
+      protoPayload.serviceData.policyDelta.bindingDeltas.action="REMOVE" AND 
+      protoPayload.serviceData.policyDelta.bindingDeltas.role="roles/owner"
+    ) 
+    OR 
+    (
+      protoPayload.serviceData.policyDelta.bindingDeltas.action="ADD" AND 
+      protoPayload.serviceData.policyDelta.bindingDeltas.role="roles/owner"
+    )
+  default_markers:
+    - project
+    - project-ownership
+
+iam_add_owner_binding_log:
+  steps:
+  - command: gcloud projects add-iam-policy-binding {{ project }}  --member=user:admin@vannick.altostrat.com --role=roles/owner --condition=None
+    teardown_command: gcloud projects remove-iam-policy-binding {{ project }}  --member=user:admin@vannick.altostrat.com --role=roles/owner --condition=None
+    expected_result:
+      return_code: 0
+      attributes:
+        'protoPayload.resourceName': projects/{{ project }}
+        'protoPayload.serviceData.policyDelta.bindingDeltas[0].action': "ADD"
+        'protoPayload.serviceData.policyDelta.bindingDeltas[0].role': "roles/owner"
+        'protoPayload.methodName': 'SetIamPolicy'
+
+iam_delete_owner_binding_log:
+  steps:
+  - command: gcloud projects add-iam-policy-binding {{ project }}  --member=user:admin@vannick.altostrat.com --role=roles/owner --condition=None
+    expected_result:
+      return_code: 0
+  - command: gcloud projects remove-iam-policy-binding {{ project }}  --member=user:admin@vannick.altostrat.com --role=roles/owner  --condition=None
+    expected_result:
+      return_code: 0
+      attributes:
+        'protoPayload.resourceName': projects/{{ project }}
+        'protoPayload.serviceData.policyDelta.bindingDeltas[0].action': "REMOVE"
+        'protoPayload.serviceData.policyDelta.bindingDeltas[0].role': "roles/owner"
+        'protoPayload.methodName': 'SetIamPolicy'         
+

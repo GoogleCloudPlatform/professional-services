@@ -1,0 +1,4 @@
+name: organizations/11111111/policies/custom.cloudsqlAllowedDiskTypes
+spec:
+  rules:
+    - enforce: true

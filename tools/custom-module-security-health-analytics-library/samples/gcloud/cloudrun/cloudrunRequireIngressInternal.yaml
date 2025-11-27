@@ -1,0 +1,8 @@
+severity: HIGH
+description: Detect if Cloud Run services are not configured to allow only internal traffic
+recommendation: Ensure Cloud Run services are configured to allow only internal traffic
+resource_selector:
+  resource_types:
+    - run.googleapis.com/Service
+predicate:
+  expression: (!resource.metadata.annotations['run.googleapis.com/ingress'].matches('internal'))

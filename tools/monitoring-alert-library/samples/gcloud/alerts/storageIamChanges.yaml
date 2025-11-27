@@ -1,0 +1,32 @@
+displayName: Cloud Storage IAM Permission Changes
+documentation:
+  content: |-
+    Log-based alerting policy in project ${project} detected Cloud Storage Bucket IAM changes.
+
+    This alert helps ensure security by monitoring IAM permission changes to Cloud Storage buckets.
+    ```
+    resource.type="gcs_bucket" AND protoPayload.methodName="storage.setIamPermissions"
+    ```
+  mimeType: text/markdown
+conditions:
+  - displayName: Cloud Storage IAM Permission Changes
+    conditionThreshold:
+      filter: resource.type = "logging_bucket" AND metric.type = "logging.googleapis.com/user/storageIamChanges"
+      aggregations:
+        - perSeriesAligner: ALIGN_SUM
+          alignmentPeriod: 60s
+          crossSeriesReducer: REDUCE_SUM
+          groupByFields:
+            - metric.label.principal
+            - metric.label.method_name
+            - metric.label.project_id
+            - metric.label.location
+            - metric.label.bucket_name
+      comparison: COMPARISON_GT
+      thresholdValue: 0
+      duration: 0s
+      trigger:
+        count: 1
+combiner: OR
+notificationChannels:
+  - projects/my-project/notificationChannels/11111111111111

@@ -1,0 +1,8 @@
+severity: MEDIUM
+description: Detect if health checks have logging disabled
+recommendation: Ensure health checks have logging enabled
+resource_selector:
+  resource_types:
+    - compute.googleapis.com/HealthCheck
+predicate:
+  expression: (resource.logConfig.enable == false)

@@ -1,0 +1,78 @@
+shared_config:
+  command:  gcloud compute firewall-rules create allow-insecure-{{ identifier }}
+  teardown_command: gcloud compute firewall-rules delete allow-insecure-{{ identifier }}
+  default_command_flags:
+      action: ALLOW
+      direction: INGRESS
+      network: vpc-dev-cuop-library
+      priority: 1000
+      description: Testing insecure protocol firewall rule
+      enable-logging: true
+  default_markers:
+    - firewall
+    - firewall-vpc-rule
+    - insecure-protocols
+
+# Telnet tests - TCP:23
+firewall_vpc_allowed_telnet_rule_192:
+  steps:
+  - command_flags:
+      rules: tcp:23
+      source-ranges: 192.168.0.0/16
+    expected_result:
+      return_code: 0
+
+firewall_vpc_telnet_rule_denied:
+  steps:
+  - command_flags:
+      rules: tcp:23
+      source-ranges: 0.0.0.0/0
+    expected_result:
+      return_code: 1
+      stderr: 'customConstraints/custom\.firewallRestrict(PublicAccess|InsecureProtocols)Rule'
+
+# FTP tests - TCP:21
+firewall_vpc_allowed_ftp_rule_10:
+  steps:
+  - command_flags:
+      rules: tcp:21
+      source-ranges: 10.0.0.0/8
+    expected_result:
+      return_code: 0
+
+# Simplified constraint only blocks 0.0.0.0/0 and ::/0, not specific public IPs
+firewall_vpc_ftp_rule_allowed:
+  steps:
+  - command_flags:
+      rules: tcp:21
+      source-ranges: 1.0.0.0/32
+    expected_result:
+      return_code: 0
+
+# HTTP tests - TCP:80
+firewall_vpc_allowed_http_rule_iap:
+  steps:
+  - command_flags:
+      rules: tcp:80
+      source-ranges: 35.235.240.0/20
+    expected_result:
+      return_code: 0
+
+firewall_vpc_http_rule_denied:
+  steps:
+  - command_flags:
+      rules: tcp:80
+      source-ranges: 0.0.0.0/0
+    expected_result:
+      return_code: 1
+      stderr: 'customConstraints/custom\.firewallRestrict(PublicAccess|InsecureProtocols)Rule'
+
+# Multiple insecure protocols test
+# Simplified constraint only blocks 0.0.0.0/0 and ::/0, not specific public IPs
+firewall_vpc_multiple_insecure_allowed:
+  steps:
+  - command_flags:
+      rules: tcp:21,tcp:23,tcp:80
+      source-ranges: 8.8.8.8/32
+    expected_result:
+      return_code: 0

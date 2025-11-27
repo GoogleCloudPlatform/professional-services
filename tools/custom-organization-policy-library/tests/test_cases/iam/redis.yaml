@@ -1,0 +1,35 @@
+shared_config:
+  default_markers:
+    - iam
+    - iam-redis
+
+iam_sa_binding_admin_unallowed:
+  steps:
+  - command: >-
+      gcloud projects add-iam-policy-binding {{ project }}
+      --member='serviceAccount:iam-sa-binding-unallowed@{{ project }}.iam.gserviceaccount.com'
+      --role='roles/redis.admin'
+    expected_result:
+      return_code: 1
+      stderr: 'customConstraints/custom\.iamDisableRedisAdminRoles'
+
+iam_sa_binding_editor_unallowed:
+  steps:
+  - command: >-
+      gcloud projects add-iam-policy-binding {{ project }}
+      --member='serviceAccount:iam-sa-binding-unallowed@{{ project }}.iam.gserviceaccount.com'
+      --role='roles/redis.editor'
+    expected_result:
+      return_code: 1
+      stderr: 'customConstraints/custom\.iamDisableRedisAdminRoles'
+
+iam_sa_binding_owner_unallowed:
+  steps:
+  - command: >-
+      gcloud projects add-iam-policy-binding {{ project }}
+      --member='serviceAccount:iam-sa-binding-unallowed@{{ project }}.iam.gserviceaccount.com'
+      --role='roles/redis.viewer'
+    expected_result:
+      return_code: 1
+      stderr: 'customConstraints/custom\.iamDisableRedisAdminRoles'
+

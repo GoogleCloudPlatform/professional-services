@@ -1,0 +1,8 @@
+severity: MEDIUM
+description: Detect if logging is disabled on Cloud NAT
+recommendation: Ensure logging is enabled on every Cloud NAT
+resource_selector:
+  resource_types:
+    - compute.googleapis.com/Router
+predicate:
+  expression: (!resource.nats.all(a, a.logConfig.enable))

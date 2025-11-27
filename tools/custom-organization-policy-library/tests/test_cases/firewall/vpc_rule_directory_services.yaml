@@ -1,0 +1,77 @@
+shared_config:
+  command:  gcloud compute firewall-rules create allow-directory-{{ identifier }}
+  teardown_command: gcloud compute firewall-rules delete allow-directory-{{ identifier }}
+  default_command_flags:
+      action: ALLOW
+      direction: INGRESS
+      network: vpc-dev-cuop-library
+      priority: 1000
+      description: Testing directory services firewall rule
+      enable-logging: true
+  default_markers:
+    - firewall
+    - firewall-vpc-rule
+    - directory-services
+
+# SMB/CIFS tests - TCP/UDP:445
+firewall_vpc_allowed_smb_tcp_rule_10:
+  steps:
+  - command_flags:
+      rules: tcp:445
+      source-ranges: 10.0.0.0/8
+    expected_result:
+      return_code: 0
+
+firewall_vpc_smb_tcp_rule_denied:
+  steps:
+  - command_flags:
+      rules: tcp:445
+      source-ranges: 0.0.0.0/0
+    expected_result:
+      return_code: 1
+      stderr: 'customConstraints/custom\.firewallRestrict(PublicAccess|DirectoryServices)Rule'
+
+# Simplified constraint only blocks 0.0.0.0/0 and ::/0, not specific public IPs
+firewall_vpc_smb_udp_rule_allowed:
+  steps:
+  - command_flags:
+      rules: udp:445
+      source-ranges: 1.0.0.0/32
+    expected_result:
+      return_code: 0
+
+# LDAP tests - TCP:389, 636; UDP:389
+firewall_vpc_allowed_ldap_rule_192:
+  steps:
+  - command_flags:
+      rules: tcp:389
+      source-ranges: 192.168.0.0/16
+    expected_result:
+      return_code: 0
+
+# Simplified constraint only blocks 0.0.0.0/0 and ::/0, not specific public IPs
+firewall_vpc_ldap_tcp_rule_allowed:
+  steps:
+  - command_flags:
+      rules: tcp:389
+      source-ranges: 8.8.8.8/32
+    expected_result:
+      return_code: 0
+
+firewall_vpc_ldaps_rule_denied:
+  steps:
+  - command_flags:
+      rules: tcp:636
+      source-ranges: 0.0.0.0/0
+    expected_result:
+      return_code: 1
+      stderr: 'customConstraints/custom\.firewallRestrict(PublicAccess|DirectoryServices)Rule'
+
+# Simplified constraint only blocks 0.0.0.0/0 and ::/0, not specific public IPs
+firewall_vpc_ldap_udp_rule_allowed:
+  steps:
+  - command_flags:
+      rules: udp:389
+      source-ranges: 1.1.1.1/32
+    expected_result:
+      return_code: 0

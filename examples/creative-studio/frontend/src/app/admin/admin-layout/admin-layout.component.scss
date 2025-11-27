@@ -1,0 +1,31 @@
+/**
+ * Copyright 2025 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+.admin-sidenav {
+  width: 250px;
+  padding: 10px;
+}
+
+.active-link {
+  font-weight: bold;
+  background-image: linear-gradient(to right, #3b82f6, #8b5cf6, #f87171);
+}
+
+.admin-container {
+  background-color: #2e3031;
+  color: white;
+  padding: 2rem 10rem 2rem 2rem;
+}

@@ -1,0 +1,9 @@
+computeDisableInstanceIPForwarding:
+  description: Detect if VM IP Forwarding is enabled on Compute Instances
+  predicate:
+    expression: (resource.canIpForward == true)
+  recommendation: Ensure IP Forwarding is disabled on Compute Instances
+  resource_selector:
+    resource_types:
+      - compute.googleapis.com/Instance
+  severity: MEDIUM

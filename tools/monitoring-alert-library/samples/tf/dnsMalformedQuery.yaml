@@ -1,0 +1,52 @@
+alerts:
+  dnsMalformedQuery:
+    combiner: OR
+    conditions:
+      - condition_threshold:
+          aggregations:
+            - alignment_period: 60s
+              cross_series_reducer: REDUCE_SUM
+              group_by_fields:
+                - metric.label.principal
+                - metric.label.project_id
+              per_series_aligner: ALIGN_SUM
+          comparison: COMPARISON_GT
+          duration: 0s
+          filter: resource.type = "logging_bucket" AND metric.type = "logging.googleapis.com/user/dnsMalformedQuery"
+          threshold_value: 0
+          trigger:
+            count: 1
+        display_name: "Log match condition: DNS Malformed Queries"
+    display_name: DNS Malformed Queries
+    documentation:
+      content: |-
+        Log-based alerting policy in project ${project} detected where DNS queries are malformed
+        or cannot be processed by the DNS server.
+
+        This alert helps monitoring the DNS logs for response code "FORMERR" when malformed DNS queries
+        are sent to the DNS server.
+        ```
+        resource.type="dns_query" AND jsonPayload.responseCode="FORMERR"
+        ```
+      mime_type: text/markdown
+    notification_channels:
+      - projects/my-project/notificationChannels/11111111111111
+logging_metrics:
+  dnsMalformedQuery:
+    bucket_name: projects/my-project/locations/asia-southeast1/buckets/org-logging-bucket
+    description: DNS Malformed Queries
+    filter: resource.type="dns_query" AND jsonPayload.responseCode="FORMERR"
+    label_extractors:
+      principal: EXTRACT(protoPayload.authenticationInfo.principalEmail)
+      project_id: EXTRACT(labels.project_id)
+    metric_descriptor:
+      labels:
+        - description: principal
+          key: principal
+          value_type: STRING
+        - description: project_id
+          key: project_id
+          value_type: STRING
+      metric_kind: DELTA
+      unit: "1"
+      value_type: INT64

@@ -1,0 +1,24 @@
+shared_config:
+  command:  gcloud storage buckets create gs://{{ identifier }}-cgk
+  teardown_command: gcloud storage buckets delete  gs://{{ identifier }}-cgk
+  default_command_flags:
+    location: asia-southeast2
+    uniform-bucket-level-access: true
+    retention-period: 30d
+    default-encryption-key: projects/{{ project }}/locations/asia-southeast2/keyRings/{{ prefix }}-key-ring-1/cryptoKeys/{{ prefix }}-key-1
+  default_markers:
+    - storage
+
+storage_allowed_bucket:
+  steps:
+  - expected_result:
+      return_code: 0
+
+storage_bucket_no_uni_level_access:
+  steps:
+  - command_flags:
+      uniform-bucket-level-access: false
+      location: asia-southeast2
+    expected_result:
+      return_code: 1
+      stderr: 'constraints/storage.uniformBucketLevelAccess'

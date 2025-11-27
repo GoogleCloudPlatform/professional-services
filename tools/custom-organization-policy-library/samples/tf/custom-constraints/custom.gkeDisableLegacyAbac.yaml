@@ -1,10 +1,11 @@
 custom.gkeDisableLegacyAbac:
   action_type: DENY
-  condition: resource.legacyAbac.enabled == true
+  condition: |-
+    resource.legacyAbac.enabled == true
   description: Enforce that GKE clusters is configured with no legacy ABAC enabled
   display_name: Disable legacy ABAC
   method_types:
-  - CREATE
-  - UPDATE
+    - CREATE
+    - UPDATE
   resource_types:
-  - container.googleapis.com/Cluster
+    - container.googleapis.com/Cluster

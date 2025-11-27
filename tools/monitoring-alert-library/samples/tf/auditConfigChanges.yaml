@@ -1,0 +1,67 @@
+alerts:
+  auditConfigChanges:
+    combiner: OR
+    conditions:
+      - condition_threshold:
+          aggregations:
+            - alignment_period: 60s
+              cross_series_reducer: REDUCE_SUM
+              group_by_fields:
+                - metric.label.principal
+                - metric.label.method_name
+                - metric.label.organization_id
+                - metric.label.folder_id
+                - metric.label.project_id
+              per_series_aligner: ALIGN_SUM
+          comparison: COMPARISON_GT
+          duration: 0s
+          filter: resource.type = "logging_bucket" AND metric.type = "logging.googleapis.com/user/auditConfigChanges"
+          threshold_value: 0
+          trigger:
+            count: 1
+        display_name: "Log match condition: Audit Configuration Changes"
+    display_name: Audit Configuration Changes
+    documentation:
+      content: |-
+        Log-based alerting policy in project ${project} detected audit configuration changes.
+
+        This alert helps track GCP services audit log configuration changes to ensure appropriate.
+        audit logs are being collected
+        ```
+        protoPayload.methodName="SetIamPolicy" AND
+        protoPayload.serviceData.policyDelta.auditConfigDeltas:*
+        ```
+      mime_type: text/markdown
+    notification_channels:
+      - projects/my-project/notificationChannels/11111111111111
+logging_metrics:
+  auditConfigChanges:
+    bucket_name: projects/my-project/locations/asia-southeast1/buckets/org-logging-bucket
+    description: Audit Configuration Changes
+    filter: protoPayload.methodName="SetIamPolicy" AND protoPayload.serviceData.policyDelta.auditConfigDeltas:*
+    label_extractors:
+      folder_id: EXTRACT(labels.folder_id)
+      method_name: EXTRACT(protoPayload.methodName)
+      organization_id: EXTRACT(labels.organization_id)
+      principal: EXTRACT(protoPayload.authenticationInfo.principalEmail)
+      project_id: EXTRACT(labels.project_id)
+    metric_descriptor:
+      labels:
+        - description: principal
+          key: principal
+          value_type: STRING
+        - description: method_name
+          key: method_name
+          value_type: STRING
+        - description: organization_id
+          key: organization_id
+          value_type: STRING
+        - description: folder_id
+          key: folder_id
+          value_type: STRING
+        - description: project_id
+          key: project_id
+          value_type: STRING
+      metric_kind: DELTA
+      unit: "1"
+      value_type: INT64

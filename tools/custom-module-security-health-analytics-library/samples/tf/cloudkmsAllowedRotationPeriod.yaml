@@ -1,0 +1,9 @@
+cloudkmsAllowedRotationPeriod:
+  description: Detect if the rotation period for Cloud KMS keys is not configured correctly
+  predicate:
+    expression: has(resource.rotationPeriod) == false || resource.rotationPeriod > duration("31536000s")
+  recommendation: Ensure the rotation period for Cloud KMS keys is configured correctly
+  resource_selector:
+    resource_types:
+      - cloudkms.googleapis.com/CryptoKey
+  severity: MEDIUM

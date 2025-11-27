@@ -1,9 +1,19 @@
 name: organizations/11111111/customConstraints/custom.firewallRestrictRule
 resource_types:
-- compute.googleapis.com/Firewall
-condition: resource.direction == "INGRESS" && (!resource.sourceRanges.all(range, range in ["192.168.32.0/24", "10.16.0.0/16"]) || !resource.destinationRanges.all(range, range in ["192.168.32.0/24", "10.16.0.0/16"]))
+  - compute.googleapis.com/Firewall
+condition: |-
+  resource.direction == "INGRESS" &&
+  (
+    !resource.sourceRanges.all(range,
+      range in ["192.168.32.0/24", "10.16.0.0/16"]
+    ) ||
+    !resource.destinationRanges.all(range,
+      range in ["192.168.32.0/24", "10.16.0.0/16"]
+    )
+  )
 action_type: DENY
 method_types:
-- CREATE
+  - CREATE
 display_name: Restrict VPC Firewall rules with certain configuration
-description: Prevent the creation of VPC firewall rule by providing some parameters (such as direction, port, ip range, protocol)
+description: |
+  Prevent the creation of VPC firewall rule by providing some parameters (such as direction, port, ip range, protocol)

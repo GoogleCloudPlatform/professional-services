@@ -1,0 +1,11 @@
+custom.cloudsqlRequireSSLConnection:
+  action_type: DENY
+  condition: |-
+    resource.settings.ipConfiguration.sslMode in ['ENCRYPTED_ONLY', 'TRUSTED_CLIENT_CERTIFICATE_REQUIRED'] == false
+  description: Ensure that Cloud SQL instance is configured to allow only connections that are encrypted with SSL/TLS
+  display_name: Require Cloud SQL instances to allow only connections that are encrypted with SSL/TLS
+  method_types:
+    - CREATE
+    - UPDATE
+  resource_types:
+    - sqladmin.googleapis.com/Instance

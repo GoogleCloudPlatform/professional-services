@@ -2,15 +2,17 @@
 #@ constraint = build_constraint("computeAllowedInstanceMachineTypes")
 
 #@ def condition(machine_types):
-#@   return "(" + str(machine_types) + ".exists(type, resource.machineType.contains(type))) == false"
+#@   return 'resource.machineType.matches("machineTypes/(' +  "|".join(machine_types) + ')$") == false'
 #@ end
 
 #@ if constraint.to_generate():
 name: #@ constraint.constraint_name()
-resource_types: compute.googleapis.com/Instance
+resource_types: 
+- compute.googleapis.com/Instance
 condition: #@  condition(constraint.params().machine_types) 
 action_type: DENY
-method_types: CREATE
+method_types: 
+- CREATE
 display_name: Allow only specific machine types
 description:  "Prevent the creation of VMs not using specific machine types"
 #@ end

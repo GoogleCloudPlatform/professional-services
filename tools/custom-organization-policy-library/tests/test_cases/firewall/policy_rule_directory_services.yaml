@@ -1,0 +1,74 @@
+shared_config:
+  command:  gcloud compute network-firewall-policies rules create 1000 --firewall-policy cuop-fw-policy --global-firewall-policy
+  teardown_command: gcloud compute network-firewall-policies rules delete 1000 --firewall-policy cuop-fw-policy --global-firewall-policy
+  default_command_flags:
+      action: ALLOW
+      direction: INGRESS
+      enable-logging: true
+  default_markers:
+    - firewall
+    - firewall-policy
+    - directory-services
+
+# SMB/CIFS tests - TCP/UDP:445
+firewall_policy_allowed_smb_tcp_rule_10:
+  steps:
+  - command_flags:
+      layer4-configs: tcp:445
+      src-ip-ranges: 10.0.0.0/8
+    expected_result:
+      return_code: 0
+
+firewall_policy_smb_tcp_rule_denied:
+  steps:
+  - command_flags:
+      layer4-configs: tcp:445
+      src-ip-ranges: 0.0.0.0/0
+    expected_result:
+      return_code: 1
+      stderr: 'customConstraints/custom\.firewallRestrict(PublicAccess|DirectoryServices)PolicyRule'
+
+# Simplified constraint only blocks 0.0.0.0/0 and ::/0, not specific public IPs
+firewall_policy_smb_udp_rule_allowed:
+  steps:
+  - command_flags:
+      layer4-configs: udp:445
+      src-ip-ranges: 1.0.0.0/32
+    expected_result:
+      return_code: 0
+
+# LDAP tests - TCP:389, 636; UDP:389
+firewall_policy_allowed_ldap_rule_192:
+  steps:
+  - command_flags:
+      layer4-configs: tcp:389
+      src-ip-ranges: 192.168.0.0/16
+    expected_result:
+      return_code: 0
+
+# Simplified constraint only blocks 0.0.0.0/0 and ::/0, not specific public IPs
+firewall_policy_ldap_tcp_rule_allowed:
+  steps:
+  - command_flags:
+      layer4-configs: tcp:389
+      src-ip-ranges: 8.8.8.8/32
+    expected_result:
+      return_code: 0
+
+firewall_policy_ldaps_rule_denied:
+  steps:
+  - command_flags:
+      layer4-configs: tcp:636
+      src-ip-ranges: 0.0.0.0/0
+    expected_result:
+      return_code: 1
+      stderr: 'customConstraints/custom\.firewallRestrict(PublicAccess|DirectoryServices)PolicyRule'
+
+# Simplified constraint only blocks 0.0.0.0/0 and ::/0, not specific public IPs
+firewall_policy_ldap_udp_rule_allowed:
+  steps:
+  - command_flags:
+      layer4-configs: udp:389
+      src-ip-ranges: 1.1.1.1/32
+    expected_result:
+      return_code: 0

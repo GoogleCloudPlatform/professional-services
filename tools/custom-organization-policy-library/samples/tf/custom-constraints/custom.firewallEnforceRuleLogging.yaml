@@ -1,0 +1,19 @@
+custom.firewallEnforceRuleLogging:
+  action_type: DENY
+  condition: |-
+    (
+      (has(resource.logConfig) == false || resource.logConfig.enable == false) &&
+      !resource.name.startsWith("gke-") &&
+      !resource.name.startsWith("k8s-") &&
+      !resource.name.endsWith("-hc") &&
+      !resource.name.startsWith("k8s2-") &&
+      !resource.name.startsWith("gkegw1-l7-") &&
+      !resource.name.startsWith("gkemcg1-l7-")
+    )
+  description: Ensure that VPC Firewall rules have logging enabled
+  display_name: Require VPC Firewall rules to have logging enabled
+  method_types:
+    - CREATE
+    - UPDATE
+  resource_types:
+    - compute.googleapis.com/Firewall

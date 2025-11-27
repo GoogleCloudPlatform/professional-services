@@ -1,0 +1,9 @@
+gkeDisableConfidentialNodes:
+  description: Detect if any GKE clusters are running with Confidential GKE nodes
+  predicate:
+    expression: (resource.confidentialNodes.enabled == true)
+  recommendation: Ensure GKE clusters are running without Confidential GKE nodes enabled
+  resource_selector:
+    resource_types:
+      - container.googleapis.com/Cluster
+  severity: MEDIUM

@@ -1,0 +1,31 @@
+#@ load("/alert.lib.star", "build_alert")
+#@ load("/alert.lib.yaml", "generate_notification_channels")
+#@ load("@ytt:template", "template")
+#@ alert = build_alert("binaryAuthorizationPolicyChanges")
+
+#@ if alert.to_generate():
+description:  "Binary Authorization Policy Changes"
+bucketName: #@ alert.log_bucket_name()
+filter: >-
+  protoPayload.methodName="google.cloud.binaryauthorization.v1.BinauthzManagementServiceV1.UpdatePolicy" AND
+  protoPayload.serviceName="binaryauthorization.googleapis.com" AND
+  ("ALWAYS_ALLOW" OR "DRYRUN_AUDIT_LOG_ONLY")
+metricDescriptor:
+  metricKind: "DELTA"
+  valueType: "INT64"
+  unit: "1"
+  labels:
+    - key: "principal"
+      description: "principal"
+      valueType: STRING
+    - key: "method_name"
+      description: "method_name"
+      valueType: STRING
+    - key: "project_id"
+      description: "project_id"
+      valueType: STRING
+labelExtractors:
+  principal: "EXTRACT(protoPayload.authenticationInfo.principalEmail)"
+  method_name: "EXTRACT(protoPayload.methodName)"
+  project_id: "EXTRACT(labels.project_id)"
+#@ end

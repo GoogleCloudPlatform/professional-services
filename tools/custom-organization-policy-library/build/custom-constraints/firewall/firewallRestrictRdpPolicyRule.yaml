@@ -1,0 +1,29 @@
+#@ load("/constraints.lib.star", "build_constraint")
+#@ constraint = build_constraint("firewallRestrictRdpPolicyRule")
+
+#@ if constraint.to_generate():
+name: #@ constraint.constraint_name()
+resource_types: 
+- compute.googleapis.com/FirewallPolicy
+condition: >-
+    resource.rules.exists(rule,
+        rule.priority < 2147483644 &&
+        rule.direction == 'INGRESS' &&
+        !rule.match.srcIpRanges.all(ipRange,
+            ipRange == '35.235.240.0/20' ||
+            ipRange.startsWith('192.168.') ||
+            ipRange.matches('^172\\.(?:1[6-9]|2\\d|3[0-1]).*') ||
+            ipRange.startsWith('10.')
+        ) &&
+        rule.match.layer4Configs.all(l4config,
+            l4config.ipProtocol == 'tcp' &&
+            l4config.ports.all(port, port == '3389')
+        )
+    )
+action_type: DENY
+method_types: 
+- CREATE 
+- UPDATE
+display_name: Restrict Firewall Policy rules allowing RDP access from any source
+description: Ensure that RDP access is restricted from any source when using Firewall Policy Rule
+#@ end

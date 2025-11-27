@@ -1,0 +1,24 @@
+name: organizations/11111111/customConstraints/custom.cloudsqlRequirePostgreSQLDatabaseFlags
+resourceTypes:
+  - sqladmin.googleapis.com/Instance
+methodTypes:
+  - CREATE
+  - UPDATE
+condition: |-
+  resource.databaseVersion.startsWith('POSTGRES') && (
+    !resource.settings.databaseFlags.exists(f, f.name == 'log_connections' && f.value == 'on') ||
+    !resource.settings.databaseFlags.exists(f, f.name == 'log_disconnections' && f.value == 'on') ||
+    !resource.settings.databaseFlags.exists(f, f.name == 'log_min_duration_statement' && f.value == '-1') ||
+    !resource.settings.databaseFlags.exists(f, f.name == 'cloudsql.enable_pgaudit' && f.value == 'on') ||
+    resource.settings.databaseFlags.exists(f, f.name == 'log_error_verbosity' && f.value == 'terse') ||
+    resource.settings.databaseFlags.exists(f, f.name == 'log_statement' && f.value == 'none') ||
+    resource.settings.databaseFlags.exists(f,
+      f.name == 'log_min_messages' && f.value in ['error' , 'log', 'fatal', 'panic']
+    ) ||
+    resource.settings.databaseFlags.exists(f,
+      f.name == 'log_min_error_statement' && f.value in ['log', 'fatal', 'panic']
+    )
+  )
+actionType: DENY
+display_name: Require Cloud SQL for PostgreSQL instance database flags to be configured correctly (e.g log_connections)
+description: Ensure Cloud SQL for PostgreSQL instance database flags are set correctly (e.g log_connections)

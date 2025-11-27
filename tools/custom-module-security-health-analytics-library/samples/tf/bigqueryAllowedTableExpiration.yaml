@@ -1,0 +1,9 @@
+bigqueryAllowedTableExpiration:
+  description: Detect if the expiration time of each BigQuery table is not configured correctly
+  predicate:
+    expression: has(resource.defaultTableExpirationMs) && resource.defaultTableExpirationMs > 2592000000
+  recommendation: Ensure the expiration time of each BigQuery table is configured correctly
+  resource_selector:
+    resource_types:
+      - bigquery.googleapis.com/Dataset
+  severity: MEDIUM

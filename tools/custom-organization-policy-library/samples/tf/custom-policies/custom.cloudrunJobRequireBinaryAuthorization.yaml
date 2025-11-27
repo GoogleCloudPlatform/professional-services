@@ -1,0 +1,3 @@
+custom.cloudrunJobRequireBinaryAuthorization:
+  rules:
+    - enforce: true

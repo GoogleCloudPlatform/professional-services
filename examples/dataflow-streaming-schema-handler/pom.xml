@@ -46,7 +46,7 @@
     <mvn-target-dir>${basedir}/target</mvn-target-dir>
     <derby.version>10.14.2.0</derby.version>
     <commons-codec.version>1.14</commons-codec.version>
-    <commons-io.version>2.4</commons-io.version>
+    <commons-io.version>2.14.0</commons-io.version>
     <excluded.spanner.tests>com.google.cloud.teleport.spanner.IntegrationTest</excluded.spanner.tests>
     <truth.version>1.0.1</truth.version>
     <dlp.version>2.1.0</dlp.version>

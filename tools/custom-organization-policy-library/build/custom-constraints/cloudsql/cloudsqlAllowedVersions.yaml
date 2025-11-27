@@ -1,0 +1,24 @@
+#@ load("/constraints.lib.star", "build_constraint")
+#@ constraint = build_constraint("cloudsqlAllowedVersions")
+
+#@ def condition(versions):
+#@  lines = [
+#@   "(!" + str(versions) + ".exists(version,",
+#@   "  version.matches(resource.databaseVersion))",
+#@   ")",
+#@  ]
+#@  return "\n".join(lines)
+#@ end
+
+#@ if constraint.to_generate():
+name: #@ constraint.constraint_name()
+resourceTypes:
+- sqladmin.googleapis.com/Instance
+methodTypes:
+- CREATE
+- UPDATE
+condition: #@  condition(constraint.params().versions)
+actionType: DENY
+display_name: Require Cloud SQL instances to use authorized database versions
+description: Ensure that Cloud SQL instance is configured with authorized database versions ("MYSQL_8_0", "POSTGRES_15", "SQLSERVER_2022_WEB")
+#@ end

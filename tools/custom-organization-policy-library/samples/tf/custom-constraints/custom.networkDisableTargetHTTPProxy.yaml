@@ -1,0 +1,11 @@
+custom.networkDisableTargetHTTPProxy:
+  action_type: DENY
+  condition: |-
+    true == true
+  description: Ensure Target HTTP Proxy are not used
+  display_name: Deny usage and creation of Target HTTP Proxy
+  method_types:
+    - CREATE
+    - UPDATE
+  resource_types:
+    - compute.googleapis.com/TargetHttpProxy

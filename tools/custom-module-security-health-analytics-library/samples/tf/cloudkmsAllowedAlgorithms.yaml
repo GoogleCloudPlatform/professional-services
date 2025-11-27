@@ -1,0 +1,9 @@
+cloudkmsAllowedAlgorithms:
+  description: Detect if the the algorithm for Cloud KMS keys is not configured correctly
+  predicate:
+    expression: resource.algorithm in ["GOOGLE_SYMMETRIC_ENCRYPTION", "EXTERNAL_SYMMETRIC_ENCRYPTION"] == false
+  recommendation: Ensure the algorithm for Cloud KMS keys is configured correctly
+  resource_selector:
+    resource_types:
+      - cloudkms.googleapis.com/CryptoKeyVersion
+  severity: MEDIUM

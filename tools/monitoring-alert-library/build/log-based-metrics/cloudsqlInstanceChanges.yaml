@@ -1,0 +1,33 @@
+#@ load("/alert.lib.star", "build_alert")
+#@ load("/alert.lib.yaml", "generate_notification_channels")
+#@ load("@ytt:template", "template")
+#@ alert = build_alert("cloudsqlInstanceChanges")
+
+#@ if alert.to_generate():
+description:  "Cloud SQL Instance Configuration Changes"
+bucketName: #@ alert.log_bucket_name()
+filter: >-
+  protoPayload.methodName="cloudsql.instances.update"
+metricDescriptor:
+  metricKind: "DELTA"
+  valueType: "INT64"
+  unit: "1"
+  labels:
+    - key: "principal"
+      description: "principal"
+      valueType: STRING
+    - key: "method_name"
+      description: "method_name"
+      valueType: STRING
+    - key: "project_id"
+      description: "project_id"
+      valueType: STRING
+    - key: "database_id"
+      description: "database_id"
+      valueType: STRING
+labelExtractors:
+  principal: "EXTRACT(protoPayload.authenticationInfo.principalEmail)"
+  method_name: "EXTRACT(protoPayload.methodName)"
+  project_id: "EXTRACT(labels.project_id)"
+  database_id: "EXTRACT(labels.database_id)"
+#@ end

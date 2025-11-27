@@ -1,0 +1,34 @@
+shared_config:
+  command: gcloud dns policies create {{ identifier }} 
+  teardown_command: gcloud dns policies delete {{ identifier }}
+  default_command_flags: 
+    enable-logging: true
+    networks: vpc-dev-cuop-library
+    description: Creation of DNS policy
+  default_markers:
+    - dns
+    - dns-policy
+
+dns_policy_allowed:
+  steps:
+  - expected_result:
+      return_code: 0
+  - command: gcloud dns policies update {{ identifier }} --networks ""
+    expected_result:
+      return_code: 0
+
+dns_policy_no_logging:
+  steps:
+  - command_flags:
+      enable-logging: false
+    expected_result:
+      return_code: 1
+      stderr: 'HTTPError 412' # Gcloud output is not verbose enough to return the constraint blocking creation
+
+dns_policy_absent_logging:
+  steps:
+  - command_flags:
+      enable-logging: absent
+    expected_result:
+      return_code: 1
+      stderr: 'HTTPError 412' # Gcloud output is not verbose enough to return the constraint blocking creation

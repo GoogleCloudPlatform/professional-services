@@ -1,0 +1,9 @@
+gkeDisableClientCertificateAuth:
+  description: Detect if any GKE clusters uses client certificate authentication
+  predicate:
+    expression: resource.masterAuth.clientCertificateConfig.issueClientCertificate == true
+  recommendation: Ensure that control plane does not use client certificate authentication
+  resource_selector:
+    resource_types:
+      - container.googleapis.com/Cluster
+  severity: CRITICAL

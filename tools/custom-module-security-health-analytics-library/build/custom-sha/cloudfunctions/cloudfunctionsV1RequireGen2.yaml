@@ -1,0 +1,13 @@
+#@ load("/sha.lib.star", "build_sha")
+#@ sha = build_sha("cloudfunctionsV1RequireGen2")
+
+#@ if sha.to_generate():
+severity: MEDIUM
+description: "Detect if Gen1 Cloud Functions are in use"
+recommendation: "Ensure only Gen 2 Cloud Functions are used"
+resource_selector:
+  resource_types:
+  - cloudfunctions.googleapis.com/CloudFunction
+predicate:
+  expression: has(resource.name)
+#@ end

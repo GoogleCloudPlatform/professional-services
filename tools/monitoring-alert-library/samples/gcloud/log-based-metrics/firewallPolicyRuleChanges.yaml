@@ -1,0 +1,22 @@
+description: Network Firewall Policy Rule Changes
+bucketName: projects/my-project/locations/asia-southeast1/buckets/org-logging-bucket
+filter: |-
+  resource.labels.method:"compute.networkFirewallPolicies" AND (
+    protoPayload.methodName:"compute.networkFirewallPolicies.addRule" OR
+    protoPayload.methodName:"compute.networkFirewallPolicies.removeRule" OR
+    protoPayload.methodName:"compute.networkFirewallPolicies.patchRule"
+  )
+metricDescriptor:
+  metricKind: DELTA
+  valueType: INT64
+  unit: "1"
+  labels:
+    - key: principal
+      description: principal
+      valueType: STRING
+    - key: method_name
+      description: method_name
+      valueType: STRING
+labelExtractors:
+  principal: EXTRACT(protoPayload.authenticationInfo.principalEmail)
+  method_name: EXTRACT(protoPayload.methodName)

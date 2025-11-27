@@ -38,6 +38,9 @@ node_modules/
 htmlcov/
 *.iml
 **/target
+.metals
+.bsp
+.scala-build
 
 
 # Terraform
@@ -51,6 +54,7 @@ override.tf.json
 *_override.tf.json
 .terraformrc
 terraform.rc
+.terraform.lock*
 /cloudbuild/.terraform.lock.hcl
 .vscode/
 tools/ipam-autopilot/provider/bin/terraform-provider-ipam_0.3_darwin_amd64
@@ -64,3 +68,7 @@ tools/ipam-autopilot/container/.vscode/launch.json
 tools/ipam-autopilot/examples/.terraform.lock.hcl
 tools/bq-visualizer/.angular
 terraform.tfvars
+
+tools/dynamodb-bigtable-migration/scripts/.env
+/examples/mcptoolbox-bq-claude-slack-agent/nbproject/
+tools/custom-module-security-health-analytics-library/report.html

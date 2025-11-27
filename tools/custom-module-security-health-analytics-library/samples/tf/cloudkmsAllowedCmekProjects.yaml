@@ -1,0 +1,9 @@
+cloudkmsAllowedCmekProjects:
+  description: Detect if CMEKs are used from unauthorized projects
+  predicate:
+    expression: (!["mysecurity-project"].exists(prj, resource.name.startsWith("projects/" + prj)))
+  recommendation: Ensure only CMEKs from authorized projects are used
+  resource_selector:
+    resource_types:
+      - cloudkms.googleapis.com/CryptoKey
+  severity: HIGH

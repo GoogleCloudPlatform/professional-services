@@ -1,0 +1,8 @@
+severity: HIGH
+description: Detect if VPC network in auto-mode exists
+recommendation: Ensure auto-mode is idsabled when using VPC networks
+resource_selector:
+  resource_types:
+    - compute.googleapis.com/Network
+predicate:
+  expression: (resource.autoCreateSubnetworks)

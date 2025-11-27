@@ -1,0 +1,22 @@
+custom.firewallRestrictInsecureProtocolsPolicyRule:
+  action_type: DENY
+  condition: |-
+    resource.rules.exists(rule,
+      rule.priority < 2147483644 &&
+      rule.direction == 'INGRESS' &&
+      rule.match.srcIpRanges.exists(range, range == '0.0.0.0/0') &&
+      (
+        rule.match.layer4Configs.containsIpProtocolAndPort('tcp', '21') ||
+        rule.match.layer4Configs.containsIpProtocolAndPort('tcp', '23') ||
+        rule.match.layer4Configs.containsIpProtocolAndPort('tcp', '80')
+      )
+    )
+  description:
+    Ensure that insecure legacy protocols (Telnet, FTP, HTTP) are not accessible from any source when using Firewall
+    Policy Rule
+  display_name: Restrict Firewall Policy rules allowing insecure protocol access from any source
+  method_types:
+    - CREATE
+    - UPDATE
+  resource_types:
+    - compute.googleapis.com/FirewallPolicy

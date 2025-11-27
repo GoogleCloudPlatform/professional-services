@@ -1,0 +1,8 @@
+severity: MEDIUM
+description: Detect if any GKE clusters is created not using autopilot mode.
+recommendation: Ensure only autopilot GKE cluster are used.
+resource_selector:
+  resource_types:
+    - container.googleapis.com/Cluster
+predicate:
+  expression: (resource.autopilot.enabled == false)

@@ -1,0 +1,29 @@
+custom.firewallRestrictCacheSearchDatabasesPolicyRule:
+  action_type: DENY
+  condition: |-
+    resource.rules.exists(r, r.priority < 2147483644 && r.direction == 'INGRESS' &&
+      r.match.srcIpRanges.exists(r, r == '0.0.0.0/0') &&
+      (
+        r.match.layer4Configs.containsIpProtocolAndPort('tcp', '6379') ||
+        r.match.layer4Configs.containsIpProtocolAndPort('udp', '6379') ||
+        r.match.layer4Configs.containsIpProtocolAndPort('tcp', '9200') ||
+        r.match.layer4Configs.containsIpProtocolAndPort('udp', '9200') ||
+        r.match.layer4Configs.containsIpProtocolAndPort('tcp', '9300') ||
+        r.match.layer4Configs.containsIpProtocolAndPort('udp', '9300') ||
+        r.match.layer4Configs.containsIpProtocolAndPort('tcp', '11211') ||
+        r.match.layer4Configs.containsIpProtocolAndPort('udp', '11211') ||
+        r.match.layer4Configs.containsIpProtocolAndPort('tcp', '11214') ||
+        r.match.layer4Configs.containsIpProtocolAndPort('udp', '11214') ||
+        r.match.layer4Configs.containsIpProtocolAndPort('tcp', '11215') ||
+        r.match.layer4Configs.containsIpProtocolAndPort('udp', '11215')
+      )
+    )
+  description:
+    Ensure that cache and search database ports (Elasticsearch, Memcached, Redis) are not accessible from any source
+    when using Firewall Policy Rule
+  display_name: Restrict Firewall Policy rules allowing cache/search database port access from any source
+  method_types:
+    - CREATE
+    - UPDATE
+  resource_types:
+    - compute.googleapis.com/FirewallPolicy

@@ -3,8 +3,8 @@ lightgbm==3.2.1
 gcsfs==2021.6.1
 pandas==1.1.5
 pandas-gbq==0.14.1
-jinja2==3.1.4
-requests==2.25.1
+jinja2==3.1.5
+requests==2.32.4
 jupyter==1.0.0
 google-cloud-logging==2.5.0
 google-cloud-aiplatform==1.1.1

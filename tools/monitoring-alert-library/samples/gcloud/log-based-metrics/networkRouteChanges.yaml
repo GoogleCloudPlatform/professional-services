@@ -1,0 +1,29 @@
+description: VPC Network Route Changes
+bucketName: projects/my-project/locations/asia-southeast1/buckets/org-logging-bucket
+filter: |-
+  resource.type="gce_route" AND (
+    protoPayload.methodName:"compute.routes.insert" OR
+    protoPayload.methodName:"compute.routes.delete"
+  )
+metricDescriptor:
+  metricKind: DELTA
+  valueType: INT64
+  unit: "1"
+  labels:
+    - key: principal
+      description: principal
+      valueType: STRING
+    - key: method_name
+      description: method_name
+      valueType: STRING
+    - key: project_id
+      description: project_id
+      valueType: STRING
+    - key: route_id
+      description: route_id
+      valueType: STRING
+labelExtractors:
+  principal: EXTRACT(protoPayload.authenticationInfo.principalEmail)
+  method_name: EXTRACT(protoPayload.methodName)
+  project_id: EXTRACT(labels.project_id)
+  route_id: EXTRACT(labels.route_id)

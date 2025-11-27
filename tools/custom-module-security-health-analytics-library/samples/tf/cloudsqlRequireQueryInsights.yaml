@@ -1,0 +1,9 @@
+cloudsqlRequireQueryInsights:
+  description: Detect if the CloudSQL query insights feature is disabled on databases
+  predicate:
+    expression: (!resource.settings.insightsConfig.queryInsightsEnabled)
+  recommendation: Ensure the CloudSQL query insights feature are enabled on every databases
+  resource_selector:
+    resource_types:
+      - sqladmin.googleapis.com/Instance
+  severity: MEDIUM

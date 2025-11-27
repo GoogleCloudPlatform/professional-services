@@ -1,0 +1,15 @@
+name: organizations/11111111/customConstraints/custom.iamAllowedMembers
+resourceTypes:
+  - iam.googleapis.com/AllowPolicy
+methodTypes:
+  - CREATE
+  - UPDATE
+condition: |-
+  resource.bindings.exists(binding,
+    binding.members.exists(member,
+      !MemberSubjectEndsWith(member, ['@google.com', '.gserviceaccount.com'])
+    )
+  )
+actionType: DENY
+displayName: Deny principals and members outside the organization domain
+description: Ensure no binding are done with members outside the organization domain

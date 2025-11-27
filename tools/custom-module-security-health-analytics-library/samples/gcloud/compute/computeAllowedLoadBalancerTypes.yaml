@@ -1,0 +1,9 @@
+severity: MEDIUM
+description: Detect unauthorized Load Balancer type are used
+recommendation: Ensure only load balancers with authorized types are used
+resource_selector:
+  resource_types:
+    - compute.googleapis.com/GlobalForwardingRule
+    - compute.googleapis.com/ForwardingRule
+predicate:
+  expression: (has(resource.loadBalancingScheme) && !(resource.loadBalancingScheme in ["INTERNAL", "INTERNAL_MANAGED"]))

@@ -1,0 +1,9 @@
+cloudrunRequireIngressInternal:
+  description: Detect if Cloud Run services are not configured to allow only internal traffic
+  predicate:
+    expression: (!resource.metadata.annotations['run.googleapis.com/ingress'].matches('internal'))
+  recommendation: Ensure Cloud Run services are configured to allow only internal traffic
+  resource_selector:
+    resource_types:
+      - run.googleapis.com/Service
+  severity: HIGH

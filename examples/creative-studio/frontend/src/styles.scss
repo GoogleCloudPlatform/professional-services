@@ -1,0 +1,477 @@
+/**
+ * Copyright 2025 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+// Custom Theming for Angular Material
+// For more information: https://material.angular.io/guide/theming
+@use '@angular/material' as mat;
+// Plus imports for other components in your app.
+
+// Include the common styles for Angular Material. We include this here so that you only
+// have to load a single css file for Angular Material in your app.
+// Be sure that you only ever include this mixin once!
+@include mat.core();
+
+// Define the theme object.
+$creative-studio-theme: mat.define-theme(
+  (
+    color: (
+      theme-type: dark,
+      primary: mat.$azure-palette,
+      tertiary: mat.$blue-palette,
+    ),
+    density: (
+      scale: 0,
+    ),
+  )
+);
+
+// To get the theme colors and typography styles to apply, you must include a theme.
+// Here, we're using a pre-built theme. You can also create your own.
+// https://material.angular.io/guide/theming
+@import '@angular/material/prebuilt-themes/azure-blue.css';
+
+// Include theme styles for core and each component used in your app.
+// Alternatively, you can import and @include the theme mixins for each component
+// that you are using.
+:root {
+  @include mat.all-component-themes($creative-studio-theme);
+
+  --color-bg1: #2e3031;
+  --color-primary-value: #{mat.get-theme-color($creative-studio-theme, primary)};
+  --color-bg2: #2e3031;
+  --color1: 238, 77, 93; // #EE4D5D red
+  --color2: 45, 124, 239; // #2D7CEF dark blue
+  --color3: 238, 77, 93; // #EE4D5D red
+  --color4: 29, 141, 248; // #1D8DF8 light blue
+  --color5: 238, 77, 93; // #EE4D5D red
+  // --color5: 251, 188, 4; // #fbbc04 yellow
+  --color-interactive: 140, 100, 255;
+  --circle-size: 90%;
+  --blending: hard-light;
+}
+
+// Comment out the line below if you want to use the pre-defined typography utility classes.
+// For more information: https://material.angular.io/guide/typography#using-typography-styles-in-your-application.
+// @include mat.typography-hierarchy($creative-studio-theme);
+
+// Comment out the line below if you want to use the deprecated `color` inputs.
+// @include mat.color-variants-backwards-compatibility($creative-studio-theme);
+/* You can add global styles to this file, and also import other style files */
+
+@import url(//fonts.googleapis.com/css2?family=Google+Sans);
+
+html,
+body {
+  background-color: transparent;
+}
+body {
+  margin: 0;
+  font-family: 'Google Sans', Roboto, Arial, 'Helvetica Neue', sans-serif !important;
+}
+
+body,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+button,
+input,
+optgroup,
+select,
+textarea {
+  font-family: 'Google Sans', Roboto, Arial, 'Helvetica Neue', sans-serif !important;
+}
+
+@tailwind base;
+
+@tailwind components;
+
+@tailwind utilities;
+
+* {
+  border-style: hidden;
+}
+
+.lg-backdrop {
+  background-color: rgba(0, 0, 0, 0.8);
+}
+
+.lg-toolbar {
+  background-color: rgba(0, 0, 0, 0.5);
+  .lg-icon {
+    color: #fff;
+  }
+}
+
+.inline-gallery-container {
+  width: 100%;
+  height: 70vh;
+  position: relative;
+}
+
+textarea {
+  border: 1px solid white;
+}
+
+// Background Bubble Animation for Mobile and HomeScreen
+@keyframes moveInCircle {
+  0% {
+    transform: rotate(0deg);
+  }
+  50% {
+    transform: rotate(180deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes moveVertical {
+  0% {
+    transform: translateY(-50%);
+  }
+  50% {
+    transform: translateY(50%);
+  }
+  100% {
+    transform: translateY(-50%);
+  }
+}
+
+@keyframes moveHorizontal {
+  0% {
+    transform: translateX(-50%) translateY(-10%);
+  }
+  50% {
+    transform: translateX(50%) translateY(10%);
+  }
+  100% {
+    transform: translateX(-50%) translateY(-10%);
+  }
+}
+
+.gradient-bg {
+  width: 100vw;
+  height: 120vh;
+  position: fixed;
+  overflow: hidden;
+  background: linear-gradient(40deg, var(--color-bg1), var(--color-bg2));
+  top: 0;
+  left: 0;
+  z-index: -1;
+
+  svg {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 0;
+    height: 0;
+  }
+
+  .gradients-container {
+    filter: url(#goo) blur(40px);
+    width: 100%;
+    height: 100%;
+  }
+
+  .g1 {
+    position: absolute;
+    background: radial-gradient(
+        circle at center,
+        rgba(var(--color1), 0.8) 0,
+        rgba(var(--color1), 0) 50%
+      )
+      no-repeat;
+    mix-blend-mode: var(--blending);
+
+    width: var(--circle-size);
+    height: var(--circle-size);
+    top: calc(50% - var(--circle-size) / 2);
+    left: calc(50% - var(--circle-size) / 2);
+
+    transform-origin: center center;
+    animation: moveVertical 30s ease infinite;
+
+    opacity: 1;
+  }
+
+  .g2 {
+    position: absolute;
+    background: radial-gradient(
+        circle at center,
+        rgba(var(--color2), 0.8) 0,
+        rgba(var(--color2), 0) 50%
+      )
+      no-repeat;
+    mix-blend-mode: var(--blending);
+
+    width: var(--circle-size);
+    height: var(--circle-size);
+    top: calc(50% - var(--circle-size) / 2);
+    left: calc(50% - var(--circle-size) / 2);
+
+    transform-origin: calc(50% - 400px);
+    animation: moveInCircle 20s reverse infinite;
+
+    opacity: 1;
+  }
+
+  .g3 {
+    position: absolute;
+    background: radial-gradient(
+        circle at center,
+        rgba(var(--color3), 0.8) 0,
+        rgba(var(--color3), 0) 50%
+      )
+      no-repeat;
+    mix-blend-mode: var(--blending);
+
+    width: var(--circle-size);
+    height: var(--circle-size);
+    top: calc(50% - var(--circle-size) / 2 + 200px);
+    left: calc(50% - var(--circle-size) / 2 - 500px);
+
+    transform-origin: calc(50% + 400px);
+    animation: moveInCircle 40s linear infinite;
+
+    opacity: 1;
+  }
+
+  .g4 {
+    position: absolute;
+    background: radial-gradient(
+        circle at center,
+        rgba(var(--color4), 0.8) 0,
+        rgba(var(--color4), 0) 50%
+      )
+      no-repeat;
+    mix-blend-mode: var(--blending);
+
+    width: var(--circle-size);
+    height: var(--circle-size);
+    top: calc(50% - var(--circle-size) / 2);
+    left: calc(50% - var(--circle-size) / 2);
+
+    transform-origin: calc(50% - 200px);
+    animation: moveHorizontal 40s ease infinite;
+
+    opacity: 0.7;
+  }
+
+  .g5 {
+    position: absolute;
+    background: radial-gradient(
+        circle at center,
+        rgba(var(--color5), 0.8) 0,
+        rgba(var(--color5), 0) 50%
+      )
+      no-repeat;
+    mix-blend-mode: var(--blending);
+
+    width: calc(var(--circle-size) * 2);
+    height: calc(var(--circle-size) * 2);
+    top: calc(50% - var(--circle-size));
+    left: calc(50% - var(--circle-size));
+
+    transform-origin: calc(50% - 800px) calc(50% + 200px);
+    animation: moveInCircle 20s ease infinite;
+
+    opacity: 1;
+  }
+
+  .interactive {
+    position: absolute;
+    background: radial-gradient(
+        circle at center,
+        rgba(var(--color-interactive), 0.8) 0,
+        rgba(var(--color-interactive), 0) 50%
+      )
+      no-repeat;
+    mix-blend-mode: var(--blending);
+
+    width: 100%;
+    height: 100%;
+    top: -50%;
+    left: -50vw;
+
+    opacity: 0.7;
+  }
+}
+
+.mat-mdc-button-base {
+  background-color: transparent !important;
+  color: white !important;
+  fill: white !important;
+}
+
+svg {
+  fill: white !important;
+}
+
+::ng-deep .mat-mdc-cell,
+::ng-deep .mat-mdc-header-cell,
+::ng-deep .mat-mdc-paginator-container,
+table {
+  background-color: #2e3031 !important;
+  color: white !important;
+}
+
+::ng-deep .mat-mdc-paginator-touch-target,
+::ng-deep .mat-mdc-select-value {
+  color: white !important;
+}
+
+app-workspace-switcher .top-left-container {
+  bottom: 2.5vh;
+  left: 10vw;
+  display: block;
+}
+
+/* Workspace Switcher Styles */
+app-workspace-switcher .workspace-container {
+  cursor: pointer;
+  position: relative; // Needed for the pseudo-element positioning
+  z-index: 1; // Ensure content is above the pseudo-element
+  padding: 8px 16px;
+  border-radius: 24px;
+  box-shadow: 0px 4px 4px 0px rgba(0, 0, 0, 0.25);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #e5e5e5; // text-neutral-200
+  overflow: hidden; // Keep the pseudo-element within the border-radius
+}
+
+app-workspace-switcher .workspace-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: -1; // Place it behind the content
+  background: linear-gradient(to right, #3b82f6, #8b5cf6, #f87171);
+  opacity: 0;
+  transition: opacity 0.5s ease-in-out;
+}
+
+app-workspace-switcher .workspace-container:hover::before {
+  opacity: 1;
+}
+
+app-workspace-switcher .workspace-name {
+  font-weight: 500;
+}
+
+.mat-mdc-menu-item .mat-icon {
+  margin-right: 8px;
+}
+
+.mat-mdc-menu-item .mat-icon:first-child {
+  margin-right: 16px;
+}
+
+.mat-mdc-menu-item .mat-mdc-menu-item-text {
+  display: flex;
+  align-items: center;
+}
+
+/* Brand Guideline Dialog Overrides */
+.brand-guideline-dialog .mat-mdc-dialog-content {
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+/* --- Global Custom Scrollbar Styles --- */
+
+/* For Firefox */
+* {
+  // scrollbar-width: thin;
+  scrollbar-color: #6b7280 transparent; /* thumb and track color */
+}
+
+/* For Webkit browsers (Chrome, Safari, Edge) */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent; /* Make the track transparent */
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: rgba(107, 114, 128, 0.5); /* A semi-transparent gray */
+  border-radius: 5px;
+  border: 2px solid transparent;
+  background-clip: content-box; /* Ensures border acts as padding */
+  transition: background-color 0.3s ease-in-out;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(107, 114, 128, 0.8); /* More opaque on hover */
+}
+
+::-webkit-scrollbar-button {
+  display: none;
+}
+
+// --- Media Queries for Mobile-First Responsive Design ---
+// Small devices (landscape phones, 576px and up)
+@media (min-width: 576px) {
+}
+
+// Medium devices (tablets, 768px and up)
+@media (min-width: 768px) {
+  html,
+  body {
+    background-color: #2e3031;
+  }
+  :root {
+    --color-bg1: transparent;
+    --color-bg2: transparent;
+  }
+
+  textarea {
+    border: none;
+  }
+
+  app-workspace-switcher .top-left-container {
+    bottom: auto;
+    top: 3vh;
+    left: 5vw;
+  }
+}
+
+// Large devices (desktops, 992px and up)
+@media (min-width: 992px) {
+}
+
+// X-Large devices (large desktops, 1200px and up)
+@media (min-width: 1200px) {
+}
+
+// XX-Large devices (larger desktops, 1400px and up)
+@media (min-width: 1400px) {
+  app-workspace-switcher .top-left-container {
+    left: 3vw;
+  }
+}
+
+// 4K Displays (Ultra HD) (Projectors or Higher Resolution Screens, 2160px and up)
+@media screen and (min-width: 2160px) {
+}

@@ -1,0 +1,9 @@
+cloudsqlAllowedBackupLocation:
+  description: Detect if Cloud SQL backup is in an unauthorized location
+  predicate:
+    expression: resource.settings.backupConfiguration.location != resource.region
+  recommendation: Ensure if Cloud SQL backup is in the same location as the database instance
+  resource_selector:
+    resource_types:
+      - sqladmin.googleapis.com/Instance
+  severity: LOW

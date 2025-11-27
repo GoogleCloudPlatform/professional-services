@@ -1,10 +1,11 @@
 custom.gkeAllowedNodePoolImages:
   action_type: DENY
-  condition: resource.config.imageType in ["COS_CONTAINERD"] == false
+  condition: |-
+    resource.config.imageType in ["COS_CONTAINERD"] == false
   description: Enforce that GKE nodes are using authorized node images
   display_name: Allow only authorized node pool images
   method_types:
-  - CREATE
-  - UPDATE
+    - CREATE
+    - UPDATE
   resource_types:
-  - container.googleapis.com/NodePool
+    - container.googleapis.com/NodePool

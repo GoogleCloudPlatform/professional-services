@@ -1,0 +1,10 @@
+severity: MEDIUM
+description: Detect Cloud VPN Gateway created in unauthorized projects
+recommendation: Ensure Cloud VPN Gateway is created in authorized projects
+resource_selector:
+  resource_types:
+    - compute.googleapis.com/VpnGateway
+predicate:
+  expression:
+    (!["myproject1", "myproject2"].exists(prj,
+    resource.network.startsWith("https://www.googleapis.com/compute/v1/projects/" + prj)))

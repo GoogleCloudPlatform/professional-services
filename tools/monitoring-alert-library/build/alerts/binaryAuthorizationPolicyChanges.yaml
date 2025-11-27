@@ -1,0 +1,48 @@
+#@ load("/alert.lib.star", "build_alert")
+#@ load("/alert.lib.yaml", "generate_notification_channels")
+#@ load("@ytt:template", "template")
+#@ alert = build_alert("binaryAuthorizationPolicyChanges")
+
+#@ def documentation_content():
+#@   lines = [
+#@     'Log-based alerting policy in project ${project} detected for a change to Binary Authorization',
+#@     'project-singleton policy, weakening the enforcement or evaluation modes.',
+#@     '',
+#@     'This alert helps ensure security by monitoring configuration changes to Binary Authorization policies.',
+#@     '```',
+#@     'protoPayload.methodName="google.cloud.binaryauthorization.v1.BinauthzManagementServiceV1.UpdatePolicy" AND',
+#@     'protoPayload.serviceName="binaryauthorization.googleapis.com" AND',
+#@     '("ALWAYS_ALLOW" OR "DRYRUN_AUDIT_LOG_ONLY")',
+#@     '```'
+#@   ]
+#@   return "\n".join(lines)
+#@ end
+
+#@ if alert.to_generate():
+displayName: 'Binary Authorization Policy Changes'
+documentation:
+  content: #@ documentation_content()
+  mimeType: text/markdown
+conditions:
+- displayName: 'Log match condition: Cloud SQL instance configuration changes'
+  conditionThreshold:
+    filter: >-
+      resource.type = "logging_bucket" AND metric.type = "logging.googleapis.com/user/binaryAuthorizationPolicyChanges"
+    aggregations:
+    - perSeriesAligner: ALIGN_SUM
+      alignmentPeriod: 60s
+      crossSeriesReducer: REDUCE_SUM
+      groupByFields:
+      - metric.label.principal
+      - metric.label.method_name
+      - metric.label.project_id
+    comparison: COMPARISON_GT
+    thresholdValue: 0
+    duration: 0s
+    trigger:
+      count: 1
+combiner: OR
+#@ if alert.has_notification_channels():
+_: #@ template.replace(generate_notification_channels())
+#@ end
+#@ end

@@ -1,0 +1,10 @@
+name: organizations/11111111/customConstraints/custom.cloudrunServiceRequireBinaryAuthorization
+resourceTypes:
+  - run.googleapis.com/Service
+methodTypes:
+  - CREATE
+  - UPDATE
+condition: "!('run.googleapis.com/binary-authorization' in resource.metadata.annotations)"
+actionType: DENY
+displayName: Disable creation of Cloud Run Service without Binary Authorization
+description: Enforce that Cloud Run Service are using binary authorization

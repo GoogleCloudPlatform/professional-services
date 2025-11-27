@@ -1,0 +1,41 @@
+displayName: Project Ownership Changes
+documentation:
+  content: |-
+    Log-based alerting policy in project ${project} detected a project ownership assignments or changes.
+    ```
+    (protoPayload.serviceName="cloudresourcemanager.googleapis.com") AND
+    (ProjectOwnership OR projectOwnerInvitee)
+    OR
+    (
+      protoPayload.serviceData.policyDelta.bindingDeltas.action="REMOVE" AND
+      protoPayload.serviceData.policyDelta.bindingDeltas.role="roles/owner"
+    )
+    OR
+    (
+      protoPayload.serviceData.policyDelta.bindingDeltas.action="ADD" AND
+      protoPayload.serviceData.policyDelta.bindingDeltas.role="roles/owner"
+    )
+    ```
+  mimeType: text/markdown
+conditions:
+  - displayName: Project Ownership Changes
+    conditionThreshold:
+      filter: resource.type = "logging_bucket" AND metric.type = "logging.googleapis.com/user/projectOwnershipChange"
+      aggregations:
+        - perSeriesAligner: ALIGN_SUM
+          alignmentPeriod: 60s
+          crossSeriesReducer: REDUCE_SUM
+          groupByFields:
+            - metric.label.principal
+            - metric.label.method_name
+            - metric.label.organization_id
+            - metric.label.folder_id
+            - metric.label.project_id
+      comparison: COMPARISON_GT
+      thresholdValue: 0
+      duration: 0s
+      trigger:
+        count: 1
+combiner: OR
+notificationChannels:
+  - projects/my-project/notificationChannels/11111111111111

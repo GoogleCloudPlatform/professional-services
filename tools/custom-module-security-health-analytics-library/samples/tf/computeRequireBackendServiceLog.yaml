@@ -1,0 +1,10 @@
+computeRequireBackendServiceLog:
+  description: Detect logging is disabled on backend services or sampling rate is not set to correct value
+  predicate:
+    expression: (!resource.logConfig.enable || resource.logConfig.sampleRate != 1.0)
+  recommendation: Ensure backend service has logging enabled with the proper sampling rate
+  resource_selector:
+    resource_types:
+      - compute.googleapis.com/BackendService
+      - compute.googleapis.com/RegionBackendService
+  severity: HIGH

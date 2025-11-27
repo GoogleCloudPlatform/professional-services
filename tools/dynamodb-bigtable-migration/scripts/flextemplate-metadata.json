@@ -1,0 +1,57 @@
+{
+  "name": " Dataload Flex Template",
+  "description": "Flex template that reads DynamoDB Export data from  GCS  and writes to Bigtable",
+  "parameters": [
+    {
+      "name": "inputFilePath",
+      "label": "GCS Input filepath",
+      "helpText": "Represents input filepath (gs://<bucketname>/files/*.json.gz) for loading data.",
+      "regexes": [
+        "^gs:\\/\\/[^\\n\\r]+$"
+      ],
+      "isOptional": false
+    },
+    {
+      "name": "bigtableProjectId",
+      "label": "Bigtable Project ID",
+      "helpText": "bigtableProjectId",
+      "isOptional": false
+    },
+    {
+      "name": "bigtableInstanceId",
+      "label": "Bigtable Instance ID",
+      "helpText": "bigtableInstanceId",
+      "isOptional": false
+    },
+    {
+      "name": "bigtableRowKey",
+      "label": "Bigtable Row Key",
+      "helpText": "bigtableRowKey",
+      "isOptional": false
+    },
+    {
+      "name": "bigtableTableId",
+      "label": "Bigtable Table ID",
+      "helpText": "bigtableTableId",
+      "isOptional": true
+    },
+    {
+      "name": "bigtableColumnFamily",
+      "label": "Bigtable Column Family",
+      "helpText": "bigtableColumnFamily",
+      "isOptional": true
+    },
+    {
+      "name": "bigtableSplitLargeRows",
+      "label": "Bigtable Split Large Rows",
+      "helpText": "Define if we want to split large rows when writing to Bigtable",
+      "isOptional": true
+    },
+    {
+      "name": "bigtableMaxMutationsPerRow",
+      "label": "Bigtable Max Mutations Per Row",
+      "helpText": "Define the maximum number of mutations per Bigtable row",
+      "isOptional": true
+    }
+  ]
+}

@@ -1,0 +1,77 @@
+shared_config:
+  command:  gcloud compute firewall-rules create allow-network-{{ identifier }}
+  teardown_command: gcloud compute firewall-rules delete allow-network-{{ identifier }}
+  default_command_flags:
+      action: ALLOW
+      direction: INGRESS
+      network: vpc-dev-cuop-library
+      priority: 1000
+      description: Testing network services firewall rule
+      enable-logging: true
+  default_markers:
+    - firewall
+    - firewall-vpc-rule
+    - network-services
+
+# DNS tests - TCP/UDP:53
+firewall_vpc_allowed_dns_tcp_rule_10:
+  steps:
+  - command_flags:
+      rules: tcp:53
+      source-ranges: 10.0.0.0/8
+    expected_result:
+      return_code: 0
+
+firewall_vpc_dns_tcp_rule_denied:
+  steps:
+  - command_flags:
+      rules: tcp:53
+      source-ranges: 0.0.0.0/0
+    expected_result:
+      return_code: 1
+      stderr: 'customConstraints/custom\.firewallRestrict(PublicAccess|NetworkServices)Rule'
+
+# Simplified constraint only blocks 0.0.0.0/0 and ::/0, not specific public IPs
+firewall_vpc_dns_udp_rule_allowed:
+  steps:
+  - command_flags:
+      rules: udp:53
+      source-ranges: 1.0.0.0/32
+    expected_result:
+      return_code: 0
+
+# NetBIOS tests - TCP/UDP:137-139
+firewall_vpc_allowed_netbios_rule_192:
+  steps:
+  - command_flags:
+      rules: tcp:137-139
+      source-ranges: 192.168.0.0/16
+    expected_result:
+      return_code: 0
+
+# Simplified constraint only blocks 0.0.0.0/0 and ::/0, not specific public IPs
+firewall_vpc_netbios_tcp_137_rule_allowed:
+  steps:
+  - command_flags:
+      rules: tcp:137
+      source-ranges: 8.8.8.8/32
+    expected_result:
+      return_code: 0
+
+firewall_vpc_netbios_udp_138_rule_denied:
+  steps:
+  - command_flags:
+      rules: udp:138
+      source-ranges: 0.0.0.0/0
+    expected_result:
+      return_code: 1
+      stderr: 'customConstraints/custom\.firewallRestrict(PublicAccess|NetworkServices)Rule'
+
+# Simplified constraint only blocks 0.0.0.0/0 and ::/0, not specific public IPs
+firewall_vpc_netbios_tcp_139_rule_allowed:
+  steps:
+  - command_flags:
+      rules: tcp:139
+      source-ranges: 1.1.1.1/32
+    expected_result:
+      return_code: 0

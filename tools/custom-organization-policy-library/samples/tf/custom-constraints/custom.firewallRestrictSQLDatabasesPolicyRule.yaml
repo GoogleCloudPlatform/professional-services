@@ -1,0 +1,27 @@
+custom.firewallRestrictSQLDatabasesPolicyRule:
+  action_type: DENY
+  condition: |-
+    resource.rules.exists(rule,
+      rule.priority < 2147483644 &&
+      rule.direction == 'INGRESS' &&
+      rule.match.srcIpRanges.exists(range, range == '0.0.0.0/0') &&
+      (
+        rule.match.layer4Configs.containsIpProtocolAndPort('tcp', '3306') ||
+        rule.match.layer4Configs.containsIpProtocolAndPort('tcp', '1521') ||
+        rule.match.layer4Configs.containsIpProtocolAndPort('tcp', '2483') ||
+        rule.match.layer4Configs.containsIpProtocolAndPort('tcp', '2484') ||
+        rule.match.layer4Configs.containsIpProtocolAndPort('tcp', '5432') ||
+        rule.match.layer4Configs.containsIpProtocolAndPort('udp', '2483') ||
+        rule.match.layer4Configs.containsIpProtocolAndPort('udp', '2484') ||
+        rule.match.layer4Configs.containsIpProtocolAndPort('udp', '5432')
+      )
+    )
+  description:
+    Ensure that SQL database ports (MySQL, Oracle, PostgreSQL) are not accessible from any source when using Firewall
+    Policy Rule
+  display_name: Restrict Firewall Policy rules allowing SQL database port access from any source
+  method_types:
+    - CREATE
+    - UPDATE
+  resource_types:
+    - compute.googleapis.com/FirewallPolicy

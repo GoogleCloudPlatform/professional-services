@@ -1,0 +1,39 @@
+#@ load("/constraints.lib.star", "build_constraint")
+#@ constraint = build_constraint("firewallRestrictExplicitAllPortsRule")
+
+#@ def condition():
+#@   #! OPEN_FIREWALL finding: Disallow explicit "all ports" specifications
+#@   #! Checks for common patterns: 0-65535, 1-65535
+#@   #! Simplified to avoid CEL recursion depth (max 5)
+#@   lines = [
+#@     "(",
+#@     "  resource.direction == 'INGRESS' &&",
+#@     "  resource.allowed.exists(rule,",
+#@     "    rule.IPProtocol in ['tcp','udp'] && has(rule.ports) &&",
+#@     "    rule.ports.exists(port,",
+#@     "      port == '0-65535' || port == '1-65535'",
+#@     "    )",
+#@     "  ) &&",
+#@     "  !resource.name.startsWith('gke-') &&",
+#@     "  !resource.name.startsWith('k8s-') &&",
+#@     "  !resource.name.endsWith('-hc') &&",
+#@     "  !resource.name.startsWith('k8s2-') &&",
+#@     "  !resource.name.startsWith('gkegw1-l7-') &&",
+#@     "  !resource.name.startsWith('gkemcg1-l7-')",
+#@     ")"
+#@   ]
+#@   return "\n".join(lines)
+#@ end
+
+#@ if constraint.to_generate():
+name: #@ constraint.constraint_name()
+resource_types:
+- compute.googleapis.com/Firewall
+condition: #@ condition()
+action_type: DENY
+method_types:
+- CREATE
+- UPDATE
+display_name: Restrict VPC Firewall rules with explicit all-ports specifications
+description: Prevent VPC firewall rules that explicitly specify all TCP/UDP ports using ranges like 0-65535 or 1-65535
+#@ end

@@ -1,10 +1,10 @@
 name: organizations/11111111/customConstraints/custom.storageBucketEnforceNamingConvention
 resource_types:
-- storage.googleapis.com/Bucket
-condition: resource.name.matches("^(sin|cgk)") == false
+  - storage.googleapis.com/Bucket
+condition: resource.name.matches("(sin|cgk)$") == false
 action_type: DENY
 method_types:
-- CREATE
-- UPDATE
+  - CREATE
+  - UPDATE
 display_name: Enforce bucket naming convention
 description: Prevent the creation of bucket rule that are not following the naming convention

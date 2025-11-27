@@ -1,0 +1,9 @@
+cloudfunctionsV1RequireGen2:
+  description: Detect if Gen1 Cloud Functions are in use
+  predicate:
+    expression: has(resource.name)
+  recommendation: Ensure only Gen 2 Cloud Functions are used
+  resource_selector:
+    resource_types:
+      - cloudfunctions.googleapis.com/CloudFunction
+  severity: MEDIUM

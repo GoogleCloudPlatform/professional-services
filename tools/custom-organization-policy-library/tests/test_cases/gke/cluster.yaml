@@ -1,0 +1,81 @@
+shared_config:
+  command: gcloud container clusters create  {{ identifier }} --region=asia-southeast2
+  teardown_command: gcloud container clusters delete {{ identifier }} --region=asia-southeast2
+  default_command_flags:
+    enable-basic-auth: false
+    cluster-version: latest
+    release-channel: regular
+    machine-type: n2d-standard-2
+    image-type: COS_CONTAINERD
+    metadata: disable-legacy-endpoints=true
+    enable-private-endpoint: true
+    enable-private-nodes: true
+    enable-ip-alias: true
+    network: projects/{{ project }}/global/networks/vpc-dev-cuop-library
+    subnetwork: projects/{{ project }}/regions/asia-southeast2/subnetworks/subnet-gke
+    enable-intra-node-visibility: true
+    workload-vulnerability-scanning: disabled
+    enable-dataplane-v2: true
+    enable-master-authorized-networks: true
+    master-authorized-networks: 198.51.100.0/24
+    addons: HorizontalPodAutoscaling,HttpLoadBalancing,GcePersistentDiskCsiDriver
+    enable-autoupgrade: true
+    enable-autorepair: true
+    workload-pool: "{{ project }}.svc.id.goog"
+    enable-shielded-nodes: true
+    security-group: gke-security-groups@vannick.altostrat.com
+    binauthz-evaluation-mode: PROJECT_SINGLETON_POLICY_ENFORCE
+    boot-disk-kms-key: projects/{{ project }}/locations/asia-southeast2/keyRings/{{ prefix }}-key-ring-1/cryptoKeys/{{ prefix }}-key-1
+    database-encryption-key: projects/{{ project }}/locations/asia-southeast2/keyRings/{{ prefix }}-key-ring-1/cryptoKeys/{{ prefix }}-key-1
+    enable-confidential-nodes: true
+    shielded-secure-boot: true
+    shielded-integrity-monitoring: true
+    service-account: "{{ prefix }}-iam-sa@{{ project }}.iam.gserviceaccount.com"
+  default_markers:
+    - gke
+
+gke_allowed:
+  steps:
+  - expected_result:
+      return_code: 0
+
+gke_no_private_endpoint:
+  steps:
+  - command_flags:
+      enable-private-endpoint: false
+    expected_result:
+      return_code: 1
+      stderr: 'customConstraints/custom\.gkeRequirePrivateEndpoint'
+
+gke_absent_private_endpoint:
+  steps:
+  - command_flags:
+      enable-private-endpoint: absent
+    expected_result:
+      return_code: 1
+      stderr: 'customConstraints/custom\.gkeRequirePrivateEndpoint'
+
+gke_no_boot_disk_encryption:
+  steps:
+  - command_flags:
+      boot-disk-kms-key: absent
+    expected_result:
+      return_code: 1
+      stderr: 'customConstraints/custom\.gkeRequireNodePoolCMEKEncryption'
+
+gke_no_secure_boot:
+  steps:
+  - command_flags:
+      shielded-secure-boot: false
+    expected_result:
+      return_code: 1
+      stderr: 'customConstraints/custom\.gkeRequireSecureBoot'
+
+gke_absent_secure_boot:
+  steps:
+  - command_flags:
+      shielded-secure-boot: absent
+      shielded-integrity-monitoring: absent
+    expected_result:
+      return_code: 1
+      stderr: 'customConstraints/custom\.gkeRequireSecureBoot'

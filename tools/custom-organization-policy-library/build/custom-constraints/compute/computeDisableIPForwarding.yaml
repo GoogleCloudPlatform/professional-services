@@ -1,0 +1,14 @@
+#@ load("/constraints.lib.star", "build_constraint")
+#@ constraint = build_constraint("computeDisableIPForwarding")
+
+#@ if constraint.to_generate():
+name: #@ constraint.constraint_name()
+resource_types: 
+- compute.googleapis.com/Instance
+condition: resource.canIpForward
+action_type: DENY
+method_types: 
+- CREATE
+display_name: Require that IP Forwarding is disabled on every Compute Instances
+description:  Ensure that IP Forwarding is not enabled on any Compute Instances
+#@ end

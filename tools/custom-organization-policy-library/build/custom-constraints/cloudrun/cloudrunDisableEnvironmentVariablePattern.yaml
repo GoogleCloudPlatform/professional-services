@@ -1,0 +1,28 @@
+#@ load("/constraints.lib.star", "build_constraint")
+#@ constraint = build_constraint("cloudrunDisableEnvironmentVariablePattern")
+
+#@ def condition(patterns):
+#@   lines = [
+#@     "resource.spec.template.spec.containers.exists(container,",
+#@     "  container.env.exists(env,",
+#@     "    " + str(patterns) + ".exists(", 
+#@     "      pattern, env.name.matches(pattern)",
+#@     "    )",
+#@     "  )",
+#@     ")",
+#@   ]
+#@   return "\n".join(lines)
+#@ end
+
+#@ if constraint.to_generate():
+name: #@ constraint.constraint_name()
+resourceTypes:
+- run.googleapis.com/Service
+methodTypes:
+- CREATE
+- UPDATE
+condition: #@  condition(constraint.params().patterns)
+actionType: DENY
+displayName: Disable usage of certain patterns in Cloud Run Service or Cloud Run Functions environment variables
+description: Enforce that certain patterns are not used in environment variables of Cloud Run Service or Cloud Run Functions
+#@ end

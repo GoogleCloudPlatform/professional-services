@@ -1,0 +1,8 @@
+severity: MEDIUM
+description: Detect if any non regional GKE clusters are used
+recommendation: Ensure GKE clusters are configured to be regional
+resource_selector:
+  resource_types:
+    - container.googleapis.com/Cluster
+predicate:
+  expression: (!resource.location.matches("^[a-z]+(-[a-z, 1-9]+)$"))

@@ -1,0 +1,54 @@
+<!--
+ Copyright 2025 Google LLC
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+<mat-sidenav-container class="admin-container container mx-auto">
+  <mat-sidenav
+    #sidenav
+    mode="side"
+    position="end"
+    fixedInViewport
+    opened
+    class="admin-sidenav"
+  >
+    <mat-nav-list>
+      <a mat-list-item routerLink="users" routerLinkActive="active-link">
+        <mat-icon matListItemIcon>people</mat-icon>
+        <span matListItemTitle>Users</span>
+      </a>
+      <a
+        mat-list-item
+        routerLink="source-assets"
+        routerLinkActive="active-link"
+      >
+        <mat-icon matListItemIcon>perm_media</mat-icon>
+        <span matListItemTitle>Source Assets</span>
+      </a>
+      <a
+        mat-list-item
+        routerLink="media-templates"
+        routerLinkActive="active-link"
+      >
+        <mat-icon matListItemIcon>inventory_2</mat-icon>
+        <span matListItemTitle>Media Templates</span>
+      </a>
+      <!-- Add more links for other entities -->
+    </mat-nav-list>
+  </mat-sidenav>
+  <mat-sidenav-content class="!m-0 !p-10">
+    <router-outlet></router-outlet>
+    <!-- Child routes will be rendered here -->
+  </mat-sidenav-content>
+</mat-sidenav-container>

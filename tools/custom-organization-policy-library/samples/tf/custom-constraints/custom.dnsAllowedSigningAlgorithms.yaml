@@ -1,0 +1,16 @@
+custom.dnsAllowedSigningAlgorithms:
+  action_type: DENY
+  condition: |-
+    resource.visibility == 'PUBLIC' &&
+    resource.dnssecConfig.state == 'ON' &&
+    resource.dnssecConfig.defaultKeySpecs.exists(spec,
+      spec.algorithm in ["ECDSAP256SHA256"] == false
+    )
+  description:
+    Ensure that allowed signing algorithms are used for the Key-Signing key and Zone-Signing key in Cloud DNS DNSSEC
+  display_name: Require Cloud DNS DNSSEC configured to use only allowed algorithms in Cloud DNS DNSSEC
+  method_types:
+    - CREATE
+    - UPDATE
+  resource_types:
+    - dns.googleapis.com/ManagedZone

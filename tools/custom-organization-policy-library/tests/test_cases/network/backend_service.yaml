@@ -1,0 +1,29 @@
+shared_config:
+  command:  gcloud compute backend-services create {{ identifier }} --region asia-southeast2
+  teardown_command: gcloud compute backend-services delete {{ identifier }} --region asia-southeast2
+  default_command_flags:
+    enable-logging: true
+  default_markers:
+    - network
+    - network_backend_service
+
+lb_backend_service_allowed:
+  steps:
+  - expected_result:
+      return_code: 0
+
+lb_backend_service_no_logging:
+  steps:
+  - command_flags:
+      enable-logging: false
+    expected_result:
+      return_code: 1
+      stderr: 'customConstraints/custom\.networkRequireBackendServiceLogging'
+
+lb_backend_service_logging_absent:
+  steps:
+  - command_flags:
+      enable-logging: absent
+    expected_result:
+      return_code: 1
+      stderr: 'customConstraints/custom\.networkRequireBackendServiceLogging'

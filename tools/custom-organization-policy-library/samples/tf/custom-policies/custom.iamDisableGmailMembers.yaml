@@ -1,0 +1,3 @@
+custom.iamDisableGmailMembers:
+  rules:
+    - enforce: true

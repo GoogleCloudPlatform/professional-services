@@ -1,0 +1,27 @@
+description: VPC Network Firewall Rule Changes
+bucketName: projects/my-project/locations/asia-southeast1/buckets/org-logging-bucket
+filter:
+  resource.type="gce_firewall_rule" AND (protoPayload.methodName:"compute.firewalls.patch" OR
+  protoPayload.methodName:"compute.firewalls.insert" OR protoPayload.methodName:"compute.firewalls.delete")
+metricDescriptor:
+  metricKind: DELTA
+  valueType: INT64
+  unit: "1"
+  labels:
+    - key: principal
+      description: principal
+      valueType: STRING
+    - key: method_name
+      description: method_name
+      valueType: STRING
+    - key: project_id
+      description: project_id
+      valueType: STRING
+    - key: firewall_rule_id
+      description: firewall_rule_id
+      valueType: STRING
+labelExtractors:
+  principal: EXTRACT(protoPayload.authenticationInfo.principalEmail)
+  method_name: EXTRACT(protoPayload.methodName)
+  project_id: EXTRACT(labels.project_id)
+  firewall_rule_id: EXTRACT(labels.firewall_rule_id)

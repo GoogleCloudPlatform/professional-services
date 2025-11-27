@@ -1,0 +1,10 @@
+cloudsqlAllowedDatabaseEngineVersions:
+  description: Detect if Cloud SQL instances are running an unauthorized database engine version
+  predicate:
+    expression:
+      (!["MYSQL_8_0", "POSTGRES_17", "SQLSERVER_2022_WEB"].exists(version, version.matches(resource.databaseVersion)))
+  recommendation: Ensure that all Cloud SQL instances are running an authorized database engine version
+  resource_selector:
+    resource_types:
+      - sqladmin.googleapis.com/Instance
+  severity: MEDIUM

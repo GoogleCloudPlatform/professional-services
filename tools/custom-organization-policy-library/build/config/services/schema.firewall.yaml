@@ -18,7 +18,7 @@
 #@overlay/match missing_ok=True
 firewall:
   firewallEnforceNamingConvention:
-    #@schema/validation one_of=["default", "skip", "include"]
+    #@schema/validation one_of=["default", "skip", "include", "skip-policy"]
     generation: "default"
     bundles:
       pci-dss: false
@@ -26,8 +26,50 @@ firewall:
     params:
       #@schema/validation min_len=1
       name_regex: ""
+  firewallEnforcePolicyRuleLogging:
+    #@schema/validation one_of=["default", "skip", "include", "skip-policy"]
+    generation: "default"
+    bundles:
+      pci-dss: false
+      cis: false
+  firewallEnforceRuleLogging:
+    #@schema/validation one_of=["default", "skip", "include", "skip-policy"]
+    generation: "default"
+    bundles:
+      pci-dss: false
+      cis: false
+  firewallRequireDescription:
+    #@schema/validation one_of=["default", "skip", "include", "skip-policy"]
+    generation: "default"
+    bundles:
+      pci-dss: false
+      cis: false
+  firewallRestrictPublicAccessRule:
+    #@schema/validation one_of=["default", "skip", "include", "skip-policy"]
+    generation: "default"
+    bundles:
+      pci-dss: false
+      cis: false
+  firewallRestrictPublicAccessPolicyRule:
+    #@schema/validation one_of=["default", "skip", "include", "skip-policy"]
+    generation: "default"
+    bundles:
+      pci-dss: false
+      cis: false
+  firewallRestrictRdpRule:
+    #@schema/validation one_of=["default", "skip", "include", "skip-policy"]
+    generation: "default"
+    bundles:
+      pci-dss: false
+      cis: true
+  firewallRestrictRdpPolicyRule:
+    #@schema/validation one_of=["default", "skip", "include", "skip-policy"]
+    generation: "default"
+    bundles:
+      pci-dss: false
+      cis: true
   firewallRestrictRule:
-    #@schema/validation one_of=["default", "skip", "include"]
+    #@schema/validation one_of=["default", "skip", "include", "skip-policy"]
     generation: "default"
     bundles:
       pci-dss: false
@@ -38,14 +80,134 @@ firewall:
       - ""
       destination_ranges:
       - ""
-  firewallRestrictOpenWorldRule:
-    #@schema/validation one_of=["default", "skip", "include"]
+  firewallRestrictSshRule:
+    #@schema/validation one_of=["default", "skip", "include", "skip-policy"]
+    generation: "default"
+    bundles:
+      pci-dss: false
+      cis: true
+  firewallRestrictSshPolicyRule:
+    #@schema/validation one_of=["default", "skip", "include", "skip-policy"]
+    generation: "default"
+    bundles:
+      pci-dss: false
+      cis: true
+  firewallRestrictSQLDatabasesRule:
+    #@schema/validation one_of=["default", "skip", "include", "skip-policy"]
     generation: "default"
     bundles:
       pci-dss: false
       cis: false
-  firewallRequireDescription:
-    #@schema/validation one_of=["default", "skip", "include"]
+  firewallRestrictSQLDatabasesPolicyRule:
+    #@schema/validation one_of=["default", "skip", "include", "skip-policy"]
+    generation: "default"
+    bundles:
+      pci-dss: false
+      cis: false
+  firewallRestrictNoSQLDatabasesRule:
+    #@schema/validation one_of=["default", "skip", "include", "skip-policy"]
+    generation: "default"
+    bundles:
+      pci-dss: false
+      cis: false
+  firewallRestrictNoSQLDatabasesPolicyRule:
+    #@schema/validation one_of=["default", "skip", "include", "skip-policy"]
+    generation: "default"
+    bundles:
+      pci-dss: false
+      cis: false
+  firewallRestrictCacheSearchDatabasesRule:
+    #@schema/validation one_of=["default", "skip", "include", "skip-policy"]
+    generation: "default"
+    bundles:
+      pci-dss: false
+      cis: false
+  firewallRestrictCacheSearchDatabasesPolicyRule:
+    #@schema/validation one_of=["default", "skip", "include", "skip-policy"]
+    generation: "default"
+    bundles:
+      pci-dss: false
+      cis: false
+  firewallRestrictInsecureProtocolsRule:
+    #@schema/validation one_of=["default", "skip", "include", "skip-policy"]
+    generation: "default"
+    bundles:
+      pci-dss: false
+      cis: false
+  firewallRestrictInsecureProtocolsPolicyRule:
+    #@schema/validation one_of=["default", "skip", "include", "skip-policy"]
+    generation: "default"
+    bundles:
+      pci-dss: false
+      cis: false
+  firewallRestrictDirectoryServicesRule:
+    #@schema/validation one_of=["default", "skip", "include", "skip-policy"]
+    generation: "default"
+    bundles:
+      pci-dss: false
+      cis: false
+  firewallRestrictDirectoryServicesPolicyRule:
+    #@schema/validation one_of=["default", "skip", "include", "skip-policy"]
+    generation: "default"
+    bundles:
+      pci-dss: false
+      cis: false
+  firewallRestrictNetworkServicesRule:
+    #@schema/validation one_of=["default", "skip", "include", "skip-policy"]
+    generation: "default"
+    bundles:
+      pci-dss: false
+      cis: false
+  firewallRestrictNetworkServicesPolicyRule:
+    #@schema/validation one_of=["default", "skip", "include", "skip-policy"]
+    generation: "default"
+    bundles:
+      pci-dss: false
+      cis: false
+  firewallRestrictMailProtocolsRule:
+    #@schema/validation one_of=["default", "skip", "include", "skip-policy"]
+    generation: "default"
+    bundles:
+      pci-dss: false
+      cis: false
+  firewallRestrictMailProtocolsPolicyRule:
+    #@schema/validation one_of=["default", "skip", "include", "skip-policy"]
+    generation: "default"
+    bundles:
+      pci-dss: false
+      cis: false
+  firewallRestrictManagementPortsRule:
+    #@schema/validation one_of=["default", "skip", "include", "skip-policy"]
+    generation: "default"
+    bundles:
+      pci-dss: false
+      cis: false
+  firewallRestrictManagementPortsPolicyRule:
+    #@schema/validation one_of=["default", "skip", "include", "skip-policy"]
+    generation: "default"
+    bundles:
+      pci-dss: false
+      cis: false
+  firewallRestrictOpenFirewallRule:
+    #@schema/validation one_of=["default", "skip", "include", "skip-policy"]
+    generation: "default"
+    bundles:
+      pci-dss: false
+      cis: false
+  firewallRestrictOpenFirewallPolicyRule:
+    #@schema/validation one_of=["default", "skip", "include", "skip-policy"]
+    generation: "default"
+    bundles:
+      pci-dss: false
+      cis: false
+  firewallRestrictExplicitAllPortsRule:
+    #@schema/validation one_of=["default", "skip", "include", "skip-policy"]
+    generation: "default"
+    bundles:
+      pci-dss: false
+      cis: false
+  firewallRestrictExplicitAllPortsPolicyRule:
+    #@schema/validation one_of=["default", "skip", "include", "skip-policy"]
     generation: "default"
     bundles:
       pci-dss: false

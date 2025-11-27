@@ -1,0 +1,11 @@
+custom.cloudrunJobRequireVPCConnector:
+  action_type: DENY
+  condition: |-
+    !('run.googleapis.com/vpc-access-connector' in resource.spec.template.metadata.annotations)
+  description: Enforce that Cloud Run Job are configured with VPC connector
+  display_name: Disable creation of Cloud Run Job not using VPC connector
+  method_types:
+    - CREATE
+    - UPDATE
+  resource_types:
+    - run.googleapis.com/Job

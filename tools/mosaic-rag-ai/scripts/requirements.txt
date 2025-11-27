@@ -1,0 +1,5 @@
+google-genai
+python-dotenv
+pymupdf
+reportlab
+fpdf2

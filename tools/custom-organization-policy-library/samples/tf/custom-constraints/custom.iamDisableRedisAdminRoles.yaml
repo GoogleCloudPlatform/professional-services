@@ -1,0 +1,20 @@
+custom.iamDisableRedisAdminRoles:
+  action_type: DENY
+  condition: |-
+    resource.bindings.exists(binding,
+      binding.members.exists(member,
+        !MemberSubjectMatches(member, []) &&
+        (
+          RoleNameMatches(binding.role, ['roles/redis.admin']) ||
+          RoleNameMatches(binding.role, ['roles/redis.editor']) ||
+          RoleNameContains(binding.role, ['roles/redis.viewer'])
+        )
+      )
+    )
+  description: Ensure no use of the basic roles (viewer, editor and owner)
+  display_name: Deny use of the basic roles
+  method_types:
+    - CREATE
+    - UPDATE
+  resource_types:
+    - iam.googleapis.com/AllowPolicy

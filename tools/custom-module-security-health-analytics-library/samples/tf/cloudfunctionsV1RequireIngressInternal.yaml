@@ -1,0 +1,9 @@
+cloudfunctionsV1RequireIngressInternal:
+  description: Detect if Gen1 Cloud Functions are not configured to allow only internal traffic
+  predicate:
+    expression: (!resource.ingressSettings.matches("ALLOW_INTERNAL_ONLY"))
+  recommendation: Ensure Gen1 Cloud Functions are configured to allow only internal traffic
+  resource_selector:
+    resource_types:
+      - cloudfunctions.googleapis.com/CloudFunction
+  severity: HIGH

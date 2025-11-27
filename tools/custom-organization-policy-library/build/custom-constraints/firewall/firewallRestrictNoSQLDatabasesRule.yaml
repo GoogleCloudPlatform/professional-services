@@ -1,0 +1,49 @@
+#@ load("/constraints.lib.star", "build_constraint")
+#@ constraint = build_constraint("firewallRestrictNoSQLDatabasesRule")
+
+#@ def condition():
+#@   #! NoSQL Databases
+#@   #! Cassandra: TCP 7000-7001, 7199, 8888, 9042, 9160, 61620-61621
+#@   #! MongoDB: TCP 27017-27019
+#@   #! Deny if source range is 0.0.0.0/0 (any source)
+#@
+#@   lines = [
+#@     "resource.direction.matches('INGRESS') &&",
+#@     "  resource.sourceRanges.exists(range, range == '0.0.0.0/0') &&",
+#@     "  (",
+#@     "    resource.allowed.containsFirewallPort('tcp', '7000') ||",
+#@     "    resource.allowed.containsFirewallPort('tcp', '7001') ||",
+#@     "    resource.allowed.containsFirewallPort('tcp', '7199') ||",
+#@     "    resource.allowed.containsFirewallPort('tcp', '8888') ||",
+#@     "    resource.allowed.containsFirewallPort('tcp', '9042') ||",
+#@     "    resource.allowed.containsFirewallPort('tcp', '9160') ||",
+#@     "    resource.allowed.containsFirewallPort('tcp', '61620') ||",
+#@     "    resource.allowed.containsFirewallPort('tcp', '61621') ||",
+#@     "    resource.allowed.containsFirewallPort('tcp', '27017') ||",
+#@     "    resource.allowed.containsFirewallPort('tcp', '27018') ||",
+#@     "    resource.allowed.containsFirewallPort('tcp', '27019')",
+#@     "  )"
+#@   ]
+#@   return "\n".join(lines)
+#@ end
+
+#@ def description():
+#@   lines = [
+#@     "Ensure that NoSQL database ports (Cassandra, MongoDB) are not accessible from any source when",
+#@     "using Firewall Policy Rule",
+#@   ]
+#@   return "\n".join(lines)
+#@ end
+
+#@ if constraint.to_generate():
+name: #@ constraint.constraint_name()
+resource_types:
+- compute.googleapis.com/Firewall
+condition: #@ condition()
+action_type: DENY
+method_types:
+- CREATE
+- UPDATE
+display_name: Restrict VPC Firewall rules allowing NoSQL database port access from any source
+description: #@ description()
+#@ end

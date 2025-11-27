@@ -1,0 +1,13 @@
+#@ load("/sha.lib.star", "build_sha")
+#@ sha = build_sha("computeDisableNestedVirtualization")
+
+#@ if sha.to_generate():
+severity: MEDIUM
+description: "Detect Compute Instances with nested virtualization enabled"
+recommendation: "Ensure Compute Instance does not have nested virtualization enabled"
+resource_selector:
+  resource_types:
+  - compute.googleapis.com/Instance
+predicate:
+  expression: resource.advancedMachineFeatures.enableNestedVirtualization
+#@ end

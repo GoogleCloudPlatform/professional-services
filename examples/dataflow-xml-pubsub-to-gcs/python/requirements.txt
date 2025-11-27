@@ -29,7 +29,7 @@ google-crc32c==1.5.0
 google-resumable-media==2.4.1
 googleapis-common-protos==1.56.4
 grpc-google-iam-v1==0.12.4
-grpcio==1.51.3
+grpcio==1.53.2
 grpcio-status==1.48.2
 hdfs==2.7.0
 httplib2==0.20.4
@@ -41,7 +41,7 @@ orjson==3.9.15
 overrides==6.5.0
 packaging==21.3
 proto-plus==1.22.2
-protobuf==3.19.4
+protobuf==4.25.8
 pyarrow==14.0.1
 pyasn1==0.4.8
 pyasn1-modules==0.2.8
@@ -56,5 +56,5 @@ rsa==4.9
 six==1.16.0
 sqlparse==0.5.0
 typing_extensions==4.5.0
-urllib3==1.26.18
+urllib3==2.5.0
 zstandard==0.20.0

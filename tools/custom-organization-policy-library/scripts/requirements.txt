@@ -1,0 +1,3 @@
+PyYAML==6.0.2
+yamllint==1.37.1
+yapf==0.43.0

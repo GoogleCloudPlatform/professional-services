@@ -1,0 +1,23 @@
+#@ load("/sha.lib.star", "build_sha")
+#@ sha = build_sha("cloudrunRequireEgressAllTraffic")
+
+#@ def expression():
+#@   lines = [
+#@     '(',
+#@     "  !resource.spec.template.metadata.annotations['run.googleapis.com/vpc-access-egress'].matches('all-traffic')",
+#@     ')'
+#@   ]
+#@   return "\n".join(lines)
+#@ end
+
+#@ if sha.to_generate():
+severity: HIGH
+description: "Detect if Cloud Run services and jobs are not configured to route all egress traffic through the VPC network"
+recommendation: "Ensure Cloud Run services and jobs are configured to route all egress traffic through the VPC network"
+resource_selector:
+  resource_types:
+  - run.googleapis.com/Service
+  - run.googleapis.com/Job
+predicate:
+  expression: #@ expression()
+#@ end

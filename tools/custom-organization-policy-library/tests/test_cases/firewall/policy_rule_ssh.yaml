@@ -1,0 +1,48 @@
+shared_config:
+  command:  gcloud compute network-firewall-policies rules create 1000 --firewall-policy cuop-fw-policy --global-firewall-policy
+  teardown_command: gcloud compute network-firewall-policies rules delete 1000 --firewall-policy cuop-fw-policy --global-firewall-policy
+  default_command_flags: 
+      action: ALLOW
+      direction: INGRESS
+      layer4-configs: tcp:22
+      enable-logging: true
+  default_markers:
+    - firewall
+    - firewall-policy
+
+firewall_policy_allowed_rdp_rule_192:
+  steps:
+  - command_flags:
+      src-ip-ranges: 192.168.0.0/16
+    expected_result:
+      return_code: 0
+
+firewall_policy_allowed_rdp_rule_10:
+  steps:
+  - command_flags:
+      src-ip-ranges: 10.0.0.0/8
+    expected_result:
+      return_code: 0
+
+firewall_policy_allowed_rdp_rule_iap:
+  steps:
+  - command_flags:
+      src-ip-ranges: 35.235.240.0/20
+    expected_result:
+      return_code: 0
+
+firewall_policy_rdp_rule_0_0_0_0:
+  steps:
+  - command_flags:
+      src-ip-ranges: 0.0.0.0/0
+    expected_result:
+      return_code: 1
+      stderr: 'customConstraints/custom\.(firewallRestrictSshPolicyRule|firewallRestrictPublicAccessPolicyRule)'
+
+firewall_policy_rdp_rule_1_0_0_0:
+  steps:
+  - command_flags:
+      src-ip-ranges: 1.0.0.0/32
+    expected_result:
+      return_code: 1
+      stderr: 'customConstraints/custom\.firewallRestrictSshPolicyRule'

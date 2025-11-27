@@ -1,0 +1,8 @@
+severity: MEDIUM
+description: Detect if any GKE clusters is not using Workload Identity
+recommendation: Ensure GKE node pools are configured to use Workload Identity
+resource_selector:
+  resource_types:
+    - container.googleapis.com/NodePool
+predicate:
+  expression: resource.config.workloadMetadataConfig.mode != 'GKE_METADATA'

@@ -1,0 +1,19 @@
+shared_config:
+  log_filter: >-
+    resource.type="gcs_bucket"
+    AND protoPayload.methodName="storage.setIamPermissions"
+  default_markers:
+    - storage
+    - storage-iam
+
+storage_set_iam_binding_log:
+  steps:
+  - command: gcloud storage buckets add-iam-policy-binding gs://{{ prefix }}-monitoring-alert-bucket  --member=user:admin@vannick.altostrat.com --role=roles/storage.objectCreator
+    teardown_command: gcloud storage buckets remove-iam-policy-binding {{ project }}  --member=user:admin@vannick.altostrat.com --role=roles/storage.objectCreator
+    expected_result:
+      return_code: 0
+      attributes:
+        'protoPayload.resourceName': projects/_/buckets/{{ prefix }}-monitoring-alert-bucket
+        'protoPayload.serviceData.policyDelta.bindingDeltas[0].action': "ADD"
+        'protoPayload.serviceData.policyDelta.bindingDeltas[0].role': "roles/storage.objectCreator"
+        'protoPayload.methodName': 'storage.setIamPermissions'

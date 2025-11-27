@@ -1,0 +1,52 @@
+#@ load("/constraints.lib.star", "build_constraint")
+#@ constraint = build_constraint("firewallRestrictCacheSearchDatabasesPolicyRule")
+
+#@ def condition():
+#@   #! Cache and Search Systems
+#@   #! Elasticsearch: TCP 9200, 9300
+#@   #! Memcached: TCP/UDP 11211, 11214-11215
+#@   #! Redis: TCP 6379
+#@   #! Deny if source range is 0.0.0.0/0 (any source)
+#@
+#@   lines = [
+#@     "resource.rules.exists(r, r.priority < 2147483644 && r.direction == 'INGRESS' &&",
+#@     "  r.match.srcIpRanges.exists(r, r == '0.0.0.0/0') &&",
+#@     "  (",
+#@     "    r.match.layer4Configs.containsIpProtocolAndPort('tcp', '6379') ||",
+#@     "    r.match.layer4Configs.containsIpProtocolAndPort('udp', '6379') ||",
+#@     "    r.match.layer4Configs.containsIpProtocolAndPort('tcp', '9200') ||",
+#@     "    r.match.layer4Configs.containsIpProtocolAndPort('udp', '9200') ||",
+#@     "    r.match.layer4Configs.containsIpProtocolAndPort('tcp', '9300') ||",
+#@     "    r.match.layer4Configs.containsIpProtocolAndPort('udp', '9300') ||",
+#@     "    r.match.layer4Configs.containsIpProtocolAndPort('tcp', '11211') ||",
+#@     "    r.match.layer4Configs.containsIpProtocolAndPort('udp', '11211') ||",
+#@     "    r.match.layer4Configs.containsIpProtocolAndPort('tcp', '11214') ||",
+#@     "    r.match.layer4Configs.containsIpProtocolAndPort('udp', '11214') ||",
+#@     "    r.match.layer4Configs.containsIpProtocolAndPort('tcp', '11215') ||",
+#@     "    r.match.layer4Configs.containsIpProtocolAndPort('udp', '11215')",
+#@     "  )",
+#@     ")"
+#@   ]
+#@   return "\n".join(lines)
+#@ end
+
+#@ def description():
+#@   lines = [
+#@     "Ensure that cache and search database ports (Elasticsearch, Memcached, Redis) are not accessible",
+#@     "from any source when using Firewall Policy Rule",
+#@   ]
+#@   return "\n".join(lines)
+#@ end
+
+#@ if constraint.to_generate():
+name: #@ constraint.constraint_name()
+resource_types:
+- compute.googleapis.com/FirewallPolicy
+condition: #@ condition()
+action_type: DENY
+method_types:
+- CREATE
+- UPDATE
+display_name: Restrict Firewall Policy rules allowing cache/search database port access from any source
+description: #@ description()
+#@ end

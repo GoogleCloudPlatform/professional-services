@@ -1,0 +1,23 @@
+#@ load("/constraints.lib.star", "build_constraint")
+#@ constraint = build_constraint("cloudsqlRequireMySQLDatabaseFlags")
+
+#@ if constraint.to_generate():
+name: #@ constraint.constraint_name()
+resourceTypes:
+- sqladmin.googleapis.com/Instance
+methodTypes:
+- CREATE
+- UPDATE
+condition: >-
+  resource.databaseVersion.startsWith('MYSQL') && (
+    !resource.settings.databaseFlags.exists(flag,
+      flag.name == 'skip_show_database' && flag.value == 'on'
+    ) ||
+    !resource.settings.databaseFlags.exists(flag,
+      flag.name == 'local_infile' && flag.value == 'off'
+    )
+  )
+actionType: DENY
+display_name: Require Cloud SQL for MySQL instance database flags to be configured correctly (e.g skip_show_database, local_infile)
+description: Ensure Cloud SQL for MySQL instance database flags are set correctly (e.g skip_show_database, local_infile)
+#@ end

@@ -1,0 +1,20 @@
+shared_config:
+  name: cloudkmsAllowedRotationPeriod 
+  default_markers:
+    - cloudkms
+
+cloudkms_key_rotation_period_allowed:
+  asset_data: asset_allowed_retention_period
+  expected_violation: {}
+
+cloudkms_key_rotation_period_too_long_unallowed:
+  asset_data: asset_unallowed_retention_period
+  expected_violation: 
+    findingClass: MISCONFIGURATION
+    state: ACTIVE
+
+cloudkms_key_rotation_period_empty_unallowed:
+  asset_data: asset_empty_retention_period
+  expected_violation:
+    findingClass: "MISCONFIGURATION"
+    state: ACTIVE

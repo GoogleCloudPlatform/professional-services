@@ -1,0 +1,102 @@
+#!  Copyright 2024 Google LLC
+#!
+#!  Licensed under the Apache License, Version 2.0 (the "License");
+#!  you may not use this file except in compliance with the License.
+#!  You may obtain a copy of the License at
+#!
+#!       http://www.apache.org/licenses/LICENSE-2.0
+#!
+#!  Unless required by applicable law or agreed to in writing, software
+#!  distributed under the License is distributed on an "AS IS" BASIS,
+#!  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#!  See the License for the specific language governing permissions and
+#!  limitations under the License.
+
+#@data/values
+---
+organization: '11111111'
+deployment:
+  parent: organizations/11111111
+  #! parent: folders/11111111
+  #! parent: projects/my-project
+bundles:
+  pci-dss: false
+  cis: false
+dryrun: false
+artifactregistry: {}
+bigquery:
+  bigqueryAllowedTableExpiration:
+    params:
+      max_table_expiration_ms: 2592000000 #! 1 month
+cloudfunctions: {}
+cloudkms:
+  cloudkmsAllowedAlgorithms:
+    params:
+      algorithms:
+      - "GOOGLE_SYMMETRIC_ENCRYPTION"
+      - "EXTERNAL_SYMMETRIC_ENCRYPTION"
+  cloudkmsAllowedCmekProjects:
+    params:
+      projects:
+      - "mysecurity-project"
+  cloudkmsAllowedProtectionLevel:
+    params:
+      #@schema/validation min_len=1
+      protection_levels:
+      - "SOFTWARE"
+  cloudkmsAllowedRotationPeriod:
+    params:
+      max_rotation_period: 31536000s  #! 1 year
+cloudresourcemanager:
+  cloudresourcemanagerRequiredProjectLabels:
+    params:
+      labels:
+      - "bu"
+      - "app"
+      - "env"
+cloudrun:
+  cloudrunAllowedDomainMapping:
+    params:
+      domains:
+      - "mydomain.com"
+      - "mysite.com"
+cloudsql:
+  cloudsqlAllowedDatabaseEngineVersions:
+    params:
+      database_versions:
+      - "MYSQL_8_0"
+      - "POSTGRES_17"
+      - "SQLSERVER_2022_WEB"
+compute:
+  computeAllowedLoadBalancerTypes:
+    params:
+      load_balancer_types:
+      - "INTERNAL"
+      - "INTERNAL_MANAGED"
+  computeAllowedVPNGatewayProjects:
+    params:
+      projects:
+      - "myproject1"
+      - "myproject2"
+gke: {}
+logging:
+  loggingAllowedConfiguration:
+    params:
+      locations:
+      - "asia-southeast1"
+      - "asia-southeast2"
+secretmanager:
+  secretmanagerAllowedRotationPeriod:
+    params:
+      max_rotation_period: "31536000s"  #! 1 year
+  secretmanagerAllowedTopics:
+    params:
+      topics:
+      - "topic-1"
+      - "topic-2"
+serviceusage:
+  serviceusageAllowedServices:
+    params:
+      services:
+      - "storage.googleapis.com"
+      - "compute.googleapis.com"

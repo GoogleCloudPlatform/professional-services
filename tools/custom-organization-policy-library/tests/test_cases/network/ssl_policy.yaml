@@ -1,0 +1,87 @@
+shared_config:
+  command:  gcloud compute ssl-policies create {{ identifier }}
+  teardown_command: gcloud compute ssl-policies delete {{ identifier }}
+  default_markers:
+    - network
+    - network_ssl_policy
+
+ssl_policy_modern_profile_allowed:
+  steps:
+  - command_flags:
+      profile: MODERN
+      min-tls-version: 1.2
+    expected_result:
+      return_code: 0
+
+ssl_policy_moder_profile_tls_1_1:
+  steps:
+  - command_flags:
+      profile: MODERN
+      min-tls-version: 1.1
+    expected_result:
+      return_code: 1
+      stderr: 'customConstraints/custom\.networkDisableWeakSSLPolicy'
+
+ssl_policy_compatible_profile_tls_1_2:
+  steps:
+  - command_flags:
+      profile: COMPATIBLE
+      min-tls-version: 1.2
+    expected_result:
+      return_code: 1
+      stderr: 'customConstraints/custom\.networkDisableWeakSSLPolicy'
+
+ssl_policy_compatible_profile_tls_1_1:
+  steps:
+  - command_flags:
+      profile: COMPATIBLE
+      min-tls-version: 1.1
+    expected_result:
+      return_code: 1
+      stderr: 'customConstraints/custom\.networkDisableWeakSSLPolicy'
+
+ssl_policy_restricted_profile_tls_1_2:
+  steps:
+  - command_flags:
+      profile: RESTRICTED
+      min-tls-version: 1.2
+    expected_result:
+      return_code: 0
+
+ssl_policy_restricted_profile_tls_1_1:
+  steps:
+  - command_flags:
+      profile: RESTRICTED
+      min-tls-version: 1.1
+    expected_result:
+      return_code: 1
+      stderr: 'customConstraints/custom\.networkDisableWeakSSLPolicy'
+
+ssl_policy_custom_allowed:
+  steps:
+  - command_flags:
+      profile: CUSTOM
+      custom-features: TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+      min-tls-version: 1.2
+    expected_result:
+      return_code: 0
+
+ssl_policy_custom_tls_1_1:
+  steps:
+  - command_flags:
+      profile: CUSTOM
+      custom-features: TLS_AES_128_GCM_SHA256
+      min-tls-version: 1.1
+    expected_result:
+      return_code: 1
+      stderr: 'customConstraints/custom\.networkDisableWeakSSLPolicy'
+
+ssl_policy_custom_feature_unallowed:
+  steps:
+  - command_flags:
+      profile: CUSTOM
+      custom-features: TLS_RSA_WITH_AES_128_GCM_SHA256
+      min-tls-version: 1.2
+    expected_result:
+      return_code: 1
+      stderr: 'customConstraints/custom\.networkDisableWeakSSLPolicy'

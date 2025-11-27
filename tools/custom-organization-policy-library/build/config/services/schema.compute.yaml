@@ -18,7 +18,7 @@
 #@overlay/match missing_ok=True
 compute:
   computeAllowedInstanceMachineTypes:
-    #@schema/validation one_of=["default", "skip", "include"]
+    #@schema/validation one_of=["default", "skip", "include", "skip-policy"]
     generation: "default"
     bundles:
       pci-dss: false
@@ -28,7 +28,7 @@ compute:
       machine_types:
       - ""
   computeAllowedInstanceLabels:
-    #@schema/validation one_of=["default", "skip", "include"]
+    #@schema/validation one_of=["default", "skip", "include", "skip-policy"]
     generation: "default"
     bundles:
       pci-dss: false
@@ -38,7 +38,7 @@ compute:
       labels:
       - ""
   computeAllowedDiskTypes:
-    #@schema/validation one_of=["default", "skip", "include"]
+    #@schema/validation one_of=["default", "skip", "include", "skip-policy"]
     generation: "default"
     bundles:
       pci-dss: false
@@ -47,8 +47,14 @@ compute:
       #@schema/validation min_len=1
       disk_types:
       - ""
+  computeDisableIPForwarding:
+    #@schema/validation one_of=["default", "skip", "include", "skip-policy"]
+    generation: "default"
+    bundles:
+      pci-dss: false
+      cis: true
   computeRestrictDiskSize:
-    #@schema/validation one_of=["default", "skip", "include"]
+    #@schema/validation one_of=["default", "skip", "include", "skip-policy"]
     generation: "default"
     bundles:
       pci-dss: false
@@ -56,15 +62,3 @@ compute:
     params:
       #@schema/validation min=1
       max_disksize: 0
-  computeAllowedInstanceVpcs:
-    #@schema/validation one_of=["default", "skip", "include"]
-    generation: "default"
-    bundles:
-      pci-dss: false
-      cis: false
-    params:
-      #@schema/validation min_len=1
-      networks:
-      - ""
-
-

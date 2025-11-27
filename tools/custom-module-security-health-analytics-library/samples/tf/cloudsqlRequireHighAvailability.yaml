@@ -1,0 +1,9 @@
+cloudsqlRequireHighAvailability:
+  description: Detect if the high availability (HA) configuration for Cloud SQL instances is not set to regional
+  predicate:
+    expression: (resource.settings.availabilityType != "REGIONAL")
+  recommendation: Ensure if the HA configuration for all Cloud SQL instances is set regional
+  resource_selector:
+    resource_types:
+      - sqladmin.googleapis.com/Instance
+  severity: MEDIUM

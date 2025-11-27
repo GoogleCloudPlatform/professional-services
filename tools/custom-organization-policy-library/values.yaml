@@ -15,16 +15,74 @@
 #@data/values
 ---
 organization: '11111111'
+deployment:
+  parent: organizations/11111111
+  #! parent: folders/11111111
+  #! parent: projects/my-project
 bundles:
   pci-dss: false
   cis: false
 dryrun: false
+cloudbuild:
+  cloudbuildAllowedNetworkPeering:
+    params:
+      peered_network_ranges:
+      - "10.0.0.0/24"
+      - "10.0.1.0/24"
+  cloudbuildAllowedPubSubTopic:
+    params:
+        topics:
+        - "projects/project1/topics/topic-1"
+        - "projects/project2/topics/topic-2"
+cloudkms:
+  cloudkmsAllowedAlgorithms:
+    params:
+      algorithms:
+      - "GOOGLE_SYMMETRIC_ENCRYPTION"
+  cloudkmsAllowedProtectionLevel:
+    params:
+      protection_levels:
+      - "SOFTWARE"
+  cloudkmsAllowedRotationPeriod:
+    params:
+      max_rotation_period: 31536000s  #! 1 year
+cloudrun:
+  cloudrunServiceRequireVPCConnector:
+    generation: "skip-policy" #! skip-policy by default as not needed by most organization
+  cloudrunDisableEnvironmentVariablePattern:
+    params:
+      patterns:
+      - "[sS][eE][cC][rR][eE][tT]"
+      - "[kK][eE][yY]"
+      - "[pP][aA][sS][sS][wW][oO][rR][dD]"
+      - "[tT][oO][kK][eE][nN]"
+cloudsql:
+  cloudsqlAllowedBackupLocations:
+    params:
+      locations:
+      - "asia-southeast1"
+  cloudsqlAllowedDiskTypes:
+    params:
+      disk_types:
+      - "PD_SSD"
+  cloudsqlAllowedVersions:
+    params:
+      versions:
+      - "MYSQL_5_7"
+      - "MYSQL_8_0_37"
+      - "POSTGRES_15"
+      - "SQLSERVER_2022_WEB"
+  cloudsqlEnforcePasswordComplexity:
+    params:
+      min_length: 12
 compute:
   computeAllowedInstanceMachineTypes:
     params:
       machine_types:
       - "n2-standard-1"
       - "n2-standard-2"
+      - "n2d-standard-2"
+      - "e2-medium"
   computeAllowedInstanceLabels:
     params:
       labels:
@@ -35,14 +93,10 @@ compute:
       disk_types:
       - "pd-ssd"
       - "pd-standard"
+      - "pd-balanced"
   computeRestrictDiskSize:
     params:
-      max_disksize: 100
-  computeAllowedInstanceVpcs:
-    params:
-      networks:
-      - "network-1"
-      - "network-2"
+      max_disksize: 1000
 dataproc:
   dataprocAllowedLabels:
     params:
@@ -52,8 +106,11 @@ dataproc:
 firewall:
   firewallEnforceNamingConvention:
     params:
-      name_regex: "^(allow|deny)-(all|rdp|ssh|tcp|udp|icmp|custom)[a-z0-9-]*"
+      name_regex: "^(allow|deny)-(all|rdp|ssh|tcp|udp|icmp|custom|insecure|open|network|directory|mail|nosql-db|sql-db|mgmt|cache-search-db)[a-z0-9-]*"
+  firewallRestrictPublicAccessRule:
+    generation: "default"
   firewallRestrictRule:
+    generation: "skip-policy" #! Not needed for testing
     params:
       direction: "INGRESS"
       source_ranges:
@@ -62,6 +119,65 @@ firewall:
       destination_ranges:
       - "192.168.32.0/24"
       - "10.16.0.0/16"
+  firewallRestrictSQLDatabasesPolicyRule: {}
+  firewallRestrictNoSQLDatabasesPolicyRule: {}
+  firewallRestrictSQLDatabasesRule: {}
+  firewallRestrictNoSQLDatabasesRule: {}
+  firewallRestrictCacheSearchDatabasesRule: {}
+  firewallRestrictCacheSearchDatabasesPolicyRule: {}
+  firewallRestrictInsecureProtocolsRule: {}
+  firewallRestrictInsecureProtocolsPolicyRule: {}
+  firewallRestrictDirectoryServicesRule: {}
+  firewallRestrictDirectoryServicesPolicyRule: {}
+  firewallRestrictNetworkServicesRule: {}
+  firewallRestrictNetworkServicesPolicyRule: {}
+  firewallRestrictMailProtocolsRule: {}
+  firewallRestrictMailProtocolsPolicyRule: {}
+  firewallRestrictManagementPortsRule: {}
+  firewallRestrictManagementPortsPolicyRule: {}
+  firewallRestrictOpenFirewallRule: {}
+  firewallRestrictOpenFirewallPolicyRule: {}
+dns:
+  dnsAllowedSigningAlgorithms:
+    params:
+      algorithms:
+      - ECDSAP256SHA256
+gke:
+  gkeAllowedNodePoolImages:
+    params:
+      images:
+      - "COS_CONTAINERD"
+  gkeAllowedReleaseChannels:
+    params:
+      release_channels:
+      - "REGULAR"
+      - "STABLE"
+iam:
+  iamAllowedMembers:
+    params:
+      domains:
+      - "@google.com"
+      - ".gserviceaccount.com"
+  iamDisableProjectServiceAccountImpersonationRoles:
+    params:
+      exceptions:
+      - "user:my-user@my-project.com"
+  iamDisableAdminServiceAccount:
+    params:
+      exceptions:
+      - "serviceAccount:my-service-account@my-project.iam.gserviceaccount.com"
+network:
+  networkEnforceNamingConvention:
+    params:
+      vpc_name_regex: "^(vpc)-(dev|prd|uat)-[a-z0-9-]*"
+  networkAllowedSubnetIpRanges:
+    params:
+      ip_ranges:
+      - "10.10.0.0/24"
+      - "10.10.1.0/24"
+      - "192.168.0.0/16"
+  networkRequireInternalIpv6Ranges:
+    generation: "skip-policy"  #! Not needed for testing
 storage:
   storageAllowedBucketLabels:
     params:
@@ -70,23 +186,6 @@ storage:
       - "label-1"
   storageBucketEnforceNamingConvention:
     params:
-      name_regex: "^(sin|cgk)"
-gke:
-  gkeAllowedNodePoolImages:
-    params:
-      images:
-      - "COS_CONTAINERD"
-  gkeAllowedReleaseChannels:
-    params:
-      release_channels: 
-      - "REGULAR"
-      - "STABLE"
-network:
-  networkEnforceNamingConvention:
-    params:
-      vpc_name_regex: "^(vpc)-(dev|prd|uat)-[a-z0-9-]*"
-  networkAllowedSubnetIpRanges:
-    params:
-      ip_ranges:
-      - "10.0.0.0/24"
-      - "192.168.0.0/16"
+      name_regex: "(sin|cgk)$"
+  storageRequireBucketObjectVersionning:
+    generation: "skip-policy" #! Not needed for testing (gcloud command missing attribute for creation)

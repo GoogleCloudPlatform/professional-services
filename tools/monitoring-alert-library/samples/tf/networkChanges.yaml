@@ -1,0 +1,76 @@
+alerts:
+  networkChanges:
+    combiner: OR
+    conditions:
+      - condition_threshold:
+          aggregations:
+            - alignment_period: 60s
+              cross_series_reducer: REDUCE_SUM
+              group_by_fields:
+                - metric.label.principal
+                - metric.label.method_name
+                - metric.label.project_id
+                - metric.label.network_id
+              per_series_aligner: ALIGN_SUM
+          comparison: COMPARISON_GT
+          duration: 0s
+          filter: resource.type = "logging_bucket" AND metric.type = "logging.googleapis.com/user/networkChanges"
+          threshold_value: 0
+          trigger:
+            count: 1
+        display_name: "Log match condition: VPC Network Changes"
+    display_name: VPC Network Changes
+    documentation:
+      content: |-
+        Log-based alerting policy in project ${project} detected VPC Network changes.
+
+        This alert helps ensure security by monitoring creation, modification, deletion,
+        or peering changes to VPC networks.
+        ```
+        resource.type="gce_network" AND (
+          protoPayload.methodName:"compute.networks.insert" OR
+          protoPayload.methodName:"compute.networks.patch" OR
+          protoPayload.methodName:"compute.networks.delete" OR
+          protoPayload.methodName:"compute.networks.addPeering" OR
+          protoPayload.methodName:"compute.networks.updatePeering" OR
+          protoPayload.methodName:"compute.networks.removePeering"
+        )
+        ```
+      mime_type: text/markdown
+    notification_channels:
+      - projects/my-project/notificationChannels/11111111111111
+logging_metrics:
+  networkChanges:
+    bucket_name: projects/my-project/locations/asia-southeast1/buckets/org-logging-bucket
+    description: VPC Network Changes
+    filter: |-
+      resource.type="gce_network" AND (
+        protoPayload.methodName:"compute.networks.insert" OR
+        protoPayload.methodName:"compute.networks.patch" OR
+        protoPayload.methodName:"compute.networks.delete" OR
+        protoPayload.methodName:"compute.networks.addPeering" OR
+        protoPayload.methodName:"compute.networks.updatePeering" OR
+        protoPayload.methodName:"compute.networks.removePeering"
+      )
+    label_extractors:
+      method_name: EXTRACT(protoPayload.methodName)
+      network_id: EXTRACT(labels.network_id)
+      principal: EXTRACT(protoPayload.authenticationInfo.principalEmail)
+      project_id: EXTRACT(labels.project_id)
+    metric_descriptor:
+      labels:
+        - description: principal
+          key: principal
+          value_type: STRING
+        - description: method_name
+          key: method_name
+          value_type: STRING
+        - description: project_id
+          key: project_id
+          value_type: STRING
+        - description: network_id
+          key: network_id
+          value_type: STRING
+      metric_kind: DELTA
+      unit: "1"
+      value_type: INT64

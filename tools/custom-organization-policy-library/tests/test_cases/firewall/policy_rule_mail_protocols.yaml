@@ -1,0 +1,57 @@
+shared_config:
+  command:  gcloud compute network-firewall-policies rules create 1000 --firewall-policy cuop-fw-policy --global-firewall-policy
+  teardown_command: gcloud compute network-firewall-policies rules delete 1000 --firewall-policy cuop-fw-policy --global-firewall-policy
+  default_command_flags:
+      action: ALLOW
+      direction: INGRESS
+      enable-logging: true
+  default_markers:
+    - firewall
+    - firewall-policy
+    - mail-protocols
+
+# SMTP tests - TCP:25
+firewall_policy_allowed_smtp_rule_10:
+  steps:
+  - command_flags:
+      layer4-configs: tcp:25
+      src-ip-ranges: 10.0.0.0/8
+    expected_result:
+      return_code: 0
+
+firewall_policy_smtp_rule_denied:
+  steps:
+  - command_flags:
+      layer4-configs: tcp:25
+      src-ip-ranges: 0.0.0.0/0
+    expected_result:
+      return_code: 1
+      stderr: 'customConstraints/custom\.firewallRestrict(PublicAccess|MailProtocols)PolicyRule'
+
+# POP3 tests - TCP:110
+firewall_policy_allowed_pop3_rule_192:
+  steps:
+  - command_flags:
+      layer4-configs: tcp:110
+      src-ip-ranges: 192.168.0.0/16
+    expected_result:
+      return_code: 0
+
+# Simplified constraint only blocks 0.0.0.0/0 and ::/0, not specific public IPs
+firewall_policy_pop3_rule_allowed:
+  steps:
+  - command_flags:
+      layer4-configs: tcp:110
+      src-ip-ranges: 1.0.0.0/32
+    expected_result:
+      return_code: 0
+
+# Multiple mail protocols test
+# Simplified constraint only blocks 0.0.0.0/0 and ::/0, not specific public IPs
+firewall_policy_multiple_mail_allowed:
+  steps:
+  - command_flags:
+      layer4-configs: tcp:25,tcp:110
+      src-ip-ranges: 8.8.8.8/32
+    expected_result:
+      return_code: 0
