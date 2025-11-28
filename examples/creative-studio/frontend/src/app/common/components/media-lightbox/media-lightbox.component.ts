@@ -32,6 +32,7 @@ import {MatSnackBar} from '@angular/material/snack-bar';
 import {ActivatedRoute, Router} from '@angular/router';
 import {EventEmitter} from '@angular/core';
 import {Location} from '@angular/common';
+import { handleErrorSnackbar, handleSuccessSnackbar } from '../../../utils/handleMessageSnackbar';
 
 @Component({
   selector: 'app-media-lightbox',
@@ -234,9 +235,7 @@ export class MediaLightboxComponent
 
   copyLink(): void {
     if (!this.mediaItem?.id) {
-      this.snackBar.open('Cannot generate link: Media item has no ID.', 'OK', {
-        duration: 3000,
-      });
+      handleErrorSnackbar(this.snackBar, { message: 'Cannot generate link: Media item has no ID.' }, 'Copy Link');
       return;
     }
 
@@ -252,7 +251,7 @@ export class MediaLightboxComponent
     const fullUrl = `${window.location.origin}${relativeUrl}`;
 
     this.clipboard.copy(fullUrl);
-    this.snackBar.open('Link copied to clipboard!', 'OK', {duration: 3000});
+    handleSuccessSnackbar(this.snackBar, 'Link copied to clipboard!');
     this.isShareMenuOpen = false;
   }
 

@@ -429,7 +429,7 @@
 
       <div *ngIf="searchRequest.generationModel === 'gemini-3-pro-image-preview'" matTooltip="Enable Google Search"
         class="cursor-pointer w-32 inline-flex flex-col justify-start items-center">
-        <mat-slide-toggle [(ngModel)]="searchRequest.googleSearch"
+        <mat-slide-toggle [(ngModel)]="searchRequest.googleSearch" (ngModelChange)="saveState()"
           class="!w-16 !h-16 !shadow-none text-center !flex justify-center items-center text-stone-300">
         </mat-slide-toggle>
         <div class="text-center justify-center text-neutral-200 text-base mt-2">
@@ -443,6 +443,7 @@
       >
         <mat-slide-toggle
           [(ngModel)]="searchRequest.useBrandGuidelines"
+          (ngModelChange)="saveState()"
           class="!w-16 !h-16 !shadow-none text-center !flex justify-center items-center text-stone-300"
         >
         </mat-slide-toggle>
@@ -480,7 +481,7 @@
           [(ngModel)]="searchRequest.prompt"
           class="self-stretch w-full h-48 p-4 bg-transparent md:bg-zinc-700 rounded-2xl text-stone-300 text-base font-normal leading-7 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
           placeholder="Enter your prompt here..."
-          (ngModelChange)="service.imagePrompt = $event"
+          (ngModelChange)="service.imagePrompt = $event; saveState()"
         ></textarea>
         <div
           class="inline-flex justify-between items-center grid grid-cols-1 md:flex gap-4"

@@ -27,8 +27,7 @@ import {Observable} from 'rxjs';
 import {UserService} from '../common/services/user.service';
 import {MatSnackBar} from '@angular/material/snack-bar';
 import {AuthService} from '../common/services/auth.service';
-import {environment} from '../../environments/environment';
-import {ToastMessageComponent} from '../common/components/toast-message/toast-message.component';
+import { handleErrorSnackbar } from '../utils/handleMessageSnackbar';
 
 const LOGIN_ROUTE = '/login';
 
@@ -78,16 +77,7 @@ export class AdminAuthGuard implements CanActivate {
       // User is not authenticated or not an allowed admin
       console.warn('Access denied to admin area.');
 
-      this._snackBar.openFromComponent(ToastMessageComponent, {
-        panelClass: ['red-toast'],
-        verticalPosition: 'top',
-        horizontalPosition: 'right',
-        duration: 10000,
-        data: {
-          text: `Access Denied: Your email (${userEmail}) is not authorized or login session expired.`,
-          icon: 'cross-in-circle-white',
-        },
-      });
+      handleErrorSnackbar(this._snackBar, { message: `Access Denied: Your email (${userEmail}) is not authorized or login session expired.` }, 'Access Denied');
 
       // Use async logout and navigate *after* logout completes
       this.authService.logout().then(() => {

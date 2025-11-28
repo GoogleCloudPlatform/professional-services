@@ -26,7 +26,7 @@ import {ConfirmationDialogComponent} from '../confirmation-dialog/confirmation-d
 import {
   handleErrorSnackbar,
   handleSuccessSnackbar,
-} from '../../../utils/handleErrorSnackbar';
+} from '../../../utils/handleMessageSnackbar';
 import {
   InviteUserData,
   InviteUserModalComponent,
@@ -163,9 +163,7 @@ export class WorkspaceSwitcherComponent implements OnInit {
   createWorkspace(name: string): void {
     this.workspaceService.createWorkspace(name).subscribe({
       next: newWorkspace => {
-        this.snackBar.open(`Workspace "${name}" created!`, 'OK', {
-          duration: 3000,
-        });
+        handleSuccessSnackbar(this.snackBar, `Workspace "${name}" created!`);
         this.workspaces.push(newWorkspace);
         this.setActiveWorkspace(newWorkspace.id);
       },
@@ -227,7 +225,7 @@ export class WorkspaceSwitcherComponent implements OnInit {
           .inviteUser(this.activeWorkspaceId, result.email, result.role)
           .subscribe({
             next: () => {
-              this.snackBar.open('Invitation sent!', 'OK', {duration: 3000});
+              handleSuccessSnackbar(this.snackBar, 'Invitation sent!');
             },
             error: error => {
               handleErrorSnackbar(
@@ -292,9 +290,7 @@ export class WorkspaceSwitcherComponent implements OnInit {
                 .deleteBrandGuideline(guideline.id)
                 .subscribe({
                   next: () => {
-                    this.snackBar.open('Brand Guideline deleted.', 'OK', {
-                      duration: 3000,
-                    });
+                    handleSuccessSnackbar(this.snackBar, 'Brand Guideline deleted.');
                   },
                   error: error =>
                     handleErrorSnackbar(

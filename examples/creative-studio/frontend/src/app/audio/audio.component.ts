@@ -9,6 +9,7 @@ import { MediaItem } from '../common/models/media-item.model';
 import { AddVoiceDialogComponent } from '../components/add-voice-dialog/add-voice-dialog.component';
 import { MatIconRegistry } from '@angular/material/icon';
 import {LanguageEnum, VoiceEnum} from './audio.constants';
+import { handleErrorSnackbar, handleSuccessSnackbar } from '../utils/handleMessageSnackbar';
 
 // UI Helper type
 type UiModelType = 'lyria' | 'chirp' | 'gemini-tts';
@@ -180,9 +181,7 @@ export class AudioComponent {
         };
         this.voices = [newVoice, ...this.voices];
         this.selectedVoice = newVoice.id;
-        this.snackBar.open('Voice cloned successfully!', 'Close', {
-          duration: 3000,
-        });
+        handleSuccessSnackbar(this.snackBar, 'Voice cloned successfully!');
       }
     });
   }
@@ -193,9 +192,7 @@ export class AudioComponent {
 
     const activeWorkspaceId = this.workspaceStateService.getActiveWorkspaceId();
     if (!activeWorkspaceId) {
-      this.snackBar.open('Please select a workspace first.', 'Close', {
-        duration: 3000,
-      });
+      handleErrorSnackbar(this.snackBar, { message: 'Please select a workspace first.' }, 'Workspace');
       return;
     }
 
@@ -243,11 +240,7 @@ export class AudioComponent {
           // The Lightbox will handle displaying the first item automatically via inputs
         },
         error: (error: any) => {
-          this.snackBar.open(
-            'Error generating audio. Please try again.',
-            'Close',
-            {duration: 3000},
-          );
+          handleErrorSnackbar(this.snackBar, error, 'Generation');
           console.error('Generation failed:', error);
         },
       });
