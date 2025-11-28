@@ -14,30 +14,40 @@
  * limitations under the License.
  */
 
-import {Component, Inject, ViewEncapsulation} from '@angular/core';
+import {Component, Inject, Input, Optional, Output, EventEmitter, ViewEncapsulation} from '@angular/core';
 import {MatSnackBar, MAT_SNACK_BAR_DATA} from '@angular/material/snack-bar';
+import {CommonModule} from '@angular/common';
+import {MatIconModule} from '@angular/material/icon';
 
 @Component({
   selector: 'app-toast-message',
+  standalone: true,
+  imports: [CommonModule, MatIconModule],
   templateUrl: './toast-message.component.html',
   styleUrls: ['./toast-message.component.scss'],
   encapsulation: ViewEncapsulation.None,
 })
 export class ToastMessageComponent {
-  text: string;
-  icon: string;
-  matIcon: string;
+  @Input() text: string = '';
+  @Input() icon: string = '';
+  @Input() matIcon: string = '';
+  @Output() close = new EventEmitter<void>();
 
   constructor(
-    private _snackBar: MatSnackBar,
-    @Inject(MAT_SNACK_BAR_DATA) public snackBarData: any,
+    @Optional() private _snackBar: MatSnackBar,
+    @Optional() @Inject(MAT_SNACK_BAR_DATA) public snackBarData: any,
   ) {
-    this.text = snackBarData.text;
-    this.icon = snackBarData.icon;
-    this.matIcon = snackBarData.matIcon;
+    if (snackBarData) {
+      this.text = snackBarData.text;
+      this.icon = snackBarData.icon;
+      this.matIcon = snackBarData.matIcon;
+    }
   }
 
   closeToast() {
-    this._snackBar.dismiss();
+    if (this._snackBar) {
+      this._snackBar.dismiss();
+    }
+    this.close.emit();
   }
 }

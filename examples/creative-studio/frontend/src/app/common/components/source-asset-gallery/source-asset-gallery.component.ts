@@ -37,6 +37,7 @@ import {UserService} from '../../services/user.service';
 import {MatDialog} from '@angular/material/dialog';
 import {MatSnackBar} from '@angular/material/snack-bar';
 import {ConfirmationDialogComponent} from '../confirmation-dialog/confirmation-dialog.component';
+import { handleErrorSnackbar, handleSuccessSnackbar } from '../../../utils/handleMessageSnackbar';
 
 @Component({
   selector: 'app-source-asset-gallery',
@@ -219,14 +220,10 @@ export class SourceAssetGalleryComponent
           )
           .subscribe({
             next: () => {
-              this.snackBar.open('Asset deleted successfully.', 'OK', {
-                duration: 3000,
-              });
+              handleSuccessSnackbar(this.snackBar, 'Asset deleted successfully.');
             },
             error: err => {
-              this.snackBar.open('Failed to delete asset.', 'OK', {
-                duration: 3000,
-              });
+              handleErrorSnackbar(this.snackBar, err, 'Delete asset');
               console.error(err);
             },
           });

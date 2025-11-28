@@ -20,10 +20,9 @@ import {MatPaginator} from '@angular/material/paginator';
 import {MatSort} from '@angular/material/sort';
 import {MediaTemplatesService} from './media-templates.service';
 import {MatSnackBar} from '@angular/material/snack-bar';
-import {ToastMessageComponent} from '../../common/components/toast-message/toast-message.component';
+import { handleErrorSnackbar, handleSuccessSnackbar } from '../../utils/handleMessageSnackbar';
 import {MatDialog} from '@angular/material/dialog';
 import {MediaTemplateFormComponent} from './media-template-form/media-template-form.component';
-import {of} from 'rxjs';
 import {MediaTemplate} from '../../fun-templates/media-template.model';
 
 @Component({
@@ -154,21 +153,10 @@ export class MediaTemplatesManagementComponent
       this.mediaTemplatesService.deleteMediaTemplate(template.id).subscribe({
         next: () => {
           this.fetchTemplates();
-          this.snackBar.openFromComponent(ToastMessageComponent, {
-            panelClass: ['green-toast'],
-            duration: 3000,
-            data: {
-              text: 'Template deleted successfully',
-              matIcon: 'check_circle',
-            },
-          });
+          handleSuccessSnackbar(this.snackBar, 'Template deleted successfully');
         },
         error: (err: Error) => {
-          this.snackBar.openFromComponent(ToastMessageComponent, {
-            panelClass: ['red-toast'],
-            duration: 5000,
-            data: {text: 'Error deleting template', matIcon: 'error'},
-          });
+          handleErrorSnackbar(this.snackBar, err, 'Delete template');
         },
       });
     }

@@ -35,11 +35,10 @@ import {environment} from '../../../environments/environment';
 import {ImagenRequest, VeoRequest} from '../../common/models/search.model';
 import {JobStatus, MediaItem} from '../../common/models/media-item.model';
 import {MatSnackBar} from '@angular/material/snack-bar';
-import {ToastMessageComponent} from '../../common/components/toast-message/toast-message.component';
 import {
   handleErrorSnackbar,
   handleSuccessSnackbar,
-} from '../../utils/handleErrorSnackbar';
+} from '../../utils/handleMessageSnackbar';
 
 export interface RewritePromptRequest {
   targetType: 'image' | 'video';
@@ -71,6 +70,10 @@ export class SearchService {
   // Persisted prompts
   imagePrompt = '';
   videoPrompt = '';
+
+  private activeVtoJob = new BehaviorSubject<MediaItem | null>(null);
+  public activeVtoJob$ = this.activeVtoJob.asObservable();
+  private vtoPollingSubscription: Subscription | null = null;
 
   constructor(
     private http: HttpClient,
@@ -253,5 +256,78 @@ export class SearchService {
       `${environment.backendURL}/gemini/random-prompt`,
       payload,
     );
+  }
+
+  /**
+   * Starts the VTO generation job by POSTing to the backend.
+   * Returns an Observable of the initial MediaItem.
+   */
+  startVtoGeneration(vtoRequest: any): Observable<MediaItem> {
+    const url = `${environment.backendURL}/images/generate-images-for-vto`;
+
+    return this.http.post<MediaItem>(url, vtoRequest).pipe(
+      tap(initialItem => {
+        this.activeVtoJob.next(initialItem);
+        this.startVtoPolling(initialItem.id);
+      })
+    );
+  }
+
+  /**
+   * Private method to poll the status of a VTO job.
+   * @param mediaId The ID of the job to poll.
+   */
+  private startVtoPolling(mediaId: string): void {
+    this.stopVtoPolling();
+
+    this.vtoPollingSubscription = timer(5000, 15000) // Start after 5s, then every 15s
+      .pipe(
+        switchMap(() => this.getVtoMediaItem(mediaId)),
+        tap(latestItem => {
+          this.activeVtoJob.next(latestItem);
+
+          if (
+            latestItem.status === JobStatus.COMPLETED ||
+            latestItem.status === JobStatus.FAILED
+          ) {
+            this.stopVtoPolling();
+            if (latestItem.status === JobStatus.COMPLETED) {
+              handleSuccessSnackbar(this._snackBar, 'Your VTO result is ready!');
+            } else {
+              handleErrorSnackbar(
+                this._snackBar,
+                {message: latestItem.errorMessage || latestItem.error_message},
+                `VTO generation failed: ${latestItem.errorMessage || latestItem.error_message}`,
+              );
+            }
+          }
+        }),
+        catchError(err => {
+          console.error('VTO polling failed', err);
+          this.stopVtoPolling();
+          return EMPTY;
+        }),
+      )
+      .subscribe();
+  }
+
+  private stopVtoPolling(): void {
+    this.vtoPollingSubscription?.unsubscribe();
+    this.vtoPollingSubscription = null;
+  }
+
+  /**
+   * Fetches the current state of a VTO media item by its ID.
+   * @param mediaId The unique ID of the media item to check.
+   * @returns An Observable of the MediaItem.
+   */
+  getVtoMediaItem(mediaId: string): Observable<MediaItem> {
+    const url = `${environment.backendURL}/gallery/item/${mediaId}`;
+    return this.http.get<MediaItem>(url);
+  }
+
+  clearActiveVtoJob() {
+    this.activeVtoJob.next(null);
+    this.stopVtoPolling();
   }
 }
