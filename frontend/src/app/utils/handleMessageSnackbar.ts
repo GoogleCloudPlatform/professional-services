@@ -15,7 +15,8 @@
  */
 
 import {MatSnackBar} from '@angular/material/snack-bar';
-import {ToastMessageComponent} from '../common/components/toast-message/toast-message.component';
+import {AppInjector} from '../app-injector';
+import {NotificationService} from '../common/services/notification.service';
 
 export const handleErrorSnackbar: (
   snackBar: MatSnackBar,
@@ -29,30 +30,22 @@ export const handleErrorSnackbar: (
     error?.message ||
     'Something went wrong';
 
-  snackBar.openFromComponent(ToastMessageComponent, {
-    panelClass: ['red-toast'],
-    verticalPosition: 'top',
-    horizontalPosition: 'right',
-    duration: 6000,
-    data: {
-      text: errorMessage,
-      icon: 'cross-in-circle-white',
-    },
-  });
+  try {
+    const notificationService = AppInjector.get(NotificationService);
+    notificationService.show(errorMessage, 'error', 'cross-in-circle-white');
+  } catch (e) {
+    console.error('NotificationService not available', e);
+  }
 };
 
 export const handleSuccessSnackbar: (
   snackBar: MatSnackBar,
   msg: any,
 ) => void = (snackBar: MatSnackBar, msg: any) => {
-  snackBar.openFromComponent(ToastMessageComponent, {
-    panelClass: ['green-toast'],
-    verticalPosition: 'top',
-    horizontalPosition: 'right',
-    duration: 6000,
-    data: {
-      text: msg,
-      matIcon: 'check_small',
-    },
-  });
+  try {
+    const notificationService = AppInjector.get(NotificationService);
+    notificationService.show(msg, 'success', undefined, 'check_small');
+  } catch (e) {
+    console.error('NotificationService not available', e);
+  }
 };

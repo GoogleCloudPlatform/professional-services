@@ -21,7 +21,7 @@ import subprocess
 import sys
 import time
 import uuid
-from concurrent.futures import ProcessPoolExecutor
+from concurrent.futures import ThreadPoolExecutor
 from typing import List, Optional
 
 from google.cloud.logging import Client as LoggerClient
@@ -91,7 +91,7 @@ def _process_video_in_background(
             # In DEVELOPMENT, use a simple stream handler for readable console output.
             handler = logging.StreamHandler(sys.stdout)
             formatter = logging.Formatter(
-                "%(asctime)s - [WORKER] - %(levelname)s - %(message)s"
+                "%(asctime)s - [VIDEO_WORKER] - %(levelname)s - %(message)s"
             )
             handler.setFormatter(formatter)
             worker_logger.addHandler(handler)
@@ -581,7 +581,7 @@ class VeoService:
         self,
         request_dto: CreateVeoDto,
         user: UserModel,
-        executor: ProcessPoolExecutor,
+        executor: ThreadPoolExecutor,
     ) -> MediaItemResponse:
         """
         Immediately creates a placeholder MediaItem and starts the video generation
@@ -690,7 +690,7 @@ class VeoService:
         self,
         request_dto: ConcatenateVideosDto,
         user: UserModel,
-        executor: ProcessPoolExecutor,
+        executor: ThreadPoolExecutor,
     ) -> MediaItemResponse:
         """
         Creates a placeholder for a video concatenation job and starts it in the background.

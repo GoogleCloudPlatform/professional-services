@@ -230,10 +230,6 @@ class GalleryService:
         Performs a paginated and filtered search for media items.
         Authorization is handled by a dependency in the controller.
         """
-        logger.info(
-            f"Fetching gallery for workspace_id: {search_dto.workspace_id} with params: {search_dto}"
-        )
-
         is_admin = UserRoleEnum.ADMIN in current_user.roles
         # If the user is not an admin, force the search to only show completed items
         if not is_admin:
