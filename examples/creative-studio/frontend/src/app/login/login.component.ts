@@ -20,7 +20,7 @@ import {Router} from '@angular/router';
 import {AuthService} from './../common/services/auth.service';
 import {UserModel} from './../common/models/user.model';
 import {MatSnackBar} from '@angular/material/snack-bar';
-import {ToastMessageComponent} from './../common/components/toast-message/toast-message.component';
+import { handleErrorSnackbar } from '../utils/handleMessageSnackbar';
 import {environment} from '../../environments/environment';
 
 const HOME_ROUTE = '/';
@@ -122,13 +122,7 @@ export class LoginComponent {
 
   private handleLoginError(message: string, postErrorAction?: () => void) {
     this.loader = false;
-    this._snackBar.openFromComponent(ToastMessageComponent, {
-      panelClass: ['red-toast'],
-      verticalPosition: 'top',
-      horizontalPosition: 'right',
-      duration: 6000,
-      data: {text: message, icon: 'cross-in-circle-white'},
-    });
+    handleErrorSnackbar(this._snackBar, { message: message }, 'Login Error');
     if (postErrorAction) {
       postErrorAction();
     }

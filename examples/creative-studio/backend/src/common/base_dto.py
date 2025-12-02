@@ -43,6 +43,7 @@ class GenerationModelEnum(str, Enum):
     IMAGEGEN_005 = "imagegeneration@005"
     IMAGEGEN_002 = "imagegeneration@002"
     GEMINI_2_5_FLASH_IMAGE_PREVIEW = "gemini-2.5-flash-image-preview"
+    GEMINI_3_PRO_IMAGE_PREVIEW = "gemini-3-pro-image-preview"
     GEMINI_2_5_PRO = "gemini-2.5-pro"
     GEMINI_2_5_FLASH = "gemini-2.5-flash"
     VTO = "virtual-try-on-preview-08-04"
@@ -76,6 +77,11 @@ class AspectRatioEnum(str, Enum):
     RATIO_1_1 = "1:1"
     RATIO_3_4 = "3:4"
     RATIO_4_3 = "4:3"
+    RATIO_2_3 = "2:3"
+    RATIO_3_2 = "3:2"
+    RATIO_4_5 = "4:5"
+    RATIO_5_4 = "5:4"
+    RATIO_21_9 = "21:9"
 
 
 class StyleEnum(str, Enum):

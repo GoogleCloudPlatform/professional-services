@@ -90,6 +90,9 @@ export interface MediaItem {
   seed?: number;
   critique?: string;
   addWatermark?: boolean;
+  googleSearch?: boolean;
+  resolution?: string;
+  groundingMetadata?: any;
 
   // Music specific
   audioAnalysis?: Record<string, any>;

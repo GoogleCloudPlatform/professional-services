@@ -21,7 +21,7 @@ import {AssetScopeEnum, AssetTypeEnum} from '../source-asset.model';
 import {SourceAssetsService} from '../source-assets.service';
 import {finalize} from 'rxjs';
 import {MatSnackBar} from '@angular/material/snack-bar';
-import {handleErrorSnackbar} from '../../../utils/handleErrorSnackbar';
+import {handleErrorSnackbar} from '../../../utils/handleMessageSnackbar';
 
 @Component({
   selector: 'app-source-asset-upload-form',

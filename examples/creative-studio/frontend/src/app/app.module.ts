@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
-import {importProvidersFrom, NgModule} from '@angular/core';
+import {importProvidersFrom, NgModule, Injector} from '@angular/core';
+import {setAppInjector} from './app-injector';
+import {NotificationContainerComponent} from './common/components/notification-container/notification-container.component';
 import {BrowserModule, provideClientHydration} from '@angular/platform-browser';
 import {MatTooltipModule} from '@angular/material/tooltip';
 import {initializeApp, provideFirebaseApp} from '@angular/fire/app';
@@ -93,7 +95,6 @@ import {MatButtonToggleModule} from '@angular/material/button-toggle';
     HeaderComponent,
     FooterComponent,
     HomeComponent,
-    ToastMessageComponent,
     LoginComponent,
     ConfirmationDialogComponent,
     FunTemplatesComponent,
@@ -142,6 +143,7 @@ import {MatButtonToggleModule} from '@angular/material/button-toggle';
     ImageCropperComponent,
     MatButtonToggleModule,
     MatSliderModule,
+    NotificationContainerComponent,
   ],
   providers: [
     provideClientHydration(),
@@ -167,4 +169,8 @@ import {MatButtonToggleModule} from '@angular/material/button-toggle';
   ],
   bootstrap: [AppComponent],
 })
-export class AppModule {}
+export class AppModule {
+  constructor(injector: Injector) {
+    setAppInjector(injector);
+  }
+}

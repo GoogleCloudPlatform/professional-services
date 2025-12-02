@@ -39,7 +39,7 @@
             mode="indeterminate"
             [diameter]="50"
           ></mat-progress-spinner>
-          <p class="mt-4 text-white text-lg">
+          <p class="!mt-6 text-white text-lg">
             Your video is being generated...
           </p>
           <p class="text-gray-400 text-sm">
@@ -407,6 +407,7 @@
       >
         <mat-slide-toggle
           [(ngModel)]="searchRequest.useBrandGuidelines"
+          (ngModelChange)="saveState()"
           class="!w-16 !h-16 !shadow-none text-center !flex justify-center items-center text-stone-300"
         >
         </mat-slide-toggle>
@@ -443,6 +444,7 @@
           [(ngModel)]="searchRequest.prompt"
           class="self-stretch w-full h-48 p-4 bg-transparent md:bg-zinc-700 rounded-2xl text-stone-300 text-base font-normal leading-7 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
           placeholder="Enter your prompt here..."
+          (ngModelChange)="service.videoPrompt = $event; saveState()"
         ></textarea>
         <div
           class="inline-flex justify-between items-center grid grid-cols-1 lg:flex gap-4"

@@ -45,25 +45,24 @@ import {
   EnrichedSourceAsset,
   GenerationParameters,
 } from '../fun-templates/media-template.model';
-import {handleErrorSnackbar} from '../utils/handleErrorSnackbar';
+import { handleErrorSnackbar, handleSuccessSnackbar } from '../utils/handleMessageSnackbar';
 import {JobStatus, MediaItem} from '../common/models/media-item.model';
 import {
   SourceAssetResponseDto,
   SourceAssetService,
 } from '../common/services/source-asset.service';
 import {HttpClient} from '@angular/common/http';
-import {environment} from '../../environments/environment';
-import {ToastMessageComponent} from '../common/components/toast-message/toast-message.component';
 import {WorkspaceStateService} from '../services/workspace/workspace-state.service';
 import {AssetTypeEnum} from '../admin/source-assets-management/source-asset.model';
 import {ImageCropperDialogComponent} from '../common/components/image-cropper-dialog/image-cropper-dialog.component';
+import {VideoStateService} from '../services/video-state.service';
 
 @Component({
   selector: 'app-video',
   templateUrl: './video.component.html',
   styleUrl: './video.component.scss',
 })
-export class VideoComponent implements AfterViewInit {
+export class VideoComponent implements OnInit, AfterViewInit {
   // This observable will always reflect the current job's state
   activeVideoJob$: Observable<MediaItem | null>;
   public readonly JobStatus = JobStatus; // Expose enum to the template
@@ -199,13 +198,14 @@ export class VideoComponent implements AfterViewInit {
   constructor(
     private sanitizer: DomSanitizer,
     public matIconRegistry: MatIconRegistry,
-    private service: SearchService,
+    public service: SearchService,
     public router: Router,
     private _snackBar: MatSnackBar,
     public dialog: MatDialog,
     private http: HttpClient,
     private workspaceStateService: WorkspaceStateService,
     private sourceAssetService: SourceAssetService,
+    private videoStateService: VideoStateService,
   ) {
     this.activeVideoJob$ = this.service.activeVideoJob$;
 
@@ -243,6 +243,60 @@ export class VideoComponent implements AfterViewInit {
     ] as EnrichedSourceAsset[];
     if (sourceAssets) {
       this.applySourceAssets(sourceAssets);
+    }
+
+    // Load persisted prompt
+    this.searchRequest.prompt = this.service.videoPrompt;
+  }
+
+  ngOnInit(): void {
+    this.restoreState();
+  }
+
+  public saveState() {
+    this.videoStateService.updateState({
+      prompt: this.searchRequest.prompt,
+      aspectRatio: this.searchRequest.aspectRatio,
+      model: this.searchRequest.generationModel,
+      style: this.searchRequest.style,
+      colorAndTone: this.searchRequest.colorAndTone,
+      lighting: this.searchRequest.lighting,
+      numberOfMedia: this.searchRequest.numberOfMedia,
+      durationSeconds: this.searchRequest.durationSeconds,
+      composition: this.searchRequest.composition,
+      generateAudio: this.searchRequest.generateAudio,
+      negativePrompt: this.searchRequest.negativePrompt || '',
+      useBrandGuidelines: this.searchRequest.useBrandGuidelines,
+    });
+  }
+
+  private restoreState() {
+    const state = this.videoStateService.getState();
+    this.searchRequest.prompt = state.prompt;
+    this.searchRequest.aspectRatio = state.aspectRatio;
+    this.searchRequest.generationModel = state.model;
+    this.searchRequest.style = state.style;
+    this.searchRequest.colorAndTone = state.colorAndTone;
+    this.searchRequest.lighting = state.lighting;
+    this.searchRequest.numberOfMedia = state.numberOfMedia;
+    this.searchRequest.durationSeconds = state.durationSeconds;
+    this.searchRequest.composition = state.composition;
+    this.searchRequest.generateAudio = state.generateAudio;
+    this.searchRequest.negativePrompt = state.negativePrompt;
+    this.searchRequest.useBrandGuidelines = state.useBrandGuidelines;
+
+    this.negativePhrases = state.negativePrompt
+      ? state.negativePrompt.split(', ').filter(Boolean)
+      : [];
+
+    // Update selected options for UI
+    const modelOption = this.generationModels.find(m => m.value === state.model);
+    if (modelOption) {
+      this.selectedGenerationModel = modelOption.viewValue;
+    }
+    const ratioOption = this.aspectRatioOptions.find(r => r.value === state.aspectRatio);
+    if (ratioOption) {
+      this.selectedAspectRatio = ratioOption.viewValue;
     }
   }
 
@@ -307,57 +361,69 @@ export class VideoComponent implements AfterViewInit {
   selectAspectRatio(ratio: {value: string; viewValue: string}): void {
     this.searchRequest.aspectRatio = ratio.value;
     this.selectedAspectRatio = ratio.viewValue;
+    this.saveState();
   }
 
   selectVideoStyle(style: string): void {
     this.searchRequest.style === style
       ? (this.searchRequest.style = null)
       : (this.searchRequest.style = style);
+    this.saveState();
   }
 
   selectLighting(lighting: string): void {
     this.searchRequest.lighting === lighting
       ? (this.searchRequest.lighting = null)
       : (this.searchRequest.lighting = lighting);
+    this.saveState();
   }
 
   selectColor(color: string): void {
     this.searchRequest.colorAndTone === color
       ? (this.searchRequest.colorAndTone = null)
       : (this.searchRequest.colorAndTone = color);
+    this.saveState();
   }
 
   selectNumberOfVideos(num: number): void {
     this.searchRequest.numberOfMedia = num;
+    this.saveState();
   }
 
   selectDuration(seconds: number): void {
     this.searchRequest.durationSeconds = seconds;
+    this.saveState();
   }
 
   selectComposition(composition: string): void {
     this.searchRequest.composition === composition
       ? (this.searchRequest.composition = null)
       : (this.searchRequest.composition = composition);
+    this.saveState();
   }
 
   toggleAudio(): void {
     if (!this.isAudioGenerationDisabled) {
       this.searchRequest.generateAudio = !this.searchRequest.generateAudio;
+      this.saveState();
     }
   }
 
   addNegativePhrase(event: MatChipInputEvent): void {
     const value = (event.value || '').trim();
     if (value) this.negativePhrases.push(value);
+    this.searchRequest.negativePrompt = this.negativePhrases.join(', ');
 
     // Clear the input value
     event.chipInput!.clear();
+    this.saveState();
   }
 
   removeNegativePhrase(phrase: string): void {
     const index = this.negativePhrases.indexOf(phrase);
     if (index >= 0) this.negativePhrases.splice(index, 1);
+    this.searchRequest.negativePrompt = this.negativePhrases.join(', ');
+    this.saveState();
   }
 
   searchTerm() {
@@ -435,14 +501,7 @@ export class VideoComponent implements AfterViewInit {
       );
       if (veo31Model) {
         this.selectModel(veo31Model);
-        this._snackBar.openFromComponent(ToastMessageComponent, {
-          panelClass: ['green-toast'],
-          duration: 8000,
-          data: {
-            text: "Veo 3 doesn't support images as input, so we've switched to Veo 3.1 for you.",
-            matIcon: 'info_outline',
-          },
-        });
+        handleSuccessSnackbar(this._snackBar, "Veo 3 doesn't support images as input, so we've switched to Veo 3.1 for you.");
         return;
       }
     }
@@ -510,17 +569,7 @@ export class VideoComponent implements AfterViewInit {
         error: error => {
           // This block will now execute correctly if the POST request fails.
           console.error('Search error:', error);
-          const errorMessage =
-            error?.error?.detail?.[0]?.msg ||
-            error?.message ||
-            'Something went wrong';
-          this._snackBar.openFromComponent(ToastMessageComponent, {
-            panelClass: ['red-toast'],
-            verticalPosition: 'top',
-            horizontalPosition: 'right',
-            duration: 6000,
-            data: {text: errorMessage, icon: 'cross-in-circle-white'},
-          });
+          handleErrorSnackbar(this._snackBar, error, 'Search');
         },
       });
   }
@@ -540,6 +589,7 @@ export class VideoComponent implements AfterViewInit {
       .subscribe({
         next: (response: {prompt: string}) => {
           this.searchRequest.prompt = response.prompt;
+          this.saveState();
         },
         error: error => {
           handleErrorSnackbar(this._snackBar, error, 'Rewrite prompt');
@@ -556,6 +606,7 @@ export class VideoComponent implements AfterViewInit {
       .subscribe({
         next: (response: {prompt: string}) => {
           this.searchRequest.prompt = response.prompt;
+          this.saveState();
         },
         error: error => {
           handleErrorSnackbar(this._snackBar, error, 'Get random prompt');
@@ -578,6 +629,7 @@ export class VideoComponent implements AfterViewInit {
       durationSeconds: 8,
       useBrandGuidelines: false,
     };
+    this.videoStateService.resetState();
   }
 
   private applyTemplateParameters(): void {
@@ -691,14 +743,7 @@ export class VideoComponent implements AfterViewInit {
         );
         if (veo2Model) {
           this.selectModel(veo2Model);
-          this._snackBar.openFromComponent(ToastMessageComponent, {
-            panelClass: ['green-toast'],
-            duration: 8000,
-            data: {
-              text: "Veo 3 doesn't support video as input, so we've switched to Veo 2 for you.",
-              matIcon: 'info_outline',
-            },
-          });
+          handleSuccessSnackbar(this._snackBar, "Veo 3 doesn't support video as input, so we've switched to Veo 2 for you.");
         }
       }
     }
@@ -902,14 +947,7 @@ export class VideoComponent implements AfterViewInit {
         this.sourceMediaItems[1] = null;
       }
 
-      this._snackBar.openFromComponent(ToastMessageComponent, {
-        panelClass: ['green-toast'],
-        duration: 8000,
-        data: {
-          text: "Veo 3 doesn't support 2 images as input, so we've cleared the other one for you.",
-          matIcon: 'info_outline',
-        },
-      });
+      handleSuccessSnackbar(this._snackBar, "Veo 3 doesn't support 2 images as input, so we've cleared the other one for you.");
     }
   }
 
@@ -949,11 +987,7 @@ export class VideoComponent implements AfterViewInit {
           );
           if (veo2Model) {
             this.selectModel(veo2Model);
-            this._snackBar.open(
-              "Switched to Veo 2.0, as it's required for video extension.",
-              'OK',
-              {duration: 6000, panelClass: ['green-toast']},
-            );
+            handleSuccessSnackbar(this._snackBar, "Switched to Veo 2.0, as it's required for video extension.");
           }
         }
         this._showModeNotification('extend');
@@ -974,10 +1008,7 @@ export class VideoComponent implements AfterViewInit {
         'Concatenate Mode: The prompt is disabled. Click "Concatenate" to join the videos.';
     }
 
-    this._snackBar.open(message, 'OK', {
-      duration: 6000,
-      panelClass: ['green-toast'],
-    });
+    handleSuccessSnackbar(this._snackBar, message);
   }
 
   private getMimeTypeForSelector():
@@ -1198,14 +1229,7 @@ export class VideoComponent implements AfterViewInit {
       );
       if (veo31Model) {
         this.selectModel(veo31Model);
-        this._snackBar.openFromComponent(ToastMessageComponent, {
-          panelClass: ['green-toast'],
-          duration: 8000,
-          data: {
-            text: "We've switched to the Veo 3.1 model for you, as this one supports reference images.",
-            matIcon: 'info_outline',
-          },
-        });
+        handleSuccessSnackbar(this._snackBar, "We've switched to the Veo 3.1 model for you, as this one supports reference images.");
       }
     }
   }

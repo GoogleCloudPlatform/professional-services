@@ -50,15 +50,14 @@ async def generate_videos(
             workspace_id=video_request.workspace_id, user=current_user
         )
 
-        # Get the process pool from the application state
-        executor = request.app.state.process_pool
+        # Get the executor from the app state
+        executor = request.app.state.executor
 
-        placeholder_item = service.start_video_generation_job(
+        return service.start_video_generation_job(
             request_dto=video_request,
             user=current_user,
             executor=executor,  # Pass the pool to the service
         )
-        return placeholder_item
     except HTTPException as http_exception:
         raise http_exception
     except ValueError as value_error:
@@ -92,7 +91,7 @@ async def concatenate_videos(
         workspace_auth_service.authorize(
             workspace_id=concat_request.workspace_id, user=current_user
         )
-        executor = request.app.state.process_pool
+        executor = request.app.state.executor
         placeholder_item = service.start_video_concatenation_job(
             request_dto=concat_request, user=current_user, executor=executor
         )
@@ -105,27 +104,3 @@ async def concatenate_videos(
         )
 
 
-@router.get(
-    "/{media_id}",
-    response_model=MediaItemResponse,
-    summary="Get Media Item by ID",
-)
-async def get_media_item_by_id(
-    media_id: str,
-    media_service: VeoService = Depends(),
-):
-    """
-    Retrieves a single media item by its unique ID, including its current status
-    and presigned URLs for viewing. This is the endpoint to use for polling.
-    """
-    media_item_response = (
-        await media_service.get_media_item_with_presigned_urls(media_id)
-    )
-
-    if not media_item_response:
-        raise HTTPException(
-            status_code=Status.HTTP_404_NOT_FOUND,
-            detail="Media item not found.",
-        )
-
-    return media_item_response

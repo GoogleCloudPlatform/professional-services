@@ -51,12 +51,14 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
 }
 
 .media-actions-toolbar {
   display: flex;
   justify-content: flex-end;
   gap: 0.75rem;
+  margin: .5rem 0;
 }
 
 .action-button {

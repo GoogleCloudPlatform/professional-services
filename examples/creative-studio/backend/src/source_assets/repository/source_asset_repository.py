@@ -16,6 +16,7 @@ from typing import List, Optional
 
 from google.cloud import firestore
 from google.cloud.firestore_v1.base_aggregation import AggregationResult
+from google.cloud.firestore_v1.base_query import FieldFilter
 from google.cloud.firestore_v1.query_results import QueryResultsList
 
 from src.common.base_repository import BaseRepository
@@ -41,8 +42,10 @@ class SourceAssetRepository(BaseRepository[SourceAssetModel]):
     ) -> Optional[SourceAssetModel]:
         """Finds a user asset by its file hash to prevent duplicates."""
         query = (
-            self.collection_ref.where("user_id", "==", user_id)
-            .where("file_hash", "==", file_hash)
+            self.collection_ref.where(
+                filter=FieldFilter("user_id", "==", user_id)
+            )
+            .where(filter=FieldFilter("file_hash", "==", file_hash))
             .limit(1)
         )
         docs = list(query.stream())
@@ -66,28 +69,38 @@ class SourceAssetRepository(BaseRepository[SourceAssetModel]):
             if search_dto.mime_type.endswith("image/*"):
                 # TODO: Handle wildcard prefix search (e.g., "image/*")
                 # by creating a range query that finds all strings starting with the prefix.
-                base_query = base_query.where("mime_type", "!=", "video/mp4")
+                base_query = base_query.where(
+                    filter=FieldFilter("mime_type", "!=", "video/mp4")
+                )
             else:
                 # Standard exact match
                 base_query = base_query.where(
-                    "mime_type", "==", search_dto.mime_type
+                    filter=FieldFilter("mime_type", "==", search_dto.mime_type)
                 )
         if target_user_id:
-            base_query = base_query.where("user_id", "==", target_user_id)
+            base_query = base_query.where(
+                filter=FieldFilter("user_id", "==", target_user_id)
+            )
         if search_dto.scope:
-            base_query = base_query.where("scope", "==", search_dto.scope)
+            base_query = base_query.where(
+                filter=FieldFilter("scope", "==", search_dto.scope)
+            )
         if search_dto.asset_type:
             base_query = base_query.where(
-                "asset_type", "==", search_dto.asset_type
+                filter=FieldFilter("asset_type", "==", search_dto.asset_type)
             )
         if search_dto.original_filename:
             # This enables prefix searching (e.g., 'file' matches 'file.txt')
             base_query = base_query.where(
-                "original_filename", ">=", search_dto.original_filename
+                filter=FieldFilter(
+                    "original_filename", ">=", search_dto.original_filename
+                )
             ).where(
-                "original_filename",
-                "<=",
-                search_dto.original_filename + "\uf8ff",
+                filter=FieldFilter(
+                    "original_filename",
+                    "<=",
+                    search_dto.original_filename + "\uf8ff",
+                )
             )
 
         count_query = base_query.count(alias="total")
@@ -140,9 +153,9 @@ class SourceAssetRepository(BaseRepository[SourceAssetModel]):
         if not asset_types:
             return []
 
-        query = self.collection_ref.where("scope", "==", scope).where(
-            "asset_type", "in", asset_types
-        )
+        query = self.collection_ref.where(
+            filter=FieldFilter("scope", "==", scope)
+        ).where(filter=FieldFilter("asset_type", "in", asset_types))
 
         documents = list(query.stream())
         return [self.model.model_validate(doc.to_dict()) for doc in documents]
@@ -159,9 +172,11 @@ class SourceAssetRepository(BaseRepository[SourceAssetModel]):
             return []
 
         query = (
-            self.collection_ref.where("user_id", "==", user_id)
-            .where("scope", "==", AssetScopeEnum.PRIVATE)
-            .where("asset_type", "in", asset_types)
+            self.collection_ref.where(
+                filter=FieldFilter("user_id", "==", user_id)
+            )
+            .where(filter=FieldFilter("scope", "==", AssetScopeEnum.PRIVATE))
+            .where(filter=FieldFilter("asset_type", "in", asset_types))
         )
 
         documents = list(query.stream())

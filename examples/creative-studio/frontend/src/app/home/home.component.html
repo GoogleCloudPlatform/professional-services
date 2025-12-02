@@ -17,7 +17,7 @@
 <div class="lg:container lg:mx-auto">
   <div class="home-margin grid grid-cols-1">
     <!-- Video Homepage -->
-    <ng-container *ngIf="isLoading; else videoOrGallery">
+    <ng-container *ngIf="isLoading && !isImageGenerating; else videoOrGallery">
       <div class="video-container">
         <div class="w-full h-full flex justify-center items-center">
           <mat-progress-spinner
@@ -28,6 +28,18 @@
       </div>
     </ng-container>
     <ng-template #videoOrGallery>
+      <!-- Loading Overlay for Image Generation -->
+      <div *ngIf="isImageGenerating"
+        class="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-black bg-opacity-70 rounded-xl">
+        <mat-progress-spinner mode="indeterminate" [diameter]="50" color="primary"></mat-progress-spinner>
+        <p class="!mt-6 text-white text-lg">
+          Generating Images...
+        </p>
+        <p class="text-gray-400 text-sm">
+          This may take a few moments. You can safely navigate away.
+        </p>
+      </div>
+
       <ng-container
         *ngIf="
           (imagenDocuments?.presignedUrls?.length || 0) === 0;
@@ -415,12 +427,23 @@
         </mat-menu>
       </div>
 
+      <div *ngIf="searchRequest.generationModel === 'gemini-3-pro-image-preview'" matTooltip="Enable Google Search"
+        class="cursor-pointer w-32 inline-flex flex-col justify-start items-center">
+        <mat-slide-toggle [(ngModel)]="searchRequest.googleSearch" (ngModelChange)="saveState()"
+          class="!w-16 !h-16 !shadow-none text-center !flex justify-center items-center text-stone-300">
+        </mat-slide-toggle>
+        <div class="text-center justify-center text-neutral-200 text-base mt-2">
+          Google Search
+        </div>
+      </div>
+
       <div
         matTooltip="Enable Brand Guidelines"
         class="cursor-pointer w-32 inline-flex flex-col justify-start items-center"
       >
         <mat-slide-toggle
           [(ngModel)]="searchRequest.useBrandGuidelines"
+          (ngModelChange)="saveState()"
           class="!w-16 !h-16 !shadow-none text-center !flex justify-center items-center text-stone-300"
         >
         </mat-slide-toggle>
@@ -458,6 +481,7 @@
           [(ngModel)]="searchRequest.prompt"
           class="self-stretch w-full h-48 p-4 bg-transparent md:bg-zinc-700 rounded-2xl text-stone-300 text-base font-normal leading-7 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
           placeholder="Enter your prompt here..."
+          (ngModelChange)="service.imagePrompt = $event; saveState()"
         ></textarea>
         <div
           class="inline-flex justify-between items-center grid grid-cols-1 md:flex gap-4"
@@ -471,7 +495,7 @@
               mat-raised-button
               color="primary"
               (click)="rewritePrompt()"
-              [disabled]="isLoading"
+              [disabled]="isLoading || isImageGenerating"
             >
               <mat-icon>drive_file_rename_outline</mat-icon>
               Rewrite
@@ -480,7 +504,7 @@
               mat-raised-button
               class="!bg-white"
               (click)="searchTerm()"
-              [disabled]="isLoading"
+              [disabled]="isLoading || isImageGenerating"
             >
               <mat-icon svgIcon="gemini-spark-icon"></mat-icon>
               <span
@@ -494,57 +518,43 @@
             mat-stroked-button
             class="!text-white"
             (click)="resetAllFilters()"
-            [disabled]="isLoading"
+            [disabled]="isLoading || isImageGenerating"
           >
             Clear All
           </button>
         </div>
       </div>
-      <div class="lg:col-span-1 grid grid-cols-2 gap-4 text-center">
-        <div
-          class="drop-zone"
-          (click)="openImageSelector(1)"
-          (dragover)="$event.preventDefault()"
-          (drop)="onDrop($event, 1)"
-        >
-          <div *ngIf="!image1Preview" class="drop-zone-placeholder">
-            <mat-icon>add_photo_alternate</mat-icon>
-            <span>Drop product/image 1 or click to select</span>
+      <div class="lg:col-span-1">
+        <!-- Reference Images Section -->
+        <div class="reference-images-container" [class.disabled]="searchRequest.generationModel.startsWith('imagen-4')">
+          <div class="section-header">
+            <span class="section-title">Reference Images</span>
+            <span class="section-subtitle" *ngIf="searchRequest.generationModel === 'gemini-3-pro-image-preview'">(Up to
+              14)</span>
+            <span class="section-subtitle"
+              *ngIf="!searchRequest.generationModel.startsWith('imagen-4') && searchRequest.generationModel !== 'gemini-3-pro-image-preview'">(Up
+              to 2)</span>
+            <span class="section-subtitle" *ngIf="searchRequest.generationModel.startsWith('imagen-4')">(Not supported)</span>
           </div>
-          <div *ngIf="image1Preview" class="image-preview-container">
-            <img [src]="image1Preview" alt="Dropped Image 1" />
-            <button
-              (click)="clearImage(1, $event)"
-              class="clear-button"
-              mat-icon-button
-            >
-              <mat-icon>close</mat-icon>
-            </button>
+          <div class="reference-images-list" *ngIf="!searchRequest.generationModel.startsWith('imagen-4')">
+            <div *ngFor="let img of referenceImages; let i = index" class="reference-image-item">
+              <img [src]="img.previewUrl" alt="Reference Image" />
+              <button mat-icon-button class="clear-btn" (click)="clearImage(i, $event)">
+                <mat-icon>close</mat-icon>
+              </button>
+            </div>
+            <div class="add-image-btn" (click)="openImageSelector()" (drop)="onDrop($event)" (dragover)="$event.preventDefault()"
+              *ngIf="referenceImages.length < (searchRequest.generationModel === 'gemini-3-pro-image-preview' ? 14 : 2)">
+              <mat-icon>add</mat-icon>
+              <span>Add Image</span>
+            </div>
           </div>
-        </div>
-        <div
-          class="drop-zone"
-          (click)="openImageSelector(2)"
-          (dragover)="$event.preventDefault()"
-          (drop)="onDrop($event, 2)"
-        >
-          <div *ngIf="!image2Preview" class="drop-zone-placeholder">
-            <mat-icon>add_photo_alternate</mat-icon>
-            <span>Drop scene/image 2 or click to select</span>
-          </div>
-          <div *ngIf="image2Preview" class="image-preview-container">
-            <img [src]="image2Preview" alt="Dropped Image 2" />
-            <button
-              (click)="clearImage(2, $event)"
-              class="clear-button"
-              mat-icon-button
-            >
-              <mat-icon>close</mat-icon>
-            </button>
+          <div class="reference-images-disabled-message" *ngIf="searchRequest.generationModel.startsWith('imagen-4')">
+            <mat-icon>block</mat-icon>
+            <span>This model does not support reference images.</span>
           </div>
         </div>
       </div>
     </div>
   </div>
 </div>
->

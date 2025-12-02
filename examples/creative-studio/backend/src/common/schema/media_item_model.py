@@ -184,6 +184,9 @@ class MediaItemModel(BaseDocument):
     # Image specific
     seed: Optional[int] = None
     critique: Optional[str] = None
+    google_search: Optional[bool] = None
+    resolution: Optional[str] = None
+    grounding_metadata: Optional[Dict] = None
 
     # Music specific
     audio_analysis: Optional[Dict] = None
