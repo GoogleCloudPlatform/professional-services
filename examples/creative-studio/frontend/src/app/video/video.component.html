@@ -13,8 +13,7 @@
  See the License for the specific language governing permissions and
  limitations under the License.
 -->
-
-<div class="lg:container lg:mx-auto">
+<div class="lg:container lg:mx-auto mb-20">
   <div class="home-margin grid grid-cols-1">
     <!-- Video Homepage -->
     <ng-container *ngIf="isLoading; else videoOrGallery">
@@ -107,66 +106,10 @@
       </ng-container>
     </ng-template>
 
-    <!-- Control Options -->
+    <!-- Control Options (Legacy) -->
     <div
       class="control-options inline-flex justify-center items-start grid grid-cols-2 md:grid-cols-3 lg:flex gap-4 mt-8 place-items-center"
     >
-      <div
-        matTooltip="Select Aspect Ratio"
-        class="cursor-pointer w-24 inline-flex flex-col justify-start items-center"
-      >
-        <button
-          mat-fab
-          [matMenuTriggerFor]="aspectRatioMenu"
-          class="!w-16 !h-16 !shadow-none text-center justify-center text-stone-300 text-2xl"
-        >
-          <mat-icon>aspect_ratio</mat-icon>
-        </button>
-        <div class="text-center justify-center text-neutral-200 text-base mt-2">
-          {{ selectedAspectRatio }}
-        </div>
-        <mat-menu #aspectRatioMenu="matMenu">
-          <button
-            *ngFor="let ratio of aspectRatioOptions"
-            [disabled]="ratio.disabled"
-            mat-menu-item
-            [ngClass]="{
-              'menu-item-selected': searchRequest.aspectRatio === ratio.value,
-            }"
-            (click)="selectAspectRatio(ratio)"
-          >
-            <span>{{ ratio.viewValue }}</span>
-          </button>
-        </mat-menu>
-      </div>
-      <div
-        matTooltip="Select Model"
-        class="cursor-pointer w-28 inline-flex flex-col justify-start items-center"
-      >
-        <button
-          mat-fab
-          [matMenuTriggerFor]="modelMenu"
-          class="!w-16 !h-16 !shadow-none text-center justify-center text-stone-300 text-2xl"
-        >
-          <mat-icon svgIcon="content-type-icon"></mat-icon>
-        </button>
-        <div class="text-center justify-center text-neutral-200 text-base mt-2">
-          {{ selectedGenerationModel }}
-        </div>
-        <mat-menu #modelMenu="matMenu">
-          <button
-            *ngFor="let model of generationModels"
-            mat-menu-item
-            [ngClass]="{
-              'menu-item-selected':
-                searchRequest.generationModel === model.value,
-            }"
-            (click)="selectModel(model)"
-          >
-            <span>{{ model.viewValue }}</span>
-          </button>
-        </mat-menu>
-      </div>
 
       <div
         matTooltip="Select Style"
@@ -251,34 +194,6 @@
         </mat-menu>
       </div>
 
-      <div
-        matTooltip="Select Number of Videos"
-        class="cursor-pointer w-24 inline-flex flex-col justify-start items-center"
-      >
-        <button
-          mat-fab
-          [matMenuTriggerFor]="numVideosMenu"
-          class="!w-16 !h-16 !shadow-none text-center justify-center text-stone-300 text-2xl"
-        >
-          <mat-icon svgIcon="number-of-images-icon" color="primary"></mat-icon>
-        </button>
-        <div class="text-center justify-center text-neutral-200 text-base mt-2">
-          {{ searchRequest.numberOfMedia }}
-          Video(s)
-        </div>
-        <mat-menu #numVideosMenu="matMenu">
-          <button
-            *ngFor="let num of numberOfVideosOptions"
-            mat-menu-item
-            [ngClass]="{
-              'menu-item-selected': searchRequest.numberOfMedia === num,
-            }"
-            (click)="selectNumberOfVideos(num)"
-          >
-            <span>{{ num }}</span>
-          </button>
-        </mat-menu>
-      </div>
       <div
         matTooltip="Select Video Duration"
         class="cursor-pointer w-24 inline-flex flex-col justify-start items-center"
@@ -375,7 +290,10 @@
         <div class="text-center justify-center text-neutral-200 text-base mt-2">
           Negative Phrases ({{ negativePhrases.length }})
         </div>
-        <mat-menu #negativePhrasesMenu="matMenu" class="negative-phrases-menu">
+        <mat-menu
+          #negativePhrasesMenu="matMenu"
+          class="negative-phrases-menu"
+        >
           <div class="p-2" (click)="$event.stopPropagation()">
             <mat-form-field class="w-full">
               <mat-label>Things to avoid...</mat-label>
@@ -387,7 +305,10 @@
                   class="negative-prompt-chips"
                 >
                   {{ phrase }}
-                  <button matChipRemove [matTooltip]="'Remove ' + phrase">
+                  <button
+                    matChipRemove
+                    [matTooltip]="'Remove ' + phrase"
+                  >
                     <mat-icon>cancel</mat-icon>
                   </button>
                 </mat-chip-row>
@@ -415,193 +336,37 @@
           Brand Guidelines
         </div>
       </div>
-
-      <!-- <div
-        matTooltip="Replay Last Execution"
-        class="cursor-pointer w-12 h-12 bg-black rounded-3xl flex justify-center items-center gap-2.5 overflow-hidden mt-4"
-      >
-        <button
-          mat-fab
-          class="!w-16 !h-16 !shadow-none text-center justify-center text-white text-xl"
-        >
-          <mat-icon>replay</mat-icon>
-        </button>
-      </div> -->
     </div>
 
     <!-- Prompt Generator -->
     <div class="grid grid-cols-1 lg:grid-cols-4 gap-4 my-5">
       <!-- Prompt Section -->
-      <div class="lg:col-span-2 flex flex-col justify-start items-start gap-4">
-        <div
-          class="justify-center text-neutral-200 text-base font-bold leading-7"
-        >
-          Prompt:
-        </div>
-        <textarea
-          [disabled]="isConcatenateMode"
-          id="promptId"
-          [(ngModel)]="searchRequest.prompt"
-          class="self-stretch w-full h-48 p-4 bg-transparent md:bg-zinc-700 rounded-2xl text-stone-300 text-base font-normal leading-7 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-          placeholder="Enter your prompt here..."
-          (ngModelChange)="service.videoPrompt = $event; saveState()"
-        ></textarea>
-        <div
-          class="inline-flex justify-between items-center grid grid-cols-1 lg:flex gap-4"
-        >
-          <div class="flex justify-start items-center gap-4">
-            <!-- <button mat-raised-button color="primary" (click)="getRandomPrompt()" [disabled]="isLoading">
-              <mat-icon>shuffle</mat-icon>
-              Random
-            </button> -->
-            <button
-              mat-raised-button
-              color="primary"
-              (click)="rewritePrompt()"
-              [disabled]="isLoading"
-            >
-              <mat-icon>drive_file_rename_outline</mat-icon>
-              Rewrite
-            </button>
-            <button
-              mat-raised-button
-              class="!bg-white"
-              (click)="searchTerm()"
-              [disabled]="isLoading"
-            >
-              <mat-icon svgIcon="gemini-spark-icon"></mat-icon>
-              <span
-                class="font-bold bg-gradient-to-r from-blue-500 via-violet-500 to-red-400 bg-clip-text text-transparent"
-              >
-                @if (isExtensionMode) {
-                  Extend with AI
-                } @else if (isConcatenateMode) {
-                  Concatenate
-                } @else {
-                  Generate
-                }
-              </span>
-            </button>
-          </div>
-          <button
-            mat-stroked-button
-            class="!text-white"
-            (click)="resetAllFilters()"
-            [disabled]="isLoading"
-          >
-            Clear All
-          </button>
-        </div>
+      <div class="lg:col-span-4 flex flex-col justify-start items-center gap-4 w-full">
+        <app-flow-prompt-box class="w-full max-w-2xl block" [prompt]="searchRequest.prompt"
+          [aspectRatio]="selectedAspectRatio" [outputs]="searchRequest.numberOfMedia || 4" [mode]="currentMode"
+          [generationModels]="generationModels"
+          [isLoading]="isLoading"
+          [selectedGenerationModel]="selectedGenerationModel"
+          [image1Preview]="image1Preview"
+          [image2Preview]="image2Preview"
+          [referenceImages]="referenceImages"
+          [referenceImagesType]="referenceImagesType"
+          (promptChanged)="onPromptChanged($event)"
+          (aspectRatioChanged)="selectAspectRatio($event)"
+          (outputsChanged)="selectNumberOfVideos($event)"
+          (modeChanged)="onModeChanged($event)"
+          (generateClicked)="searchTerm()"
+          (rewriteClicked)="rewritePrompt()"
+          (modelSelected)="selectModel($event)"
+          (openImageSelector)="openImageSelector($event)"
+          (clearImage)="onClearImage($event)"
+          (openImageSelectorForReference)="openImageSelectorForReference()"
+          (onReferenceImageDrop)="onReferenceImageDrop($event)"
+          (clearReferenceImage)="onClearReferenceImage($event)"
+          (toggleReferenceImagesType)="referenceImagesType = $event ? 'STYLE' : 'ASSET'"
+        ></app-flow-prompt-box>
       </div>
 
-      <div class="lg:col-span-2 grid grid-cols-3 gap-4 text-center">
-        <div
-          class="drop-zone"
-          (click)="openImageSelector(1)"
-          (dragover)="$event.preventDefault()"
-          (drop)="onDrop($event, 1)"
-        >
-          <div *ngIf="!image1Preview" class="drop-zone-placeholder">
-            <mat-icon>add_photo_alternate</mat-icon>
-            <span>Add a starting frame (image) or a video to extend</span>
-          </div>
-          <div *ngIf="image1Preview" class="image-preview-container">
-            <img [src]="image1Preview" alt="Dropped Image 1" />
-            <button
-              (click)="clearImage(1, $event)"
-              class="clear-button"
-              mat-icon-button
-            >
-              <mat-icon>close</mat-icon>
-            </button>
-          </div>
-        </div>
-        <div
-          class="drop-zone"
-          (click)="openImageSelector(2)"
-          (dragover)="$event.preventDefault()"
-          (drop)="onDrop($event, 2)"
-        >
-          <div *ngIf="!image2Preview" class="drop-zone-placeholder">
-            <mat-icon>add_photo_alternate</mat-icon>
-            <span>Add an ending frame (image) or a video to concatenate</span>
-          </div>
-          <div *ngIf="image2Preview" class="image-preview-container">
-            <img [src]="image2Preview" alt="Dropped Image 2" />
-            <button
-              (click)="clearImage(2, $event)"
-              class="clear-button"
-              mat-icon-button
-            >
-              <mat-icon>close</mat-icon>
-            </button>
-          </div>
-        </div>
-
-        <div
-          class="drop-zone relative flex flex-col p-2"
-          [class.disabled]="referenceImages.length >= 3"
-          (click)="
-            referenceImages.length < 3 && openImageSelectorForReference()
-          "
-          (dragover)="$event.preventDefault()"
-          (drop)="referenceImages.length < 3 && onReferenceImageDrop($event)"
-        >
-          <div
-            *ngIf="referenceImages.length === 0"
-            class="drop-zone-placeholder m-auto"
-          >
-            <mat-icon>collections</mat-icon>
-            <span>Add Reference Images</span>
-            <span>(Max 3)</span>
-          </div>
-
-          <div
-            *ngIf="referenceImages.length > 0"
-            class="w-full h-full flex flex-col gap-2"
-          >
-            <div class="global-reference-toggle">
-              <mat-slide-toggle
-                [checked]="referenceImagesType === 'STYLE'"
-                (change)="
-                  referenceImagesType = $event.checked ? 'STYLE' : 'ASSET'
-                "
-                (click)="$event.stopPropagation()"
-              >
-                <span class="text-white text-sm font-medium"
-                  >Use all as STYLE</span
-                >
-              </mat-slide-toggle>
-            </div>
-
-            <div class="reference-previews-container">
-              <div
-                *ngFor="let refImage of referenceImages; let i = index"
-                class="image-preview-container small"
-              >
-                <img
-                  [src]="refImage.previewUrl"
-                  [alt]="'Reference Image ' + (i + 1)"
-                />
-                <button
-                  (click)="clearReferenceImage(i, $event)"
-                  class="clear-button small"
-                  mat-icon-button
-                >
-                  <mat-icon>close</mat-icon>
-                </button>
-              </div>
-            </div>
-
-            <div
-              *ngIf="referenceImages.length >= 3"
-              class="drop-zone-limit-reached"
-            >
-              <p>Maximum of 3 reference images reached.</p>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
   </div>
 </div>

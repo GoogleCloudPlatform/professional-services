@@ -14,6 +14,7 @@ export interface VideoState {
   generateAudio: boolean;
   negativePrompt: string;
   useBrandGuidelines: boolean;
+  mode: string;
 }
 
 @Injectable({
@@ -32,7 +33,8 @@ export class VideoStateService {
     composition: null,
     generateAudio: true,
     negativePrompt: '',
-    useBrandGuidelines: false
+    useBrandGuidelines: false,
+    mode: 'Text to Video'
   };
 
   private state = new BehaviorSubject<VideoState>(this.initialState);
