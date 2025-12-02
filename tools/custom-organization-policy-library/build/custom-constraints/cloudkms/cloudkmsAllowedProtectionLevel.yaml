@@ -2,8 +2,15 @@
 #@ constraint = build_constraint("cloudkmsAllowedProtectionLevel")
 
 #@ def condition(protection_levels):
-#@   return 'resource.versionTemplate.protectionLevel in ' +  str(protection_levels) + " == false"
+#@   protection_levels_str = str(protection_levels)
+#@
+#@   if "SOFTWARE" in protection_levels:
+#@     return 'has(resource.versionTemplate.protectionLevel) && resource.versionTemplate.protectionLevel in ' + protection_levels_str + ' == false'
+#@   else:
+#@     return 'resource.versionTemplate.protectionLevel in ' + protection_levels_str + ' == false'
+#@   end
 #@ end
+
 
 #@ if constraint.to_generate():
 name: #@ constraint.constraint_name()

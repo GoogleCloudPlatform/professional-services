@@ -2,7 +2,14 @@
 #@ constraint = build_constraint("dnsAllowedSigningAlgorithms")
 
 #@ def condition(algorithms):
-#@   return 'resource.visibility == "PUBLIC" && resource.dnssecConfig.state == "ON" && resource.dnssecConfig.defaultKeySpecs.exists(spec, spec.algorithm in  ' +  str(algorithms) + " == false)"
+#@   lines = [
+#@     "resource.visibility == 'PUBLIC' &&",
+#@     "resource.dnssecConfig.state == 'ON' &&",
+#@     "resource.dnssecConfig.defaultKeySpecs.exists(spec,",
+#@     "  spec.algorithm in " + str(algorithms) + " == false",
+#@     ")"
+#@   ]
+#@   return "\n".join(lines)
 #@ end
 
 #@ if constraint.to_generate():

@@ -1,0 +1,95 @@
+# Copyright 2025 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+steps:
+  - name: python
+    args:
+      - '-c'
+      - |
+        python3 -m pip install --upgrade pip  
+        python3 -m pip install -r scripts/requirements.txt 
+        yamllint -s -c .yamllint . 
+    dir: /workspace/tools/custom-module-security-health-analytics-library
+    entrypoint: bash
+  - name: gcr.io/cloud-builders/gcloud
+    args:
+      - '-c'
+      - |
+        export DEBIAN_FRONTEND=noninteractive
+        apt-get update && apt-get install -y ca-certificates curl gnupg
+        mkdir -p /etc/apt/keyrings
+        curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg
+        echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_22.x nodistro main" | tee /etc/apt/sources.list.d/nodesource.list
+        apt-get update && apt-get install -y make git curl wget nodejs python3-full jq
+        npm install -g prettier
+        mkdir local-bin/ 
+        curl -L https://carvel.dev/install.sh | K14SIO_INSTALL_BIN_DIR=local-bin bash
+        wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O local-bin/yq
+        chmod +x local-bin/yq
+        export PATH=$${PWD}/local-bin/:$${PATH}   
+        ytt version   
+        yq --version
+        yq -i '.organization = "$_ORGANIZATION"' values.yaml  
+        yq -i '.deployment.parent = "$_DEPLOYMENT_PARENT"' values.yaml  
+        export CUSTOM_SHA_PROJECT_ID=$PROJECT_ID
+        python3 -m pip install --upgrade pip  
+        set +e
+        make test
+        PYTEST_EXIT_CODE=$$?
+        set -e
+        if [ $$PYTEST_EXIT_CODE -eq 0 ]; then
+          echo "✅ No error during running test"
+        else
+          echo "⚠️ Error during running tests"
+        fi
+        cp report.html tests/${SHORT_SHA}_report.html
+        exit 0
+    dir: /workspace/tools/custom-module-security-health-analytics-library
+    entrypoint: bash
+    timeout: '10800s'
+  - name: gcr.io/cloud-builders/gcloud
+    args:
+      - '-c'
+      - |
+        export DEBIAN_FRONTEND=noninteractive
+        apt-get update && apt-get install -y ca-certificates curl gnupg
+        mkdir -p /etc/apt/keyrings
+        curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg
+        echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_22.x nodistro main" | tee /etc/apt/sources.list.d/nodesource.list
+        apt-get update && apt-get install -y make git curl wget nodejs python3-full jq
+        npm install -g prettier
+        mkdir local-bin/ 
+        curl -L https://carvel.dev/install.sh | K14SIO_INSTALL_BIN_DIR=local-bin bash
+        wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O local-bin/yq
+        chmod +x local-bin/yq
+        export PATH=$${PWD}/local-bin/:$${PATH}   
+        ytt version   
+        yq --version
+        yq -i '.organization = "$_ORGANIZATION"' values.yaml  
+        yq -i '.deployment.parent = "$_DEPLOYMENT_PARENT"' values.yaml  
+        python3 -m pip install --upgrade pip  
+        make install
+        make all
+        make deploy
+    dir: /workspace/tools/custom-module-security-health-analytics-library
+    entrypoint: bash
+logsBucket: '$_BUCKET_BUILD/logs/'
+artifacts:
+  objects:
+    location: '$_BUCKET_BUILD/tests/'
+    paths:
+      - 'tools/custom-module-security-health-analytics-library/tests/${SHORT_SHA}_report.html'
+timeout: '10800s'
+substitutions:
+    _BUCKET_BUILD: gs://custom-module-security-health-analytics-library-build
+    _PYTEST_ARGS: ""

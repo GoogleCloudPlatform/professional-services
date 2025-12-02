@@ -1,5 +1,5 @@
 #@ load("/constraints.lib.star", "build_constraint")
-#@ constraint = build_constraint("cloudsqlRequireHighAvailibility")
+#@ constraint = build_constraint("cloudsqlRequireHighAvailability")
 
 #@ if constraint.to_generate():
 name: #@ constraint.constraint_name()
@@ -10,6 +10,6 @@ methodTypes:
 - UPDATE
 condition: resource.settings.availabilityType != "REGIONAL"
 actionType: DENY
-display_name: Require Cloud SQL instances to be configured with high availibility
-description: Ensure that Cloud SQL instance is configured with high availibility
+display_name: Require Cloud SQL instances to be configured with high availability
+description: Ensure that Cloud SQL instance is configured with high availability
 #@ end

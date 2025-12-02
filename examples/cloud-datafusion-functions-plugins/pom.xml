@@ -43,7 +43,7 @@
     <protobuf.java.version>3.25.5</protobuf.java.version>
     <google.cloud.storage.version>1.98.0</google.cloud.storage.version>
     <retrofit.version>2.6.0</retrofit.version>
-    <okhttp.version>4.2.1</okhttp.version>
+    <okhttp.version>4.9.2</okhttp.version>
 
   </properties>
 

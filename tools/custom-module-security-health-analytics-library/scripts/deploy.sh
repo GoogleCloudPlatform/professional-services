@@ -15,7 +15,7 @@
 
 function print_usage() {
   echo "Usage:"
-  echo "  $0 sha <folder> <--organization ORG_ID | --folder FOLDER_ID | --project PROJECT_ID> <parent_id>"
+  echo "  $0 sha <folder> <--organization ORG_ID | --folder FOLDER_ID | --project PROJECT_ID> <parent_id> [--control CONTROL_NAME]"
   echo ""
   echo "Arguments:"
   echo "  action:       The type of resource to deploy (constraint, policy, or sha)."
@@ -23,11 +23,14 @@ function print_usage() {
   echo "  parent_flag:  Required for 'sha' action. Specifies the parent resource type."
   echo "                Must be --organization, --folder, or --project."
   echo "  parent_id:    Required for 'sha' action. The ID of the organization, folder, or project."
+  echo "  --control:    (Optional) If provided, only deploy the single custom module"
+  echo "                where the filename (without extension) matches CONTROL_NAME."
   echo ""
   echo "Examples:"
   echo "  $0 sha ../samples/gcloud/sha/ --organization 123456789012"
   echo "  $0 sha ../sha_custom_modules/ --folder 9876543210"
   echo "  $0 sha ./modules/ --project my-gcp-project-id"
+  echo "  $0 sha ./modules/ --project my-gcloud-project-id --control my-specific-control"
   echo ""
   echo "Note: The 'sha' action requires the 'jq' command-line JSON processor to be installed."
 }
@@ -75,16 +78,28 @@ function install_jq() {
 #   $2: file path
 #   $3: parent_flag (e.g., --organization)
 #   $4: parent_value (e.g., 12345)
+#   $5: control_name (optional)
 function process_file() {
   local action="$1"
   local file="$2"
   local parent_flag="$3"
   local parent_value="$4"
+  local control_name="$5"
   local output
   local display_name
+  local file_basename
 
   if [[ ! "$file" == *.yaml && ! "$file" == *.yml ]]; then
      return
+  fi
+
+  # Get the basename of the file (e.g., "my-control" from "/path/to/my-control.yaml")
+  file_basename=$(basename "$file" .yaml)
+  file_basename=$(basename "$file_basename" .yml) # Handle both extensions
+
+  # If --control was specified, check if this file matches
+  if [[ -n "$control_name" && "$file_basename" != "$control_name" ]]; then
+    return
   fi
 
   echo "---------------"
@@ -92,38 +107,43 @@ function process_file() {
 
   if [[ "$action" == "sha" ]]; then
     parent_arg="${parent_flag}=${parent_value}"
-    display_name=$(basename "$file" .yaml)
-    display_name=$(basename "$display_name" .yml) # Handle both extensions
-    display_name=${display_name//[-_]/ } # Replace hyphens/underscores with spaces
+    display_name=${file_basename//[-_]/ } # Replace hyphens/underscores with spaces
 
     echo "Checking for existing SHA Custom Module with display name '$display_name' under $parent_arg..."
-    if ! existing_modules_json=$(gcloud scc custom-modules sha list "$parent_arg" --format=json 2>&1); then
+    if ! existing_modules_json=$(gcloud scc manage custom-modules sha list "$parent_arg" --format=json 2>&1); then
         echo "Error listing existing SHA custom modules for $parent_arg:"
         echo "$existing_modules_json"
         echo "Skipping processing for '$file' due to list error."
         return
     fi
 
-    resource_name=$(echo "$existing_modules_json" | jq -r --arg dn "$display_name" '.[] | select(.displayName == $dn) | .name' | head -n 1)
+    resource_name=$(echo "$existing_modules_json" | jq -r --arg dn "$display_name" '.[] | select(.displayName == $dn and .enablementState == "ENABLED") | .name' | head -n 1)
     if [[ -n "$resource_name" ]]; then
-      if ! output=$(gcloud scc custom-modules sha update "$resource_name" \
-          --custom-config-from-file="$file" \
+      echo "Updating SHA Custom Module '$resource_name' from '$file' ..."
+      if ! output=$(gcloud scc manage custom-modules sha update "$resource_name" \
+          --custom-config-file="$file" \
           --enablement-state=ENABLED \
+          --quiet \
+          "$parent_flag"="$parent_value" \
           2>&1); then
         echo "Error updating SHA Custom Module '$resource_name' from '$file':"
         echo "$output"
+        exit 1
       else
         echo "SHA Custom Module '$resource_name' updated successfully from '$file'."
       fi
     else
-      if ! output=$(gcloud scc custom-modules sha create \
+      echo "Creating SHA Custom Module '$display_name' from '$file' ..."
+      if ! output=$(gcloud scc manage custom-modules sha create \
           --display-name="$display_name" \
           --custom-config-from-file="$file" \
           --enablement-state=ENABLED \
+          --quiet \
           "$parent_flag"="$parent_value" \
           2>&1); then
             echo "Error creating SHA Custom Module from '$file' for $parent_flag $parent_value:"
             echo "$output"
+            exit 1
       else
           echo "SHA Custom Module from '$file' created successfully for $parent_flag $parent_value."
       fi
@@ -137,11 +157,13 @@ function process_file() {
 #   $2: current directory path
 #   $3: parent_flag
 #   $4: parent_value
+#   $5: control_name (optional)
 function traverse_folder() {
   local action="$1"
   local current_dir="$2"
   local parent_flag="$3"
   local parent_value="$4"
+  local control_name="$5" # New argument
   local item
 
   if [[ ! -d "$current_dir" ]]; then
@@ -155,9 +177,9 @@ function traverse_folder() {
 
   for item in "$current_dir"/*; do
     if [[ -f "$item" && -r "$item" ]]; then
-      process_file "$action" "$item" "$parent_flag" "$parent_value"
+      process_file "$action" "$item" "$parent_flag" "$parent_value" "$control_name"
     elif [[ -d "$item" ]]; then
-      traverse_folder "$action" "$item" "$parent_flag" "$parent_value"
+      traverse_folder "$action" "$item" "$parent_flag" "$parent_value" "$control_name"
     fi
   done
 }
@@ -182,19 +204,37 @@ action="$1"
 folder="$2"
 parent_flag=""
 parent_value=""
+control_name=""
 
 case "$action" in
   "sha")
-    # SHA requires exactly 4 arguments: action, folder, parent_flag, parent_value
-    if [[ $# -ne 4 ]]; then
+    # SHA requires 4 or 6 arguments
+    if [[ $# -eq 4 ]]; then
+      # $0 sha <folder> <parent_flag> <parent_id>
+      folder="$2"
+      parent_flag="$3"
+      parent_value="$4"
+    elif [[ $# -eq 6 ]]; then
+      # $0 sha <folder> <parent_flag> <parent_id> --control <name>
+      folder="$2"
+      parent_flag="$3"
+      parent_value="$4"
+      if [[ "$5" != "--control" ]]; then
+        echo "Error: Invalid 5th argument. Expected '--control'."
+        print_usage
+        exit 1
+      fi
+      control_name="$6"
+      if [[ -z "$control_name" ]]; then
+         echo "Error: --control flag provided but CONTROL_NAME is empty."
+         print_usage
+         exit 1
+      fi
+    else
       echo "Error: Incorrect number of arguments for 'sha' action."
       print_usage
       exit 1
     fi
-
-    folder="$2"
-    parent_flag="$3"
-    parent_value="$4"
 
     if [[ "$parent_flag" != "--organization" && "$parent_flag" != "--folder" && "$parent_flag" != "--project" ]]; then
        echo "Error: Invalid parent flag '$parent_flag'. Must be --organization, --folder, or --project."
@@ -208,7 +248,7 @@ case "$action" in
        exit 1
     fi
 
-    traverse_folder "$action" "$folder" "$parent_flag" "$parent_value"
+    traverse_folder "$action" "$folder" "$parent_flag" "$parent_value" "$control_name"
     ;;
   *)
     echo "Error: Invalid action '$action'."

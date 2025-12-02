@@ -119,118 +119,22 @@ firewall:
       destination_ranges:
       - "192.168.32.0/24"
       - "10.16.0.0/16"
-  firewallRestrictSQLDatabasesPolicyRule:
-    params:
-      allowed_source_ranges:
-      - "10.0.0.0/8"
-      - "172.16.0.0/12"
-      - "192.168.0.0/16"
-      - "35.235.240.0/20"
-  firewallRestrictNoSQLDatabasesPolicyRule:
-    params:
-      allowed_source_ranges:
-      - "10.0.0.0/8"
-      - "172.16.0.0/12"
-      - "192.168.0.0/16"
-      - "35.235.240.0/20"
-  firewallRestrictSQLDatabasesRule:
-    params:
-      allowed_source_ranges:
-      - "10.0.0.0/8"
-      - "172.16.0.0/12"
-      - "192.168.0.0/16"
-      - "35.235.240.0/20"
-  firewallRestrictNoSQLDatabasesRule:
-    params:
-      allowed_source_ranges:
-      - "10.0.0.0/8"
-      - "172.16.0.0/12"
-      - "192.168.0.0/16"
-      - "35.235.240.0/20"
-  firewallRestrictCacheSearchDatabasesRule:
-    params:
-      allowed_source_ranges:
-      - "10.0.0.0/8"
-      - "172.16.0.0/12"
-      - "192.168.0.0/16"
-      - "35.235.240.0/20"
-  firewallRestrictCacheSearchDatabasesPolicyRule:
-    params:
-      allowed_source_ranges:
-      - "10.0.0.0/8"
-      - "172.16.0.0/12"
-      - "192.168.0.0/16"
-      - "35.235.240.0/20"
-  firewallRestrictInsecureProtocolsRule:
-    params:
-      allowed_source_ranges:
-      - "10.0.0.0/8"
-      - "172.16.0.0/12"
-      - "192.168.0.0/16"
-      - "35.235.240.0/20"
-  firewallRestrictInsecureProtocolsPolicyRule:
-    params:
-      allowed_source_ranges:
-      - "10.0.0.0/8"
-      - "172.16.0.0/12"
-      - "192.168.0.0/16"
-      - "35.235.240.0/20"
-  firewallRestrictDirectoryServicesRule:
-    params:
-      allowed_source_ranges:
-      - "10.0.0.0/8"
-      - "172.16.0.0/12"
-      - "192.168.0.0/16"
-      - "35.235.240.0/20"
-  firewallRestrictDirectoryServicesPolicyRule:
-    params:
-      allowed_source_ranges:
-      - "10.0.0.0/8"
-      - "172.16.0.0/12"
-      - "192.168.0.0/16"
-      - "35.235.240.0/20"
-  firewallRestrictNetworkServicesRule:
-    params:
-      allowed_source_ranges:
-      - "10.0.0.0/8"
-      - "172.16.0.0/12"
-      - "192.168.0.0/16"
-      - "35.235.240.0/20"
-  firewallRestrictNetworkServicesPolicyRule:
-    params:
-      allowed_source_ranges:
-      - "10.0.0.0/8"
-      - "172.16.0.0/12"
-      - "192.168.0.0/16"
-      - "35.235.240.0/20"
-  firewallRestrictMailProtocolsRule:
-    params:
-      allowed_source_ranges:
-      - "10.0.0.0/8"
-      - "172.16.0.0/12"
-      - "192.168.0.0/16"
-      - "35.235.240.0/20"
-  firewallRestrictMailProtocolsPolicyRule:
-    params:
-      allowed_source_ranges:
-      - "10.0.0.0/8"
-      - "172.16.0.0/12"
-      - "192.168.0.0/16"
-      - "35.235.240.0/20"
-  firewallRestrictManagementPortsRule:
-    params:
-      allowed_source_ranges:
-      - "10.0.0.0/8"
-      - "172.16.0.0/12"
-      - "192.168.0.0/16"
-      - "35.235.240.0/20"
-  firewallRestrictManagementPortsPolicyRule:
-    params:
-      allowed_source_ranges:
-      - "10.0.0.0/8"
-      - "172.16.0.0/12"
-      - "192.168.0.0/16"
-      - "35.235.240.0/20"
+  firewallRestrictSQLDatabasesPolicyRule: {}
+  firewallRestrictNoSQLDatabasesPolicyRule: {}
+  firewallRestrictSQLDatabasesRule: {}
+  firewallRestrictNoSQLDatabasesRule: {}
+  firewallRestrictCacheSearchDatabasesRule: {}
+  firewallRestrictCacheSearchDatabasesPolicyRule: {}
+  firewallRestrictInsecureProtocolsRule: {}
+  firewallRestrictInsecureProtocolsPolicyRule: {}
+  firewallRestrictDirectoryServicesRule: {}
+  firewallRestrictDirectoryServicesPolicyRule: {}
+  firewallRestrictNetworkServicesRule: {}
+  firewallRestrictNetworkServicesPolicyRule: {}
+  firewallRestrictMailProtocolsRule: {}
+  firewallRestrictMailProtocolsPolicyRule: {}
+  firewallRestrictManagementPortsRule: {}
+  firewallRestrictManagementPortsPolicyRule: {}
   firewallRestrictOpenFirewallRule: {}
   firewallRestrictOpenFirewallPolicyRule: {}
 dns:

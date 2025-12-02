@@ -5,5 +5,5 @@ cloudfunctionsV1RequireGen2:
   recommendation: Ensure only Gen 2 Cloud Functions are used
   resource_selector:
     resource_types:
-    - cloudfunctions.googleapis.com/CloudFunction
+      - cloudfunctions.googleapis.com/CloudFunction
   severity: MEDIUM

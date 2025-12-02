@@ -2,11 +2,10 @@ custom.storageBucketEnforceNamingConvention:
   action_type: DENY
   condition: |-
     resource.name.matches("(sin|cgk)$") == false
-  description: Prevent the creation of bucket rule that are not following the naming
-    convention
+  description: Prevent the creation of bucket rule that are not following the naming convention
   display_name: Enforce bucket naming convention
   method_types:
-  - CREATE
-  - UPDATE
+    - CREATE
+    - UPDATE
   resource_types:
-  - storage.googleapis.com/Bucket
+    - storage.googleapis.com/Bucket

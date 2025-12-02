@@ -5,7 +5,7 @@ custom.networkRequireBackendServiceLogging:
   description: Enforce that Backend Services have logging enabled
   display_name: Require logging to be enabled on Backend Services
   method_types:
-  - CREATE
-  - UPDATE
+    - CREATE
+    - UPDATE
   resource_types:
-  - compute.googleapis.com/BackendService
+    - compute.googleapis.com/BackendService

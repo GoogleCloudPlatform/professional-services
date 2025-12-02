@@ -13,7 +13,7 @@ custom.firewallEnforceRuleLogging:
   description: Ensure that VPC Firewall rules have logging enabled
   display_name: Require VPC Firewall rules to have logging enabled
   method_types:
-  - CREATE
-  - UPDATE
+    - CREATE
+    - UPDATE
   resource_types:
-  - compute.googleapis.com/Firewall
+    - compute.googleapis.com/Firewall

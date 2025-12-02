@@ -1,9 +1,9 @@
 name: organizations/11111111/customConstraints/custom.cloudbuildDisableWorkerPoolExternalIP
 resourceTypes:
-- cloudbuild.googleapis.com/WorkerPool
+  - cloudbuild.googleapis.com/WorkerPool
 methodTypes:
-- CREATE
-- UPDATE
+  - CREATE
+  - UPDATE
 condition: (resource.privatePoolV1Config.networkConfig.egressOption != "NO_PUBLIC_EGRESS")
 actionType: DENY
 displayName: Deny unauthorized worker pools external ip used for each build

@@ -5,7 +5,7 @@ custom.firewallEnforcePolicyRuleLogging:
   description: Ensure that Firewall Policy rules have logging enabled
   display_name: Require Firewall Policy rules to have logging enabled
   method_types:
-  - CREATE
-  - UPDATE
+    - CREATE
+    - UPDATE
   resource_types:
-  - compute.googleapis.com/FirewallPolicy
+    - compute.googleapis.com/FirewallPolicy

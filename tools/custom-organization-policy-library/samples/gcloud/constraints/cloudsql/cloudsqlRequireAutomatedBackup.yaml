@@ -1,9 +1,9 @@
 name: organizations/11111111/customConstraints/custom.cloudsqlRequireAutomatedBackup
 resourceTypes:
-- sqladmin.googleapis.com/Instance
+  - sqladmin.googleapis.com/Instance
 methodTypes:
-- CREATE
-- UPDATE
+  - CREATE
+  - UPDATE
 condition: resource.settings.backupConfiguration.enabled != true
 actionType: DENY
 display_name: Require Cloud SQL instances to have automated backup enabled
