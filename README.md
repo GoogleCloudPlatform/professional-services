@@ -143,6 +143,7 @@ them to fit your particular use case.
 *   [Certificate Authority Service Hierarchy](examples/certificate-authority-service-hierarchy) - Root and Subordinate Certificate Authority Service CA Pools and CAs with examples for domain ownership validation and sample load test script.
 *   [Cloud Run to BQ](examples/cloudrun-to-bq) - Solution to accept events/data
     on HTTP REST Endpoint and insert into BQ.
+*   [Cloud Run CRL Monitor](examples/cloudrun-crl-monitor) - Cloud Run based solution for continuous monitoring of CRL distribution endpoints including CRL validity verification and alerting.
 *   [Cloud SQL Custom Metric](examples/cloud-sql-custom-metric) - An example of
     creating a Stackdriver custom metric monitoring Cloud SQL Private Services
     IP consumption.
