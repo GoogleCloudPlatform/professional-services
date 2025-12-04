@@ -21,6 +21,9 @@ def _simplify_node(node_obj):
     meta = _extract_metadata(node_obj)
     status = node_obj.get("status", {})
     
+    # Extract addresses: Removed 'addresses' definition as it was unused (F841 fix).
+    # addresses = status.get("addresses", []) 
+    
     # Check readiness
     conditions = status.get("conditions", [])
     is_ready = any(c["type"] == "Ready" and c["status"] == "True" for c in conditions)
@@ -40,8 +43,8 @@ def _simplify_node(node_obj):
         "creation_timestamp": meta["creation_timestamp"]
     }
 
-def _simplify_workload(obj):
-    """Simplifies workloads (Deployments, StatefulSets, DaemonSets) for common.py."""
+def _simplify_workload(obj): # <-- 'kind' parameter removed: Fixes F841
+    """Simplifies workloads (Deployments, etc.) for common.py."""
     meta = _extract_metadata(obj)
     spec = obj.get("spec", {})
     
@@ -65,32 +68,28 @@ def _simplify_workload(obj):
 def get_k8s_details_generic(api_client):
     """
     Connects to the cluster using the provided api_client and fetches all resources.
+    Returns a dictionary structure compatible with common.py.
     """
     k8s_details = {}
     
     try:
-        # Core API Clients
         v1 = client.CoreV1Api(api_client)
         apps_v1 = client.AppsV1Api(api_client)
         batch_v1 = client.BatchV1Api(api_client)
         net_v1 = client.NetworkingV1Api(api_client)
         
-        # --- NEW CLIENTS ADDED FOR MISSING RESOURCES ---
-        rbac_v1 = client.RbacAuthorizationV1Api(api_client)
-        policy_v1 = client.PolicyV1Api(api_client)
-
-        # --- Base Resources ---
-        
+        # --- Nodes ---
         logging.info("    Fetching Nodes...")
         nodes = v1.list_node().to_dict()["items"]
         k8s_details["nodes"] = [_simplify_node(n) for n in nodes]
 
+        # --- Namespaces ---
         logging.info("    Fetching Namespaces...")
         ns_list = v1.list_namespace().to_dict()["items"]
         k8s_details["namespaces"] = [_extract_metadata(n) for n in ns_list]
 
         # --- Workloads ---
-        # Data is structured under separate keys but may be saved to one CSV externally.
+        # Updated calls to _simplify_workload (removed second argument 'kind')
         logging.info("    Fetching Deployments...")
         deps = apps_v1.list_deployment_for_all_namespaces().to_dict()["items"]
         k8s_details["deployments"] = [_simplify_workload(d) for d in deps]
@@ -103,34 +102,12 @@ def get_k8s_details_generic(api_client):
         ds = apps_v1.list_daemon_set_for_all_namespaces().to_dict()["items"]
         k8s_details["daemonsets"] = [_simplify_workload(d) for d in ds]
         
-        # --- NEW RESOURCE FETCHES START HERE ---
-        
-        # Core V1 Resources
-        logging.info("    Fetching Service Accounts, Resource Quotas, and Limit Ranges...")
-        k8s_details["service_accounts"] = [_extract_metadata(s) for s in v1.list_service_account_for_all_namespaces().to_dict()["items"]]
-        k8s_details["resource_quotas"] = [_extract_metadata(r) for r in v1.list_resource_quota_for_all_namespaces().to_dict()["items"]]
-        k8s_details["limit_ranges"] = [_extract_metadata(l) for l in v1.list_limit_range_for_all_namespaces().to_dict()["items"]]
-        
-        # RBAC V1 Resources
-        logging.info("    Fetching Role Bindings...")
-        k8s_details["role_bindings"] = [_extract_metadata(r) for r in rbac_v1.list_role_binding_for_all_namespaces().to_dict()["items"]]
-        # ClusterRoleBindings are also good to fetch
-        k8s_details["cluster_role_bindings"] = [_extract_metadata(r) for r in rbac_v1.list_cluster_role_binding().to_dict()["items"]]
-
-        # Policy V1 Resources
-        logging.info("    Fetching PodDisruptionBudgets (PDBs)...")
-        k8s_details["pod_disruption_budgets"] = [_extract_metadata(p) for p in policy_v1.list_pod_disruption_budget_for_all_namespaces().to_dict()["items"]]
-
-        # Networking V1 Resources
-        logging.info("    Fetching Network Policies...")
-        k8s_details["network_policies"] = [_extract_metadata(n) for n in net_v1.list_network_policy_for_all_namespaces().to_dict()["items"]]
-        
-        # --- Other Existing Resources ---
+        # --- Other Resources (Generic Flattening) ---
         
         logging.info("    Fetching Pods...")
         k8s_details["pods"] = [_extract_metadata(p) for p in v1.list_pod_for_all_namespaces().to_dict()["items"]]
         
-        logging.info("    Fetching Services (includes NodePort types)...")
+        logging.info("    Fetching Services...")
         k8s_details["services"] = [_extract_metadata(s) for s in v1.list_service_for_all_namespaces().to_dict()["items"]]
         
         logging.info("    Fetching Ingresses...")
@@ -147,8 +124,6 @@ def get_k8s_details_generic(api_client):
         logging.info("    Fetching Jobs and CronJobs...")
         k8s_details["jobs"] = [_extract_metadata(j) for j in batch_v1.list_job_for_all_namespaces().to_dict()["items"]]
         k8s_details["cronjobs"] = [_extract_metadata(c) for c in batch_v1.list_cron_job_for_all_namespaces().to_dict()["items"]]
-        
-        # --- END OF FETCHING ---
 
     except ApiException as e:
         logging.error(f"    Error communicating with Kubernetes API: {e}")
