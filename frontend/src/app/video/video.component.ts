@@ -20,6 +20,7 @@ import {
   OnDestroy,
   OnInit,
   AfterViewInit,
+  signal,
 } from '@angular/core';
 import {MatIconRegistry} from '@angular/material/icon';
 import {DomSanitizer, SafeResourceUrl} from '@angular/platform-browser';
@@ -53,6 +54,7 @@ import {
 } from '../common/services/source-asset.service';
 import {HttpClient} from '@angular/common/http';
 import {WorkspaceStateService} from '../services/workspace/workspace-state.service';
+import { MODEL_CONFIGS, GenerationModelConfig } from '../common/config/model-config';
 import {AssetTypeEnum} from '../admin/source-assets-management/source-asset.model';
 import {ImageCropperDialogComponent} from '../common/components/image-cropper-dialog/image-cropper-dialog.component';
 import {VideoStateService} from '../services/video-state.service';
@@ -92,6 +94,12 @@ export class VideoComponent implements OnInit, AfterViewInit {
   isExtensionMode = false;
   referenceImages: ReferenceImage[] = [];
   referenceImagesType: 'ASSET' | 'STYLE' = 'ASSET';
+  currentMode = 'Text to Video';
+  modes = [
+    { value: 'Text to Video', icon: 'description', label: 'Text to Video' },
+    { value: 'Frames to Video', icon: 'image', label: 'Frames to Video' },
+    { value: 'Ingredients to Video', icon: 'layers', label: 'Ingredients to Video' },
+  ];
 
   // Internal state to track input types
   private _input1IsVideo = false;
@@ -119,26 +127,7 @@ export class VideoComponent implements OnInit, AfterViewInit {
   negativePhrases: string[] = [];
 
   // --- Dropdown Options ---
-  generationModels = [
-    {
-      value: 'veo-3.1-generate-preview',
-      viewValue: 'Veo 3.1 \n (Beta Audio)',
-    },
-    {
-      value: 'veo-3.0-generate-001',
-      viewValue: 'Veo 3 Quality \n (Beta Audio)',
-    },
-    {
-      value: 'veo-3.0-fast-generate-001',
-      viewValue: 'Veo 3 Fast \n (Beta Audio)',
-    },
-    {value: 'veo-2.0-generate-001', viewValue: 'Veo 2 Quality \n (No Audio)'},
-    {value: 'veo-2.0-fast-generate-001', viewValue: 'Veo 2 Fast \n (No Audio)'},
-    {
-      value: 'veo-2.0-generate-exp',
-      viewValue: 'Veo 2 Exp \n (Reference Image)',
-    },
-  ];
+  generationModels: GenerationModelConfig[] = MODEL_CONFIGS.filter(m => m.type === 'VIDEO');
   selectedGenerationModel = this.generationModels[0].viewValue;
   aspectRatioOptions: {value: string; viewValue: string; disabled: boolean}[] =
     [
@@ -267,6 +256,7 @@ export class VideoComponent implements OnInit, AfterViewInit {
       generateAudio: this.searchRequest.generateAudio,
       negativePrompt: this.searchRequest.negativePrompt || '',
       useBrandGuidelines: this.searchRequest.useBrandGuidelines,
+      mode: this.currentMode,
     });
   }
 
@@ -284,6 +274,7 @@ export class VideoComponent implements OnInit, AfterViewInit {
     this.searchRequest.generateAudio = state.generateAudio;
     this.searchRequest.negativePrompt = state.negativePrompt;
     this.searchRequest.useBrandGuidelines = state.useBrandGuidelines;
+    this.currentMode = state.mode || 'Text to Video';
 
     this.negativePhrases = state.negativePrompt
       ? state.negativePrompt.split(', ').filter(Boolean)
@@ -341,6 +332,7 @@ export class VideoComponent implements OnInit, AfterViewInit {
 
       // Veo 3 models support audio.
       this.isAudioGenerationDisabled = false;
+      this.searchRequest.generateAudio = true;
 
       // Veo 3 only supports 16:9 and 9:16 aspect ratios.
       const supportedRatios = ['16:9', '9:16'];
@@ -358,9 +350,19 @@ export class VideoComponent implements OnInit, AfterViewInit {
     }
   }
 
-  selectAspectRatio(ratio: {value: string; viewValue: string}): void {
-    this.searchRequest.aspectRatio = ratio.value;
-    this.selectedAspectRatio = ratio.viewValue;
+  selectAspectRatio(ratio: string | {value: string; viewValue: string}): void {
+    if (typeof ratio === 'string') {
+      this.searchRequest.aspectRatio = ratio;
+      const option = this.aspectRatioOptions.find(
+        opt => opt.value === ratio || opt.viewValue.includes(ratio),
+      );
+      if (option) {
+        this.selectedAspectRatio = option.viewValue;
+      }
+    } else {
+      this.searchRequest.aspectRatio = ratio.value;
+      this.selectedAspectRatio = ratio.viewValue;
+    }
     this.saveState();
   }
 
@@ -424,6 +426,26 @@ export class VideoComponent implements OnInit, AfterViewInit {
     if (index >= 0) this.negativePhrases.splice(index, 1);
     this.searchRequest.negativePrompt = this.negativePhrases.join(', ');
     this.saveState();
+  }
+  onPromptChanged(prompt: string) {
+    this.searchRequest.prompt = prompt;
+    this.service.videoPrompt = prompt;
+    this.saveState();
+  }
+
+  onModeChanged(mode: string) {
+    console.log('Mode changed to:', mode);
+    this.currentMode = mode;
+    this.saveState();
+    // Handle mode change if needed, e.g., switch between text-to-video and image-to-video
+  }
+
+  onClearImage(data: {num: 1 | 2, event: Event}) {
+    this.clearImage(data.num, data.event as MouseEvent);
+  }
+
+  onClearReferenceImage(data: {index: number, event: Event}) {
+    this.clearReferenceImage(data.index, data.event as MouseEvent);
   }
 
   searchTerm() {
@@ -540,19 +562,29 @@ export class VideoComponent implements OnInit, AfterViewInit {
 
     const payload: VeoRequest = {
       ...this.searchRequest,
-      startImageAssetId: !this._input1IsVideo
-        ? (this.startImageAssetId ?? undefined)
-        : undefined,
-      sourceVideoAssetId: this._input1IsVideo
-        ? (this.startImageAssetId ?? undefined)
-        : undefined,
-      endImageAssetId: this.endImageAssetId ?? undefined,
+      startImageAssetId:
+        this.currentMode === 'Frames to Video' && !this._input1IsVideo
+          ? (this.startImageAssetId ?? undefined)
+          : undefined,
+      sourceVideoAssetId:
+        this.currentMode === 'Frames to Video' && this._input1IsVideo
+          ? (this.startImageAssetId ?? undefined)
+          : undefined,
+      endImageAssetId:
+        this.currentMode === 'Frames to Video'
+          ? (this.endImageAssetId ?? undefined)
+          : undefined,
       referenceImages:
-        referenceImagesPayload.length > 0 ? referenceImagesPayload : undefined,
-      sourceMediaItems: [
-        ...validSourceMediaItems,
-        ...sourceMediaItemsForReference,
-      ],
+        this.currentMode === 'Ingredients to Video' &&
+        referenceImagesPayload.length > 0
+          ? referenceImagesPayload
+          : undefined,
+      sourceMediaItems:
+        this.currentMode === 'Ingredients to Video'
+          ? sourceMediaItemsForReference
+          : this.currentMode === 'Frames to Video'
+            ? validSourceMediaItems
+            : undefined,
     };
 
     // TODO: Add notification when video is completed after the pooling
@@ -1059,10 +1091,16 @@ export class VideoComponent implements OnInit, AfterViewInit {
           this.sourceMediaItems[0] = item;
           this.startImageAssetId = null;
           this.image1Preview = remixState.startImagePreviewUrl || null;
+          // Switch to Ingredients to Video mode if we have start or end frames
+          this.currentMode = 'Frames to Video';
+          this.saveState();
         } else if (item.role === 'end_frame') {
           this.sourceMediaItems[1] = item;
           this.endImageAssetId = null;
           this.image2Preview = remixState.endImagePreviewUrl || null;
+          // Switch to Ingredients to Video mode if we have start or end frames
+          this.currentMode = 'Frames to Video';
+          this.saveState();
         } else if (item.role === 'video_extension_source') {
           // This is the case for extending a video
           this.sourceMediaItems[0] = item;
@@ -1279,5 +1317,83 @@ export class VideoComponent implements OnInit, AfterViewInit {
       this.handleReferenceImageAdded();
     }
     this.updateModeAndNotify();
+  }
+
+  promptText = signal<string>('');
+  
+  // Menu open/close states
+  isModeMenuOpen = signal<boolean>(false);
+  isSettingsMenuOpen = signal<boolean>(false);
+  isExpandMenuOpen = signal<boolean>(false);
+  isSettingsDropdownOpen = signal<'aspect' | 'outputs' | 'model' | null>(null);
+
+  // Selected values
+  selectedMode = signal<string>('Text to Video');
+  selectedNewAspectRatio = signal<string>('Landscape (16:9)');
+  selectedOutputs = signal<number>(2);
+  selectedModel = signal<string>('Veo 3.1 - Fast');
+  selectedPreset = signal<string>('');
+
+
+  // --- Event Handlers ---
+
+  onPromptInput(event: Event) {
+    const target = event.target as HTMLTextAreaElement;
+    this.promptText.set(target.value);
+  }
+
+  // --- Menu Toggles ---
+  
+  toggleModeMenu() {
+    this.isModeMenuOpen.set(!this.isModeMenuOpen());
+    this.isSettingsMenuOpen.set(false);
+    this.isExpandMenuOpen.set(false);
+  }
+  
+  toggleSettingsMenu() {
+    this.isSettingsMenuOpen.set(!this.isSettingsMenuOpen());
+    this.isModeMenuOpen.set(false);
+    this.isExpandMenuOpen.set(false);
+    this.isSettingsDropdownOpen.set(null); // Close inner dropdowns
+  }
+
+  toggleExpandMenu() {
+    this.isExpandMenuOpen.set(!this.isExpandMenuOpen());
+    this.isModeMenuOpen.set(false);
+    this.isSettingsMenuOpen.set(false);
+  }
+
+  // --- Select Handlers ---
+
+  selectMode(mode: string) {
+    this.selectedMode.set(mode);
+    this.isModeMenuOpen.set(false);
+    console.log('Selected Mode:', mode);
+  }
+
+  selectNewAspectRatio(ratio: string) {
+    this.selectedNewAspectRatio.set(ratio);
+    this.isSettingsDropdownOpen.set(null);
+    console.log('Selected Aspect Ratio:', ratio);
+  }
+
+  selectOutputs(count: number) {
+    this.selectedOutputs.set(count);
+    this.isSettingsDropdownOpen.set(null);
+    console.log('Selected Outputs:', count);
+  }
+
+  selectNewModel(model: string) {
+    this.selectedModel.set(model);
+    this.isSettingsDropdownOpen.set(null);
+    console.log('Selected Model:', model);
+  }
+
+  selectPreset(preset: string) {
+    this.selectedPreset.set(preset);
+    this.isExpandMenuOpen.set(false);
+    console.log('Selected Preset:', preset);
+    // You could also append this to the prompt, e.g.:
+    // this.promptText.set(this.promptText() + ' ' + preset);
   }
 }

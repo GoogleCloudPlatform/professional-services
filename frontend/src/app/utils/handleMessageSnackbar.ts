@@ -49,3 +49,15 @@ export const handleSuccessSnackbar: (
     console.error('NotificationService not available', e);
   }
 };
+
+export const handleInfoSnackbar: (
+  snackBar: MatSnackBar,
+  msg: any,
+) => void = (snackBar: MatSnackBar, msg: any) => {
+  try {
+    const notificationService = AppInjector.get(NotificationService);
+    notificationService.show(msg, 'info', undefined, 'info');
+  } catch (e) {
+    console.error('NotificationService not available', e);
+  }
+};
