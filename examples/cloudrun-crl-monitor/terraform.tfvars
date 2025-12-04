@@ -14,22 +14,22 @@
  * limitations under the License.
  */
 
-project_id         = "sshsergey-argolis"
+project_id = "sshsergey-argolis"
 
 crl_monitors = [
   {
-    name                     = "bsi-ca"
-    region             = "europe-west3"
-    target_url               = "http://download.gsb.bund.de/BSI/crl/DE_CRL.crl"
-    schedule                 = "* * * * *"
-    crl_expiration_buffer    = "3600s"
+    name                  = "bsi-ca"
+    region                = "europe-west3"
+    target_url            = "http://download.gsb.bund.de/BSI/crl/DE_CRL.crl"
+    schedule              = "* * * * *"
+    crl_expiration_buffer = "3600s"
   },
   {
-    name                     = "google-ca"
-    region             = "europe-west3"
-    target_url               = "http://c.pki.goog/we2/64OUIVzpZV4.crl"
-    schedule                 = "* * * * *"
-    crl_expiration_buffer    = "3600s"
+    name                  = "google-ca"
+    region                = "europe-west3"
+    target_url            = "http://c.pki.goog/we2/64OUIVzpZV4.crl"
+    schedule              = "* * * * *"
+    crl_expiration_buffer = "3600s"
   }
 ]
 

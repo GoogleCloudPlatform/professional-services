@@ -61,6 +61,10 @@ resource "google_cloud_run_v2_job" "crl_validation" {
           name  = "CRL_EXPIRY_BUFFER"
           value = var.crl_expiration_buffer
         }
+        env {
+          name  = "PROXY_URL"
+          value = var.proxy_url
+        }
 
         command = ["/bin/bash", "-c"]
         args = [
@@ -71,7 +75,13 @@ resource "google_cloud_run_v2_job" "crl_validation" {
             CRL_URL="$TARGET_DOMAIN"
             echo "Checking CRL at $CRL_URL..."
             
-            if curl -s -f -o crl.file "$CRL_URL"; then
+            PROXY_ARGS=""
+            if [ -n "$PROXY_URL" ]; then
+              echo "Using proxy: $PROXY_URL"
+              PROXY_ARGS="-x $PROXY_URL"
+            fi
+
+            if curl -s -f $PROXY_ARGS -o crl.file "$CRL_URL"; then
               echo "CRL downloaded successfully."
               
               # Try to parse as DER first, then PEM
