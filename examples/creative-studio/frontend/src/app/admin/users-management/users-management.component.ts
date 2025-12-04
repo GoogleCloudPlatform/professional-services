@@ -23,13 +23,13 @@ import {
   debounceTime,
   distinctUntilChanged,
   takeUntil,
-  catchError,
 } from 'rxjs/operators';
 import {UserService, PaginatedResponse} from './user.service';
 import {MatDialog} from '@angular/material/dialog';
 import {UserFormComponent} from './user-form.component';
 import {MatSnackBar} from '@angular/material/snack-bar';
 import {UserModel, UserRolesEnum} from '../../common/models/user.model';
+import { handleErrorSnackbar, handleSuccessSnackbar } from '../../utils/handleMessageSnackbar';
 
 @Component({
   selector: 'app-users-management',
@@ -194,16 +194,12 @@ export class UsersManagementComponent implements OnInit, OnDestroy {
           try {
             // The form returns the full user object with updated roles
             await firstValueFrom(this.userService.updateUser(result));
-            this._snackBar.open('UserModel updated successfully!', 'Close', {
-              duration: 3000,
-            });
+            handleSuccessSnackbar(this._snackBar, 'User updated successfully!');
             // Refetch to show updated data on the current page.
             this.fetchPage(this.currentPageIndex);
           } catch (err) {
             console.error(`Error updating user ${result.id}:`, err);
-            this._snackBar.open('Failed to update user.', 'Close', {
-              duration: 5000,
-            });
+            handleErrorSnackbar(this._snackBar, err, 'Update user');
           } finally {
             this.isLoading = false;
           }
@@ -217,15 +213,11 @@ export class UsersManagementComponent implements OnInit, OnDestroy {
       this.isLoading = true;
       try {
         await firstValueFrom(this.userService.deleteUser(userId));
-        this._snackBar.open('UserModel deleted successfully!', 'Close', {
-          duration: 3000,
-        });
+        handleSuccessSnackbar(this._snackBar, 'User deleted successfully!');
         this.resetPaginationAndFetch();
       } catch (err) {
         console.error(`Error deleting user ${userId}:`, err);
-        this._snackBar.open('Failed to delete user.', 'Close', {
-          duration: 5000,
-        });
+        handleErrorSnackbar(this._snackBar, err, 'Delete user');
       } finally {
         this.isLoading = false;
       }

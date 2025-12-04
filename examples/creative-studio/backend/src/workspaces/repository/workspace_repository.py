@@ -15,6 +15,7 @@
 from typing import List, Optional
 
 from google.cloud import firestore
+from google.cloud.firestore_v1.base_query import FieldFilter
 
 from src.common.base_repository import BaseRepository
 from src.workspaces.schema.workspace_model import (
@@ -39,7 +40,7 @@ class WorkspaceRepository(BaseRepository[WorkspaceModel]):
         This is typically used for the main homepage gallery.
         """
         query = self.collection_ref.where(
-            "scope", "==", WorkspaceScopeEnum.PUBLIC.value
+            filter=FieldFilter("scope", "==", WorkspaceScopeEnum.PUBLIC.value)
         ).limit(1)
         docs = query.stream()
         for doc in docs:
@@ -50,7 +51,7 @@ class WorkspaceRepository(BaseRepository[WorkspaceModel]):
     def get_all_public_workspaces(self) -> List[WorkspaceModel]:
         """Finds all workspaces that are marked as 'public'."""
         query = self.collection_ref.where(
-            "scope", "==", WorkspaceScopeEnum.PUBLIC
+            filter=FieldFilter("scope", "==", WorkspaceScopeEnum.PUBLIC)
         )
         docs = query.stream()
         return [

@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import {LanguageEnum, VoiceEnum} from '../../audio/audio.constants';
 import {PaginatedResponse} from './paginated-response.model';
 import {SourceMediaItemLink} from './search.model';
 
@@ -89,9 +90,14 @@ export interface MediaItem {
   seed?: number;
   critique?: string;
   addWatermark?: boolean;
+  googleSearch?: boolean;
+  resolution?: string;
+  groundingMetadata?: any;
 
   // Music specific
   audioAnalysis?: Record<string, any>;
+  voiceName?: VoiceEnum | string;
+  languageCode?: LanguageEnum;
 
   // Debugging field
   rawData?: Record<string, any>;

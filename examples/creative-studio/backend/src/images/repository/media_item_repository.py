@@ -45,16 +45,20 @@ class MediaRepository(BaseRepository[MediaItemModel]):
 
         if search_dto.user_email:
             base_query = base_query.where(
-                "user_email", "==", search_dto.user_email
+                filter=FieldFilter("user_email", "==", search_dto.user_email)
             )
         if search_dto.mime_type:
             base_query = base_query.where(
-                "mime_type", "==", search_dto.mime_type
+                filter=FieldFilter("mime_type", "==", search_dto.mime_type)
             )
         if search_dto.model:
-            base_query = base_query.where("model", "==", search_dto.model)
+            base_query = base_query.where(
+                filter=FieldFilter("model", "==", search_dto.model)
+            )
         if search_dto.status:
-            base_query = base_query.where("status", "==", search_dto.status)
+            base_query = base_query.where(
+                filter=FieldFilter("status", "==", search_dto.status)
+            )
 
         # Apply any additional filters passed in
         for f in extra_filters:

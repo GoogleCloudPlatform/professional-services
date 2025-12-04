@@ -20,48 +20,54 @@ services:
     container_name: creative-studio-backend
     ports:
       - "8080:8080"
+    restart: unless-stopped
+
+    env_file:
+      - ./backend/.env # Update as needed, for ex to './backend/.local.env'
+
+    # Override the Dockerfile's CMD to enable --reload.
+    # Using 1 worker is better for a dev/reload environment.
+    # Use uvicorn's native --reload for development
+    command: >
+      sh -c "
+      uv sync --locked --no-dev &&
+      uvicorn main:app --host 0.0.0.0 --port 8080 --workers 1 --reload
+      "
+
     volumes:
+      # Mount your local backend source code into the container
+      - ./backend:/app
       # KEEP THIS: It preserves the virtual environment from the image build.
       - backend_venv:/app/.venv
       # Mount the gcloud ADC directory. Replace with the correct path for your OS if different. :ro - read-only for better security
       - ~/.config/gcloud/:/root/.config/gcloud:ro # Linux/macOS example:
       # - %APPDATA%/gcloud:/root/.config/gcloud:ro # Windows example:
-    env_file:
-      - ./backend/.env # Update as needed, for ex to './backend/.local.env'
-    restart: unless-stopped
-    develop:
-      # Create a `watch` configuration to update the app
-      # https://docs.docker.com/compose/file-watch/#compose-watch-versus-bind-mounts
-      watch:
-        # Sync the working directory with the `/app` directory in the container
-        - action: sync
-          path: ./backend
-          target: /app
-          # Exclude the project virtual environment — it could be for a
-          # different platform in the container
-          ignore:
-            - .venv/
-            - __pycache__/
-            - .git/
-
-        # Rebuild the image if dependencies change by checking uv.lock
-        - action: rebuild
-          path: ./backend/uv.lock
 
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      # Tell Docker Compose to run the 'builder' stage,
+      # not the final 'nginx' stage.
+      target: builder
     container_name: creative-studio-frontend
     ports:
       - "4200:8080"
-    volumes:
-      - ./frontend:/app
-      # Use an anonymous volume for node_modules to prevent host node_modules
-      # from interfering and potentially speed up builds/rebuilds
-      - /app/node_modules
     # To change the env variables in the frontend, change the environment.ts file
     restart: unless-stopped
+
+    # Reset the entrypoint from the base 'node' image.
+    # This allows our 'command:' to run directly.
+    entrypoint: []
+
+    # Override the Dockerfile's CMD to run the dev server.
+    # This server watches for file changes.
+    command: ["npm", "run", "start", "--", "--host", "0.0.0.0", "--port", "8080", "--disable-host-check"]
+
+    volumes:
+      # Mount just your 'src' directory. 'ng serve' will
+      # see changes here and hot-reload.
+      - ./frontend/src:/app/src
 
 # Define the named volume at the top level
 volumes:

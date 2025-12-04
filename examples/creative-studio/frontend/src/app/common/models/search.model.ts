@@ -30,6 +30,8 @@ export type ImagenRequest = {
   sourceMediaItems?: SourceMediaItemLink[];
   workspaceId?: string;
   useBrandGuidelines: boolean;
+  googleSearch?: boolean;
+  resolution?: '1K' | '2K' | '4K';
 };
 
 export type SourceMediaItemLink = {
