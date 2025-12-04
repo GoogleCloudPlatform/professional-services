@@ -24,7 +24,7 @@ import {firstValueFrom} from 'rxjs';
 import {SourceAssetsService as SourceAssetAdminService} from './source-assets.service';
 import {AssetScopeEnum, AssetTypeEnum} from './source-asset.model';
 import {SourceAssetFormComponent} from './source-asset-form/source-asset-form.component';
-import {ToastMessageComponent} from '../../common/components/toast-message/toast-message.component';
+import { handleErrorSnackbar, handleSuccessSnackbar } from '../../utils/handleMessageSnackbar';
 import {SourceAssetResponseDto} from '../../common/services/source-asset.service';
 import {SourceAssetUploadFormComponent} from './source-asset-upload-form/source-asset-upload-form.component';
 
@@ -169,14 +169,7 @@ export class SourceAssetsManagementComponent implements OnInit {
       .subscribe((result: SourceAssetResponseDto | null) => {
         if (result) {
           this.fetchAssets();
-          this.snackBar.openFromComponent(ToastMessageComponent, {
-            panelClass: ['green-toast'],
-            duration: 3000,
-            data: {
-              text: `Asset "${result.originalFilename}" uploaded successfully`,
-              matIcon: 'check_circle',
-            },
-          });
+          handleSuccessSnackbar(this.snackBar, `Asset "${result.originalFilename}" uploaded successfully`);
         }
       });
   }
@@ -193,21 +186,10 @@ export class SourceAssetsManagementComponent implements OnInit {
         this.sourceAssetService.updateSourceAsset(result).subscribe({
           next: () => {
             this.fetchAssets();
-            this.snackBar.openFromComponent(ToastMessageComponent, {
-              panelClass: ['green-toast'],
-              duration: 3000,
-              data: {
-                text: 'Asset updated successfully',
-                matIcon: 'check_circle',
-              },
-            });
+            handleSuccessSnackbar(this.snackBar, 'Asset updated successfully');
           },
           error: (err: Error) => {
-            this.snackBar.openFromComponent(ToastMessageComponent, {
-              panelClass: ['red-toast'],
-              duration: 5000,
-              data: {text: 'Error updating asset', matIcon: 'error'},
-            });
+            handleErrorSnackbar(this.snackBar, err, 'Update asset');
           },
         });
       }
@@ -224,18 +206,10 @@ export class SourceAssetsManagementComponent implements OnInit {
       this.sourceAssetService.deleteSourceAsset(asset.id).subscribe({
         next: () => {
           this.fetchAssets();
-          this.snackBar.openFromComponent(ToastMessageComponent, {
-            panelClass: ['green-toast'],
-            duration: 3000,
-            data: {text: 'Asset deleted successfully', matIcon: 'check_circle'},
-          });
+          handleSuccessSnackbar(this.snackBar, 'Asset deleted successfully');
         },
         error: (err: Error) => {
-          this.snackBar.openFromComponent(ToastMessageComponent, {
-            panelClass: ['red-toast'],
-            duration: 5000,
-            data: {text: 'Error deleting asset', matIcon: 'error'},
-          });
+          handleErrorSnackbar(this.snackBar, err, 'Delete asset');
         },
       });
     }

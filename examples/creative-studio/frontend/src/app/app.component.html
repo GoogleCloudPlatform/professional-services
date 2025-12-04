@@ -19,6 +19,7 @@
   *ngIf="loadingService.isLoading$ | async"
   mode="indeterminate"
 ></mat-progress-bar>
+<app-notification-container></app-notification-container>
 <app-header *ngIf="showHeader"></app-header>
 <div
   [ngClass]="showHeader ? 'content' : 'login'"

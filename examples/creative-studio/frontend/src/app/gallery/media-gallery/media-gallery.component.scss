@@ -36,6 +36,50 @@
   color: white !important;
 }
 
+// --- NEW STYLES FOR AUDIO CARDS ---
+.audio-card-preview {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #2a2a2e; // Dark card background
+  cursor: pointer;
+  transition: background-color 0.3s;
+
+  mat-icon {
+    font-size: 80px; // Large icon
+    width: 80px;
+    height: 80px;
+    color: rgba(255, 255, 255, 0.4);
+    transition: color 0.3s;
+  }
+
+  // Add animation for the playing state
+  .playing-icon {
+    color: #a0c4ff; // Light blue to indicate active state
+    animation: pulse-audio 1.5s infinite ease-in-out;
+  }
+}
+
+@keyframes pulse-audio {
+  0% { transform: scale(1); opacity: 0.8; }
+  50% { transform: scale(1.2); opacity: 1; }
+  100% { transform: scale(1); opacity: 0.8; }
+}
+
+// Style the hover effect on the parent 'group'
+.group:hover .audio-card-preview {
+  background-color: #38383e;
+
+  mat-icon {
+    color: rgba(255, 255, 255, 0.6);
+  }
+}
+
 // Small devices (landscape phones, 576px and up)
 @media (min-width: 576px) {
 }
