@@ -11,7 +11,7 @@ dependencies = [
     "fastapi-utilities==0.3.0",
     "firebase-admin>=6.9.0",
     "google-cloud-aiplatform>=1.119.0",
-    "google-genai>=1.41.0",
+    "google-genai>=1.52.0",
     "mediapy>=1.2.4",
     "numpy>=2.3.3",
     "pandas>=2.3.3",
@@ -26,6 +26,8 @@ dependencies = [
     "pydantic[email]>=2.11.10",
     "pydantic-settings>=2.11.0",
     "pypdf>=6.1.1",
+    "google-cloud-texttospeech>=2.33.0",
+    "google-cloud-storage>=3.0.0",
 ]
 
 [project.optional-dependencies]
