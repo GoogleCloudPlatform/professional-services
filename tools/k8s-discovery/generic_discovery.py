@@ -2,7 +2,7 @@ import logging
 import os
 from kubernetes import client, config
 from kubernetes.client.rest import ApiException
-from common import save_to_json
+# from common import save_to_json <--- REMOVED: Fixes F401
 
 # Map standard K8s objects to the simplified format expected by common.py
 def _extract_metadata(obj):
@@ -24,7 +24,7 @@ def _simplify_node(node_obj):
     
     # Extract addresses
     addresses = status.get("addresses", [])
-    hostname = next((a["address"] for a in addresses if a["type"] == "Hostname"), meta["name"])
+    # hostname = next((a["address"] for a in addresses if a["type"] == "Hostname"), meta["name"]) <--- REMOVED: Fixes F841 (local variable 'hostname' unused)
     
     # Check readiness
     conditions = status.get("conditions", [])
@@ -49,7 +49,7 @@ def _simplify_workload(obj, kind):
     """Simplifies workloads (Deployments, etc.) for common.py."""
     meta = _extract_metadata(obj)
     spec = obj.get("spec", {})
-    status = obj.get("status", {})
+    # status = obj.get("status", {}) <--- REMOVED: Fixes F841 (local variable 'status' unused)
     
     # Pod template containers
     containers = []
