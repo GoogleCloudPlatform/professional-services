@@ -75,10 +75,9 @@
           <div class="py-4 space-y-6">
             <!-- Parameters Section -->
             <section class="space-y-3">
-              <h3 class="text-lg font-semibold border-b border-gray-700 pb-2">
-                Parameters
-              </h3>
+              <h3 class="text-lg font-semibold border-b border-gray-700 pb-2">Parameters</h3>
               <div class="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+
                 <strong class="font-semibold text-gray-400">Model:</strong>
                 <p class="text-right break-all">
                   {{ mediaItem.model || 'N/A' }}
@@ -101,6 +100,16 @@
                   <p class="text-right">
                     {{ mediaItem.generationTime | number: '1.0-2' }}s
                   </p>
+                </div>
+
+                <div *ngIf="mediaItem.voiceName" class="contents">
+                  <strong class="font-semibold text-gray-400">Voice:</strong>
+                  <p class="text-right">{{ mediaItem.voiceName }}</p>
+                </div>
+
+                <div *ngIf="mediaItem.languageCode" class="contents">
+                  <strong class="font-semibold text-gray-400">Language:</strong>
+                  <p class="text-right">{{ mediaItem.languageCode }}</p>
                 </div>
 
                 <div *ngIf="mediaItem.seed" class="contents">
@@ -130,6 +139,53 @@
                   <p class="text-right">
                     {{ mediaItem.aspectRatio || mediaItem.aspect }}
                   </p>
+                </div>
+                <div *ngIf="mediaItem?.resolution" class="contents">
+                  <strong class="font-semibold text-gray-400">Resolution:</strong>
+                  <p class="text-right">{{ mediaItem.resolution }}</p>
+                </div>
+                
+                <div *ngIf="mediaItem?.googleSearch !== undefined" class="contents">
+                  <strong class="font-semibold text-gray-400">Google Search:</strong>
+                  <p class="text-right">
+                    {{ mediaItem.googleSearch ? 'Enabled' : 'Disabled' }}
+                  </p>
+                </div>
+                
+              </div>
+
+            </section>
+                
+            <!-- Grounding Information -->
+            <section class="space-y-3" *ngIf="mediaItem.groundingMetadata">
+              <h3 class="text-lg font-semibold border-b border-gray-700 pb-2">
+                Grounding Information
+              </h3>
+              <div *ngIf="mediaItem.groundingMetadata.webSearchQueries" class="mb-4">
+                <strong class="font-semibold text-gray-400 block mb-1">Search Queries:</strong>
+                <div class="flex flex-wrap gap-2">
+                  <span *ngFor="let query of mediaItem.groundingMetadata.webSearchQueries"
+                    class="px-2 py-1 bg-gray-800 rounded text-sm text-gray-300">
+                    {{ query }}
+                  </span>
+                </div>
+              </div>
+              <div *ngIf="mediaItem.groundingMetadata.groundingChunks" class="mb-4">
+                <strong class="font-semibold text-gray-400 block mb-1">Sources:</strong>
+                <ul class="space-y-2">
+                  <li *ngFor="let chunk of mediaItem.groundingMetadata.groundingChunks">
+                    <a *ngIf="chunk.web" [href]="chunk.web.uri" target="_blank"
+                      class="text-blue-400 hover:underline text-sm flex items-center gap-2">
+                      <mat-icon class="!text-sm !w-4 !h-4">open_in_new</mat-icon>
+                      {{ chunk.web.title || chunk.web.uri }}
+                    </a>
+                  </li>
+                </ul>
+              </div>
+              <div *ngIf="mediaItem.groundingMetadata.searchEntryPoint" class="mb-4">
+                <strong class="font-semibold text-gray-400 block mb-1">Search Entry Point:</strong>
+                <div [innerHTML]="getSafeHtml(mediaItem.groundingMetadata.searchEntryPoint.renderedContent)"
+                  class="bg-white rounded-md p-2">
                 </div>
               </div>
             </section>

@@ -56,6 +56,8 @@ export class HeaderComponent implements OnDestroy {
 
   isDesktop = false;
   private readonly destroy$ = new Subject<void>();
+  toolsMenuHovered = false;
+  private menuTimeout: any;
 
   constructor(
     private sanitizer: DomSanitizer,
@@ -73,6 +75,10 @@ export class HeaderComponent implements OnDestroy {
       .addSvgIcon(
         'fun-templates-icon',
         this.setPath(`${this.path}/fun-templates-icon.svg`),
+      )
+      .addSvgIcon(
+        'audio-generation-icon',
+        this.setPath(`${this.path}/audio-generation-icon.svg`),
       );
 
     this.currentUser = this.userService.getUserDetails();
@@ -112,5 +118,22 @@ export class HeaderComponent implements OnDestroy {
     return this.menuFixed
       ? `Hey there ${this.currentUser?.name?.split(' ')?.[0] || ''}! Click to make the menu dynamic`
       : 'Click to make the menu fixed';
+  }
+
+  onToolsEnter() {
+    // If we enter the area, cancel any pending close action
+    if (this.menuTimeout) {
+      clearTimeout(this.menuTimeout);
+    }
+    this.toolsMenuHovered = true;
+  }
+
+  onToolsLeave() {
+    // When leaving, wait 200ms before actually closing.
+    // If the user enters the menu during this time, onToolsEnter()
+    // will cancel this timer, keeping the menu open.
+    this.menuTimeout = setTimeout(() => {
+      this.toolsMenuHovered = false;
+    }, 200);
   }
 }

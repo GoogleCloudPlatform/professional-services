@@ -1,0 +1,13 @@
+<div class="notification-container">
+  <div *ngFor="let notification of notifications$ | async" 
+       class="notification-item" 
+       [ngClass]="{'red-toast': notification.type === 'error', 'green-toast': notification.type === 'success'}"
+       [@listAnimation]>
+    <app-toast-message
+      [text]="notification.message"
+      [icon]="notification.icon || ''"
+      [matIcon]="notification.matIcon || ''"
+      (close)="remove(notification.id)"
+    ></app-toast-message>
+  </div>
+</div>

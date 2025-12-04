@@ -59,6 +59,7 @@ logger = logging.getLogger(__name__)
 class PromptTargetEnum(str, Enum):
     IMAGE = "image"
     VIDEO = "video"
+    AUDIO = "audio"
 
 
 class ResponseMimeTypeEnum(str, Enum):
@@ -231,7 +232,10 @@ class GeminiService:
         is_gemini_i2i = (
             isinstance(dto, CreateImagenDto)
             and dto.generation_model
-            == GenerationModelEnum.GEMINI_2_5_FLASH_IMAGE_PREVIEW
+            in [
+                GenerationModelEnum.GEMINI_2_5_FLASH_IMAGE_PREVIEW,
+                GenerationModelEnum.GEMINI_3_PRO_IMAGE_PREVIEW,
+            ]
             and (dto.source_asset_ids or dto.source_media_items)
         )
 

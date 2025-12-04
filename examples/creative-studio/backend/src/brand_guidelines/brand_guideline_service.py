@@ -88,7 +88,7 @@ def _process_brand_guideline_in_background(
         else:
             handler = logging.StreamHandler(sys.stdout)
             formatter = logging.Formatter(
-                "%(asctime)s - [BG_WORKER] - %(levelname)s - %(message)s"
+                "%(asctime)s - [BRAND_GUIDELINE_WORKER] - %(levelname)s - %(message)s"
             )
             handler.setFormatter(formatter)
             worker_logger.addHandler(handler)
