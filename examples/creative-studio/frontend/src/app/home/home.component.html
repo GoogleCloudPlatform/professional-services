@@ -131,87 +131,7 @@
     <div
       class="control-options inline-flex justify-center items-start grid grid-cols-2 md:grid-cols-3 lg:flex gap-4 mt-8 place-items-center"
     >
-      <div
-        matTooltip="Select Aspect Ratio"
-        class="cursor-pointer w-32 inline-flex flex-col justify-start items-center"
-      >
-        <button
-          mat-fab
-          [matMenuTriggerFor]="aspectRatioMenu"
-          class="!w-16 !h-16 !shadow-none text-center justify-center text-stone-300"
-        >
-          <mat-icon>aspect_ratio</mat-icon>
-        </button>
-        <div class="text-center justify-center text-neutral-200 text-base mt-2">
-          {{ selectedAspectRatio }}
-        </div>
-        <mat-menu #aspectRatioMenu="matMenu">
-          <button
-            *ngFor="let ratio of aspectRatioOptions"
-            [disabled]="ratio.disabled"
-            mat-menu-item
-            [ngClass]="{
-              'menu-item-selected': searchRequest.aspectRatio === ratio.value,
-            }"
-            (click)="selectAspectRatio(ratio)"
-          >
-            <mat-icon>{{ ratio.icon }}</mat-icon>
-            <span>{{ ratio.viewValue }}</span>
-          </button>
-        </mat-menu>
-      </div>
 
-      <div
-        matTooltip="Select Model"
-        class="cursor-pointer w-32 inline-flex flex-col justify-start items-center"
-      >
-        <button
-          mat-fab
-          [matMenuTriggerFor]="modelMenu"
-          class="!w-16 !h-16 !shadow-none text-center justify-center text-stone-300"
-        >
-          @if (selectedGenerationModelObject.isImage) {
-            <img
-              [src]="selectedGenerationModelObject.imageSrc"
-              class="w-8 h-8"
-              alt="model icon"
-            />
-          } @else {
-            <mat-icon svgIcon="content-type-icon"></mat-icon>
-          }
-        </button>
-        <div
-          class="text-center justify-center text-neutral-200 text-base mt-2 inline-flex items-center"
-        >
-          {{ selectedGenerationModel }}
-        </div>
-        <mat-menu #modelMenu="matMenu">
-          <button
-            *ngFor="let model of generationModels"
-            mat-menu-item
-            [ngClass]="{
-              'menu-item-selected':
-                searchRequest.generationModel === model.value,
-            }"
-            (click)="selectModel(model)"
-          >
-            <img
-              *ngIf="model.isImage"
-              [src]="model.imageSrc"
-              class="menu-image-icon"
-              alt="model icon"
-            />
-            <mat-icon *ngIf="!model.isImage && !model.isSvg">{{
-              model.icon
-            }}</mat-icon>
-            <mat-icon
-              *ngIf="!model.isImage && model.isSvg"
-              [svgIcon]="model.icon"
-            ></mat-icon>
-            <span>{{ model.viewValue }}</span>
-          </button>
-        </mat-menu>
-      </div>
 
       <div
         matTooltip="Select Style"
@@ -297,34 +217,6 @@
         </mat-menu>
       </div>
 
-      <div
-        matTooltip="Select Number of Images"
-        class="cursor-pointer w-32 inline-flex flex-col justify-start items-center"
-      >
-        <button
-          mat-fab
-          [matMenuTriggerFor]="numImagesMenu"
-          class="!w-16 !h-16 !shadow-none text-center justify-center text-stone-300"
-        >
-          <mat-icon svgIcon="number-of-images-icon" color="primary"></mat-icon>
-        </button>
-        <div class="text-center justify-center text-neutral-200 text-base mt-2">
-          {{ searchRequest.numberOfMedia }}
-          Image(s)
-        </div>
-        <mat-menu #numImagesMenu="matMenu">
-          <button
-            *ngFor="let num of numberOfImagesOptions"
-            mat-menu-item
-            [ngClass]="{
-              'menu-item-selected': searchRequest.numberOfMedia === num,
-            }"
-            (click)="selectNumberOfImages(num)"
-          >
-            <span>{{ num }}</span>
-          </button>
-        </mat-menu>
-      </div>
 
       <div
         matTooltip="Select Composition"
@@ -464,96 +356,20 @@
       </div> -->
     </div>
 
-    <div
-      class="grid grid-cols-1 lg:grid-cols-4 gap-4 mt-5"
-      [ngClass]="
-        (imagenDocuments?.presignedUrls?.length || 0) > 0 ? 'mb-8' : ''
-      "
-    >
-      <div class="lg:col-span-3 flex flex-col justify-start items-start gap-4">
-        <div
-          class="justify-center text-neutral-200 text-base font-bold leading-7"
-        >
-          Prompt:
-        </div>
-        <textarea
-          id="promptId"
-          [(ngModel)]="searchRequest.prompt"
-          class="self-stretch w-full h-48 p-4 bg-transparent md:bg-zinc-700 rounded-2xl text-stone-300 text-base font-normal leading-7 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-          placeholder="Enter your prompt here..."
-          (ngModelChange)="service.imagePrompt = $event; saveState()"
-        ></textarea>
-        <div
-          class="inline-flex justify-between items-center grid grid-cols-1 md:flex gap-4"
-        >
-          <div class="flex justify-start items-center gap-4">
-            <!-- <button mat-raised-button color="primary" (click)="getRandomPrompt()" [disabled]="isLoading">
-              <mat-icon>shuffle</mat-icon>
-              Random
-            </button> -->
-            <button
-              mat-raised-button
-              color="primary"
-              (click)="rewritePrompt()"
-              [disabled]="isLoading || isImageGenerating"
-            >
-              <mat-icon>drive_file_rename_outline</mat-icon>
-              Rewrite
-            </button>
-            <button
-              mat-raised-button
-              class="!bg-white"
-              (click)="searchTerm()"
-              [disabled]="isLoading || isImageGenerating"
-            >
-              <mat-icon svgIcon="gemini-spark-icon"></mat-icon>
-              <span
-                class="font-bold bg-gradient-to-r from-blue-500 via-violet-500 to-red-400 bg-clip-text text-transparent"
-              >
-                Generate
-              </span>
-            </button>
-          </div>
-          <button
-            mat-stroked-button
-            class="!text-white"
-            (click)="resetAllFilters()"
-            [disabled]="isLoading || isImageGenerating"
-          >
-            Clear All
-          </button>
-        </div>
-      </div>
-      <div class="lg:col-span-1">
-        <!-- Reference Images Section -->
-        <div class="reference-images-container" [class.disabled]="searchRequest.generationModel.startsWith('imagen-4')">
-          <div class="section-header">
-            <span class="section-title">Reference Images</span>
-            <span class="section-subtitle" *ngIf="searchRequest.generationModel === 'gemini-3-pro-image-preview'">(Up to
-              14)</span>
-            <span class="section-subtitle"
-              *ngIf="!searchRequest.generationModel.startsWith('imagen-4') && searchRequest.generationModel !== 'gemini-3-pro-image-preview'">(Up
-              to 2)</span>
-            <span class="section-subtitle" *ngIf="searchRequest.generationModel.startsWith('imagen-4')">(Not supported)</span>
-          </div>
-          <div class="reference-images-list" *ngIf="!searchRequest.generationModel.startsWith('imagen-4')">
-            <div *ngFor="let img of referenceImages; let i = index" class="reference-image-item">
-              <img [src]="img.previewUrl" alt="Reference Image" />
-              <button mat-icon-button class="clear-btn" (click)="clearImage(i, $event)">
-                <mat-icon>close</mat-icon>
-              </button>
-            </div>
-            <div class="add-image-btn" (click)="openImageSelector()" (drop)="onDrop($event)" (dragover)="$event.preventDefault()"
-              *ngIf="referenceImages.length < (searchRequest.generationModel === 'gemini-3-pro-image-preview' ? 14 : 2)">
-              <mat-icon>add</mat-icon>
-              <span>Add Image</span>
-            </div>
-          </div>
-          <div class="reference-images-disabled-message" *ngIf="searchRequest.generationModel.startsWith('imagen-4')">
-            <mat-icon>block</mat-icon>
-            <span>This model does not support reference images.</span>
-          </div>
-        </div>
+    <!-- Prompt Generator -->
+    <div class="grid grid-cols-1 lg:grid-cols-4 gap-4 my-5">
+      <!-- Prompt Section -->
+      <div class="lg:col-span-4 flex flex-col justify-start items-center gap-4 w-full">
+        <app-flow-prompt-box class="w-full max-w-2xl block" [prompt]="searchRequest.prompt"
+          [aspectRatio]="selectedAspectRatio" [outputs]="searchRequest.numberOfMedia || 4" [mode]="currentMode"
+          [modes]="modes" [aspectRatioOptions]="aspectRatioOptions" [generationModels]="generationModels"
+          [isLoading]="isImageGenerating" [selectedGenerationModel]="selectedGenerationModel"
+          [referenceImages]="referenceImages" (promptChanged)="onPromptChanged($event)"
+          (aspectRatioChanged)="onAspectRatioChanged($event)" (outputsChanged)="onOutputsChanged($event)"
+          (generateClicked)="onGenerateClicked()" (rewriteClicked)="onRewriteClicked()"
+          (modelSelected)="onModelSelected($event)" (openImageSelectorForReference)="onOpenImageSelectorForReference()"
+          (onReferenceImageDrop)="onReferenceImageDrop($event)" (clearReferenceImage)="onClearReferenceImage($event)"
+          (modeChanged)="onModeChanged($event)"></app-flow-prompt-box>
       </div>
     </div>
   </div>
