@@ -1,3 +1,0 @@
-custom.firewallEnforceRuleLogging:
-  rules:
-  - enforce: true

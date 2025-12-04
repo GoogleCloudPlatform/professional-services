@@ -1,3 +1,0 @@
-custom.dnsAllowedSigningAlgorithms:
-  rules:
-  - enforce: true

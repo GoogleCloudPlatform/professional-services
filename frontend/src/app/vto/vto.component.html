@@ -1,0 +1,432 @@
+<!--
+ Copyright 2025 Google LLC
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+<div class="lg:container lg:mx-auto">
+  <div class="home-margin grid grid-cols-1">
+    <div class="video-container mb-8">
+      <!-- Text for Tablet and beyond -->
+      <div
+        class="hidden md:flex justify-center items-center w-full h-full absolute flex-col"
+      >
+        <h1
+          class="text-center justify-center text-white text-2xl font-bold !m-0 !z-[50]"
+        >
+          Creative Studio Virtual Try-On
+        </h1>
+        <p class="mt-4 text-lg leading-8 text-white !z-[50]">
+          A showcase of Virtual Try-On for your clothes and more ✨
+        </p>
+      </div>
+      <div
+        class="gradient-bg hidden md:block !relative !w-full !h-full !z-[10]"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <filter id="goo">
+              <feGaussianBlur
+                in="SourceGraphic"
+                stdDeviation="10"
+                result="blur"
+              />
+              <feColorMatrix
+                in="blur"
+                mode="matrix"
+                values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 18 -8"
+                result="goo"
+              />
+              <feBlend in="SourceGraphic" in2="goo" />
+            </filter>
+          </defs>
+        </svg>
+        <div class="gradients-container absolute top-0 left-0">
+          <div class="g1"></div>
+          <div class="g2"></div>
+          <div class="g3"></div>
+          <div class="g4"></div>
+          <div class="g5"></div>
+          <div #interactiveBubble class="interactive"></div>
+        </div>
+      </div>
+
+      <!-- Text for mobile -->
+      <div
+        class="flex flex-col justify-center items-center w-full h-full md:hidden"
+      >
+        <!-- As this svg uses a gradient, it needs to have a different fill id, therefore we have one for mobile and other for larger devices -->
+        <div class="flex">
+          <mat-icon
+            svgIcon="mobile-white-gemini-spark-icon"
+            class="!w-6 !h-6 mr-2 md:mr-[1rem]"
+          ></mat-icon>
+          <div
+            class="text-center justify-center text-white title-font font-bold"
+          >
+            Creative Studio Virtual Try-On
+          </div>
+        </div>
+        <p class="mt-4 text-white text-center md:text-lg md:leading-8">
+          A showcase of Virtual Try-On for your clothes and more ✨
+        </p>
+      </div>
+    </div>
+
+
+    <!-- Overlays for VTO job status (processing / failed) -->
+    <ng-container *ngIf="activeVtoJob$ | async as job">
+      <!-- Processing Overlay -->
+      <div
+        *ngIf="job.status === JobStatus.PROCESSING"
+        class="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-black bg-opacity-70 text-center p-4"
+      >
+        <mat-progress-spinner color="primary" mode="indeterminate" [diameter]="50"></mat-progress-spinner>
+        <p class="!mt-6 text-white text-lg">Your virtual try-on is being generated...</p>
+        <p class="text-gray-400 text-sm">This may take a few moments. You can safely navigate away.</p>
+      </div>
+
+      <!-- Failed Overlay -->
+      <div
+        *ngIf="job.status === JobStatus.FAILED && showErrorOverlay"
+        class="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-black bg-opacity-70 rounded-xl text-center p-4"
+      >
+        <mat-icon class="text-red-500 !w-16 !h-16 !text-6xl">error_outline</mat-icon>
+        <p class="mt-4 text-white text-lg">VTO Generation Failed</p>
+        <p class="text-gray-400 text-sm max-w-md">{{ job.errorMessage || job.error_message || 'An error occurred' }}</p>
+        <button mat-raised-button color="primary" (click)="closeErrorOverlay()" class="mt-4">
+          Close
+        </button>
+      </div>
+    </ng-container>
+
+    <!-- VTO Stepper with Control Options -->
+    <mat-stepper linear #stepper class="w-full !text-white">
+      <mat-step [stepControl]="firstFormGroup">
+        <form [formGroup]="firstFormGroup">
+          <ng-template matStepLabel>Choose your model</ng-template>
+
+          <mat-radio-group
+            formControlName="modelType"
+            aria-label="Select a model type"
+          >
+            <mat-radio-button value="female">Female</mat-radio-button>
+            <mat-radio-button value="male">Male</mat-radio-button>
+          </mat-radio-group>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mt-4">
+            <!-- Left Column: Select a model -->
+            <div>
+              <h3>Select a model</h3>
+              <div class="loading-container" *ngIf="isLoading">
+                <mat-progress-spinner
+                  mode="indeterminate"
+                ></mat-progress-spinner>
+              </div>
+              <div class="item-row" *ngIf="!isLoading">
+                <mat-card
+                  *ngFor="let model of modelsToShow"
+                  (click)="firstFormGroup.get('model')?.setValue(model)"
+                  [class.selected]="
+                    firstFormGroup.get('model')?.value?.id === model.id
+                  "
+                >
+                  <img
+                    mat-card-image
+                    [src]="model.imageUrl"
+                    [alt]="model.name"
+                  />
+                </mat-card>
+              </div>
+              <div class="flex justify-start mt-6">
+                <button mat-raised-button class="!bg-gradient-to-r from-blue-500 via-violet-500 to-red-400 !text-white font-bold"
+                  matStepperNext>
+                  Next
+                </button>
+              </div>
+            </div>
+
+            <!-- Right Column: Upload your own -->
+            <div>
+              <h3>Or upload your own</h3>
+              <p class="text-sm text-gray-500 mt-2 mb-4">
+                For best results, upload a well lit, full body length picture of
+                yourself.
+              </p>
+
+              <div
+                class="drop-zone"
+                (click)="openImageSelector()"
+                (dragover)="$event.preventDefault()"
+                (drop)="onDrop($event)"
+              >
+                <div
+                  *ngIf="firstFormGroup.get('model')?.value?.id !== 'uploaded'"
+                  class="drop-zone-placeholder"
+                >
+                  <mat-icon>add_photo_alternate</mat-icon>
+                  <span>Drop your photo or click to select</span>
+                </div>
+                <div
+                  *ngIf="firstFormGroup.get('model')?.value?.id === 'uploaded'"
+                  class="image-preview-container"
+                >
+                  <img
+                    [src]="firstFormGroup.get('model')?.value.imageUrl"
+                    alt="Uploaded Model"
+                  />
+                  <button
+                    (click)="clearImage($event)"
+                    class="clear-button"
+                    mat-icon-button
+                  >
+                    <mat-icon>close</mat-icon>
+                  </button>
+                </div>
+              </div>
+
+              <h4 class="!mt-5 !pt-5">Examples</h4>
+              <div class="item-row item-example">
+                <mat-card *ngFor="let example of uploadExamples">
+                  <img
+                    mat-card-image
+                    [src]="example.imageUrl"
+                    [alt]="example.alt"
+                  />
+                </mat-card>
+              </div>
+            </div>
+          </div>
+        </form>
+      </mat-step>
+
+      <mat-step [stepControl]="secondFormGroup">
+        <form [formGroup]="secondFormGroup">
+          <ng-template matStepLabel>Choose your clothes</ng-template>
+
+          <div class="flex flex-col gap-8">
+            <!-- Top Row: Result (using observable) -->
+            <ng-container *ngIf="activeVtoJob$ | async as vtoJob">
+              <!-- Processing State -->
+              <div
+                *ngIf="vtoJob.status === JobStatus.PROCESSING"
+                class="grid grid-cols-1 gap-4 text-center"
+              >
+                <div class="flex flex-col items-center justify-center py-8">
+                  <mat-progress-spinner
+                    mode="indeterminate"
+                    diameter="60"
+                  ></mat-progress-spinner>
+                  <p class="mt-4 text-lg">Generating your virtual try-on...</p>
+                  <p class="text-sm text-gray-500">
+                    This may take a few moments
+                  </p>
+                </div>
+              </div>
+
+              <!-- Completed State -->
+              <div
+                *ngIf="vtoJob.status === JobStatus.COMPLETED"
+                class="grid grid-cols-1 gap-4"
+              >
+                <app-media-lightbox
+                  [mediaItem]="vtoJob"
+                  [initialIndex]="0"
+                  [showSeeMoreInfoButton]="true"
+                  [showShareButton]="true"
+                  [showDownloadButton]="true"
+                  [showEditButton]="true"
+                  [showVtoButton]="true"
+                  [showGenerateVideoButton]="true"
+                  (editClicked)="remixWithThisImage($event)"
+                  (sendToVtoClicked)="setModelFromImage($event)"
+                  (generateVideoClicked)="generateVideoWithResult($event)"
+                  style="max-height: 60vh"
+                ></app-media-lightbox>
+              </div>
+
+              <!-- Failed State -->
+              <div
+                *ngIf="vtoJob.status === JobStatus.FAILED"
+                class="grid grid-cols-1 gap-4 text-center"
+              >
+                <div class="flex flex-col items-center justify-center py-8">
+                  <mat-icon class="text-red-500" style="font-size: 48px"
+                    >error_outline</mat-icon
+                  >
+                  <p class="mt-4 text-lg text-red-500">Generation Failed</p>
+                  <p class="text-sm text-gray-500">
+                    {{ vtoJob.errorMessage || 'An error occurred' }}
+                  </p>
+                </div>
+              </div>
+            </ng-container>
+
+            <!-- Bottom Row: Controls -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+              <!-- Left Column: Model Preview -->
+              <div class="md:col-span-1">
+                <div class="preview-pane !border-l-0 !pl-0">
+                  <h4>Selected Model</h4>
+                  <div
+                    class="preview-image-container"
+                    *ngIf="firstFormGroup.get('model')?.value as selectedModel"
+                  >
+                    <img
+                      [src]="selectedModel.imageUrl"
+                      alt="Selected Model"
+                      class="model-image"
+                    />
+                  </div>
+                  <div class="mt-4 flex flex-col gap-2">
+                    <button mat-button matStepperPrevious>
+                      Back to Model Selection
+                    </button>
+                    <button
+                      mat-raised-button
+                      class="!bg-gradient-to-r from-blue-500 via-violet-500 to-red-400 !text-white font-bold"
+                      (click)="tryOn()"
+                      [disabled]="!firstFormGroup.valid"
+                    >
+                      Try on!
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Right Column: Garment Selection -->
+              <div class="md:col-span-3">
+                <div class="clothing-options">
+                  <div class="loading-container" *ngIf="isLoading">
+                    <mat-progress-spinner
+                      mode="indeterminate"
+                    ></mat-progress-spinner>
+                  </div>
+                  <div *ngIf="!isLoading">
+                    <h3>Tops</h3>
+                    <div class="item-row item-clothes">
+                      <div
+                        class="drop-zone item-clothes"
+                        (click)="openGarmentSelector('top')"
+                      >
+                        <div class="drop-zone-placeholder">
+                          <mat-icon>add</mat-icon>
+                          <span>Upload Top</span>
+                        </div>
+                      </div>
+
+                      <mat-card
+                        *ngFor="let top of tops"
+                        (click)="selectGarment(top, 'top')"
+                        [class.selected]="
+                          secondFormGroup.get('top')?.value?.id === top.id
+                        "
+                      >
+                        <img
+                          mat-card-image
+                          [src]="top.imageUrl"
+                          [alt]="top.name"
+                        />
+                      </mat-card>
+                    </div>
+
+                    <h3>Bottoms</h3>
+                    <div class="item-row item-clothes">
+                      <div
+                        class="drop-zone item-clothes"
+                        (click)="openGarmentSelector('bottom')"
+                      >
+                        <div class="drop-zone-placeholder">
+                          <mat-icon>add</mat-icon>
+                          <span>Upload Bottom</span>
+                        </div>
+                      </div>
+
+                      <mat-card
+                        *ngFor="let bottom of bottoms"
+                        (click)="selectGarment(bottom, 'bottom')"
+                        [class.selected]="
+                          secondFormGroup.get('bottom')?.value?.id === bottom.id
+                        "
+                      >
+                        <img
+                          mat-card-image
+                          [src]="bottom.imageUrl"
+                          [alt]="bottom.name"
+                        />
+                      </mat-card>
+                    </div>
+
+                    <h3>Dresses</h3>
+                    <div class="item-row item-clothes">
+                      <div
+                        class="drop-zone item-clothes"
+                        (click)="openGarmentSelector('dress')"
+                      >
+                        <div class="drop-zone-placeholder">
+                          <mat-icon>add</mat-icon>
+                          <span>Upload Dress</span>
+                        </div>
+                      </div>
+
+                      <mat-card
+                        *ngFor="let dress of dresses"
+                        (click)="selectGarment(dress, 'dress')"
+                        [class.selected]="
+                          secondFormGroup.get('dress')?.value?.id === dress.id
+                        "
+                      >
+                        <img
+                          mat-card-image
+                          [src]="dress.imageUrl"
+                          [alt]="dress.name"
+                        />
+                      </mat-card>
+                    </div>
+
+                    <h3>Shoes</h3>
+                    <div class="item-row item-clothes">
+                      <div
+                        class="drop-zone item-clothes"
+                        (click)="openGarmentSelector('shoes')"
+                      >
+                        <div class="drop-zone-placeholder">
+                          <mat-icon>add</mat-icon>
+                          <span>Upload Shoes</span>
+                        </div>
+                      </div>
+
+                      <mat-card
+                        *ngFor="let shoe of shoes"
+                        (click)="selectGarment(shoe, 'shoes')"
+                        [class.selected]="
+                          secondFormGroup.get('shoes')?.value?.id === shoe.id
+                        "
+                      >
+                        <img
+                          mat-card-image
+                          [src]="shoe.imageUrl"
+                          [alt]="shoe.name"
+                        />
+                      </mat-card>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </form>
+      </mat-step>
+    </mat-stepper>
+  </div>
+</div>

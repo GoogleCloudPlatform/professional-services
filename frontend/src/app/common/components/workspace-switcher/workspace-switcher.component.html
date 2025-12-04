@@ -1,0 +1,101 @@
+<!--
+ Copyright 2025 Google LLC
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+<div class="top-left-container fixed z-[101]">
+  <ng-container *ngIf="activeWorkspace">
+    <div
+      class="workspace-container bg-gradient-to-b from-zinc-500/50 to-neutral-700/20 rounded-[48px] shadow-[2px_2px_12px_0px_rgba(0,0,0,0.10)] outline outline-1 outline-offset-[-1px] outline-stone-300/80 backdrop-blur-[10px] z-[1000]"
+      [matMenuTriggerFor]="workspaceMenu"
+      [matTooltip]="
+        'You are on a ' +
+        activeWorkspace.scope +
+        ' workspace. Click to switch workspaces!'
+      "
+    >
+      <mat-icon>{{
+        activeWorkspace.scope === WorkspaceScope.PUBLIC ? 'public' : 'lock'
+      }}</mat-icon>
+      <span class="workspace-name">{{
+        activeWorkspace.name || 'Undefined'
+      }}</span>
+      <mat-icon>unfold_more</mat-icon>
+    </div>
+
+    <mat-menu #workspaceMenu="matMenu" xPosition="after">
+      <button
+        mat-menu-item
+        *ngFor="let workspace of workspaces"
+        (click)="setActiveWorkspace(workspace.id)"
+      >
+        <mat-icon
+          [style.visibility]="
+            activeWorkspaceId === workspace.id ? 'visible' : 'hidden'
+          "
+          >check</mat-icon
+        >
+        <mat-icon>{{
+          workspace.scope === WorkspaceScope.PUBLIC ? 'public' : 'lock'
+        }}</mat-icon>
+        <span>{{ workspace.name }}</span>
+      </button>
+      <mat-divider></mat-divider>
+      <button mat-menu-item (click)="openCreateWorkspaceDialog()">
+        <mat-icon>add</mat-icon>
+        <span>Create New Private Workspace</span>
+      </button>
+      <button
+        mat-menu-item
+        (click)="openInviteDialog($event)"
+        [disabled]="!canInvite"
+        matTooltipPosition="right"
+        matTooltip="You can invite users in your Private Workspaces!"
+      >
+        <mat-icon>person_add</mat-icon>
+        <span>Invite Users</span>
+      </button>
+      <button
+        mat-menu-item
+        [disabled]="
+          !canAccessBrandGuidelines ||
+          (brandGuidelineService.activeBrandGuidelineJob$ | async)?.status ===
+            JobStatus.PROCESSING
+        "
+        (click)="openBrandGuidelinesDialog($event)"
+      >
+        <ng-container
+          *ngIf="brandGuidelineService.activeBrandGuidelineJob$ | async as job"
+        >
+          <mat-spinner
+            *ngIf="job.status === JobStatus.PROCESSING"
+            [diameter]="20"
+            class="inline-block mr-2"
+          ></mat-spinner>
+          <mat-icon *ngIf="job.status !== JobStatus.PROCESSING">style</mat-icon>
+        </ng-container>
+        <mat-icon
+          *ngIf="!(brandGuidelineService.activeBrandGuidelineJob$ | async)"
+          >style</mat-icon
+        >
+        <span>Brand Guidelines</span>
+      </button>
+
+      <mat-divider></mat-divider>
+      <button mat-menu-item (click)="openFeedbackForm($event)">
+        <mat-icon>feedback</mat-icon>
+        <span>Feedback</span>
+      </button>
+    </mat-menu>
+  </ng-container>
+</div>

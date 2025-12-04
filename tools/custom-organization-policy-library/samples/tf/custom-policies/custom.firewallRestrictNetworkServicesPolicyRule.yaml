@@ -1,3 +1,0 @@
-custom.firewallRestrictNetworkServicesPolicyRule:
-  rules:
-  - enforce: true

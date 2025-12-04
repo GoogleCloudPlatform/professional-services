@@ -1,3 +1,0 @@
-custom.firewallRestrictManagementPortsRule:
-  rules:
-  - enforce: true

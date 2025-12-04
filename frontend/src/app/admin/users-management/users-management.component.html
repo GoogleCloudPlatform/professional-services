@@ -1,0 +1,165 @@
+<!--
+ Copyright 2025 Google LLC
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+<div class="p-4">
+  <div class="flex justify-between items-center mb-4">
+    <h1 class="text-3xl font-semibold">User Management</h1>
+  </div>
+
+  <!-- Filter Input -->
+  <mat-form-field appearance="outline" class="w-full mb-4">
+    <mat-label>Filter Users by Email</mat-label>
+    <input
+      matInput
+      (input)="applyFilter($event)"
+      placeholder="Search by email"
+      #input
+    />
+    <mat-icon matSuffix>search</mat-icon>
+  </mat-form-field>
+
+  <!-- Loading Indicator -->
+  <div *ngIf="isLoading" class="flex justify-center items-center py-10">
+    <mat-spinner diameter="50"></mat-spinner>
+  </div>
+
+  <!-- Error Message -->
+  <div
+    *ngIf="errorLoadingUsers && !isLoading"
+    class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4"
+    role="alert"
+  >
+    <strong class="font-bold">Error! </strong>
+    <span class="block sm:inline">{{ errorLoadingUsers }}</span>
+  </div>
+
+  <!-- Users Table -->
+  <div
+    *ngIf="!isLoading && !errorLoadingUsers"
+    class="mat-elevation-z8 rounded-lg overflow-auto"
+  >
+    <table mat-table [dataSource]="dataSource" matSort class="w-full">
+      <!-- Picture Column -->
+      <ng-container matColumnDef="picture">
+        <th mat-header-cell *matHeaderCellDef class="!pl-4">Picture</th>
+        <td mat-cell *matCellDef="let user" class="!pl-4">
+          <img
+            [src]="user?.picture || 'assets/images/default-avatar.png'"
+            alt="User Picture"
+            class="w-10 h-10 rounded-full object-cover"
+          />
+        </td>
+      </ng-container>
+
+      <!-- Name Column -->
+      <ng-container matColumnDef="name">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Username</th>
+        <td mat-cell *matCellDef="let user">{{ user.name }}</td>
+      </ng-container>
+
+      <!-- Email Column -->
+      <ng-container matColumnDef="email">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Email</th>
+        <td mat-cell *matCellDef="let user">{{ user.email }}</td>
+      </ng-container>
+
+      <!-- Role Column -->
+      <ng-container matColumnDef="roles">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Roles</th>
+        <td mat-cell *matCellDef="let user">
+          <div class="flex flex-wrap gap-1">
+            <mat-chip
+              *ngFor="let role of user.roles"
+              [class]="getRoleChipClass(role)"
+            >
+              {{ role | titlecase }}
+            </mat-chip>
+          </div>
+        </td>
+      </ng-container>
+
+      <!-- Created At Column -->
+      <ng-container matColumnDef="createdAt">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Created At</th>
+        <td mat-cell *matCellDef="let user">
+          {{ user.createdAt | date: 'medium' }}
+        </td>
+      </ng-container>
+
+      <!-- Updated At Column -->
+      <ng-container matColumnDef="updatedAt">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Updated At</th>
+        <td mat-cell *matCellDef="let user">
+          {{ user.updatedAt | date: 'medium' }}
+        </td>
+      </ng-container>
+
+      <!-- Actions Column -->
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef class="!text-right !pr-4">
+          Actions
+        </th>
+        <td mat-cell *matCellDef="let user" class="text-right pr-2">
+          <button
+            mat-icon-button
+            color="primary"
+            (click)="openUserForm(user)"
+            matTooltip="Edit User"
+          >
+            <mat-icon>edit</mat-icon>
+          </button>
+          <button
+            mat-icon-button
+            color="warn"
+            (click)="deleteUser(user.id!)"
+            matTooltip="Delete User"
+          >
+            <mat-icon>delete</mat-icon>
+          </button>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr
+        mat-row
+        *matRowDef="let row; columns: displayedColumns"
+        class="hover:bg-blue-100 dark:hover:bg-gray-700 cursor-pointer"
+      ></tr>
+
+      <!-- Row shown when there is no matching data. -->
+      <tr class="mat-row" *matNoDataRow>
+        <td
+          class="mat-cell text-center py-4"
+          [attr.colspan]="displayedColumns.length"
+        >
+          No data matching the filter "{{ input.value }}" or no users found.
+        </td>
+      </tr>
+    </table>
+
+    <mat-paginator
+      [length]="totalUsers"
+      [pageSize]="limit"
+      [pageIndex]="currentPageIndex"
+      [pageSizeOptions]="[10, 25, 100]"
+      (page)="handlePageEvent($event)"
+      showFirstLastButtons
+      aria-label="Select page of users"
+      class="bg-gray-50"
+    >
+    </mat-paginator>
+  </div>
+</div>

@@ -1,3 +1,0 @@
-project_id_1
-project_id_2
-project_id_3

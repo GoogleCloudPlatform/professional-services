@@ -1,3 +1,0 @@
-custom.gkeRequireShieldedNodes:
-  rules:
-  - enforce: true

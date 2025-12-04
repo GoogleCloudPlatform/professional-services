@@ -1,0 +1,374 @@
+<!--
+ Copyright 2025 Google LLC
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+<div class="lg:container lg:mx-auto mb-8">
+  <div class="home-margin grid grid-cols-1">
+    <!-- Video Homepage -->
+    <ng-container *ngIf="isLoading; else videoOrGallery">
+      <div class="video-container">
+        <div class="w-full h-full flex justify-center items-center">
+          <mat-progress-spinner
+            color="primary"
+            mode="indeterminate"
+          ></mat-progress-spinner>
+        </div>
+      </div>
+    </ng-container>
+
+    <ng-template #videoOrGallery>
+      <ng-container *ngIf="activeVideoJob$ | async as job">
+        <div
+          *ngIf="job.status === JobStatus.PROCESSING"
+          class="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-black bg-opacity-70 rounded-xl"
+        >
+          <mat-progress-spinner
+            color="primary"
+            mode="indeterminate"
+            [diameter]="50"
+          ></mat-progress-spinner>
+          <p class="!mt-6 text-white text-lg">
+            Your video is being generated...
+          </p>
+          <p class="text-gray-400 text-sm">
+            This may take a few minutes. You can safely navigate away.
+          </p>
+        </div>
+
+        <div
+          *ngIf="job.status === JobStatus.FAILED && showErrorOverlay"
+          class="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-black bg-opacity-70 rounded-xl text-center p-4"
+        >
+          <mat-icon class="text-red-500 !w-16 !h-16 !text-6xl"
+            >error_outline</mat-icon
+          >
+          <p class="mt-4 text-white text-lg">Video Generation Failed</p>
+          <p class="text-gray-400 text-sm max-w-md">
+            {{ job.errorMessage || job.error_message }}
+          </p>
+          <button
+            mat-raised-button
+            color="primary"
+            (click)="closeErrorOverlay()"
+            class="mt-4"
+          >
+            Close
+          </button>
+        </div>
+
+        <!-- Video Gallery -->
+        <app-media-lightbox
+          *ngIf="job.status === JobStatus.COMPLETED"
+          [mediaItem]="job"
+          [initialIndex]="0"
+          [showSeeMoreInfoButton]="true"
+          (extendWithAiClicked)="handleExtendWithAi($event)"
+          (concatenateClicked)="handleConcatenate($event)"
+          style="max-height: 60vh"
+        ></app-media-lightbox>
+      </ng-container>
+
+      <ng-container
+        *ngIf="(activeVideoJob$ | async)?.status !== JobStatus.COMPLETED"
+      >
+        <div class="video-container">
+          <video
+            class="w-full rounded-xl"
+            oncanplay="this.play()"
+            onloadedmetadata="this.muted = true"
+            muted
+            playsinline
+            loop
+            autoplay
+          >
+            <source
+              src="assets/videos/generate-video-homepage-video.mp4"
+              type="video/mp4"
+            />
+          </video>
+          <div
+            class="top-[40%] md:top-[20%] lg:top-[30%] xl:top-[40%] absolute w-full text-center justify-center text-3xl md:text-6xl font-bold bg-gradient-to-r from-blue-500 via-violet-500 to-red-400 bg-clip-text text-transparent"
+          >
+            Generate Video Ads
+          </div>
+        </div>
+      </ng-container>
+    </ng-template>
+
+    <!-- Control Options (Legacy) -->
+    <div
+      class="control-options inline-flex justify-center items-start grid grid-cols-2 md:grid-cols-3 lg:flex gap-4 mt-8 place-items-center"
+    >
+
+      <div
+        matTooltip="Select Style"
+        class="cursor-pointer w-24 inline-flex flex-col justify-start items-center"
+      >
+        <button
+          mat-fab
+          [matMenuTriggerFor]="videoStylingMenu"
+          class="!w-16 !h-16 !shadow-none text-center justify-center text-stone-300 text-2xl"
+        >
+          <mat-icon>style</mat-icon>
+        </button>
+        <div class="text-center justify-center text-neutral-200 text-base mt-2">
+          {{ searchRequest.style ? searchRequest.style : 'Style' }}
+        </div>
+        <mat-menu #videoStylingMenu="matMenu">
+          <button
+            *ngFor="let style of videoStyles"
+            mat-menu-item
+            [ngClass]="{'menu-item-selected': searchRequest.style === style}"
+            (click)="selectVideoStyle(style)"
+          >
+            <span>{{ style }}</span>
+          </button>
+        </mat-menu>
+      </div>
+
+      <div
+        matTooltip="Select Color & Tone"
+        class="cursor-pointer w-24 inline-flex flex-col justify-start items-center"
+      >
+        <button
+          mat-fab
+          [matMenuTriggerFor]="colorMenu"
+          class="!w-16 !h-16 !shadow-none text-center justify-center text-stone-300 text-2xl"
+        >
+          <mat-icon>palette</mat-icon>
+        </button>
+        <div class="text-center justify-center text-neutral-200 text-base mt-2">
+          {{
+            searchRequest.colorAndTone
+              ? searchRequest.colorAndTone
+              : 'Color & Tone'
+          }}
+        </div>
+        <mat-menu #colorMenu="matMenu">
+          <button
+            *ngFor="let color of colorsAndTones"
+            mat-menu-item
+            [ngClass]="{
+              'menu-item-selected': searchRequest.colorAndTone === color,
+            }"
+            (click)="selectColor(color)"
+          >
+            <span>{{ color }}</span>
+          </button>
+        </mat-menu>
+      </div>
+      <div
+        matTooltip="Select Lighting"
+        class="cursor-pointer w-24 inline-flex flex-col justify-start items-center"
+      >
+        <button
+          mat-fab
+          [matMenuTriggerFor]="lightingMenu"
+          class="!w-16 !h-16 !shadow-none text-center justify-center text-stone-300 text-2xl"
+        >
+          <mat-icon svgIcon="lighting-icon"></mat-icon>
+        </button>
+        <div class="text-center justify-center text-neutral-200 text-base mt-2">
+          {{ searchRequest.lighting ? searchRequest.lighting : 'Lighting' }}
+        </div>
+        <mat-menu #lightingMenu="matMenu">
+          <button
+            *ngFor="let light of lightings"
+            mat-menu-item
+            [ngClass]="{'menu-item-selected': searchRequest.lighting === light}"
+            (click)="selectLighting(light)"
+          >
+            <span>{{ light }}</span>
+          </button>
+        </mat-menu>
+      </div>
+
+      <div
+        matTooltip="Select Video Duration"
+        class="cursor-pointer w-24 inline-flex flex-col justify-start items-center"
+      >
+        <button
+          mat-fab
+          [matMenuTriggerFor]="durationMenu"
+          class="!w-16 !h-16 !shadow-none text-center justify-center text-stone-300 text-2xl"
+        >
+          <mat-icon>timer</mat-icon>
+        </button>
+        <div class="text-center justify-center text-neutral-200 text-base mt-2">
+          {{ searchRequest.durationSeconds }}s
+        </div>
+        <mat-menu #durationMenu="matMenu">
+          <button
+            *ngFor="let duration of durationOptions"
+            mat-menu-item
+            [ngClass]="{
+              'menu-item-selected': searchRequest.durationSeconds === duration,
+            }"
+            (click)="selectDuration(duration)"
+          >
+            <span>{{ duration }}s</span>
+          </button>
+        </mat-menu>
+      </div>
+      <div
+        matTooltip="Select Composition"
+        class="cursor-pointer w-24 rounded-lg inline-flex flex-col justify-start items-center"
+      >
+        <button
+          mat-fab
+          [matMenuTriggerFor]="compositionMenu"
+          class="!w-16 !h-16 !shadow-none text-center justify-center text-stone-300 text-2xl"
+        >
+          <mat-icon>movie_edit</mat-icon>
+        </button>
+        <div class="text-center justify-center text-neutral-200 text-base mt-2">
+          {{
+            searchRequest.composition
+              ? searchRequest.composition
+              : 'Composition'
+          }}
+        </div>
+        <mat-menu #compositionMenu="matMenu">
+          <button
+            *ngFor="let comp of compositions"
+            mat-menu-item
+            [ngClass]="{
+              'menu-item-selected': searchRequest.composition === comp,
+            }"
+            (click)="selectComposition(comp)"
+          >
+            <span>{{ comp }}</span>
+          </button>
+        </mat-menu>
+      </div>
+
+      <div
+        [matTooltip]="
+          isAudioGenerationDisabled
+            ? 'Audio not supported for this model'
+            : 'Toggle Audio Generation'
+        "
+        class="cursor-pointer w-24 inline-flex flex-col justify-start items-center"
+      >
+        <button
+          mat-fab
+          (click)="toggleAudio()"
+          [disabled]="isAudioGenerationDisabled"
+          class="!w-16 !h-16 !shadow-none text-center justify-center text-stone-300 text-2xl"
+        >
+          <mat-icon>{{
+            searchRequest.generateAudio ? 'volume_up' : 'volume_off'
+          }}</mat-icon>
+        </button>
+        <div class="text-center justify-center text-neutral-200 text-base mt-2">
+          Audio {{ searchRequest.generateAudio ? 'On' : 'Off' }}
+        </div>
+      </div>
+
+      <div
+        matTooltip="Select Negative Phrases"
+        class="cursor-pointer w-36 inline-flex flex-col justify-start items-center"
+      >
+        <button
+          mat-fab
+          [matMenuTriggerFor]="negativePhrasesMenu"
+          class="!w-16 !h-16 !shadow-none text-center justify-center text-stone-300 text-2xl"
+        >
+          <mat-icon>block</mat-icon>
+        </button>
+        <div class="text-center justify-center text-neutral-200 text-base mt-2">
+          Negative Phrases ({{ negativePhrases.length }})
+        </div>
+        <mat-menu
+          #negativePhrasesMenu="matMenu"
+          class="negative-phrases-menu"
+        >
+          <div class="p-2" (click)="$event.stopPropagation()">
+            <mat-form-field class="w-full">
+              <mat-label>Things to avoid...</mat-label>
+              <mat-chip-grid #chipGrid aria-label="Enter negative phrases">
+                <mat-chip-row
+                  *ngFor="let phrase of negativePhrases"
+                  (removed)="removeNegativePhrase(phrase)"
+                  matTooltipPosition="below"
+                  class="negative-prompt-chips"
+                >
+                  {{ phrase }}
+                  <button
+                    matChipRemove
+                    [matTooltip]="'Remove ' + phrase"
+                  >
+                    <mat-icon>cancel</mat-icon>
+                  </button>
+                </mat-chip-row>
+              </mat-chip-grid>
+              <input
+                placeholder="New phrase..."
+                [matChipInputFor]="chipGrid"
+                (matChipInputTokenEnd)="addNegativePhrase($event)"
+              />
+            </mat-form-field>
+          </div>
+        </mat-menu>
+      </div>
+      <div
+        matTooltip="Enable Brand Guidelines"
+        class="cursor-pointer w-32 inline-flex flex-col justify-start items-center"
+      >
+        <mat-slide-toggle
+          [(ngModel)]="searchRequest.useBrandGuidelines"
+          (ngModelChange)="saveState()"
+          class="!w-16 !h-16 !shadow-none text-center !flex justify-center items-center text-stone-300"
+        >
+        </mat-slide-toggle>
+        <div class="text-center justify-center text-neutral-200 text-base mt-2">
+          Brand Guidelines
+        </div>
+      </div>
+    </div>
+
+    <!-- Prompt Generator -->
+    <div class="grid grid-cols-1 lg:grid-cols-4 gap-4 my-5">
+      <!-- Prompt Section -->
+      <div class="lg:col-span-4 flex flex-col justify-start items-center gap-4 w-full">
+        <app-flow-prompt-box class="w-full max-w-2xl block" [prompt]="searchRequest.prompt"
+          [aspectRatio]="selectedAspectRatio" [outputs]="searchRequest.numberOfMedia || 4" [mode]="currentMode"
+          [modes]="modes"
+          [aspectRatioOptions]="aspectRatioOptions"
+          [generationModels]="generationModels"
+          [isLoading]="isLoading"
+          [selectedGenerationModel]="selectedGenerationModel"
+          [image1Preview]="image1Preview"
+          [image2Preview]="image2Preview"
+          [referenceImages]="referenceImages"
+          [referenceImagesType]="referenceImagesType"
+          (promptChanged)="onPromptChanged($event)"
+          (aspectRatioChanged)="selectAspectRatio($event)"
+          (outputsChanged)="selectNumberOfVideos($event)"
+          (modeChanged)="onModeChanged($event)"
+          (generateClicked)="searchTerm()"
+          (rewriteClicked)="rewritePrompt()"
+          (modelSelected)="selectModel($event)"
+          (openImageSelector)="openImageSelector($event)"
+          (clearImage)="onClearImage($event)"
+          (openImageSelectorForReference)="openImageSelectorForReference()"
+          (onReferenceImageDrop)="onReferenceImageDrop($event)"
+          (clearReferenceImage)="onClearReferenceImage($event)"
+          (toggleReferenceImagesType)="referenceImagesType = $event ? 'STYLE' : 'ASSET'"
+        ></app-flow-prompt-box>
+      </div>
+
+    </div>
+  </div>
+</div>

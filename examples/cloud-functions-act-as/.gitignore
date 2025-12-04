@@ -1,7 +1,0 @@
-**/.DS_Store
-.tmp
-.terraform*
-terraform.*
-.pyenv
-terraform.tfvars
-.tf.output

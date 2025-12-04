@@ -1,3 +1,0 @@
-custom.firewallRestrictCacheSearchDatabasesPolicyRule:
-  rules:
-  - enforce: true

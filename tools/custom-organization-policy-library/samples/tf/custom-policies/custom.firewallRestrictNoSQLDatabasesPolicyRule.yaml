@@ -1,3 +1,0 @@
-custom.firewallRestrictNoSQLDatabasesPolicyRule:
-  rules:
-  - enforce: true

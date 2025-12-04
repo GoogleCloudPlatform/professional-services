@@ -1,3 +1,0 @@
-custom.networkDisableWeakSSLPolicy:
-  rules:
-  - enforce: true

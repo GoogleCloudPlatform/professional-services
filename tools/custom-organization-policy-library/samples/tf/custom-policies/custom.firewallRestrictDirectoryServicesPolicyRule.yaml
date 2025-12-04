@@ -1,3 +1,0 @@
-custom.firewallRestrictDirectoryServicesPolicyRule:
-  rules:
-  - enforce: true

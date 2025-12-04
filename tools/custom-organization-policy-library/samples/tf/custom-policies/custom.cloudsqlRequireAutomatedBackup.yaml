@@ -1,3 +1,0 @@
-custom.cloudsqlRequireAutomatedBackup:
-  rules:
-  - enforce: true

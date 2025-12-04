@@ -1,3 +1,0 @@
-custom.accesscontextmanagerDisableBridgePerimeters:
-  rules:
-  - enforce: true

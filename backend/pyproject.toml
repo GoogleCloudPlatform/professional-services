@@ -1,0 +1,68 @@
+[project]
+name = "creative-studio"
+version = "0.1.0"
+description = "GenMedia Creative Studio"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "gunicorn>=23.0.0",
+    "uvicorn>=0.37.0",
+    "fastapi>=0.118.0",
+    "fastapi-utilities==0.3.0",
+    "firebase-admin>=6.9.0",
+    "google-cloud-aiplatform>=1.119.0",
+    "google-genai>=1.52.0",
+    "mediapy>=1.2.4",
+    "numpy>=2.3.3",
+    "pandas>=2.3.3",
+    "shortuuid>=1.0.13",
+    "tenacity>=9.1.2",
+    "google-cloud-tasks>=2.0.0",
+    "google-cloud-logging>=3.0.0",
+    "google-cloud-speech>=2.0.0",
+    "google-cloud-discoveryengine>=0.13.12",
+    "google-cloud-iam>=2.0.0",
+    "python-multipart>=0.0.20",
+    "pydantic[email]>=2.11.10",
+    "pydantic-settings>=2.11.0",
+    "pypdf>=6.1.1",
+    "google-cloud-texttospeech>=2.33.0",
+    "google-cloud-storage>=3.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "ruff>=0.12.4",
+    "black>=25.1.0",
+    "pytest>=8.4.1",
+    "pytest-cov",
+    "pytest-watch",
+]
+
+[tool.ruff]
+# Python version (optional, defaults to auto-detect)
+# target-version = "py310"
+
+[tool.ruff.lint]
+# Enable Pyflakes ("F") and Pycodestyle ("E", "W") categories by default.
+# select = ["E", "F", "W", "I"]  # I for isort
+# Can be more specific or add more rules later
+# For example, to emulate Flake8:
+select = ["E", "F", "W", "C90", "I", "N", "D", "UP", "ANN", "S", "BLE", "A", "COM", "LOG", "PT", "Q", "RET", "SIM", "TID", "ARG", "PTH", "ERA", "PD", "PGH", "PIE", "PL", "TRY", "FLY", "NPY", "PERF", "RUF"]
+ignore = ["E501"] # Ignore line too long for now, can be addressed later
+
+[tool.ruff.format]
+# Use black-compatible formatting
+quote-style = "double"
+indent-style = "space"
+#skip-string-normalization = false
+line-ending = "auto"
+
+[tool.coverage.run]
+source = ["livecov"]
+
+[tool.pytest.ini_options]
+addopts = "--cov --cov-report=lcov:lcov.info --cov-report=term"
+
+[tool.isort]
+profile = "black"

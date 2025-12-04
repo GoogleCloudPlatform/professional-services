@@ -1,0 +1,299 @@
+/**
+ * Copyright 2025 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+.home-margin {
+  margin: 2rem 1rem 10rem 1rem;
+}
+
+.title-font {
+  font-size: 1.2rem;
+}
+
+.video-container {
+  height: 15vh;
+  overflow: hidden;
+  position: relative;
+  border-radius: 1rem;
+
+  video {
+    margin-top: -15%;
+  }
+}
+
+::ng-deep .mat-mdc-chip-action,
+::ng-deep .mat-mdc-chip-action-label {
+  overflow: hidden !important;
+  text-overflow: ellipsis;
+}
+
+.control-options mat-icon {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: visible;
+  transform: scale(1.5);
+}
+
+.menu-image-icon {
+  width: 24px;
+  height: 24px;
+  margin-right: 8px;
+}
+
+.drop-zone {
+  border: 2px dashed #666;
+  border-radius: 8px;
+  padding: 0.5rem;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition:
+    border-color 0.3s,
+    background-color 0.3s;
+  background-color: #333;
+
+  &:hover {
+    border-color: #007bff;
+    background-color: #444;
+  }
+
+  img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    border-radius: 6px;
+  }
+}
+
+.image-preview-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  .clear-button {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    background-color: rgba(0, 0, 0, 0.5);
+    color: white;
+    z-index: 10;
+  }
+}
+
+.drop-zone-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.menu-item-selected {
+  background: linear-gradient(to right, #3b82f6, #8b5cf6, #f87171);
+}
+
+.reference-images-container {
+  background-color: #27272a; // zinc-800
+  border-radius: 0.75rem;
+  padding: 1rem;
+  margin-bottom: 1rem; // Changed from margin-top
+  transition: all 0.3s ease;
+
+  &.disabled {
+    opacity: 0.6;
+    background-color: #18181b; // zinc-900
+    border: 1px solid #27272a; // zinc-800
+    cursor: not-allowed;
+  }
+
+  .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+
+    .section-title {
+      color: #e4e4e7; // zinc-200
+      font-weight: 600;
+      font-size: 0.875rem;
+    }
+
+    .section-subtitle {
+      color: #a1a1aa; // zinc-400
+      font-size: 0.75rem;
+    }
+  }
+
+  .reference-images-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(5.5rem, 1fr)); // Use grid for better filling
+    gap: 0.75rem;
+    justify-items: center; // Center items in grid cells
+  }
+
+  .reference-image-item {
+    position: relative;
+    width: 100%; // Fill grid cell
+    max-width: 6rem; // Limit max size
+    aspect-ratio: 1 / 1; // Keep square
+    border-radius: 0.5rem;
+    overflow: hidden;
+    border: 1px solid #3f3f46; // zinc-700
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .clear-btn {
+      position: absolute;
+      top: 0.25rem;
+      right: 0.25rem;
+      width: 1.5rem;
+      height: 1.5rem;
+      line-height: 1.5rem;
+      background-color: rgba(0, 0, 0, 0.6);
+      color: white;
+      padding: 0;
+      min-width: 0;
+
+      mat-icon {
+        font-size: 1rem;
+        width: 1rem;
+        height: 1rem;
+        line-height: 1rem;
+      }
+    }
+  }
+
+  .add-image-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%; // Fill grid cell
+    max-width: 6rem; // Limit max size
+    aspect-ratio: 1 / 1; // Keep square
+    border-radius: 0.5rem;
+    border: 2px dashed #52525b; // zinc-600
+    color: #a1a1aa; // zinc-400
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover {
+      border-color: #3b82f6; // blue-500
+      color: #3b82f6;
+      background-color: rgba(59, 130, 246, 0.1);
+    }
+
+    mat-icon {
+      font-size: 1.5rem;
+      width: 1.5rem;
+      height: 1.5rem;
+      margin-bottom: 0.25rem;
+    }
+
+    span {
+      font-size: 0.75rem;
+      font-weight: 500;
+    }
+  }
+
+  .reference-images-disabled-message {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+    color: #a1a1aa; // zinc-400
+    gap: 0.5rem;
+
+    mat-icon {
+      font-size: 2rem;
+      width: 2rem;
+      height: 2rem;
+      color: #52525b; // zinc-600
+    }
+
+    span {
+      font-size: 0.875rem;
+      font-weight: 500;
+      text-align: center;
+    }
+  }
+}
+// Small devices (landscape phones, 576px and up)
+@media (min-width: 375px) {
+  .title-font {
+    font-size: 1.4rem;
+  }
+}
+
+// Small devices (landscape phones, 576px and up)
+@media (min-width: 425px) {
+  .title-font {
+    font-size: 1.7rem;
+  }
+}
+
+// Small devices (landscape phones, 576px and up)
+@media (min-width: 576px) {
+  .title-font {
+    font-size: 1.5rem;
+  }
+}
+
+// Medium devices (tablets, 768px and up)
+@media (min-width: 768px) {
+  .video-container {
+    height: 45vh;
+  }
+}
+
+// Large devices (desktops, 992px and up)
+@media (min-width: 992px) {
+}
+
+// X-Large devices (large desktops, 1200px and up)
+@media (min-width: 1200px) {
+  .home-margin {
+    margin: 2rem auto 0 auto;
+  }
+
+  ::ng-deep .image-selector-dialog {
+    width: 70vw !important;
+    max-width: 70vw !important;
+  }
+}
+
+// XX-Large devices (larger desktops, 1400px and up)
+@media (min-width: 1400px) {
+}
+
+// 4K Displays (Ultra HD) (Projectors or Higher Resolution Screens, 2160px and up)
+@media screen and (min-width: 2160px) {
+  .video-container {
+    video {
+      margin-top: -10%;
+    }
+  }
+}

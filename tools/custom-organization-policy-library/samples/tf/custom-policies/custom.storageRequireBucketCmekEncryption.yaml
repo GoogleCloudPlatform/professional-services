@@ -1,3 +1,0 @@
-custom.storageRequireBucketCmekEncryption:
-  rules:
-  - enforce: true

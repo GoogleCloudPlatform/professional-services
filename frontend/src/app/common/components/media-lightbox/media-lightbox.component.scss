@@ -1,0 +1,350 @@
+/**
+ * Copyright 2025 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+:host {
+  display: block;
+  height: 100%;
+}
+
+.media-lightbox-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  gap: 1rem;
+}
+
+.main-media-container {
+  flex-grow: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #000;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  position: relative;
+
+  &.zoomable {
+    cursor: zoom-in;
+  }
+
+  .main-media {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+}
+
+.bottom-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.media-actions-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin: .5rem 0;
+}
+
+.action-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  background-color: #3a3a3a;
+  color: #f0f0f0;
+  border: 1px solid #555;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  transition:
+    background-color 0.2s,
+    border-color 0.2s;
+
+  &:hover {
+    background-color: #4a4a4a;
+    border-color: #777;
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    background-color: #555;
+    opacity: 0.7;
+  }
+
+  svg,
+  mat-icon {
+    width: 20px;
+    height: 20px;
+    font-size: 20px;
+  }
+}
+
+.thumbnails-container {
+  display: flex;
+  gap: 0.5rem;
+  margin-right: 1rem;
+
+  .thumbnail {
+    flex-shrink: 0;
+    width: 80px;
+    height: 80px;
+    cursor: pointer;
+    border: 2px solid transparent;
+    border-radius: 0.25rem;
+    overflow: hidden;
+    transition: border-color 0.2s ease-in-out;
+
+    &.audio-thumb {
+      background: rgba(255, 255, 255, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+
+      .audio-icon-wrapper {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          color: #ddd;
+
+          mat-icon { font-size: 20px; height: 20px; width: 20px; }
+          .track-num { font-size: 10px; font-weight: bold; margin-top: 2px;}
+      }
+
+      &.active {
+          border-color: #a0c4ff;
+          background: rgba(160, 196, 255, 0.2);
+          .audio-icon-wrapper { color: #a0c4ff; }
+      }
+    }
+
+    &.active {
+      border-color: #2d7cef; // or your theme's primary color
+    }
+
+    &:hover {
+      border-color: #d66a99;
+    }
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+  }
+}
+
+.share-menu-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1600; // Higher than photoswipe's z-index (1500)
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+}
+
+.share-menu {
+  background: #2c2c2c;
+  color: #fff;
+  border-radius: 8px;
+  padding: 1rem;
+  width: 320px;
+  max-width: 90%;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.4);
+
+  .share-menu-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #444;
+    padding-bottom: 0.75rem;
+    margin-bottom: 1rem;
+
+    h3 {
+      margin: 0;
+      font-size: 1.2rem;
+      font-weight: 500;
+    }
+
+    .close-button {
+      background: none;
+      border: none;
+      color: #aaa;
+      cursor: pointer;
+      line-height: 1;
+      padding: 0;
+      transition: color 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      &:hover {
+        color: #fff;
+      }
+    }
+  }
+
+  .share-menu-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+
+    a,
+    button {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 0.75rem;
+      border-radius: 4px;
+      text-decoration: none;
+      color: #fff;
+      background-color: #3f3f3f;
+      width: 100%;
+      border: none;
+      text-align: left;
+      cursor: pointer;
+      transition:
+        background-color 0.2s,
+        color 0.2s;
+
+      &:hover:not([disabled]) {
+        background-color: #555;
+        color: #fff;
+      }
+
+      &.share-facebook:hover {
+        background-color: #1877f2;
+      }
+      &.share-twitter:hover {
+        background-color: #000000;
+      }
+      &.share-pinterest:hover {
+        background-color: #e60023;
+      }
+      &.share-reddit:hover {
+        background-color: #ff4500;
+      }
+      &.share-whatsapp:hover {
+        background-color: #25d366;
+      }
+      &.share-linkedin:hover {
+        background-color: #0077b5;
+      }
+      &.share-telegram:hover {
+        background-color: #26a5e4;
+      }
+    }
+
+    li.coming-soon {
+      button[disabled] {
+        cursor: not-allowed;
+        opacity: 0.5;
+        justify-content: space-between;
+
+        .status {
+          font-style: italic;
+          color: #aaa;
+        }
+      }
+    }
+
+    svg,
+    mat-icon {
+      width: 24px;
+      height: 24px;
+      font-size: 24px;
+      flex-shrink: 0;
+    }
+
+    span {
+      font-weight: 500;
+    }
+  }
+
+  .share-menu-list li.coming-soon.youtube-highlight button {
+    background-color: #ff0000; /* YouTube Red */
+    color: #ffffff;
+    opacity: 1;
+  }
+}
+
+.menu-image-icon {
+  width: 24px;
+  height: 24px;
+}
+
+
+// --- AUDIO PLAYER STYLES (Imported from AudioComponent) ---
+.custom-audio-player {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 12px 30px;
+    border-radius: 50px; // Pill shape
+    width: 600px;
+    max-width: 90vw;
+
+    // Glassmorphism
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+
+    .play-btn {
+        color: white;
+        transform: scale(1.1);
+        transition: transform 0.2s, color 0.2s;
+        padding: 0;
+
+        &:hover {
+            transform: scale(1.2);
+            color: #a0c4ff;
+        }
+        mat-icon {
+            width: 40px; height: 40px; font-size: 40px;
+        }
+    }
+
+    .time-text {
+        color: rgba(255, 255, 255, 0.9);
+        font-family: 'Roboto Mono', monospace;
+        font-size: 0.9rem;
+        min-width: 45px;
+        text-align: center;
+    }
+
+    .custom-slider {
+        flex: 1;
+        ::ng-deep {
+            .mdc-slider__track--active_fill { border-color: white !important; }
+            .mdc-slider__track--inactive { background-color: rgba(255, 255, 255, 0.3) !important; }
+            .mdc-slider__thumb-knob { background-color: white !important; border-color: white !important; }
+        }
+    }
+}

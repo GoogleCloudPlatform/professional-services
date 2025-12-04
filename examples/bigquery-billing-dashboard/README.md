@@ -1,2 +1,0 @@
-# BigQuery Billing Dashboard
-This example shows you how to build a dashboard using Data Studio for visualization and a SQL script to query the Google Cloud billing export data source. The dashboard displays the up-to-date billing graphs throughout the day, and allows you to use labels to slice and dice your GCP bill the way you want. For details [see here] (https://cloud.google.com/billing/docs/how-to/visualize-data).

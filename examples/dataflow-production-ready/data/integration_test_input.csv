@@ -1,4 +1,0 @@
-source_address;source_city;target_address;target_city
-street 1; city 1; road 2; city 2
-street 1; city 1; street 1; city 1
-rejected row

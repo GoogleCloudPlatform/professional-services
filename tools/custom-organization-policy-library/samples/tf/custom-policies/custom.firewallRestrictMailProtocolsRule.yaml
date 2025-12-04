@@ -1,3 +1,0 @@
-custom.firewallRestrictMailProtocolsRule:
-  rules:
-  - enforce: true

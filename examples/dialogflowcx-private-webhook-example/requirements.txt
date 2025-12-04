@@ -1,4 +1,0 @@
-fastapi[all]
-pydantic
-pytest
-uvicorn

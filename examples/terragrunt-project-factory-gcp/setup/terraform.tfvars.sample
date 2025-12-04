@@ -1,5 +1,0 @@
-
-billing_account   = "000001-000001-0000001"
-org_id            = "organizations/00000001"
-state_bucket_name = "terragrunt-iac-core-bkt"
-default_region    = "us-central1"

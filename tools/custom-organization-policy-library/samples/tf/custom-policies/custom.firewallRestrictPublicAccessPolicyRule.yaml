@@ -1,3 +1,0 @@
-custom.firewallRestrictPublicAccessPolicyRule:
-  rules:
-  - enforce: true

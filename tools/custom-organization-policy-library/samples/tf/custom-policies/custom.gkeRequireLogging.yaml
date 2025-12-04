@@ -1,3 +1,0 @@
-custom.gkeRequireLogging:
-  rules:
-  - enforce: true

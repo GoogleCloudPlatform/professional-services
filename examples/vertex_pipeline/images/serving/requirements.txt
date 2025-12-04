@@ -1,5 +1,0 @@
-flask==2.0.1
-lightgbm==3.2.1
-gcsfs==2021.6.1
-pandas==1.1.5
-google-cloud-storage==1.39.0

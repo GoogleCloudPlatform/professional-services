@@ -1,3 +1,0 @@
-custom.cloudkmsAllowedRotationPeriod:
-  rules:
-  - enforce: true

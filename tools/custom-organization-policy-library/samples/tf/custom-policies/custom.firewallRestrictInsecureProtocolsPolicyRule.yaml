@@ -1,3 +1,0 @@
-custom.firewallRestrictInsecureProtocolsPolicyRule:
-  rules:
-  - enforce: true

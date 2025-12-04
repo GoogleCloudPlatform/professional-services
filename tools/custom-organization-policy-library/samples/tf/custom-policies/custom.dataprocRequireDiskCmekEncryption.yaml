@@ -1,3 +1,0 @@
-custom.dataprocRequireDiskCmekEncryption:
-  rules:
-  - enforce: true

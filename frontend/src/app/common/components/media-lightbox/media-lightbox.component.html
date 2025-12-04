@@ -1,0 +1,234 @@
+<!--
+ Copyright 2025 Google LLC
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+<div *ngIf="mediaItem" class="media-lightbox-container">
+
+  <div
+    class="main-media-container"
+    [ngClass]="[
+      aspectRatioClass,
+      (!isVideo && !isAudio) ? 'zoomable' : '',
+      isAudio ? '!bg-transparent !shadow-none !h-auto' : ''
+    ]"
+    (click)="(!isVideo && !isAudio) && openPhotoSwipe(selectedIndex)"
+  >
+    <ng-container *ngIf="!isVideo && !isAudio && selectedUrl">
+      <img
+        [ngSrc]="selectedUrl"
+        [alt]="mediaItem.originalPrompt"
+        [width]="imageWidth"
+        [height]="imageHeight"
+        priority
+        class="main-media"
+      />
+    </ng-container>
+
+    <ng-container *ngIf="isVideo && selectedUrl">
+      <video
+        [src]="selectedUrl"
+        [poster]="posterUrl"
+        class="main-media"
+        controls
+        muted
+      ></video>
+    </ng-container>
+
+    <ng-container *ngIf="isAudio && selectedUrl">
+        <div class="custom-audio-player glass-effect">
+            <audio #audioPlayer
+                   [src]="selectedUrl"
+                   (timeupdate)="onTimeUpdate()"
+                   (loadedmetadata)="onAudioLoaded()"
+                   (ended)="onAudioEnded()"
+                   hidden>
+            </audio>
+
+            <button mat-icon-button class="play-btn" (click)="togglePlay()">
+                <mat-icon class="!w-10 !h-10 !text-[40px] leading-[40px]">
+                    {{ isPlaying ? 'pause_circle' : 'play_circle' }}
+                </mat-icon>
+            </button>
+
+            <span class="time-text">{{ currentTime }}</span>
+
+            <mat-slider class="custom-slider" min="0" max="100" step="0.1">
+                <input matSliderThumb [value]="progressValue" (valueChange)="seek($event)">
+            </mat-slider>
+
+            <span class="time-text">{{ duration }}</span>
+        </div>
+    </ng-container>
+  </div>
+
+  <!-- Bottom Controls: Thumbnails and Actions -->
+  <div
+    *ngIf="mediaItem.presignedUrls && mediaItem.presignedUrls.length >= 1"
+    class="bottom-controls"
+  >
+    <!-- Thumbnails on the left -->
+    <div class="thumbnails-container">
+      <div
+        *ngFor="
+          let url of mediaItem.presignedThumbnailUrls?.length
+            ? mediaItem.presignedThumbnailUrls
+            : mediaItem.presignedUrls;
+          let i = index
+        "
+        class="thumbnail"
+        [class.active]="i === selectedIndex"
+        [class.audio-thumb]="isAudio"
+        (click)="selectMedia(i)"
+        [matTooltip]="isAudio ? 'Track ' + (i + 1) : ''"
+      >
+        <img *ngIf="!isAudio" [src]="url" [alt]="'Thumbnail ' + (i + 1)" />
+
+        <div *ngIf="isAudio" class="audio-icon-wrapper">
+            <mat-icon>graphic_eq</mat-icon>
+            <span class="track-num">{{ i + 1 }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Actions Toolbar on the right -->
+    <div class="media-actions-toolbar" *ngIf="mediaItem">
+
+      <button
+        *ngIf="showEditButton && !isAudio"
+        type="button"
+        class="action-button"
+        (click)="onEditClick()"
+        title="Edit this media"
+      >
+        <img
+          src="assets/images/banana-peel.png"
+          class="menu-image-icon"
+          alt="model icon"
+        />
+        <span>Edit</span>
+      </button>
+
+      <button
+        *ngIf="showGenerateVideoButton && !isVideo && !isAudio"
+        class="action-button"
+        [matMenuTriggerFor]="videoMenu"
+        title="Generate video"
+      >
+        <mat-icon>videocam</mat-icon>
+        <span>Generate Video</span>
+      </button>
+      <mat-menu #videoMenu="matMenu">
+        <button mat-menu-item (click)="onGenerateVideoClick('start')">
+          Use as Start Image
+        </button>
+        <button mat-menu-item (click)="onGenerateVideoClick('end')">
+          Use as End Image
+        </button>
+      </mat-menu>
+
+      <button
+        *ngIf="showVtoButton && !isAudio"
+        type="button"
+        class="action-button"
+        (click)="onSendToVtoClick()"
+        title="Virtual Try-On"
+      >
+        <mat-icon>checkroom</mat-icon>
+        <span>VTO Edit</span>
+      </button>
+
+      <button
+        *ngIf="showShareButton"
+        type="button"
+        class="action-button"
+        (click)="toggleShareMenu()"
+        title="Share"
+      >
+        <mat-icon>share</mat-icon>
+        <span>Share</span>
+      </button>
+
+      <button
+        *ngIf="showDownloadButton"
+        type="button"
+        class="action-button"
+        (click)="openInNewTab()"
+        title="Download"
+        [disabled]="isDownloading"
+      >
+        <mat-spinner *ngIf="isDownloading" [diameter]="20"></mat-spinner>
+        <mat-icon *ngIf="!isDownloading">download</mat-icon>
+        <span *ngIf="!isDownloading">Download</span>
+        <span *ngIf="isDownloading">Opening...</span>
+      </button>
+
+      <button
+        *ngIf="showSeeMoreInfoButton"
+        type="button"
+        class="action-button"
+        (click)="seeMoreInfo()"
+        title="See more info"
+      >
+        <mat-icon>info_outline</mat-icon>
+        <span>See more info</span>
+      </button>
+    </div>
+
+    <button
+      *ngIf="isVideo"
+      type="button"
+      class="action-button"
+      (click)="onExtendWithAiClick()"
+      title="Extend with AI"
+    >
+      <mat-icon>auto_awesome</mat-icon>
+      <span>Extend with AI</span>
+    </button>
+    <button
+      *ngIf="isVideo"
+      type="button"
+      class="action-button"
+      (click)="onConcatenateClick()"
+      title="Concatenate Video"
+    >
+      <mat-icon>add_to_photos</mat-icon>
+      <span>Concatenate Video</span>
+    </button>
+  </div>
+</div>
+
+<!-- Share Menu -->
+<div
+  *ngIf="isShareMenuOpen"
+  class="share-menu-overlay"
+  (click)="toggleShareMenu()"
+>
+  <div class="share-menu" (click)="$event.stopPropagation()">
+    <div class="share-menu-header">
+      <h3>Share</h3>
+      <button class="close-button" (click)="toggleShareMenu()">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+    <ul class="share-menu-list">
+       <li>
+        <button (click)="copyLink()">
+          <mat-icon>link</mat-icon>
+          <span>Copy Link</span>
+        </button>
+      </li>
+    </ul>
+  </div>
+</div>

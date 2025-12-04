@@ -1,3 +1,0 @@
-sqlparse
-pandas
-google-cloud-storage

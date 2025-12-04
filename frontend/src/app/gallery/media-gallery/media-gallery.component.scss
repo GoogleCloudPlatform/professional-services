@@ -1,0 +1,116 @@
+/*
+ * Copyright 2025 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+.home-margin {
+  margin: 2rem 1rem 10rem 1rem;
+}
+
+.video-container {
+  height: 15vh;
+  overflow: hidden;
+  position: relative;
+  border-radius: 1rem;
+
+  video {
+    margin-top: -15%;
+  }
+}
+
+::ng-deep .mdc-label {
+  color: white !important;
+}
+
+// --- NEW STYLES FOR AUDIO CARDS ---
+.audio-card-preview {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #2a2a2e; // Dark card background
+  cursor: pointer;
+  transition: background-color 0.3s;
+
+  mat-icon {
+    font-size: 80px; // Large icon
+    width: 80px;
+    height: 80px;
+    color: rgba(255, 255, 255, 0.4);
+    transition: color 0.3s;
+  }
+
+  // Add animation for the playing state
+  .playing-icon {
+    color: #a0c4ff; // Light blue to indicate active state
+    animation: pulse-audio 1.5s infinite ease-in-out;
+  }
+}
+
+@keyframes pulse-audio {
+  0% { transform: scale(1); opacity: 0.8; }
+  50% { transform: scale(1.2); opacity: 1; }
+  100% { transform: scale(1); opacity: 0.8; }
+}
+
+// Style the hover effect on the parent 'group'
+.group:hover .audio-card-preview {
+  background-color: #38383e;
+
+  mat-icon {
+    color: rgba(255, 255, 255, 0.6);
+  }
+}
+
+// Small devices (landscape phones, 576px and up)
+@media (min-width: 576px) {
+}
+
+// Medium devices (tablets, 768px and up)
+@media (min-width: 768px) {
+  .video-container {
+    height: 25vh;
+  }
+}
+
+// Large devices (desktops, 992px and up)
+@media (min-width: 992px) {
+}
+
+// X-Large devices (large desktops, 1200px and up)
+@media (min-width: 1200px) {
+  .home-margin {
+    margin: 2rem auto;
+  }
+}
+
+// XX-Large devices (larger desktops, 1400px and up)
+@media (min-width: 1400px) {
+}
+
+// 4K Displays (Ultra HD) (Projectors or Higher Resolution Screens, 2160px and up)
+@media screen and (min-width: 2160px) {
+  .video-container {
+    video {
+      margin-top: -10%;
+    }
+  }
+}

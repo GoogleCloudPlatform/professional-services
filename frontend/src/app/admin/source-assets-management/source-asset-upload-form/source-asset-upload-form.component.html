@@ -1,0 +1,81 @@
+<!--
+ Copyright 2025 Google LLC
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+<h1 mat-dialog-title>Create New Source Asset</h1>
+<div mat-dialog-content>
+  <form [formGroup]="form" class="flex flex-col gap-4 pt-3">
+    <div>
+      <button type="button" mat-stroked-button (click)="fileInput.click()">
+        <mat-icon>attach_file</mat-icon>
+        Choose File
+      </button>
+      <input
+        hidden
+        #fileInput
+        type="file"
+        (change)="onFileSelected($event)"
+        accept="image/*,video/*"
+      />
+      <span class="ml-4" *ngIf="fileName">{{ fileName }}</span>
+      <mat-error
+        *ngIf="
+          form.get('file')?.hasError('required') && form.get('file')?.touched
+        "
+      >
+        A file is required.
+      </mat-error>
+    </div>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Scope</mat-label>
+      <mat-select formControlName="scope" required>
+        <mat-option *ngFor="let scope of assetScopes" [value]="scope">{{
+          scope | titlecase
+        }}</mat-option>
+      </mat-select>
+      <mat-error *ngIf="form.get('scope')?.hasError('required')"
+        >Scope is required</mat-error
+      >
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Asset Type</mat-label>
+      <mat-select formControlName="assetType" required>
+        <mat-option *ngFor="let type of assetTypes" [value]="type">{{
+          type | titlecase
+        }}</mat-option>
+      </mat-select>
+      <mat-error *ngIf="form.get('assetType')?.hasError('required')"
+        >Asset Type is required</mat-error
+      >
+    </mat-form-field>
+  </form>
+</div>
+<mat-dialog-actions align="end">
+  <button mat-button (click)="onCancel()" [disabled]="isUploading">
+    Cancel
+  </button>
+  <button
+    mat-raised-button
+    color="primary"
+    (click)="onUpload()"
+    [disabled]="!form.valid || isUploading"
+  >
+    <mat-spinner *ngIf="isUploading" [diameter]="20" class="mr-2"></mat-spinner>
+
+    <span *ngIf="!isUploading">Upload</span>
+  </button>
+</mat-dialog-actions>

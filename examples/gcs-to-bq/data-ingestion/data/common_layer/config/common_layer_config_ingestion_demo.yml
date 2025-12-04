@@ -1,7 +1,0 @@
-feeds:
-- name: gcs_to_bq
-  source_config:
-    source_objects_prefix: "ingestion_"
-    source_format: "CSV"
-  destination_config:
-    table_name: "gcs_to_bq"

@@ -1,2 +1,0 @@
-google-cloud-secret-manager==2.5.0
-google-api-python-client

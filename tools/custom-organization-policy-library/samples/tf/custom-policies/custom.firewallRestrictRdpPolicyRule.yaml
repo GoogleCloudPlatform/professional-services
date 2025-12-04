@@ -1,3 +1,0 @@
-custom.firewallRestrictRdpPolicyRule:
-  rules:
-  - enforce: true

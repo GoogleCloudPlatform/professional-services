@@ -1,0 +1,45 @@
+<!--
+ Copyright 2025 Google LLC
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+<h1 mat-dialog-title>Invite to {{ data.workspaceName }}</h1>
+<form [formGroup]="inviteForm" (ngSubmit)="dialogRef.close(inviteForm.value)">
+  <div mat-dialog-content class="flex flex-col gap-4">
+    <mat-form-field appearance="fill">
+      <mat-label>Email</mat-label>
+      <input matInput formControlName="email" type="email" cdkFocusInitial />
+      <mat-error *ngIf="inviteForm.get('email')?.hasError('required')"
+        >Email is required</mat-error
+      >
+      <mat-error *ngIf="inviteForm.get('email')?.hasError('email')"
+        >Please enter a valid email</mat-error
+      >
+    </mat-form-field>
+    <mat-form-field appearance="fill">
+      <mat-label>Role</mat-label>
+      <mat-select formControlName="role">
+        <mat-option *ngFor="let role of roles" [value]="role">{{
+          role | titlecase
+        }}</mat-option>
+      </mat-select>
+    </mat-form-field>
+  </div>
+  <div mat-dialog-actions>
+    <button mat-button type="button" (click)="onNoClick()">Cancel</button>
+    <button mat-button type="submit" [disabled]="inviteForm.invalid">
+      Send Invitation
+    </button>
+  </div>
+</form>

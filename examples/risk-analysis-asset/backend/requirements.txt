@@ -1,6 +1,0 @@
-Flask
-google-cloud-firestore
-flask-cors
-python-dotenv 
-google-auth
-Werkzeug==2.2.2
