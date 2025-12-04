@@ -12,7 +12,7 @@ custom.iamDisableBasicRoles:
   description: Ensure no use of the basic roles (viewer, editor and owner)
   display_name: Deny use of the basic roles
   method_types:
-  - CREATE
-  - UPDATE
+    - CREATE
+    - UPDATE
   resource_types:
-  - iam.googleapis.com/AllowPolicy
+    - iam.googleapis.com/AllowPolicy

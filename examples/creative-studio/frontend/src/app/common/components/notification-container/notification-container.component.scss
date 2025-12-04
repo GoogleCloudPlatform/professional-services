@@ -37,6 +37,11 @@
   }
 }
 
+::ng-deep .toast-container {
+  .mat-icon {
+    overflow: visible;
+  }
+}
 @keyframes slideIn {
   from {
     transform: translateX(100%);

@@ -6,3 +6,5 @@
 */**/terraform.tfstate*
 terraform/
 scripts/summary.csv
+tests/venv/
+tests/report.html

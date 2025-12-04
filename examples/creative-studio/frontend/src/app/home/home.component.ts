@@ -52,7 +52,8 @@ import {
 import { SearchService } from '../services/search/search.service';
 import { WorkspaceStateService } from '../services/workspace/workspace-state.service';
 import { ImageStateService } from '../services/image-state.service';
-import { handleErrorSnackbar, handleSuccessSnackbar } from '../utils/handleMessageSnackbar';
+import { handleErrorSnackbar, handleSuccessSnackbar, handleInfoSnackbar } from '../utils/handleMessageSnackbar';
+import { MODEL_CONFIGS, GenerationModelConfig } from '../common/config/model-config';
 
 @Component({
   selector: 'app-home',
@@ -96,52 +97,17 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     resolution: '4K',
   };
 
+  modes = [
+    { value: 'Text to Image', icon: 'description', label: 'Text to Image' },
+    { value: 'Ingredients to Image', icon: 'layers', label: 'Ingredients to Image' }
+  ];
+  currentMode = 'Text to Image';
+
   // --- Negative Prompt Chips ---
   negativePhrases: string[] = [];
 
   // --- Dropdown Options ---
-  generationModels = [
-    {
-      value: 'gemini-3-pro-image-preview',
-      viewValue: 'Nano Banana Pro',
-      isImage: true,
-      imageSrc: 'assets/images/banana-peel.png',
-    },
-    {
-      value: 'gemini-2.5-flash-image-preview',
-      viewValue: 'Nano Banana',
-      isImage: true,
-      imageSrc: 'assets/images/banana-peel.png',
-    },
-    {
-      value: 'imagen-4.0-generate-001',
-      viewValue: 'Imagen 4', // Keeping gemini-spark-icon for Imagen
-      icon: 'gemini-spark-icon',
-      isSvg: true,
-    },
-    {
-      value: 'imagen-4.0-ultra-generate-001',
-      viewValue: 'Imagen 4 Ultra', // Keeping gemini-spark-icon for Imagen
-      icon: 'gemini-spark-icon',
-      isSvg: true,
-    },
-    {
-      value: 'imagen-4.0-fast-generate-001',
-      viewValue: 'Imagen 4 Fast', // Keeping gemini-spark-icon for Imagen
-      icon: 'gemini-spark-icon',
-      isSvg: true,
-    },
-    {
-      value: 'imagen-3.0-generate-002',
-      viewValue: 'Imagen 3',
-      icon: 'auto_awesome',
-    },
-    {
-      value: 'imagen-3.0-fast-generate-001',
-      viewValue: 'Imagen 3 Fast',
-      icon: 'auto_awesome',
-    },
-  ];
+  generationModels: GenerationModelConfig[] = MODEL_CONFIGS.filter(m => m.type === 'IMAGE');
   selectedGenerationModelObject = this.generationModels[0];
   selectedGenerationModel = this.generationModels[0].viewValue;
   aspectRatioOptions: {
@@ -380,8 +346,42 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     if (typeof window !== 'undefined')
       window.addEventListener('mousemove', this.onMouseMove);
 
-    // Load persisted state
-    this.restoreState();
+    // Restore state from service
+    this.imageStateService.state$.subscribe(state => {
+      this.searchRequest.prompt = state.prompt;
+      this.searchRequest.negativePrompt = state.negativePrompt;
+      this.searchRequest.aspectRatio = state.aspectRatio;
+      this.searchRequest.generationModel = state.model;
+      this.searchRequest.lighting = state.lighting;
+      this.searchRequest.addWatermark = state.watermark;
+      this.searchRequest.googleSearch = state.googleSearch;
+      this.searchRequest.resolution = state.resolution as '4K' | '1K' | '2K' | undefined;
+      this.searchRequest.style = state.style;
+      this.searchRequest.colorAndTone = state.colorAndTone;
+      this.searchRequest.numberOfMedia = state.numberOfMedia;
+      this.searchRequest.composition = state.composition;
+      this.searchRequest.useBrandGuidelines = state.useBrandGuidelines;
+      this.currentMode = state.mode;
+
+      // Update local variables to reflect state
+      this.selectedGenerationModel = this.generationModels.find(
+        m => m.value === state.model
+      )?.viewValue || this.generationModels[0].viewValue;
+      
+      this.selectedGenerationModelObject = this.generationModels.find(
+        m => m.value === state.model
+      ) || this.generationModels[0];
+
+      this.selectedAspectRatio = this.aspectRatioOptions.find(
+        r => r.value === state.aspectRatio
+      )?.viewValue || '1:1 \n Square';
+
+      this.selectedWatermark = this.watermarkOptions.find(
+        o => o.value === state.watermark
+      )?.viewValue || 'No';
+      
+      this.service.imagePrompt = state.prompt;
+    });
   }
 
   public saveState() {
@@ -390,15 +390,16 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       negativePrompt: this.searchRequest.negativePrompt || '',
       aspectRatio: this.searchRequest.aspectRatio,
       model: this.searchRequest.generationModel,
-      lighting: this.searchRequest.lighting,
+      lighting: this.searchRequest.lighting || null,
       watermark: this.searchRequest.addWatermark,
       googleSearch: this.searchRequest.googleSearch,
       resolution: this.searchRequest.resolution,
-      style: this.searchRequest.style,
-      colorAndTone: this.searchRequest.colorAndTone,
+      style: this.searchRequest.style || null,
+      colorAndTone: this.searchRequest.colorAndTone || null,
       numberOfMedia: this.searchRequest.numberOfMedia,
-      composition: this.searchRequest.composition,
+      composition: this.searchRequest.composition || null,
       useBrandGuidelines: this.searchRequest.useBrandGuidelines,
+      mode: this.currentMode
     });
   }
 
@@ -444,38 +445,19 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
-  private applyModelSettings(model: any) {
-    if (model.value === 'gemini-3-pro-image-preview') {
-      // Enable all aspect ratios for Gemini 3 Pro
-      this.aspectRatioOptions.forEach(r => (r.disabled = false));
-    } else if (model.value === 'gemini-2.5-flash-image-preview') {
-      // Nano Banana only supports 1:1 aspect ratio for now.
-      const oneToOneRatio = this.aspectRatioOptions.find(
-        r => r.value === '1:1',
-      );
-      if (oneToOneRatio) {
-        // Only set if not already set by restoreState or if invalid
-        if (this.searchRequest.aspectRatio !== '1:1') {
-          this.selectAspectRatio(oneToOneRatio);
-        }
-      }
-      // Disable other aspect ratios
-      this.aspectRatioOptions.forEach(r => {
-        r.disabled = r.value !== '1:1';
-      });
-    } else {
-      // Imagen models support standard aspect ratios
-      const imagenRatios = ['1:1', '16:9', '9:16', '3:4', '4:3'];
-      this.aspectRatioOptions.forEach(r => {
-        r.disabled = !imagenRatios.includes(r.value);
-      });
-      if (!imagenRatios.includes(this.searchRequest.aspectRatio)) {
-        const oneToOneRatio = this.aspectRatioOptions.find(
-          r => r.value === '1:1',
-        );
-        if (oneToOneRatio) {
-          this.selectAspectRatio(oneToOneRatio);
-        }
+  private applyModelSettings(model: GenerationModelConfig) {
+    const capabilities = model.capabilities;
+
+    // Enable/Disable aspect ratios based on capabilities
+    this.aspectRatioOptions.forEach(r => {
+      r.disabled = !capabilities.supportedAspectRatios.includes(r.value);
+    });
+
+    // If current aspect ratio is not supported, switch to the first supported one (usually 1:1)
+    if (!capabilities.supportedAspectRatios.includes(this.searchRequest.aspectRatio)) {
+      const firstSupported = this.aspectRatioOptions.find(r => !r.disabled);
+      if (firstSupported) {
+        this.selectAspectRatio(firstSupported);
       }
     }
   }
@@ -559,24 +541,24 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
-  selectModel(model: any): void {
+  selectModel(model: GenerationModelConfig): void {
     this.searchRequest.generationModel = model.value;
     this.selectedGenerationModel = model.viewValue;
     this.selectedGenerationModelObject = model;
     this.applyModelSettings(model);
 
-    if (model.value !== 'gemini-3-pro-image-preview') {
-      // Enforce image limit (max 2 for non-Gemini 3 Pro models)
-      if (this.referenceImages.length > 2) {
-        this.referenceImages = this.referenceImages.slice(0, 2);
-      }
-      // Clear images for Imagen 4 as it doesn't support them
-      if (model.value.startsWith('imagen-4')) {
-        this.referenceImages = [];
-      }
-      // Reset Google Search for non-Gemini 3 Pro models
+    const capabilities = model.capabilities;
+
+    // Enforce reference image limits
+    if (this.referenceImages.length > capabilities.maxReferenceImages) {
+      this.referenceImages = this.referenceImages.slice(0, capabilities.maxReferenceImages);
+    }
+
+    // Reset Google Search if not supported
+    if (!capabilities.supportsGoogleSearch) {
       this.searchRequest.googleSearch = false;
     }
+
     this.saveState();
   }
 
@@ -584,6 +566,52 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     this.searchRequest.aspectRatio = ratio.value;
     this.selectedAspectRatio = ratio.viewValue;
     this.saveState();
+  }
+
+  onAspectRatioChanged(ratio: string) {
+    const option = this.aspectRatioOptions.find(r => r.value === ratio);
+    if (option) {
+      this.selectAspectRatio(option);
+    }
+  }
+
+  onOutputsChanged(count: number) {
+    this.selectNumberOfImages(count);
+  }
+
+  onClearReferenceImage(data: {index: number, event: Event}) {
+    this.clearImage(data.index, data.event as MouseEvent);
+  }
+
+  onReferenceImageDrop(event: DragEvent) {
+    this.onDrop(event);
+  }
+
+  onPromptChanged(prompt: string) {
+    this.searchRequest.prompt = prompt;
+    this.service.imagePrompt = prompt;
+    this.saveState();
+  }
+
+  onModeChanged(mode: string) {
+    this.currentMode = mode;
+    this.saveState();
+  }
+
+  onModelSelected(model: any) {
+    this.selectModel(model);
+  }
+
+  onGenerateClicked() {
+    this.searchTerm();
+  }
+
+  onRewriteClicked() {
+    this.rewritePrompt();
+  }
+
+  onOpenImageSelectorForReference() {
+    this.openImageSelector();
   }
 
   selectImageStyle(style: string): void {
@@ -680,10 +708,15 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     const payload: ImagenRequest = {
       ...this.searchRequest,
       negativePrompt: this.negativePhrases.join(', '),
-      sourceMediaItems: validSourceMediaItems.length
-        ? validSourceMediaItems
-        : undefined,
-      sourceAssetIds: sourceAssetIds.length ? sourceAssetIds : undefined,
+      sourceMediaItems:
+        this.currentMode === 'Ingredients to Image' &&
+        validSourceMediaItems.length
+          ? validSourceMediaItems
+          : undefined,
+      sourceAssetIds:
+        this.currentMode === 'Ingredients to Image' && sourceAssetIds.length
+          ? sourceAssetIds
+          : undefined,
       workspaceId: activeWorkspaceId ?? undefined,
     };
 
@@ -773,6 +806,16 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     const imageUrl = this.imagenDocuments.presignedUrls[index];
     const mediaItemId = this.imagenDocuments.id;
 
+    // Check if we reached the limit
+    if (this.referenceImages.length >= this.selectedGenerationModelObject.capabilities.maxReferenceImages) {
+      handleInfoSnackbar(this._snackBar, `You can only add up to ${this.selectedGenerationModelObject.capabilities.maxReferenceImages} reference images for this model.`);
+      return;
+    }
+
+    // Switch to Ingredients to Image mode
+    this.currentMode = 'Ingredients to Image';
+    this.saveState();
+
     // Add to reference images
     const refImage: ReferenceImage = {
       previewUrl: imageUrl,
@@ -828,6 +871,12 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     this.selectedAspectRatio =
       this.aspectRatioOptions.find(r => r.value === state.aspectRatio)
         ?.viewValue || this.aspectRatioOptions[0].viewValue;
+
+    // Switch to Ingredients to Image mode if we have reference images
+    if (this.referenceImages.length > 0) {
+      this.currentMode = 'Ingredients to Image';
+      this.saveState();
+    }
   }
 
   private onMouseMove = (event: MouseEvent) => {
@@ -980,13 +1029,14 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
         remixState: {
           modelImageAssetId: this.imagenDocuments.id,
           modelImagePreviewUrl: this.imagenDocuments.presignedUrls?.[index],
-          modelImageGcsUri: this.imagenDocuments.gcsUris?.[index],
           modelImageMediaIndex: index,
+          modelImageGcsUri: this.imagenDocuments.gcsUris?.[index],
         },
       },
     };
     this.router.navigate(['/vto'], navigationExtras);
   }
+
 
   private applySourceAssets(sourceAssets: EnrichedSourceAsset[]): void {
     if (!sourceAssets || sourceAssets.length === 0) {

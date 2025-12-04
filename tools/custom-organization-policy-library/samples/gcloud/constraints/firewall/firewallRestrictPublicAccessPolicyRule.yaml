@@ -1,6 +1,6 @@
 name: organizations/11111111/customConstraints/custom.firewallRestrictPublicAccessPolicyRule
 resource_types:
-- compute.googleapis.com/FirewallPolicy
+  - compute.googleapis.com/FirewallPolicy
 condition: |-
   resource.rules.exists(rule,
     rule.priority < 2147483644 &&
@@ -15,8 +15,8 @@ condition: |-
   )
 action_type: DENY
 method_types:
-- CREATE
-- UPDATE
+  - CREATE
+  - UPDATE
 display_name: Restrict Firewall Policy rules allowing public Internet access
 description: |-
   Prevent Firewall Policy rules from 0.0.0.0/0 except for allowed protocols (ICMP, TCP:443, UDP:3389,

@@ -5,5 +5,5 @@ gkeRequireRegionalCluster:
   recommendation: Ensure GKE clusters are configured to be regional
   resource_selector:
     resource_types:
-    - container.googleapis.com/Cluster
+      - container.googleapis.com/Cluster
   severity: MEDIUM

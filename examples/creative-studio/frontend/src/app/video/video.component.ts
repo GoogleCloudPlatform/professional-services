@@ -54,6 +54,7 @@ import {
 } from '../common/services/source-asset.service';
 import {HttpClient} from '@angular/common/http';
 import {WorkspaceStateService} from '../services/workspace/workspace-state.service';
+import { MODEL_CONFIGS, GenerationModelConfig } from '../common/config/model-config';
 import {AssetTypeEnum} from '../admin/source-assets-management/source-asset.model';
 import {ImageCropperDialogComponent} from '../common/components/image-cropper-dialog/image-cropper-dialog.component';
 import {VideoStateService} from '../services/video-state.service';
@@ -94,6 +95,11 @@ export class VideoComponent implements OnInit, AfterViewInit {
   referenceImages: ReferenceImage[] = [];
   referenceImagesType: 'ASSET' | 'STYLE' = 'ASSET';
   currentMode = 'Text to Video';
+  modes = [
+    { value: 'Text to Video', icon: 'description', label: 'Text to Video' },
+    { value: 'Frames to Video', icon: 'image', label: 'Frames to Video' },
+    { value: 'Ingredients to Video', icon: 'layers', label: 'Ingredients to Video' },
+  ];
 
   // Internal state to track input types
   private _input1IsVideo = false;
@@ -121,26 +127,7 @@ export class VideoComponent implements OnInit, AfterViewInit {
   negativePhrases: string[] = [];
 
   // --- Dropdown Options ---
-  generationModels = [
-    {
-      value: 'veo-3.1-generate-preview',
-      viewValue: 'Veo 3.1 \n (Beta Audio)',
-    },
-    {
-      value: 'veo-3.0-generate-001',
-      viewValue: 'Veo 3 Quality \n (Beta Audio)',
-    },
-    {
-      value: 'veo-3.0-fast-generate-001',
-      viewValue: 'Veo 3 Fast \n (Beta Audio)',
-    },
-    {value: 'veo-2.0-generate-001', viewValue: 'Veo 2 Quality \n (No Audio)'},
-    {value: 'veo-2.0-fast-generate-001', viewValue: 'Veo 2 Fast \n (No Audio)'},
-    {
-      value: 'veo-2.0-generate-exp',
-      viewValue: 'Veo 2 Exp \n (Reference Image)',
-    },
-  ];
+  generationModels: GenerationModelConfig[] = MODEL_CONFIGS.filter(m => m.type === 'VIDEO');
   selectedGenerationModel = this.generationModels[0].viewValue;
   aspectRatioOptions: {value: string; viewValue: string; disabled: boolean}[] =
     [
@@ -575,19 +562,29 @@ export class VideoComponent implements OnInit, AfterViewInit {
 
     const payload: VeoRequest = {
       ...this.searchRequest,
-      startImageAssetId: !this._input1IsVideo
-        ? (this.startImageAssetId ?? undefined)
-        : undefined,
-      sourceVideoAssetId: this._input1IsVideo
-        ? (this.startImageAssetId ?? undefined)
-        : undefined,
-      endImageAssetId: this.endImageAssetId ?? undefined,
+      startImageAssetId:
+        this.currentMode === 'Frames to Video' && !this._input1IsVideo
+          ? (this.startImageAssetId ?? undefined)
+          : undefined,
+      sourceVideoAssetId:
+        this.currentMode === 'Frames to Video' && this._input1IsVideo
+          ? (this.startImageAssetId ?? undefined)
+          : undefined,
+      endImageAssetId:
+        this.currentMode === 'Frames to Video'
+          ? (this.endImageAssetId ?? undefined)
+          : undefined,
       referenceImages:
-        referenceImagesPayload.length > 0 ? referenceImagesPayload : undefined,
-      sourceMediaItems: [
-        ...validSourceMediaItems,
-        ...sourceMediaItemsForReference,
-      ],
+        this.currentMode === 'Ingredients to Video' &&
+        referenceImagesPayload.length > 0
+          ? referenceImagesPayload
+          : undefined,
+      sourceMediaItems:
+        this.currentMode === 'Ingredients to Video'
+          ? sourceMediaItemsForReference
+          : this.currentMode === 'Frames to Video'
+            ? validSourceMediaItems
+            : undefined,
     };
 
     // TODO: Add notification when video is completed after the pooling
@@ -1094,10 +1091,16 @@ export class VideoComponent implements OnInit, AfterViewInit {
           this.sourceMediaItems[0] = item;
           this.startImageAssetId = null;
           this.image1Preview = remixState.startImagePreviewUrl || null;
+          // Switch to Ingredients to Video mode if we have start or end frames
+          this.currentMode = 'Frames to Video';
+          this.saveState();
         } else if (item.role === 'end_frame') {
           this.sourceMediaItems[1] = item;
           this.endImageAssetId = null;
           this.image2Preview = remixState.endImagePreviewUrl || null;
+          // Switch to Ingredients to Video mode if we have start or end frames
+          this.currentMode = 'Frames to Video';
+          this.saveState();
         } else if (item.role === 'video_extension_source') {
           // This is the case for extending a video
           this.sourceMediaItems[0] = item;

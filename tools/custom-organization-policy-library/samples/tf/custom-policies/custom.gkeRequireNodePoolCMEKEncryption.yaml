@@ -1,3 +1,3 @@
 custom.gkeRequireNodePoolCMEKEncryption:
   rules:
-  - enforce: true
+    - enforce: true

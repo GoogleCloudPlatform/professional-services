@@ -13,7 +13,7 @@
  See the License for the specific language governing permissions and
  limitations under the License.
 -->
-<div class="lg:container lg:mx-auto mb-20">
+<div class="lg:container lg:mx-auto mb-8">
   <div class="home-margin grid grid-cols-1">
     <!-- Video Homepage -->
     <ng-container *ngIf="isLoading; else videoOrGallery">
@@ -344,6 +344,8 @@
       <div class="lg:col-span-4 flex flex-col justify-start items-center gap-4 w-full">
         <app-flow-prompt-box class="w-full max-w-2xl block" [prompt]="searchRequest.prompt"
           [aspectRatio]="selectedAspectRatio" [outputs]="searchRequest.numberOfMedia || 4" [mode]="currentMode"
+          [modes]="modes"
+          [aspectRatioOptions]="aspectRatioOptions"
           [generationModels]="generationModels"
           [isLoading]="isLoading"
           [selectedGenerationModel]="selectedGenerationModel"

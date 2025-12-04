@@ -16,6 +16,7 @@
 
 import { Component, EventEmitter, Input, Output, signal, HostListener, ElementRef } from '@angular/core';
 import { VeoRequest } from '../../models/search.model';
+import { GenerationModelConfig } from '../../config/model-config';
 import { MatIcon, MatIconModule } from '@angular/material/icon';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -37,13 +38,15 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 })
 export class FlowPromptBoxComponent {
   @Input() searchRequest!: any; // Keep for now, but prefer individual inputs
-  @Input() generationModels: any[] = [];
+  @Input() generationModels: GenerationModelConfig[] = [];
   @Input() isLoading = false;
   @Input() selectedGenerationModel = '';
   @Input() prompt = '';
   @Input() aspectRatio = '16:9';
   @Input() outputs = 4;
   @Input() mode = 'Text to Video';
+  @Input() aspectRatioOptions: { value: string; viewValue: string; disabled: boolean; icon?: string }[] = [];
+  @Input() modes: { value: string; icon: string; label: string }[] = [];
 
   @Output() generateClicked = new EventEmitter<void>();
   @Output() rewriteClicked = new EventEmitter<void>();
@@ -135,5 +138,9 @@ export class FlowPromptBoxComponent {
   selectPreset(preset: string) {
     this.selectedPreset.set(preset);
     console.log('Selected Preset:', preset);
+  }
+
+  getSelectedModelObject(): GenerationModelConfig | undefined {
+    return this.generationModels.find(m => m.viewValue === this.selectedGenerationModel);
   }
 }

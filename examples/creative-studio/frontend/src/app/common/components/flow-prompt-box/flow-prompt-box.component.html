@@ -42,8 +42,14 @@
           (click)="toggleSettingsMenu(); $event.stopPropagation()"
           class="flex items-center gap-1.5 rounded-md bg-neutral-800 px-2 py-1 cursor-pointer hover:bg-neutral-700"
         >
-          <!-- Volume Icon -->
-          <mat-icon>volume_up</mat-icon>
+          <!-- Model Icon -->
+          <ng-container *ngIf="getSelectedModelObject() as model">
+            <img *ngIf="model.isImage && model.imageSrc" [src]="model.imageSrc" class="w-4 h-4 object-contain" alt="model icon">
+            <mat-icon *ngIf="!model.isImage && !model.isSvg" class="!text-sm !h-4 !w-4 !flex !items-center !justify-center">{{
+              model.icon || 'auto_awesome' }}</mat-icon>
+            <mat-icon *ngIf="!model.isImage && model.isSvg && model.icon" [svgIcon]="model.icon || ''"
+              class="!text-sm !h-4 !w-4 !flex !items-center !justify-center"></mat-icon>
+          </ng-container>
           <span>{{ selectedGenerationModel }}</span>
         </div>
         <div
@@ -66,23 +72,23 @@
     </div>
 
     <!-- Prompt Area -->
-    <div class="mt-6">
+    <div class="mt-4">
       <textarea
         (input)="onPromptInput($event)"
         [ngModel]="prompt"
         class="w-full h-24 bg-transparent text-xl text-neutral-400 placeholder:text-neutral-600 focus:outline-none resize-none"
-        placeholder="Generate a video with text..."
+        [placeholder]="mode.includes('Image') ? 'Generate an image with text...' : 'Generate a video with text...'"
       ></textarea>
     </div>
 
     <!-- Bottom Row: Images & Submit -->
-    <div class="mt-4 flex items-end justify-between">
+    <div class="flex flex-wrap items-end justify-between gap-y-4">
       <!-- Left: Drag-and-drop areas -->
-      <div class="flex items-center gap-3">
+      <div class="flex flex-wrap items-center gap-3">
         <!-- Frames to Video Inputs -->
         <ng-container *ngIf="mode === 'Frames to Video'">
           <div
-            class="relative h-16 w-16 cursor-pointer rounded-xl border-2 border-dashed border-neutral-700 bg-neutral-800 transition-colors hover:border-neutral-500 hover:bg-neutral-700 flex items-center justify-center"
+            class="relative h-20 w-20 cursor-pointer rounded-xl border-2 border-dashed border-neutral-700 bg-neutral-800 transition-colors hover:border-neutral-500 hover:bg-neutral-700 flex items-center justify-center"
             (click)="openImageSelector.emit(1)"
             (dragover)="$event.preventDefault()"
             (drop)="$event.preventDefault(); openImageSelector.emit(1)"
@@ -104,7 +110,7 @@
           <mat-icon class="text-neutral-500">compare_arrows</mat-icon>
 
           <div
-            class="relative h-16 w-16 cursor-pointer rounded-xl border-2 border-dashed border-neutral-700 bg-neutral-800 transition-colors hover:border-neutral-500 hover:bg-neutral-700 flex items-center justify-center"
+            class="relative h-20 w-20 cursor-pointer rounded-xl border-2 border-dashed border-neutral-700 bg-neutral-800 transition-colors hover:border-neutral-500 hover:bg-neutral-700 flex items-center justify-center"
             (click)="openImageSelector.emit(2)"
             (dragover)="$event.preventDefault()"
             (drop)="$event.preventDefault(); openImageSelector.emit(2)"
@@ -124,32 +130,33 @@
           </div>
         </ng-container>
 
-        <!-- Ingredients to Video Inputs -->
-        <ng-container *ngIf="mode === 'Ingredients to Video'">
-          <div
-            class="relative h-16 w-16 cursor-pointer rounded-xl border-2 border-dashed border-neutral-700 bg-neutral-800 transition-colors hover:border-neutral-500 hover:bg-neutral-700 flex items-center justify-center"
-            [class.opacity-50]="referenceImages.length >= 3"
-            (click)="referenceImages.length < 3 && openImageSelectorForReference.emit()"
-            (dragover)="$event.preventDefault()"
-            (drop)="$event.preventDefault(); onReferenceImageDrop.emit($event)"
-          >
-            <mat-icon class="text-neutral-500">add</mat-icon>
-            <span class="absolute bottom-0 text-[10px] text-neutral-500">{{ referenceImages.length }}/3</span>
-          </div>
-          <!-- Show small previews of reference images -->
-          <div class="flex gap-1">
-            <div *ngFor="let ref of referenceImages; let i = index" class="relative h-12 w-12">
-              <img [src]="ref.previewUrl" class="h-full w-full rounded-lg object-cover" />
-              <button
-                (click)="$event.stopPropagation(); clearReferenceImage.emit({index: i, event: $event})"
-                class="absolute -right-1 -top-1 rounded-full bg-neutral-900 p-0.5 text-neutral-400 hover:text-white"
-              >
-                <mat-icon class="!h-3 !w-3 text-xs">close</mat-icon>
-              </button>
-            </div>
-          </div>
+        <!-- Unified Ingredients Mode Inputs -->
+        <ng-container *ngIf="mode === 'Ingredients to Video' || mode === 'Ingredients to Image'">
+          <ng-container *ngIf="getSelectedModelObject() as model">
+            <div
+              class="relative h-20 w-20 cursor-pointer rounded-xl border-2 border-dashed border-neutral-700 bg-neutral-800 transition-colors hover:border-neutral-500 hover:bg-neutral-700 flex items-center justify-center"
+              [class.opacity-50]="referenceImages.length >= model.capabilities.maxReferenceImages"
+              (click)="referenceImages.length < model.capabilities.maxReferenceImages && openImageSelectorForReference.emit()"
+              (dragover)="$event.preventDefault()"
+              (drop)="$event.preventDefault(); onReferenceImageDrop.emit($event)"
+            >
+              <mat-icon class="text-neutral-500">add</mat-icon>
+              <span class="absolute bottom-0 text-[10px] text-neutral-500">{{ referenceImages.length }}/{{
+                model.capabilities.maxReferenceImages }}</span>
+              </div>
+              <!-- Show small previews of reference images -->
+            <div class="flex flex-wrap gap-1">
+              <div *ngFor="let ref of referenceImages; let i = index" class="relative h-12 w-12 flex-shrink-0">
+                <img [src]="ref.previewUrl" class="h-full w-full rounded-lg object-cover" />
+                <button (click)="$event.stopPropagation(); clearReferenceImage.emit({index: i, event: $event})"
+                  class="absolute -right-1 -top-1 rounded-full bg-neutral-900 p-0.5 text-neutral-400 hover:text-white">
+                  <mat-icon class="!h-3 !w-3 text-xs">close</mat-icon>
+                </button>
+                </div>
+                </div>
+                </ng-container>
         </ng-container>
-      </div>
+        </div>
 
       <!-- Right: Generate Button -->
       <div class="flex items-center gap-2">
@@ -187,44 +194,46 @@
     <div
       class="absolute left-0 bottom-full z-20 mb-2 w-64 rounded-xl bg-neutral-800 p-2 text-white shadow-lg"
     >
-      <button
-        (click)="selectMode('Text to Video')"
+      @if (modes.length > 0) {
+      @for (m of modes; track m.value) {
+      <button (click)="selectMode(m.value)"
         class="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left font-medium transition-colors"
-        [class.bg-neutral-700]="mode === 'Text to Video'"
-        [class.hover:bg-neutral-700]="
-          mode !== 'Text to Video'
-        "
-      >
-        <!-- Mode Icon 1 -->
-        <mat-icon>text_fields</mat-icon>
-        <span>Text to Video</span>
+        [class.bg-neutral-700]="mode === m.value" [class.hover:bg-neutral-700]="mode !== m.value">
+        <mat-icon [fontIcon]="m.icon"></mat-icon>
+        <span>{{ m.label }}</span>
       </button>
-      <button
-        (click)="selectMode('Frames to Video')"
-        class="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left font-medium transition-colors"
-        [class.bg-neutral-700]="mode === 'Frames to Video'"
-        [class.hover:bg-neutral-700]="
-          mode !== 'Frames to Video'
-        "
-      >
-        <!-- Mode Icon 2 -->
-        <mat-icon fontIcon="image"></mat-icon>
-        <span>Frames to Video</span>
-      </button>
-      <button
-        (click)="selectMode('Ingredients to Video')"
-        class="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left font-medium transition-colors"
-        [class.bg-neutral-700]="
-          mode === 'Ingredients to Video'
-        "
-        [class.hover:bg-neutral-700]="
-          mode !== 'Ingredients to Video'
-        "
-      >
-        <!-- Mode Icon 3 -->
-        <mat-icon fontIcon="image_search"></mat-icon>
-        <span>Ingredients to Video</span>
-      </button>
+      }
+      } @else {
+        <button (click)="selectMode('Text to Video')"
+          class="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left font-medium transition-colors"
+          [class.bg-neutral-700]="mode === 'Text to Video'" [class.hover:bg-neutral-700]="
+                    mode !== 'Text to Video'
+                  ">
+          <!-- Mode Icon 1 -->
+          <mat-icon>text_fields</mat-icon>
+          <span>Text to Video</span>
+        </button>
+        <button (click)="selectMode('Frames to Video')"
+          class="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left font-medium transition-colors"
+          [class.bg-neutral-700]="mode === 'Frames to Video'" [class.hover:bg-neutral-700]="
+                    mode !== 'Frames to Video'
+                  ">
+          <!-- Mode Icon 2 -->
+          <mat-icon fontIcon="image"></mat-icon>
+          <span>Frames to Video</span>
+        </button>
+        <button (click)="selectMode('Ingredients to Video')"
+          class="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left font-medium transition-colors"
+          [class.bg-neutral-700]="
+                                                                                                            mode === 'Ingredients to Video'
+                  " [class.hover:bg-neutral-700]="
+                    mode !== 'Ingredients to Video'
+                  ">
+          <!-- Mode Icon 3 -->
+          <mat-icon fontIcon="image_search"></mat-icon>
+          <span>Ingredients to Video</span>
+        </button>
+      }
     </div>
   }
 
@@ -268,26 +277,35 @@
           </button>
           @if (isSettingsDropdownOpen() === 'aspect') {
             <div
-              class="absolute left-0 top-full z-30 mt-1 w-full rounded-lg bg-neutral-700 p-1 shadow-lg"
+              class="absolute left-0 top-full z-30 mt-1 w-full rounded-lg bg-neutral-700 p-1 shadow-lg max-h-60 overflow-y-auto"
             >
-              <button
-                (click)="selectNewAspectRatio('16:9')"
-                class="block w-full px-3 py-1.5 text-left text-sm rounded hover:bg-neutral-600"
-              >
+              @if (aspectRatioOptions.length > 0) {
+              @for (option of aspectRatioOptions; track option.value) {
+              <button (click)="selectNewAspectRatio(option.value)"
+                class="block w-full px-3 py-1.5 text-left text-sm rounded hover:bg-neutral-600" [disabled]="option.disabled"
+                [class.opacity-50]="option.disabled" [class.cursor-not-allowed]="option.disabled">
+                <div class="flex items-center gap-2 whitespace-nowrap">
+                  <mat-icon>{{ option.icon || 'crop_landscape' }}</mat-icon>
+                  {{ option.viewValue.replace('\n', '') }}
+                </div>
+              </button>
+              }
+              } @else {
+              <button (click)="selectNewAspectRatio('16:9')"
+                class="block w-full px-3 py-1.5 text-left text-sm rounded hover:bg-neutral-600">
                 <div class="flex items-center gap-2 whitespace-nowrap">
                   <mat-icon>crop_landscape</mat-icon>
                   Horizontal (16:9)
                 </div>
               </button>
-              <button
-                (click)="selectNewAspectRatio('9:16')"
-                class="block w-full px-3 py-1.5 text-left text-sm rounded hover:bg-neutral-600"
-              >
-                <div class="flex items-center gap-2 whitespace-nowrap">
-                  <mat-icon>crop_portrait</mat-icon>
-                  Vertical (9:16)
-                </div>
-              </button>
+                <button (click)="selectNewAspectRatio('9:16')"
+                  class="block w-full px-3 py-1.5 text-left text-sm rounded hover:bg-neutral-600">
+                  <div class="flex items-center gap-2 whitespace-nowrap">
+                    <mat-icon>crop_portrait</mat-icon>
+                    Vertical (9:16)
+                  </div>
+                </button>
+              }
             </div>
           }
         </div>
@@ -386,7 +404,14 @@
                   selectedGenerationModel === model.viewValue,
               }"
             >
-              {{ model.viewValue }}
+              <div class="flex items-center gap-2">
+                @if (model.isImage) {
+                <img [src]="model.imageSrc" class="h-5 w-5 object-contain" alt="model icon" />
+                } @else if (model.isSvg) {
+                <mat-icon [svgIcon]="model.icon || ''" class="!h-5 !w-5"></mat-icon>
+                }
+                {{ model.viewValue }}
+              </div>
             </button>
           </div>
         }

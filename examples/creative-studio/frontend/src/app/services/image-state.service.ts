@@ -15,6 +15,7 @@ export interface ImageState {
   numberOfMedia: number;
   composition: string | null;
   useBrandGuidelines: boolean;
+  mode: string;
 }
 
 @Injectable({
@@ -26,7 +27,7 @@ export class ImageStateService {
     negativePrompt: '',
     aspectRatio: '1:1',
     model: 'gemini-3-pro-image-preview',
-    lighting: 'none',
+    lighting: '',
     watermark: false,
     googleSearch: false,
     resolution: '4K',
@@ -34,7 +35,8 @@ export class ImageStateService {
     colorAndTone: null,
     numberOfMedia: 4,
     composition: null,
-    useBrandGuidelines: false
+    useBrandGuidelines: false,
+    mode: 'Text to Image'
   };
 
   private state = new BehaviorSubject<ImageState>(this.initialState);

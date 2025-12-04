@@ -1,4 +1,4 @@
 name: organizations/11111111/policies/custom.firewallRestrictNetworkServicesPolicyRule
 spec:
   rules:
-  - enforce: true
+    - enforce: true

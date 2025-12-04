@@ -1,9 +1,9 @@
 name: organizations/11111111/customConstraints/custom.networkDisableWeakSSLPolicy
 resourceTypes:
-- compute.googleapis.com/SslPolicy
+  - compute.googleapis.com/SslPolicy
 methodTypes:
-- CREATE
-- UPDATE
+  - CREATE
+  - UPDATE
 condition: |-
   (resource.profile == "COMPATIBLE") || (resource.profile == "CUSTOM" &&
     resource.customFeatures.exists(feature, feature in [

@@ -1,5 +1,5 @@
 #@ load("/sha.lib.star", "build_sha")
-#@ sha = build_sha("cloudsqlRequireHighAvailibility")
+#@ sha = build_sha("cloudsqlRequireHighAvailability")
 
 #@ if sha.to_generate():
 severity: MEDIUM

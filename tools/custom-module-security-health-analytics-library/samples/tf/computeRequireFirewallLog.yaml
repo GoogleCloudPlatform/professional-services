@@ -5,5 +5,5 @@ computeRequireFirewallLog:
   recommendation: Ensure every firewall rule has logging enabled with the proper config
   resource_selector:
     resource_types:
-    - compute.googleapis.com/Firewall
+      - compute.googleapis.com/Firewall
   severity: MEDIUM

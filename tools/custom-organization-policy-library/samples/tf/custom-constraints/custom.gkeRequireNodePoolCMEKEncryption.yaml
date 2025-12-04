@@ -5,7 +5,7 @@ custom.gkeRequireNodePoolCMEKEncryption:
   description: Enforce that GKE nodes are configured with CMEK Encryption
   display_name: Require NodePool CMEK Encryption
   method_types:
-  - CREATE
-  - UPDATE
+    - CREATE
+    - UPDATE
   resource_types:
-  - container.googleapis.com/NodePool
+    - container.googleapis.com/NodePool

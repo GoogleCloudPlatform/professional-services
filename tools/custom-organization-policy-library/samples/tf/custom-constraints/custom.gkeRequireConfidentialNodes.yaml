@@ -5,7 +5,7 @@ custom.gkeRequireConfidentialNodes:
   description: Enforce that the GKE clusters is using confidential nodes
   display_name: Require confidential nodes
   method_types:
-  - CREATE
-  - UPDATE
+    - CREATE
+    - UPDATE
   resource_types:
-  - container.googleapis.com/Cluster
+    - container.googleapis.com/Cluster

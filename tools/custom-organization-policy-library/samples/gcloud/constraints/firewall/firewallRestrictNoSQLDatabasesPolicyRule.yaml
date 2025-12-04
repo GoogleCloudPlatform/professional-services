@@ -1,26 +1,30 @@
 name: organizations/11111111/customConstraints/custom.firewallRestrictNoSQLDatabasesPolicyRule
 resource_types:
-- compute.googleapis.com/FirewallPolicy
+  - compute.googleapis.com/FirewallPolicy
 condition: |-
   resource.rules.exists(rule,
     rule.priority < 2147483644 &&
     rule.direction == 'INGRESS' &&
-    !rule.match.srcIpRanges.all(ipRange,
-      ipRange in ["10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16", "35.235.240.0/20"]
-    ) &&
-    rule.match.layer4Configs.exists(l4config,
-      l4config.ipProtocol == 'tcp' &&
-      l4config.ports.exists(port,
-        port == '7000' || port == '7001' || port == '7199' || port == '8888' || port == '9042' ||
-        port == '9160' || port == '61620' || port == '61621' || port == '27017' || port == '27018' || port == '27019'
-      )
+    rule.match.srcIpRanges.exists(range, range == '0.0.0.0/0') &&
+    (
+      rule.match.layer4Configs.containsIpProtocolAndPort('tcp', '7000') ||
+      rule.match.layer4Configs.containsIpProtocolAndPort('tcp', '7001') ||
+      rule.match.layer4Configs.containsIpProtocolAndPort('tcp', '7199') ||
+      rule.match.layer4Configs.containsIpProtocolAndPort('tcp', '8888') ||
+      rule.match.layer4Configs.containsIpProtocolAndPort('tcp', '9042') ||
+      rule.match.layer4Configs.containsIpProtocolAndPort('tcp', '9160') ||
+      rule.match.layer4Configs.containsIpProtocolAndPort('tcp', '61620') ||
+      rule.match.layer4Configs.containsIpProtocolAndPort('tcp', '61621') ||
+      rule.match.layer4Configs.containsIpProtocolAndPort('tcp', '27017') ||
+      rule.match.layer4Configs.containsIpProtocolAndPort('tcp', '27018') ||
+      rule.match.layer4Configs.containsIpProtocolAndPort('tcp', '27019')
     )
   )
 action_type: DENY
 method_types:
-- CREATE
-- UPDATE
-display_name: Restrict Firewall Policy rules allowing NoSQL database port access from the Internet
+  - CREATE
+  - UPDATE
+display_name: Restrict Firewall Policy rules allowing NoSQL database port access from any source
 description: |-
-  Ensure that NoSQL database ports (Cassandra, MongoDB) are not accessible from the Internet when
+  Ensure that NoSQL database ports (Cassandra, MongoDB) are not accessible from any source when
   using Firewall Policy Rule

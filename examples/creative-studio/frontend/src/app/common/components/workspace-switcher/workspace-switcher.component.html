@@ -20,15 +20,15 @@
       [matMenuTriggerFor]="workspaceMenu"
       [matTooltip]="
         'You are on a ' +
-        activeWorkspace?.scope +
+        activeWorkspace.scope +
         ' workspace. Click to switch workspaces!'
       "
     >
       <mat-icon>{{
-        activeWorkspace?.scope === WorkspaceScope.PUBLIC ? 'public' : 'lock'
+        activeWorkspace.scope === WorkspaceScope.PUBLIC ? 'public' : 'lock'
       }}</mat-icon>
       <span class="workspace-name">{{
-        activeWorkspace?.name || 'Undefined'
+        activeWorkspace.name || 'Undefined'
       }}</span>
       <mat-icon>unfold_more</mat-icon>
     </div>

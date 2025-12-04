@@ -3,16 +3,22 @@
 #@ load("@ytt:template", "template")
 #@ alert = build_alert("cloudsqlInstanceChanges")
 
+#@ def documentation_content():
+#@   lines = [
+#@     'Log-based alerting policy in project ${project} detected Cloud SQL instance configuration changes.',
+#@     '',
+#@     'This alert helps ensure security by monitoring configuration changes to SQL instances.',
+#@     '```',
+#@     'protoPayload.methodName="cloudsql.instances.update"',
+#@     '```'
+#@   ]
+#@   return "\n".join(lines)
+#@ end
+
 #@ if alert.to_generate():
 displayName: 'Cloud SQL Instance Configuration Changes'
 documentation:
-  content: >-
-    Log-based alerting policy in project ${project} detected Cloud SQL instance configuration changes.
-
-    This alert helps ensure security by monitoring configuration changes to SQL instances.
-    ```
-    protoPayload.methodName="cloudsql.instances.update"
-    ```
+  content: #@ documentation_content()
   mimeType: text/markdown
 conditions:
 - displayName: 'Log match condition: Cloud SQL instance configuration changes'
