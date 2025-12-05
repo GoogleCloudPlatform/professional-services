@@ -1,0 +1,65 @@
+[
+  {
+    "name": "gemini_cli_success",
+    "description": "Counter for successful Gemini CLI API responses (2xx)",
+    "filter": "logName=\"projects/PROJECT_ID_PLACEHOLDER/logs/gemini_cli\" AND jsonPayload.status_code:* AND jsonPayload.\"event.name\"=\"gemini_cli.api_response\"",
+    "metricDescriptor": {
+      "metricKind": "DELTA",
+      "valueType": "INT64",
+      "labels": [
+        {
+          "key": "success_status",
+          "valueType": "STRING",
+          "description": "Event name from log payload"
+        }
+      ]
+    },
+    "labelExtractors": {
+      "success_status": "EXTRACT(jsonPayload.\"event.name\")"
+    }
+  },
+  {
+    "name": "gemini_cli_error",
+    "description": "Counter for failed Gemini CLI API responses (4xx/5xx)",
+    "filter": "logName=\"projects/PROJECT_ID_PLACEHOLDER/logs/gemini_cli\" AND jsonPayload.status_code:* AND jsonPayload.\"event.name\"=\"gemini_cli.api_error\"",
+    "metricDescriptor": {
+      "metricKind": "DELTA",
+      "valueType": "INT64",
+      "labels": [
+        {
+          "key": "error_status",
+          "valueType": "STRING",
+          "description": "Event name from log payload"
+        }
+      ]
+    },
+    "labelExtractors": {
+      "error_status": "EXTRACT(jsonPayload.\"event.name\")"
+    }
+  },
+  {
+    "name": "gemini_cli_response",
+    "description": "Distribution of all Gemini CLI response codes",
+    "filter": "logName=\"projects/PROJECT_ID_PLACEHOLDER/logs/gemini_cli\" AND jsonPayload.status_code:*",
+    "metricDescriptor": {
+      "metricKind": "DELTA",
+      "valueType": "INT64",
+      "labels": [
+        {
+          "key": "status",
+          "valueType": "STRING",
+          "description": "HTTP status code"
+        },
+        {
+          "key": "event_name",
+          "valueType": "STRING",
+          "description": "Event name from log payload"
+        }
+      ]
+    },
+    "labelExtractors": {
+      "status": "EXTRACT(jsonPayload.status_code)",
+      "event_name": "EXTRACT(jsonPayload.\"event.name\")"
+    }
+  }
+]
