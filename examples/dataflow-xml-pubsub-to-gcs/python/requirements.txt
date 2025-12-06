@@ -56,5 +56,5 @@ rsa==4.9
 six==1.16.0
 sqlparse==0.5.0
 typing_extensions==4.5.0
-urllib3==2.5.0
+urllib3==2.6.0
 zstandard==0.20.0
