@@ -75,6 +75,6 @@ requests==2.28.1
 rsa==4.9
 six==1.16.0
 typing-extensions==4.4.0
-urllib3==2.5.0
+urllib3==2.6.0
 xsdata==22.12
 xsdata-pydantic==22.10
