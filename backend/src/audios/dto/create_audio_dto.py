@@ -24,8 +24,7 @@ class CreateAudioDto(BaseDto):
         description="The text input. For Lyria, this is the music description. For TTS, this is the text to speak."
     )
 
-    workspace_id: str = Field(
-        min_length=1,
+    workspace_id: int = Field(
         description="The ID of the workspace for this generation."
     )
 

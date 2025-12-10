@@ -18,7 +18,7 @@ import io
 import os
 from typing import List, Optional
 
-from fastapi import HTTPException, UploadFile, status
+from fastapi import Depends, HTTPException, UploadFile, status
 from starlette.datastructures import Headers
 
 from src.auth.iam_signer_credentials_service import IamSignerCredentials
@@ -68,16 +68,26 @@ from src.workspaces.repository.workspace_repository import WorkspaceRepository
 class MediaTemplateService:
     """Handles the business logic for managing media templates."""
 
-    def __init__(self):
+    def __init__(
+        self,
+        template_repo: MediaTemplateRepository = Depends(),
+        media_item_repo: MediaRepository = Depends(),
+        source_asset_repo: SourceAssetRepository = Depends(),
+        gemini_service: GeminiService = Depends(),
+        iam_signer_credentials: IamSignerCredentials = Depends(),
+        gcs_service: GcsService = Depends(),
+        source_asset_service: SourceAssetService = Depends(),
+        workspace_repo: WorkspaceRepository = Depends(),
+    ):
         # Dependency Injection for repositories and other services
-        self.template_repo = MediaTemplateRepository()
-        self.media_item_repo = MediaRepository()
-        self.source_asset_repo = SourceAssetRepository()
-        self.gemini_service = GeminiService()
-        self.iam_signer_credentials = IamSignerCredentials()
-        self.gcs_service = GcsService()
-        self.source_asset_service = SourceAssetService()
-        self.workspace_repo = WorkspaceRepository()
+        self.template_repo = template_repo
+        self.media_item_repo = media_item_repo
+        self.source_asset_repo = source_asset_repo
+        self.gemini_service = gemini_service
+        self.iam_signer_credentials = iam_signer_credentials
+        self.gcs_service = gcs_service
+        self.source_asset_service = source_asset_service
+        self.workspace_repo = workspace_repo
 
     async def _enrich_source_asset_link(
         self, link: SourceAssetLink
@@ -85,9 +95,7 @@ class MediaTemplateService:
         """
         Fetches the source asset document and generates a presigned URL for it.
         """
-        asset_doc = await asyncio.to_thread(
-            self.source_asset_repo.get_by_id, link.asset_id
-        )
+        asset_doc = await self.source_asset_repo.get_by_id(link.asset_id)
         if not asset_doc:
             return None
 
@@ -158,20 +166,18 @@ class MediaTemplateService:
             enriched_source_assets=enriched_source_assets or None,
         )
 
-    def get_template_by_id(
-        self, template_id: str
+    async def get_template_by_id(
+        self, template_id: int
     ) -> Optional[MediaTemplateModel]:
         """Fetches a single template by its ID."""
-        return self.template_repo.get_by_id(template_id)
+        return await self.template_repo.get_by_id(template_id)
 
     async def find_all_templates(
         self, search_dto: TemplateSearchDto
     ) -> PaginationResponseDto[MediaTemplateResponse]:
         """Finds all templates with optional filtering and pagination."""
         # Run the synchronous database query in a separate thread
-        media_templates_query = await asyncio.to_thread(
-            self.template_repo.query, search_dto
-        )
+        media_templates_query = await self.template_repo.query(search_dto)
         media_templates = media_templates_query.data or []
 
         # Convert each MediaItem to a GalleryItemResponse in parallel
@@ -183,39 +189,39 @@ class MediaTemplateService:
 
         return PaginationResponseDto[MediaTemplateResponse](
             count=media_templates_query.count,
-            next_page_cursor=media_templates_query.next_page_cursor,
+            page=media_templates_query.page,
+            page_size=media_templates_query.page_size,
+            total_pages=media_templates_query.total_pages,
             data=enriched_items,
         )
 
-    def delete_template(self, template_id: str) -> bool:
+    async def delete_template(self, template_id: int) -> bool:
         """Deletes a template by its ID. (Admin only)"""
-        return self.template_repo.delete(template_id)
+        return await self.template_repo.delete(template_id)
 
-    def update_template(
-        self, template_id: str, update_dto: UpdateTemplateDto
+    async def update_template(
+        self, template_id: int, update_dto: UpdateTemplateDto
     ) -> Optional[MediaTemplateModel]:
         """Updates a template's information. (Admin only)"""
         # model_dump with exclude_unset=True creates a dict with only the provided fields
         update_data = update_dto.model_dump(exclude_unset=True)
         if not update_data:
-            return self.template_repo.get_by_id(
+            return await self.template_repo.get_by_id(
                 template_id
             )  # Nothing to update
 
-        return self.template_repo.update(template_id, update_data)
+        return await self.template_repo.update(template_id, update_data)
 
     async def create_template_from_media_item(
         self,
-        media_item_id: str,
+        media_item_id: int,
         user: UserModel,
     ) -> Optional[MediaTemplateModel]:
         """
         Creates a new MediaTemplate by copying properties from an existing MediaItem
         and using Gemini to generate a creative name and description. (Admin only)
         """
-        media_item = await asyncio.to_thread(
-            self.media_item_repo.get_by_id, media_item_id
-        )
+        media_item = await self.media_item_repo.get_by_id(media_item_id)
         if not media_item:
             return None  # MediaItem not found
 
@@ -244,9 +250,7 @@ class MediaTemplateService:
 
         # --- Convert all source inputs into new, permanent System Assets ---
         new_source_asset_links: List[SourceAssetLink] = []
-        public_workspace = await asyncio.to_thread(
-            self.workspace_repo.get_public_workspace
-        )
+        public_workspace = await self.workspace_repo.get_public_workspace()
         if not public_workspace:
             # This should not happen if bootstrap script has run
             raise HTTPException(
@@ -257,9 +261,7 @@ class MediaTemplateService:
         # 1. Handle source assets from the 'user_assets' collection
         if media_item.source_assets:
             for link in media_item.source_assets:
-                source_asset = await asyncio.to_thread(
-                    self.source_asset_repo.get_by_id, link.asset_id
-                )
+                source_asset = await self.source_asset_repo.get_by_id(link.asset_id)
                 if source_asset and source_asset.gcs_uri:
                     # Download the asset content
                     blob_name = source_asset.gcs_uri.replace(
@@ -299,9 +301,7 @@ class MediaTemplateService:
         # 2. Handle source media items from the 'media_library' collection
         if media_item.source_media_items:
             for link in media_item.source_media_items:
-                source_media_item = await asyncio.to_thread(
-                    self.media_item_repo.get_by_id, link.media_item_id
-                )
+                source_media_item = await self.media_item_repo.get_by_id(link.media_item_id)
                 if (
                     source_media_item
                     and source_media_item.gcs_uris
@@ -363,5 +363,5 @@ class MediaTemplateService:
             ),
         )
 
-        await asyncio.to_thread(self.template_repo.save, new_template)
+        await self.template_repo.create(new_template)
         return new_template

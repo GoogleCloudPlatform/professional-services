@@ -14,9 +14,7 @@
 
 from typing import List, Optional
 
-from fastapi import HTTPException, status
-from google.cloud.firestore_v1.base_query import FieldFilter
-from google.cloud.firestore_v1.field_path import FieldPath
+from fastapi import Depends, HTTPException, status
 
 from src.common.email_service import EmailService
 from src.users.repository.user_repository import UserRepository
@@ -36,12 +34,17 @@ class WorkspaceService:
     Handles the business logic for workspace management.
     """
 
-    def __init__(self):
-        self.workspace_repo = WorkspaceRepository()
-        self.user_repo = UserRepository()
-        self.email_service = EmailService()
+    def __init__(
+        self,
+        workspace_repo: WorkspaceRepository = Depends(),
+        user_repo: UserRepository = Depends(),
+        email_service: EmailService = Depends(),
+    ):
+        self.workspace_repo = workspace_repo
+        self.user_repo = user_repo
+        self.email_service = email_service
 
-    def create_workspace(
+    async def create_workspace(
         self, user: UserModel, create_dto: CreateWorkspaceDto
     ) -> WorkspaceModel:
         """Creates a new workspace with the creator as the owner."""
@@ -50,20 +53,16 @@ class WorkspaceService:
             user_id=user.id, email=user.email, role=WorkspaceRoleEnum.OWNER
         )
 
-        # 2. Create the new Workspace model instance, including the denormalized member_ids list
+        # 2. Create the new Workspace model instance
         new_workspace = WorkspaceModel(
             name=create_dto.name,
             owner_id=user.id,
-            members=[owner_as_member],
-            member_ids=[user.id],
         )
-        self.workspace_repo.save(new_workspace)
+        return await self.workspace_repo.create(new_workspace, initial_members=[owner_as_member])
 
-        return new_workspace
-
-    def invite_user_to_workspace(
+    async def invite_user_to_workspace(
         self,
-        workspace_id: str,
+        workspace_id: int,
         invite_dto: InviteUserDto,
         current_user: UserModel,
     ) -> Optional[WorkspaceModel]:
@@ -72,7 +71,8 @@ class WorkspaceService:
         This action is restricted to the workspace owner or a system admin.
         """
         # 1. Authorization Check: Verify the inviting user has permission.
-        workspace = self.workspace_repo.get_by_id(workspace_id)
+
+        workspace = await self.workspace_repo.get_by_id(workspace_id)
         if not workspace:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -89,7 +89,7 @@ class WorkspaceService:
             )
 
         # 2. Find the user to be invited by their email
-        invited_user = self.user_repo.get_by_email(invite_dto.email)
+        invited_user = await self.user_repo.get_by_email(invite_dto.email)
         if not invited_user:
             return None  # Or raise an exception (e.g., UserNotFound)
 
@@ -99,7 +99,7 @@ class WorkspaceService:
             email=invited_user.email,
             role=invite_dto.role,
         )
-        updated_workspace = self.workspace_repo.add_member_to_workspace(
+        updated_workspace = await self.workspace_repo.add_member_to_workspace(
             workspace_id, new_member, invited_user.id
         )
 
@@ -113,19 +113,17 @@ class WorkspaceService:
             )
         return updated_workspace
 
-    def list_workspaces_for_user(self, user: UserModel) -> List[WorkspaceModel]:
+    async def list_workspaces_for_user(self, user: UserModel) -> List[WorkspaceModel]:
         """
         Retrieves all workspaces a user has access to. This includes:
         1. All public workspaces.
         2. All private workspaces where the user is a member.
         """
         # 1. Fetch all workspaces where the user is explicitly a member.
-        private_workspaces = self.workspace_repo.find_by_filter(
-            FieldFilter("member_ids", "array_contains", user.id)
-        )
+        private_workspaces = await self.workspace_repo.find_by_member_id(user.id)
 
         # 2. Fetch all public workspaces.
-        public_workspaces = self.workspace_repo.get_all_public_workspaces()
+        public_workspaces = await self.workspace_repo.get_all_public_workspaces()
 
         # 3. Combine the lists and remove duplicates.
         # A dictionary is used to ensure uniqueness based on workspace ID.

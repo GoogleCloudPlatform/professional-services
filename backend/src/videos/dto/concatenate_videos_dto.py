@@ -36,8 +36,8 @@ class ConcatenateVideosDto(BaseDto):
         description="A name for the new concatenated video.",
         default="Concatenated Video",
     )
-    workspace_id: str = Field(
-        min_length=1, description="The ID of the workspace for this generation."
+    workspace_id: int = Field(
+        ge=1, description="The ID of the workspace for this generation."
     )
     inputs: List[ConcatenationInput] = Field(
         min_length=2,

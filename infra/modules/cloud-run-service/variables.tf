@@ -117,3 +117,15 @@ variable "runtime_secrets" {
   description = "A map of ENV_VAR_NAME = SECRET_NAME to mount at runtime."
   default     = {}
 }
+
+# database
+variable "cloud_sql_connection_name" {
+  description = "Cloud SQL Instance Connection Name"
+  type        = string
+}
+variable "db_secret_id" {
+  description = "Secret Manager Secret ID for DB Password"
+  type        = string
+}
+variable "db_name" { type = string }
+variable "db_user" { type = string }

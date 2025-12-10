@@ -24,6 +24,7 @@ from src.images.imagen_service import ImagenService
 from src.images.schema.imagen_result_model import ImageGenerationResult
 from src.users.user_model import UserModel, UserRoleEnum
 from src.workspaces.workspace_auth_guard import workspace_auth_service
+from src.workspaces.repository.workspace_repository import WorkspaceRepository
 
 # Define role checkers for convenience
 user_only = Depends(
@@ -44,12 +45,15 @@ async def generate_images(
     request: Request,
     service: ImagenService = Depends(),
     current_user: UserModel = Depends(get_current_user),
+    workspace_repo: WorkspaceRepository = Depends(),
 ) -> MediaItemResponse | None:
     try:
         # Use our centralized dependency to authorize the user for the workspace
         # before proceeding with the expensive generation job.
-        workspace_auth_service.authorize(
-            workspace_id=image_request.workspace_id, user=current_user
+        await workspace_auth_service.authorize(
+            workspace_id=image_request.workspace_id,
+            user=current_user,
+            workspace_repo=workspace_repo,
         )
 
         # Get the executor from the app state
@@ -78,17 +82,20 @@ async def generate_images_vto(
     request: Request,
     service: ImagenService = Depends(),
     current_user: UserModel = Depends(get_current_user),
+    workspace_repo: WorkspaceRepository = Depends(),
 ) -> MediaItemResponse | None:
     """Start an async VTO generation job. Returns immediately with a placeholder."""
     try:
-        workspace_auth_service.authorize(
-            workspace_id=image_request.workspace_id, user=current_user
+        await workspace_auth_service.authorize(
+            workspace_id=image_request.workspace_id,
+            user=current_user,
+            workspace_repo=workspace_repo,
         )
 
         # Get the process pool from the application state
         executor = request.app.state.executor
 
-        placeholder_item = service.start_vto_generation_job(
+        placeholder_item = await service.start_vto_generation_job(
             request_dto=image_request,
             user=current_user,
             executor=executor,

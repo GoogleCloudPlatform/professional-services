@@ -70,7 +70,7 @@ export class BrandGuidelineService {
    * @returns An observable of the brand guideline or null if not found.
    */
   getBrandGuidelineForWorkspace(
-    workspaceId: string,
+    workspaceId: number,
   ): Observable<BrandGuidelineModel | null> {
     const cachedGuideline = this.cachedBrandGuidelineSubject.getValue();
     if (cachedGuideline && cachedGuideline.workspaceId === workspaceId) {

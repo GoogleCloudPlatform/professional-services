@@ -21,7 +21,6 @@ from fastapi import HTTPException, status
 from firebase_admin import auth, credentials, firestore
 from google.auth.exceptions import RefreshError
 from google.cloud import resourcemanager_v3
-from google.cloud.firestore import Client
 
 from src.config.config_service import config_service
 
@@ -78,7 +77,6 @@ class FirebaseClient:
 
         db_name = config_service.FIREBASE_DB
         logger.info(f"Connecting to Firestore database: '{db_name}'")
-        self.db = firestore.client(database_id=db_name)
 
     def check_adc_authentication(self):
         """
@@ -130,7 +128,7 @@ class FirebaseClient:
 
 
 firebase_client = FirebaseClient()
-firestore_db: Client = firebase_client.db
+
 
 
 def create_firebase_user(email: str, password: str):

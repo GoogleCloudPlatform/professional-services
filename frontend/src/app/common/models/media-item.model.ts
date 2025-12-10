@@ -101,6 +101,7 @@ export interface MediaItem {
 
   // Debugging field
   rawData?: Record<string, any>;
+  workspaceId?: number;
   errorMessage?: string;
 }
 

@@ -14,14 +14,15 @@
  * limitations under the License.
  */
 
-export type GenerationType = 'IMAGE' | 'VIDEO';
+export type GenerationType = 'IMAGE' | 'VIDEO' | 'AUDIO';
 
 export type GenerationMode =
   | 'Text to Image'
   | 'Ingredients to Image'
   | 'Text to Video'
   | 'Frames to Video'
-  | 'Ingredients to Video';
+  | 'Ingredients to Video'
+  | 'Text to Audio';
 
 export interface ModelCapability {
   supportedModes: GenerationMode[];
@@ -200,6 +201,40 @@ export const MODEL_CONFIGS: GenerationModelConfig[] = [
       maxReferenceImages: 3,
       supportedAspectRatios: ['16:9', '9:16'],
       supportsAudio: false,
+    },
+  },
+  // --- Audio Models ---
+  {
+    value: 'lyria-002',
+    viewValue: 'Lyria',
+    type: 'AUDIO',
+    icon: 'music_note',
+    capabilities: {
+      supportedModes: ['Text to Audio'],
+      maxReferenceImages: 0,
+      supportedAspectRatios: [],
+    },
+  },
+  {
+    value: 'gemini-2.5-flash-tts',
+    viewValue: 'Gemini TTS',
+    type: 'AUDIO',
+    icon: 'record_voice_over',
+    capabilities: {
+      supportedModes: ['Text to Audio'],
+      maxReferenceImages: 0,
+      supportedAspectRatios: [],
+    },
+  },
+  {
+    value: 'chirp_3',
+    viewValue: 'Chirp',
+    type: 'AUDIO',
+    icon: 'music_note',
+    capabilities: {
+      supportedModes: ['Text to Audio'],
+      maxReferenceImages: 0,
+      supportedAspectRatios: [],
     },
   },
 ];

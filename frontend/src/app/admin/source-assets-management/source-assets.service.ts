@@ -44,14 +44,14 @@ export class SourceAssetsService {
   searchSourceAssets(
     filters: SourceAssetSearch,
     limit: number,
-    startAfter?: string,
+    offset?: number,
   ): Observable<PaginatedResponse<SourceAssetResponseDto>> {
     const backendFilters: {[key: string]: any} = {
       original_filename: filters.originalFilename,
       scope: filters.scope,
       asset_type: filters.assetType,
       limit,
-      start_after: startAfter,
+      offset,
     };
     // Remove undefined properties so they are not sent to the backend
     Object.keys(backendFilters).forEach(

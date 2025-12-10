@@ -22,7 +22,7 @@ import {BrandGuidelineModel} from '../../models/brand-guideline.model';
 import { handleErrorSnackbar } from '../../../utils/handleMessageSnackbar';
 
 export interface BrandGuidelineDialogData {
-  workspaceId: string;
+  workspaceId: number;
   guideline: BrandGuidelineModel | null;
   canEdit: boolean;
 }

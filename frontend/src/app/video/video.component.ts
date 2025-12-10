@@ -726,6 +726,8 @@ export class VideoComponent implements OnInit, AfterViewInit {
         .filter(Boolean);
       this.searchRequest.negativePrompt = this.negativePhrases.join(', ');
     }
+
+    this.saveState();
   }
 
   openImageSelector(imageNumber: 1 | 2): void {
@@ -1312,11 +1314,13 @@ export class VideoComponent implements OnInit, AfterViewInit {
         }
       }
     }
-
+ 
     if (hasAddedReferenceImage) {
       this.handleReferenceImageAdded();
+      this.currentMode = 'Ingredients to Video';
     }
     this.updateModeAndNotify();
+    this.saveState();
   }
 
   promptText = signal<string>('');

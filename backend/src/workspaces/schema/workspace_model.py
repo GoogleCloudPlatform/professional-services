@@ -12,13 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import datetime
 from enum import Enum
-from typing import List
+from typing import List, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 from pydantic.alias_generators import to_camel
+from sqlalchemy import String, func, ForeignKey, Integer, DateTime
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.common.base_repository import BaseDocument
+from src.database import Base
 
 
 class WorkspaceRoleEnum(str, Enum):
@@ -43,7 +47,7 @@ class WorkspaceMember(BaseModel):
     This complete list is stored on the workspace document.
     """
 
-    user_id: str = Field(description="The Firebase Auth UID of the member.")
+    user_id: int = Field(description="The User ID of the member.")
     email: str = Field(
         description="The member's email (denormalized for display)."
     )
@@ -55,29 +59,75 @@ class WorkspaceMember(BaseModel):
     )
 
 
+class Workspace(Base):
+    """
+    SQLAlchemy model for the 'workspaces' table.
+    """
+    __tablename__ = "workspaces"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    name: Mapped[str] = mapped_column(String, nullable=False)
+    owner_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
+    scope: Mapped[str] = mapped_column(String, default=WorkspaceScopeEnum.PRIVATE.value)
+    
+    # Relationships
+    owner: Mapped["User"] = relationship()
+    members: Mapped[List["WorkspaceMemberAssociation"]] = relationship(
+        back_populates="workspace", 
+        cascade="all, delete-orphan",
+        lazy="selectin"
+    )
+
+
+    created_at: Mapped[datetime.datetime] = mapped_column(
+        DateTime(timezone=True),
+        insert_default=func.now(),
+        server_default=func.now()
+    )
+    updated_at: Mapped[datetime.datetime] = mapped_column(
+        DateTime(timezone=True),
+        insert_default=func.now(),
+        onupdate=func.now(),
+        server_default=func.now()
+    )
+
+
+class WorkspaceMemberAssociation(Base):
+    """
+    Association table for the many-to-many relationship between Users and Workspaces,
+    storing the role of the user in the workspace.
+    """
+    __tablename__ = "workspace_members"
+
+    workspace_id: Mapped[int] = mapped_column(ForeignKey("workspaces.id"), primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), primary_key=True)
+    role: Mapped[WorkspaceRoleEnum] = mapped_column(String, default=WorkspaceRoleEnum.VIEWER)
+
+    # Relationships
+    workspace: Mapped["Workspace"] = relationship(back_populates="members")
+    user: Mapped["User"] = relationship(lazy="joined")
+
+    @property
+    def email(self) -> str:
+        """Returns the user's email for Pydantic compatibility."""
+        return self.user.email if self.user else "unknown"
+
+
 class WorkspaceModel(BaseDocument):
     """
     COLLECTION: workspaces (Root-Level Collection)
     Represents a project, team, or folder. Access is controlled by the 'scope'
     and the 'members' list.
     """
+    
+    id: Optional[int] = None
 
     name: str
-    owner_id: str = Field(
+    owner_id: int = Field(
         description="The user_id of the person who created this workspace."
     )
 
     scope: WorkspaceScopeEnum = Field(
         default=WorkspaceScopeEnum.PRIVATE,
         description="Public workspaces are visible to all users. Private ones are visible only to members.",
-    )
-
-    members: List[WorkspaceMember] = Field(
-        default_factory=list,
-        description="The complete list of members who have access to this (if private).",
-    )
-
-    member_ids: List[str] = Field(
-        default_factory=list,
-        description="A denormalized list of user IDs for efficient 'array_contains' queries.",
     )
