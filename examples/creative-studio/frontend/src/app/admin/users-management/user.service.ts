@@ -29,7 +29,9 @@ import {UserModel} from '../../common/models/user.model';
 export interface PaginatedResponse {
   count: number;
   data: UserModel[];
-  nextPageCursor?: string;
+  page: number;
+  pageSize: number;
+  totalPages: number;
 }
 
 @Injectable({
@@ -51,13 +53,13 @@ export class UserService {
   getUsers(
     limit: number,
     filter: string,
-    startAfter?: string,
+    offset?: number,
   ): Observable<PaginatedResponse> {
     let params = new HttpParams()
       .set('limit', limit.toString())
       .set('email', filter);
 
-    if (startAfter) params = params.set('startAfter', startAfter);
+    if (offset !== undefined) params = params.set('offset', offset.toString());
 
     return this.http
       .get<PaginatedResponse>(this.usersApiUrl, {params, ...this.httpOptions})

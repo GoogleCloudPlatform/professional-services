@@ -35,6 +35,7 @@ import { MediaItemSelection } from '../../common/components/image-selector/image
 import { JobStatus, MediaItem } from '../../common/models/media-item.model';
 import { GallerySearchDto } from '../../common/models/search.model';
 import { UserService } from '../../common/services/user.service';
+import { MODEL_CONFIGS } from '../../common/config/model-config';
 import { GalleryService } from '../gallery.service';
 
 @Component({
@@ -67,56 +68,10 @@ export class MediaGalleryComponent implements OnInit, OnDestroy, AfterViewInit {
   public mediaTypeFilter = '';
   public generationModelFilter = '';
   public showOnlyMyMedia = false;
-  public generationModels = [
-    {
-      value: 'gemini-3-pro-image-preview',
-      viewValue: 'Nano Banana Pro',
-    },
-    {
-      value: 'gemini-2.5-flash-image-preview',
-      viewValue: 'Nano Banana',
-    },
-    {
-      value: 'imagen-4.0-ultra-generate-001',
-      viewValue: 'Imagen 4 Ultra',
-    },
-    {
-      value: 'imagen-4.0-fast-generate-001',
-      viewValue: 'Imagen 4 Ultra',
-    },
-    // Video
-    {
-      value: 'veo-3.1-generate-preview',
-      viewValue: 'Veo 3.1 \n (Beta Audio)',
-    },
-    {
-      value: 'veo-3.0-generate-001',
-      viewValue: 'Veo 3 Quality \n (Beta Audio)',
-    },
-    {
-      value: 'veo-3.0-fast-generate-001',
-      viewValue: 'Veo 3 Fast \n (Beta Audio)',
-    },
-    { value: 'veo-2.0-generate-001', viewValue: 'Veo 2 Quality \n (No Audio)' },
-    { value: 'veo-2.0-fast-generate-001', viewValue: 'Veo 2 Fast \n (No Audio)' },
-    {
-      value: 'veo-2.0-generate-exp',
-      viewValue: 'Veo 2 Exp \n (Reference Image)',
-    },
-    // Audio
-    {
-      value: 'lyria-002',
-      viewValue: 'Lyria',
-    },
-    {
-      value: 'gemini-2.5-flash-tts',
-      viewValue: 'Gemini TTS',
-    },
-    {
-      value: 'chirp_3',
-      viewValue: 'Chirp',
-    },
-  ];
+  public generationModels = MODEL_CONFIGS.map(config => ({
+    value: config.value,
+    viewValue: config.viewValue.replace('\n', ''), // Remove newlines for dropdown
+  }));
   private autoSlideIntervals: { [id: string]: any } = {};
   public currentImageIndices: { [id: string]: number } = {};
   public hoveredVideoId: string | null = null;

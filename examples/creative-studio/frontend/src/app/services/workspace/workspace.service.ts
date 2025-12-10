@@ -38,7 +38,7 @@ export class WorkspaceService {
   }
 
   inviteUser(
-    workspaceId: string,
+    workspaceId: number,
     email: string,
     role: WorkspaceRole,
   ): Observable<void> {

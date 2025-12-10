@@ -31,9 +31,8 @@ class BaseSearchDto(BaseDto):
         description="Number of items to return per page.",
     )
 
-    # The cursor is the ID of the last document from the previous page.
-    # It's optional because the first request will not have a cursor.
-    start_after: Optional[str] = Field(
-        default=None,
-        description="The document ID to start the query after for pagination.",
+    offset: int = Field(
+        default=0,
+        ge=0,
+        description="The number of items to skip before starting to collect the result set.",
     )

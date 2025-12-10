@@ -56,10 +56,6 @@ export class SourceAssetsManagementComponent implements OnInit {
   totalAssets = 0;
   limit = 10;
   currentPageIndex = 0;
-  // Stores the cursor for the START of each page.
-  // pageCursors[0] is null
-  // pageCursors[i] is the last document of page i-1
-  private pageCursors: Array<string | null | undefined> = [null];
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
@@ -78,18 +74,7 @@ export class SourceAssetsManagementComponent implements OnInit {
 
   async fetchPage(targetPageIndex: number) {
     this.isLoading = true;
-
-    // Find the most recent page we have a cursor for that is before our target.
-    let startPageIndex = 0;
-    for (let i = targetPageIndex; i >= 0; i--) {
-      if (this.pageCursors[i] !== undefined) {
-        startPageIndex = i;
-        break;
-      }
-    }
-
-    // Get the cursor for our starting point.
-    let cursor: string | null | undefined = this.pageCursors[startPageIndex];
+    const offset = targetPageIndex * this.limit;
 
     const filters = {
       originalFilename: this.filterName.trim() || undefined,
@@ -98,45 +83,17 @@ export class SourceAssetsManagementComponent implements OnInit {
     };
 
     try {
-      // Walk from the known page to the target page, fetching and discarding pages
-      for (let i = startPageIndex; i < targetPageIndex; i++) {
-        const response = await firstValueFrom(
-          this.sourceAssetService.searchSourceAssets(
-            filters,
-            this.limit,
-            cursor ?? undefined,
-          ),
-        );
-
-        if (!response || response.data.length === 0) {
-          this.isLoading = false;
-          this.dataSource.data = []; // Show empty table
-          return;
-        }
-        cursor = response.nextPageCursor ?? null;
-        this.pageCursors[i + 1] = cursor; // Cache the new cursor
-      }
-
-      // Now we have the correct cursor to fetch the target page
       const finalResponse = await firstValueFrom(
         this.sourceAssetService.searchSourceAssets(
           filters,
           this.limit,
-          cursor ?? undefined,
+          offset,
         ),
       );
 
       this.dataSource.data = finalResponse.data;
       this.totalAssets = finalResponse.count;
       this.currentPageIndex = targetPageIndex;
-
-      // Cache the cursor for the *next* page if it exists and we don't have it
-      if (
-        finalResponse.nextPageCursor &&
-        this.pageCursors[targetPageIndex + 1] === undefined
-      ) {
-        this.pageCursors[targetPageIndex + 1] = finalResponse.nextPageCursor;
-      }
     } catch (err) {
       this.errorLoading = 'Failed to load assets.';
       console.error(err);
@@ -154,7 +111,6 @@ export class SourceAssetsManagementComponent implements OnInit {
     if (this.dataSource.paginator) {
       this.dataSource.paginator.firstPage();
     }
-    this.pageCursors = [null];
     this.fetchPage(0);
   }
 

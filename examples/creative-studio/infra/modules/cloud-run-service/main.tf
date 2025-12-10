@@ -39,12 +39,45 @@ resource "google_cloud_run_v2_service" "this" {
 
   template {
     service_account = google_service_account.run_sa.email
+    volumes {
+      name = "cloudsql"
+      cloud_sql_instance {
+        instances = [var.cloud_sql_connection_name]
+      }
+    }
     containers {
       image = "us-docker.pkg.dev/cloudrun/container/hello:latest"
       resources {
         limits = {
           cpu    = var.cpu
           memory = var.memory
+        }
+      }
+
+      env {
+        name = "INSTANCE_CONNECTION_NAME"
+        value = var.cloud_sql_connection_name
+      }
+      env {
+        name = "DB_HOST"
+        value = "/cloudsql/${var.cloud_sql_connection_name}"
+      }
+      env {
+        name = "DB_NAME"
+        value = var.db_name
+      }
+      env {
+        name = "DB_USER"
+        value = var.db_user
+      }
+
+      env {
+        name = "DB_PASS"
+        value_source {
+          secret_key_ref {
+            secret = var.db_secret_id
+            version = "latest"
+          }
         }
       }
 
@@ -69,6 +102,11 @@ resource "google_cloud_run_v2_service" "this" {
             }
           }
         }
+      }
+
+      volume_mounts {
+        name = "cloudsql"
+        mount_path = "/cloudsql"
       }
     }
     scaling {
@@ -149,5 +187,18 @@ resource "google_project_iam_member" "firestore_developer_binding" {
 resource "google_project_iam_member" "sa_token_creator_binding" {
   project = var.gcp_project_id
   role    = "roles/iam.serviceAccountTokenCreator"
+  member  = "serviceAccount:${google_service_account.run_sa.email}"
+}
+
+resource "google_secret_manager_secret_iam_member" "db_password_access" {
+  secret_id = var.db_secret_id
+  role      = "roles/secretmanager.secretAccessor"
+  member  = "serviceAccount:${google_service_account.run_sa.email}"
+}
+
+# This is required for the Cloud Run instance to talk to the Cloud SQL Auth Proxy
+resource "google_project_iam_member" "cloudsql_client" {
+  project = var.gcp_project_id
+  role    = "roles/cloudsql.client"
   member  = "serviceAccount:${google_service_account.run_sa.email}"
 }

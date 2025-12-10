@@ -55,7 +55,7 @@ router = APIRouter(
 async def create_brand_guideline(
     request: Request,
     name: str = Form(min_length=3, max_length=100),
-    workspaceId: Optional[str] = Form(None),
+    workspaceId: Optional[int] = Form(None),
     file: UploadFile = File(),
     service: BrandGuidelineService = Depends(),
     current_user: UserModel = Depends(get_current_user),
@@ -86,7 +86,7 @@ async def create_brand_guideline(
             detail=f"File is too large. Maximum size is {MAX_UPLOAD_SIZE_BYTES // (1024*1024)}MB.",
         )
 
-    executor = request.app.state.process_pool
+    executor = request.app.state.executor
 
     # The service method now starts the background job.
     return await service.start_brand_guideline_processing_job(
@@ -104,7 +104,7 @@ async def create_brand_guideline(
     summary="Get the Brand Guideline for a Workspace",
 )
 async def get_workspace_brand_guideline(
-    workspace_id: str,
+    workspace_id: int,
     current_user: UserModel = Depends(get_current_user),
     service: BrandGuidelineService = Depends(),
 ):
@@ -130,7 +130,7 @@ async def get_workspace_brand_guideline(
     summary="Get a Single Brand Guideline",
 )
 async def get_single_brand_guideline(
-    guideline_id: str,
+    guideline_id: int,
     current_user: UserModel = Depends(get_current_user),
     service: BrandGuidelineService = Depends(),
 ):
@@ -155,7 +155,7 @@ async def get_single_brand_guideline(
     summary="Delete a Brand Guideline",
 )
 async def delete_single_brand_guideline(
-    guideline_id: str,
+    guideline_id: int,
     current_user: UserModel = Depends(get_current_user),
     service: BrandGuidelineService = Depends(),
 ):

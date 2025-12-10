@@ -12,84 +12,75 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import List, Optional
+from typing import Optional
 
-from google.cloud import firestore
-from google.cloud.firestore_v1.base_aggregation import AggregationResult
-from google.cloud.firestore_v1.base_query import FieldFilter
-from google.cloud.firestore_v1.query_results import QueryResultsList
+from fastapi import Depends
+from sqlalchemy import func, select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.brand_guidelines.dto.brand_guideline_search_dto import (
     BrandGuidelineSearchDto,
 )
 from src.brand_guidelines.schema.brand_guideline_model import (
+    BrandGuideline,
     BrandGuidelineModel,
 )
 from src.common.base_repository import BaseRepository
 from src.common.dto.pagination_response_dto import PaginationResponseDto
+from src.database import get_db
 
 
-class BrandGuidelineRepository(BaseRepository[BrandGuidelineModel]):
+class BrandGuidelineRepository(BaseRepository[BrandGuideline, BrandGuidelineModel]):
     """
-    Repository for all database operations related to the 'brand_guidelines' collection.
+    Repository for all database operations related to the 'brand_guidelines' table.
     """
 
-    def __init__(self):
-        """Initializes the repository with the 'brand_guidelines' collection."""
-        super().__init__(
-            collection_name="brand_guidelines", model=BrandGuidelineModel
-        )
+    def __init__(self, db: AsyncSession = Depends(get_db)):
+        """Initializes the repository."""
+        super().__init__(model=BrandGuideline, schema=BrandGuidelineModel, db=db)
 
-    def query(
+    async def query(
         self,
         search_dto: BrandGuidelineSearchDto,
-        extra_filters: Optional[List[FieldFilter]] = None,
+        workspace_id: Optional[int] = None,
     ) -> PaginationResponseDto[BrandGuidelineModel]:
         """
-        Performs a generic, paginated query on the brand_guidelines collection.
+        Performs a generic, paginated query on the brand_guidelines table.
         """
-        base_query = self.collection_ref
-        extra_filters = extra_filters or []
+        query = select(self.model)
 
-        # Apply any additional filters passed in
-        for f in extra_filters:
-            base_query = base_query.where(filter=f)
+        # Apply filters
+        # Assuming search_dto has fields like name, etc.
+        # If workspace_id is provided, filter by it
+        if workspace_id is not None:
+            query = query.where(self.model.workspace_id == workspace_id)
 
-        count_query = base_query.count(alias="total")
-        aggregation_result = count_query.get()
+        # Count
+        count_query = select(func.count()).select_from(query.subquery())
+        count_result = await self.db.execute(count_query)
+        total_count = count_result.scalar_one()
 
-        total_count = 0
-        if (
-            isinstance(aggregation_result, QueryResultsList)
-            and aggregation_result
-            and isinstance(aggregation_result[0][0], AggregationResult)  # type: ignore
-        ):
-            total_count = int(aggregation_result[0][0].value)  # type: ignore
+        # Order and Pagination
+        query = query.order_by(self.model.created_at.desc())
+        query = query.offset(search_dto.offset).limit(search_dto.limit)
 
-        data_query = base_query.order_by(
-            "created_at", direction=firestore.Query.DESCENDING
-        )
-
-        if search_dto.start_after:
-            last_doc_snapshot = self.collection_ref.document(
-                search_dto.start_after
-            ).get()
-            if last_doc_snapshot.exists:
-                data_query = data_query.start_after(last_doc_snapshot)
-
-        data_query = data_query.limit(search_dto.limit)
-
-        documents = list(data_query.stream())
+        # Execute
+        result = await self.db.execute(query)
+        guidelines = result.scalars().all()
+        
         guideline_data = [
-            self.model.model_validate(doc.to_dict()) for doc in documents
+            self.schema.model_validate(g) for g in guidelines
         ]
 
-        next_page_cursor = None
-        if len(documents) == search_dto.limit:
-            next_page_cursor = documents[-1].id
+        # Calculate pagination metadata
+        page = (search_dto.offset // search_dto.limit) + 1
+        page_size = search_dto.limit
+        total_pages = (total_count + page_size - 1) // page_size
 
         return PaginationResponseDto[BrandGuidelineModel](
             count=total_count,
-            next_page_cursor=next_page_cursor,
+            page=page,
+            page_size=page_size,
+            total_pages=total_pages,
             data=guideline_data,
         )

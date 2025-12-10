@@ -23,3 +23,8 @@ output "frontend_service_url" {
   description = "The URL of the deployed frontend service."
   value       = module.frontend_service.url
 }
+
+output "cloud_sql_connection_name" {
+  description = "The connection name of the Cloud SQL instance to be used by the bootstrap script."
+  value       = module.postgresql.connection_name
+}

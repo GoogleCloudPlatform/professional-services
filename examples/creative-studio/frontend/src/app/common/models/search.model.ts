@@ -44,6 +44,7 @@ export interface ReferenceImage {
   previewUrl: string;
   sourceAssetId?: string;
   sourceMediaItem?: SourceMediaItemLink;
+  isNew?: boolean;
 }
 
 export interface ReferenceImageDto {
@@ -107,6 +108,7 @@ export type ImagesData = {
 
 export interface GallerySearchDto {
   limit: number;
+  offset?: number;
   startAfter?: string;
   userEmail?: string;
   mimeType?: string;
