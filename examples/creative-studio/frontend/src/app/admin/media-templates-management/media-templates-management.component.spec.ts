@@ -31,7 +31,7 @@ describe('MediaTemplatesManagementComponent', () => {
       'getMediaTemplates',
     ]);
     mockMediaTemplatesService.getMediaTemplates.and.returnValue(
-      of({data: [], count: 0}),
+      of({data: [], count: 0, page: 0, pageSize: 0, totalPages: 0}),
     );
 
     await TestBed.configureTestingModule({
