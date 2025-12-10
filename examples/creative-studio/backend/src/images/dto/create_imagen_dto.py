@@ -39,8 +39,8 @@ class CreateImagenDto(BaseDto):
     prompt: Annotated[str, Query(max_length=10000)] = Field(
         description="Prompt term to be passed to the model"
     )
-    workspace_id: str = Field(
-        min_length=1, description="The ID of the workspace for this generation."
+    workspace_id: int = Field(
+        ge=1, description="The ID of the workspace for this generation."
     )
     generation_model: GenerationModelEnum = Field(
         default=GenerationModelEnum.IMAGEN_4_ULTRA,

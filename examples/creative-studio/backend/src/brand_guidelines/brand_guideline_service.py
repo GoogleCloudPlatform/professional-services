@@ -29,7 +29,6 @@ from concurrent.futures import (
 from typing import List, Optional
 
 from fastapi import HTTPException, UploadFile, status
-from google.cloud.firestore_v1.base_query import FieldFilter
 from google.cloud.logging import Client as LoggerClient
 from google.cloud.logging.handlers import CloudLoggingHandler
 from pypdf import PdfReader, PdfWriter
@@ -53,6 +52,7 @@ from src.common.storage_service import GcsService
 from src.multimodal.gemini_service import GeminiService
 from src.users.user_model import UserModel, UserRoleEnum
 from src.workspaces.repository.workspace_repository import WorkspaceRepository
+from fastapi import Depends
 
 logger = logging.getLogger(__name__)
 
@@ -61,16 +61,23 @@ GEMINI_PDF_LIMIT_BYTES = 50 * 1024 * 1024
 
 
 def _process_brand_guideline_in_background(
-    guideline_id: str,
+    guideline_id: int,
     name: str,
     file_contents: bytes,
     original_filename: str,
-    workspace_id: Optional[str],
+    workspace_id: Optional[int],
 ):
     """
     This is the long-running worker task that runs in a separate process.
     It handles PDF splitting, uploading, AI extraction, and database updates.
     """
+    import asyncio
+    import os
+    import sys
+    from google.cloud.logging import Client as LoggerClient
+    from google.cloud.logging.handlers import CloudLoggingHandler
+    from src.database import WorkerDatabase
+
     worker_logger = logging.getLogger(f"brand_guideline_worker.{guideline_id}")
     worker_logger.setLevel(logging.INFO)
 
@@ -93,98 +100,108 @@ def _process_brand_guideline_in_background(
             handler.setFormatter(formatter)
             worker_logger.addHandler(handler)
 
-        # Create new instances of dependencies within this process
-        repo = BrandGuidelineRepository()
-        gcs_service = GcsService()
-        gemini_service = GeminiService()
+        # Create a new event loop for this process
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
 
-        try:
-            # 1. Split if necessary and upload file(s) to GCS
-            gcs_uris = asyncio.run(
-                BrandGuidelineService._split_and_upload_pdf(
-                    gcs_service,
-                    file_contents,
-                    workspace_id,
-                    original_filename,
-                )
-            )
+        async def _async_worker():
+            async with WorkerDatabase() as db_factory:
+                async with db_factory() as db:
+                    # Create new instances of dependencies within this process
+                    repo = BrandGuidelineRepository(db)
+                    gcs_service = GcsService()
+                    # GeminiService needs brand_guideline_repo
+                    gemini_service = GeminiService(brand_guideline_repo=repo)
 
-            if not gcs_uris:
-                raise Exception(
-                    "Failed to upload PDF chunk(s) to Google Cloud Storage."
-                )
-
-            worker_logger.info(
-                f"PDF(s) uploaded to {gcs_uris}. Starting AI extraction."
-            )
-
-            # 2. Call Gemini for each chunk to extract structured data
-            # Use a ThreadPoolExecutor to run extractions in parallel.
-            successful_partial_results = []
-            with ThreadPoolExecutor(max_workers=len(gcs_uris)) as executor:
-                # Create a future for each extraction task
-                future_to_uri = {
-                    executor.submit(
-                        gemini_service.extract_brand_info_from_pdf, uri
-                    ): uri
-                    for uri in gcs_uris
-                }
-
-                for future in as_completed(future_to_uri):
-                    uri = future_to_uri[future]
                     try:
-                        result = future.result()
-                        if result:
-                            successful_partial_results.append(result)
-                    except Exception as exc:
-                        worker_logger.error(
-                            f"Extraction for PDF chunk {uri} failed: {exc}"
+                        # 1. Split if necessary and upload file(s) to GCS
+                        gcs_uris = await BrandGuidelineService._split_and_upload_pdf(
+                            gcs_service,
+                            file_contents,
+                            workspace_id,
+                            original_filename,
                         )
 
-            # 3. Aggregate the results
-            extracted_data: BrandGuidelineModel | None = (
-                gemini_service.aggregate_brand_info(successful_partial_results)
-            )
+                        if not gcs_uris:
+                            raise Exception(
+                                "Failed to upload PDF chunk(s) to Google Cloud Storage."
+                            )
 
-            if not extracted_data:
-                worker_logger.error(
-                    f"Failed to extract data from PDF at {gcs_uris}."
-                )
-                raise Exception(
-                    "AI processing failed to extract data from the PDF."
-                )
+                        worker_logger.info(
+                            f"PDF(s) uploaded to {gcs_uris}. Starting AI extraction."
+                        )
 
-            # 4. Update the final, fully-populated Firestore document
-            update_data = {
-                "status": JobStatusEnum.COMPLETED,
-                "source_pdf_gcs_uris": gcs_uris,
-                "color_palette": extracted_data.color_palette,
-                "tone_of_voice_summary": extracted_data.tone_of_voice_summary,
-                "visual_style_summary": extracted_data.visual_style_summary,
-                "guideline_text": extracted_data.guideline_text,
-            }
-            repo.update(guideline_id, update_data)
-            worker_logger.info(
-                f"Successfully processed brand guideline: {guideline_id}"
-            )
+                        # 2. Call Gemini for each chunk to extract structured data
+                        # Use a ThreadPoolExecutor to run extractions in parallel.
+                        successful_partial_results = []
+                        # We can run sync Gemini calls in thread pool if they are sync, 
+                        # but gemini_service.extract_brand_info_from_pdf might be sync or async?
+                        # In the user's code it was called with executor.submit, implying it's sync.
+                        # Let's check GeminiService.extract_brand_info_from_pdf.
+                        # Assuming it is sync for now as per user's previous code.
+                        
+                        loop = asyncio.get_running_loop()
+                        tasks = [
+                            loop.run_in_executor(None, gemini_service.extract_brand_info_from_pdf, uri)
+                            for uri in gcs_uris
+                        ]
+                        results = await asyncio.gather(*tasks, return_exceptions=True)
 
-        except Exception as e:
-            worker_logger.error(
-                "Brand guideline processing task failed.",
-                extra={
-                    "json_fields": {
-                        "guideline_id": guideline_id,
-                        "error": str(e),
-                    }
-                },
-                exc_info=True,
-            )
-            # --- ON FAILURE, UPDATE THE DOCUMENT WITH AN ERROR STATUS ---
-            error_update_data = {
-                "status": JobStatusEnum.FAILED,
-                "error_message": str(e),
-            }
-            repo.update(guideline_id, error_update_data)
+                        for i, result in enumerate(results):
+                            if isinstance(result, Exception):
+                                worker_logger.error(
+                                    f"Extraction for PDF chunk {gcs_uris[i]} failed: {result}"
+                                )
+                            elif result:
+                                successful_partial_results.append(result)
+
+                        # 3. Aggregate the results
+                        extracted_data: BrandGuidelineModel | None = (
+                            gemini_service.aggregate_brand_info(successful_partial_results)
+                        )
+
+                        if not extracted_data:
+                            worker_logger.error(
+                                f"Failed to extract data from PDF at {gcs_uris}."
+                            )
+                            raise Exception(
+                                "AI processing failed to extract data from the PDF."
+                            )
+
+                        # 4. Update the final, fully-populated database record
+                        update_data = {
+                            "status": JobStatusEnum.COMPLETED,
+                            "source_pdf_gcs_uris": gcs_uris,
+                            "color_palette": extracted_data.color_palette,
+                            "tone_of_voice_summary": extracted_data.tone_of_voice_summary,
+                            "visual_style_summary": extracted_data.visual_style_summary,
+                            "guideline_text": extracted_data.guideline_text,
+                        }
+                        await repo.update(guideline_id, update_data)
+                        worker_logger.info(
+                            f"Successfully processed brand guideline: {guideline_id}"
+                        )
+
+                    except Exception as e:
+                        worker_logger.error(
+                            "Brand guideline processing task failed.",
+                            extra={
+                                "json_fields": {
+                                    "guideline_id": guideline_id,
+                                    "error": str(e),
+                                }
+                            },
+                            exc_info=True,
+                        )
+                        # --- ON FAILURE, UPDATE THE DOCUMENT WITH AN ERROR STATUS ---
+                        error_update_data = {
+                            "status": JobStatusEnum.FAILED,
+                            "error_message": str(e),
+                        }
+                        await repo.update(guideline_id, error_update_data)
+
+        loop.run_until_complete(_async_worker())
+        loop.close()
 
     except Exception as e:
         worker_logger.error(
@@ -202,18 +219,25 @@ class BrandGuidelineService:
     including PDF processing via background tasks.
     """
 
-    def __init__(self):
-        self.repo = BrandGuidelineRepository()
-        self.gcs_service = GcsService()
-        self.gemini_service = GeminiService()
-        self.workspace_repo = WorkspaceRepository()
-        self.iam_signer_credentials = IamSignerCredentials()
+    def __init__(
+        self,
+        repo: BrandGuidelineRepository = Depends(),
+        gcs_service: GcsService = Depends(),
+        gemini_service: GeminiService = Depends(),
+        workspace_repo: WorkspaceRepository = Depends(),
+        iam_signer_credentials: IamSignerCredentials = Depends(),
+    ):
+        self.repo = repo
+        self.gcs_service = gcs_service
+        self.gemini_service = gemini_service
+        self.workspace_repo = workspace_repo
+        self.iam_signer_credentials = iam_signer_credentials
 
     @staticmethod
     async def _split_and_upload_pdf(
         gcs_service: GcsService,
         file_contents: bytes,
-        workspace_id: Optional[str],
+        workspace_id: Optional[int],
         original_filename: str,
     ) -> list[str]:
         """
@@ -291,7 +315,7 @@ class BrandGuidelineService:
 
         # Delete the Firestore document
         if guideline.id:
-            await asyncio.to_thread(self.repo.delete, guideline.id)
+            await self.repo.delete(guideline.id)
 
     async def _create_brand_guideline_response(
         self, guideline: BrandGuidelineModel
@@ -315,9 +339,9 @@ class BrandGuidelineService:
         self,
         name: str,
         file: UploadFile,
-        workspace_id: Optional[str],
+        workspace_id: Optional[int],
         current_user: UserModel,
-        executor: ProcessPoolExecutor,
+        executor: ThreadPoolExecutor,
     ) -> BrandGuidelineResponseDto:
         """
         Creates a placeholder for a brand guideline and starts the processing
@@ -327,7 +351,7 @@ class BrandGuidelineService:
         is_system_admin = UserRoleEnum.ADMIN in current_user.roles
 
         if workspace_id:
-            workspace = self.workspace_repo.get_by_id(workspace_id)
+            workspace = await self.workspace_repo.get_by_id(workspace_id)
             if not workspace:
                 raise HTTPException(
                     status_code=status.HTTP_404_NOT_FOUND,
@@ -352,9 +376,8 @@ class BrandGuidelineService:
             search_dto = BrandGuidelineSearchDto(
                 workspace_id=workspace_id, limit=1
             )
-            workspace_filter = FieldFilter("workspace_id", "==", workspace_id)
-            existing_guidelines_response = await asyncio.to_thread(
-                self.repo.query, search_dto, extra_filters=[workspace_filter]
+            existing_guidelines_response = await self.repo.query(
+                search_dto, workspace_id=workspace_id
             )
             if existing_guidelines_response.data:
                 await self._delete_guideline_and_assets(
@@ -365,19 +388,17 @@ class BrandGuidelineService:
         file_contents = await file.read()
 
         # 4. Create and save a placeholder document
-        guideline_id = str(uuid.uuid4())
         placeholder_guideline = BrandGuidelineModel(
-            id=guideline_id,
             name=name,
             workspace_id=workspace_id,
             status=JobStatusEnum.PROCESSING,
         )
-        self.repo.save(placeholder_guideline)
+        placeholder_guideline = await self.repo.create(placeholder_guideline)
 
         # 5. Submit the job to the background process pool
         executor.submit(
             _process_brand_guideline_in_background,
-            guideline_id=guideline_id,
+            guideline_id=placeholder_guideline.id,
             name=name,
             file_contents=file_contents,
             original_filename=file.filename or "guideline.pdf",
@@ -394,12 +415,12 @@ class BrandGuidelineService:
         )
 
     async def get_guideline_by_id(
-        self, guideline_id: str, current_user: UserModel
+        self, guideline_id: int, current_user: UserModel
     ) -> Optional[BrandGuidelineResponseDto]:
         """
         Retrieves a single brand guideline and performs an authorization check.
         """
-        guideline = await asyncio.to_thread(self.repo.get_by_id, guideline_id)
+        guideline = await self.repo.get_by_id(guideline_id)
 
         if not guideline:
             return None
@@ -411,9 +432,7 @@ class BrandGuidelineService:
             return await self._create_brand_guideline_response(guideline)
 
         # For workspace-specific guidelines, check membership.
-        workspace = await asyncio.to_thread(
-            self.workspace_repo.get_by_id, guideline.workspace_id
-        )
+        workspace = await self.workspace_repo.get_by_id(guideline.workspace_id)
 
         if not workspace:
             # This indicates an data inconsistency, but we handle it gracefully.
@@ -431,14 +450,12 @@ class BrandGuidelineService:
         return await self._create_brand_guideline_response(guideline)
 
     async def get_guideline_by_workspace_id(
-        self, workspace_id: str, current_user: UserModel
+        self, workspace_id: int, current_user: UserModel
     ) -> Optional[BrandGuidelineResponseDto]:
         """
         Retrieves the unique brand guideline for a workspace.
         """
-        workspace = await asyncio.to_thread(
-            self.workspace_repo.get_by_id, workspace_id
-        )
+        workspace = await self.workspace_repo.get_by_id(workspace_id)
         if not workspace:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -457,9 +474,8 @@ class BrandGuidelineService:
                 )
 
         search_dto = BrandGuidelineSearchDto(workspace_id=workspace_id, limit=1)
-        workspace_filter = FieldFilter("workspace_id", "==", workspace_id)
-        response = await asyncio.to_thread(
-            self.repo.query, search_dto, extra_filters=[workspace_filter]
+        response = await self.repo.query(
+            search_dto, workspace_id=workspace_id
         )
 
         if not response.data:
@@ -468,14 +484,14 @@ class BrandGuidelineService:
         return await self._create_brand_guideline_response(response.data[0])
 
     async def delete_guideline(
-        self, guideline_id: str, current_user: UserModel
+        self, guideline_id: int, current_user: UserModel
     ):
         """
         Deletes a brand guideline and all its associated assets after an
         authorization check.
         """
         # 1. Fetch the guideline
-        guideline = await asyncio.to_thread(self.repo.get_by_id, guideline_id)
+        guideline = await self.repo.get_by_id(guideline_id)
         if not guideline:
             # If it doesn't exist, we can consider the deletion successful.
             logger.warning(
@@ -494,9 +510,7 @@ class BrandGuidelineService:
                     detail="Only a system admin can delete global brand guidelines.",
                 )
         else:  # Workspace-specific guideline
-            workspace = await asyncio.to_thread(
-                self.workspace_repo.get_by_id, guideline.workspace_id
-            )
+            workspace = await self.workspace_repo.get_by_id(guideline.workspace_id)
             # If workspace doesn't exist, only admin can clean up the orphan guideline.
             if not workspace and not is_system_admin:
                 raise HTTPException(

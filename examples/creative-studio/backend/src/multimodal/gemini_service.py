@@ -18,7 +18,8 @@ import logging
 from enum import Enum
 from typing import Any, Dict, List, Optional, Type, Union
 
-from google.cloud.firestore_v1.base_query import FieldFilter
+from fastapi import Depends
+
 from google.genai import Client, types
 from pydantic import BaseModel, Field
 from tenacity import (
@@ -73,12 +74,12 @@ class GeminiService:
     Handles client initialization, prompt rewriting, and error handling.
     """
 
-    def __init__(self):
+    def __init__(self, brand_guideline_repo: BrandGuidelineRepository = Depends()):
         """Initializes the Gemini client and configuration."""
         self.client: Client = GeminiModelSetup.init()
         self.cfg = config_service
         self.rewriter_model = self.cfg.GEMINI_MODEL_ID
-        self.brand_guideline_repo = BrandGuidelineRepository()
+        self.brand_guideline_repo = brand_guideline_repo
 
     def _get_response_schema(self, target: PromptTargetEnum) -> Type[BaseModel]:
         """Dynamically gets the Pydantic schema based on the target type."""
@@ -203,7 +204,7 @@ class GeminiService:
                 attributes.append(f"- {formatted_key}: {value}")
         return "\n".join(filter(None, attributes))
 
-    def enhance_prompt_from_dto(
+    async def enhance_prompt_from_dto(
         self,
         dto: Union[CreateImagenDto, CreateVeoDto],
         target_type: PromptTargetEnum,
@@ -277,11 +278,8 @@ class GeminiService:
             search_dto = BrandGuidelineSearchDto(
                 workspace_id=dto.workspace_id, limit=1
             )
-            workspace_filter = FieldFilter(
-                "workspace_id", "==", dto.workspace_id
-            )
-            guideline_response = self.brand_guideline_repo.query(
-                search_dto, extra_filters=[workspace_filter]
+            guideline_response = await self.brand_guideline_repo.query(
+                search_dto, workspace_id=dto.workspace_id
             )
 
             if guideline_response and guideline_response.data:

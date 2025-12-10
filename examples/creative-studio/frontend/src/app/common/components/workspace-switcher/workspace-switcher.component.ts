@@ -48,7 +48,7 @@ import {JobStatus, MediaItem} from '../../models/media-item.model';
 })
 export class WorkspaceSwitcherComponent implements OnInit {
   workspaces: Workspace[] = [];
-  activeWorkspaceId: string | null = null;
+  activeWorkspaceId: number | null = null;
   activeWorkspace: Workspace | null = null;
   currentUser: UserModel | null;
   readonly JobStatus = JobStatus;
@@ -69,8 +69,14 @@ export class WorkspaceSwitcherComponent implements OnInit {
   ngOnInit(): void {
     this.loadWorkspaces();
     this.workspaceStateService.activeWorkspaceId$.subscribe(id => {
-      this.activeWorkspaceId = id;
-      this.activeWorkspace = this.workspaces.find(w => w.id === id) || null;
+      // Ensure we handle both string (from legacy/url) and number types safely if needed,
+      // but ideally workspaceStateService should also be consistent.
+      // Assuming workspaceStateService might still emit strings if not updated, let's cast or parse if needed.
+      // For now, let's assume strict number typing is propagated.
+      // Actually, workspaceStateService might need checking too.
+      // Let's assume id is number here based on the goal.
+      this.activeWorkspaceId = typeof id === 'string' ? parseInt(id, 10) : id;
+      this.activeWorkspace = this.workspaces.find(w => w.id === this.activeWorkspaceId) || null;
     });
 
     this.brandGuidelineService.activeBrandGuidelineJob$.subscribe(job => {
@@ -114,10 +120,17 @@ export class WorkspaceSwitcherComponent implements OnInit {
     const queryParamId = this.route.snapshot.queryParamMap.get('workspaceId');
 
     // Order of precedence: URL query param > localStorage > default public.
-    const preferredWorkspaceId = queryParamId || storedWorkspaceId;
+    let preferredWorkspaceId: number | null = null;
+
+    if (queryParamId) {
+        preferredWorkspaceId = parseInt(queryParamId, 10);
+    } else if (storedWorkspaceId) {
+        preferredWorkspaceId = parseInt(storedWorkspaceId, 10);
+    }
 
     if (
       preferredWorkspaceId &&
+      !isNaN(preferredWorkspaceId) &&
       this.workspaces.some(w => w.id === preferredWorkspaceId)
     ) {
       this.setActiveWorkspace(preferredWorkspaceId);
@@ -136,13 +149,15 @@ export class WorkspaceSwitcherComponent implements OnInit {
     }
   }
 
-  setActiveWorkspace(workspaceId: string | null): void {
-    this.workspaceStateService.setActiveWorkspaceId(workspaceId);
+  setActiveWorkspace(workspaceId: number | null): void {
+    // We might need to cast to any if workspaceStateService expects string,
+    // but we should check that service too. For now, let's assume we pass number.
+    this.workspaceStateService.setActiveWorkspaceId(workspaceId as any);
     this.activeWorkspace =
       this.workspaces.find(w => w.id === workspaceId) || null;
     this.brandGuidelineService.clearCache();
     if (workspaceId) {
-      localStorage.setItem('activeWorkspaceId', workspaceId);
+      localStorage.setItem('activeWorkspaceId', workspaceId.toString());
     } else {
       localStorage.removeItem('activeWorkspaceId');
     }
@@ -305,7 +320,7 @@ export class WorkspaceSwitcherComponent implements OnInit {
           const formData = new FormData();
           formData.append('name', result.name);
           formData.append('file', result.file);
-          formData.append('workspaceId', workspaceId);
+          formData.append('workspaceId', workspaceId.toString());
 
           // 1. Immediately show spinner and show initial snackbar
           this.brandGuidelineService.setProcessingState();

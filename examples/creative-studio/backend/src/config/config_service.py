@@ -33,7 +33,7 @@ class ConfigService(BaseSettings):
     # system environment variables.
     # The path is relative to this file's location (src/config/).
     model_config = SettingsConfigDict(
-        case_sensitive=True, env_file="../../.env", env_file_encoding="utf-8"
+        case_sensitive=True, env_file=".env", env_file_encoding="utf-8", extra="ignore"
     )
 
     # --- Core Project Settings ---
@@ -61,6 +61,15 @@ class ConfigService(BaseSettings):
     # --- Collections ---
     FIREBASE_DB: str = "cstudio-development"
 
+    # --- Database Configuration ---
+    INSTANCE_CONNECTION_NAME: str = ""
+    DB_USER: str = "postgres"
+    DB_PASS: str = "password"
+    DB_NAME: str = "creative_studio"
+    USE_CLOUD_SQL_AUTH_PROXY: bool = False
+    DB_HOST: str = "localhost"
+    DB_PORT: str = "5432"
+
     # --- Veo ---
     VEO_MODEL_ID: str = "veo-2.0-generate-001"
 
@@ -83,6 +92,7 @@ class ConfigService(BaseSettings):
     SENDER_EMAIL: str = (
         ""  # The email address to send from (e.g., no-reply@your-domain.com)
     )
+    ADMIN_USER_EMAIL: str = "system"
 
     @model_validator(mode="before")
     @classmethod

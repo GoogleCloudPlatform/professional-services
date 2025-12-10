@@ -2,3 +2,26 @@ textarea {
   field-sizing: content;
   resize: vertical;
 }
+
+@keyframes highlight-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7);
+    transform: scale(1);
+  }
+
+  50% {
+    box-shadow: 0 0 0 6px rgba(59, 130, 246, 0);
+    transform: scale(1.5);
+  }
+
+  100% {
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+    transform: scale(1);
+  }
+}
+
+.highlight-new {
+  animation: highlight-pulse 2s ease-out infinite;
+  border: 2px solid #3b82f6;
+  border-radius: 0.5rem; // Match rounded-lg
+}

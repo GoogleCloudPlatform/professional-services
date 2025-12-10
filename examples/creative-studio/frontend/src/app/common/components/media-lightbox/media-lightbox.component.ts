@@ -201,6 +201,21 @@ export class MediaLightboxComponent
     }, 200);
   }
 
+  shareTo(
+    platform:
+      | 'facebook'
+      | 'twitter'
+      | 'pinterest'
+      | 'reddit'
+      | 'whatsapp'
+      | 'linkedin'
+      | 'telegram',
+  ): void {
+    const url = this.getShareUrl(platform);
+    window.open(url, '_blank');
+    this.isShareMenuOpen = false;
+  }
+
   getShareUrl(
     platform:
       | 'facebook'
