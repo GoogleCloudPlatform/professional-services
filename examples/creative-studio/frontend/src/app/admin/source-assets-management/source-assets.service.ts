@@ -99,7 +99,7 @@ export class SourceAssetsService {
       .pipe(catchError(this.handleError));
   }
 
-  deleteSourceAsset(id: string): Observable<void> {
+  deleteSourceAsset(id: number): Observable<void> {
     const url = `${this.apiUrl}/${id}`;
     return this.http.delete<void>(url).pipe(catchError(this.handleError));
   }

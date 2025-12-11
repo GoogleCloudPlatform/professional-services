@@ -45,7 +45,7 @@ export interface RewritePromptRequest {
   userPrompt: string;
 }
 export interface ConcatenationInput {
-  id: string;
+  id: number;
   type: 'media_item' | 'source_asset';
 }
 export interface ConcatenateVideosDto {
@@ -104,7 +104,7 @@ export class SearchService {
     this.activeImageJob.next(null);
   }
 
-  private startImagenPolling(mediaId: string): void {
+  private startImagenPolling(mediaId: number): void {
     this.stopImagenPolling();
     this.imagePollingSubscription = timer(2000, 5000) // Start after 2s, then every 5s
       .pipe(
@@ -141,7 +141,7 @@ export class SearchService {
     this.imagePollingSubscription = null;
   }
 
-  getImagenMediaItem(mediaId: string): Observable<MediaItem> {
+  getImagenMediaItem(mediaId: number): Observable<MediaItem> {
     // Note: We need to add this endpoint to the backend or use a generic one.
     // For now, assuming we'll add /images/{mediaId} or use a common gallery endpoint.
     // Given the current backend structure, we might need to add this.
@@ -187,7 +187,7 @@ export class SearchService {
    * Private method to poll the status of a media item.
    * @param mediaId The ID of the job to poll.
    */
-  private startVeoPolling(mediaId: string): void {
+  private startVeoPolling(mediaId: number): void {
     this.stopVeoPolling(); // Ensure no other polls are running
 
     this.videoPollingSubscription = timer(5000, 15000) // Start after 5s, then every 15s
@@ -234,7 +234,7 @@ export class SearchService {
    * @param mediaId The unique ID of the media item to check.
    * @returns An Observable of the MediaItem.
    */
-  getVeoMediaItem(mediaId: string): Observable<MediaItem> {
+  getVeoMediaItem(mediaId: number): Observable<MediaItem> {
     const getURL = `${environment.backendURL}/gallery/item/${mediaId}`;
     return this.http.get<MediaItem>(getURL);
   }
@@ -277,7 +277,7 @@ export class SearchService {
    * Private method to poll the status of a VTO job.
    * @param mediaId The ID of the job to poll.
    */
-  private startVtoPolling(mediaId: string): void {
+  private startVtoPolling(mediaId: number): void {
     this.stopVtoPolling();
 
     this.vtoPollingSubscription = timer(5000, 15000) // Start after 5s, then every 15s
@@ -321,7 +321,7 @@ export class SearchService {
    * @param mediaId The unique ID of the media item to check.
    * @returns An Observable of the MediaItem.
    */
-  getVtoMediaItem(mediaId: string): Observable<MediaItem> {
+  getVtoMediaItem(mediaId: number): Observable<MediaItem> {
     const url = `${environment.backendURL}/gallery/item/${mediaId}`;
     return this.http.get<MediaItem>(url);
   }

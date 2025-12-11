@@ -74,8 +74,8 @@ export class MediaGalleryComponent implements OnInit, OnDestroy, AfterViewInit {
   }));
   private autoSlideIntervals: { [id: string]: any } = {};
   public currentImageIndices: { [id: string]: number } = {};
-  public hoveredVideoId: string | null = null;
-  public hoveredAudioId: string | null = null;
+  public hoveredVideoId: number | null = null;
+  public hoveredAudioId: number | null = null;
 
   constructor(
     private galleryService: GalleryService,
@@ -200,7 +200,7 @@ export class MediaGalleryComponent implements OnInit, OnDestroy, AfterViewInit {
     this._scrollObserver.observe(this._sentinel.nativeElement);
   }
 
-  public trackByImage(index: number, image: MediaItem): string {
+  public trackByImage(index: number, image: MediaItem): number {
     return image.id;
   }
 
@@ -210,7 +210,7 @@ export class MediaGalleryComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   public nextImage(
-    imageId: string,
+    imageId: number,
     urlsLength: number,
     event?: MouseEvent,
   ): void {
@@ -224,7 +224,7 @@ export class MediaGalleryComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   public prevImage(
-    imageId: string,
+    imageId: number,
     urlsLength: number,
     event?: MouseEvent,
   ): void {
@@ -268,7 +268,7 @@ export class MediaGalleryComponent implements OnInit, OnDestroy, AfterViewInit {
     this.startAutoSlide(media);
   }
 
-  public playAudio(mediaId: string): void {
+  public playAudio(mediaId: number): void {
     this.hoveredAudioId = mediaId;
   }
 
@@ -304,7 +304,7 @@ export class MediaGalleryComponent implements OnInit, OnDestroy, AfterViewInit {
     return textToTruncate;
   }
 
-  public playVideo(mediaId: string): void {
+  public playVideo(mediaId: number): void {
     this.hoveredVideoId = mediaId;
   }
 
@@ -330,7 +330,7 @@ export class MediaGalleryComponent implements OnInit, OnDestroy, AfterViewInit {
     }
   }
 
-  public stopAutoSlide(imageId: string): void {
+  public stopAutoSlide(imageId: number): void {
     if (this.autoSlideIntervals[imageId]) {
       clearInterval(this.autoSlideIntervals[imageId]);
       delete this.autoSlideIntervals[imageId];
