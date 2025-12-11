@@ -46,7 +46,7 @@ import {
   EnrichedSourceAsset,
   GenerationParameters,
 } from '../fun-templates/media-template.model';
-import { handleErrorSnackbar, handleSuccessSnackbar } from '../utils/handleMessageSnackbar';
+import { handleErrorSnackbar, handleInfoSnackbar, handleSuccessSnackbar } from '../utils/handleMessageSnackbar';
 import {JobStatus, MediaItem} from '../common/models/media-item.model';
 import {
   SourceAssetResponseDto,
@@ -502,7 +502,10 @@ export class VideoComponent implements OnInit, AfterViewInit {
         });
       return;
     }
-    if (!this.searchRequest.prompt && !this.isExtensionMode) return;
+    if (!this.searchRequest.prompt && !this.isExtensionMode) {
+      handleInfoSnackbar(this._snackBar, 'Please enter a prompt to generate a video.');
+      return;
+    }
     this.showErrorOverlay = true;
 
     const hasSourceAssets = this.startImageAssetId || this.endImageAssetId;

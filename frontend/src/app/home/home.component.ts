@@ -674,7 +674,10 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   searchTerm() {
-    if (!this.searchRequest.prompt) return;
+    if (!this.searchRequest.prompt) {
+      handleInfoSnackbar(this._snackBar, 'Please enter a prompt to generate an image.');
+      return;
+    }
 
     const hasSourceAssets = this.referenceImages.length > 0;
     const isImagen4 = [
