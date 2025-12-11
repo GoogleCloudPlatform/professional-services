@@ -56,7 +56,7 @@ class BaseRepository(Generic[ModelType, SchemaType]):
         self.schema = schema
         self.db = db
 
-    async def get_by_id(self, item_id: Union[int, str, uuid.UUID]) -> Optional[SchemaType]:
+    async def get_by_id(self, item_id: int) -> Optional[SchemaType]:
         """Retrieves a single document by its ID."""
         result = await self.db.execute(
             select(self.model).where(self.model.id == item_id)
@@ -86,7 +86,7 @@ class BaseRepository(Generic[ModelType, SchemaType]):
         await self.db.refresh(db_item)
         return self.schema.model_validate(db_item)
 
-    async def update(self, item_id: Union[int, str, uuid.UUID], update_data: Union[BaseModel, Dict[str, Any]]) -> Optional[SchemaType]:
+    async def update(self, item_id: int, update_data: Union[BaseModel, Dict[str, Any]]) -> Optional[SchemaType]:
         """
         Performs a partial update on a document.
         """
@@ -117,7 +117,7 @@ class BaseRepository(Generic[ModelType, SchemaType]):
         await self.db.refresh(db_item)
         return self.schema.model_validate(db_item)
 
-    async def delete(self, item_id: Union[int, str, uuid.UUID]) -> bool:
+    async def delete(self, item_id: int) -> bool:
         """
         Deletes a document by its ID.
         Returns True if deletion was successful (item existed), False otherwise.

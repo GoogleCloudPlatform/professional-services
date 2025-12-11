@@ -13,7 +13,6 @@
 # limitations under the License.
 
 import datetime
-import datetime
 from enum import Enum
 from typing import Annotated, Dict, List, Optional
 
@@ -112,7 +111,7 @@ class SourceMediaItemLink(BaseModel):
     and specifies its function in the new creation.
     """
 
-    media_item_id: int # Changed to int for SQL compatibility
+    media_item_id: int
     """The ID of the source MediaItemModel in the 'media_library' collection."""
 
     media_index: int
