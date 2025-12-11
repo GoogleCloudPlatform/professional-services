@@ -30,9 +30,16 @@ from src.brand_guidelines.brand_guideline_service import BrandGuidelineService
 from src.brand_guidelines.dto.brand_guideline_response_dto import (
     BrandGuidelineResponseDto,
 )
+from src.brand_guidelines.dto.finalize_upload_dto import FinalizeUploadDto
+from src.brand_guidelines.dto.generate_upload_url_dto import (
+    GenerateUploadUrlDto,
+    GenerateUploadUrlResponseDto,
+)
+from src.workspaces.repository.workspace_repository import WorkspaceRepository
+from src.workspaces.workspace_auth_guard import workspace_auth_service
 from src.users.user_model import UserModel, UserRoleEnum
 
-MAX_UPLOAD_SIZE_BYTES = 50 * 1024 * 1024  # 50 MB
+MAX_UPLOAD_SIZE_BYTES = 500 * 1024 * 1024  # 500 MB
 
 # Define role checkers for convenience
 user_only = Depends(
@@ -47,52 +54,70 @@ router = APIRouter(
 
 
 @router.post(
-    "/upload",
-    response_model=BrandGuidelineResponseDto,
-    status_code=status.HTTP_202_ACCEPTED,
-    summary="Create a Brand Guideline from a PDF",
+    "/generate-upload-url",
+    response_model=GenerateUploadUrlResponseDto,
+    summary="Get a Signed URL for Direct PDF Upload",
 )
-async def create_brand_guideline(
-    request: Request,
-    name: str = Form(min_length=3, max_length=100),
-    workspaceId: Optional[int] = Form(None),
-    file: UploadFile = File(),
-    service: BrandGuidelineService = Depends(),
+async def generate_upload_url(
+    request_dto: GenerateUploadUrlDto,
     current_user: UserModel = Depends(get_current_user),
+    service: BrandGuidelineService = Depends(),
+    workspace_repo: WorkspaceRepository = Depends(),
 ):
     """
-    Uploads a brand guideline PDF for a specific workspace.
-
-    If a brand guideline already exists for the workspace, it will be
-    deleted and replaced with the new one.
-
-    This endpoint is asynchronous. It returns a placeholder immediately and
-    starts the processing in the background.
+    Generates a secure, short-lived URL that the client can use to upload a
+    brand guideline PDF directly to Google Cloud Storage.
     """
-    if not file.content_type == "application/pdf":
+    # If a workspace ID is provided, ensure the user has access to it.
+    if request_dto.workspace_id:
+        await workspace_auth_service.authorize(
+            workspace_id=request_dto.workspace_id,
+            user=current_user,
+            workspace_repo=workspace_repo,
+        )
+
+    if not request_dto.content_type == "application/pdf":
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="File must be a PDF.",
         )
-
-    # Check file size before processing
-    # We seek to the end to get the size, then back to the beginning.
-    file.file.seek(0, 2)
-    file_size = file.file.tell()
-    file.file.seek(0)
-    if file_size > MAX_UPLOAD_SIZE_BYTES:
+    if request_dto.size > MAX_UPLOAD_SIZE_BYTES:
         raise HTTPException(
             status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
             detail=f"File is too large. Maximum size is {MAX_UPLOAD_SIZE_BYTES // (1024*1024)}MB.",
         )
 
+    return await service.generate_signed_upload_url(
+        request_dto=request_dto, current_user=current_user
+    )
+
+
+@router.post(
+    "/finalize-upload",
+    response_model=BrandGuidelineResponseDto,
+    status_code=status.HTTP_202_ACCEPTED,
+    summary="Finalize Upload and Start Processing",
+)
+async def finalize_upload_and_process(
+    request: Request,
+    request_dto: FinalizeUploadDto,
+    service: BrandGuidelineService = Depends(),
+    current_user: UserModel = Depends(get_current_user),
+):
+    """
+    This endpoint is called *after* the client has successfully uploaded the
+    PDF to the GCS signed URL.
+
+    It creates the placeholder document in Firestore and triggers the
+    asynchronous background job to process the PDF from GCS.
+    """
     executor = request.app.state.executor
 
-    # The service method now starts the background job.
     return await service.start_brand_guideline_processing_job(
-        name=name,
-        file=file,
-        workspace_id=workspaceId,
+        name=request_dto.name,
+        workspace_id=request_dto.workspace_id,
+        gcs_uri=request_dto.gcs_uri,
+        original_filename=request_dto.original_filename,
         current_user=current_user,
         executor=executor,
     )

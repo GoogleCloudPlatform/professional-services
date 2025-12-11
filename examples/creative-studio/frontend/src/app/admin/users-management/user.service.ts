@@ -85,8 +85,10 @@ export class UserService {
   updateUser(user: UserModel): Observable<any> {
     // FastAPI might return the updated user or just a success status
     const url = `${this.usersApiUrl}/${user.id}`;
+    // The backend expects UserUpdateRoleDto which only has 'roles'
+    const payload = {roles: user.roles};
     return this.http
-      .put(url, user, this.httpOptions)
+      .put(url, payload, this.httpOptions)
       .pipe(catchError(this.handleError));
   }
 

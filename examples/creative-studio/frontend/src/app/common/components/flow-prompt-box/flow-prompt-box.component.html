@@ -77,8 +77,9 @@
       <textarea
         (input)="onPromptInput($event)"
         [ngModel]="prompt"
-        class="w-full h-24 bg-transparent text-xl text-neutral-400 placeholder:text-neutral-600 focus:outline-none resize-none"
-        [placeholder]="mode.includes('Image') ? 'Generate an image with text...' : 'Generate a video with text...'"
+        [disabled]="mode === 'Concatenate Video'"
+        class="w-full h-24 bg-transparent text-xl text-neutral-400 placeholder:text-neutral-600 focus:outline-none resize-none disabled:opacity-50 disabled:cursor-not-allowed"
+        [placeholder]="mode === 'Concatenate Video' ? 'Prompt not needed for concatenation' : (mode.includes('Image') ? 'Generate an image with text...' : 'Generate a video with text...')"
       ></textarea>
     </div>
 
@@ -86,8 +87,9 @@
     <div class="flex flex-wrap items-end justify-between gap-y-4">
       <!-- Left: Drag-and-drop areas -->
       <div class="flex flex-wrap items-center gap-3">
-        <!-- Frames to Video Inputs -->
-        <ng-container *ngIf="mode === 'Frames to Video'">
+        <!-- Frames to Video / Concatenate / Extend Inputs -->
+        <ng-container *ngIf="mode === 'Frames to Video' || mode === 'Concatenate Video' || mode === 'Extend Video'">
+          <!-- Slot 1: Always shown for these modes -->
           <div
             class="relative h-20 w-20 cursor-pointer rounded-xl border-2 border-dashed border-neutral-700 bg-neutral-800 transition-colors hover:border-neutral-500 hover:bg-neutral-700 flex items-center justify-center"
             (click)="openImageSelector.emit(1)"
@@ -108,9 +110,12 @@
             </ng-container>
           </div>
 
-          <mat-icon class="text-neutral-500">compare_arrows</mat-icon>
+          <!-- Arrow: Shown only if we have a second slot -->
+          <mat-icon *ngIf="mode !== 'Extend Video'" class="text-neutral-500">compare_arrows</mat-icon>
 
+          <!-- Slot 2: Shown for Frames to Video and Concatenate Video -->
           <div
+            *ngIf="mode !== 'Extend Video'"
             class="relative h-20 w-20 cursor-pointer rounded-xl border-2 border-dashed border-neutral-700 bg-neutral-800 transition-colors hover:border-neutral-500 hover:bg-neutral-700 flex items-center justify-center"
             (click)="openImageSelector.emit(2)"
             (dragover)="$event.preventDefault()"

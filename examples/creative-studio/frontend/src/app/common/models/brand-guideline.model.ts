@@ -17,7 +17,7 @@
 import {JobStatus} from './media-item.model';
 
 export interface BrandGuidelineModel {
-  id: string;
+  id: number;
   name: string;
   workspaceId: number;
   sourcePdfGcsUris: string[];
@@ -28,4 +28,12 @@ export interface BrandGuidelineModel {
   presignedSourcePdfUrls?: string[];
   status: JobStatus;
   errorMessage?: string;
+}
+
+/**
+ * DTO for the response from the generate-upload-url endpoint.
+ */
+export interface GenerateUploadUrlResponse {
+  uploadUrl: string;
+  gcsUri: string;
 }
