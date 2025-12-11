@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import base64
+import datetime
 import logging
 import os
 import pathlib
@@ -67,6 +68,32 @@ class GcsService:
             return None
         except exceptions.GoogleAPICallError as e:
             logger.error(f"Failed to download '{gcs_uri_path}' from GCS: {e}")
+            return None
+
+    def download_bytes_from_gcs(self, gcs_uri: str) -> bytes | None:
+        """
+        Downloads a blob from GCS and returns its content as bytes.
+
+        Args:
+            gcs_uri: The full GCS URI (e.g., "gs://bucket-name/path/to/blob").
+
+        Returns:
+            The blob content as bytes, or None on failure.
+        """
+        if not gcs_uri.startswith("gs://"):
+            logger.error(f"Invalid GCS URI provided: {gcs_uri}")
+            return None
+
+        try:
+            bucket_name, blob_name = gcs_uri.replace("gs://", "").split("/", 1)
+            bucket = self.client.bucket(bucket_name)
+            blob = bucket.blob(blob_name)
+            return blob.download_as_bytes()
+        except exceptions.NotFound:
+            logger.error(f"Blob '{gcs_uri}' not found.")
+            return None
+        except Exception as e:
+            logger.error(f"Failed to download bytes from '{gcs_uri}': {e}")
             return None
 
     def upload_file_to_gcs(

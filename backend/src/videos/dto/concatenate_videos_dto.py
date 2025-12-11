@@ -22,7 +22,7 @@ from src.common.base_dto import AspectRatioEnum, BaseDto
 class ConcatenationInput(BaseModel):
     """Defines a single item to be included in the concatenation, preserving order."""
 
-    id: str = Field(description="The ID of the asset or media item.")
+    id: int = Field(description="The ID of the asset or media item.")
     type: Literal["media_item", "source_asset"] = Field(
         description="The type of the input."
     )

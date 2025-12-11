@@ -26,7 +26,7 @@ import {
 } from '../../admin/source-assets-management/source-asset.model';
 
 export interface SourceAssetResponseDto {
-  id: string;
+  id: number;
   userId: string;
   gcsUri: string;
   originalFilename: string;
@@ -216,7 +216,7 @@ export class SourceAssetService {
     this.assets$.next(this.allFetchedAssets);
   }
 
-  deleteAsset(assetId: string) {
+  deleteAsset(assetId: number) {
     return this.http
       .delete(`${environment.backendURL}/source_assets/${assetId}`)
       .pipe(
@@ -224,7 +224,7 @@ export class SourceAssetService {
           // Remove the asset from the local BehaviorSubject to update the UI instantly
           const currentAssets = this.assets$.getValue();
           const updatedAssets = currentAssets.filter(
-            asset => asset.id !== assetId,
+            asset => asset.id.toString() !== assetId.toString(),
           );
           this.assets$.next(updatedAssets);
         }),

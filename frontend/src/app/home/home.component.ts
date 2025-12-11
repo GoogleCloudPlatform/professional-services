@@ -698,7 +698,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     const validSourceMediaItems: SourceMediaItemLink[] = [];
-    const sourceAssetIds: string[] = [];
+    const sourceAssetIds: number[] = [];
 
     this.referenceImages.forEach(img => {
       if (img.sourceMediaItem) {
@@ -867,7 +867,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       state.sourceAssetIds.forEach((id: string, index: number) => {
         this.referenceImages.push({
           previewUrl: (state.previewUrls && state.previewUrls[index]) || state.previewUrl || '',
-          sourceAssetId: id,
+          sourceAssetId: Number(id),
         });
       });
     }
@@ -954,7 +954,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   ) {
     const isGalleryImage = !('gcsUri' in result);
     let previewUrl: string | null = null;
-    let sourceAssetId: string | null = null;
+    let sourceAssetId: number | undefined = undefined;
     let sourceMediaItem: SourceMediaItemLink | null = null;
 
     if (isGalleryImage) {

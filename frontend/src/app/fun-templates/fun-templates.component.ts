@@ -48,7 +48,7 @@ export class FunTemplatesComponent implements OnInit, OnDestroy {
   public readonly mediaTypes = Object.values(MimeTypeEnum);
   private autoSlideIntervals: {[id: string]: any} = {};
   public currentImageIndices: {[id: string]: number} = {};
-  public hoveredVideoId: string | null = null;
+  public hoveredVideoId: number | null = null;
   public selectedTemplateForLightbox: MediaItem | null = null;
   public lightboxInitialIndex = 0;
 
@@ -137,7 +137,7 @@ export class FunTemplatesComponent implements OnInit, OnDestroy {
    * @param template The template object itself.
    * @returns The unique ID of the template.
    */
-  public trackById(index: number, template: MediaTemplate): string {
+  public trackByTemplateId(index: number, template: MediaTemplate): number {
     return template.id;
   }
 
@@ -234,33 +234,15 @@ export class FunTemplatesComponent implements OnInit, OnDestroy {
     return this.sanitizer.bypassSecurityTrustResourceUrl(url);
   }
 
-  public nextImage(
-    imageId: string,
-    urlsLength: number,
-    event?: MouseEvent,
-  ): void {
-    if (event) {
-      event.stopPropagation();
-      event.preventDefault();
-      this.stopAutoSlide(imageId);
-    }
-    const currentIndex = this.currentImageIndices[imageId] || 0;
-    this.currentImageIndices[imageId] = (currentIndex + 1) % urlsLength;
+  public nextImage(templateId: number, totalImages: number): void {
+    const currentIndex = this.currentImageIndices[templateId] || 0;
+    this.currentImageIndices[templateId] = (currentIndex + 1) % totalImages;
   }
 
-  public prevImage(
-    imageId: string,
-    urlsLength: number,
-    event?: MouseEvent,
-  ): void {
-    if (event) {
-      event.stopPropagation();
-      event.preventDefault();
-      this.stopAutoSlide(imageId);
-    }
-    const currentIndex = this.currentImageIndices[imageId] || 0;
-    this.currentImageIndices[imageId] =
-      (currentIndex - 1 + urlsLength) % urlsLength;
+  public prevImage(templateId: number, totalImages: number): void {
+    const currentIndex = this.currentImageIndices[templateId] || 0;
+    this.currentImageIndices[templateId] =
+      (currentIndex - 1 + totalImages) % totalImages;
   }
 
   public startAutoSlide(template: MediaTemplate): void {
@@ -275,10 +257,10 @@ export class FunTemplatesComponent implements OnInit, OnDestroy {
     }
   }
 
-  public stopAutoSlide(imageId: string): void {
-    if (this.autoSlideIntervals[imageId]) {
-      clearInterval(this.autoSlideIntervals[imageId]);
-      delete this.autoSlideIntervals[imageId];
+  public stopAutoSlide(templateId: number): void {
+    if (this.autoSlideIntervals[templateId]) {
+      clearInterval(this.autoSlideIntervals[templateId]);
+      delete this.autoSlideIntervals[templateId];
     }
   }
 

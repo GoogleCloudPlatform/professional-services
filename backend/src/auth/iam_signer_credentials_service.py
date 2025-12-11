@@ -15,9 +15,9 @@
 import datetime
 import logging
 from os import getenv
+
 from google.auth import credentials
-from google.cloud import iam_credentials_v1
-from google.cloud import storage
+from google.cloud import iam_credentials_v1, storage
 
 logger = logging.getLogger(__name__)
 
@@ -25,10 +25,12 @@ logger = logging.getLogger(__name__)
 class IamSignerCredentials(credentials.Signing):
     """
     A custom credentials class that uses the IAM Credentials API to sign bytes.
+    This is used for generating **DOWNLOAD (GET)** presigned URLs.
 
-    This class implements the `google.auth.credentials.Signing` interface.
-    The Storage client library will automatically call the `sign_bytes` method when it
-    needs a signature.
+    This pattern allows the backend's service account to generate URLs signed by a
+    *different* service account (`SIGNING_SA_EMAIL`), which only has read access.
+    This separates the permission to grant read access from the backend's other
+    permissions.
     """
 
     def __init__(self):
@@ -45,12 +47,13 @@ class IamSignerCredentials(credentials.Signing):
         """Generates a v4 presigned URL for a GCS object.
 
         The user or service account running this code needs 'roles/storage.objectViewer'
-        permission on the bucket, or a custom role with 'storage.objects.get'.
+        permission on the bucket, or a custom role with 'storage.objects.get'. The
+        principal running this code needs 'roles/iam.serviceAccountTokenCreator' on the
+        `SIGNING_SA_EMAIL` service account.
 
         Args:
             gcs_uri: The GCS URI of the object (e.g., 'gs://bucket/object').
             expiration_hours: The number of hours the URL will be valid for.
-
         Returns:
             A presigned URL, or the original GCS URI if an error occurs.
         """
@@ -82,6 +85,59 @@ class IamSignerCredentials(credentials.Signing):
         except Exception as e:
             logger.error(f"Error generating presigned URL for {gcs_uri}: {e}")
             return gcs_uri
+
+    def generate_v4_upload_signed_url(
+        self,
+        destination_blob_name: str,
+        content_type: str,
+        bucket_name: str,
+        expiration_hours: int = 1,
+    ) -> tuple[str | None, str | None]:
+        """
+        Generates a v4 signed URL for a client-side **UPLOAD (PUT)**.
+
+        This method uses the custom signing mechanism of this class to generate
+        a URL, which works in environments without a private key (like local dev).
+
+        The service account running this code needs `roles/iam.serviceAccountTokenCreator`
+        on the `SIGNING_SA_EMAIL` service account. The `SIGNING_SA_EMAIL` service
+        account needs `roles/storage.objectCreator` on the bucket.
+
+        Args:
+            destination_blob_name: The desired name for the object in GCS.
+            content_type: The MIME type of the file to be uploaded.
+            bucket_name: The name of the target GCS bucket.
+            expiration_hours: How long the URL should be valid.
+
+        Returns:
+            A tuple containing the presigned URL for the PUT request and the
+            final GCS URI of the object, or (None, None) on failure.
+        """
+        if not self.service_account_email:
+            logger.error(
+                "SIGNING_SA_EMAIL is not set. Cannot generate upload URL."
+            )
+            return None, None
+
+        try:
+            storage_client = storage.Client()
+            bucket = storage_client.bucket(bucket_name)
+            blob = bucket.blob(destination_blob_name)
+
+            url = blob.generate_signed_url(
+                version="v4",
+                expiration=datetime.timedelta(hours=expiration_hours),
+                method="PUT",
+                content_type=content_type,
+                credentials=self,  # Use the custom signer
+            )
+            gcs_uri = f"gs://{bucket_name}/{destination_blob_name}"
+            return url, gcs_uri
+        except Exception as e:
+            logger.error(
+                f"Failed to generate v4 upload signed URL: {e}", exc_info=True
+            )
+            return None, None
 
     @property
     def signer_email(self) -> str:

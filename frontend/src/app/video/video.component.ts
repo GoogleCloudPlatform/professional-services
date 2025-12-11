@@ -83,8 +83,8 @@ export class VideoComponent implements OnInit, AfterViewInit {
   videoDocuments: MediaItem | null = null;
   isLoading = false;
   isAudioGenerationDisabled = false;
-  startImageAssetId: string | null = null;
-  endImageAssetId: string | null = null;
+  startImageAssetId: number | null = null;
+  endImageAssetId: number | null = null;
   sourceMediaItems: (SourceMediaItemLink | null)[] = [null, null];
   image1Preview: string | null = null;
   image2Preview: string | null = null;
@@ -99,6 +99,8 @@ export class VideoComponent implements OnInit, AfterViewInit {
     { value: 'Text to Video', icon: 'description', label: 'Text to Video' },
     { value: 'Frames to Video', icon: 'image', label: 'Frames to Video' },
     { value: 'Ingredients to Video', icon: 'layers', label: 'Ingredients to Video' },
+    { value: 'Extend Video', icon: 'extension', label: 'Extend Video' },
+    { value: 'Concatenate Video', icon: 'merge', label: 'Concatenate Video' },
   ];
 
   // Internal state to track input types
@@ -436,8 +438,21 @@ export class VideoComponent implements OnInit, AfterViewInit {
   onModeChanged(mode: string) {
     console.log('Mode changed to:', mode);
     this.currentMode = mode;
+    
+    if (mode === 'Extend Video') {
+      this.isExtensionMode = true;
+      this.isConcatenateMode = false;
+      this._showModeNotification('extend');
+    } else if (mode === 'Concatenate Video') {
+      this.isConcatenateMode = true;
+      this.isExtensionMode = false;
+      this._showModeNotification('concatenate');
+    } else {
+      this.isExtensionMode = false;
+      this.isConcatenateMode = false;
+    }
+
     this.saveState();
-    // Handle mode change if needed, e.g., switch between text-to-video and image-to-video
   }
 
   onClearImage(data: {num: 1 | 2, event: Event}) {
@@ -462,7 +477,7 @@ export class VideoComponent implements OnInit, AfterViewInit {
           id: this.sourceMediaItems[0].mediaItemId,
           type: 'media_item',
         });
-      } else if (this.startImageAssetId) {
+      } else if (this.startImageAssetId !== null) {
         inputs.push({id: this.startImageAssetId, type: 'source_asset'});
       }
 
@@ -472,7 +487,7 @@ export class VideoComponent implements OnInit, AfterViewInit {
           id: this.sourceMediaItems[1].mediaItemId,
           type: 'media_item',
         });
-      } else if (this.endImageAssetId) {
+      } else if (this.endImageAssetId !== null) {
         inputs.push({id: this.endImageAssetId, type: 'source_asset'});
       }
 
@@ -540,7 +555,7 @@ export class VideoComponent implements OnInit, AfterViewInit {
 
     // --- Build the two separate R2V reference payloads ---
     const referenceImagesPayload: {
-      assetId: string;
+      assetId: number;
       referenceType: 'ASSET' | 'STYLE';
     }[] = [];
     const sourceMediaItemsForReference: SourceMediaItemLink[] = [];
@@ -570,7 +585,8 @@ export class VideoComponent implements OnInit, AfterViewInit {
           ? (this.startImageAssetId ?? undefined)
           : undefined,
       sourceVideoAssetId:
-        this.currentMode === 'Frames to Video' && this._input1IsVideo
+        (this.currentMode === 'Frames to Video' && this._input1IsVideo) ||
+        this.currentMode === 'Extend Video'
           ? (this.startImageAssetId ?? undefined)
           : undefined,
       endImageAssetId:
@@ -585,7 +601,8 @@ export class VideoComponent implements OnInit, AfterViewInit {
       sourceMediaItems:
         this.currentMode === 'Ingredients to Video'
           ? sourceMediaItemsForReference
-          : this.currentMode === 'Frames to Video'
+          : this.currentMode === 'Frames to Video' ||
+              this.currentMode === 'Extend Video'
             ? validSourceMediaItems
             : undefined,
     };
@@ -769,18 +786,23 @@ export class VideoComponent implements OnInit, AfterViewInit {
           );
 
     if (isVideo) {
-      const isVeo3 = [
+      // If we are in Extend Video mode, we don't need to force a switch if the model supports it.
+      // Veo 3.1 supports video extension.
+      const isVeo30 = [
         'veo-3.0-fast-generate-001',
         'veo-3.0-generate-001',
       ].includes(this.searchRequest.generationModel);
 
-      if (isVeo3) {
-        const veo2Model = this.generationModels.find(
-          m => m.value === 'veo-2.0-generate-001',
+      if (isVeo30) {
+        const veo31Model = this.generationModels.find(
+          m => m.value === 'veo-3.1-generate-preview',
         );
-        if (veo2Model) {
-          this.selectModel(veo2Model);
-          handleSuccessSnackbar(this._snackBar, "Veo 3 doesn't support video as input, so we've switched to Veo 2 for you.");
+        if (veo31Model) {
+          this.selectModel(veo31Model);
+          handleSuccessSnackbar(
+            this._snackBar,
+            "Veo 3.0 doesn't support video as input, so we've switched to Veo 3.1 for you.",
+          );
         }
       }
     }
@@ -1053,6 +1075,10 @@ export class VideoComponent implements OnInit, AfterViewInit {
     | 'image/png'
     | 'video/mp4'
     | null {
+    if (this.isConcatenateMode || this.isExtensionMode) {
+      return 'video/mp4';
+    }
+
     const anyInputIsPresent = !!this.image1Preview || !!this.image2Preview;
     const anyInputIsVideo = this._input1IsVideo || this._input2IsVideo;
 
@@ -1066,8 +1092,8 @@ export class VideoComponent implements OnInit, AfterViewInit {
 
   private applyRemixState(remixState: {
     prompt?: string;
-    startImageAssetId?: string;
-    endImageAssetId?: string;
+    startImageAssetId?: number;
+    endImageAssetId?: number;
     startImagePreviewUrl?: string;
     endImagePreviewUrl?: string;
     sourceMediaItems?: SourceMediaItemLink[];
@@ -1270,9 +1296,15 @@ export class VideoComponent implements OnInit, AfterViewInit {
       const veo31Model = this.generationModels.find(
         m => m.value === 'veo-3.1-generate-preview',
       );
-      if (veo31Model) {
+      if (
+        veo31Model &&
+        this.searchRequest.generationModel !== veo31Model.value
+      ) {
         this.selectModel(veo31Model);
-        handleSuccessSnackbar(this._snackBar, "We've switched to the Veo 3.1 model for you, as this one supports reference images.");
+        handleSuccessSnackbar(
+          this._snackBar,
+          "We've switched to the Veo 3.1 model for you, as this one supports reference images.",
+        );
       }
     }
   }
@@ -1310,6 +1342,8 @@ export class VideoComponent implements OnInit, AfterViewInit {
               id: asset.assetId,
               gcsUri: asset.gcsUri,
               presignedUrl: asset.presignedUrl,
+              mimeType: asset.gcsUri.endsWith('.mp4') ? 'video/mp4' : 'image/png',
+              originalFilename: 'remix-asset',
               // Add other required fields with default/null values
             } as SourceAssetResponseDto,
             1,
