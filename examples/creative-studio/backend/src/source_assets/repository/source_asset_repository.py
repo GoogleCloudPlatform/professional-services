@@ -15,7 +15,7 @@
 from typing import List, Optional
 
 from fastapi import Depends
-from sqlalchemy import func, select
+from sqlalchemy import func, select, or_, and_
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.common.base_repository import BaseRepository
@@ -159,3 +159,29 @@ class SourceAssetRepository(BaseRepository[SourceAsset, SourceAssetModel]):
         if not asset:
             return None
         return self.schema.model_validate(asset)
+
+    async def find_system_and_private_assets_by_types(
+        self, user_id: int, asset_types: List[AssetTypeEnum]
+    ) -> List[SourceAssetModel]:
+        """
+        Finds all system assets AND private assets for a specific user that match a list of asset types.
+        This combines two queries into one using OR logic.
+        """
+        if not asset_types:
+            return []
+
+        result = await self.db.execute(
+            select(self.model)
+            .where(
+                or_(
+                    self.model.scope == AssetScopeEnum.SYSTEM.value,
+                    and_(
+                        self.model.user_id == user_id,
+                        self.model.scope == AssetScopeEnum.PRIVATE.value,
+                    ),
+                )
+            )
+            .where(self.model.asset_type.in_([t.value for t in asset_types]))
+        )
+        assets = result.scalars().all()
+        return [self.schema.model_validate(asset) for asset in assets]
