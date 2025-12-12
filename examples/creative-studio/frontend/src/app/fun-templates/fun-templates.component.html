@@ -144,7 +144,7 @@
         class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
       >
         <div
-          *ngFor="let template of filteredTemplates; trackBy: trackById"
+          *ngFor="let template of filteredTemplates; trackBy: trackByTemplateId"
           class="template-card group"
         >
           <div
@@ -294,7 +294,7 @@
             >
               <button
                 (click)="
-                  prevImage(template.id, template.presignedUrls.length, $event)
+                  prevImage(template.id, template.presignedUrls.length)
                 "
                 class="absolute top-1/2 left-2 z-30 p-1 text-white -translate-y-1/2 transition-opacity bg-black/50 rounded-full opacity-0 group-hover:opacity-100 focus:outline-none hover:bg-black/70"
               >
@@ -315,7 +315,7 @@
               </button>
               <button
                 (click)="
-                  nextImage(template.id, template.presignedUrls.length, $event)
+                  nextImage(template.id, template.presignedUrls.length)
                 "
                 class="absolute top-1/2 right-2 z-30 p-1 text-white -translate-y-1/2 transition-opacity bg-black/50 rounded-full opacity-0 group-hover:opacity-100 focus:outline-none hover:bg-black/70"
               >

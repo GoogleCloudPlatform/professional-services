@@ -12,12 +12,53 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import datetime
 from typing import List, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import Field
+from sqlalchemy import Integer, String, func, ForeignKey, DateTime
+from sqlalchemy.dialects.postgresql import ARRAY
+from sqlalchemy.orm import Mapped, mapped_column
 
 from src.common.base_repository import BaseDocument
 from src.common.schema.media_item_model import JobStatusEnum
+from src.database import Base
+
+
+class BrandGuideline(Base):
+    """
+    SQLAlchemy model for the 'brand_guidelines' table.
+    """
+    __tablename__ = "brand_guidelines"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    name: Mapped[str] = mapped_column(String, nullable=False)
+    status: Mapped[JobStatusEnum] = mapped_column(String, default=JobStatusEnum.PROCESSING.value)
+    error_message: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    
+    # workspace_id is Optional because it can be global (None)
+    workspace_id: Mapped[Optional[int]] = mapped_column(ForeignKey("workspaces.id"), nullable=True)
+    
+    source_pdf_gcs_uris: Mapped[List[str]] = mapped_column(ARRAY(String), default=[])
+    color_palette: Mapped[List[str]] = mapped_column(ARRAY(String), default=[])
+    
+    logo_asset_id: Mapped[Optional[int]] = mapped_column(ForeignKey("source_assets.id"), nullable=True)
+    guideline_text: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    
+    tone_of_voice_summary: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    visual_style_summary: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+
+    created_at: Mapped[datetime.datetime] = mapped_column(
+        DateTime(timezone=True),
+        insert_default=func.now(),
+        server_default=func.now()
+    )
+    updated_at: Mapped[datetime.datetime] = mapped_column(
+        DateTime(timezone=True),
+        insert_default=func.now(),
+        onupdate=func.now(),
+        server_default=func.now()
+    )
 
 
 class BrandGuidelineModel(BaseDocument):
@@ -26,12 +67,14 @@ class BrandGuidelineModel(BaseDocument):
     Stores structured brand kits, either linked to a workspace or as a global default.
     Data is populated by an admin OR via AI-powered extraction from an uploaded PDF.
     """
+    
+    id: Optional[int] = None
 
     name: str
     status: JobStatusEnum = JobStatusEnum.PROCESSING
     error_message: Optional[str] = None
 
-    workspace_id: Optional[str] = Field(
+    workspace_id: Optional[int] = Field(
         default=None,
         description="If set, this guideline is linked to a single workspace. If null, it's global.",
     )
@@ -50,7 +93,7 @@ class BrandGuidelineModel(BaseDocument):
 
     # TODO: We should be able to add the logo and then how it looks
     # logo_description: Optional[str]
-    logo_asset_id: Optional[str] = Field(
+    logo_asset_id: Optional[int] = Field(
         default=None,
         description="The ID of a document in the 'user_assets' collection to be used as the logo.",
     )

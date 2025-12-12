@@ -19,6 +19,9 @@ from typing import Annotated, Dict, List, Optional
 from google.genai import types
 from pydantic import BaseModel, ConfigDict, Field, HttpUrl
 from pydantic.alias_generators import to_camel
+from sqlalchemy import Boolean, Float, Integer, String, func, ForeignKey, DateTime
+from sqlalchemy.dialects.postgresql import JSONB, ARRAY
+from sqlalchemy.orm import Mapped, mapped_column
 
 from src.audios.audio_constants import LanguageEnum, VoiceEnum
 from src.common.base_dto import (
@@ -32,6 +35,7 @@ from src.common.base_dto import (
     StyleEnum,
 )
 from src.common.base_repository import BaseDocument
+from src.database import Base
 
 
 class JobStatusEnum(str, Enum):
@@ -80,7 +84,7 @@ class SourceAssetLink(BaseModel):
     to a specific source asset and its function in that generation.
     """
 
-    asset_id: str
+    asset_id: int # Changed to int for SQL compatibility
     """The unique ID of the document in the 'user_assets' collection."""
 
     role: AssetRoleEnum
@@ -107,7 +111,7 @@ class SourceMediaItemLink(BaseModel):
     and specifies its function in the new creation.
     """
 
-    media_item_id: str
+    media_item_id: int
     """The ID of the source MediaItemModel in the 'media_library' collection."""
 
     media_index: int
@@ -124,16 +128,90 @@ class SourceMediaItemLink(BaseModel):
     )
 
 
+class MediaItem(Base):
+    """
+    SQLAlchemy model for the 'media_items' table.
+    """
+    __tablename__ = "media_items"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    workspace_id: Mapped[int] = mapped_column(ForeignKey("workspaces.id"), nullable=False)
+    user_email: Mapped[str] = mapped_column(String, nullable=False)
+    user_id: Mapped[Optional[int]] = mapped_column(ForeignKey("users.id"), nullable=True)
+    mime_type: Mapped[MimeTypeEnum] = mapped_column(String, nullable=False)
+    model: Mapped[GenerationModelEnum] = mapped_column(String, nullable=False)
+
+    # Common fields
+    prompt: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    original_prompt: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    rewritten_prompt: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    num_media: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    generation_time: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    error_message: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+
+    # Enums
+    aspect_ratio: Mapped[AspectRatioEnum] = mapped_column(String, nullable=False)
+    style: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    lighting: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    color_and_tone: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    composition: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    negative_prompt: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    add_watermark: Mapped[Optional[bool]] = mapped_column(Boolean, nullable=True)
+    status: Mapped[JobStatusEnum] = mapped_column(String, default=JobStatusEnum.PROCESSING.value)
+
+    # JSONB fields for lists of objects
+    source_assets: Mapped[Optional[List[dict]]] = mapped_column(JSONB, nullable=True)
+    source_media_items: Mapped[Optional[List[dict]]] = mapped_column(JSONB, nullable=True)
+    
+    gcs_uris: Mapped[List[str]] = mapped_column(ARRAY(String), default=[])
+
+    # Video specific
+    duration_seconds: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    thumbnail_uris: Mapped[List[str]] = mapped_column(ARRAY(String), default=[])
+    comment: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+
+    # Image specific
+    seed: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    critique: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    google_search: Mapped[Optional[bool]] = mapped_column(Boolean, nullable=True)
+    resolution: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    grounding_metadata: Mapped[Optional[dict]] = mapped_column(JSONB, nullable=True)
+
+    # Music specific
+    audio_analysis: Mapped[Optional[dict]] = mapped_column(JSONB, nullable=True)
+    voice_name: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    language_code: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+
+    # Debugging
+    raw_data: Mapped[Optional[dict]] = mapped_column(JSONB, nullable=True)
+
+    created_from_template_id: Mapped[Optional[int]] = mapped_column(ForeignKey("media_templates.id"), nullable=True)
+
+    created_at: Mapped[datetime.datetime] = mapped_column(
+        DateTime(timezone=True),
+        insert_default=func.now(),
+        server_default=func.now()
+    )
+    updated_at: Mapped[datetime.datetime] = mapped_column(
+        DateTime(timezone=True),
+        insert_default=func.now(),
+        onupdate=func.now(),
+        server_default=func.now()
+    )
+
+
 class MediaItemModel(BaseDocument):
     """Represents a single media item in the library for Firestore storage and retrieval."""
 
+    id: Optional[int] = None
+
     # Indexes that shouldn't and mustn't be empty
     # created_at is an index but is autopopulated by BaseDocument
-    workspace_id: str = Field(
+    workspace_id: int = Field(
         description="Foreign key (ID) to the 'workspaces' collection this creation belongs to."
     )
     user_email: str
-    user_id: Optional[str] = None  # TODO: Change to 'required' in the future
+    user_id: Optional[int] = None  # TODO: Change to 'required' in the future
     mime_type: MimeTypeEnum
     model: GenerationModelEnum
 
@@ -203,7 +281,7 @@ class MediaItemModel(BaseDocument):
     raw_data: Optional[Dict] = Field(default_factory=dict)
 
     # Track if a MediaItem was created from a template
-    created_from_template_id: Optional[str] = Field(
+    created_from_template_id: Optional[int] = Field(
         default=None,
         description="The ID of the template used to generate this item, if any.",
     )

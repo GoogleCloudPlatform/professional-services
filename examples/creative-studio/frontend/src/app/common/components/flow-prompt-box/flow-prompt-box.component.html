@@ -23,6 +23,7 @@
     <div class="flex items-center justify-between">
       <!-- Top Left: Mode Selector -->
       <button
+        #modeTrigger
         (click)="toggleModeMenu(); $event.stopPropagation()"
         class="flex items-center gap-2 rounded-lg bg-neutral-800 px-4 py-2 text-sm font-medium transition-colors hover:bg-neutral-700"
       >
@@ -37,7 +38,7 @@
       </button>
 
       <!-- Top Right: Status Chips -->
-      <div class="flex items-center gap-2 text-sm">
+      <div #settingsTrigger class="flex items-center gap-2 text-sm">
         <div
           (click)="toggleSettingsMenu(); $event.stopPropagation()"
           class="flex items-center gap-1.5 rounded-md bg-neutral-800 px-2 py-1 cursor-pointer hover:bg-neutral-700"
@@ -76,8 +77,9 @@
       <textarea
         (input)="onPromptInput($event)"
         [ngModel]="prompt"
-        class="w-full h-24 bg-transparent text-xl text-neutral-400 placeholder:text-neutral-600 focus:outline-none resize-none"
-        [placeholder]="mode.includes('Image') ? 'Generate an image with text...' : 'Generate a video with text...'"
+        [disabled]="mode === 'Concatenate Video'"
+        class="w-full h-24 bg-transparent text-xl text-neutral-400 placeholder:text-neutral-600 focus:outline-none resize-none disabled:opacity-50 disabled:cursor-not-allowed"
+        [placeholder]="mode === 'Concatenate Video' ? 'Prompt not needed for concatenation' : (mode.includes('Image') ? 'Generate an image with text...' : 'Generate a video with text...')"
       ></textarea>
     </div>
 
@@ -85,8 +87,9 @@
     <div class="flex flex-wrap items-end justify-between gap-y-4">
       <!-- Left: Drag-and-drop areas -->
       <div class="flex flex-wrap items-center gap-3">
-        <!-- Frames to Video Inputs -->
-        <ng-container *ngIf="mode === 'Frames to Video'">
+        <!-- Frames to Video / Concatenate / Extend Inputs -->
+        <ng-container *ngIf="mode === 'Frames to Video' || mode === 'Concatenate Video' || mode === 'Extend Video'">
+          <!-- Slot 1: Always shown for these modes -->
           <div
             class="relative h-20 w-20 cursor-pointer rounded-xl border-2 border-dashed border-neutral-700 bg-neutral-800 transition-colors hover:border-neutral-500 hover:bg-neutral-700 flex items-center justify-center"
             (click)="openImageSelector.emit(1)"
@@ -107,9 +110,12 @@
             </ng-container>
           </div>
 
-          <mat-icon class="text-neutral-500">compare_arrows</mat-icon>
+          <!-- Arrow: Shown only if we have a second slot -->
+          <mat-icon *ngIf="mode !== 'Extend Video'" class="text-neutral-500">compare_arrows</mat-icon>
 
+          <!-- Slot 2: Shown for Frames to Video and Concatenate Video -->
           <div
+            *ngIf="mode !== 'Extend Video'"
             class="relative h-20 w-20 cursor-pointer rounded-xl border-2 border-dashed border-neutral-700 bg-neutral-800 transition-colors hover:border-neutral-500 hover:bg-neutral-700 flex items-center justify-center"
             (click)="openImageSelector.emit(2)"
             (dragover)="$event.preventDefault()"
@@ -146,7 +152,8 @@
               </div>
               <!-- Show small previews of reference images -->
             <div class="flex flex-wrap gap-1">
-              <div *ngFor="let ref of referenceImages; let i = index" class="relative h-12 w-12 flex-shrink-0">
+              <div *ngFor="let ref of referenceImages; let i = index" class="relative h-12 w-12 flex-shrink-0"
+                [class.highlight-new]="ref.isNew">
                 <img [src]="ref.previewUrl" class="h-full w-full rounded-lg object-cover" />
                 <button (click)="$event.stopPropagation(); clearReferenceImage.emit({index: i, event: $event})"
                   class="absolute -right-1 -top-1 rounded-full bg-neutral-900 p-0.5 text-neutral-400 hover:text-white">
@@ -192,6 +199,7 @@
   <!-- ============================================= -->
   @if (isModeMenuOpen()) {
     <div
+      #modeMenu
       class="absolute left-0 bottom-full z-20 mb-2 w-64 rounded-xl bg-neutral-800 p-2 text-white shadow-lg"
     >
       @if (modes.length > 0) {
@@ -242,6 +250,7 @@
   <!-- ============================================= -->
   @if (isSettingsMenuOpen()) {
     <div
+      #settingsMenu
       class="absolute right-0 bottom-full z-20 mb-2 w-[500px] rounded-xl bg-neutral-800 p-4 text-white shadow-lg"
     >
       <div class="grid grid-cols-2 gap-3">

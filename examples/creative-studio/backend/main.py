@@ -81,17 +81,29 @@ def configure_cors(app):
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Code here runs on startup
-    logger.info("Application startup initializing")
+    """
+    Lifespan context manager for the FastAPI application.
+    Handles startup and shutdown logic.
+    """
+    # --- Startup ---
+    logger.info("Starting up application...")
+    
+    # Initialize Firebase Admin SDK (Auth only)
+    try:
+        from src.auth.firebase_client_service import firebase_client
+        # Trigger initialization
+        _ = firebase_client
+    except Exception as e:
+        logger.error(f"Failed to initialize Firebase: {e}")
 
-    # Startup logic
-    logger.info(
-        f"""Firebase App Name (if initialized): {
-          firebase_client_service.firebase_admin.get_app().name
-          if firebase_client_service.firebase_admin._apps
-          else 'Not Initialized'
-        }"""
-    )
+    # Run Database Migrations
+    try:
+        from src.database_migrations import run_pending_migrations
+        await run_pending_migrations()
+    except Exception as e:
+        logger.error(f"Failed to run database migrations: {e}")
+        # We might want to stop startup here if migrations fail
+        raise e
 
     logger.info("Creating ThreadPoolExecutor...")
     # Create the pool and attach it to the app's state
@@ -99,7 +111,6 @@ async def lifespan(app: FastAPI):
 
     yield
 
-    # Code here runs on shutdown
     logger.info("Application shutdown terminating")
 
     logger.info("Closing ThreadPoolExecutor...")

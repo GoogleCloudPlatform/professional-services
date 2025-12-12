@@ -44,9 +44,3 @@ variable "alert_autoclose" {
   type    = string
   default = "1800s"
 }
-
-variable "proxy_url" {
-  description = "Optional proxy URL to use for curl"
-  type        = string
-  default     = ""
-}

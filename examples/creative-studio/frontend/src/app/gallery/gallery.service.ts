@@ -46,7 +46,8 @@ export class GalleryService implements OnDestroy {
   private imagesCache$ = new BehaviorSubject<MediaItem[]>([]);
   public isLoading$ = new BehaviorSubject<boolean>(false);
   private allImagesLoaded$ = new BehaviorSubject<boolean>(false);
-  private nextPageCursor: string | null = null;
+  private currentPage = 0;
+  private pageSize = 20;
   private allFetchedImages: MediaItem[] = [];
   private filters$ = new BehaviorSubject<GallerySearchDto>({limit: 20});
   private dataLoadingSubscription: Subscription;
@@ -122,7 +123,8 @@ export class GalleryService implements OnDestroy {
       ...this.filters$.value,
       workspaceId:
         this.workspaceStateService.getActiveWorkspaceId() ?? undefined,
-      startAfter: this.nextPageCursor ?? undefined,
+      offset: this.currentPage * this.pageSize,
+      limit: this.pageSize,
     };
 
     this.fetchImages(body)
@@ -153,7 +155,7 @@ export class GalleryService implements OnDestroy {
 
   private resetCache() {
     this.allFetchedImages = [];
-    this.nextPageCursor = null;
+    this.currentPage = 0;
     this.allImagesLoaded$.next(false);
     this.imagesCache$.next([]);
   }
@@ -162,13 +164,13 @@ export class GalleryService implements OnDestroy {
     response: PaginatedGalleryResponse,
     append = false,
   ) {
-    this.nextPageCursor = response.nextPageCursor ?? null;
+    this.currentPage++;
     this.allFetchedImages = append
       ? [...this.allFetchedImages, ...response.data]
       : response.data;
     this.imagesCache$.next(this.allFetchedImages);
 
-    if (!this.nextPageCursor) {
+    if (this.currentPage >= response.totalPages) {
       this.allImagesLoaded$.next(true);
     }
     this.isLoading$.next(false);

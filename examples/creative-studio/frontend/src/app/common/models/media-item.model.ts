@@ -47,7 +47,7 @@ export enum JobStatus {
  * Represents a single media item, mirroring the Pydantic model from the backend.
  */
 export interface MediaItem {
-  id: string;
+  id: number;
   userEmail?: string;
   createdAt?: string; // ISO 8601 date string
   updatedAt?: string; // ISO 8601 date string
@@ -101,6 +101,7 @@ export interface MediaItem {
 
   // Debugging field
   rawData?: Record<string, any>;
+  workspaceId?: number;
   errorMessage?: string;
 }
 

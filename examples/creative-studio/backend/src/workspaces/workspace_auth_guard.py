@@ -30,19 +30,23 @@ class WorkspaceAuth:
     A dependency class that centralizes workspace authorization logic.
     """
 
-    def __init__(self):
-        self.workspace_repo = WorkspaceRepository()
 
-    def authorize(self, workspace_id: str, user: UserModel) -> WorkspaceModel:
+    async def authorize(
+        self,
+        workspace_id: int,
+        user: UserModel = Depends(get_current_user),
+        workspace_repo: WorkspaceRepository = Depends(),
+    ) -> WorkspaceModel:
         """
         The core authorization logic. Checks if a user has rights to a workspace.
 
         Raises HTTPException if unauthorized.
         Returns the WorkspaceModel if authorized.
         """
-        workspace = self.workspace_repo.get_by_id(workspace_id)
+        # Check scope first (efficient query)
+        scope = await workspace_repo.get_scope(workspace_id)
 
-        if not workspace:
+        if scope is None:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"Workspace with ID '{workspace_id}' not found.",
@@ -50,18 +54,18 @@ class WorkspaceAuth:
 
         # Authorization checks
         is_admin = UserRoleEnum.ADMIN in user.roles
-        is_public = workspace.scope == WorkspaceScopeEnum.PUBLIC
-        is_member = user.id in workspace.member_ids
+        is_public = scope == WorkspaceScopeEnum.PUBLIC
+        
+        if not (is_admin or is_public):
+            is_member = await workspace_repo.is_member(workspace_id, user.id)
+            if not is_member:
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="You do not have permission to access this workspace.",
+                )
 
-        # Access is granted if the user is an admin, the workspace is public,
-        # or the user is explicitly a member of the private workspace.
-        if not (is_admin or is_public or is_member):
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="You do not have permission to access this workspace.",
-            )
-
-        return workspace
+        # If authorized, return the full workspace object
+        return await workspace_repo.get_by_id(workspace_id)
 
 
 # Create a single instance to be used as a dependency

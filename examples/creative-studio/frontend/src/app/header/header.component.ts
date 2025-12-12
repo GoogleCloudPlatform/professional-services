@@ -67,6 +67,10 @@ export class HeaderComponent implements OnDestroy {
     public authService: AuthService,
     private breakpointObserver: BreakpointObserver,
   ) {
+    // Initialize menuFixed from localStorage
+    const storedMenuFixed = localStorage.getItem('menuFixed');
+    this.menuFixed = storedMenuFixed === 'true';
+
     this.matIconRegistry
       .addSvgIcon(
         'creative-studio-icon',
@@ -112,6 +116,7 @@ export class HeaderComponent implements OnDestroy {
 
   toggleMenu() {
     this.menuFixed = !this.menuFixed;
+    localStorage.setItem('menuFixed', String(this.menuFixed));
   }
 
   getTooltipText() {

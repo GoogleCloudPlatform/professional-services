@@ -32,7 +32,7 @@
 <div class="flex flex-row gap-4" *ngIf="columns.length > 0 && !isLoading">
   <div *ngFor="let column of columns" class="flex flex-1 flex-col gap-4">
     <div
-      *ngFor="let asset of column; trackBy: trackByAsset"
+      *ngFor="let asset of column; trackBy: trackByAssetId"
       class="asset-item relative group block rounded-lg overflow-hidden cursor-pointer"
       (click)="selectAsset(asset)"
       [class.deleting]="deletingAssetId === asset.id"

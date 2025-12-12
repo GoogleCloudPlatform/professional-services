@@ -20,6 +20,7 @@ from src.galleries.dto.gallery_response_dto import MediaItemResponse
 from src.galleries.dto.gallery_search_dto import GallerySearchDto
 from src.galleries.gallery_service import GalleryService
 from src.users.user_model import UserModel, UserRoleEnum
+from src.workspaces.repository.workspace_repository import WorkspaceRepository
 from src.workspaces.workspace_auth_guard import workspace_auth_service
 
 router = APIRouter(
@@ -47,17 +48,20 @@ async def search_gallery_items(
     search_dto: GallerySearchDto,
     current_user: UserModel = Depends(get_current_user),
     service: GalleryService = Depends(),
+    workspace_repo: WorkspaceRepository = Depends(),
 ):
     """
     Performs a paginated search for media items within a specific workspace.
 
-    Provide filters and a `start_after` cursor in the request body
+    Provide filters in the request body to paginate through the gallery.
     to paginate through results.
     """
     # This dependency call acts as a gatekeeper. If the user is not authorized
     # for the workspace_id inside search_dto, it will raise an exception.
-    workspace_auth_service.authorize(
-        workspace_id=search_dto.workspace_id, user=current_user
+    await workspace_auth_service.authorize(
+        workspace_id=search_dto.workspace_id,
+        user=current_user,
+        workspace_repo=workspace_repo,
     )
 
     return await service.get_paginated_gallery(
@@ -67,7 +71,7 @@ async def search_gallery_items(
 
 @router.get("/item/{item_id}", response_model=MediaItemResponse)
 async def get_single_gallery_item(
-    item_id: str,
+    item_id: int,
     current_user: UserModel = Depends(get_current_user),
     service: GalleryService = Depends(),
 ):

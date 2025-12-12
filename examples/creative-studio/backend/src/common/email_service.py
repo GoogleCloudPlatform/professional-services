@@ -47,7 +47,7 @@ class EmailService:
         recipient_email: str,
         inviter_name: str,
         workspace_name: str,
-        workspace_id: str,
+        workspace_id: int,
     ):
         """
         Sends an email to a user inviting them to a workspace using the Gmail API

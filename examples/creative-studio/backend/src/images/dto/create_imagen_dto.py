@@ -39,8 +39,8 @@ class CreateImagenDto(BaseDto):
     prompt: Annotated[str, Query(max_length=10000)] = Field(
         description="Prompt term to be passed to the model"
     )
-    workspace_id: str = Field(
-        min_length=1, description="The ID of the workspace for this generation."
+    workspace_id: int = Field(
+        ge=1, description="The ID of the workspace for this generation."
     )
     generation_model: GenerationModelEnum = Field(
         default=GenerationModelEnum.IMAGEN_4_ULTRA,
@@ -80,7 +80,7 @@ class CreateImagenDto(BaseDto):
         default="",
         description="""Factor of the upscale, either x2 or x4. If empty it will not upscale""",
     )
-    source_asset_ids: Optional[Annotated[list[str], Field(max_length=14)]] = (
+    source_asset_ids: Optional[Annotated[list[int], Field(max_length=14)]] = (
         Field(
             default=None,
             description="A list of source asset IDs to be used as input for image-to-image generation.",

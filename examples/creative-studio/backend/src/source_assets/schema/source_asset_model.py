@@ -12,13 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import datetime
 from enum import Enum
 from typing import Optional
 
 from pydantic import Field
+from sqlalchemy import Integer, String, func, ForeignKey, DateTime
+from sqlalchemy.orm import Mapped, mapped_column
 
 from src.common.base_dto import AspectRatioEnum, MimeTypeEnum
 from src.common.base_repository import BaseDocument
+from src.database import Base
 
 
 class AssetScopeEnum(str, Enum):
@@ -42,17 +46,52 @@ class AssetTypeEnum(str, Enum):
     VTO_SHOE = "vto_shoe"
 
 
+class SourceAsset(Base):
+    """
+    SQLAlchemy model for the 'source_assets' table.
+    """
+    __tablename__ = "source_assets"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    # workspace_id should ideally be a ForeignKey, but for now we keep it as int/str
+    # We'll use int since Workspace uses int ID.
+    workspace_id: Mapped[int] = mapped_column(ForeignKey("workspaces.id"), nullable=False)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
+    gcs_uri: Mapped[str] = mapped_column(String, nullable=False)
+    original_filename: Mapped[str] = mapped_column(String, nullable=False)
+    mime_type: Mapped[MimeTypeEnum] = mapped_column(String, nullable=False)
+    aspect_ratio: Mapped[AspectRatioEnum] = mapped_column(String, default=AspectRatioEnum.RATIO_1_1.value)
+    file_hash: Mapped[str] = mapped_column(String, nullable=False)
+    scope: Mapped[AssetScopeEnum] = mapped_column(String, default=AssetScopeEnum.PRIVATE.value)
+    asset_type: Mapped[AssetTypeEnum] = mapped_column(String, default=AssetTypeEnum.GENERIC_IMAGE.value)
+    thumbnail_gcs_uri: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+
+    created_at: Mapped[datetime.datetime] = mapped_column(
+        DateTime(timezone=True),
+        insert_default=func.now(),
+        server_default=func.now()
+    )
+    updated_at: Mapped[datetime.datetime] = mapped_column(
+        DateTime(timezone=True),
+        insert_default=func.now(),
+        onupdate=func.now(),
+        server_default=func.now()
+    )
+
+
 class SourceAssetModel(BaseDocument):
     """
     Represents any uploaded asset, from a user's photo to a system-wide VTO model.
     It MUST belong to a workspace.
     Its visibility is controlled by its 'scope'.
     """
+    
+    id: Optional[int] = None
 
-    workspace_id: str = Field(
+    workspace_id: int = Field(
         description="Foreign key (ID) to the 'workspaces' collection."
     )
-    user_id: str = Field(
+    user_id: int = Field(
         description="User ID of the person who uploaded this specific file."
     )
     gcs_uri: str
@@ -63,8 +102,3 @@ class SourceAssetModel(BaseDocument):
     scope: AssetScopeEnum = AssetScopeEnum.PRIVATE
     asset_type: AssetTypeEnum = AssetTypeEnum.GENERIC_IMAGE
     thumbnail_gcs_uri: Optional[str] = None  # In case of uploading a video
-    """
-    Describes the asset's intrinsic IDENTITY. It answers the question "What IS this file?".
-    This is for categorizing the asset library (e.g., for an admin to find all 'VTO_PERSON' models).
-    Think of this as the actor's real name (e.g., "Tom Hanks").
-    """

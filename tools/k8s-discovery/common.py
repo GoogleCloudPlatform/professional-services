@@ -39,23 +39,18 @@ def _flatten_workloads(cluster_id, k8s_details):
                 # Extract container info (simplified for CSV)
                 containers = item.get("containers", [])
                 if containers:
-                    # Take the first container for simplicity in this CSV view
-                    container = containers[0]
-                    workload_info["image"] = container.get("image")
-                    
-                    # --- FIX START: Safely handle None types in resources ---
-                    # resources might be None, or 'requests'/'limits' keys inside might be None
-                    resources = container.get("resources") or {} 
-                    
-                    # explicit check: if resources.get("requests") returns None, default to {}
-                    requests = resources.get("requests") or {}
-                    limits = resources.get("limits") or {}
-
-                    workload_info["cpu_request"] = requests.get("cpu")
-                    workload_info["memory_request"] = requests.get("memory")
-                    workload_info["cpu_limit"] = limits.get("cpu")
-                    workload_info["memory_limit"] = limits.get("memory")
-                    # --- FIX END ---
+                    workload_info["image"] = containers[0].get("image")
+                    resources = containers[0].get("resources", {})
+                    workload_info["cpu_request"] = resources.get("requests", {}).get(
+                        "cpu"
+                    )
+                    workload_info["memory_request"] = resources.get("requests", {}).get(
+                        "memory"
+                    )
+                    workload_info["cpu_limit"] = resources.get("limits", {}).get("cpu")
+                    workload_info["memory_limit"] = resources.get("limits", {}).get(
+                        "memory"
+                    )
 
                 workloads_list.append(workload_info)
     return workloads_list
@@ -183,10 +178,6 @@ def save_to_csvs(all_cluster_data, output_dir, provider):
                         "labels": json.dumps(np.get("config", {}).get("labels", {})),
                     }
                 )
-        elif provider == "generic":
-            # Generic clusters (standard K8s) do not have a standard "NodePool" resource
-            # to query via the core API. Nodes are typically standalone.
-            pass
 
         # --- Node Info ---
         if k8s_details and "nodes" in k8s_details:
@@ -271,12 +262,7 @@ def save_to_csvs(all_cluster_data, output_dir, provider):
             df.to_csv(filepath, index=False)
             logging.info(f"Successfully saved data to {filepath}")
 
-    provider_name_map = {
-        "aws": "eks",
-        "azure": "aks",
-        "gke": "gke",
-        "generic": "generic"
-    }
+    provider_name_map = {"aws": "eks", "azure": "aks", "gke": "gke"}
     cluster_csv_filename = f"{provider_name_map.get(provider, provider)}_clusters.csv"
 
     to_csv(provider_clusters_list, cluster_csv_filename)

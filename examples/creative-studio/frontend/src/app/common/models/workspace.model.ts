@@ -22,7 +22,7 @@ export enum WorkspaceScope {
 }
 
 export interface Workspace {
-  id: string;
+  id: number;
   name: string;
   ownerId: string;
   scope: WorkspaceScope;
