@@ -862,23 +862,46 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       : [];
 
     if (state.sourceAssetIds && state.sourceAssetIds.length > 0) {
-      // This is a simplification, we might need to fetch the actual assets to get preview URLs
-      // For now, we just set the IDs, but preview won't work until we have URLs
-      state.sourceAssetIds.forEach((id: string, index: number) => {
-        this.referenceImages.push({
-          previewUrl: (state.previewUrls && state.previewUrls[index]) || state.previewUrl || '',
-          sourceAssetId: Number(id),
-        });
+      state.sourceAssetIds.forEach((assetId: number, index: number) => {
+        const isDuplicate = this.referenceImages.some(
+          img => img.sourceAssetId === assetId,
+        );
+        if (!isDuplicate) {
+          this.referenceImages.push({
+            previewUrl:
+              (state.previewUrls && state.previewUrls[index]) ||
+              state.previewUrl ||
+              '',
+            sourceAssetId: assetId,
+          });
+        } else {
+          handleInfoSnackbar(this._snackBar, 'Image already added.');
+        }
       });
     }
 
     if (state.sourceMediaItems && state.sourceMediaItems.length > 0) {
-      state.sourceMediaItems.forEach((item: SourceMediaItemLink, index: number) => {
-        this.referenceImages.push({
-          previewUrl: (state.previewUrls && state.previewUrls[index]) || state.previewUrl || '',
-          sourceMediaItem: item,
-        });
-      });
+      state.sourceMediaItems.forEach(
+        (item: SourceMediaItemLink, index: number) => {
+          const isDuplicate = this.referenceImages.some(
+            img =>
+              img.sourceMediaItem &&
+              img.sourceMediaItem.mediaItemId === item.mediaItemId &&
+              img.sourceMediaItem.mediaIndex === item.mediaIndex,
+          );
+          if (!isDuplicate) {
+            this.referenceImages.push({
+              previewUrl:
+                (state.previewUrls && state.previewUrls[index]) ||
+                state.previewUrl ||
+                '',
+              sourceMediaItem: item,
+            });
+          } else {
+            handleInfoSnackbar(this._snackBar, 'Image already added.');
+          }
+        },
+      );
     }
 
     this.selectModel(
@@ -979,6 +1002,24 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
         sourceMediaItem: sourceMediaItem || undefined,
         isNew: true,
       };
+
+      // Check for duplicates
+      const isDuplicate = this.referenceImages.some(img => {
+        if (sourceAssetId && img.sourceAssetId === sourceAssetId) return true;
+        if (
+          sourceMediaItem &&
+          img.sourceMediaItem &&
+          img.sourceMediaItem.mediaItemId === sourceMediaItem.mediaItemId &&
+          img.sourceMediaItem.mediaIndex === sourceMediaItem.mediaIndex
+        )
+          return true;
+        return false;
+      });
+
+      if (isDuplicate) {
+        handleInfoSnackbar(this._snackBar, 'This image is already selected.');
+        return;
+      }
 
       if (index !== undefined && index < this.referenceImages.length) {
         this.referenceImages[index] = refImage;

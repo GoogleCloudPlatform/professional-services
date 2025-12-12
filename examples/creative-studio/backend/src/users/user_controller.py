@@ -81,7 +81,7 @@ async def get_user_by_id(user_id: int, user_service: UserService = Depends()):
     Retrieves a single user's profile by their unique ID.
     This functionality is restricted to administrators.
     """
-    user = user_service.get_user_by_id(user_id)
+    user = await user_service.get_user_by_id(user_id)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     return user
@@ -102,7 +102,7 @@ async def update_user_role(
     Updates the role of a specific user (e.g., promote to 'admin' or 'creator').
     This functionality is restricted to administrators.
     """
-    updated_user = user_service.update_user_role(user_id, role_data)
+    updated_user = await user_service.update_user_role(user_id, role_data)
     if not updated_user:
         raise HTTPException(status_code=404, detail="User not found")
     return updated_user
@@ -119,6 +119,6 @@ async def delete_user(user_id: int, user_service: UserService = Depends()):
     Permanently deletes a user from the database.
     This functionality is restricted to administrators.
     """
-    if not user_service.delete_user_by_id(user_id):
+    if not await user_service.delete_user_by_id(user_id):
         raise HTTPException(status_code=404, detail="User not found")
     return

@@ -477,22 +477,10 @@ class SourceAssetService:
             AssetTypeEnum.VTO_SHOE,
         ]
 
-        # In parallel, query for system assets and the user's private assets.
-        system_assets, private_assets = await asyncio.gather(
-            self.repo.find_by_scope_and_types(
-                AssetScopeEnum.SYSTEM,
-                vto_asset_types,
-            ),
-            self.repo.find_private_by_user_and_types(
-                user.id, vto_asset_types
-            ),
+        # Query for both system assets and the user's private assets in a single DB call.
+        all_assets = await self.repo.find_system_and_private_assets_by_types(
+            user.id, vto_asset_types
         )
-
-        # Combine the results. A dictionary is used to prevent duplicates
-        # if an asset somehow exists in both queries (keyed by asset ID).
-        all_assets_map = {asset.id: asset for asset in system_assets}
-        all_assets_map.update({asset.id: asset for asset in private_assets})
-        all_assets = list(all_assets_map.values())
 
         # Create presigned URLs for all assets in parallel
         response_tasks = [
