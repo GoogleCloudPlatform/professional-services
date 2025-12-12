@@ -437,6 +437,40 @@ export class VideoComponent implements OnInit, AfterViewInit {
 
   onModeChanged(mode: string) {
     console.log('Mode changed to:', mode);
+    if (this.currentMode === mode) {
+      return;
+    }
+
+    // If we are switching FROM Concatenate TO Extend, we should keep the first video
+    // but clear the second one (as Extend only takes one video input).
+    if (this.currentMode === 'Concatenate Video' && mode === 'Extend Video') {
+      if (this.image2Preview) {
+        this.clearVideo(2);
+      }
+    }
+    // If we are switching FROM Extend TO Concatenate, we keep the first video (if any).
+    // No need to clear anything.
+
+    // If we are entering Extend or Concatenate mode, ensure we only keep video inputs.
+    if (mode === 'Extend Video' || mode === 'Concatenate Video') {
+      if (this.image1Preview && !this._input1IsVideo) {
+        this.clearInput(1);
+      }
+      if (this.image2Preview && !this._input2IsVideo) {
+        this.clearInput(2);
+      }
+    }
+
+    // If we are entering Frames to Video mode, ensure we only keep image inputs.
+    if (mode === 'Frames to Video') {
+      if (this.image1Preview && this._input1IsVideo) {
+        this.clearVideo(1);
+      }
+      if (this.image2Preview && this._input2IsVideo) {
+        this.clearVideo(2);
+      }
+    }
+
     this.currentMode = mode;
     
     if (mode === 'Extend Video') {
@@ -455,9 +489,7 @@ export class VideoComponent implements OnInit, AfterViewInit {
     this.saveState();
   }
 
-  onClearImage(data: {num: 1 | 2, event: Event}) {
-    this.clearImage(data.num, data.event as MouseEvent);
-  }
+
 
   onClearReferenceImage(data: {index: number, event: Event}) {
     this.clearReferenceImage(data.index, data.event as MouseEvent);
@@ -936,9 +968,7 @@ export class VideoComponent implements OnInit, AfterViewInit {
     }
   }
 
-  clearImage(imageNumber: 1 | 2, event: MouseEvent) {
-    event.stopPropagation();
-
+  clearInput(imageNumber: 1 | 2) {
     if (imageNumber === 1) {
       this.startImageAssetId = null;
       this.image1Preview = null;
@@ -951,8 +981,8 @@ export class VideoComponent implements OnInit, AfterViewInit {
         this.sourceMediaItems[0] = this.sourceMediaItems[1];
         this.startImageAssetId = this.endImageAssetId;
         this._input1IsVideo = true;
-        this.clearImage(2, event); // Clear the second slot now that it's moved
-        return; // updateModeAndNotify will be called by the recursive clearImage
+        this.clearInput(2); // Clear the second slot now that it's moved
+        return; // updateModeAndNotify will be called by the recursive clearInput
       }
     } else {
       this.endImageAssetId = null;
@@ -962,6 +992,15 @@ export class VideoComponent implements OnInit, AfterViewInit {
     }
 
     this.updateModeAndNotify();
+  }
+
+  clearVideo(imageNumber: 1 | 2) {
+    this.clearInput(imageNumber);
+  }
+
+  onClearImage(data: {num: 1 | 2, event: Event}) {
+    data.event.stopPropagation();
+    this.clearInput(data.num);
   }
 
   private clearImageAssetId(imageNumber: 1 | 2) {
@@ -1027,28 +1066,27 @@ export class VideoComponent implements OnInit, AfterViewInit {
 
   private updateModeAndNotify() {
     if (this._input1IsVideo && this._input2IsVideo) {
-      if (!this.isConcatenateMode) {
+      if (this.currentMode !== 'Concatenate Video') {
+        this.currentMode = 'Concatenate Video';
+        this.selectedMode.set('Concatenate Video');
         this.isConcatenateMode = true;
         this.isExtensionMode = false;
         this.searchRequest.prompt = '';
         this._showModeNotification('concatenate');
       }
     } else if (this._input1IsVideo || this._input2IsVideo) {
-      if (!this.isExtensionMode || this.isConcatenateMode) {
+      // If we are already in Concatenate Video mode, don't switch to Extend just because we have 1 video.
+      // We assume the user is building up to 2 videos.
+      if (this.currentMode === 'Concatenate Video') {
+        return;
+      }
+
+      if (this.currentMode !== 'Extend Video') {
+        this.currentMode = 'Extend Video';
+        this.selectedMode.set('Extend Video');
         this.isExtensionMode = true;
         this.isConcatenateMode = false;
         this.searchRequest.prompt = '';
-        // Fallback to a model that supports video extension.
-        const isVeo3 = this.searchRequest.generationModel.startsWith('veo-3');
-        if (isVeo3) {
-          const veo2Model = this.generationModels.find(
-            m => m.value === 'veo-2.0-generate-001',
-          );
-          if (veo2Model) {
-            this.selectModel(veo2Model);
-            handleSuccessSnackbar(this._snackBar, "Switched to Veo 2.0, as it's required for video extension.");
-          }
-        }
         this._showModeNotification('extend');
       }
     } else {
@@ -1067,7 +1105,7 @@ export class VideoComponent implements OnInit, AfterViewInit {
         'Concatenate Mode: The prompt is disabled. Click "Concatenate" to join the videos.';
     }
 
-    handleSuccessSnackbar(this._snackBar, message);
+    handleInfoSnackbar(this._snackBar, message);
   }
 
   private getMimeTypeForSelector():
@@ -1075,8 +1113,17 @@ export class VideoComponent implements OnInit, AfterViewInit {
     | 'image/png'
     | 'video/mp4'
     | null {
-    if (this.isConcatenateMode || this.isExtensionMode) {
+    if (
+      this.isConcatenateMode ||
+      this.isExtensionMode ||
+      this.currentMode === 'Extend Video' ||
+      this.currentMode === 'Concatenate Video'
+    ) {
       return 'video/mp4';
+    }
+
+    if (this.currentMode === 'Frames to Video') {
+      return 'image/*';
     }
 
     const anyInputIsPresent = !!this.image1Preview || !!this.image2Preview;
