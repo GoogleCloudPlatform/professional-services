@@ -42,7 +42,7 @@ export class MediaTemplatesService {
       .pipe(catchError(this.handleError));
   }
 
-  updateMediaTemplate(id: string, payload: Omit<MediaTemplate, 'id' | 'mimeType'>): Observable<MediaTemplate> {
+  updateMediaTemplate(id: number, payload: Omit<MediaTemplate, 'id' | 'mimeType'>): Observable<MediaTemplate> {
     const url = `${this.apiUrl}/${id}`;
     return this.http
       .put<MediaTemplate>(url, payload)
@@ -73,7 +73,7 @@ export class MediaTemplatesService {
     return throwError(() => new Error(errorMessage));
   }
 
-  deleteMediaTemplate(id: string): Observable<void> {
+  deleteMediaTemplate(id: number): Observable<void> {
     const url = `${this.apiUrl}/${id}`;
     return this.http.delete<void>(url).pipe(catchError(this.handleError));
   }

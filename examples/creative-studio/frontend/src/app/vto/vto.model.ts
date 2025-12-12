@@ -15,13 +15,13 @@
  */
 
 export interface VtoSourceMediaItemLink {
-  mediaItemId: string;
+  mediaItemId: number;
   mediaIndex: number;
   role?: string;
 }
 
 export interface VtoInputLink {
-  sourceAssetId?: string;
+  sourceAssetId?: number;
   sourceMediaItem?: VtoSourceMediaItemLink;
 }
 

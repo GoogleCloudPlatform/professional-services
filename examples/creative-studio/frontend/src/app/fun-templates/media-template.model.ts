@@ -125,14 +125,14 @@ export interface GenerationParameters {
 
 /** This mirrors the backend's `SourceAssetLinkResponse` */
 export interface EnrichedSourceAsset {
-  assetId: string;
+  assetId: number;
   role: string; // e.g., 'input', 'style_reference'
   presignedUrl: string;
   gcsUri: string;
 }
 
 export interface MediaTemplate {
-  id: string; // Unique identifier for the template
+  id: number; // Unique identifier for the template
   name: string;
   description: string;
   mimeType: MimeTypeEnum;

@@ -21,7 +21,7 @@ import shutil
 import uuid
 from typing import List, Optional
 
-from fastapi import HTTPException, UploadFile, status
+from fastapi import Depends, HTTPException, UploadFile, status
 from PIL import Image as PILImage
 
 from src.auth.iam_signer_credentials_service import IamSignerCredentials
@@ -56,11 +56,17 @@ logger = logging.getLogger(__name__)
 class SourceAssetService:
     """Provides business logic for managing user-uploaded assets."""
 
-    def __init__(self):
-        self.repo = SourceAssetRepository()
-        self.gcs_service = GcsService()
-        self.iam_signer = IamSignerCredentials()
-        self.imagen_service = ImagenService()  # Service to perform the upscale
+    def __init__(
+        self,
+        repo: SourceAssetRepository = Depends(),
+        gcs_service: GcsService = Depends(),
+        iam_signer: IamSignerCredentials = Depends(),
+        imagen_service: ImagenService = Depends(),
+    ):
+        self.repo = repo
+        self.gcs_service = gcs_service
+        self.iam_signer = iam_signer
+        self.imagen_service = imagen_service  # Service to perform the upscale
 
     async def _get_and_validate_aspect_ratio(
         self,
@@ -159,7 +165,7 @@ class SourceAssetService:
         self,
         user: UserModel,
         file: UploadFile,
-        workspace_id: str,
+        workspace_id: int,
         scope: Optional[AssetScopeEnum] = None,
         asset_type: Optional[AssetTypeEnum] = None,
         aspect_ratio: Optional[AspectRatioEnum] = None,
@@ -176,9 +182,7 @@ class SourceAssetService:
         file_hash = hashlib.sha256(contents).hexdigest()
 
         # 1. Check for duplicates for this user
-        existing_asset = await asyncio.to_thread(
-            self.repo.find_by_hash, user.id, file_hash
-        )
+        existing_asset = await self.repo.find_by_hash(user.id, file_hash)
         if existing_asset:
             logger.info(
                 f"Duplicate asset found for user {user.email} with hash {file_hash[:8]}. Returning existing."
@@ -363,7 +367,7 @@ class SourceAssetService:
             scope=final_scope,
             asset_type=final_asset_type,
         )
-        await asyncio.to_thread(self.repo.save, new_asset)
+        new_asset = await self.repo.create(new_asset)
 
         return await self._create_asset_response(new_asset)
 
@@ -398,7 +402,7 @@ class SourceAssetService:
                 detail=f"Failed to process image: {e}",
             )
 
-    async def delete_asset(self, asset_id: str) -> bool:
+    async def delete_asset(self, asset_id: int) -> bool:
         """
         Deletes an asset from Firestore and its corresponding file from GCS.
         This is an admin-only operation.
@@ -407,7 +411,7 @@ class SourceAssetService:
             bool: True if deletion was successful, False if the asset was not found.
         """
         # 1. Get the asset document from Firestore
-        asset_to_delete = await asyncio.to_thread(self.repo.get_by_id, asset_id)
+        asset_to_delete = await self.repo.get_by_id(asset_id)
         if not asset_to_delete:
             logger.warning(
                 f"Attempted to delete non-existent asset with ID: {asset_id}"
@@ -432,19 +436,17 @@ class SourceAssetService:
         logger.info(
             f"Deleting asset document from Firestore with ID: {asset_id}"
         )
-        return await asyncio.to_thread(self.repo.delete, asset_id)
+        return await self.repo.delete(asset_id)
 
     async def list_assets_for_user(
         self,
         search_dto: SourceAssetSearchDto,
-        target_user_id: Optional[str] = None,
+        target_user_id: Optional[int] = None,
     ) -> PaginationResponseDto[SourceAssetResponseDto]:
         """
         Performs a paginated search, scoped to a target_user_id if provided.
         """
-        assets_query_result = await asyncio.to_thread(
-            self.repo.query, search_dto, target_user_id
-        )
+        assets_query_result = await self.repo.query(search_dto, target_user_id)
         assets = assets_query_result.data or []
 
         response_tasks = [
@@ -454,7 +456,9 @@ class SourceAssetService:
 
         return PaginationResponseDto[SourceAssetResponseDto](
             count=assets_query_result.count,
-            next_page_cursor=assets_query_result.next_page_cursor,
+            page=assets_query_result.page,
+            page_size=assets_query_result.page_size,
+            total_pages=assets_query_result.total_pages,
             data=enriched_assets,
         )
 
@@ -473,25 +477,10 @@ class SourceAssetService:
             AssetTypeEnum.VTO_SHOE,
         ]
 
-        # In parallel, query for system assets and the user's private assets.
-        system_assets_task = asyncio.to_thread(
-            self.repo.find_by_scope_and_types,
-            AssetScopeEnum.SYSTEM,
-            vto_asset_types,
+        # Query for both system assets and the user's private assets in a single DB call.
+        all_assets = await self.repo.find_system_and_private_assets_by_types(
+            user.id, vto_asset_types
         )
-        private_assets_task = asyncio.to_thread(
-            self.repo.find_private_by_user_and_types, user.id, vto_asset_types
-        )
-
-        system_assets, private_assets = await asyncio.gather(
-            system_assets_task, private_assets_task
-        )
-
-        # Combine the results. A dictionary is used to prevent duplicates
-        # if an asset somehow exists in both queries (keyed by asset ID).
-        all_assets_map = {asset.id: asset for asset in system_assets}
-        all_assets_map.update({asset.id: asset for asset in private_assets})
-        all_assets = list(all_assets_map.values())
 
         # Create presigned URLs for all assets in parallel
         response_tasks = [

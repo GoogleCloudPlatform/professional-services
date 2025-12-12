@@ -16,8 +16,7 @@ import asyncio
 import logging
 from typing import Optional
 
-from fastapi import HTTPException, status
-from google.cloud.firestore_v1.base_query import FieldFilter
+from fastapi import Depends, HTTPException, status
 
 from src.auth.iam_signer_credentials_service import IamSignerCredentials
 from src.common.dto.pagination_response_dto import PaginationResponseDto
@@ -51,12 +50,18 @@ class GalleryService:
     Provides business logic for querying media items and preparing them for the gallery.
     """
 
-    def __init__(self):
+    def __init__(
+        self,
+        media_repo: MediaRepository = Depends(),
+        source_asset_repo: SourceAssetRepository = Depends(),
+        workspace_repo: WorkspaceRepository = Depends(),
+        iam_signer_credentials: IamSignerCredentials = Depends(),
+    ):
         """Initializes the service with its dependencies."""
-        self.media_repo = MediaRepository()
-        self.iam_signer_credentials = IamSignerCredentials()
-        self.source_asset_repo = SourceAssetRepository()
-        self.workspace_repo = WorkspaceRepository()
+        self.media_repo = media_repo
+        self.source_asset_repo = source_asset_repo
+        self.workspace_repo = workspace_repo
+        self.iam_signer_credentials = iam_signer_credentials
 
     async def _enrich_source_asset_link(
         self, link: SourceAssetLink
@@ -64,9 +69,8 @@ class GalleryService:
         """
         Fetches the source asset document and generates a presigned URL for it.
         """
-        asset_doc = await asyncio.to_thread(
-            self.source_asset_repo.get_by_id, link.asset_id
-        )
+        asset_doc = await self.source_asset_repo.get_by_id(link.asset_id)
+        
         if not asset_doc:
             return None
 
@@ -105,9 +109,7 @@ class GalleryService:
         Fetches the parent MediaItem document and generates a presigned URL
         for the specific image that was used as input.
         """
-        parent_item = await asyncio.to_thread(
-            self.media_repo.get_by_id, link.media_item_id
-        )
+        parent_item = await self.media_repo.get_by_id(link.media_item_id)
         if (
             not parent_item
             or not parent_item.gcs_uris
@@ -235,16 +237,10 @@ class GalleryService:
         if not is_admin:
             search_dto.status = JobStatusEnum.COMPLETED
 
-        # Add the mandatory workspace filter to the search criteria
-        workspace_filter = FieldFilter(
-            "workspace_id", "==", search_dto.workspace_id
-        )
-
-        # Run the synchronous database query in a separate thread
-        media_items_query = await asyncio.to_thread(
-            self.media_repo.query,
+        # Run the database query directly (it is async)
+        media_items_query = await self.media_repo.query(
             search_dto,
-            extra_filters=[workspace_filter],
+            workspace_id=search_dto.workspace_id,
         )
         media_items = media_items_query.data or []
 
@@ -256,7 +252,9 @@ class GalleryService:
 
         return PaginationResponseDto[MediaItemResponse](
             count=media_items_query.count,
-            next_page_cursor=media_items_query.next_page_cursor,
+            page=media_items_query.page,
+            page_size=media_items_query.page_size,
+            total_pages=media_items_query.total_pages,
             data=enriched_items,
         )
 
@@ -268,15 +266,13 @@ class GalleryService:
         and enriches it with presigned URLs.
         """
         # Run the synchronous database query in a separate thread
-        item = await asyncio.to_thread(self.media_repo.get_by_id, item_id)
+        item = await self.media_repo.get_by_id(item_id)
 
         if not item:
             return None
 
         # Fetch the workspace for authorization check
-        workspace = await asyncio.to_thread(
-            self.workspace_repo.get_by_id, item.workspace_id
-        )
+        workspace = await self.workspace_repo.get_by_id(item.workspace_id)
 
         # This should ideally not happen if data is consistent, but it's a good safeguard.
         if not workspace:
@@ -286,8 +282,10 @@ class GalleryService:
             )
 
         # Use the centralized authorization logic
-        workspace_auth_service.authorize(
-            workspace_id=item.workspace_id, user=current_user
+        await workspace_auth_service.authorize(
+            workspace_id=item.workspace_id,
+            user=current_user,
+            workspace_repo=self.workspace_repo,
         )
 
         return await self._create_gallery_response(item)

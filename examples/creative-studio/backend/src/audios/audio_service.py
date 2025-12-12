@@ -20,6 +20,8 @@ import time
 import wave
 from typing import Any, Dict, List, MutableSequence, Optional, cast
 
+from fastapi import Depends
+
 import vertexai
 from google.cloud import aiplatform
 from google.cloud import texttospeech_v1beta1 as texttospeech
@@ -60,11 +62,16 @@ class AudioService:
         GenerationModelEnum.LYRIA_002,
     }
 
-    def __init__(self):
+    def __init__(
+        self,
+        media_repo: MediaRepository = Depends(),
+        gcs_service: GcsService = Depends(),
+        iam_signer_credentials: IamSignerCredentials = Depends(),
+    ):
         """Initializes the service with its dependencies."""
-        self.iam_signer_credentials = IamSignerCredentials()
-        self.media_repo = MediaRepository()
-        self.gcs_service = GcsService()
+        self.iam_signer_credentials = iam_signer_credentials
+        self.media_repo = media_repo
+        self.gcs_service = gcs_service
         self.cfg = config_service
 
         # Client for Gemini (GenAI)
@@ -171,7 +178,7 @@ class AudioService:
                 final_wav_bytes = wav_buffer.getvalue()
 
                 # 5. Save to GCS
-                file_name = f"gemini_audio_{request_dto.model.value}_{int(time.time())}_{user.id[:4]}_{index}.wav"
+                file_name = f"gemini_audio_{request_dto.model.value}_{int(time.time())}_{str(user.id)[:4]}_{index}.wav"
                 gcs_uri = self.gcs_service.store_to_gcs(
                     folder="gemini_audio",
                     file_name=file_name,
@@ -258,7 +265,7 @@ class AudioService:
 
                 audio_bytes = response.audio_content
 
-                file_name = f"tts_{request_dto.model.value}_{int(time.time())}_{user.id[:4]}_{index}.wav"
+                file_name = f"tts_{request_dto.model.value}_{int(time.time())}_{str(user.id)[:4]}_{index}.wav"
 
                 gcs_uri = self.gcs_service.store_to_gcs(
                     folder="tts_audio",
@@ -346,8 +353,8 @@ class AudioService:
                 # 4. Process Prediction
                 # We take the first one because we requested sample_count=1
                 prediction = response.predictions[0]
-                prediction_map = cast(Dict[str, Any], prediction)
-                audio_b64 = prediction_map.get("bytesBase64Encoded")
+                # prediction is a MapComposite, which behaves like a dict
+                audio_b64 = prediction.get("bytesBase64Encoded")
 
                 if not audio_b64:
                     return None
@@ -356,7 +363,7 @@ class AudioService:
 
                 # Unique filename per sample
                 file_name = (
-                    f"lyria_music_{int(time.time())}_{user.id[:4]}_{index}.wav"
+                    f"lyria_music_{int(time.time())}_{str(user.id)[:4]}_{index}.wav"
                 )
 
                 # 5. Save to GCS
@@ -370,7 +377,7 @@ class AudioService:
                 return gcs_uri
 
             except Exception as e:
-                logger.error(f"Lyria generation attempt {index} failed: {e}")
+                logger.error(f"Lyria generation attempt {index} failed: {e}", exc_info=True)
                 return None
 
         # --- PARALLEL EXECUTION ---
@@ -441,7 +448,7 @@ class AudioService:
             # TODO: Deduce the duration and add it to the model
             # duration_seconds=None,
         )
-        self.media_repo.save(media_post_to_save)
+        media_post_to_save = await self.media_repo.create(media_post_to_save)
 
         return MediaItemResponse(
             **media_post_to_save.model_dump(),

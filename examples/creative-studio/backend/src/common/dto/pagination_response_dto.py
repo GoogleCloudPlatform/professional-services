@@ -35,7 +35,12 @@ class PaginationResponseDto(BaseDto, Generic[T]):
     count: int = Field(
         description="Total number of documents matching the query."
     )
-    next_page_cursor: Optional[str] = Field(
-        None,
-        description="The cursor for fetching the next page.",
+    page: int = Field(
+        description="Current page number (1-indexed)."
+    )
+    page_size: int = Field(
+        description="Number of items per page."
+    )
+    total_pages: int = Field(
+        description="Total number of pages."
     )

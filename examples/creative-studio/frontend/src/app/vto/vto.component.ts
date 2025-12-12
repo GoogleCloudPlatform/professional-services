@@ -313,7 +313,7 @@ export class VtoComponent implements OnInit, AfterViewInit {
 
   private mapAssetToModel(asset: SourceAssetResponseDto): Model {
     return {
-      id: asset.id,
+      id: asset.id.toString(),
       name: asset.originalFilename,
       imageUrl: asset.presignedUrl,
       size: 'M', // Default size or handle differently
@@ -326,7 +326,7 @@ export class VtoComponent implements OnInit, AfterViewInit {
     type: 'top' | 'bottom' | 'dress' | 'shoes',
   ): Garment {
     return {
-      id: asset.id,
+      id: asset.id ? asset.id.toString() : `uploaded-${Date.now()}`, // Ensure ID is a string
       name: asset.originalFilename,
       imageUrl: asset.presignedUrl,
       type: type,
@@ -475,7 +475,7 @@ export class VtoComponent implements OnInit, AfterViewInit {
   }
 
   private applyRemixState(remixState: {
-    modelImageAssetId: string;
+    modelImageAssetId: number;
     modelImagePreviewUrl: string;
     modelImageMediaIndex: number;
   }): void {
@@ -606,18 +606,19 @@ export class VtoComponent implements OnInit, AfterViewInit {
           }
           switch (type) {
             case 'top':
-              this.tops.unshift(newGarment);
+              this.tops = [newGarment, ...this.tops];
               break;
             case 'bottom':
-              this.bottoms.unshift(newGarment);
+              this.bottoms = [newGarment, ...this.bottoms];
               break;
             case 'dress':
-              this.dresses.unshift(newGarment);
+              this.dresses = [newGarment, ...this.dresses];
               break;
             case 'shoes':
-              this.shoes.unshift(newGarment);
+              this.shoes = [newGarment, ...this.shoes];
               break;
           }
+          this.cdr.detectChanges();
           this.selectGarment(newGarment, type);
         }
       });

@@ -21,12 +21,11 @@ variable "project_id" {
 variable "crl_monitors" {
   description = "List of CRL monitors to configure"
   type = list(object({
-    name                  = string
-    region                = string
-    target_url            = string
-    schedule              = optional(string, "* * * * *")
-    crl_expiration_buffer = optional(string, "3600s")
-    proxy_url             = optional(string, "")
+    name                     = string
+    region                   = string
+    target_url               = string
+    schedule                 = optional(string, "* * * * *")
+    crl_expiration_buffer    = optional(string, "3600s")
   }))
 }
 

@@ -241,6 +241,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   private animationFrameId: number | undefined;
 
   @ViewChild('interactiveBubble') interBubble!: ElementRef<HTMLDivElement>;
+  @ViewChild('promptBoxTarget') promptBoxTarget!: ElementRef<HTMLDivElement>;
 
   constructor(
     public router: Router,
@@ -472,7 +473,6 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     if (this.templateParams.numMedia) {
-      console.log('Setting number of images:', this.templateParams.numMedia);
       this.searchRequest.numberOfMedia = this.templateParams.numMedia;
     }
 
@@ -482,8 +482,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
         m.value.toLowerCase().includes(templateModel.toLowerCase()),
       );
       if (modelOption) {
-        this.searchRequest.generationModel = modelOption.value;
-        this.selectedGenerationModel = modelOption.viewValue;
+        this.selectModel(modelOption);
       }
     }
 
@@ -493,8 +492,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
         r => r.value === templateAspectRatio,
       );
       if (aspectRatioOption) {
-        this.searchRequest.aspectRatio = aspectRatioOption.value;
-        this.selectedAspectRatio = aspectRatioOption.viewValue;
+        this.selectAspectRatio(aspectRatioOption);
       }
     }
 
@@ -521,6 +519,9 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
         .filter(Boolean);
       this.searchRequest.negativePrompt = this.negativePhrases.join(', ');
     }
+
+    // Save the state so it persists and isn't overwritten by ngOnInit subscription
+    this.saveState();
   }
 
   openLink(url: string | undefined) {
@@ -673,7 +674,10 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   searchTerm() {
-    if (!this.searchRequest.prompt) return;
+    if (!this.searchRequest.prompt) {
+      handleInfoSnackbar(this._snackBar, 'Please enter a prompt to generate an image.');
+      return;
+    }
 
     const hasSourceAssets = this.referenceImages.length > 0;
     const isImagen4 = [
@@ -694,7 +698,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     const validSourceMediaItems: SourceMediaItemLink[] = [];
-    const sourceAssetIds: string[] = [];
+    const sourceAssetIds: number[] = [];
 
     this.referenceImages.forEach(img => {
       if (img.sourceMediaItem) {
@@ -806,6 +810,12 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     const imageUrl = this.imagenDocuments.presignedUrls[index];
     const mediaItemId = this.imagenDocuments.id;
 
+    // Select Nano Banana Pro (gemini-3-pro-image-preview)
+    const nanoBananaPro = this.generationModels.find(m => m.value === 'gemini-3-pro-image-preview');
+    if (nanoBananaPro) {
+      this.selectModel(nanoBananaPro);
+    }
+
     // Check if we reached the limit
     if (this.referenceImages.length >= this.selectedGenerationModelObject.capabilities.maxReferenceImages) {
       handleInfoSnackbar(this._snackBar, `You can only add up to ${this.selectedGenerationModelObject.capabilities.maxReferenceImages} reference images for this model.`);
@@ -814,7 +824,6 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
 
     // Switch to Ingredients to Image mode
     this.currentMode = 'Ingredients to Image';
-    this.saveState();
 
     // Add to reference images
     const refImage: ReferenceImage = {
@@ -824,12 +833,20 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
         mediaIndex: index,
         role: 'input',
       },
+      isNew: true,
     };
     this.referenceImages.push(refImage);
 
-    // Scroll to top to show the input
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    // Remove highlight after 2 seconds
+    setTimeout(() => {
+      refImage.isNew = false;
+    }, 2000);
+
+    this.saveState();
+    this.scrollToBottom();
   }
+
+
 
   applyRemixState(state: any) {
     this.searchRequest.prompt = state.prompt;
@@ -845,23 +862,46 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       : [];
 
     if (state.sourceAssetIds && state.sourceAssetIds.length > 0) {
-      // This is a simplification, we might need to fetch the actual assets to get preview URLs
-      // For now, we just set the IDs, but preview won't work until we have URLs
-      state.sourceAssetIds.forEach((id: string, index: number) => {
-        this.referenceImages.push({
-          previewUrl: (state.previewUrls && state.previewUrls[index]) || state.previewUrl || '',
-          sourceAssetId: id,
-        });
+      state.sourceAssetIds.forEach((assetId: number, index: number) => {
+        const isDuplicate = this.referenceImages.some(
+          img => img.sourceAssetId === assetId,
+        );
+        if (!isDuplicate) {
+          this.referenceImages.push({
+            previewUrl:
+              (state.previewUrls && state.previewUrls[index]) ||
+              state.previewUrl ||
+              '',
+            sourceAssetId: assetId,
+          });
+        } else {
+          handleInfoSnackbar(this._snackBar, 'Image already added.');
+        }
       });
     }
 
     if (state.sourceMediaItems && state.sourceMediaItems.length > 0) {
-      state.sourceMediaItems.forEach((item: SourceMediaItemLink, index: number) => {
-        this.referenceImages.push({
-          previewUrl: (state.previewUrls && state.previewUrls[index]) || state.previewUrl || '',
-          sourceMediaItem: item,
-        });
-      });
+      state.sourceMediaItems.forEach(
+        (item: SourceMediaItemLink, index: number) => {
+          const isDuplicate = this.referenceImages.some(
+            img =>
+              img.sourceMediaItem &&
+              img.sourceMediaItem.mediaItemId === item.mediaItemId &&
+              img.sourceMediaItem.mediaIndex === item.mediaIndex,
+          );
+          if (!isDuplicate) {
+            this.referenceImages.push({
+              previewUrl:
+                (state.previewUrls && state.previewUrls[index]) ||
+                state.previewUrl ||
+                '',
+              sourceMediaItem: item,
+            });
+          } else {
+            handleInfoSnackbar(this._snackBar, 'Image already added.');
+          }
+        },
+      );
     }
 
     this.selectModel(
@@ -937,7 +977,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   ) {
     const isGalleryImage = !('gcsUri' in result);
     let previewUrl: string | null = null;
-    let sourceAssetId: string | null = null;
+    let sourceAssetId: number | undefined = undefined;
     let sourceMediaItem: SourceMediaItemLink | null = null;
 
     if (isGalleryImage) {
@@ -960,13 +1000,36 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
         previewUrl,
         sourceAssetId: sourceAssetId || undefined,
         sourceMediaItem: sourceMediaItem || undefined,
+        isNew: true,
       };
+
+      // Check for duplicates
+      const isDuplicate = this.referenceImages.some(img => {
+        if (sourceAssetId && img.sourceAssetId === sourceAssetId) return true;
+        if (
+          sourceMediaItem &&
+          img.sourceMediaItem &&
+          img.sourceMediaItem.mediaItemId === sourceMediaItem.mediaItemId &&
+          img.sourceMediaItem.mediaIndex === sourceMediaItem.mediaIndex
+        )
+          return true;
+        return false;
+      });
+
+      if (isDuplicate) {
+        handleInfoSnackbar(this._snackBar, 'This image is already selected.');
+        return;
+      }
 
       if (index !== undefined && index < this.referenceImages.length) {
         this.referenceImages[index] = refImage;
       } else {
         this.referenceImages.push(refImage);
       }
+
+      setTimeout(() => {
+        refImage.isNew = false;
+      }, 2000);
     }
   }
 
@@ -988,6 +1051,13 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
+
+
+  scrollToBottom() {
+    setTimeout(() => {
+      window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+    }, 100);
+  }
 
   generateVideoWithImage(event: { role: 'start' | 'end'; index: number }) {
     if (!this.imagenDocuments) {
@@ -1038,20 +1108,17 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
 
-  private applySourceAssets(sourceAssets: EnrichedSourceAsset[]): void {
-    if (!sourceAssets || sourceAssets.length === 0) {
-      return;
+  private applySourceAssets(sourceAssets: EnrichedSourceAsset[]) {
+    this.referenceImages = sourceAssets.map(asset => ({
+      previewUrl: asset.presignedUrl,
+      sourceAssetId: asset.assetId,
+      file: undefined,
+      sourceMediaItem: undefined
+    }));
+    
+    if (this.referenceImages.length > 0) {
+      this.currentMode = 'Ingredients to Image';
     }
-
-    // Clear any existing inputs
-    this.referenceImages = [];
-    this.sourceMediaItems = [];
-
-    sourceAssets.forEach(asset => {
-      this.referenceImages.push({
-        previewUrl: asset.presignedUrl || '',
-        sourceAssetId: asset.assetId,
-      });
-    });
+    this.saveState();
   }
 }

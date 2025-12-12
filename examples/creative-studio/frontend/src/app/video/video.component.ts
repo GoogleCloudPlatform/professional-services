@@ -46,7 +46,7 @@ import {
   EnrichedSourceAsset,
   GenerationParameters,
 } from '../fun-templates/media-template.model';
-import { handleErrorSnackbar, handleSuccessSnackbar } from '../utils/handleMessageSnackbar';
+import { handleErrorSnackbar, handleInfoSnackbar, handleSuccessSnackbar } from '../utils/handleMessageSnackbar';
 import {JobStatus, MediaItem} from '../common/models/media-item.model';
 import {
   SourceAssetResponseDto,
@@ -83,8 +83,8 @@ export class VideoComponent implements OnInit, AfterViewInit {
   videoDocuments: MediaItem | null = null;
   isLoading = false;
   isAudioGenerationDisabled = false;
-  startImageAssetId: string | null = null;
-  endImageAssetId: string | null = null;
+  startImageAssetId: number | null = null;
+  endImageAssetId: number | null = null;
   sourceMediaItems: (SourceMediaItemLink | null)[] = [null, null];
   image1Preview: string | null = null;
   image2Preview: string | null = null;
@@ -99,6 +99,8 @@ export class VideoComponent implements OnInit, AfterViewInit {
     { value: 'Text to Video', icon: 'description', label: 'Text to Video' },
     { value: 'Frames to Video', icon: 'image', label: 'Frames to Video' },
     { value: 'Ingredients to Video', icon: 'layers', label: 'Ingredients to Video' },
+    { value: 'Extend Video', icon: 'extension', label: 'Extend Video' },
+    { value: 'Concatenate Video', icon: 'merge', label: 'Concatenate Video' },
   ];
 
   // Internal state to track input types
@@ -435,14 +437,59 @@ export class VideoComponent implements OnInit, AfterViewInit {
 
   onModeChanged(mode: string) {
     console.log('Mode changed to:', mode);
+    if (this.currentMode === mode) {
+      return;
+    }
+
+    // If we are switching FROM Concatenate TO Extend, we should keep the first video
+    // but clear the second one (as Extend only takes one video input).
+    if (this.currentMode === 'Concatenate Video' && mode === 'Extend Video') {
+      if (this.image2Preview) {
+        this.clearVideo(2);
+      }
+    }
+    // If we are switching FROM Extend TO Concatenate, we keep the first video (if any).
+    // No need to clear anything.
+
+    // If we are entering Extend or Concatenate mode, ensure we only keep video inputs.
+    if (mode === 'Extend Video' || mode === 'Concatenate Video') {
+      if (this.image1Preview && !this._input1IsVideo) {
+        this.clearInput(1);
+      }
+      if (this.image2Preview && !this._input2IsVideo) {
+        this.clearInput(2);
+      }
+    }
+
+    // If we are entering Frames to Video mode, ensure we only keep image inputs.
+    if (mode === 'Frames to Video') {
+      if (this.image1Preview && this._input1IsVideo) {
+        this.clearVideo(1);
+      }
+      if (this.image2Preview && this._input2IsVideo) {
+        this.clearVideo(2);
+      }
+    }
+
     this.currentMode = mode;
+    
+    if (mode === 'Extend Video') {
+      this.isExtensionMode = true;
+      this.isConcatenateMode = false;
+      this._showModeNotification('extend');
+    } else if (mode === 'Concatenate Video') {
+      this.isConcatenateMode = true;
+      this.isExtensionMode = false;
+      this._showModeNotification('concatenate');
+    } else {
+      this.isExtensionMode = false;
+      this.isConcatenateMode = false;
+    }
+
     this.saveState();
-    // Handle mode change if needed, e.g., switch between text-to-video and image-to-video
   }
 
-  onClearImage(data: {num: 1 | 2, event: Event}) {
-    this.clearImage(data.num, data.event as MouseEvent);
-  }
+
 
   onClearReferenceImage(data: {index: number, event: Event}) {
     this.clearReferenceImage(data.index, data.event as MouseEvent);
@@ -462,7 +509,7 @@ export class VideoComponent implements OnInit, AfterViewInit {
           id: this.sourceMediaItems[0].mediaItemId,
           type: 'media_item',
         });
-      } else if (this.startImageAssetId) {
+      } else if (this.startImageAssetId !== null) {
         inputs.push({id: this.startImageAssetId, type: 'source_asset'});
       }
 
@@ -472,7 +519,7 @@ export class VideoComponent implements OnInit, AfterViewInit {
           id: this.sourceMediaItems[1].mediaItemId,
           type: 'media_item',
         });
-      } else if (this.endImageAssetId) {
+      } else if (this.endImageAssetId !== null) {
         inputs.push({id: this.endImageAssetId, type: 'source_asset'});
       }
 
@@ -502,7 +549,10 @@ export class VideoComponent implements OnInit, AfterViewInit {
         });
       return;
     }
-    if (!this.searchRequest.prompt && !this.isExtensionMode) return;
+    if (!this.searchRequest.prompt && !this.isExtensionMode) {
+      handleInfoSnackbar(this._snackBar, 'Please enter a prompt to generate a video.');
+      return;
+    }
     this.showErrorOverlay = true;
 
     const hasSourceAssets = this.startImageAssetId || this.endImageAssetId;
@@ -537,7 +587,7 @@ export class VideoComponent implements OnInit, AfterViewInit {
 
     // --- Build the two separate R2V reference payloads ---
     const referenceImagesPayload: {
-      assetId: string;
+      assetId: number;
       referenceType: 'ASSET' | 'STYLE';
     }[] = [];
     const sourceMediaItemsForReference: SourceMediaItemLink[] = [];
@@ -567,7 +617,8 @@ export class VideoComponent implements OnInit, AfterViewInit {
           ? (this.startImageAssetId ?? undefined)
           : undefined,
       sourceVideoAssetId:
-        this.currentMode === 'Frames to Video' && this._input1IsVideo
+        (this.currentMode === 'Frames to Video' && this._input1IsVideo) ||
+        this.currentMode === 'Extend Video'
           ? (this.startImageAssetId ?? undefined)
           : undefined,
       endImageAssetId:
@@ -582,7 +633,8 @@ export class VideoComponent implements OnInit, AfterViewInit {
       sourceMediaItems:
         this.currentMode === 'Ingredients to Video'
           ? sourceMediaItemsForReference
-          : this.currentMode === 'Frames to Video'
+          : this.currentMode === 'Frames to Video' ||
+              this.currentMode === 'Extend Video'
             ? validSourceMediaItems
             : undefined,
     };
@@ -726,6 +778,8 @@ export class VideoComponent implements OnInit, AfterViewInit {
         .filter(Boolean);
       this.searchRequest.negativePrompt = this.negativePhrases.join(', ');
     }
+
+    this.saveState();
   }
 
   openImageSelector(imageNumber: 1 | 2): void {
@@ -764,18 +818,23 @@ export class VideoComponent implements OnInit, AfterViewInit {
           );
 
     if (isVideo) {
-      const isVeo3 = [
+      // If we are in Extend Video mode, we don't need to force a switch if the model supports it.
+      // Veo 3.1 supports video extension.
+      const isVeo30 = [
         'veo-3.0-fast-generate-001',
         'veo-3.0-generate-001',
       ].includes(this.searchRequest.generationModel);
 
-      if (isVeo3) {
-        const veo2Model = this.generationModels.find(
-          m => m.value === 'veo-2.0-generate-001',
+      if (isVeo30) {
+        const veo31Model = this.generationModels.find(
+          m => m.value === 'veo-3.1-generate-preview',
         );
-        if (veo2Model) {
-          this.selectModel(veo2Model);
-          handleSuccessSnackbar(this._snackBar, "Veo 3 doesn't support video as input, so we've switched to Veo 2 for you.");
+        if (veo31Model) {
+          this.selectModel(veo31Model);
+          handleSuccessSnackbar(
+            this._snackBar,
+            "Veo 3.0 doesn't support video as input, so we've switched to Veo 3.1 for you.",
+          );
         }
       }
     }
@@ -909,9 +968,7 @@ export class VideoComponent implements OnInit, AfterViewInit {
     }
   }
 
-  clearImage(imageNumber: 1 | 2, event: MouseEvent) {
-    event.stopPropagation();
-
+  clearInput(imageNumber: 1 | 2) {
     if (imageNumber === 1) {
       this.startImageAssetId = null;
       this.image1Preview = null;
@@ -924,8 +981,8 @@ export class VideoComponent implements OnInit, AfterViewInit {
         this.sourceMediaItems[0] = this.sourceMediaItems[1];
         this.startImageAssetId = this.endImageAssetId;
         this._input1IsVideo = true;
-        this.clearImage(2, event); // Clear the second slot now that it's moved
-        return; // updateModeAndNotify will be called by the recursive clearImage
+        this.clearInput(2); // Clear the second slot now that it's moved
+        return; // updateModeAndNotify will be called by the recursive clearInput
       }
     } else {
       this.endImageAssetId = null;
@@ -935,6 +992,15 @@ export class VideoComponent implements OnInit, AfterViewInit {
     }
 
     this.updateModeAndNotify();
+  }
+
+  clearVideo(imageNumber: 1 | 2) {
+    this.clearInput(imageNumber);
+  }
+
+  onClearImage(data: {num: 1 | 2, event: Event}) {
+    data.event.stopPropagation();
+    this.clearInput(data.num);
   }
 
   private clearImageAssetId(imageNumber: 1 | 2) {
@@ -1000,28 +1066,27 @@ export class VideoComponent implements OnInit, AfterViewInit {
 
   private updateModeAndNotify() {
     if (this._input1IsVideo && this._input2IsVideo) {
-      if (!this.isConcatenateMode) {
+      if (this.currentMode !== 'Concatenate Video') {
+        this.currentMode = 'Concatenate Video';
+        this.selectedMode.set('Concatenate Video');
         this.isConcatenateMode = true;
         this.isExtensionMode = false;
         this.searchRequest.prompt = '';
         this._showModeNotification('concatenate');
       }
     } else if (this._input1IsVideo || this._input2IsVideo) {
-      if (!this.isExtensionMode || this.isConcatenateMode) {
+      // If we are already in Concatenate Video mode, don't switch to Extend just because we have 1 video.
+      // We assume the user is building up to 2 videos.
+      if (this.currentMode === 'Concatenate Video') {
+        return;
+      }
+
+      if (this.currentMode !== 'Extend Video') {
+        this.currentMode = 'Extend Video';
+        this.selectedMode.set('Extend Video');
         this.isExtensionMode = true;
         this.isConcatenateMode = false;
         this.searchRequest.prompt = '';
-        // Fallback to a model that supports video extension.
-        const isVeo3 = this.searchRequest.generationModel.startsWith('veo-3');
-        if (isVeo3) {
-          const veo2Model = this.generationModels.find(
-            m => m.value === 'veo-2.0-generate-001',
-          );
-          if (veo2Model) {
-            this.selectModel(veo2Model);
-            handleSuccessSnackbar(this._snackBar, "Switched to Veo 2.0, as it's required for video extension.");
-          }
-        }
         this._showModeNotification('extend');
       }
     } else {
@@ -1040,7 +1105,7 @@ export class VideoComponent implements OnInit, AfterViewInit {
         'Concatenate Mode: The prompt is disabled. Click "Concatenate" to join the videos.';
     }
 
-    handleSuccessSnackbar(this._snackBar, message);
+    handleInfoSnackbar(this._snackBar, message);
   }
 
   private getMimeTypeForSelector():
@@ -1048,6 +1113,19 @@ export class VideoComponent implements OnInit, AfterViewInit {
     | 'image/png'
     | 'video/mp4'
     | null {
+    if (
+      this.isConcatenateMode ||
+      this.isExtensionMode ||
+      this.currentMode === 'Extend Video' ||
+      this.currentMode === 'Concatenate Video'
+    ) {
+      return 'video/mp4';
+    }
+
+    if (this.currentMode === 'Frames to Video') {
+      return 'image/*';
+    }
+
     const anyInputIsPresent = !!this.image1Preview || !!this.image2Preview;
     const anyInputIsVideo = this._input1IsVideo || this._input2IsVideo;
 
@@ -1061,8 +1139,8 @@ export class VideoComponent implements OnInit, AfterViewInit {
 
   private applyRemixState(remixState: {
     prompt?: string;
-    startImageAssetId?: string;
-    endImageAssetId?: string;
+    startImageAssetId?: number;
+    endImageAssetId?: number;
     startImagePreviewUrl?: string;
     endImagePreviewUrl?: string;
     sourceMediaItems?: SourceMediaItemLink[];
@@ -1265,9 +1343,15 @@ export class VideoComponent implements OnInit, AfterViewInit {
       const veo31Model = this.generationModels.find(
         m => m.value === 'veo-3.1-generate-preview',
       );
-      if (veo31Model) {
+      if (
+        veo31Model &&
+        this.searchRequest.generationModel !== veo31Model.value
+      ) {
         this.selectModel(veo31Model);
-        handleSuccessSnackbar(this._snackBar, "We've switched to the Veo 3.1 model for you, as this one supports reference images.");
+        handleSuccessSnackbar(
+          this._snackBar,
+          "We've switched to the Veo 3.1 model for you, as this one supports reference images.",
+        );
       }
     }
   }
@@ -1305,6 +1389,8 @@ export class VideoComponent implements OnInit, AfterViewInit {
               id: asset.assetId,
               gcsUri: asset.gcsUri,
               presignedUrl: asset.presignedUrl,
+              mimeType: asset.gcsUri.endsWith('.mp4') ? 'video/mp4' : 'image/png',
+              originalFilename: 'remix-asset',
               // Add other required fields with default/null values
             } as SourceAssetResponseDto,
             1,
@@ -1312,11 +1398,13 @@ export class VideoComponent implements OnInit, AfterViewInit {
         }
       }
     }
-
+ 
     if (hasAddedReferenceImage) {
       this.handleReferenceImageAdded();
+      this.currentMode = 'Ingredients to Video';
     }
     this.updateModeAndNotify();
+    this.saveState();
   }
 
   promptText = signal<string>('');
