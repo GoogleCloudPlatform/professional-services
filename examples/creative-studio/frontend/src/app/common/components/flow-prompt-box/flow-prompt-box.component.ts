@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { Component, EventEmitter, Input, Output, signal, HostListener, ElementRef } from '@angular/core';
+import { Component, EventEmitter, Input, Output, signal, HostListener, SimpleChanges, ViewChild, ElementRef } from '@angular/core';
 import { VeoRequest } from '../../models/search.model';
 import { GenerationModelConfig } from '../../config/model-config';
 import { MatIcon, MatIconModule } from '@angular/material/icon';
@@ -67,12 +67,34 @@ export class FlowPromptBoxComponent {
   @Input() referenceImages: any[] = [];
   @Input() referenceImagesType: 'ASSET' | 'STYLE' = 'ASSET';
 
+
+
+  @ViewChild('modeTrigger') modeTrigger!: ElementRef;
+  @ViewChild('modeMenu') modeMenu!: ElementRef;
+  @ViewChild('settingsTrigger') settingsTrigger!: ElementRef;
+  @ViewChild('settingsMenu') settingsMenu!: ElementRef;
+
   constructor(private eRef: ElementRef) {}
 
   @HostListener('document:click', ['$event'])
   clickout(event: any) {
-    if (!this.eRef.nativeElement.contains(event.target)) {
+    // Close Mode Menu if clicked outside trigger and menu
+    if (
+      this.isModeMenuOpen() &&
+      this.modeTrigger &&
+      !this.modeTrigger.nativeElement.contains(event.target) &&
+      (!this.modeMenu || !this.modeMenu.nativeElement.contains(event.target))
+    ) {
       this.isModeMenuOpen.set(false);
+    }
+
+    // Close Settings Menu if clicked outside trigger and menu
+    if (
+      this.isSettingsMenuOpen() &&
+      this.settingsTrigger &&
+      !this.settingsTrigger.nativeElement.contains(event.target) &&
+      (!this.settingsMenu || !this.settingsMenu.nativeElement.contains(event.target))
+    ) {
       this.isSettingsMenuOpen.set(false);
     }
   }

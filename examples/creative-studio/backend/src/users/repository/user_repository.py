@@ -12,132 +12,83 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import datetime
-from typing import Any, Dict, List, Optional
+from typing import Optional
 
-from google.cloud import firestore
-from google.cloud.firestore_v1.base_aggregation import AggregationResult
-from google.cloud.firestore_v1.base_query import FieldFilter
-from google.cloud.firestore_v1.query_results import QueryResultsList
+from fastapi import Depends
+from sqlalchemy import func, select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.common.base_repository import BaseRepository
 from src.common.dto.pagination_response_dto import PaginationResponseDto
+from src.database import get_db
 from src.users.dto.user_search_dto import UserSearchDto
-from src.users.user_model import UserModel
+from src.users.user_model import User, UserModel
 
 
-class UserRepository(BaseRepository[UserModel]):
+class UserRepository(BaseRepository[User, UserModel]):
     """
-    Handles all database operations for the User collection.
+    Handles all database operations for the User table.
     """
 
-    def __init__(self):
-        super().__init__(collection_name="users", model=UserModel)
+    def __init__(self, db: AsyncSession = Depends(get_db)):
+        super().__init__(model=User, schema=UserModel, db=db)
 
-    def create(self, user: UserModel) -> UserModel:
-        """
-        Creates a new user document in Firestore.
-
-        Args:
-            user: A User model instance to be saved.
-
-        Returns:
-            The created User instance, now including the database-assigned ID.
-        """
-        doc_ref = self.collection_ref.document()
-        user.id = (
-            doc_ref.id
-        )  # Assign the auto-generated Firestore ID to the model
-
-        # Convert Pydantic model to dict, excluding 'id' which is the document key
-        user_data = user.model_dump(exclude={"id"})
-        doc_ref.set(user_data)
-
-        return user
-
-    def get_by_email(self, email: str) -> Optional[UserModel]:
+    async def get_by_email(self, email: str) -> Optional[UserModel]:
         """
         Finds a single user by their email address.
-
-        Args:
-            email: The email address to search for.
-
-        Returns:
-            The User model if found, otherwise None.
         """
-        query = self.collection_ref.where(
-            filter=FieldFilter("email", "==", email)
-        ).limit(1)
-        results = list(query.stream())
-
-        if not results:
+        result = await self.db.execute(
+            select(self.model).where(self.model.email == email)
+        )
+        user = result.scalar_one_or_none()
+        if not user:
             return None
+        return self.schema.model_validate(user)
 
-        return self.model.model_validate(results[0].to_dict())
-
-    def query(
+    async def query(
         self, search_dto: UserSearchDto
     ) -> PaginationResponseDto[UserModel]:
         """
         Performs a paginated query that includes the total document count.
         """
-        # 1. Build the base query with all filters applied. This will be used for both counting and fetching.
-        base_query = self.collection_ref
+        # 1. Build the base query
+        query = select(self.model)
+        
         if search_dto.email:
-            base_query = base_query.where(
-                filter=FieldFilter("email", "==", search_dto.email)
-            )
+            query = query.where(self.model.email == search_dto.email)
+        
         if search_dto.role:
-            base_query = base_query.where(
-                filter=FieldFilter(
-                    "roles", "array_contains", search_dto.role.value
-                )
-            )
+            # Postgres ARRAY contains check
+            query = query.where(self.model.roles.contains([search_dto.role.value]))
 
-        # 2. Run the server-side aggregation query to get the total count.
-        # This is built from the filtered query BEFORE pagination is applied.
-        count_query = base_query.count(alias="total")
-        # The .get() on an aggregation is synchronous and returns the result directly.
-        aggregation_result = count_query.get()
+        # 2. Get total count
+        count_query = select(func.count()).select_from(query.subquery())
+        count_result = await self.db.execute(count_query)
+        total_count = count_result.scalar_one()
 
-        total_count = 0
-        if (
-            isinstance(aggregation_result, QueryResultsList)
-            and aggregation_result  # Checks that the list is not empty
-            and isinstance(aggregation_result[0][0], AggregationResult)  # type: ignore
-        ):
-            total_count = int(aggregation_result[0][0].value)  # type: ignore
+        # 3. Add ordering and pagination
+        # Default ordering by created_at DESC
+        query = query.order_by(self.model.created_at.desc())
 
-        # 3. Now, build the full data query by adding ordering and pagination to the base query.
-        data_query = base_query.order_by(
-            "created_at", direction=firestore.Query.DESCENDING
-        )
+        # Offset-based pagination
+        query = query.offset(search_dto.offset).limit(search_dto.limit)
 
-        if search_dto.start_after:
-            last_doc_snapshot = self.collection_ref.document(
-                search_dto.start_after
-            ).get()
-            if last_doc_snapshot.exists:
-                # This is the corrected pagination logic
-                data_query = data_query.start_after(last_doc_snapshot)
+        # 4. Execute
+        result = await self.db.execute(query)
+        users = result.scalars().all()
+        
+        user_data = [self.schema.model_validate(user) for user in users]
 
-        data_query = data_query.limit(search_dto.limit)
+        # 5. Determine next cursor (offset)
+        # Calculate pagination metadata
+        page = (search_dto.offset // search_dto.limit) + 1
+        page_size = search_dto.limit
+        total_pages = (total_count + page_size - 1) // page_size
 
-        # 4. Execute the data query to get the documents for the current page.
-        documents = list(data_query.stream())
-        user_data = [
-            self.model.model_validate(doc.to_dict()) for doc in documents
-        ]
-
-        # 5. Determine the cursor for the next page.
-        next_page_cursor = None
-        if len(documents) == search_dto.limit:
-            # The cursor is the ID of the last document fetched.
-            next_page_cursor = documents[-1].id
-
-        # 6. Return the structured paginated response.
         return PaginationResponseDto[UserModel](
             count=total_count,
-            next_page_cursor=next_page_cursor,
+            page=page,
+            page_size=page_size,
+            total_pages=total_pages,
             data=user_data,
         )

@@ -60,7 +60,7 @@ export class SourceAssetGalleryComponent
   public assets: SourceAssetResponseDto[] = [];
   public isLoading = true;
   public allAssetsLoaded = false;
-  public deletingAssetId: string | null = null;
+  public deletingAssetId: number | null = null;
   // --- Column Management Properties ---
   public columns: SourceAssetResponseDto[][] = [];
   private numColumns = 4;
@@ -167,7 +167,7 @@ export class SourceAssetGalleryComponent
     this.assetSelected.emit(asset);
   }
 
-  trackByAsset(index: number, asset: SourceAssetResponseDto): string {
+  trackByAssetId(index: number, asset: SourceAssetResponseDto): number {
     return asset.id;
   }
 

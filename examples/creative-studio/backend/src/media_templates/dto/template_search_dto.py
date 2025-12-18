@@ -13,22 +13,15 @@
 # limitations under the License.
 
 from typing import Optional, List
-from pydantic import BaseModel, Field
+from src.common.dto.base_search_dto import BaseSearchDto
 from src.media_templates.schema.media_template_model import (
     IndustryEnum,
     MimeTypeEnum,
 )
+from pydantic import Field
 
-
-class TemplateSearchDto(BaseModel):
+class TemplateSearchDto(BaseSearchDto):
     """Defines the searchable and filterable fields for the template gallery."""
-
-    # Pagination fields
-    limit: int = Field(default=20, ge=1, le=100)
-    start_after: Optional[str] = Field(
-        default=None,
-        description="The document ID to start the query after for pagination.",
-    )
 
     # Filtering fields based on MediaTemplateModel
     industry: Optional[IndustryEnum] = None

@@ -187,7 +187,7 @@ export class MediaDetailComponent implements OnDestroy {
     // Note: The 'createTemplateFromMediaItem' method should be implemented in a relevant service (e.g., TemplateService or GalleryService).
     // It should perform a POST request to the `/from-media-item/{media_item_id}` endpoint.
     this.galleryService
-      .createTemplateFromMediaItem(this.mediaItem.id)
+      .createTemplateFromMediaItem(this.mediaItem.id.toString())
       .pipe(first())
       .subscribe({
         next: (newTemplate: {id: string}) => {
@@ -351,7 +351,7 @@ export class MediaDetailComponent implements OnDestroy {
     // Existing logic for images
     // Construct a MediaItem-like object for the lightbox
     const mediaItem: MediaItem = {
-      id: sourceAsset.sourceAssetId,
+      id: Number(sourceAsset.sourceAssetId),
       mimeType: MimeTypeEnum.IMAGE,
       presignedUrls: [sourceAsset.presignedUrl],
       presignedThumbnailUrls: [sourceAsset.presignedThumbnailUrl],

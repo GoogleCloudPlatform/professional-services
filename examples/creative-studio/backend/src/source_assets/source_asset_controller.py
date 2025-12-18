@@ -42,6 +42,7 @@ from src.source_assets.schema.source_asset_model import (
 from src.source_assets.source_asset_service import SourceAssetService
 from src.users.repository.user_repository import UserRepository
 from src.users.user_model import UserModel, UserRoleEnum
+from src.workspaces.repository.workspace_repository import WorkspaceRepository
 from src.workspaces.workspace_auth_guard import workspace_auth_service
 
 router = APIRouter(
@@ -59,12 +60,13 @@ router = APIRouter(
 @router.post("/upload", response_model=SourceAssetResponseDto)
 async def upload_source_asset(
     file: UploadFile = File(),
-    workspaceId: str = Form(),
+    workspaceId: int = Form(),
     scope: Optional[AssetScopeEnum] = Form(None),
     assetType: Optional[AssetTypeEnum] = Form(None),
     aspectRatio: Optional[AspectRatioEnum] = Form(None),
     current_user: UserModel = Depends(get_current_user),
     service: SourceAssetService = Depends(),
+    workspace_repo: WorkspaceRepository = Depends(),
 ):
     """
     Uploads a new source asset. Handles de-duplication and upscaling.
@@ -76,8 +78,10 @@ async def upload_source_asset(
     """
     # Use our centralized dependency to authorize the user for the workspace
     # before proceeding with the upload.
-    workspace_auth_service.authorize(
-        workspace_id=workspaceId, user=current_user
+    await workspace_auth_service.authorize(
+        workspace_id=workspaceId,
+        user=current_user,
+        workspace_repo=workspace_repo,
     )
 
     return await service.upload_asset(
@@ -119,7 +123,7 @@ async def list_source_assets(
     - Regular users can only search their own assets.
     - Admins can search all assets, or filter by a specific user's email.
     """
-    target_user_id: Optional[str] = None
+    target_user_id: Optional[int] = None
 
     is_admin = UserRoleEnum.ADMIN in current_user.roles
 
@@ -175,7 +179,7 @@ async def get_vto_assets(
     dependencies=[Depends(RoleChecker(allowed_roles=[UserRoleEnum.ADMIN]))],
 )
 async def delete_source_asset(
-    asset_id: str,
+    asset_id: int,
     service: SourceAssetService = Depends(),
 ):
     """

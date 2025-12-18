@@ -22,7 +22,13 @@ export const handleErrorSnackbar: (
   snackBar: MatSnackBar,
   error: any,
   context: string,
-) => void = (snackBar: MatSnackBar, error: any, context: string) => {
+  duration?: number,
+) => void = (
+  snackBar: MatSnackBar,
+  error: any,
+  context: string,
+  duration: number = 20000,
+) => {
   console.error(`${context} error:`, error);
   const errorMessage =
     error?.error?.detail?.[0]?.msg ||
@@ -32,7 +38,13 @@ export const handleErrorSnackbar: (
 
   try {
     const notificationService = AppInjector.get(NotificationService);
-    notificationService.show(errorMessage, 'error', 'cross-in-circle-white');
+    notificationService.show(
+      errorMessage,
+      'error',
+      'cross-in-circle-white',
+      undefined,
+      duration,
+    );
   } catch (e) {
     console.error('NotificationService not available', e);
   }
@@ -41,10 +53,17 @@ export const handleErrorSnackbar: (
 export const handleSuccessSnackbar: (
   snackBar: MatSnackBar,
   msg: any,
-) => void = (snackBar: MatSnackBar, msg: any) => {
+  duration?: number,
+) => void = (snackBar: MatSnackBar, msg: any, duration?: number) => {
   try {
     const notificationService = AppInjector.get(NotificationService);
-    notificationService.show(msg, 'success', undefined, 'check_small');
+    notificationService.show(
+      msg,
+      'success',
+      undefined,
+      'check_small',
+      duration,
+    );
   } catch (e) {
     console.error('NotificationService not available', e);
   }
@@ -53,10 +72,11 @@ export const handleSuccessSnackbar: (
 export const handleInfoSnackbar: (
   snackBar: MatSnackBar,
   msg: any,
-) => void = (snackBar: MatSnackBar, msg: any) => {
+  duration?: number,
+) => void = (snackBar: MatSnackBar, msg: any, duration: number = 10000) => {
   try {
     const notificationService = AppInjector.get(NotificationService);
-    notificationService.show(msg, 'info', undefined, 'info');
+    notificationService.show(msg, 'info', undefined, 'info', duration);
   } catch (e) {
     console.error('NotificationService not available', e);
   }

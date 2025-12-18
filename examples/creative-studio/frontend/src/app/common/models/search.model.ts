@@ -26,7 +26,7 @@ export type ImagenRequest = {
   composition?: string | null;
   addWatermark: boolean;
   upscaleFactor?: '' | 'x2' | 'x4';
-  sourceAssetIds?: string[];
+  sourceAssetIds?: number[];
   sourceMediaItems?: SourceMediaItemLink[];
   workspaceId?: string;
   useBrandGuidelines: boolean;
@@ -35,19 +35,20 @@ export type ImagenRequest = {
 };
 
 export type SourceMediaItemLink = {
-  mediaItemId: string;
+  mediaItemId: number;
   mediaIndex: number;
   role: string;
 };
 
 export interface ReferenceImage {
   previewUrl: string;
-  sourceAssetId?: string;
+  sourceAssetId?: number;
   sourceMediaItem?: SourceMediaItemLink;
+  isNew?: boolean;
 }
 
 export interface ReferenceImageDto {
-  assetId: string;
+  assetId: number;
   referenceType: 'ASSET' | 'STYLE';
 }
 
@@ -63,9 +64,9 @@ export type VeoRequest = {
   negativePrompt: string;
   generateAudio: boolean;
   durationSeconds: number;
-  startImageAssetId?: string;
-  endImageAssetId?: string;
-  sourceVideoAssetId?: string;
+  startImageAssetId?: number;
+  endImageAssetId?: number;
+  sourceVideoAssetId?: number;
   sourceMediaItems?: SourceMediaItemLink[];
   workspaceId?: string;
   useBrandGuidelines: boolean;
@@ -107,6 +108,7 @@ export type ImagesData = {
 
 export interface GallerySearchDto {
   limit: number;
+  offset?: number;
   startAfter?: string;
   userEmail?: string;
   mimeType?: string;

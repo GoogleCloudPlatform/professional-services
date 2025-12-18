@@ -1,4 +1,18 @@
 #!/bin/bash
+# Copyright 2025 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 
 # ==============================================================================
 # Creative Studio Infrastructure Bootstrap Script (Resumable)
@@ -11,11 +25,11 @@
 set -e
 
 # --- Configuration ---
-REQUIRED_TERRAFORM_VERSION="1.13.0"
+REQUIRED_TERRAFORM_VERSION="1.14.1"
 UPSTREAM_REPO_URL="https://github.com/GoogleCloudPlatform/professional-services"
 TEMPLATE_ENV_DIR="environments/dev-infra-example"
 DEFAULT_ENV_NAME="dev-infra"
-DEFAULT_BRANCH_NAME="main"
+DEFAULT_BRANCH_NAME="pg-infra"
 GCS_BUCKET_SUFFIX_FORMAT="cstudio-%s-tfstate"
 GCS_BUCKET_PREFIX_FORMAT="infra/%s/state"
 BE_SERVICE_NAME="cstudio-be"
@@ -84,6 +98,71 @@ read_state() {
         info "Found previous state file. Resuming..."
         set -a; source "$STATE_FILE"; set +a
     fi
+}
+
+# --- Database Connectivity Helpers ---
+start_sql_proxy() {
+    info "Starting Cloud SQL Auth Proxy..."
+    
+    # 1. Get Instance Connection Name
+    # Try Terraform output first, fallback to gcloud
+    pushd "$REPO_ROOT/infra/environments/$ENV_NAME" > /dev/null
+    DB_INSTANCE_NAME=$(terraform output -raw cloud_sql_connection_name 2>/dev/null)
+    popd > /dev/null
+
+    if [ -z "$DB_INSTANCE_NAME" ]; then
+        DB_INSTANCE_NAME=$(gcloud sql instances list --format="value(connectionName)" --filter="name:creative-studio-db*" --project="$GCP_PROJECT_ID" | head -n 1)
+    fi
+
+    if [ -z "$DB_INSTANCE_NAME" ]; then
+        fail "Could not find Cloud SQL instance. Ensure Terraform ran successfully."
+    fi
+
+    export INSTANCE_CONNECTION_NAME="$DB_INSTANCE_NAME"
+
+    # 2. Download Proxy (if missing)
+    if [ ! -f "cloud-sql-proxy" ]; then
+        curl -o cloud-sql-proxy https://storage.googleapis.com/cloud-sql-connectors/cloud-sql-proxy/v2.8.0/cloud-sql-proxy.linux.amd64
+        chmod +x cloud-sql-proxy
+    fi
+
+    # 3. Start Proxy in Background (Port 5432)
+    ./cloud-sql-proxy --address 0.0.0.0 --port 5432 "$DB_INSTANCE_NAME" > /dev/null 2>&1 &
+    PROXY_PID=$!
+    export PROXY_PID
+    
+    # 4. Wait for Readiness
+    echo -n "   Waiting for proxy connection..."
+    for i in {1..15}; do
+        if nc -z 127.0.0.1 5432 2>/dev/null; then
+            echo " Connected!"
+            return 0
+        fi
+        echo -n "."
+        sleep 1
+    done
+    echo
+    warn "Proxy connection check timed out, but proceeding..."
+}
+
+stop_sql_proxy() {
+    if [ -n "$PROXY_PID" ]; then
+        info "Stopping Cloud SQL Proxy..."
+        kill "$PROXY_PID" 2>/dev/null || true
+        unset PROXY_PID
+    fi
+}
+
+export_db_vars() {
+    # Fetch password from Secret Manager
+    DB_PASS=$(gcloud secrets versions access latest --secret="creative-studio-db-password" --project="$GCP_PROJECT_ID")
+    
+    export DB_USER="studio_user"
+    export DB_PASS="$DB_PASS"
+    export DB_NAME="creative_studio"
+    export DB_HOST="127.0.0.1" # Proxy address
+    export DB_PORT="5432"
+    export USE_CLOUD_SQL_AUTH_PROXY=true
 }
 
 # --- Script Functions ---
@@ -229,61 +308,71 @@ setup_repo() {
         else warn "Repository not found at that URL. Please check for typos and try again."; fi
     done
 
+    # --- Ask for Branch ---
+    prompt "Which git branch would you like to use? (default: main)"
+    read -p "   Branch Name: " SELECTED_BRANCH < /dev/tty
+    SELECTED_BRANCH=${SELECTED_BRANCH:-main}
+    DEFAULT_BRANCH_NAME="$SELECTED_BRANCH"
+
     local REPO_CLONE_DIR=$(basename "$GITHUB_REPO_URL" .git)
 
     if [[ -d "$REPO_CLONE_DIR" ]]; then
         warn "Directory '$REPO_CLONE_DIR' already exists."; prompt "Do you want to use this existing directory? (y/n)"; read -r REPLY < /dev/tty
         if [[ ! $REPLY =~ ^[Yy]$ ]]; then fail "Please remove the directory or run the script from a different location."; fi
     else
-        info "Performing a sparse checkout of 'examples/creative-studio' into './${REPO_CLONE_DIR}'..."
-        git clone --filter=blob:none --no-checkout --depth 1 --sparse "$GITHUB_REPO_URL" "$REPO_CLONE_DIR"
+        info "Performing a sparse checkout of '$REPO_CLONE_DIR' (Branch: $SELECTED_BRANCH)..."
+        
+        # 1. Clone with -b branch_name
+        git clone --filter=blob:none --no-checkout --depth 1 --sparse -b "$SELECTED_BRANCH" "$GITHUB_REPO_URL" "$REPO_CLONE_DIR"
+        
         cd "$REPO_CLONE_DIR"
-        git sparse-checkout set "examples/creative-studio"
+        
+        # 2. FIXED: Sparse checkout now includes ROOT folders AND the legacy subfolder
+        # This ensures it works for both the mono-repo upstream and your flattened fork.
+        git sparse-checkout set "examples/creative-studio" "infra" "backend" "frontend" "bootstrap.sh"
+        
         git checkout
         cd ..
 
         success "Repository cloned successfully."
     fi
 
-	# --- Automatic Project Path Detection ---
+    # --- Automatic Project Path Detection ---
     info "Automatically detecting project structure..."
     local RELATIVE_PROJECT_PATH=""
     local FALLBACK_PATH="examples/creative-studio"
 
-    # Check if the project is at the top level
+    # Check if the project is at the top level (Flattened Fork)
     if [[ -d "$REPO_CLONE_DIR/infra" && -f "$REPO_CLONE_DIR/bootstrap.sh" ]]; then
         info "Detected top-level project structure."
         RELATIVE_PROJECT_PATH=""
-    # Check if the project is in the fallback nested path
+    # Check if the project is in the fallback nested path (Upstream Mono-repo)
     elif [[ -d "$REPO_CLONE_DIR/$FALLBACK_PATH/infra" && -f "$REPO_CLONE_DIR/$FALLBACK_PATH/bootstrap.sh" ]]; then
         info "Detected nested project structure at '$FALLBACK_PATH'."
         RELATIVE_PROJECT_PATH="$FALLBACK_PATH"
     else
-        fail "Could not find a valid project structure. The script requires an 'infra' directory and 'bootstrap.sh' file at the repository root or in '$FALLBACK_PATH'."
+        # Debugging aid if it fails again
+        warn "Directory listing of clone:"
+        ls -F "$REPO_CLONE_DIR/"
+        fail "Could not find a valid project structure. The script requires an 'infra' directory and 'bootstrap.sh' file."
     fi
-    # --- End of Detection ---
 
-    # --- This is the key logic for flexibility ---
-    # Define the final project path by combining the clone directory and the relative path
+    # Define the final project path
     local FINAL_PROJECT_PATH="$REPO_CLONE_DIR"
     if [ -n "$RELATIVE_PROJECT_PATH" ]; then
         FINAL_PROJECT_PATH="$FINAL_PROJECT_PATH/$RELATIVE_PROJECT_PATH"
     fi
 
-    # Change directory to the final, correct project root.
     if [ ! -d "$FINAL_PROJECT_PATH" ]; then
-        fail "The specified project path '$FINAL_PROJECT_PATH' does not exist in the cloned repository."
+        fail "The specified project path '$FINAL_PROJECT_PATH' does not exist."
     fi
     cd "$FINAL_PROJECT_PATH"
 
-    # Now that we are in the correct directory, set REPO_ROOT to the absolute path.
     REPO_ROOT=$(pwd)
     export REPO_ROOT
     success "Project root successfully set to: $REPO_ROOT"
 
-    # This logic now runs correctly from within the project's root directory
     GITHUB_REPO_OWNER=$(git remote get-url origin | sed -n 's/.*github.com\/\(.*\)\/.*/\1/p')
-    # Use the name of the top-level cloned directory as the repo name
     GITHUB_REPO_NAME=$REPO_CLONE_DIR
 
     info "Detected GitHub owner: $GITHUB_REPO_OWNER"
@@ -451,8 +540,39 @@ populate_oauth_secrets() {
     success "Audiences updated in .tfvars file."
 }
 
+setup_db_secrets() {
+    step 9 "Configuring Database Secrets" # Renumber subsequent steps
+    
+    # 1. Enable required APIs first
+    info "Enabling Secret Manager and SQL Admin APIs..."
+    gcloud services enable secretmanager.googleapis.com sqladmin.googleapis.com --project="$GCP_PROJECT_ID"
+
+    local SECRET_NAME="creative-studio-db-password"
+    
+    # 2. Check if the secret already exists
+    if gcloud secrets describe "$SECRET_NAME" --project="$GCP_PROJECT_ID" > /dev/null 2>&1; then
+        info "Secret '$SECRET_NAME' already exists. Skipping creation."
+    else
+        info "Creating new secret '$SECRET_NAME'..."
+        
+        # 3. Generate a secure random password (alphanumeric, no special chars that break URLs)
+        # using openssl. We use base64 but strip non-alphanumeric chars to be safe for DB connection strings
+        local DB_PASSWORD=$(openssl rand -base64 20 | tr -dc 'a-zA-Z0-9' | head -c 16)
+        
+        # 4. Create the secret and add the first version
+        # We use printf to avoid trailing newlines
+        printf "%s" "$DB_PASSWORD" | gcloud secrets create "$SECRET_NAME" \
+            --data-file=- \
+            --replication-policy="automatic" \
+            --project="$GCP_PROJECT_ID" \
+            --quiet
+
+        success "Secret '$SECRET_NAME' created successfully."
+    fi
+}
+
 run_terraform() {
-    step 9 "Deploying Infrastructure with Terraform";
+    step 10 "Deploying Infrastructure with Terraform";
 	TFVARS_FILE_PATH="$REPO_ROOT/infra/environments/$ENV_NAME/$ENV_NAME.tfvars"; info "Navigating to $REPO_ROOT/infra/environments/$ENV_NAME..."; cd "$REPO_ROOT/infra/environments/$ENV_NAME"
     info "Initializing Terraform..."; terraform init -reconfigure
     info "Planning Terraform changes..."; terraform plan -var-file="$TFVARS_FILE_PATH"
@@ -462,7 +582,7 @@ run_terraform() {
 }
 
 update_oauth_client() {
-    step 10 "Configuring OAuth Client URIs"; cd "$REPO_ROOT"
+    step 11 "Configuring OAuth Client URIs"; cd "$REPO_ROOT"
     if [ -z "$AUTO_OAUTH_CLIENT_ID" ]; then warn "Could not find OAuth Client ID automatically. Skipping URI update."; return; fi
     info "Fetching full OAuth client name..."; local OAUTH_CLIENT_FULL_NAME=$(gcloud iap oauth-clients list "$GCP_PROJECT_ID" --format="json" | jq -r --arg clientid "$AUTO_OAUTH_CLIENT_ID" '.[] | select(.name | contains($clientid)) | .name')
     if [ -z "$OAUTH_CLIENT_FULL_NAME" ]; then warn "Could not resolve the full name for the OAuth client. Skipping URI update."; return; fi
@@ -474,7 +594,7 @@ update_oauth_client() {
 }
 
 update_secrets() {
-    step 11 "Updating Remaining Secrets"; info "Navigating to $REPO_ROOT/infra/environments/$ENV_NAME..."; cd "$REPO_ROOT/infra/environments/$ENV_NAME"
+    step 12 "Updating Remaining Secrets"; info "Navigating to $REPO_ROOT/infra/environments/$ENV_NAME..."; cd "$REPO_ROOT/infra/environments/$ENV_NAME"
     info "Populating values in Secret Manager..."; local TERRAFORM_OUTPUTS=$(terraform output -json)
     local FRONTEND_SECRETS=$(echo "$TERRAFORM_OUTPUTS" | jq -r .frontend_secrets.value[]); local BACKEND_SECRETS=$(echo "$TERRAFORM_OUTPUTS" | jq -r .backend_secrets.value[])
     local ALL_SECRETS=$(echo "${FRONTEND_SECRETS} ${BACKEND_SECRETS}" | tr ' ' '\n' | sort -u | grep .)
@@ -543,7 +663,7 @@ update_secrets() {
 }
 
 seed_data() {
-    step 12 "Seeding Initial Data (Workspaces, Templates, Assets)"
+    step 13 "Seeding Initial Data (Workspaces, Templates, Assets)"
 
     info "The user running this script will be set as the owner of initial data."
     local CURRENT_USER=$(gcloud config get-value account 2>/dev/null)
@@ -554,6 +674,12 @@ seed_data() {
 
     info "Project:      ${C_YELLOW}${GCP_PROJECT_ID}${C_RESET}"
     info "Deploying as: ${C_YELLOW}${CURRENT_USER}${C_RESET}"
+
+    # Establish Database Connectivity
+    export_db_vars
+    start_sql_proxy
+    # Ensure proxy stops even if this function fails
+    trap stop_sql_proxy EXIT
 
     # Temporarily change to the project root so Python module resolution works
     pushd "$REPO_ROOT" > /dev/null
@@ -601,12 +727,16 @@ seed_data() {
 
     # Return to the original directory
     popd > /dev/null
+
+    # Cleanup
+    stop_sql_proxy
+    trap - EXIT
 }
 
 
 
 trigger_builds() {
-    step 13 "Triggering Initial Builds"; cd "$REPO_ROOT"
+    step 14 "Triggering Initial Builds"; cd "$REPO_ROOT"
     prompt "Would you like to trigger the initial builds for the frontend and backend now? (y/n)"; read -r REPLY < /dev/tty
     if [[ ! $REPLY =~ ^[Yy]$ ]]; then info "You can trigger the builds manually later by pushing a commit or via the Cloud Build UI."; return; fi
     info "Triggering backend build..."; gcloud builds triggers run "${BE_SERVICE_NAME}-trigger" --branch="$GITHUB_BRANCH" --project="$GCP_PROJECT_ID" --region="us-central1"
@@ -630,7 +760,21 @@ main() {
     echo -e "${C_RESET}"
 
     read_state; LAST_COMPLETED_STEP=${LAST_COMPLETED_STEP:-0}
-    declare -a steps_to_run=( "check_prerequisites" "check_and_install_terraform" "setup_project" "setup_repo" "configure_environment" "handle_manual_steps" "setup_firebase_app" "run_terraform" "populate_oauth_secrets" "update_oauth_client" "update_secrets" "seed_data" "trigger_builds" )
+    declare -a steps_to_run=(
+        "check_prerequisites"
+        "check_and_install_terraform"
+        "setup_project" "setup_repo"
+        "configure_environment"
+        "handle_manual_steps"
+        "setup_firebase_app"
+        "setup_db_secrets"
+        "run_terraform"
+        "populate_oauth_secrets"
+        "update_oauth_client"
+        "update_secrets"
+        "seed_data"
+        "trigger_builds" 
+    )
     for i in "${!steps_to_run[@]}"; do
         step_num=$((i + 1))
         if (( LAST_COMPLETED_STEP < step_num )); then

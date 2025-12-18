@@ -47,7 +47,7 @@ async def create_workspace(
     Creates a new private workspace for the currently authenticated user.
     The creator is automatically assigned as the 'OWNER'.
     """
-    return workspace_service.create_workspace(current_user, create_dto)
+    return await workspace_service.create_workspace(current_user, create_dto)
 
 
 @router.get(
@@ -63,7 +63,7 @@ async def list_my_workspaces(
     Retrieves a list of all workspaces the currently authenticated user
     is a member of.
     """
-    return workspace_service.list_workspaces_for_user(current_user)
+    return await workspace_service.list_workspaces_for_user(current_user)
 
 
 @router.post(
@@ -72,7 +72,7 @@ async def list_my_workspaces(
     summary="Invite a User to a Workspace",
 )
 async def invite_user(
-    workspace_id: str,
+    workspace_id: int,
     invite_dto: InviteUserDto,
     current_user: UserModel = Depends(get_current_user),
     workspace_service: WorkspaceService = Depends(),
@@ -84,7 +84,7 @@ async def invite_user(
     It performs a dual-write, updating both the workspace's member list
     and the invited user's list of workspace memberships.
     """
-    updated_workspace = workspace_service.invite_user_to_workspace(
+    updated_workspace = await workspace_service.invite_user_to_workspace(
         workspace_id=workspace_id,
         invite_dto=invite_dto,
         current_user=current_user,
