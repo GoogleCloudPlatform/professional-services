@@ -14,7 +14,7 @@
     <maven.compiler.target>11</maven.compiler.target>
     <opencensus.version>0.28.3</opencensus.version>
     <slf4j.version>1.7.25</slf4j.version>
-    <log4j.version>2.16.0</log4j.version>
+    <log4j.version>2.25.3</log4j.version>
     <google.cloud.version>1.59.0</google.cloud.version>
   </properties>
 
