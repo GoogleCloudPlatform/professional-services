@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "bytes": "^3.1.0",
-    "express": "^4.17.1",
+    "express": "^4.22.1",
     "express-handlebars": "^3.1.0",
     "handlebars": "^4.7.6",
     "minimist": ">=1.2.5",
