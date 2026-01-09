@@ -2,7 +2,7 @@
 
 Before launching training job, please copy the raw data and define the environmental variables (the bucket for staging and the bucket where you are going to store data as well as training job's outputs)
 `export BUCKET=YOUR_BUCKET
-gsutil -m cp gs://cloud-training-demos/babyweight/preproc/* gs://$BUCKET/babyweight/preproc/
+gcloud storage cp gs://cloud-training-demos/babyweight/preproc/* gs://$BUCKET/babyweight/preproc/
 export BUCKET_STAGING=YOUR_STAGING_BUCKET`
 You also need to have [bazel](https://docs.bazel.build/versions/master/install.html) installed.
 The code below is based on this [codelab](https://codelabs.developers.google.com/codelabs/scd-babyweight2/index.html?index=..%2F..%2Fcloud-quest-scientific-data#0) (you can find more [here](https://github.com/GoogleCloudPlatform/training-data-analyst/tree/master/blogs/babyweight)).
@@ -13,7 +13,7 @@ After you've trained a model (see examples below), you need to copy the dumps lo
 ```shell
 rm -rf /tmp/profiler
 mkdir -p /tmp/profiler
-gsutil -m cp -r $OUTDIR/timeline*.json /tmp/profiler
+gcloud storage cp --recursive $OUTDIR/timeline*.json /tmp/profiler
 ```
 And now you can launch a trace event profiling tool in your Chrome browser (chrome://tracing), load a specific timeline and visually inspect it.
 
@@ -22,7 +22,7 @@ You can launch the job as following:
 ```shell
 OUTDIR=gs://$BUCKET/babyweight/hooks_basic
 JOBNAME=babyweight_$(date -u +%y%m%d_%H%M%S)
-gsutil -m rm -rf $OUTDIR
+gcloud storage rm --recursive --continue-on-error $OUTDIR
 gcloud ml-engine jobs submit training $JOBNAME \
   --region=us-west1 \
   --module-name=trainer-hooks.task \
@@ -43,7 +43,7 @@ You can launch the job as following:
 ```shell
 OUTDIR=gs://$BUCKET/babyweight/hooks_standard
 JOBNAME=babyweight_$(date -u +%y%m%d_%H%M%S)
-gsutil -m rm -rf $OUTDIR
+gcloud storage rm --recursive --continue-on-error $OUTDIR
 gcloud ml-engine jobs submit training $JOBNAME \
   --region=us-west1 \
   --module-name=trainer-hooks.task \
@@ -62,7 +62,7 @@ gcloud ml-engine jobs submit training $JOBNAME \
 ```shell
 OUTDIR=gs://$BUCKET/babyweight/hooks_gpu
 JOBNAME=babyweight_$(date -u +%y%m%d_%H%M%S)
-gsutil -m rm -rf $OUTDIR
+gcloud storage rm --recursive --continue-on-error $OUTDIR
 gcloud ml-engine jobs submit training $JOBNAME \
   --region=us-west1 \
   --module-name=trainer-hooks.task \
@@ -82,7 +82,7 @@ gcloud ml-engine jobs submit training $JOBNAME \
 ```shell
 OUTDIR=gs://$BUCKET/babyweight/hooks_basic-ext
 JOBNAME=babyweight_$(date -u +%y%m%d_%H%M%S)
-gsutil -m rm -rf $OUTDIR
+gcloud storage rm --recursive --continue-on-error $OUTDIR
 gcloud ml-engine jobs submit training $JOBNAME \
   --region=us-west1 \
   --module-name=trainer-hooks-ext.task \
@@ -104,7 +104,7 @@ Launch the training job as following:
 ```shell
 OUTDIR=gs://$BUCKET/babyweight/profiler_standard
 JOBNAME=babyweight_$(date -u +%y%m%d_%H%M%S)
-gsutil -m rm -rf $OUTDIR
+gcloud storage rm --recursive --continue-on-error $OUTDIR
 gcloud ml-engine jobs submit training $JOBNAME \
   --region=us-west1 \
   --module-name=trainer-deep-profiling.task \
@@ -127,7 +127,7 @@ bazel build -c opt tensorflow/core/profiler:profiler`
 2. Copy dumps locally:
 `rm -rf /tmp/profiler
 mkdir -p /tmp/profiler
-gsutil -m cp -r $OUTDIR/profiler /tmp`
+gcloud storage cp --recursive $OUTDIR/profiler /tmp`
 3. Launch the profiler with `bazel-bin/tensorflow/core/profiler/profiler --profile_path=/tmp/profiler/$(ls /tmp/profiler/ | head -1)`
 
 ### Profiler UI
@@ -139,5 +139,5 @@ cd profiler-ui`
 3. Copy dumps locally:
 `rm -rf /tmp/profiler
 mkdir -p /tmp/profiler
-gsutil -m cp -r $OUTDIR/$MODEL/profiler /tmp`
+gcloud storage cp --recursive $OUTDIR/$MODEL/profiler /tmp`
 4. Launch the profiler with `python ui.py --profile_context_path=/tmp/profiler/$(ls /tmp/profiler/ | head -1)`

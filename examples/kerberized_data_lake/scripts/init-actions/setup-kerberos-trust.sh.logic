@@ -49,7 +49,7 @@ function decrypt_file_with_kms_key() {
   local encrypted_file_uri=$1
   local kms_key_uri=$2
 
-  gsutil cat "${encrypted_file_uri}" | gcloud kms decrypt \
+  gcloud storage cat "${encrypted_file_uri}" | gcloud kms decrypt \
     --key "${kms_key_uri}" \
     --ciphertext-file - --plaintext-file -
 }
@@ -68,7 +68,7 @@ function set_property_hive_site() {
 }
 
 function g_download() {
-  gsutil cp "$1" "$2" || log_and_fail "Unable to download $1"
+  gcloud storage cp "$1" "$2" || log_and_fail "Unable to download $1"
 }
 
 # hive config for remote hive metastore

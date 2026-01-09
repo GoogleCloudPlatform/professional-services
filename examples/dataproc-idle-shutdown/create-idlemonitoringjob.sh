@@ -90,7 +90,7 @@ function startIdleJobChecker() {
       cd DataprocShutdown || exit
 
       # copy the script from GCS
-      gsutil cp "${SCRIPT_STORAGE_LOCATION}/idle-check.sh" .
+      gcloud storage cp "${SCRIPT_STORAGE_LOCATION}/idle-check.sh" .
       # make it executable
       chmod 700 idle-check.sh
       # run IsIdle script

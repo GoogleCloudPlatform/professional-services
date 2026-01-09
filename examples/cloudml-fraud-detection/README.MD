@@ -131,7 +131,7 @@ Different versions of a same model can be stored in the ML-engine. The ML-engine
 MODEL_NAME=fraud_detection
 MODEL_VERSION=v_$(date +"%Y%m%d_%H%M%S")
 TRIAL_NUMBER=1
-MODEL_SAVED_NAME=$(gsutil ls ${TRAINING_OUTPUT_DIR}/trials/${TRIAL_NUMBER}/export/exporter/ | tail -1)
+MODEL_SAVED_NAME=$(gcloud storage ls ${TRAINING_OUTPUT_DIR}/trials/${TRIAL_NUMBER}/export/exporter/ | tail -1)
 gcloud ml-engine models create $MODEL_NAME \
 --regions us-central1
 gcloud ml-engine versions create $MODEL_VERSION \
@@ -162,11 +162,11 @@ Assess model's performances on out-of-sample data. Compute precision-recall curv
 ```
 ANALYSIS_OUTPUT_PATH=.
 mkdir ${ANALYSIS_OUTPUT_PATH}/labels
-gsutil cp gs://${BUCKET_ID}/${DATAFLOW_OUTPUT_DIR}split_data/split_data_TEST_labels.txt* labels/
+gcloud storage cp gs://${BUCKET_ID}/${DATAFLOW_OUTPUT_DIR}split_data/split_data_TEST_labels.txt* labels/
 cat ${ANALYSIS_OUTPUT_PATH}/labels/* > ${ANALYSIS_OUTPUT_PATH}/labels.txt
 
 mkdir ${ANALYSIS_OUTPUT_PATH}/predictions
-gsutil cp ${PREDICTIONS_OUTPUT_PATH}/prediction.results* ./predictions/
+gcloud storage cp ${PREDICTIONS_OUTPUT_PATH}/prediction.results* ./predictions/
 cat ${ANALYSIS_OUTPUT_PATH}/predictions/* > ${ANALYSIS_OUTPUT_PATH}/predictions.txt
 ```
 
