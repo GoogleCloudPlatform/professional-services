@@ -22,14 +22,14 @@ from google.cloud import bigquery as bq
 This script is meant to orchestrate BigQuery load jobs of many
 json files on Google Cloud Storage. It ensures that each load
 stays under the 15 TB per load job limit. It operates on the
-output of gsutil -l.
+output of gcloud storage ls --long.
 
 Args:
     --project: GCP project ID
     --dataset: BigQuery datset ID containing the table your wish
         to populate.
     --table: BigQuery table ID of the table you wish to populate
-    --sources_file: This is the output of gsutil -l with the URI of
+    --sources_file: This is the output of gcloud storage ls --long with the URI of
         each file that you would like to load
     --create_table: Boolean specifying if this script should create
         the destination table.
@@ -40,7 +40,7 @@ Args:
 
 Example Usage:
 
-gsutil -l gs://<bucket>/path/to/json/<file prefix>-*.json >> ./files2load.txt
+gcloud storage ls --long gs://<bucket>/path/to/json/<file prefix>-*.json >> ./files2load.txt
 
 # This is for an existing bigquery table.
 python file_15TB_batcher.py --project=<project> \
@@ -95,7 +95,7 @@ def create_bq_table(bq_cli,
 def parse_gsutil_long_output_file(filename):
     """
     This function reads the specified file (which should be the output of
-    gsutil -l) and batches the URI's up into batches <= 15TB
+    gcloud storage ls --long) and batches the URI's up into batches <= 15TB
 
     Args:
         filename: (str) path to input file.
@@ -107,7 +107,7 @@ def parse_gsutil_long_output_file(filename):
 
     # 15TB per BQ load job.
     MAX_BATCH_BYTES = 15 * 10**12
-    # read output of gsutil ls -l
+    # read output of gcloud storage ls --long
     df = pd.read_csv(filename,
                      delim_whitespace=True,
                      header=None,
@@ -174,7 +174,7 @@ def main(argv=None):
                         dest='sources_file',
                         required=True,
                         help='A local file containing the'
-                        'output of gsutil ls -l.')
+                        'output of gcloud storage ls --long.')
     parser.add_argument('--create_table',
                         dest='create_table',
                         action='store_true')

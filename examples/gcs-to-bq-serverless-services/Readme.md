@@ -10,20 +10,20 @@ In this solution, we build an approch to ingestion flat files (in GCS) to BigQue
     ```
     PROJECT_ID=<<project_id>>
     GCS_BUCKET_NAME=<<Bucket name>>
-    gsutil mb gs://${GCS_BUCKET_NAME}
-    gsutil notification create \
-        -t projects/${PROJECT_ID}/topics/create_notification_${GCS_BUCKET_NAME} \
-        -e OBJECT_FINALIZE \
-        -f json gs://${GCS_BUCKET_NAME}
+    gcloud storage buckets create gs://${GCS_BUCKET_NAME}
+    gcloud storage buckets notifications create gs://${GCS_BUCKET_NAME} \
+        --topic=projects/${PROJECT_ID}/topics/create_notification_${GCS_BUCKET_NAME} \
+        --event-types=OBJECT_FINALIZE \
+        --payload-format=json
     ```
 - **Step 2:** Build and copy jar to a GCS bucket(Create a GCS bucket to store the jar if you dont have one). There are number of dataproce templates that are avaliable to [use](https://github.com/GoogleCloudPlatform/dataproc-templates). 
   
     ```
     GCS_ARTIFACT_REPO=<<artifact repo name>>
-    gsutil mb gs://${GCS_ARTIFACT_REPO}
+    gcloud storage buckets create gs://${GCS_ARTIFACT_REPO}
     cd gcs2bq-spark
     mvn clean install
-    gsutil cp target/GCS2BQWithSpark-1.0-SNAPSHOT.jar gs://${GCS_ARTIFACT_REPO}/
+    gcloud storage cp target/GCS2BQWithSpark-1.0-SNAPSHOT.jar gs://${GCS_ARTIFACT_REPO}/
     ```
 
 - **Step 3:** [The page](https://cloud.google.com/dataproc-serverless/docs/concepts/network) describe the network configuration required to run serverless spark
@@ -76,7 +76,7 @@ In this solution, we build an approch to ingestion flat files (in GCS) to BigQue
     - **Create BQ temp Bucket** GCS to BigQuery requires a temporary bucket. Lets create a temporary bucket
         ```
         GCS_TEMP_BUCKET=<<temp_bucket>>
-        gsutil mb gs://${GCS_TEMP_BUCKET}
+        gcloud storage buckets create gs://${GCS_TEMP_BUCKET}
         ```
     - **Create Deadletter Topic and Subscription** Lets create a dead letter topic and subscription
 
