@@ -30,7 +30,7 @@ curl -fSL https://repo1.maven.org/maven2/io/prometheus/jmx/jmx_prometheus_javaag
 curl -fSL https://download.java.net/java/GA/jdk11/9/GPL/openjdk-11.0.2_linux-x64_bin.tar.gz --output ./binaries/openjdk-11.0.2_linux-x64_bin.tar.gz
 
 # Copying resource folder to GCS bucket
-gsutil cp -r ./binaries/* gs://"$BUCKET_NAME"/binaries
+gcloud storage cp --recursive ./binaries/* gs://"$BUCKET_NAME"/binaries
 
 # # terraform initialization
 # terraform init    

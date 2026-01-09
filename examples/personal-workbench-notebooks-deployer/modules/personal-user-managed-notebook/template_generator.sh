@@ -28,10 +28,10 @@ yamlname="${yamlname_pre[1]}"
 
 yaml_path=gs://$bucket/$templatesrc/$yamlname
 
-gsutil cp "$yaml_path" .
+gcloud storage cp "$yaml_path" .
 file_contents=$(<"$yamlname")
 echo "${file_contents//REPLACEME_USER_NAME/$user}" > prefile.yaml
 
 file_contents2=$(<prefile.yaml)
 echo "${file_contents2//REPLACEME_BUCKET_NAME/$bucket}" > "$user".yaml
-gsutil cp "$user".yaml gs://"$bucket"/"$templatedest"/
+gcloud storage cp "$user".yaml gs://"$bucket"/"$templatedest"/

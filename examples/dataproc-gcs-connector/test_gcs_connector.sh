@@ -48,4 +48,4 @@ gcloud dataproc jobs submit hive --region=us-central1 \
   --cluster=${YOUR_CLUSTER} \
   -e="$Q1" -e="$Q2" -e="$Q3"
 
-gsutil cat gs://${YOUR_BUCKET}/data_files/top_ten/000000_0
+gcloud storage cat gs://${YOUR_BUCKET}/data_files/top_ten/000000_0

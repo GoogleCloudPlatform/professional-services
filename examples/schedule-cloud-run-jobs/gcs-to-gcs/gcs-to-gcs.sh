@@ -8,7 +8,7 @@ source=${GCS_SOURCE}
 destination=${GCS_DESTINATION}
 echo "Starting Task #${CLOUD_RUN_TASK_INDEX}, Attempt #${CLOUD_RUN_TASK_ATTEMPT}..."
 echo "Source $source Destination $destination"
-gsutil -m cp -r "$source" "$destination"
+gcloud storage cp --recursive "$source" "$destination"
 retVal=$?
 if [[ $retVal -eq 0 ]] 
 then
