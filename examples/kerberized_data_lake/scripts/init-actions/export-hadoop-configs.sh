@@ -49,7 +49,7 @@ function log_and_fail() {
 
 # gcs copy
 function g_cp_r() {
-  CMD="gsutil -m cp -r ${1} ${2}"
+  CMD="gcloud storage cp --recursive ${1} ${2}"
   ${CMD} || log_and_fail "Unable to execute ${CMD}"
 }
 

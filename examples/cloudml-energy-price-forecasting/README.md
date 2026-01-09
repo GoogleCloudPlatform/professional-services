@@ -30,7 +30,7 @@ The code takes in raw data from BigQuery, transforms and prepares the data, uses
 JOB_NAME = ml_job$(date +%Y%m%d%H%M%S)
 JOB_FOLDER = MLEngine/${JOB_NAME}
 BUCKET_NAME = energyforecast
-MODEL_PATH = $(gsutil ls gs://${BUCKET_NAME}/${JOB_FOLDER}/export/estimator/ | tail -1)
+MODEL_PATH = $(gcloud storage ls gs://${BUCKET_NAME}/${JOB_FOLDER}/export/estimator/ | tail -1)
 MODEL_NAME = forecaster_model
 MODEL_VERSION = version_1
 TEST_DATA = data/csv/DataTest.csv

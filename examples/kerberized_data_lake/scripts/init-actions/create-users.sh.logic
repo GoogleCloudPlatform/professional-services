@@ -84,7 +84,7 @@ function log_and_fail() {
 
 # gcs copy
 function g_cp() {
-  CMD="gsutil cp ${1} ${2}"
+  CMD="gcloud storage cp ${1} ${2}"
   ${CMD} || log_and_fail "Unable to execute ${CMD}"
 }
 
