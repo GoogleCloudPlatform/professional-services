@@ -14,7 +14,7 @@ export VPC_CONNECTOR=<vpc connector name>
 
 # Create a pub sub topic for cloud function, where events will be pushed when transfer logs are created in the bucket.
 # Events will be generated only for objects under folder storage-transfer/. TSOP service writes transfer logs under this folder in a bucket.
-gsutil notification create -p storage-transfer/  -t projects/$PROJECT_ID/topics/tsop-transfer-logs-objects  -f json -e OBJECT_FINALIZE gs://$BUCKET_NAME
+gcloud storage buckets notifications create gs://$BUCKET_NAME --topic=projects/$PROJECT_ID/topics/tsop-transfer-logs-objects --event-types=OBJECT_FINALIZE --object-prefix=storage-transfer/ --payload-format=json
 
 # Create a service account which will be used by the cloud function for writing logs
 gcloud iam service-accounts create tsop-logging-cf-sa --display-name="Service account used by cloud function for TSOP logging" --project $PROJECT_ID

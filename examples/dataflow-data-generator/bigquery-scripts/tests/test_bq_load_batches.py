@@ -26,11 +26,11 @@ class TestBigQueryLoadBatches(unittest.TestCase):
     """
     This is a unit test to show that the logic in the
     bigquery load batches script behaves as expected.
-    The desired logic is to split files from a gsutil -l
+    The desired logic is to split files from a gcloud storage ls --long
     output into batches of <= 15TB.
     """
     def setUp(self):
-        cmd = 'gsutil ls -l gs://python-dataflow-example/data_files/*.csv >> /tmp/files_to_load.txt'
+        cmd = 'gcloud storage ls --long gs://python-dataflow-example/data_files/*.csv >> /tmp/files_to_load.txt'
         self.filename = '/tmp/files_to_load.txt'
         os.system(cmd)
 
