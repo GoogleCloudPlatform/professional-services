@@ -142,7 +142,7 @@ text-unidecode==1.3
     # via faker
 uritemplate==3.0.1
     # via google-api-python-client
-urllib3==2.6.0
+urllib3==2.6.3
     # via requests
 yaspin==1.5.0
     # via gcs_bucket_mover (setup.py)
