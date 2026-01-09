@@ -1,4 +1,3 @@
-
 ## Intro
 
 This Terraform module will automate the creation of infrastructure components needed for the data pipeline.
@@ -22,7 +21,7 @@ export BQ_DATASET=<BigQuery Dataset Name>
 
 * Update the Terraform backend bucket name in [backend.tf](backend.tf) (if necessary) and create a bucket with the same name
 ```
-gsutil mb -l $REGION -p $GCP_PROJECT gs://<bucket name as in backend.tf> 
+gcloud storage buckets create --location $REGION --project $GCP_PROJECT gs://<bucket name as in backend.tf> 
 ```
 
 * From the **repo root folder**, set up the environment via Cloud Build

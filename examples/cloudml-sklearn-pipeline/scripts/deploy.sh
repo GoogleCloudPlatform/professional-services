@@ -47,7 +47,7 @@ PACKAGE_DIR=${JOB_DIR}"/${PACKAGE_NAME}"
 python setup.py sdist
 
 # upload the package to the same folder of the dumped model
-gsutil cp "dist/${PACKAGE_NAME}" $PACKAGE_DIR
+gcloud storage cp "dist/${PACKAGE_NAME}" $PACKAGE_DIR
 
 gcloud ai-platform models list | grep $MODEL_NAME &> /dev/null
 if [ $? == 0 ]; then
