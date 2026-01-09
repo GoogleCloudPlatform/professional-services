@@ -36,7 +36,7 @@ git clone https://github.com/GoogleCloudPlatform/professional-services.git
 ```
 Copy all artifacts to Cloud Storage:
 ```
-gsutil cp ./professional-services/examples/dataproc-idle-check/*sh gs://<BUCKET>
+gcloud storage cp ./professional-services/examples/dataproc-idle-check/*sh gs://<BUCKET>
 ```
 
 ### Cluster start: Start the cluster specifying key parameters
@@ -44,7 +44,7 @@ gsutil cp ./professional-services/examples/dataproc-idle-check/*sh gs://<BUCKET>
 2.  [Mandatory] Specify the location of the idle-check.sh script as the value of the metadata key “script_storage_location”. The location of the idle-check.sh script and the maximum idle time should be specified as metadata using the “script_storage_location” and “max-idle” keys, respectively.
 3.  [Mandatory] Specify the maximum idle time to allow the cluster to be idle as the value of the metadata key “max-idle”. Similar to the parameter associated with Scheduled Cluster deletion, the max-idle duration parameter should be provided in IntegerUnit format, where the unit can be “s, m, h, d” (seconds, minutes, hours, days, respectively). Examples: “30m” or “1d” (30 minutes or 1 day from when the cluster becomes idle).
 4.  [Optional] Specify, as the value of the metadata key “key_process_list”, a semi-colin separated list of process names (in addition to YARN jobs and active SSH connections) for which the cluster should be considered active.
-5.  [Optional] Specify if the cluster should write diagnostic logs to the Cloud Storage staging bucket (TRUE/FALSE) as the value of the metadata key "persist_diagnostic_tarball" (TRUE). Unless specified, the default value is FALSE. The diagnostic output is saved in a folder specific to the job under which the DIAGNOSE command was run, the best way to locate the diagnostic output is " gsutil ls gs://[GCS STAGING BUCKET]/google-cloud-dataproc-metainfo/*/*/diagnostic.tar.gz".  
+5.  [Optional] Specify if the cluster should write diagnostic logs to the Cloud Storage staging bucket (TRUE/FALSE) as the value of the metadata key "persist_diagnostic_tarball" (TRUE). Unless specified, the default value is FALSE. The diagnostic output is saved in a folder specific to the job under which the DIAGNOSE command was run, the best way to locate the diagnostic output is " gcloud storage ls gs://[GCS STAGING BUCKET]/google-cloud-dataproc-metainfo/*/*/diagnostic.tar.gz".  
 
 >Note: [Google APIs](https://developers.google.com/identity/protocols/googlescopes) must also be included in scopes in order for the scripts to read and write cluster metadata.
 
