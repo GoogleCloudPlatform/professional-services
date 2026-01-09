@@ -67,17 +67,17 @@ echo "Executing gcloud config set project ${PROJECT_ID}"
 gcloud config set project ${PROJECT_ID}
 
 # create a bucket with the name of the project-id
-echo "Executing gsutil mb gs://${PROJECT_ID}"
-gsutil mb gs://${PROJECT_ID}
+echo "Executing gcloud storage buckets create gs://${PROJECT_ID}"
+gcloud storage buckets create gs://${PROJECT_ID}
 
 #create DataFlow folders
 touch delete.me
-echo "Executing gsutil cp delete.me gs://${PROJECT_ID}/dataflow/"
-gsutil cp delete.me gs://${PROJECT_ID}/dataflow/
-echo "Executing gsutil cp delete.me gs://${PROJECT_ID}/dataflow/temp/"
-gsutil cp delete.me gs://${PROJECT_ID}/dataflow/temp/
-echo "Executing gsutil cp delete.me gs://${PROJECT_ID}/dataflow/staging/"
-gsutil cp delete.me gs://${PROJECT_ID}/dataflow/staging/
+echo "Executing gcloud storage cp delete.me gs://${PROJECT_ID}/dataflow/"
+gcloud storage cp delete.me gs://${PROJECT_ID}/dataflow/
+echo "Executing gcloud storage cp delete.me gs://${PROJECT_ID}/dataflow/temp/"
+gcloud storage cp delete.me gs://${PROJECT_ID}/dataflow/temp/
+echo "Executing gcloud storage cp delete.me gs://${PROJECT_ID}/dataflow/staging/"
+gcloud storage cp delete.me gs://${PROJECT_ID}/dataflow/staging/
 
 # create PubSub topic
 echo "Executing gcloud beta pubsub topics create ${PUBSUB_TOPIC}"
@@ -96,8 +96,8 @@ echo "Executing bq --location=US mk --dataset ${PROJECT_ID}:${BIGQUERY_DATASET}"
 bq --location=US mk --dataset ${PROJECT_ID}:${BIGQUERY_DATASET}
 
 # copy VM startup-script into Google Cloud Storage
-echo "Executing gsutil cp startup_install_java8.sh gs://${PROJECT_ID}"
-gsutil cp startup_install_java8.sh gs://${PROJECT_ID}
+echo "Executing gcloud storage cp startup_install_java8.sh gs://${PROJECT_ID}"
+gcloud storage cp startup_install_java8.sh gs://${PROJECT_ID}
 
 # generate a temporary VM that will be used to generate custom image
 echo "Executing gcloud compute instances create debian9-java8-img --zone ${ZONE} --image-family debian-9 --image-project debian-cloud --metadata startup-script-url=gs://$1/startup_install_java8.sh"

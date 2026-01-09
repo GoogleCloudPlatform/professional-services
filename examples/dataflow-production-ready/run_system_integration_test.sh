@@ -53,8 +53,8 @@ SELECT r.flag AND e.flag FROM e, r"
 
 echo "Preparing GCP test resources.."
 gcloud config set project "${GCP_PROJECT}"
-gsutil mb -c standard -l "${REGION}" "${GCS_BUCKET}"
-gsutil cp "${LOCAL_INPUT_PATH}" "${GCS_BUCKET}/input/"
+gcloud storage buckets create --default-storage-class=standard --location="${REGION}" "${GCS_BUCKET}"
+gcloud storage cp "${LOCAL_INPUT_PATH}" "${GCS_BUCKET}/input/"
 #replace with terraform script and pass the dataset as var
 bq mk --location "${REGION}" "${DATASET}"
 bq mk --table "${RESULTS_TABLE}" schema/ml_preproc_results.json
