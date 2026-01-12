@@ -26,7 +26,7 @@ import java.io.FileWriter;
 public class Utils {
 
   public static BashOutput createGCSBucket(String bucketName) throws Exception {
-    return MyBashExecutor.executeCommand(String.format("gsutil mb %s", bucketName));
+    return MyBashExecutor.executeCommand(String.format("gcloud storage buckets create %s", bucketName));
   }
 
   public static BashOutput createBigQueryDataset(String datasetName) throws Exception {
@@ -35,18 +35,18 @@ public class Utils {
 
   public static BashOutput copyFileFromGCSToLocal(String gcsPath, String localPath)
       throws Exception {
-    String command = String.format("gsutil cp %s %s", gcsPath, localPath);
+    String command = String.format("gcloud storage cp %s %s", gcsPath, localPath);
     return MyBashExecutor.executeCommand(command);
   }
 
   public static BashOutput copyFileFromLocalToGCS(String gcsPath, String localPath)
       throws Exception {
-    String command = String.format("gsutil cp %s %s", localPath, gcsPath);
+    String command = String.format("gcloud storage cp %s %s", localPath, gcsPath);
     return MyBashExecutor.executeCommand(command);
   }
 
   public static BashOutput deleteGCSBucket(String gcsPath) throws Exception {
-    String command = String.format("gsutil rm -r -f %s", gcsPath);
+    String command = String.format("gcloud storage rm --recursive --continue-on-error %s", gcsPath);
     return MyBashExecutor.executeCommand(command);
   }
 
