@@ -2,7 +2,16 @@
 #@ constraint = build_constraint("cloudkmsAllowedAlgorithms")
 
 #@ def condition(algorithms):
-#@   return 'resource.versionTemplate.algorithm in ' +  str(algorithms) + " == false"
+#@   lines = ["resource.versionTemplate.algorithm in ["]
+#@   for i in range(len(algorithms)):
+#@     line = "  '" + algorithms[i] + "'"
+#@     if i < len(algorithms) - 1:
+#@       line += ","
+#@     end
+#@     lines.append(line)
+#@   end
+#@   lines.append("] == false")
+#@   return "\n".join(lines)
 #@ end
 
 #@ if constraint.to_generate():
