@@ -5,7 +5,7 @@ methodTypes:
   - CREATE
   - UPDATE
 condition: |-
-  resource.versionTemplate.algorithm in [
+  has(resource.versionTemplate.algorithm) && resource.versionTemplate.algorithm in [
     'GOOGLE_SYMMETRIC_ENCRYPTION',
     'RSA_SIGN_PSS_2048_SHA256',
     'RSA_SIGN_PSS_3072_SHA256',
