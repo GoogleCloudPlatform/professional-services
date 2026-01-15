@@ -206,7 +206,7 @@ message)
 
 1. Create a GCS bucket. This is a temporary file store for Composer.
     ```
-    gsutil mb -l [LOCATION] gs://$PROJECT-cud-correction-commitment-data
+    gcloud storage buckets create --location [LOCATION] gs://$PROJECT-cud-correction-commitment-data
     ```
     where `[LOCATION]` is the region of your billing export data, either us, eu, or asia.
 
@@ -354,7 +354,7 @@ success message.
 1. `BigQuery fails to execute the query due to different dataset regions`
 
     All of the datasets used in this solution must reside in the same region. Your exported billing data most likely resides in your company's location (if you are a European company, it is probably in the EU. If you are in the US, your dataset is probably in the US.) To resolve this, verify that the dataset containing the `commitments_table` and the `cud_corrected_dataset` are in the same region as your billing data. You can update the location of a dataset following these [instructions](https://cloud.google.com/bigquery/docs/locations#moving-data).
-If your billing datasets are all in the same region, ensure that your GCS buckets are also in the same region. You specified this on creation using the `l` flag when executing `gsutil mb`.
+If your billing datasets are all in the same region, ensure that your GCS buckets are also in the same region. You specified this on creation using the `l` flag when executing `gcloud storage buckets create`.
 
 
 1. `Other "Invalid Argument"`
