@@ -128,7 +128,7 @@ example_dag:
 Now let's copy that to our gcs bucket into the **data** folder:
 
 ```bash
-> gsutil cp dag-factory.yaml gs://us-central1-test-692672b8-bucket/data
+> gcloud storage cp dag-factory.yaml gs://us-central1-test-692672b8-bucket/data
 Copying file://dag-factory.yaml [Content-Type=application/octet-stream]...
 / [1 files][  386.0 B/  386.0 B]
 Operation completed over 1 objects/386.0 B.
@@ -191,7 +191,7 @@ Run the following to get your GCS Bucket
 gcloud composer environments describe <YOUR_ENV> --location us-central1 --format="get(config.dagGcsPrefix)"
 
 Run the following to upload the dag-factory yaml file to the bucket:
-gsutil cp use-case2.yaml gs://<YOUR_ENV>/data
+gcloud storage cp use-case2.yaml gs://<YOUR_ENV>/data
 
 Then run the following to upload the airflow dag python script to your composer environment:
 gcloud composer environments storage dags import --environment <YOUR_ENV> --location us-central1 --source use-case2-dag.py
@@ -205,7 +205,7 @@ Then visit the URL and trigger your DAG
 Then following the instructions we can run the following to upload the files:
 
 ```bash
-gsutil cp use-case2.yaml gs://us-central1-test-692672b8-bucket/data
+gcloud storage cp use-case2.yaml gs://us-central1-test-692672b8-bucket/data
 gcloud composer environments storage dags import --environment test --location us-central1 --source use-case2-dag.py
 ```
 
@@ -269,7 +269,7 @@ digraph USE_CASE2_TG_DAG {
 All the logs are written to the GCS bucket and you can check them out by putting all the above information together ([Log folder directory structure](https://cloud.google.com/composer/docs/concepts/logs#log_folder_directory_structure) describes the format):
 
 ```bash
-> gsutil cat gs://us-central1-test-692672b8-bucket/logs/example_dag/task_3/2021-05-12T15:19:58+00:00/1.log
+> gcloud storage cat gs://us-central1-test-692672b8-bucket/logs/example_dag/task_3/2021-05-12T15:19:58+00:00/1.log
 [2021-05-12 15:21:01,602] {taskinstance.py:671} INFO - Dependencies all met for <TaskInstance: example_dag.task_3 2021-05-12T15:19:58+00:00 [queued]>@-@{"workflow": "example_dag", "task-id": "task_3", "execution-date": "2021-05-12T15:19:58+00:00"}
 [2021-05-12 15:21:01,733] {taskinstance.py:671} INFO - Dependencies all met for <TaskInstance: example_dag.task_3 2021-05-12T15:19:58+00:00 [queued]>@-@{"workflow": "example_dag", "task-id": "task_3", "execution-date": "2021-05-12T15:19:58+00:00"}
 [2021-05-12 15:21:01,734] {taskinstance.py:881} INFO -
@@ -311,4 +311,3 @@ https://tddbc3f0ad77184ffp-tp.appspot.com
 ```
 
 Upon visiting the above page and authenticating using IAP you will see a list of the available DAGS and also check out the logs as well.
-
