@@ -53,8 +53,8 @@ airflow_config=$(gcloud composer environments describe "$environment_name" --loc
 
 # Determine Min/Max Workers
 dag_gcs_prefix=$(echo "$airflow_config" | jq .config.dagGcsPrefix | tr -d '"' | cut -d "/" -f3)
-gsutil cp gs://"$dag_gcs_prefix"/airflow.cfg .
-worker_concurrency=$(gsutil cat gs://"$dag_gcs_prefix"/airflow.cfg | grep worker_concurrency | cut -d "=" -f2)
+gcloud storage cp gs://"$dag_gcs_prefix"/airflow.cfg .
+worker_concurrency=$(gcloud storage cat gs://"$dag_gcs_prefix"/airflow.cfg | grep worker_concurrency | cut -d "=" -f2)
 min_workers=$((total/worker_concurrency))
 echo "min_workers=$((total/worker_concurrency))" >> $existing_config
 
