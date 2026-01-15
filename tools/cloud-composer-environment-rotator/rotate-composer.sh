@@ -91,7 +91,7 @@ echo "-------------------------------"
 echo "... Uploading pause_all DAG ..."
 echo "-------------------------------"
 
-gsutil cp dags/pause_all_dags.py "${OLD_DAG_FOLDER}"
+gcloud storage cp dags/pause_all_dags.py "${OLD_DAG_FOLDER}"
 
 echo "---------------------------------------------------"
 echo "... Waiting for DAG to be synced to environment ..."
@@ -122,7 +122,7 @@ echo "-------------------------------"
 echo "... Removing pause_all DAG ..."
 echo "-------------------------------"
 
-gsutil rm "${OLD_DAG_FOLDER}/pause_all_dags.py"
+gcloud storage rm "${OLD_DAG_FOLDER}/pause_all_dags.py"
 
 echo "------------------------------------------------------"
 echo "... Loading snapshot into new Composer environment ..."

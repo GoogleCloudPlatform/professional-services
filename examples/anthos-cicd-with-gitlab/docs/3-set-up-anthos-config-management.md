@@ -49,7 +49,7 @@ The [Config Sync Operator](https://cloud.google.com/kubernetes-engine/docs/add-o
 cd ~/$GROUP_NAME/acm
 mkdir setup
 cd setup/
-gsutil cp gs://config-management-release/released/latest/config-management-operator.yaml config-management-operator.yaml
+gcloud storage cp gs://config-management-release/released/latest/config-management-operator.yaml config-management-operator.yaml
 
 for i in "dev" "prod"; do
   gcloud container clusters get-credentials ${i} --zone=$ZONE
