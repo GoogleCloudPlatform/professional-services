@@ -37,7 +37,7 @@ from src.common.schema.media_item_model import (
 
 
 class ReferenceImageDto(BaseDto):
-    asset_id: str = Field(
+    asset_id: int = Field(
         description="The ID of the SourceAsset to use as a reference."
     )
     reference_type: ReferenceImageTypeEnum = Field(
@@ -54,8 +54,8 @@ class CreateVeoDto(BaseDto):
     prompt: Annotated[str, Query(max_length=10000)] = Field(
         description="Prompt term to be passed to the model"
     )
-    workspace_id: str = Field(
-        min_length=1, description="The ID of the workspace for this generation."
+    workspace_id: int = Field(
+        ge=1, description="The ID of the workspace for this generation."
     )
     generation_model: GenerationModelEnum = Field(
         default=GenerationModelEnum.VEO_3_1_PREVIEW,
@@ -97,15 +97,15 @@ class CreateVeoDto(BaseDto):
         le=8,
         description="Duration in seconds for the videos to generate (between 1 and 8 secs).",
     )
-    start_image_asset_id: Optional[str] = Field(
+    start_image_asset_id: Optional[int] = Field(
         default=None,
         description="The ID of the SourceAsset to use as the starting image.",
     )
-    end_image_asset_id: Optional[str] = Field(
+    end_image_asset_id: Optional[int] = Field(
         default=None,
         description="The ID of the SourceAsset to use as the ending image.",
     )
-    source_video_asset_id: Optional[str] = Field(
+    source_video_asset_id: Optional[int] = Field(
         default=None,
         description="The ID of the SourceAsset to use as the source video.",
     )

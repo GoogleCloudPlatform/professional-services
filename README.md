@@ -143,6 +143,7 @@ them to fit your particular use case.
 *   [Certificate Authority Service Hierarchy](examples/certificate-authority-service-hierarchy) - Root and Subordinate Certificate Authority Service CA Pools and CAs with examples for domain ownership validation and sample load test script.
 *   [Cloud Run to BQ](examples/cloudrun-to-bq) - Solution to accept events/data
     on HTTP REST Endpoint and insert into BQ.
+*   [Cloud Run CRL Monitor](examples/cloudrun-crl-monitor) - Cloud Run based solution for continuous monitoring of CRL distribution endpoints including CRL validity verification and alerting.
 *   [Cloud SQL Custom Metric](examples/cloud-sql-custom-metric) - An example of
     creating a Stackdriver custom metric monitoring Cloud SQL Private Services
     IP consumption.
@@ -650,6 +651,7 @@ Platform usage.
     The framework uses RIOT to bridge current product gaps with Memorystore Clusters
 *   [ML Project Generator](tools/ml-project-generator) - A utility to create a Production grade ML project template with the best productivity tools installed like auto-formatting, license checks, linting, etc.
 *   [Policy Tags Engine](tools/policy-tags-engine) - The tool allows developers to automatically apply BigQuery column-level security (Policy Tags) based on metadata files uploaded to a Google Cloud Storage (GCS) bucket.
+*   [Gemini CLI Health Dashboard](tools/gemini-cli-health-dashboard) - The tool allows developers to build a custom dashboard for tracking the Gemini CLI health in terms of success vs error rate.
 
 
 ## Contributing

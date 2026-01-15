@@ -14,71 +14,153 @@
 
 from typing import List, Optional
 
-from google.cloud import firestore
+from fastapi import Depends
+from sqlalchemy import select, exists
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.common.base_repository import BaseRepository
+from src.database import get_db
 from src.workspaces.schema.workspace_model import (
+    Workspace,
     WorkspaceMember,
+    WorkspaceMemberAssociation,
     WorkspaceModel,
     WorkspaceScopeEnum,
 )
 
 
-class WorkspaceRepository(BaseRepository[WorkspaceModel]):
+class WorkspaceRepository(BaseRepository[Workspace, WorkspaceModel]):
     """
-    Repository for all database operations related to the 'workspaces' collection.
+    Repository for all database operations related to the 'workspaces' table.
     """
 
-    def __init__(self):
-        """Initializes the repository with the 'workspaces' collection."""
-        super().__init__(collection_name="workspaces", model=WorkspaceModel)
+    def __init__(self, db: AsyncSession = Depends(get_db)):
+        """Initializes the repository."""
+        super().__init__(model=Workspace, schema=WorkspaceModel, db=db)
 
-    def get_public_workspace(self) -> Optional[WorkspaceModel]:
+    async def get_public_workspace(self) -> Optional[WorkspaceModel]:
         """
         Finds the first workspace that is marked as 'public'.
         This is typically used for the main homepage gallery.
         """
-        query = self.collection_ref.where(
-            "scope", "==", WorkspaceScopeEnum.PUBLIC.value
-        ).limit(1)
-        docs = query.stream()
-        for doc in docs:
-            data = doc.to_dict()
-            return self.model.model_validate({**data, "id": doc.id})
-        return None
-
-    def get_all_public_workspaces(self) -> List[WorkspaceModel]:
-        """Finds all workspaces that are marked as 'public'."""
-        query = self.collection_ref.where(
-            "scope", "==", WorkspaceScopeEnum.PUBLIC
+        result = await self.db.execute(
+            select(self.model)
+            .where(self.model.scope == WorkspaceScopeEnum.PUBLIC.value)
+            .limit(1)
         )
-        docs = query.stream()
-        return [
-            self.model.model_validate({**doc.to_dict(), "id": doc.id})
-            for doc in docs
-        ]
+        workspace = result.scalar_one_or_none()
+        if not workspace:
+            return None
+        return self._map_to_schema(workspace)
 
-    def add_member_to_workspace(
-        self, workspace_id: str, member: WorkspaceMember, user_id: str
+    async def get_all_public_workspaces(self) -> List[WorkspaceModel]:
+        """Finds all workspaces that are marked as 'public'."""
+        result = await self.db.execute(
+            select(self.model).where(self.model.scope == WorkspaceScopeEnum.PUBLIC.value)
+        )
+        workspaces = result.scalars().all()
+        return [self._map_to_schema(w) for w in workspaces]
+
+    async def create(
+        self, schema: WorkspaceModel, initial_members: List[WorkspaceMember] = []
+    ) -> WorkspaceModel:
+        """
+        Creates a new workspace and handles the members association manually.
+        """
+        # Convert Pydantic schema to dict
+        data = schema.model_dump(exclude_unset=True)
+        
+        # Remove id if present and None
+        if data.get("id") is None:
+            data.pop("id", None)
+            
+        # Create Workspace instance
+        db_item = self.model(**data)
+        
+        # Handle members manually
+        for member in initial_members:
+            association = WorkspaceMemberAssociation(
+                user_id=member.user_id,
+                role=member.role
+            )
+            db_item.members.append(association)
+
+        self.db.add(db_item)
+        await self.db.commit()
+        await self.db.refresh(db_item)
+        
+        return self._map_to_schema(db_item)
+
+    async def add_member_to_workspace(
+        self, workspace_id: int, member: WorkspaceMember, user_id: int
     ) -> Optional[WorkspaceModel]:
         """
-        Atomically adds a new member to a workspace's 'members' array and
-        the corresponding user ID to the 'member_ids' array for querying.
+        Atomically adds a new member to a workspace's 'members' list.
         """
-        workspace_ref = self.collection_ref.document(workspace_id)
-        member_dict = member.model_dump(by_alias=True)
-
-        # Perform both updates atomically.
-        workspace_ref.update(
-            {
-                "members": firestore.ArrayUnion([member_dict]),
-                "member_ids": firestore.ArrayUnion([user_id]),
-            }
+        # Fetch the workspace
+        result = await self.db.execute(
+            select(self.model).where(self.model.id == workspace_id)
         )
+        workspace = result.scalar_one_or_none()
+        if not workspace:
+            return None
 
-        # Fetch the updated document to return the full object
-        updated_doc = workspace_ref.get()
-        if updated_doc.exists:
-            data = updated_doc.to_dict()
-            return self.model.model_validate({**data, "id": updated_doc.id})  # type: ignore
-        return None
+        # Check if user is already a member
+        # We can check the relationship or query the association table directly.
+        # Since we have lazy="selectin", workspace.members should be loaded.
+        existing_member = next((m for m in workspace.members if m.user_id == user_id), None)
+        
+        if not existing_member:
+            # Create new association
+            new_association = WorkspaceMemberAssociation(
+                workspace_id=workspace_id,
+                user_id=user_id,
+                role=member.role
+            )
+            workspace.members.append(new_association)
+            await self.db.commit()
+            await self.db.refresh(workspace)
+        
+        # We need to map the SQLAlchemy models back to the Pydantic model
+        return self._map_to_schema(workspace)
+
+    async def find_by_member_id(self, user_id: int) -> List[WorkspaceModel]:
+        """Finds all workspaces where the user is a member."""
+        result = await self.db.execute(
+            select(self.model)
+            .join(WorkspaceMemberAssociation)
+            .where(WorkspaceMemberAssociation.user_id == user_id)
+        )
+        workspaces = result.scalars().all()
+        return [self._map_to_schema(w) for w in workspaces]
+
+    async def is_member(self, workspace_id: int, user_id: int) -> bool:
+        """Checks if a user is a member of a workspace."""
+        result = await self.db.execute(
+            select(exists().where(
+                WorkspaceMemberAssociation.workspace_id == workspace_id,
+                WorkspaceMemberAssociation.user_id == user_id
+            ))
+        )
+        return result.scalar()
+
+    async def get_scope(self, workspace_id: int) -> Optional[str]:
+        """Retrieves the scope of a workspace."""
+        result = await self.db.execute(
+            select(self.model.scope).where(self.model.id == workspace_id)
+        )
+        return result.scalar_one_or_none()
+
+    def _map_to_schema(self, workspace: Workspace) -> WorkspaceModel:
+        """Helper to map SQLAlchemy Workspace to Pydantic WorkspaceModel."""
+        # Create the Pydantic model
+        workspace_dict = {
+            "id": workspace.id,
+            "name": workspace.name,
+            "owner_id": workspace.owner_id,
+            "scope": workspace.scope,
+            "created_at": workspace.created_at,
+            "updated_at": workspace.updated_at
+        }
+        
+        return self.schema.model_validate(workspace_dict)

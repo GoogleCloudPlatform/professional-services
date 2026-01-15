@@ -17,11 +17,13 @@
 import {
   AfterViewInit,
   Component,
+  ElementRef,
   Input,
   OnChanges,
   OnDestroy,
   Output,
   SimpleChanges,
+  ViewChild,
 } from '@angular/core';
 import {MediaItem} from '../../models/media-item.model';
 import PhotoSwipeLightbox from 'photoswipe/lightbox';
@@ -30,6 +32,7 @@ import {MatSnackBar} from '@angular/material/snack-bar';
 import {ActivatedRoute, Router} from '@angular/router';
 import {EventEmitter} from '@angular/core';
 import {Location} from '@angular/common';
+import { handleErrorSnackbar, handleSuccessSnackbar } from '../../../utils/handleMessageSnackbar';
 
 @Component({
   selector: 'app-media-lightbox',
@@ -73,6 +76,12 @@ export class MediaLightboxComponent
   public isDownloading = false;
   private lightbox: PhotoSwipeLightbox | undefined;
 
+  @ViewChild('audioPlayer') audioPlayerRef!: ElementRef<HTMLAudioElement>;
+  isPlaying = false;
+  currentTime = '0:00';
+  duration = '0:00';
+  progressValue = 0;
+
   constructor(
     private clipboard: Clipboard,
     private snackBar: MatSnackBar,
@@ -93,8 +102,14 @@ export class MediaLightboxComponent
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['mediaItem'] || changes['initialIndex']) {
       this.initialize();
-      if (this.lightbox) {
-        this.lightbox.destroy();
+      // If switching media types, ensure lightbox is destroyed for non-images
+      if (this.isAudio || this.isVideo) {
+        this.lightbox?.destroy();
+        this.lightbox = undefined;
+      } else {
+        if (this.lightbox) {
+          this.lightbox.destroy();
+        }
         this.initializePhotoSwipe();
       }
     }
@@ -186,6 +201,21 @@ export class MediaLightboxComponent
     }, 200);
   }
 
+  shareTo(
+    platform:
+      | 'facebook'
+      | 'twitter'
+      | 'pinterest'
+      | 'reddit'
+      | 'whatsapp'
+      | 'linkedin'
+      | 'telegram',
+  ): void {
+    const url = this.getShareUrl(platform);
+    window.open(url, '_blank');
+    this.isShareMenuOpen = false;
+  }
+
   getShareUrl(
     platform:
       | 'facebook'
@@ -220,9 +250,7 @@ export class MediaLightboxComponent
 
   copyLink(): void {
     if (!this.mediaItem?.id) {
-      this.snackBar.open('Cannot generate link: Media item has no ID.', 'OK', {
-        duration: 3000,
-      });
+      handleErrorSnackbar(this.snackBar, { message: 'Cannot generate link: Media item has no ID.' }, 'Copy Link');
       return;
     }
 
@@ -238,7 +266,7 @@ export class MediaLightboxComponent
     const fullUrl = `${window.location.origin}${relativeUrl}`;
 
     this.clipboard.copy(fullUrl);
-    this.snackBar.open('Link copied to clipboard!', 'OK', {duration: 3000});
+    handleSuccessSnackbar(this.snackBar, 'Link copied to clipboard!');
     this.isShareMenuOpen = false;
   }
 
@@ -253,6 +281,18 @@ export class MediaLightboxComponent
       this.selectedIndex = index;
       this.selectedUrl = this.mediaItem.presignedUrls[index];
       this.updateUrlWithImageIndex(index);
+
+      // If Audio, we need to reload the player
+      if (this.isAudio) {
+        this.resetAudioState();
+        // Allow DOM to update src, then load
+        setTimeout(() => {
+          if (this.audioPlayerRef) {
+            this.audioPlayerRef.nativeElement.load();
+            this.togglePlay(); // Auto-play on switch
+          }
+        }, 50);
+      }
     }
   }
 
@@ -294,6 +334,10 @@ export class MediaLightboxComponent
     return this.mediaItem?.mimeType?.startsWith('video/') ?? false;
   }
 
+  get isAudio(): boolean {
+    return this.mediaItem?.mimeType?.startsWith('audio/') ?? false;
+  }
+
   get posterUrl(): string | undefined {
     if (this.isVideo && this.mediaItem?.presignedThumbnailUrls?.length) {
       return this.mediaItem.presignedThumbnailUrls[this.selectedIndex];
@@ -302,6 +346,9 @@ export class MediaLightboxComponent
   }
 
   get aspectRatioClass(): string {
+    // For Audio, we just want a nice container, aspect-video works well for the player shape
+    if (this.isAudio) return 'aspect-video h-auto';
+
     const ratio = this.mediaItem?.aspectRatio || this.mediaItem?.aspect;
     switch (ratio) {
       case '1:1':
@@ -310,11 +357,71 @@ export class MediaLightboxComponent
         return 'aspect-video';
       case null:
       case undefined:
-        return 'aspect-square'; // Default to 1:1
+        return 'aspect-square';
       default:
-        // For arbitrary values like '4:3', '3:4', etc.
         return `aspect-[${ratio.replace(':', '/')}]`;
     }
+  }
+
+  // --- AUDIO PLAYER LOGIC ---
+  togglePlay() {
+    const audio = this.audioPlayerRef?.nativeElement;
+    if (!audio) return;
+
+    if (audio.paused) {
+      audio.play();
+      this.isPlaying = true;
+    } else {
+      audio.pause();
+      this.isPlaying = false;
+    }
+  }
+
+  onTimeUpdate() {
+    const audio = this.audioPlayerRef?.nativeElement;
+    if (!audio) return;
+
+    if (audio.duration) {
+      this.progressValue = (audio.currentTime / audio.duration) * 100;
+      this.currentTime = this.formatTime(audio.currentTime);
+    }
+  }
+
+  seek(value: number) {
+    const audio = this.audioPlayerRef?.nativeElement;
+    if (!audio) return;
+
+    if (audio.duration) {
+      audio.currentTime = (value / 100) * audio.duration;
+    }
+  }
+
+  onAudioLoaded() {
+    const audio = this.audioPlayerRef?.nativeElement;
+    if (!audio) return;
+
+    this.isPlaying = !audio.paused;
+    this.duration = this.formatTime(audio.duration);
+  }
+
+  onAudioEnded() {
+    this.isPlaying = false;
+    this.progressValue = 0;
+    this.currentTime = '0:00';
+  }
+
+  private resetAudioState() {
+    this.isPlaying = false;
+    this.progressValue = 0;
+    this.currentTime = '0:00';
+    this.duration = '0:00';
+  }
+
+  private formatTime(seconds: number): string {
+    if (isNaN(seconds)) return '0:00';
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
   }
 
   onEditClick(): void {

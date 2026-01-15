@@ -28,4 +28,4 @@ rsa==4.9
 six==1.16.0
 sounddevice==0.4.7
 tomlkit==0.13.0
-urllib3==2.5.0
+urllib3==2.6.3

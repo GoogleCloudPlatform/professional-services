@@ -19,9 +19,10 @@ import {FormBuilder, FormGroup, Validators} from '@angular/forms';
 import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material/dialog';
 import {MatSnackBar} from '@angular/material/snack-bar';
 import {BrandGuidelineModel} from '../../models/brand-guideline.model';
+import { handleErrorSnackbar } from '../../../utils/handleMessageSnackbar';
 
 export interface BrandGuidelineDialogData {
-  workspaceId: string;
+  workspaceId: number;
   guideline: BrandGuidelineModel | null;
   canEdit: boolean;
 }
@@ -56,12 +57,9 @@ export class BrandGuidelineDialogComponent {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files.length > 0) {
       const file = input.files[0];
-      const maxSize = 50 * 1024 * 1024; // 50MB
-
+      const maxSize = 500 * 1024 * 1024; // 500MB
       if (file.size > maxSize) {
-        this.snackBar.open('File size cannot exceed 50MB.', 'OK', {
-          duration: 5000,
-        });
+        handleErrorSnackbar(this.snackBar, { message: 'File size cannot exceed 500MB.' }, 'File Upload');
         this.form.get('file')?.setValue(null);
         this.fileName = null;
         input.value = ''; // Reset file input to allow re-selection of the same file
@@ -70,6 +68,8 @@ export class BrandGuidelineDialogComponent {
 
       this.form.patchValue({file: file});
       this.fileName = file.name;
+      // Reset the input so the same file can be re-selected if needed.
+      input.value = '';
     }
   }
 
@@ -78,9 +78,7 @@ export class BrandGuidelineDialogComponent {
   }
 
   onUpload(): void {
-    if (this.form.valid) {
-      this.dialogRef.close(this.form.value);
-    }
+    this.dialogRef.close(this.form.value);
   }
 
   onDelete(): void {

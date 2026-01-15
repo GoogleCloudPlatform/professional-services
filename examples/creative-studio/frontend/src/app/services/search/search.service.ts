@@ -35,18 +35,17 @@ import {environment} from '../../../environments/environment';
 import {ImagenRequest, VeoRequest} from '../../common/models/search.model';
 import {JobStatus, MediaItem} from '../../common/models/media-item.model';
 import {MatSnackBar} from '@angular/material/snack-bar';
-import {ToastMessageComponent} from '../../common/components/toast-message/toast-message.component';
 import {
   handleErrorSnackbar,
   handleSuccessSnackbar,
-} from '../../utils/handleErrorSnackbar';
+} from '../../utils/handleMessageSnackbar';
 
 export interface RewritePromptRequest {
   targetType: 'image' | 'video';
   userPrompt: string;
 }
 export interface ConcatenationInput {
-  id: string;
+  id: number;
   type: 'media_item' | 'source_asset';
 }
 export interface ConcatenateVideosDto {
@@ -62,7 +61,19 @@ export interface ConcatenateVideosDto {
 export class SearchService {
   private activeVideoJob = new BehaviorSubject<MediaItem | null>(null);
   public activeVideoJob$ = this.activeVideoJob.asObservable();
-  private pollingSubscription: Subscription | null = null;
+  private videoPollingSubscription: Subscription | null = null;
+
+  private activeImageJob = new BehaviorSubject<MediaItem | null>(null);
+  public activeImageJob$ = this.activeImageJob.asObservable();
+  private imagePollingSubscription: Subscription | null = null;
+
+  // Persisted prompts
+  imagePrompt = '';
+  videoPrompt = '';
+
+  private activeVtoJob = new BehaviorSubject<MediaItem | null>(null);
+  public activeVtoJob$ = this.activeVtoJob.asObservable();
+  private vtoPollingSubscription: Subscription | null = null;
 
   constructor(
     private http: HttpClient,
@@ -74,6 +85,69 @@ export class SearchService {
     return this.http
       .post(searchURL, searchRequest)
       .pipe(map(response => response as MediaItem));
+  }
+
+  /**
+   * Starts the image generation job by POSTing to the backend.
+   */
+  startImagenGeneration(searchRequest: ImagenRequest): Observable<MediaItem> {
+    const searchURL = `${environment.backendURL}/images/generate-images`;
+    return this.http.post<MediaItem>(searchURL, searchRequest).pipe(
+      tap(initialItem => {
+        this.activeImageJob.next(initialItem);
+        this.startImagenPolling(initialItem.id);
+      }),
+    );
+  }
+
+  clearActiveImageJob() {
+    this.activeImageJob.next(null);
+  }
+
+  private startImagenPolling(mediaId: number): void {
+    this.stopImagenPolling();
+    this.imagePollingSubscription = timer(2000, 5000) // Start after 2s, then every 5s
+      .pipe(
+        switchMap(() => this.getImagenMediaItem(mediaId)),
+        tap(latestItem => {
+          this.activeImageJob.next(latestItem);
+          if (
+            latestItem.status === JobStatus.COMPLETED ||
+            latestItem.status === JobStatus.FAILED
+          ) {
+            this.stopImagenPolling();
+            if (latestItem.status === JobStatus.COMPLETED) {
+              handleSuccessSnackbar(this._snackBar, 'Your images are ready!');
+            } else {
+              handleErrorSnackbar(
+                this._snackBar,
+                {message: latestItem.errorMessage || latestItem.error_message},
+                `Image generation failed: ${latestItem.errorMessage || latestItem.error_message}`,
+              );
+            }
+          }
+        }),
+        catchError(err => {
+          console.error('Polling failed', err);
+          this.stopImagenPolling();
+          return EMPTY;
+        }),
+      )
+      .subscribe();
+  }
+
+  private stopImagenPolling(): void {
+    this.imagePollingSubscription?.unsubscribe();
+    this.imagePollingSubscription = null;
+  }
+
+  getImagenMediaItem(mediaId: number): Observable<MediaItem> {
+    // Note: We need to add this endpoint to the backend or use a generic one.
+    // For now, assuming we'll add /images/{mediaId} or use a common gallery endpoint.
+    // Given the current backend structure, we might need to add this.
+    // Let's assume we'll add it.
+    const getURL = `${environment.backendURL}/gallery/item/${mediaId}`;
+    return this.http.get<MediaItem>(getURL);
   }
 
   /**
@@ -113,10 +187,10 @@ export class SearchService {
    * Private method to poll the status of a media item.
    * @param mediaId The ID of the job to poll.
    */
-  private startVeoPolling(mediaId: string): void {
+  private startVeoPolling(mediaId: number): void {
     this.stopVeoPolling(); // Ensure no other polls are running
 
-    this.pollingSubscription = timer(5000, 15000) // Start after 5s, then every 15s
+    this.videoPollingSubscription = timer(5000, 15000) // Start after 5s, then every 15s
       .pipe(
         switchMap(() => this.getVeoMediaItem(mediaId)),
         tap(latestItem => {
@@ -151,8 +225,8 @@ export class SearchService {
   }
 
   private stopVeoPolling(): void {
-    this.pollingSubscription?.unsubscribe();
-    this.pollingSubscription = null;
+    this.videoPollingSubscription?.unsubscribe();
+    this.videoPollingSubscription = null;
   }
 
   /**
@@ -160,8 +234,8 @@ export class SearchService {
    * @param mediaId The unique ID of the media item to check.
    * @returns An Observable of the MediaItem.
    */
-  getVeoMediaItem(mediaId: string): Observable<MediaItem> {
-    const getURL = `${environment.backendURL}/videos/${mediaId}`;
+  getVeoMediaItem(mediaId: number): Observable<MediaItem> {
+    const getURL = `${environment.backendURL}/gallery/item/${mediaId}`;
     return this.http.get<MediaItem>(getURL);
   }
 
@@ -182,5 +256,78 @@ export class SearchService {
       `${environment.backendURL}/gemini/random-prompt`,
       payload,
     );
+  }
+
+  /**
+   * Starts the VTO generation job by POSTing to the backend.
+   * Returns an Observable of the initial MediaItem.
+   */
+  startVtoGeneration(vtoRequest: any): Observable<MediaItem> {
+    const url = `${environment.backendURL}/images/generate-images-for-vto`;
+
+    return this.http.post<MediaItem>(url, vtoRequest).pipe(
+      tap(initialItem => {
+        this.activeVtoJob.next(initialItem);
+        this.startVtoPolling(initialItem.id);
+      })
+    );
+  }
+
+  /**
+   * Private method to poll the status of a VTO job.
+   * @param mediaId The ID of the job to poll.
+   */
+  private startVtoPolling(mediaId: number): void {
+    this.stopVtoPolling();
+
+    this.vtoPollingSubscription = timer(5000, 15000) // Start after 5s, then every 15s
+      .pipe(
+        switchMap(() => this.getVtoMediaItem(mediaId)),
+        tap(latestItem => {
+          this.activeVtoJob.next(latestItem);
+
+          if (
+            latestItem.status === JobStatus.COMPLETED ||
+            latestItem.status === JobStatus.FAILED
+          ) {
+            this.stopVtoPolling();
+            if (latestItem.status === JobStatus.COMPLETED) {
+              handleSuccessSnackbar(this._snackBar, 'Your VTO result is ready!');
+            } else {
+              handleErrorSnackbar(
+                this._snackBar,
+                {message: latestItem.errorMessage || latestItem.error_message},
+                `VTO generation failed: ${latestItem.errorMessage || latestItem.error_message}`,
+              );
+            }
+          }
+        }),
+        catchError(err => {
+          console.error('VTO polling failed', err);
+          this.stopVtoPolling();
+          return EMPTY;
+        }),
+      )
+      .subscribe();
+  }
+
+  private stopVtoPolling(): void {
+    this.vtoPollingSubscription?.unsubscribe();
+    this.vtoPollingSubscription = null;
+  }
+
+  /**
+   * Fetches the current state of a VTO media item by its ID.
+   * @param mediaId The unique ID of the media item to check.
+   * @returns An Observable of the MediaItem.
+   */
+  getVtoMediaItem(mediaId: number): Observable<MediaItem> {
+    const url = `${environment.backendURL}/gallery/item/${mediaId}`;
+    return this.http.get<MediaItem>(url);
+  }
+
+  clearActiveVtoJob() {
+    this.activeVtoJob.next(null);
+    this.stopVtoPolling();
   }
 }

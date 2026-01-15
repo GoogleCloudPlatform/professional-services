@@ -1,0 +1,128 @@
+{
+  "displayName": " Gemini CLI Health Dashboard ",
+  "dashboardFilters": [],
+  "description": "",
+  "labels": {},
+  "mosaicLayout": {
+    "columns": 48,
+    "tiles": [
+      {
+        "height": 12,
+        "width": 47,
+        "widget": {
+          "title": "🚀📈 Gemini CLI Health Dashboard",
+          "text": {
+            "content": "**This dashboard monitors the real-time API health and usage for the Gemini CLI.**\n\n#### Metric Definitions\n* **[A] Success vs Error Rate:** Tracks the percentage of successful API calls compared to failures over time. A high error bar indicates immediate service disruption.\n* **[B] Response Code Distribution:** A volumetric breakdown of traffic by outcome:\\\n🟢 **2xx (Successful):** Request processed successfully.\\\n🔴 **4xx (Client Error):** Request errored out due to client-side issue.\\\n🟠 **5xx (Server Error):** Request failed due to an issue on the server's end.\n",
+            "format": "MARKDOWN",
+            "style": {
+              "backgroundColor": "#EEF7EE",
+              "fontSize": "FS_LARGE",
+              "horizontalAlignment": "H_LEFT",
+              "padding": "P_EXTRA_SMALL",
+              "pointerLocation": "PL_RIGHT",
+              "textColor": "#000000",
+              "verticalAlignment": "V_CENTER"
+            }
+          }
+        }
+      },
+      {
+        "yPos": 12,
+        "height": 13,
+        "width": 24,
+        "widget": {
+          "title": "[A] Success vs Error Rate (%)",
+          "id": "",
+          "xyChart": {
+            "chartOptions": {
+              "displayHorizontal": false,
+              "mode": "COLOR",
+              "showLegend": false
+            },
+            "dataSets": [
+              {
+                "breakdowns": [],
+                "dimensions": [],
+                "legendTemplate": "",
+                "measures": [],
+                "plotType": "STACKED_BAR",
+                "targetAxis": "Y1",
+                "timeSeriesQuery": {
+                  "outputFullDuration": false,
+                  "prometheusQuery": "label_replace(\n  100 * (\n    sum(increase({\"__name__\"=\"logging.googleapis.com/user/gemini_cli_success\",\"monitored_resource\"=\"global\"}[${__interval}]))\n    /\n    (\n      (sum(increase({\"__name__\"=\"logging.googleapis.com/user/gemini_cli_success\",\"monitored_resource\"=\"global\"}[${__interval}]))  or on() vector(0))\n      +\n      (sum(increase({\"__name__\"=\"logging.googleapis.com/user/gemini_cli_error\",\"monitored_resource\"=\"global\"}[${__interval}]))  or on() vector(0))\n    )\n  ),\n  \"result_type\", \"success\", \"\", \"\"\n)",
+                  "unitOverride": "%"
+                }
+              },
+              {
+                "breakdowns": [],
+                "dimensions": [],
+                "legendTemplate": "",
+                "measures": [],
+                "plotType": "STACKED_BAR",
+                "targetAxis": "Y1",
+                "timeSeriesQuery": {
+                  "outputFullDuration": false,
+                  "prometheusQuery": "label_replace(\n  100 * (\n    sum(increase({\"__name__\"=\"logging.googleapis.com/user/gemini_cli_error\",\"monitored_resource\"=\"global\"}[${__interval}])) \n    /\n    (\n     ( sum(increase({\"__name__\"=\"logging.googleapis.com/user/gemini_cli_success\",\"monitored_resource\"=\"global\"}[${__interval}]))  or on() vector(0))\n      +\n      (sum(increase({\"__name__\"=\"logging.googleapis.com/user/gemini_cli_error\",\"monitored_resource\"=\"global\"}[${__interval}]))  or on() vector(0))\n    )\n  ) ,\n  \"result_type\", \"error\", \"\", \"\"\n)",
+                  "unitOverride": ""
+                }
+              }
+            ],
+            "thresholds": [],
+            "yAxis": {
+              "label": "Outcome Percentage(Success/Error)",
+              "scale": "LINEAR"
+            }
+          }
+        }
+      },
+      {
+        "yPos": 12,
+        "xPos": 24,
+        "height": 13,
+        "width": 23,
+        "widget": {
+          "title": "[B] Response Code Distribution (success & error)",
+          "id": "",
+          "xyChart": {
+            "chartOptions": {
+              "displayHorizontal": false,
+              "mode": "COLOR",
+              "showLegend": false
+            },
+            "dataSets": [
+              {
+                "breakdowns": [],
+                "dimensions": [],
+                "legendTemplate": "",
+                "measures": [],
+                "minAlignmentPeriod": "3600s",
+                "plotType": "LINE",
+                "targetAxis": "Y1",
+                "timeSeriesQuery": {
+                  "outputFullDuration": false,
+                  "timeSeriesFilter": {
+                    "aggregation": {
+                      "alignmentPeriod": "3600s",
+                      "crossSeriesReducer": "REDUCE_SUM",
+                      "groupByFields": [
+                        "metric.label.\"status\""
+                      ],
+                      "perSeriesAligner": "ALIGN_SUM"
+                    },
+                    "filter": "metric.type=\"logging.googleapis.com/user/gemini_cli_response\""
+                  },
+                  "unitOverride": ""
+                }
+              }
+            ],
+            "thresholds": [],
+            "yAxis": {
+              "label": "",
+              "scale": "LINEAR"
+            }
+          }
+        }
+      }
+    ]
+  }
+}

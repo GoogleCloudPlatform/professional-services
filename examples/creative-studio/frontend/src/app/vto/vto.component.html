@@ -83,6 +83,33 @@
       </div>
     </div>
 
+
+    <!-- Overlays for VTO job status (processing / failed) -->
+    <ng-container *ngIf="activeVtoJob$ | async as job">
+      <!-- Processing Overlay -->
+      <div
+        *ngIf="job.status === JobStatus.PROCESSING"
+        class="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-black bg-opacity-70 text-center p-4"
+      >
+        <mat-progress-spinner color="primary" mode="indeterminate" [diameter]="50"></mat-progress-spinner>
+        <p class="!mt-6 text-white text-lg">Your virtual try-on is being generated...</p>
+        <p class="text-gray-400 text-sm">This may take a few moments. You can safely navigate away.</p>
+      </div>
+
+      <!-- Failed Overlay -->
+      <div
+        *ngIf="job.status === JobStatus.FAILED && showErrorOverlay"
+        class="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-black bg-opacity-70 rounded-xl text-center p-4"
+      >
+        <mat-icon class="text-red-500 !w-16 !h-16 !text-6xl">error_outline</mat-icon>
+        <p class="mt-4 text-white text-lg">VTO Generation Failed</p>
+        <p class="text-gray-400 text-sm max-w-md">{{ job.errorMessage || job.error_message || 'An error occurred' }}</p>
+        <button mat-raised-button color="primary" (click)="closeErrorOverlay()" class="mt-4">
+          Close
+        </button>
+      </div>
+    </ng-container>
+
     <!-- VTO Stepper with Control Options -->
     <mat-stepper linear #stepper class="w-full !text-white">
       <mat-step [stepControl]="firstFormGroup">
@@ -120,6 +147,12 @@
                     [alt]="model.name"
                   />
                 </mat-card>
+              </div>
+              <div class="flex justify-start mt-6">
+                <button mat-raised-button class="!bg-gradient-to-r from-blue-500 via-violet-500 to-red-400 !text-white font-bold"
+                  matStepperNext>
+                  Next
+                </button>
               </div>
             </div>
 
@@ -174,14 +207,6 @@
               </div>
             </div>
           </div>
-
-          <button mat-raised-button class="!bg-white" matStepperNext>
-            <span
-              class="font-bold bg-gradient-to-r from-blue-500 via-violet-500 to-red-400 bg-clip-text text-transparent"
-            >
-              Next
-            </span>
-          </button>
         </form>
       </mat-step>
 
@@ -190,26 +215,62 @@
           <ng-template matStepLabel>Choose your clothes</ng-template>
 
           <div class="flex flex-col gap-8">
-            <!-- Top Row: Result (if it exists) -->
-            <div
-              *ngIf="imagenDocuments as result"
-              class="grid grid-cols-1 gap-4"
-            >
-              <app-media-lightbox
-                [mediaItem]="result"
-                [initialIndex]="0"
-                [showSeeMoreInfoButton]="true"
-                [showShareButton]="true"
-                [showDownloadButton]="true"
-                [showEditButton]="true"
-                [showVtoButton]="true"
-                [showGenerateVideoButton]="true"
-                (editClicked)="remixWithThisImage($event)"
-                (sendToVtoClicked)="setModelFromImage($event)"
-                (generateVideoClicked)="generateVideoWithResult($event)"
-                style="max-height: 60vh"
-              ></app-media-lightbox>
-            </div>
+            <!-- Top Row: Result (using observable) -->
+            <ng-container *ngIf="activeVtoJob$ | async as vtoJob">
+              <!-- Processing State -->
+              <div
+                *ngIf="vtoJob.status === JobStatus.PROCESSING"
+                class="grid grid-cols-1 gap-4 text-center"
+              >
+                <div class="flex flex-col items-center justify-center py-8">
+                  <mat-progress-spinner
+                    mode="indeterminate"
+                    diameter="60"
+                  ></mat-progress-spinner>
+                  <p class="mt-4 text-lg">Generating your virtual try-on...</p>
+                  <p class="text-sm text-gray-500">
+                    This may take a few moments
+                  </p>
+                </div>
+              </div>
+
+              <!-- Completed State -->
+              <div
+                *ngIf="vtoJob.status === JobStatus.COMPLETED"
+                class="grid grid-cols-1 gap-4"
+              >
+                <app-media-lightbox
+                  [mediaItem]="vtoJob"
+                  [initialIndex]="0"
+                  [showSeeMoreInfoButton]="true"
+                  [showShareButton]="true"
+                  [showDownloadButton]="true"
+                  [showEditButton]="true"
+                  [showVtoButton]="true"
+                  [showGenerateVideoButton]="true"
+                  (editClicked)="remixWithThisImage($event)"
+                  (sendToVtoClicked)="setModelFromImage($event)"
+                  (generateVideoClicked)="generateVideoWithResult($event)"
+                  style="max-height: 60vh"
+                ></app-media-lightbox>
+              </div>
+
+              <!-- Failed State -->
+              <div
+                *ngIf="vtoJob.status === JobStatus.FAILED"
+                class="grid grid-cols-1 gap-4 text-center"
+              >
+                <div class="flex flex-col items-center justify-center py-8">
+                  <mat-icon class="text-red-500" style="font-size: 48px"
+                    >error_outline</mat-icon
+                  >
+                  <p class="mt-4 text-lg text-red-500">Generation Failed</p>
+                  <p class="text-sm text-gray-500">
+                    {{ vtoJob.errorMessage || 'An error occurred' }}
+                  </p>
+                </div>
+              </div>
+            </ng-container>
 
             <!-- Bottom Row: Controls -->
             <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
@@ -233,15 +294,11 @@
                     </button>
                     <button
                       mat-raised-button
-                      class="!bg-white"
+                      class="!bg-gradient-to-r from-blue-500 via-violet-500 to-red-400 !text-white font-bold"
                       (click)="tryOn()"
                       [disabled]="!firstFormGroup.valid"
                     >
-                      <span
-                        class="font-bold bg-gradient-to-r from-blue-500 via-violet-500 to-red-400 bg-clip-text text-transparent"
-                      >
-                        Try on!
-                      </span>
+                      Try on!
                     </button>
                   </div>
                 </div>

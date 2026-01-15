@@ -23,13 +23,13 @@ import {
   debounceTime,
   distinctUntilChanged,
   takeUntil,
-  catchError,
 } from 'rxjs/operators';
 import {UserService, PaginatedResponse} from './user.service';
 import {MatDialog} from '@angular/material/dialog';
 import {UserFormComponent} from './user-form.component';
 import {MatSnackBar} from '@angular/material/snack-bar';
 import {UserModel, UserRolesEnum} from '../../common/models/user.model';
+import { handleErrorSnackbar, handleSuccessSnackbar } from '../../utils/handleMessageSnackbar';
 
 @Component({
   selector: 'app-users-management',
@@ -56,10 +56,6 @@ export class UsersManagementComponent implements OnInit, OnDestroy {
   totalUsers = 0;
   limit = 10;
   currentPageIndex = 0;
-  // Stores the cursor for the START of each page.
-  // pageCursors[0] is null
-  // pageCursors[i] is the last document of page i-1
-  private pageCursors: Array<string | null | undefined> = [null];
 
   // --- Filtering & Destroy State ---
   private filterSubject = new Subject<string>();
@@ -104,59 +100,20 @@ export class UsersManagementComponent implements OnInit, OnDestroy {
 
   async fetchPage(targetPageIndex: number) {
     this.isLoading = true;
-
-    // Find the most recent page we have a cursor for that is before our target.
-    let startPageIndex = 0;
-    for (let i = targetPageIndex; i >= 0; i--) {
-      if (this.pageCursors[i] !== undefined) {
-        startPageIndex = i;
-        break;
-      }
-    }
-
-    // Get the cursor for our starting point.
-    let cursor: string | null | undefined = this.pageCursors[startPageIndex];
+    const offset = targetPageIndex * this.limit;
 
     try {
-      // Walk from the known page to the target page, fetching and discarding pages
-      for (let i = startPageIndex; i < targetPageIndex; i++) {
-        this.lastResponse = await firstValueFrom(
-          this.userService.getUsers(
-            this.limit,
-            this.currentFilter,
-            cursor ?? undefined,
-          ),
-        );
-
-        if (!this.lastResponse || this.lastResponse.data.length === 0) {
-          this.isLoading = false;
-          this.dataSource.data = []; // Show empty table
-          return;
-        }
-        cursor = this.lastResponse.nextPageCursor ?? null;
-        this.pageCursors[i + 1] = cursor; // Cache the new cursor
-      }
-
-      // Now we have the correct cursor to fetch the target page
       const finalResponse = await firstValueFrom(
         this.userService.getUsers(
           this.limit,
           this.currentFilter,
-          cursor ?? undefined,
+          offset,
         ),
       );
 
       this.dataSource.data = finalResponse.data;
       this.totalUsers = finalResponse.count;
       this.currentPageIndex = targetPageIndex;
-
-      // Cache the cursor for the *next* page if it exists and we don't have it
-      if (
-        finalResponse.nextPageCursor &&
-        this.pageCursors[targetPageIndex + 1] === undefined
-      ) {
-        this.pageCursors[targetPageIndex + 1] = finalResponse.nextPageCursor;
-      }
     } catch (err) {
       this.errorLoadingUsers = 'Failed to load users.';
       console.error(err);
@@ -175,7 +132,6 @@ export class UsersManagementComponent implements OnInit, OnDestroy {
     if (this.paginator) {
       this.paginator.pageIndex = 0;
     }
-    this.pageCursors = [null];
     this.fetchPage(0);
   }
 
@@ -194,16 +150,12 @@ export class UsersManagementComponent implements OnInit, OnDestroy {
           try {
             // The form returns the full user object with updated roles
             await firstValueFrom(this.userService.updateUser(result));
-            this._snackBar.open('UserModel updated successfully!', 'Close', {
-              duration: 3000,
-            });
+            handleSuccessSnackbar(this._snackBar, 'User updated successfully!');
             // Refetch to show updated data on the current page.
             this.fetchPage(this.currentPageIndex);
           } catch (err) {
             console.error(`Error updating user ${result.id}:`, err);
-            this._snackBar.open('Failed to update user.', 'Close', {
-              duration: 5000,
-            });
+            handleErrorSnackbar(this._snackBar, err, 'Update user');
           } finally {
             this.isLoading = false;
           }
@@ -217,15 +169,11 @@ export class UsersManagementComponent implements OnInit, OnDestroy {
       this.isLoading = true;
       try {
         await firstValueFrom(this.userService.deleteUser(userId));
-        this._snackBar.open('UserModel deleted successfully!', 'Close', {
-          duration: 3000,
-        });
+        handleSuccessSnackbar(this._snackBar, 'User deleted successfully!');
         this.resetPaginationAndFetch();
       } catch (err) {
         console.error(`Error deleting user ${userId}:`, err);
-        this._snackBar.open('Failed to delete user.', 'Close', {
-          duration: 5000,
-        });
+        handleErrorSnackbar(this._snackBar, err, 'Delete user');
       } finally {
         this.isLoading = false;
       }

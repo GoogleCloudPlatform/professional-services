@@ -12,11 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import datetime
 from enum import Enum
 from typing import Annotated, List, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 from pydantic.alias_generators import to_camel
+from sqlalchemy import String, func, DateTime
+from sqlalchemy.dialects.postgresql import JSONB, ARRAY
+from sqlalchemy.orm import Mapped, mapped_column
 
 from src.common.base_dto import (
     AspectRatioEnum,
@@ -31,6 +35,7 @@ from src.common.schema.media_item_model import (
     SourceAssetLink,
     SourceMediaItemLink,
 )
+from src.database import Base
 
 
 class IndustryEnum(str, Enum):
@@ -75,7 +80,40 @@ class GenerationParameters(BaseModel):
     )
 
 
-# --- The Main Unified Template Model ---
+class MediaTemplate(Base):
+    """
+    SQLAlchemy model for the 'media_templates' table.
+    """
+    __tablename__ = "media_templates"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    name: Mapped[str] = mapped_column(String, nullable=False)
+    description: Mapped[str] = mapped_column(String, nullable=False)
+    
+    mime_type: Mapped[MimeTypeEnum] = mapped_column(String, nullable=False)
+    industry: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    brand: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    
+    tags: Mapped[List[str]] = mapped_column(ARRAY(String), default=[])
+    
+    gcs_uris: Mapped[List[str]] = mapped_column(ARRAY(String), default=[])
+    thumbnail_uris: Mapped[List[str]] = mapped_column(ARRAY(String), default=[])
+    
+    generation_parameters: Mapped[dict] = mapped_column(JSONB, nullable=False)
+    
+    source_assets: Mapped[Optional[List[dict]]] = mapped_column(JSONB, nullable=True)
+
+    created_at: Mapped[datetime.datetime] = mapped_column(
+        DateTime(timezone=True),
+        insert_default=func.now(),
+        server_default=func.now()
+    )
+    updated_at: Mapped[datetime.datetime] = mapped_column(
+        DateTime(timezone=True),
+        insert_default=func.now(),
+        onupdate=func.now(),
+        server_default=func.now()
+    )
 
 
 class MediaTemplateModel(BaseDocument):
@@ -83,6 +121,8 @@ class MediaTemplateModel(BaseDocument):
     Represents a unified, pre-configured, and queryable template for media generation,
     incorporating strong validation and a clean structure.
     """
+    
+    id: Optional[int] = None
 
     # Using Field(..., min_length=1) for required, non-empty strings
     name: Annotated[

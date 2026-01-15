@@ -1,0 +1,142 @@
+<!--
+ Copyright 2025 Google LLC
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+<div class="video-background">
+    <video autoplay muted loop playsinline>
+        <source src="assets/videos/abstract-waves.mp4" type="video/mp4">
+        Your browser does not support HTML5 video.
+    </video>
+    <div class="video-overlay"></div>
+</div>
+
+<div class="studio-container">
+
+    <div class="header-section">
+        <mat-icon
+          svgIcon="white-gemini-spark-icon"
+          class="!w-12 !h-12 mr-2 md:mr-[1rem] !z-[50]"
+        ></mat-icon>
+        <h1
+          class="text-center justify-center text-white text-2xl font-bold !m-0 !z-[50]"
+        >
+          Describe Your Sound
+        </h1>
+    </div>
+
+    <div class="result-container" *ngIf="mediaItem">
+        <app-media-lightbox
+            [mediaItem]="mediaItem"
+            [initialIndex]="0"
+            [showDownloadButton]="true"
+            [showShareButton]="false"
+            [showEditButton]="false"
+            [showGenerateVideoButton]="false"
+            [showVtoButton]="false"
+            [showSeeMoreInfoButton]="true"
+        ></app-media-lightbox>
+    </div>
+
+    <div class="control-panel glass-effect">
+
+        <div class="model-selector">
+            <mat-button-toggle-group [(ngModel)]="selectedModel" name="modelSelect" aria-label="Select Model">
+                <mat-button-toggle value="lyria">Lyria (Music)</mat-button-toggle>
+                <mat-button-toggle value="chirp">Chirp TTS</mat-button-toggle>
+                <mat-button-toggle value="gemini-tts">Gemini TTS</mat-button-toggle>
+            </mat-button-toggle-group>
+        </div>
+
+        <mat-divider></mat-divider>
+
+        <div class="config-grid">
+
+            <ng-container *ngIf="selectedModel === 'lyria'">
+                <mat-form-field appearance="outline" class="large-field">
+                    <mat-label>Prompt</mat-label>
+                    <textarea matInput [(ngModel)]="prompt" placeholder="Describe the music..."></textarea>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                    <mat-label>Negative Prompt</mat-label>
+                    <input matInput [(ngModel)]="negativePrompt" placeholder="What to avoid">
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="short-field">
+                    <mat-label>Seed</mat-label>
+                    <input matInput type="number" [(ngModel)]="seed">
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="short-field">
+                    <mat-label>Results</mat-label>
+                    <mat-select [(ngModel)]="sampleCount">
+                        <mat-option *ngFor="let count of [1, 2, 3, 4]" [value]="count">
+                            {{ count }}
+                        </mat-option>
+                    </mat-select>
+                </mat-form-field>
+            </ng-container>
+
+            <ng-container *ngIf="selectedModel !== 'lyria'">
+                <mat-form-field appearance="outline" class="large-field">
+                    <mat-label>Text to Speech</mat-label>
+                    <textarea matInput [(ngModel)]="prompt" placeholder="Enter text to speak..."></textarea>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                    <mat-label>Language</mat-label>
+                    <mat-select [(ngModel)]="selectedLanguage">
+                        <mat-option *ngFor="let lang of languages" [value]="lang.code">
+                            {{ lang.name }}
+                        </mat-option>
+                    </mat-select>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                    <mat-label>Voice</mat-label>
+                    <mat-select [ngModel]="selectedVoice" (selectionChange)="onVoiceSelectionChange($event.value)">
+                        <mat-option class="add-voice-option" value="add-new-voice">
+                            <mat-icon>add_circle_outline</mat-icon>
+                            <strong>Add your voice</strong>
+                        </mat-option>
+                        <mat-divider></mat-divider>
+                        <mat-option *ngFor="let voice of voices" [value]="voice.id">
+                            <span *ngIf="voice.type === 'custom'">🎤 </span>
+                            {{ voice.name }}
+                        </mat-option>
+                    </mat-select>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="short-field">
+                    <mat-label>Results</mat-label>
+                    <mat-select [(ngModel)]="sampleCount">
+                        <mat-option *ngFor="let count of [1, 2, 3, 4]" [value]="count">
+                            {{ count }}
+                        </mat-option>
+                    </mat-select>
+                </mat-form-field>
+            </ng-container>
+        </div>
+
+        <div class="action-row">
+            <button mat-raised-button color="primary" class="create-btn"
+                    (click)="generate()" [disabled]="isLoading">
+                <mat-spinner diameter="20" *ngIf="isLoading"></mat-spinner>
+                <span *ngIf="!isLoading">Create</span>
+            </button>
+        </div>
+
+    </div>
+</div>

@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import {LanguageEnum, VoiceEnum} from '../../audio/audio.constants';
 import {PaginatedResponse} from './paginated-response.model';
 import {SourceMediaItemLink} from './search.model';
 
@@ -46,7 +47,7 @@ export enum JobStatus {
  * Represents a single media item, mirroring the Pydantic model from the backend.
  */
 export interface MediaItem {
-  id: string;
+  id: number;
   userEmail?: string;
   createdAt?: string; // ISO 8601 date string
   updatedAt?: string; // ISO 8601 date string
@@ -89,12 +90,18 @@ export interface MediaItem {
   seed?: number;
   critique?: string;
   addWatermark?: boolean;
+  googleSearch?: boolean;
+  resolution?: string;
+  groundingMetadata?: any;
 
   // Music specific
   audioAnalysis?: Record<string, any>;
+  voiceName?: VoiceEnum | string;
+  languageCode?: LanguageEnum;
 
   // Debugging field
   rawData?: Record<string, any>;
+  workspaceId?: number;
   errorMessage?: string;
 }
 

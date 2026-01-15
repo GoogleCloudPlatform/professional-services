@@ -15,7 +15,7 @@
  */
 
 import {Injectable} from '@angular/core';
-import {HttpClient, HttpErrorResponse} from '@angular/common/http';
+import {HttpClient, HttpErrorResponse, HttpHeaders} from '@angular/common/http';
 import {
   BehaviorSubject,
   catchError,
@@ -29,7 +29,10 @@ import {
   timer,
 } from 'rxjs';
 import {environment} from '../../../../environments/environment';
-import {BrandGuidelineModel} from '../../models/brand-guideline.model';
+import {
+  BrandGuidelineModel,
+  GenerateUploadUrlResponse,
+} from '../../models/brand-guideline.model';
 import {JobStatus} from '../../models/media-item.model';
 
 @Injectable({
@@ -49,19 +52,66 @@ export class BrandGuidelineService {
 
   constructor(private http: HttpClient) {}
 
-  createBrandGuideline(formData: FormData): Observable<BrandGuidelineModel> {
-    // Invalidate cache since we are creating a new one.
+  private initiateUpload(
+    workspaceId: number,
+    filename: string,
+    contentType: string,
+    size: number,
+  ): Observable<GenerateUploadUrlResponse> {
+    return this.http.post<GenerateUploadUrlResponse>(
+      `${this.apiUrl}/generate-upload-url`,
+      {workspaceId, filename, contentType, size}, // 'filename' matches backend DTO
+    );
+  }
+
+  private uploadFileToGCS(signedUrl: string, file: File): Observable<unknown> {
+    const headers = new HttpHeaders({'Content-Type': file.type});
+    return this.http.put(signedUrl, file, {headers, observe: 'response'});
+  }
+
+  private finalizeUpload(
+    workspaceId: number,
+    gcsUri: string,
+    name: string,
+    original_filename: string,
+  ): Observable<BrandGuidelineModel> {
+    return this.http.post<BrandGuidelineModel>(
+      `${this.apiUrl}/finalize-upload`,
+      {
+        workspace_id: workspaceId,
+        gcs_uri: gcsUri,
+        name,
+        original_filename,
+      },
+    );
+  }
+
+  createBrandGuideline(
+    workspaceId: number,
+    file: File,
+    name: string,
+  ): Observable<BrandGuidelineModel> {
     this.clearCache();
-    return this.http
-      .post<BrandGuidelineModel>(`${this.apiUrl}/upload`, formData)
-      .pipe(
-        tap(initialJob => {
-          this.activeBrandGuidelineJobSubject.next(initialJob);
-          if (initialJob.status === JobStatus.PROCESSING) {
-            this.pollBrandGuidelineJob(initialJob.id);
-          }
-        }),
-      );
+    return this.initiateUpload(
+      workspaceId,
+      file.name,
+      file.type,
+      file.size,
+    ).pipe(
+      switchMap(({ uploadUrl, gcsUri }) => {
+        return this.uploadFileToGCS(uploadUrl, file).pipe(
+          switchMap(() =>
+            this.finalizeUpload(workspaceId, gcsUri, name, file.name),
+          ),
+        );
+      }),
+      tap(initialJob => {
+        this.activeBrandGuidelineJobSubject.next(initialJob);
+        if (initialJob.status === JobStatus.PROCESSING) {
+          this.pollBrandGuidelineJob(initialJob.id.toString());
+        }
+      }),
+    );
   }
 
   /**
@@ -70,7 +120,7 @@ export class BrandGuidelineService {
    * @returns An observable of the brand guideline or null if not found.
    */
   getBrandGuidelineForWorkspace(
-    workspaceId: string,
+    workspaceId: number,
   ): Observable<BrandGuidelineModel | null> {
     const cachedGuideline = this.cachedBrandGuidelineSubject.getValue();
     if (cachedGuideline && cachedGuideline.workspaceId === workspaceId) {
@@ -89,7 +139,7 @@ export class BrandGuidelineService {
    * Deletes a brand guideline by its ID.
    * @param id The ID of the brand guideline to delete.
    */
-  deleteBrandGuideline(id: string): Observable<void> {
+  deleteBrandGuideline(id: number): Observable<void> {
     // Invalidate cache on deletion.
     this.clearCache();
     return this.http.delete<void>(`${this.apiUrl}/${id}`);

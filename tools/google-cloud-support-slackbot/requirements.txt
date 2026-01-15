@@ -18,6 +18,6 @@ requests==2.32.4
 six==1.16.0
 slackclient==2.9.3
 slackeventsapi==2.2.1
-Werkzeug==3.0.6
+Werkzeug==3.1.5
 google.cloud.logging
 gevent==23.9.0

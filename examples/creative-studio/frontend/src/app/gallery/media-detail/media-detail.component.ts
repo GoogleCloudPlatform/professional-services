@@ -16,21 +16,20 @@
 
 import {Component, OnDestroy} from '@angular/core';
 import {ActivatedRoute, NavigationExtras, Router} from '@angular/router';
-import {Location} from '@angular/common';
 import {first, Subscription} from 'rxjs';
 import {
-  EnrichedSourceMediaItem,
   MediaItem,
 } from '../../common/models/media-item.model';
 import {GalleryService} from '../gallery.service';
 import {LoadingService} from '../../common/services/loading.service';
 import {MatSnackBar} from '@angular/material/snack-bar';
-import {ToastMessageComponent} from '../../common/components/toast-message/toast-message.component';
 import {CreatePromptMediaDto} from '../../common/models/prompt.model';
 import {AuthService} from '../../common/services/auth.service';
 import {SourceMediaItemLink} from '../../common/models/search.model';
 import {MimeTypeEnum} from '../../fun-templates/media-template.model';
 import {EnrichedSourceAsset} from '../../common/models/media-item.model';
+import {DomSanitizer, SafeHtml} from '@angular/platform-browser';
+import { handleErrorSnackbar, handleSuccessSnackbar } from '../../utils/handleMessageSnackbar';
 
 @Component({
   selector: 'app-media-detail',
@@ -57,6 +56,7 @@ export class MediaDetailComponent implements OnDestroy {
     private loadingService: LoadingService,
     private _snackBar: MatSnackBar,
     private authService: AuthService,
+    private sanitizer: DomSanitizer,
   ) {
     // Check if user is admin
     this.isAdmin = this.authService.isUserAdmin() ?? false;
@@ -187,36 +187,18 @@ export class MediaDetailComponent implements OnDestroy {
     // Note: The 'createTemplateFromMediaItem' method should be implemented in a relevant service (e.g., TemplateService or GalleryService).
     // It should perform a POST request to the `/from-media-item/{media_item_id}` endpoint.
     this.galleryService
-      .createTemplateFromMediaItem(this.mediaItem.id)
+      .createTemplateFromMediaItem(this.mediaItem.id.toString())
       .pipe(first())
       .subscribe({
         next: (newTemplate: {id: string}) => {
           this.loadingService.hide();
-          this._snackBar.openFromComponent(ToastMessageComponent, {
-            panelClass: ['green-toast'],
-            verticalPosition: 'top',
-            horizontalPosition: 'right',
-            duration: 6000,
-            data: {
-              text: 'Template created successfully!',
-              matIcon: 'check_small',
-            },
-          });
+          handleSuccessSnackbar(this._snackBar, 'Template created successfully!');
           this.router.navigate(['/templates/edit', newTemplate.id]);
         },
         error: err => {
           this.loadingService.hide();
           console.error('Failed to create template from media item', err);
-          this._snackBar.openFromComponent(ToastMessageComponent, {
-            panelClass: ['red-toast'],
-            verticalPosition: 'top',
-            horizontalPosition: 'right',
-            duration: 6000,
-            data: {
-              text: 'Failed to create template. Please try again.',
-              matIcon: 'error',
-            },
-          });
+          handleErrorSnackbar(this._snackBar, err, 'Create template');
         },
       });
   }
@@ -369,7 +351,7 @@ export class MediaDetailComponent implements OnDestroy {
     // Existing logic for images
     // Construct a MediaItem-like object for the lightbox
     const mediaItem: MediaItem = {
-      id: sourceAsset.sourceAssetId,
+      id: Number(sourceAsset.sourceAssetId),
       mimeType: MimeTypeEnum.IMAGE,
       presignedUrls: [sourceAsset.presignedUrl],
       presignedThumbnailUrls: [sourceAsset.presignedThumbnailUrl],
@@ -382,5 +364,9 @@ export class MediaDetailComponent implements OnDestroy {
 
   public closeLightbox(): void {
     this.selectedAssetForLightbox = null;
+  }
+
+  public getSafeHtml(html: string): SafeHtml {
+    return this.sanitizer.bypassSecurityTrustHtml(html);
   }
 }

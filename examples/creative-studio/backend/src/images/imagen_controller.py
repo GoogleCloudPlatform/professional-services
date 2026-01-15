@@ -12,19 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi import status as Status
 
 from src.auth.auth_guard import RoleChecker, get_current_user
 from src.galleries.dto.gallery_response_dto import MediaItemResponse
 from src.images.dto.create_imagen_dto import CreateImagenDto
-from src.images.dto.edit_imagen_dto import EditImagenDto
 from src.images.dto.upscale_imagen_dto import UpscaleImagenDto
 from src.images.dto.vto_dto import VtoDto
 from src.images.imagen_service import ImagenService
 from src.images.schema.imagen_result_model import ImageGenerationResult
 from src.users.user_model import UserModel, UserRoleEnum
 from src.workspaces.workspace_auth_guard import workspace_auth_service
+from src.workspaces.repository.workspace_repository import WorkspaceRepository
 
 # Define role checkers for convenience
 user_only = Depends(
@@ -42,18 +42,25 @@ router = APIRouter(
 @router.post("/generate-images")
 async def generate_images(
     image_request: CreateImagenDto,
+    request: Request,
     service: ImagenService = Depends(),
     current_user: UserModel = Depends(get_current_user),
+    workspace_repo: WorkspaceRepository = Depends(),
 ) -> MediaItemResponse | None:
     try:
         # Use our centralized dependency to authorize the user for the workspace
         # before proceeding with the expensive generation job.
-        workspace_auth_service.authorize(
-            workspace_id=image_request.workspace_id, user=current_user
+        await workspace_auth_service.authorize(
+            workspace_id=image_request.workspace_id,
+            user=current_user,
+            workspace_repo=workspace_repo,
         )
 
-        return await service.generate_images(
-            request_dto=image_request, user=current_user
+        # Get the executor from the app state
+        executor = request.app.state.executor
+
+        return await service.start_image_generation_job(
+            request_dto=image_request, user=current_user, executor=executor
         )
     except HTTPException as http_exception:
         raise http_exception
@@ -72,14 +79,28 @@ async def generate_images(
 @router.post("/generate-images-for-vto")
 async def generate_images_vto(
     image_request: VtoDto,
+    request: Request,
     service: ImagenService = Depends(),
     current_user: UserModel = Depends(get_current_user),
+    workspace_repo: WorkspaceRepository = Depends(),
 ) -> MediaItemResponse | None:
-
+    """Start an async VTO generation job. Returns immediately with a placeholder."""
     try:
-        return await service.generate_image_for_vto(
-            request_dto=image_request, user=current_user
+        await workspace_auth_service.authorize(
+            workspace_id=image_request.workspace_id,
+            user=current_user,
+            workspace_repo=workspace_repo,
         )
+
+        # Get the process pool from the application state
+        executor = request.app.state.executor
+
+        placeholder_item = await service.start_vto_generation_job(
+            request_dto=image_request,
+            user=current_user,
+            executor=executor,
+        )
+        return placeholder_item
     except HTTPException as http_exception:
         raise http_exception
     except ValueError as value_error:
@@ -91,35 +112,6 @@ async def generate_images_vto(
         raise HTTPException(
             status_code=Status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=str(e),
-        )
-
-
-@router.post("/recontextualize-product-in-scene")
-def recontextualize_product_in_scene(
-    image_uris_list: list[str],
-    prompt: str,
-    sample_count: int,
-    service: ImagenService = Depends(),
-) -> list[str]:
-    try:
-        return service.recontextualize_product_in_scene(
-            image_uris_list, prompt, sample_count
-        )
-    except Exception as e:
-        raise HTTPException(
-            status_code=Status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
-        )
-
-
-@router.post("/edit-image")
-def edit_image(
-    image_request: EditImagenDto, service: ImagenService = Depends()
-) -> list[ImageGenerationResult]:
-    try:
-        return service.edit_image(image_request)
-    except Exception as e:
-        raise HTTPException(
-            status_code=Status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
         )
 
 
@@ -142,3 +134,5 @@ async def upscale_image(
             status_code=Status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=str(e),
         )
+
+

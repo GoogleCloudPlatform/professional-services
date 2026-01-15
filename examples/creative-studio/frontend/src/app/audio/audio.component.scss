@@ -1,0 +1,220 @@
+/**
+ * Copyright 2025 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+// 1. Video Background Setup
+.video-background {
+    position: fixed;
+    top: -30vh;
+    left: 0;
+    width: 100%;
+    height: 130vh;
+    z-index: 0;
+    overflow: hidden;
+
+    video {
+        min-width: 100%;
+        min-height: 100%;
+        object-fit: cover; // Ensures video covers the whole screen
+    }
+
+    .video-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+    }
+}
+
+// 2. Layout
+.studio-container {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 2rem;
+    box-sizing: border-box;
+    color: white;
+}
+
+.header-section {
+    position: absolute;
+    top: 25vh;
+    left: 50%;
+    transform: translateX(-50%);
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+
+    h1 {
+        font-size: 3rem;
+        font-weight: 400;
+        margin: 0;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    }
+}
+
+// 3. CUSTOM AUDIO PLAYER STYLES
+.result-container {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 1rem;
+    width: 100%;
+    z-index: 10;
+}
+
+.custom-player {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 12px 30px;
+    border-radius: 50px; // Pill shape
+    width: 600px;
+
+    // Glassmorphism
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+
+    .play-btn {
+        color: white;
+        transform: scale(1.1);
+        transition: transform 0.2s, color 0.2s;
+        padding: 0;
+
+        &:hover {
+            transform: scale(1.2);
+            color: #a0c4ff; // Light blue hover
+        }
+
+        mat-icon {
+            width: 40px;
+            height: 40px;
+            font-size: 40px;
+        }
+    }
+
+    .time-text {
+        color: rgba(255, 255, 255, 0.9);
+        font-family: 'Roboto Mono', monospace;
+        font-size: 0.9rem;
+        min-width: 45px;
+        text-align: center;
+    }
+
+    .custom-slider {
+        flex: 1;
+
+        // Force slider to look white/glassy
+        ::ng-deep {
+            .mdc-slider__track--active_fill {
+                border-color: white !important;
+            }
+            .mdc-slider__track--inactive {
+                background-color: rgba(255, 255, 255, 0.3) !important;
+            }
+            .mdc-slider__thumb-knob {
+                background-color: white !important;
+                border-color: white !important;
+            }
+        }
+    }
+}
+
+// 4. Control Panel (Glassmorphism)
+.control-panel {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 16px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    max-width: 1200px;
+    width: 100%;
+    margin: 0 auto;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+
+    &.glass-effect {
+        ::ng-deep .mat-mdc-form-field-subscript-wrapper {
+            display: none;
+        }
+
+        ::ng-deep .mat-mdc-form-field {
+            background: rgba(0,0,0,0.3);
+            border-radius: 4px;
+        }
+        ::ng-deep .mat-mdc-input-element,
+        ::ng-deep .mat-mdc-select-value,
+        ::ng-deep .mat-mdc-floating-label {
+            color: white !important;
+        }
+    }
+}
+
+.model-selector {
+    display: flex;
+    justify-content: center;
+
+    mat-button-toggle-group {
+        background-color: rgba(0,0,0,0.4);
+        border: none;
+
+        mat-button-toggle {
+            color: #ccc;
+            &.mat-button-toggle-checked {
+                background-color: rgba(255, 255, 255, 0.2);
+                color: white;
+            }
+        }
+    }
+}
+
+.config-grid {
+    display: flex;
+    flex-direction: row;
+    gap: 15px;
+    align-items: center;
+
+    .large-field { flex: 3; }
+    .short-field { flex: 1; }
+    mat-form-field { flex: 2; }
+}
+
+.action-row {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.create-btn {
+    padding: 0.5rem 3rem;
+    font-size: 1.1rem;
+    height: 48px;
+}
+
+.add-voice-option {
+    color: #4285f4;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}

@@ -12,12 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import datetime
 from enum import Enum
-from typing import List
+from typing import List, Optional
 
 from pydantic import Field, field_validator
+from sqlalchemy import String, func, DateTime
+from sqlalchemy.dialects.postgresql import ARRAY
+from sqlalchemy.orm import Mapped, mapped_column
 
 from src.common.base_repository import BaseDocument
+from src.database import Base
 
 
 class UserRoleEnum(str, Enum):
@@ -31,12 +36,38 @@ class UserRoleEnum(str, Enum):
     ADMIN = "admin"  # Has full administrative privileges, including user management.
 
 
+class User(Base):
+    """
+    SQLAlchemy model for the 'users' table.
+    """
+    __tablename__ = "users"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    email: Mapped[str] = mapped_column(String, unique=True, index=True, nullable=False)
+    roles: Mapped[List[str]] = mapped_column(ARRAY(String), default=[])
+    name: Mapped[str] = mapped_column(String, default="")
+    picture: Mapped[str] = mapped_column(String, default="")
+    
+    created_at: Mapped[datetime.datetime] = mapped_column(
+        DateTime(timezone=True),
+        insert_default=func.now(),
+        server_default=func.now()
+    )
+    updated_at: Mapped[datetime.datetime] = mapped_column(
+        DateTime(timezone=True),
+        insert_default=func.now(),
+        onupdate=func.now(),
+        server_default=func.now()
+    )
+
+
 class UserModel(BaseDocument):
     """
-    Represents a user document in the Firestore database.
-    The document ID for this model should be the Firebase Auth UID.
+    Represents a user document (DTO) for the API.
     """
 
+    # ID is required for Read DTOs
+    id: int
     email: str
     roles: List[UserRoleEnum] = Field(default_factory=list)
     name: str

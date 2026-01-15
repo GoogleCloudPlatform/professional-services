@@ -15,27 +15,28 @@
  */
 
 import {
-  Component,
-  EventEmitter,
   AfterViewInit,
+  Component,
+  ElementRef,
+  EventEmitter,
+  Input,
+  NgZone,
   OnDestroy,
   OnInit,
-  Input,
   Output,
-  ElementRef,
   ViewChild,
-  NgZone,
 } from '@angular/core';
-import {Subscription, fromEvent} from 'rxjs';
-import {debounceTime} from 'rxjs/operators';
-import {DomSanitizer, SafeResourceUrl} from '@angular/platform-browser';
-import {MatIconRegistry} from '@angular/material/icon';
-import {JobStatus, MediaItem} from '../../common/models/media-item.model';
-import {MatCheckboxChange} from '@angular/material/checkbox';
-import {GalleryService} from '../gallery.service';
-import {MediaItemSelection} from '../../common/components/image-selector/image-selector.component';
-import {UserService} from '../../common/services/user.service';
-import {GallerySearchDto} from '../../common/models/search.model';
+import { MatCheckboxChange } from '@angular/material/checkbox';
+import { MatIconRegistry } from '@angular/material/icon';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import { Subscription, fromEvent } from 'rxjs';
+import { debounceTime } from 'rxjs/operators';
+import { MediaItemSelection } from '../../common/components/image-selector/image-selector.component';
+import { JobStatus, MediaItem } from '../../common/models/media-item.model';
+import { GallerySearchDto } from '../../common/models/search.model';
+import { UserService } from '../../common/services/user.service';
+import { MODEL_CONFIGS } from '../../common/config/model-config';
+import { GalleryService } from '../gallery.service';
 
 @Component({
   selector: 'app-media-gallery',
@@ -44,7 +45,12 @@ import {GallerySearchDto} from '../../common/models/search.model';
 })
 export class MediaGalleryComponent implements OnInit, OnDestroy, AfterViewInit {
   @Output() mediaItemSelected = new EventEmitter<MediaItemSelection>();
-  @Input() filterByType: 'image/png' | 'video/mp4' | 'audio/mpeg' | null = null;
+  @Input() filterByType:
+    | 'image/png'
+    | 'video/mp4'
+    | 'audio/mpeg'
+    | 'audio/wav'
+    | null = null;
   @Input() statusFilter: JobStatus | null = JobStatus.COMPLETED;
 
   public images: MediaItem[] = [];
@@ -62,23 +68,15 @@ export class MediaGalleryComponent implements OnInit, OnDestroy, AfterViewInit {
   public mediaTypeFilter = '';
   public generationModelFilter = '';
   public showOnlyMyMedia = false;
-  public generationModels = [
-    {
-      value: 'gemini-2.5-flash-image-preview',
-      viewValue: 'Nano Banana',
-    },
-    {
-      value: 'imagen-4.0-ultra-generate-001',
-      viewValue: 'Imagen 4 Ultra',
-    },
-    {
-      value: 'imagen-4.0-fast-generate-001',
-      viewValue: 'Imagen 4 Ultra',
-    },
-  ];
-  private autoSlideIntervals: {[id: string]: any} = {};
-  public currentImageIndices: {[id: string]: number} = {};
-  public hoveredVideoId: string | null = null;
+  public generationModels = MODEL_CONFIGS.map(config => ({
+    value: config.value,
+    viewValue: config.viewValue.replace('\n', ''), // Remove newlines for dropdown
+  }));
+  private autoSlideIntervals: { [id: string]: any } = {};
+  public currentImageIndices: { [id: string]: number } = {};
+  public hoveredVideoId: number | null = null;
+  public hoveredAudioId: number | null = null;
+
   constructor(
     private galleryService: GalleryService,
     private sanitizer: DomSanitizer,
@@ -202,7 +200,7 @@ export class MediaGalleryComponent implements OnInit, OnDestroy, AfterViewInit {
     this._scrollObserver.observe(this._sentinel.nativeElement);
   }
 
-  public trackByImage(index: number, image: MediaItem): string {
+  public trackByImage(index: number, image: MediaItem): number {
     return image.id;
   }
 
@@ -212,7 +210,7 @@ export class MediaGalleryComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   public nextImage(
-    imageId: string,
+    imageId: number,
     urlsLength: number,
     event?: MouseEvent,
   ): void {
@@ -226,7 +224,7 @@ export class MediaGalleryComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   public prevImage(
-    imageId: string,
+    imageId: number,
     urlsLength: number,
     event?: MouseEvent,
   ): void {
@@ -248,12 +246,15 @@ export class MediaGalleryComponent implements OnInit, OnDestroy, AfterViewInit {
     if (this.isSelectionMode) {
       const selectedIndex = this.currentImageIndices[mediaItem.id] || 0;
       // Emit the full media item and the selected index
-      this.mediaItemSelected.emit({mediaItem, selectedIndex});
+      this.mediaItemSelected.emit({ mediaItem, selectedIndex });
     }
   }
 
   public onMouseEnter(media: MediaItem): void {
     if (media.mimeType === 'video/mp4') this.playVideo(media.id);
+
+    // 2. ADD THIS CHECK
+    if (media.mimeType?.startsWith('audio/')) this.playAudio(media.id);
 
     this.stopAutoSlide(media.id);
   }
@@ -261,7 +262,18 @@ export class MediaGalleryComponent implements OnInit, OnDestroy, AfterViewInit {
   public onMouseLeave(media: MediaItem): void {
     if (media.mimeType === 'video/mp4') this.stopVideo();
 
+    // 3. ADD THIS CHECK
+    if (media.mimeType?.startsWith('audio/')) this.stopAudio();
+
     this.startAutoSlide(media);
+  }
+
+  public playAudio(mediaId: number): void {
+    this.hoveredAudioId = mediaId;
+  }
+
+  public stopAudio(): void {
+    this.hoveredAudioId = null;
   }
 
   public getShortPrompt(
@@ -292,7 +304,7 @@ export class MediaGalleryComponent implements OnInit, OnDestroy, AfterViewInit {
     return textToTruncate;
   }
 
-  public playVideo(mediaId: string): void {
+  public playVideo(mediaId: number): void {
     this.hoveredVideoId = mediaId;
   }
 
@@ -318,7 +330,7 @@ export class MediaGalleryComponent implements OnInit, OnDestroy, AfterViewInit {
     }
   }
 
-  public stopAutoSlide(imageId: string): void {
+  public stopAutoSlide(imageId: number): void {
     if (this.autoSlideIntervals[imageId]) {
       clearInterval(this.autoSlideIntervals[imageId]);
       delete this.autoSlideIntervals[imageId];
@@ -345,7 +357,7 @@ export class MediaGalleryComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   private updateColumns(): void {
-    this.columns = Array.from({length: this.numColumns}, () => []);
+    this.columns = Array.from({ length: this.numColumns }, () => []);
     this.images.forEach((image, index) => {
       this.columns[index % this.numColumns].push(image);
     });
@@ -355,7 +367,7 @@ export class MediaGalleryComponent implements OnInit, OnDestroy, AfterViewInit {
     // Reset local component state for a new search to show the main loader
     this.images = [];
 
-    const filters: GallerySearchDto = {limit: 20};
+    const filters: GallerySearchDto = { limit: 20 };
     if (this.userEmailFilter) {
       filters['userEmail'] = this.userEmailFilter;
     }
