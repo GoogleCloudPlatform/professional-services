@@ -38,15 +38,15 @@ set -e
 
 . image_env
 
-gsutil ls "gs://${BUCKET}" >/dev/null 2>&1
+gcloud storage ls "gs://${BUCKET}" >/dev/null 2>&1
 e=$?
 if [ $e -ne 0 ]; then
-  gsutil mb -p "${PROJECT}" -c "${STORAGE_CLASS}" "gs://${BUCKET}"
+  gcloud storage buckets create "gs://${BUCKET}" --project "${PROJECT}" --default-storage-class "${STORAGE_CLASS}"
 fi
 
 FILES=$(ls util)
 for f in $FILES; do
-  gsutil -m cp "util/${f}" "gs://${BUCKET}/"
+  gcloud storage cp "util/${f}" "gs://${BUCKET}/"
 done
 
 if [ ! -z "$DATAPROC_VERSION" ]; then
