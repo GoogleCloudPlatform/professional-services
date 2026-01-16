@@ -32,7 +32,8 @@
     - name: "[ais] Upload login config file"
       ansible.builtin.command:
         argv:
-          - gsutil
+          - gcloud
+          - storage
           - cp
           - "{{ [yamldestpath, ais_login_config_file] | join('/') }}"
           - "{{ ais_gcsbucket }}/{{ uc_name if uc_name is defined else ac_name }}/{{ ais_login_config_file }}"

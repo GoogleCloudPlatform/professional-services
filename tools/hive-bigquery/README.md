@@ -50,7 +50,7 @@ gcloud kms encrypt \
 4. Upload the encrypted file, `password.txt.enc`, to the GCS bucket. Note this
 file location, which will be provided later as an input to the migration tool.
 ```
-gsutil cp password.txt.enc gs://<BUCKET_NAME>/<OBJECT_PATH>
+gcloud storage cp password.txt.enc gs://<BUCKET_NAME>/<OBJECT_PATH>
 ```
 5. Delete the plaintext `password.txt` file from the local machine.
 # Usage
