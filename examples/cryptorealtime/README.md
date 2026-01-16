@@ -83,7 +83,7 @@ cbt -instance=cryptorealtime createtable cryptorealtime families=market
 
 ### Create a Bucket
 ```console
-gsutil mb -p ${PROJECT} gs://realtimecrypto-${PROJECT}
+gcloud storage buckets create gs://realtimecrypto-${PROJECT} --project=${PROJECT}
 ```
 
 ### Create firewall for visualization server on port 5000
@@ -136,8 +136,8 @@ gcloud dataflow jobs cancel \
 
 * Empty and Delete the bucket:
 ```console
-  gsutil -m rm -r gs://realtimecrypto-${PROJECT}/*
-  gsutil rb gs://realtimecrypto-${PROJECT}
+  gcloud storage rm --recursive gs://realtimecrypto-${PROJECT}/*
+  gcloud storage buckets delete gs://realtimecrypto-${PROJECT}
 ```
 
 * Delete the Cloud Bigtable instance:
@@ -163,5 +163,4 @@ Should return many rows of crypto trades data that the frontend project will rea
 
 ## External libraries used to connect to exchanges
 https://github.com/bitrich-info/xchange-stream
-
 

@@ -49,7 +49,7 @@ gcloud config set project $PROJECT_ID
 ### Move data to GCP.
 
 ```sh
-gsutil -m cp -r $DATA_PATH/aclImdb $BUCKET_PATH
+gcloud storage cp --recursive $DATA_PATH/aclImdb $BUCKET_PATH
 GCP_INPUT_DATA=$BUCKET_PATH/aclImdb/train
 ```
 
@@ -121,12 +121,12 @@ tensorboard --logdir=$TRAINING_OUTPUT_DIR
 **With HP tuning:**
 ```sh
 TRIAL_NUMBER=''
-MODEL_SAVED_NAME=$(gsutil ls ${TRAINING_OUTPUT_DIR}/${TRIAL_NUMBER}/export/exporter/ | tail -1)
+MODEL_SAVED_NAME=$(gcloud storage ls ${TRAINING_OUTPUT_DIR}/${TRIAL_NUMBER}/export/exporter/ | tail -1)
 ```
 
 **Without HP tuning:**
 ```sh
-MODEL_SAVED_NAME=$(gsutil ls ${TRAINING_OUTPUT_DIR}/export/exporter/ | tail -1)
+MODEL_SAVED_NAME=$(gcloud storage ls ${TRAINING_OUTPUT_DIR}/export/exporter/ | tail -1)
 ```
 
 ```sh
@@ -159,7 +159,7 @@ gcloud ml-engine predict \
 
 ```sh
 PREDICTION_DATA_PATH=${BUCKET_PATH}/prediction_data
-gsutil -m cp -r ${DATA_PATH}/aclImdb/test/ $PREDICTION_DATA_PATH
+gcloud storage cp --recursive ${DATA_PATH}/aclImdb/test/ $PREDICTION_DATA_PATH
 ```
 
 ### Make batch predictions with GCP.
