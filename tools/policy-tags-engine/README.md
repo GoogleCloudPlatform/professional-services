@@ -95,7 +95,7 @@ Now, deploy the Python application code.
     Upload the test file to the GCS bucket created by Terraform (`dev-informatica-metadata`).
 
     ```bash
-    gsutil cp taxonomy_example.json gs://dev-informatica-metadata/
+    gcloud storage cp taxonomy_example.json gs://dev-informatica-metadata/
     ```
 
 4.  **Verify the Results:**
