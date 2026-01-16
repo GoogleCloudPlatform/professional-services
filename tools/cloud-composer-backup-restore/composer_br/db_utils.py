@@ -78,7 +78,7 @@ def import_db(username: str, password: str, host: str, port: str, database: str,
     """
     Extract a SQL filefrom a GCS path and imports it into postgres
     """
-    command_utils.sh(['gsutil', 'cp', gcs_sql_file_path, '/tmp/'])
+    command_utils.sh(['gcloud', 'storage', 'cp', gcs_sql_file_path, '/tmp/'])
 
     split_path = gcs_sql_file_path.split('/')
 
