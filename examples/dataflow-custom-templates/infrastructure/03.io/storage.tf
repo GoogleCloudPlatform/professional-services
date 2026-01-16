@@ -19,7 +19,7 @@ resource "google_storage_bucket" "source" {
   uniform_bucket_level_access = true
   provisioner "local-exec" {
     // Enforce public access protection
-    command = "gsutil pap set enforced gs://${google_storage_bucket.source.name}"
+    command = "gcloud storage buckets update --public-access-prevention gs://${google_storage_bucket.source.name}"
   }
 }
 
