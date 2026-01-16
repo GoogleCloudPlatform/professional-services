@@ -44,7 +44,8 @@
       ansible.builtin.command: # noqa 204 301
         chdir: "{{ yamldestpath }}"
         argv:
-          - gsutil
+          - gcloud
+          - storage
           - cp
           - gs://gke-on-prem-release/gkeadm/{{ glb_anthos_version }}/linux/gkeadm
           - "{{ yamldestpath }}/gkeadm-{{ glb_anthos_version }}"
@@ -63,7 +64,8 @@
       ansible.builtin.command: # noqa 204 301
         chdir: "{{ yamldestpath }}"
         argv:
-          - gsutil
+          - gcloud
+          - storage
           - cp
           - gs://gke-on-prem-release/gkeadm/{{ glb_anthos_version }}/linux/gkeadm.1.sig
           - "{{ yamldestpath }}/gkeadm-{{ glb_anthos_version }}.1.sig"

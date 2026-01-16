@@ -18,7 +18,7 @@ gcloud organizations list
 To lunch the SDF run the below command.
 
 ```bash
-gsutil cp gs://atc-artifacts/SDF/docker-compose.yaml ./; sudo docker-compose up -d
+gcloud storage cp gs://atc-artifacts/SDF/docker-compose.yaml ./; sudo docker-compose up -d
 ```
 
 Let's open SDF page. Run the following to get web preview URL and click on the output URL to open SDF.
@@ -26,4 +26,3 @@ Let's open SDF page. Run the following to get web preview URL and click on the o
 ```bash
 cloudshell get-web-preview-url -p 8080
 ```
-

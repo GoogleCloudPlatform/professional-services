@@ -397,7 +397,7 @@ configure_environment() {
             prompt "Please enter the name of your GCS bucket:"; read -p "   Bucket Name: " BUCKET_NAME < /dev/tty
         else
             BUCKET_SUFFIX=$(printf "$GCS_BUCKET_SUFFIX_FORMAT" "$ENV_NAME"); BUCKET_NAME="${GCP_PROJECT_ID}-${BUCKET_SUFFIX}"
-            info "Creating GCS bucket '$BUCKET_NAME' for Terraform state..."; gsutil mb -p "$GCP_PROJECT_ID" "gs://${BUCKET_NAME}" || warn "Bucket 'gs://${BUCKET_NAME}' may already exist. Continuing..."
+            info "Creating GCS bucket '$BUCKET_NAME' for Terraform state..."; gcloud storage buckets create "gs://${BUCKET_NAME}" --project="$GCP_PROJECT_ID" || warn "Bucket 'gs://${BUCKET_NAME}' may already exist. Continuing..."
         fi
         BUCKET_PREFIX=$(printf "$GCS_BUCKET_PREFIX_FORMAT" "$ENV_NAME")
         info "Updating backend.tf with default prefix: $BUCKET_PREFIX"; echo "terraform {
