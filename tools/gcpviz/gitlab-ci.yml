@@ -30,7 +30,7 @@ export_cai:
   stage: export_cai
   script: 
     - /gcpviz/wait_for_export.sh gcloud asset export --output-path=gs://$CAI_BUCKET_NAME/resource_inventory.json --content-type=resource --organization=$ORGANIZATION_ID
-    - gsutil cp://$CAI_BUCKET_NAME/resource_inventory.json .
+    - gcloud storage cp://$CAI_BUCKET_NAME/resource_inventory.json .
 
 generate_graphs: 
   stage: generate_graphs

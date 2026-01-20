@@ -84,7 +84,7 @@ gcloud config set project $PROJECT
 ```
 1. Create a Cloud Storage (GCS) bucket for receiving input files (*input-gcs-bucket*).
 ```bash
-gsutil mb -c regional -l us-central1 gs://$PROJECT
+gcloud storage buckets create --default-storage-class=regional --location=us-central1 gs://$PROJECT
 ```
 2. Export the public BigQuery Table to a new dataset.
 ```bash
@@ -131,13 +131,13 @@ gcloud composer environments run demo-ephemeral-dataproc \
 
 7. Upload the PySpark code [spark_avg_speed.py](composer_http_examples/spark_avg_speed.py) into a *spark-jobs* folder in GCS.
 ```bash
-gsutil cp ~/professional-services/examples/cloud-composer-examples/composer_http_post_example/spark_avg_speed.py gs://$PROJECT/spark-jobs/
+gcloud storage cp ~/professional-services/examples/cloud-composer-examples/composer_http_post_example/spark_avg_speed.py gs://$PROJECT/spark-jobs/
 ```
 
 8. The DAG folder is essentially a Cloud Storage bucket. Upload the [ephemeral_dataproc_spark_dag.py](composer_http_examples/ephemeral_dataproc_spark_dag.py) file into the folder:
 
 ```bash
-gsutil cp ~/professional-services/examples/cloud-composer-examples/composer_http_post_example/ephemeral_dataproc_spark_dag.py gs://<dag-folder>/dags
+gcloud storage cp ~/professional-services/examples/cloud-composer-examples/composer_http_post_example/ephemeral_dataproc_spark_dag.py gs://<dag-folder>/dags
 ```
 ***
 
