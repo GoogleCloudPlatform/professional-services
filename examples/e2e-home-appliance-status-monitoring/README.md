@@ -32,7 +32,7 @@ GOOGLE_APPLICATION_CREDENTIALS=${PWD}"/e2e_demo_credential.json"
 
 # create a new GCS bucket if you don't have one
 BUCKET_NAME=[your-bucket-name]
-gsutil mb -p ${GOOGLE_PROJECT_ID} gs://${BUCKET_NAME}/
+gcloud storage buckets create gs://${BUCKET_NAME} --project=${GOOGLE_PROJECT_ID}
 ```
 
 You also need to enable the following APIs in the APIs & Services menu.
@@ -50,7 +50,7 @@ If you are using our trained model:
 tar jxvf data/model.tar.bz2
 
 # upload the model to your bucket
-gsutil cp -r model gs://${BUCKET_NAME}
+gcloud storage cp --recursive model gs://${BUCKET_NAME}
 ```
 
 If you want to train your own model:
@@ -185,5 +185,4 @@ jupyter notebook
 *notebook/EnergyDisaggregationDemo_Client.ipynb* simulates multiple smart meters by reading in power consumption data from a real world dataset and sends the readings to our server. All Cloud IoT Core related code resides in this notebook. Fill in the necessary information in the *Configuration* block and run all the cells, once you see messages being sent you should be able to see plots like the one shown below in *notebook/EnergyDisaggregationDemo_View.ipynb*.
 
 ![Demo system sample output](./img/demo03.gif)
-
 
