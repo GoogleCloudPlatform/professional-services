@@ -27,7 +27,7 @@ sudo apt -y --allow-downgrades install openjdk-8-jdk git maven google-cloud-sdk=
 cd ~
 git clone https://github.com/galic1987/professional-services
 cd professional-services/examples/cryptorealtime/
-gsutil cp README.md ${bucket_name}${bucket_folder}
+gcloud storage cp README.md ${bucket_name}${bucket_folder}
 mvn clean install
 echo "export PROJECT_ID=${project_id}" >> ~/.bashrc
 echo "export REGION=${region}" >> ~/.bashrc
