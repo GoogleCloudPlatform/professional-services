@@ -122,14 +122,14 @@ Stage an empty file to create the spark-events path on GCS.
 
 ```
 touch .keep
-gsutil cp .keep gs://your-history-bucket/spark-events/.keep
+gcloud storage cp .keep gs://your-history-bucket/spark-events/.keep
 rm .keep
 ```
 
 Stage our initialization action for disabling history servers
 on your ephemeral clusters.
 ```
-gsutil cp init_actions/disable_history_servers.sh
+gcloud storage cp init_actions/disable_history_servers.sh
 ```
 
 Create the history server.

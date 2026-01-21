@@ -18,7 +18,7 @@ resource "google_storage_bucket" "dataflow_templates" {
   name                        = "dataflow-templates-${random_string.dataflow_templates_postfix.result}"
   uniform_bucket_level_access = true
   provisioner "local-exec" {
-    command = "gsutil pap set enforced gs://${google_storage_bucket.dataflow_templates.name}"
+    command = "gcloud storage buckets update --public-access-prevention gs://${google_storage_bucket.dataflow_templates.name}"
   }
 }
 

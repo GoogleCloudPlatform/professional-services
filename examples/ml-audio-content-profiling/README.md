@@ -21,7 +21,7 @@ your file into an accepted encoding type.
 The solution involves creating five GCS buckets using default configuration settings. Because of
 this, no [object lifecycle management](https://cloud.google.com/storage/docs/lifecycle) policies are
 configured. If you would like to specify different retention policies you can [enable](https://cloud.google.com/storage/docs/managing-lifecycles#enable)
-this using `gsutil` while following the deployment process.
+this using `gcloud storage` while following the deployment process.
 
 During processing, audio files are moved between buckets as they progress
 through various stages of the pipeline. Specifically, the audio file should first be moved to the
@@ -189,28 +189,28 @@ export STATIC_UUID=$(echo $(uuidgen | tr '[:upper:]' '[:lower:]') | cut -c1-20)
 ````
 export staging_audio_bucket=staging-audio-files-$STATIC_UUID
 
-gsutil mb gs://$staging_audio_bucket
+gcloud storage buckets create gs://$staging_audio_bucket
 ````
 
 ````
 export processed_audio_bucket=processed-audio-files-$STATIC_UUID
-gsutil mb gs://$processed_audio_bucket
+gcloud storage buckets create gs://$processed_audio_bucket
 ````
 
 ````
 export error_audio_bucket=error-audio-files-$STATIC_UUID
-gsutil mb gs://$error_audio_bucket
+gcloud storage buckets create gs://$error_audio_bucket
 ````
 
 
 ````
 export transcription_bucket=transcription-files-$STATIC_UUID
-gsutil mb gs://$transcription_bucket
+gcloud storage buckets create gs://$transcription_bucket
 ````
 
 ````
 export output_bucket=output-files-$STATIC_UUID
-gsutil mb gs://$output_bucket
+gcloud storage buckets create gs://$output_bucket
 ````
 
 
@@ -342,7 +342,7 @@ All of the resources should be deployed.
 ### View Results
 <h3>Test it out</h3>
 
-1. You can start by trying to upload an audio file in GCS. You can do this using `gsutil` or in the
+1. You can start by trying to upload an audio file in GCS. You can do this using `gcloud storage` or in the
 UI under the <b>staging bucket</b>. This will trigger `send_stt_api_function`. This submits the
 request to the Speech API and publishes the job id to PubSub.
 
