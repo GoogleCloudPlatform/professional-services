@@ -26,7 +26,8 @@ import java.io.FileWriter;
 public class Utils {
 
   public static BashOutput createGCSBucket(String bucketName) throws Exception {
-    return MyBashExecutor.executeCommand(String.format("gcloud storage buckets create %s", bucketName));
+    return MyBashExecutor.executeCommand(
+        String.format("gcloud storage buckets create %s", bucketName));
   }
 
   public static BashOutput createBigQueryDataset(String datasetName) throws Exception {
