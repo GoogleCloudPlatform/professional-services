@@ -34,7 +34,7 @@ Consider these assumptions when you wonder how certain tasks are implemented or 
 ## Prerequisites
 
 - Ansible
-- Authenticate `gcloud` on jumphost with `gcloud auth login` so that Ansible can run the `gsutil` command on the jumphost
+- Authenticate `gcloud` on jumphost with `gcloud auth login` so that Ansible can run the `gcloud storage` command on the jumphost
 - vSphere: Create VM-Folder for Anthos VMs
 - vSphere: Create folder on vSAN for Anthos Admin Cluster (if using vSAN).
   Consider using value of Ansible variable `{{ ac_name }}` as the vSAN folder name to be consistent.
