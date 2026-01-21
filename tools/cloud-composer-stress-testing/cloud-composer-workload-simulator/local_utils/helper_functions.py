@@ -50,7 +50,7 @@ def upload_directory(source_folder, target_gcs_path):
                                       Defaults to None (root of the bucket).
     """
 
-    command = ["gsutil", "-m", "cp", "-r", source_folder, target_gcs_path]
+    command = ["gcloud", "storage", "cp", "--recursive", source_folder, target_gcs_path]
 
     process = subprocess.Popen(
         command,

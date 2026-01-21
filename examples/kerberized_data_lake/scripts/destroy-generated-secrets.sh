@@ -39,7 +39,7 @@ function log_and_fail() {
 
 # GCS copy wrapper
 function g_rm() {
-  CMD="gsutil rm ${1}"
+  CMD="gcloud storage rm ${1}"
   ${CMD} || log_and_fail "Unable to execute ${CMD}"
 }
 
