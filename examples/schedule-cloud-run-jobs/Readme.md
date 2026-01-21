@@ -46,13 +46,13 @@ Once such example is running copying some objects from bucket (i.e., GCS or S3) 
     export GCS_SOURCE=<<Source Bucket>>
     export GCS_DESTINATION=<<Source Bucket>>
 
-    gsutil iam ch \
-    serviceAccount:${SERVICE_ACCOUNT}@${PROJECT_ID}.iam.gserviceaccount.com:objectViewer \
-    ${GCS_SOURCE}
+    gcloud storage buckets add-iam-policy-binding ${GCS_SOURCE} \
+    --member=serviceAccount:${SERVICE_ACCOUNT}@${PROJECT_ID}.iam.gserviceaccount.com \
+    --role=roles/storage.objectViewer
 
-    gsutil iam ch \
-    serviceAccount:${SERVICE_ACCOUNT}@${PROJECT_ID}.iam.gserviceaccount.com:legacyBucketWriter \
-    ${GCS_DESTINATION}
+    gcloud storage buckets add-iam-policy-binding ${GCS_DESTINATION} \
+    --member=serviceAccount:${SERVICE_ACCOUNT}@${PROJECT_ID}.iam.gserviceaccount.com \
+    --role=roles/storage.legacyBucketWriter
 
     gcloud beta run jobs create gcs-to-gcs \
         --image gcr.io/${PROJECT_ID}/gsutil-gcs-to-gcs \
