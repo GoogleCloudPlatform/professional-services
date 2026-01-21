@@ -19,8 +19,8 @@ steps:
     dir: 'vertex_pipeline/scripts'
     id: 'Build pipeline specs'
 
-  - name: 'gcr.io/cloud-builders/gsutil'
-    args: [ '-m', 'cp', '-r', '*.json', '$_PIPELINE_REGISTRY/latest/' ]
+  - name: 'gcr.io/cloud-builders/gcloud'
+    args: [ 'storage', 'cp', '--recursive', '*.json', '$_PIPELINE_REGISTRY/latest/' ]
     dir: 'vertex_pipeline/scripts/pipeline_spec'
     id: 'Save pipeline specs'
 
