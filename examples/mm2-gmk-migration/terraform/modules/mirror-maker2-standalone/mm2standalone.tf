@@ -199,24 +199,24 @@ resource "google_compute_instance" "mm2-standalone" {
     cd ${var.mm2-path}
 
     # Download Prometheus JAR
-    gsutil -m cp -r ${var.mm2-binaries-bucket}/binaries/jmx_prometheus_javaagent-0.13.0.jar ${var.mm2-path}/
+    gcloud storage cp --recursive ${var.mm2-binaries-bucket}/binaries/jmx_prometheus_javaagent-0.13.0.jar ${var.mm2-path}/
 
     # Download and Extract Kafka
-    gsutil -m cp -r ${var.mm2-binaries-bucket}/binaries/kafka_2.13-3.7.1.tgz ${var.mm2-path}/
+    gcloud storage cp --recursive ${var.mm2-binaries-bucket}/binaries/kafka_2.13-3.7.1.tgz ${var.mm2-path}/
     tar -xzvf kafka_2.13-3.7.1.tgz
 
     # Download and Extract Java
-    gsutil -m cp -r ${var.mm2-binaries-bucket}/binaries/openjdk-11.0.2_linux-x64_bin.tar.gz ${var.mm2-path}/
+    gcloud storage cp --recursive ${var.mm2-binaries-bucket}/binaries/openjdk-11.0.2_linux-x64_bin.tar.gz ${var.mm2-path}/
     tar -xzvf openjdk-11.0.2_linux-x64_bin.tar.gz
 
     # Setup Java Path
     export PATH=$PATH:/opt/jdk-11.0.2/bin/
 
     # Get mm2 properties file
-    gsutil -m cp -r ${var.mm2-binaries-bucket}/mm2.properties ${var.mm2-path}/config/
+    gcloud storage cp --recursive ${var.mm2-binaries-bucket}/mm2.properties ${var.mm2-path}/config/
 
     # Get mm2 prometheus properties file
-    gsutil -m cp -r ${var.mm2-binaries-bucket}/kafka-connect.yml ${var.mm2-path}/config/
+    gcloud storage cp --recursive ${var.mm2-binaries-bucket}/kafka-connect.yml ${var.mm2-path}/config/
 
     # Export MM2 Metrics using Prometheus
     export KAFKA_OPTS=-javaagent:/opt/jmx_prometheus_javaagent-0.13.0.jar=3600:/opt/config/kafka-connect.yml
