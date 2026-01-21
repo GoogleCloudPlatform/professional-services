@@ -81,7 +81,7 @@ $gcloud projects add-iam-policy-binding 	[PROJECT_ID] \
     --member=serviceAccount:service-[PROJECT_NUMBER]@gcp-sa-pubsub.iam.gserviceaccount.com \
     --role=roles/iam.serviceAccountTokenCreator
 
-SERVICE_ACCOUNT="$(gsutil kms serviceaccount -p [PROJECT_ID])"
+SERVICE_ACCOUNT="$(gcloud storage service-agent --project [PROJECT_ID])"
 
 $gcloud projects add-iam-policy-binding [PROJECT_ID] \
     --member="serviceAccount:${SERVICE_ACCOUNT}" \
