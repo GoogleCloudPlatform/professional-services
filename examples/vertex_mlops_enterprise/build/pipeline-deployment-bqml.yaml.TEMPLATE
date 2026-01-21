@@ -77,8 +77,8 @@ steps:
   waitFor: ['Unit Tests']
   
 # Upload compiled pipeline to GCS.
-- name: 'gcr.io/cloud-builders/gsutil'
-  args: ['cp', '$_PIPELINE_NAME.json', '$_PIPELINES_STORE']
+- name: 'gcr.io/cloud-builders/gcloud'
+  args: ['storage', 'cp', '$_PIPELINE_NAME.json', '$_PIPELINES_STORE']
   dir: '$_WORKDIR/src/bqml_pipeline/src/'
   id:  'Upload Pipeline to GCS'
   waitFor: ['Compile Pipeline']
