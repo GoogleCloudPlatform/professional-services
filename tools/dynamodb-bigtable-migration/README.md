@@ -12,7 +12,6 @@ The Bigtable Migration utility efficiently migrates data from a DynamoDB table t
 *   **Google Cloud Credentials:** Properly configured Google Cloud credentials with access to your GCS bucket, Dataflow  and Bigtable instance.
 *   **Artifact Registry:** An [Artifact Registry](https://cloud.google.com/artifact-registry/docs/repositories/create-repos#create) repository to store the Docker container image for the template.
 
-*   **`gsutil`:** The `gsutil` command-line tool installed and configured with your Google Cloud credentials.
 
 ### DynamoDB
 
@@ -53,9 +52,9 @@ The Bigtable Migration utility efficiently migrates data from a DynamoDB table t
 
 **2. Transfer Data from S3 to Google Cloud Storage (GCS)**
 
-*   Use the following `gsutil` command to copy the data from your S3 bucket to your GCS bucket:
+*   Use the following `gcloud storage` command to copy the data from your S3 bucket to your GCS bucket:
 	```
-	gsutil cp -r s3://<your-s3-bucket-name>/AWSDynamoDB/<export-id>/data/ gs://<your-gcs-bucket-name>/<destination-folder>/
+	gcloud storage cp -r s3://<your-s3-bucket-name>/AWSDynamoDB/<export-id>/data/ gs://<your-gcs-bucket-name>/<destination-folder>/
 	```
 
 
