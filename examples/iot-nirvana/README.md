@@ -111,12 +111,12 @@ Copy the JAR package containing the client binaries to Google Cloud Storage in
 the bucket previously created. Run the following command in the `/client`
 folder:
 
-`gsutil cp target/google-cloud-demo-iot-nirvana-client-jar-with-dependencies.jar gs://$BUCKET_NAME/client/`
+`gcloud storage cp target/google-cloud-demo-iot-nirvana-client-jar-with-dependencies.jar gs://$BUCKET_NAME/client/`
 
 Check that the JAR file has been correctly copied in the Google Cloud Storage
 bucket with the following command:
 
-`gsutil ls gs://$BUCKET_NAME/client/google-cloud-demo-iot-nirvana-client-jar-with-dependencies.jar`
+`gcloud storage ls gs://$BUCKET_NAME/client/google-cloud-demo-iot-nirvana-client-jar-with-dependencies.jar`
 
 ## AppEngine Web frontend
 
@@ -136,7 +136,7 @@ from the temperature sensors:
      bootstrapping script
 2. Copy the `startup.sh` file in the Google Cloud Storage bucket by running the
    following command in the `/app-engine` folder:
-   `gsutil cp src/main/webapp/startup.sh gs://$BUCKET_NAME/`
+   `gcloud storage cp src/main/webapp/startup.sh gs://$BUCKET_NAME/`
 3. Modify the `/pom.xml` file in the `/app-engine` folder:
    * Update the `<app.id/>` node with the **[PROJECT_ID]** of your GCP project
    * Update the `<app.version/>` with the desired version of the application
@@ -194,4 +194,3 @@ following:
 
 To stop the simulation click on the **Stop** button at the bottom right of the
 page `https://[YOUR_PROJECT_ID].appspot.com/index.html`.
-

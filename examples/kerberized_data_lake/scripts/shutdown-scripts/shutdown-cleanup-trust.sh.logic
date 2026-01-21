@@ -34,7 +34,7 @@ function log_and_fail() {
 }
 
 function g_download() {
-  gsutil cp "$1" "$2" || log_and_fail "Unable to download $1"
+  gcloud storage cp "$1" "$2" || log_and_fail "Unable to download $1"
 }
 
 function set_env_helpers() {

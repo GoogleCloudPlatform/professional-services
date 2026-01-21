@@ -139,8 +139,8 @@ def add_argparse_args(ap, required=False):
         ' the project that you enabled the API on, then you must also grant the'
         ' "service-<project-id>@gcp-sa-cloudasset.iam.gserviceaccount.com" account'
         ' objectAdmin privileges to the bucket:\n'
-        'gsutil iam ch serviceAccount:service-<project-id>@gcp-sa-cloudasset.iam.gserviceaccount.com:objectAdmin '
-        'gs://<bucket>\n'
+        'gcloud storage buckets add-iam-policy-binding gs://<bucket> '
+        '--member=serviceAccount:service-<project-id>@gcp-sa-cloudasset.iam.gserviceaccount.com --role=roles/storage.objectAdmin\n'
         '\n\n')
     ap.add_argument(
         '--parent',
