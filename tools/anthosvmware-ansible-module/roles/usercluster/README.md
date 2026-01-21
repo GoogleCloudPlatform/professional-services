@@ -164,12 +164,12 @@ ASM Service Mesh version, revision, and network ID information.
 
 The available `asmcli` versions for use can be found by using the below command:
 ```
-gsutil ls gs://csm-artifacts/asm/
+gcloud storage ls gs://csm-artifacts/asm/
 ```
 
 You can filter for a specific revision with `grep`. For example:
 ```
-gsutil ls gs://csm-artifacts/asm/ | grep 1.14
+gcloud storage ls gs://csm-artifacts/asm/ | grep 1.14
 ```
 
 > **Note:** `asm_network_id` is used for configuring a multi-cluster mesh. It *must be unique* for proper
