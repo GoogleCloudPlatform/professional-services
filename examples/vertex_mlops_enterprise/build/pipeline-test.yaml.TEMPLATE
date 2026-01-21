@@ -74,8 +74,8 @@ steps:
   
   
 # Upload compiled pipeline to GCS.
-- name: 'gcr.io/cloud-builders/gsutil'
-  args: ['cp', '$_PIPELINE_NAME.json', '$_PIPELINES_STORE']
+- name: 'gcr.io/cloud-builders/gcloud'
+  args: ['storage', 'cp', '$_PIPELINE_NAME.json', '$_PIPELINES_STORE']
   dir: '$_WORKDIR'
   id:  'Upload Pipeline to GCS'
   waitFor: ['Compile Pipeline']
