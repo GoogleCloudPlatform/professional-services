@@ -19,6 +19,7 @@ firewall_policy_allowed_icmp_world:
     expected_result:
       return_code: 0
 
+# TCP:22 is allowed as an exception in PublicAccessPolicyRule but blocked by SshPolicyRule
 firewall_policy_allowed_ssh_world:
   steps:
   - command_flags:
@@ -26,7 +27,7 @@ firewall_policy_allowed_ssh_world:
       src-ip-ranges: 0.0.0.0/0
     expected_result:
       return_code: 1
-      stderr: 'customConstraints/custom\.firewallRestrict(PublicAccess|Ssh)PolicyRule'
+      stderr: 'customConstraints/custom\.firewallRestrictSshPolicyRule'
 
 firewall_policy_allowed_https_world:
   steps:
@@ -36,6 +37,7 @@ firewall_policy_allowed_https_world:
     expected_result:
       return_code: 0
 
+# TCP:3389 is allowed as an exception in PublicAccessPolicyRule but blocked by RdpPolicyRule
 firewall_policy_allowed_rdp_tcp_world:
   steps:
   - command_flags:
@@ -43,7 +45,7 @@ firewall_policy_allowed_rdp_tcp_world:
       src-ip-ranges: 0.0.0.0/0
     expected_result:
       return_code: 1
-      stderr: 'customConstraints/custom\.firewallRestrict(PublicAccess|Rdp)PolicyRule'
+      stderr: 'customConstraints/custom\.firewallRestrictRdpPolicyRule'
 
 firewall_policy_allowed_rdp_udp_world:
   steps:

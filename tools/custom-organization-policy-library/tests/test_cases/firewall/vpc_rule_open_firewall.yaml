@@ -14,15 +14,16 @@ shared_config:
     - open-firewall
 
 # Allowed: Safe protocols with 0.0.0.0/0
+# ICMP is allowed as an exception in PublicAccessRule
 firewall_vpc_allowed_icmp_world:
   steps:
   - command_flags:
       rules: icmp
       source-ranges: 0.0.0.0/0
     expected_result:
-      return_code: 1
-      stderr: 'customConstraints/custom\.firewallRestrictPublicAccessRule'
+      return_code: 0
 
+# TCP:22 is allowed as an exception in PublicAccessRule but blocked by SshRule
 firewall_vpc_allowed_ssh_world:
   steps:
   - command_flags:
@@ -30,17 +31,18 @@ firewall_vpc_allowed_ssh_world:
       source-ranges: 0.0.0.0/0
     expected_result:
       return_code: 1
-      stderr: 'customConstraints/custom\.firewallRestrict(PublicAccess|Ssh)Rule'
+      stderr: 'customConstraints/custom\.firewallRestrictSshRule'
 
+# TCP:443 is allowed as an exception in PublicAccessRule
 firewall_vpc_allowed_https_world:
   steps:
   - command_flags:
       rules: tcp:443
       source-ranges: 0.0.0.0/0
     expected_result:
-      return_code: 1
-      stderr: 'customConstraints/custom\.firewallRestrictPublicAccessRule'
+      return_code: 0
 
+# TCP:3389 is allowed as an exception in PublicAccessRule but blocked by RdpRule
 firewall_vpc_allowed_rdp_tcp_world:
   steps:
   - command_flags:
@@ -48,16 +50,16 @@ firewall_vpc_allowed_rdp_tcp_world:
       source-ranges: 0.0.0.0/0
     expected_result:
       return_code: 1
-      stderr: 'customConstraints/custom\.firewallRestrict(PublicAccess|Rdp)Rule'
+      stderr: 'customConstraints/custom\.firewallRestrictRdpRule'
 
+# UDP:3389 is allowed as an exception in PublicAccessRule
 firewall_vpc_allowed_rdp_udp_world:
   steps:
   - command_flags:
       rules: udp:3389
       source-ranges: 0.0.0.0/0
     expected_result:
-      return_code: 1
-      stderr: 'customConstraints/custom\.firewallRestrictPublicAccessRule'
+      return_code: 0
 
 # Denied: Unsafe protocols with 0.0.0.0/0
 firewall_vpc_denied_http_world:
