@@ -5,16 +5,15 @@ custom.firewallRestrictPublicAccessPolicyRule:
       rule.priority < 2147483644 &&
       rule.direction == 'INGRESS' &&
       rule.match.srcIpRanges.exists(range, range == '0.0.0.0/0') &&
-      !rule.match.layer4Configs.exists(l4,
+      !rule.match.layer4Configs.all(l4,
         l4.ipProtocol == 'icmp' ||
-        (l4.ipProtocol == 'tcp' && has(l4.ports) && '443' in l4.ports) ||
-        (l4.ipProtocol == 'udp' && has(l4.ports) && '3389' in l4.ports) ||
-        (l4.ipProtocol == 'sctp' && has(l4.ports) && '22' in l4.ports)
+        (l4.ipProtocol == 'tcp' && has(l4.ports) && l4.ports.all(p, p == '22' || p == '443' || p == '3389')) ||
+        (l4.ipProtocol == 'udp' && has(l4.ports) && l4.ports.all(p, p == '3389')) ||
+        (l4.ipProtocol == 'sctp' && has(l4.ports) && l4.ports.all(p, p == '22'))
       )
     )
   description: Prevent Firewall Policy rules from 0.0.0.0/0 except for allowed protocols
-    (ICMP, TCP:443, UDP:3389, SCTP:22). TCP:22 and TCP:3389 are handled by separate
-    constraints.
+    (ICMP, TCP:22, TCP:443, TCP:3389, UDP:3389, SCTP:22).
   display_name: Restrict Firewall Policy rules allowing public Internet access
   method_types:
   - CREATE
