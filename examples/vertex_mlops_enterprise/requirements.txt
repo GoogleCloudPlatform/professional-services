@@ -14,5 +14,5 @@ tensorflow-io==0.26.0
 apache-beam[gcp]==2.39.0
 numpy==1.21.6
 flask==2.0.3
-protobuf==4.25.8
+protobuf==5.29.6
 tensorflow-model-analysis==0.39.0
