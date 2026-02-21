@@ -1,6 +1,6 @@
 cloudml-hypertune==0.1.0.dev6
 db-dtypes==1.1.1
-google-cloud-aiplatform==1.27.1
+google-cloud-aiplatform==1.133.0
 google-cloud-storage==2.10.0
 google_cloud_pipeline_components==2.0.0b5
 kfp==2.0.1
