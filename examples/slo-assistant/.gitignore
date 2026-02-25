@@ -1,0 +1,38 @@
+# --- Python Standards ---
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# --- Virtual Environments (Critical) ---
+venv/
+.venv/
+env/
+env.yaml
+
+# --- Environment Variables (Security Critical) ---
+.env
+.env.local
+.env.*
+
+# --- IDE & OS Metadata ---
+.vscode/
+.idea/
+.DS_Store
+thumbs.db
+
+# --- Logs & Databases ---
+*.log
+
+# --- Docker ---
+docker-compose.override.yml
+
+
+# --- Test run error files ---
+server.err
+streamlit.err
+run.err
+.coverage
+
+# --- Agent context file ---
+agent_context.md
