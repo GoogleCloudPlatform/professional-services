@@ -5,7 +5,7 @@ google-auth==2.32.0
 google-auth-httplib2==0.2.0
 google-auth-oauthlib==1.2.1
 google-cloud==0.34.0
-google-cloud-aiplatform==1.59.0
+google-cloud-aiplatform==1.133.0
 google-cloud-bigquery==3.25.0
 google-cloud-bigquery-connection==1.15.4
 google-cloud-bigquery-storage==2.25.0
