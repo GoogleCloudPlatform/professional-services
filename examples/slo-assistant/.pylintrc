@@ -1,0 +1,15 @@
+[MASTER]
+
+[MESSAGES CONTROL]
+disable=
+    W0101,  # Unreachable code
+    W0718,  # Catching too general exception Exception
+    R0914,  # Too many local variables
+    R0912,  # Too many branches
+    R0915,  # Too many statements
+    R0911,  # Too many return statements
+    R1710,  # Inconsistent return statements
+    R0801,   # Duplicate code
+    W0621,  # Redefining name from outer scope
+    R0913,  # Too many arguments
+    R0917   # Too many positional arguments
