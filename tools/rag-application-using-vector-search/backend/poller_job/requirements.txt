@@ -27,7 +27,7 @@ pyasn1_modules==0.4.2
 pydantic==2.11.3
 pydantic_core==2.33.1
 python-dateutil==2.9.0.post0
-requests==2.32.3
+requests==2.33.0
 rsa==4.9.1
 shapely==2.1.0
 six==1.17.0
