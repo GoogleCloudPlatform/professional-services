@@ -23,7 +23,7 @@ PyAudio==0.2.14
 pycparser==2.22
 pylint==3.2.5
 python-dotenv==1.0.1
-requests==2.32.3
+requests==2.33.0
 rsa==4.9
 six==1.16.0
 sounddevice==0.4.7
