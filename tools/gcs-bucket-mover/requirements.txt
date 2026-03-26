@@ -111,7 +111,7 @@ pytz==2022.2.1
     # via google-api-core
 pyyaml==5.4.1
     # via gcs_bucket_mover (setup.py)
-requests==2.27.1
+requests==2.33.0
     # via
     #   google-api-core
     #   google-cloud-storage
