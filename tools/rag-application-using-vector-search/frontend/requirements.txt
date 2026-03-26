@@ -32,7 +32,7 @@ rpds-py==0.24.0
 rsa==4.9.1
 six==1.17.0
 smmap==5.0.2
-streamlit==1.44.1
+streamlit==1.54.0
 tenacity==9.1.2
 toml==0.10.2
 tornado==6.5.5
