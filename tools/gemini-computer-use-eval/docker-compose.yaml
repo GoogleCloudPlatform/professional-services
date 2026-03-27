@@ -1,0 +1,86 @@
+# Copyright 2026 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+services:
+  eval-agent:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: gemini-computer-use-eval:latest
+    container_name: computer_use_sandbox
+
+    # Mac: Apple Silicon (M1/M2/M3) → linux/arm64. Intel Mac or match Linux CI → linux/amd64
+    platform: linux/arm64
+
+    # --- 1. Signal Handling & Zombies ---
+    # Disabled for Podman compatibility during initial setup
+    # init: true
+
+    # --- 2. Shared Memory ---
+    # Disabled for Podman compatibility during initial setup
+    # shm_size: '2gb'
+
+    # --- 3. Dynamic Permissions ---
+    # In Podman rootless, root (0) inside maps to the host user outside.
+    user: "0:0"
+
+    # --- 4. Network Routing ---
+    # Allows the agent to test against local dev servers on host
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+    # --- 5. Persistence & Credentials ---
+    volumes:
+      # LIVE RELOAD CONFIGURATION:
+      # Previously: Only 'COPY . .' in Dockerfile was used, requiring a full 'docker compose build' 
+      # for every YAML change in config/ benchmarks.
+      # Now: Bind mount enables real-time updates. Changes to local YAML files are immediately 
+      # reflected inside the container without rebuilding.
+      - ./config:/app/config
+
+      # Persist run artifacts directly to host for viewing
+      - ./artifacts:/app/artifacts
+      - ./logs:/app/logs
+
+      # SECURE: Read-only mount of local GCP credentials for Vertex AI auth
+      # Run 'gcloud auth application-default login' on host first
+      - ~/.config/gcloud/application_default_credentials.json:/tmp/keys/google_creds.json:ro
+
+    # --- 6. Configuration ---
+    environment:
+      # Required for GCP SDK
+      - GOOGLE_APPLICATION_CREDENTIALS=/tmp/keys/google_creds.json
+      
+      # Model Configuration (Defaults to Vertex AI)
+      - USE_VERTEXAI=True
+      - GCP_PROJECT_ID=${GCP_PROJECT_ID}
+      - GCP_REGION=${GCP_REGION:-global}
+
+      # Display & Automation Toggles
+      - USE_XVFB=${USE_XVFB:-false}
+      - PLAYWRIGHT_HEADLESS=${PLAYWRIGHT_HEADLESS:-true}
+      - TZ=${TZ:-America/Los_Angeles}
+
+    # --- 7. Resource Hardening ---
+    # Ensures consistent benchmarking performance across different developer machines
+    deploy:
+      resources:
+        limits:
+          cpus: '4'
+          memory: 8G
+        reservations:
+          memory: 2G
+
+    # Default command (can be overridden to run specific benchmarks)
+    command: python computer_use_eval/runner.py --help
