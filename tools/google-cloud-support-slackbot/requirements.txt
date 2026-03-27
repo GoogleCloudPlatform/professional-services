@@ -1,4 +1,4 @@
-cryptography==46.0.5
+cryptography==46.0.6
 firebase==3.0.1
 firebase-admin==5.1.0
 Flask==3.1.3
