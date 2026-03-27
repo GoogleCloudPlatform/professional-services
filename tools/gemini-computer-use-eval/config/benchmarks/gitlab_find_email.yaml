@@ -1,0 +1,45 @@
+# Copyright 2026 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: "gitlab-find-email"
+description: "Login to GitLab and find a user's email address."
+
+agent:
+  model: "gemini-2.5-computer-use-preview-10-2025"
+  system_prompt: |
+    You are a precise browser automation agent.
+    Your goal is to complete the user's request on the GitLab instance.
+    
+    You have access to a computer use tool. Use it to interact with the browser.
+    
+    CREDENTIALS:
+    - Username: {{GITLAB_USERNAME}}
+    - Password: {{GITLAB_PASSWORD}}
+
+task:
+  start_url: "{{GITLAB_BASE_URL}}" # Dynamically set from env var
+  goal: |
+    1. Log in with the provided credentials.
+    2. Find the user "Byte Blaze".
+    3. Find the email address of the user "Byte Blaze".
+
+criteria:
+  assertions:
+    - type: "dom"
+      selector: "body"
+      condition: "text_contains"
+      value: "admin@example.com"
+
+domain_whitelist:
+  - "localhost" # Allow connection to your local GitLab instance

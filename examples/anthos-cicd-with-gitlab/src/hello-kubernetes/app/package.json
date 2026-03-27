@@ -11,8 +11,8 @@
   "dependencies": {
     "bytes": "^3.1.0",
     "express": "^4.22.1",
-    "express-handlebars": "^3.1.0",
-    "handlebars": "^4.7.9",
+    "express-handlebars": "^8.0.6",
+    "handlebars": "^4.7.6",
     "minimist": ">=1.2.5",
     "morgan": "^1.10.1"
   }
