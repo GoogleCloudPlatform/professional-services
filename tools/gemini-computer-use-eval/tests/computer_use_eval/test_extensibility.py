@@ -100,12 +100,8 @@ def my_config_loader(config):
                 },
             }
 
-        with (
-            patch("argparse._sys.argv", ["runner.py"] + args),
-            patch(
-                "computer_use_eval.runner.run_single_resolution", side_effect=mock_run
-            ),
-        ):
+        with patch("argparse._sys.argv", ["runner.py"] + args), \
+             patch("computer_use_eval.runner.run_single_resolution", side_effect=mock_run):
             await runner.main()
 
             assert captured_config is not None
@@ -182,23 +178,11 @@ agent:
 
             return mock_env, mock_agent, MagicMock()
 
-        with (
-            patch("argparse._sys.argv", ["runner.py"] + args),
-            patch(
-                "computer_use_eval.runner.SessionFactory.create_session",
-                side_effect=mock_create_session,
-            ),
-            patch(
-                "computer_use_eval.runner.AssertionJudge.evaluate",
-                new_callable=AsyncMock,
-            ) as mock_det,
-            patch(
-                "computer_use_eval.runner.LLMLogJudge.evaluate", new_callable=AsyncMock
-            ) as mock_log,
-            patch(
-                "computer_use_eval.runner.VideoJudge.evaluate", new_callable=AsyncMock
-            ) as mock_vid,
-        ):
+        with patch("argparse._sys.argv", ["runner.py"] + args), \
+             patch("computer_use_eval.runner.SessionFactory.create_session", side_effect=mock_create_session), \
+             patch("computer_use_eval.runner.AssertionJudge.evaluate", new_callable=AsyncMock) as mock_det, \
+             patch("computer_use_eval.runner.LLMLogJudge.evaluate", new_callable=AsyncMock) as mock_log, \
+             patch("computer_use_eval.runner.VideoJudge.evaluate", new_callable=AsyncMock) as mock_vid:
             mock_det.return_value = {"score": 1.0}
             mock_log.return_value = {}
             mock_vid.return_value = {"score": 1.0}
@@ -285,24 +269,12 @@ hooks:
             mock_agent.run_task = mock_run
             return mock_env, mock_agent, MagicMock()
 
-        with (
-            patch("argparse._sys.argv", ["runner.py"] + args),
-            patch(
-                "computer_use_eval.runner.SessionFactory.create_session",
-                side_effect=mock_create_session_hooks,
-            ),
-            patch(
-                "computer_use_eval.runner.AssertionJudge.evaluate",
-                new_callable=AsyncMock,
-            ) as mock_det,
-            patch(
-                "computer_use_eval.runner.LLMLogJudge.evaluate", new_callable=AsyncMock
-            ) as mock_log,
-            patch(
-                "computer_use_eval.runner.VideoJudge.evaluate", new_callable=AsyncMock
-            ) as mock_vid,
-            patch("computer_use_eval.runner.settings.OUTPUT_DIR", str(tmp_path)),
-        ):
+        with patch("argparse._sys.argv", ["runner.py"] + args), \
+             patch("computer_use_eval.runner.SessionFactory.create_session", side_effect=mock_create_session_hooks), \
+             patch("computer_use_eval.runner.AssertionJudge.evaluate", new_callable=AsyncMock) as mock_det, \
+             patch("computer_use_eval.runner.LLMLogJudge.evaluate", new_callable=AsyncMock) as mock_log, \
+             patch("computer_use_eval.runner.VideoJudge.evaluate", new_callable=AsyncMock) as mock_vid, \
+             patch("computer_use_eval.runner.settings.OUTPUT_DIR", str(tmp_path)):
             mock_det.return_value = {"score": 1.0}
             mock_log.return_value = {}
             mock_vid.return_value = {"score": 1.0}

@@ -108,15 +108,9 @@ def test_aggregate_results():
 
 def test_log_to_tsv(tmp_path):
     # Mock results.tsv path
-    with (
-        mock.patch(
-            "autoresearch.evaluate_task_prompt.os.path.exists", return_value=False
-        ),
-        mock.patch(
-            "autoresearch.evaluate_task_prompt.open", mock.mock_open()
-        ) as mocked_file,
-        mock.patch("autoresearch.evaluate_task_prompt.datetime") as mock_datetime,
-    ):
+    with mock.patch("autoresearch.evaluate_task_prompt.os.path.exists", return_value=False), \
+         mock.patch("autoresearch.evaluate_task_prompt.open", mock.mock_open()) as mocked_file, \
+         mock.patch("autoresearch.evaluate_task_prompt.datetime") as mock_datetime:
         mock_datetime.datetime.now.return_value.strftime.return_value = (
             "20260316_120000"
         )
@@ -162,19 +156,9 @@ async def test_run_evaluation(tmp_path):
         },
     }
 
-    with (
-        mock.patch(
-            "autoresearch.evaluate_task_prompt.run_single_resolution",
-            return_value=mock_result,
-        ),
-        mock.patch(
-            "autoresearch.evaluate_task_prompt.resolve_config_files",
-            side_effect=lambda c, d: c,
-        ),
-        mock.patch(
-            "autoresearch.evaluate_task_prompt.template_value", side_effect=lambda c: c
-        ),
-    ):
+    with mock.patch("autoresearch.evaluate_task_prompt.run_single_resolution", return_value=mock_result), \
+         mock.patch("autoresearch.evaluate_task_prompt.resolve_config_files", side_effect=lambda c, d: c), \
+         mock.patch("autoresearch.evaluate_task_prompt.template_value", side_effect=lambda c: c):
         # We need to mock os.makedirs to prevent directory creation
         with mock.patch("os.makedirs"):
             result = await run_evaluation(str(bench_file), num_runs=2)

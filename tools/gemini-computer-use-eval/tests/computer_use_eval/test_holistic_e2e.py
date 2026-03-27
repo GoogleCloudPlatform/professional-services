@@ -39,11 +39,9 @@ def mock_agent():
 @pytest.fixture
 def mock_judges():
     """Mocks all judge components with updated signatures."""
-    with (
-        patch("computer_use_eval.runner.AssertionJudge") as MockDetJudge,
-        patch("computer_use_eval.runner.LLMLogJudge") as MockLogJudge,
-        patch("computer_use_eval.runner.VideoJudge") as MockVideoJudge,
-    ):
+    with patch("computer_use_eval.runner.AssertionJudge") as MockDetJudge, \
+         patch("computer_use_eval.runner.LLMLogJudge") as MockLogJudge, \
+         patch("computer_use_eval.runner.VideoJudge") as MockVideoJudge:
         # Setup mocks to return results and verify multi-video paths
         MockDetJudge.return_value.evaluate = AsyncMock(return_value={"score": 1.0})
         MockLogJudge.return_value.evaluate = AsyncMock(
@@ -80,13 +78,8 @@ class TestHolisticE2E:
             "criteria": {"visual_success_criteria": "Tabs must work"},
         }
 
-        with (
-            patch(
-                "computer_use_eval.runner.SessionFactory.create_session",
-                return_value=(mock_env, mock_agent, nullcontext()),
-            ),
-            patch("os.path.exists", return_value=True),
-        ):
+        with patch("computer_use_eval.runner.SessionFactory.create_session", return_value=(mock_env, mock_agent, nullcontext())), \
+             patch("os.path.exists", return_value=True):
             # Run the runner logic
             await runner.run_single_resolution(
                 1440, 900, config, "test_e2e_run", "/tmp"

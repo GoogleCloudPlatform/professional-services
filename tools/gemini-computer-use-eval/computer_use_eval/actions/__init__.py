@@ -1,24 +1,43 @@
 # Copyright 2026 Google LLC
 #
-# This software is provided as-is, without warranty or representation for any use or purpose.
-# Your use of it is subject to your agreement with Google.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
-from .base import BaseAction as BaseAction, ActionExecutor as ActionExecutor
-from .mouse import (
-    ClickAction as ClickAction,
-    HoverAction as HoverAction,
-    DragAndDropAction as DragAndDropAction,
-)
-from .keyboard import (
-    TypeAction as TypeAction,
-    KeyCombinationAction as KeyCombinationAction,
-)
+from .base import BaseAction, ActionExecutor
+from .mouse import ClickAction, HoverAction, DragAndDropAction
+from .keyboard import TypeAction, KeyCombinationAction
 from .navigation import (
-    NavigateAction as NavigateAction,
-    GoBackAction as GoBackAction,
-    GoForwardAction as GoForwardAction,
-    ScrollAction as ScrollAction,
-    ScrollAtAction as ScrollAtAction,
-    OpenBrowserAction as OpenBrowserAction,
-    WaitAction as WaitAction,
+    NavigateAction,
+    GoBackAction,
+    GoForwardAction,
+    ScrollAction,
+    ScrollAtAction,
+    OpenBrowserAction,
+    WaitAction,
 )
+
+__all__ = [
+    "BaseAction",
+    "ActionExecutor",
+    "ClickAction",
+    "HoverAction",
+    "DragAndDropAction",
+    "TypeAction",
+    "KeyCombinationAction",
+    "NavigateAction",
+    "GoBackAction",
+    "GoForwardAction",
+    "ScrollAction",
+    "ScrollAtAction",
+    "OpenBrowserAction",
+    "WaitAction",
+]

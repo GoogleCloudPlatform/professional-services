@@ -18,7 +18,7 @@ set -e
 
 # Load .env file to find the bucket name
 if [ -f .env ]; then
-  export $(grep -v '^#' .env | xargs)
+  export "$(grep -v '^#' .env | xargs)"
 fi
 
 BUCKET_NAME="${1:-$GCP_GCS_BUCKET}"

@@ -72,13 +72,9 @@ class TestMultiTabSupport:
         judge = VideoJudge(mock_client)
 
         # Mock dependencies
-        with (
-            patch("os.path.exists", return_value=True),
-            patch.object(
-                VideoJudge, "_compress_video", side_effect=lambda x: x + "_compressed"
-            ),
-            patch("asyncio.sleep", new_callable=AsyncMock),
-        ):
+        with patch("os.path.exists", return_value=True), \
+             patch.object(VideoJudge, "_compress_video", side_effect=lambda x: x + "_compressed"), \
+             patch("asyncio.sleep", new_callable=AsyncMock):
             # Setup mock for API Studio path (settings.API_KEY mock)
             from computer_use_eval.config import settings
 

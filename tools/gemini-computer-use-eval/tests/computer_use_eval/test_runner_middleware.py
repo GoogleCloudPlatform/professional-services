@@ -25,12 +25,7 @@ async def test_runner_passes_config_to_agent():
         )
     )
 
-    with (
-        patch(
-            "computer_use_eval.runner.SessionFactory.create_session",
-            return_value=(mock_env, mock_agent, nullcontext()),
-        ) as mock_factory,
-    ):
+    with patch("computer_use_eval.runner.SessionFactory.create_session", return_value=(mock_env, mock_agent, nullcontext())) as mock_factory:
         config = {
             "task": {"goal": "test"},
             "agent": {"context": {"reflection_strategy": "DOM_SEARCH"}},

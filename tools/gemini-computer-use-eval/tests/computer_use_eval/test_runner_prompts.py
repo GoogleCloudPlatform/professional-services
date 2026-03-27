@@ -18,12 +18,10 @@ async def test_runner_uses_default_prompt_when_none_provided():
         "task": {"goal": "Do something"},
     }
 
-    with (
-        patch("computer_use_eval.core.session_factory.PlaywrightEnv"),
-        patch("computer_use_eval.core.session_factory.GeminiAgent") as mock_agent_cls,
-        patch("computer_use_eval.core.session_factory.genai.Client"),
-        patch("computer_use_eval.core.session_factory.ContextPipelineFactory"),
-    ):
+    with patch("computer_use_eval.core.session_factory.PlaywrightEnv"), \
+         patch("computer_use_eval.core.session_factory.GeminiAgent") as mock_agent_cls, \
+         patch("computer_use_eval.core.session_factory.genai.Client"), \
+         patch("computer_use_eval.core.session_factory.ContextPipelineFactory"):
         mock_agent_instance = AsyncMock()
         mock_agent_cls.return_value = mock_agent_instance
 
@@ -45,12 +43,10 @@ async def test_runner_respects_full_override():
     custom = "You are a custom agent."
     config = {"agent": {"system_prompt": custom}, "task": {"goal": "Do something"}}
 
-    with (
-        patch("computer_use_eval.core.session_factory.PlaywrightEnv"),
-        patch("computer_use_eval.core.session_factory.GeminiAgent") as mock_agent_cls,
-        patch("computer_use_eval.core.session_factory.genai.Client"),
-        patch("computer_use_eval.core.session_factory.ContextPipelineFactory"),
-    ):
+    with patch("computer_use_eval.core.session_factory.PlaywrightEnv"), \
+         patch("computer_use_eval.core.session_factory.GeminiAgent") as mock_agent_cls, \
+         patch("computer_use_eval.core.session_factory.genai.Client"), \
+         patch("computer_use_eval.core.session_factory.ContextPipelineFactory"):
         mock_agent_instance = AsyncMock()
         mock_agent_cls.return_value = mock_agent_instance
 
@@ -73,12 +69,10 @@ async def test_runner_supports_extension_substitution():
     custom = "PREAMBLE\n\n{{DEFAULT}}\n\nPOSTSCRIPT"
     config = {"agent": {"system_prompt": custom}, "task": {"goal": "Do something"}}
 
-    with (
-        patch("computer_use_eval.core.session_factory.PlaywrightEnv"),
-        patch("computer_use_eval.core.session_factory.GeminiAgent") as mock_agent_cls,
-        patch("computer_use_eval.core.session_factory.genai.Client"),
-        patch("computer_use_eval.core.session_factory.ContextPipelineFactory"),
-    ):
+    with patch("computer_use_eval.core.session_factory.PlaywrightEnv"), \
+         patch("computer_use_eval.core.session_factory.GeminiAgent") as mock_agent_cls, \
+         patch("computer_use_eval.core.session_factory.genai.Client"), \
+         patch("computer_use_eval.core.session_factory.ContextPipelineFactory"):
         mock_agent_instance = AsyncMock()
         mock_agent_cls.return_value = mock_agent_instance
 

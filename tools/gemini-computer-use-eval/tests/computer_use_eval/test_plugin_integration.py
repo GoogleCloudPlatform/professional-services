@@ -18,11 +18,9 @@ async def test_plugin_integration_runner():
         "task": {"goal": "test"},
     }
 
-    with (
-        patch("computer_use_eval.runner.SessionFactory.create_session") as mock_factory,
-        patch("computer_use_eval.runner.AssertionJudge"),
-        patch("computer_use_eval.runner.LLMLogJudge"),
-    ):
+    with patch("computer_use_eval.runner.SessionFactory.create_session") as mock_factory, \
+         patch("computer_use_eval.runner.AssertionJudge"), \
+         patch("computer_use_eval.runner.LLMLogJudge"):
         mock_env = AsyncMock()
         mock_agent_instance = AsyncMock()
         mock_factory.return_value = (mock_env, mock_agent_instance, MagicMock())

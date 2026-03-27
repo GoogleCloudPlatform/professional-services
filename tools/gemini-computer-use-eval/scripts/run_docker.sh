@@ -26,8 +26,10 @@ mkdir -p artifacts logs
 chmod a+rwx artifacts logs 2>/dev/null || true
 
 # 2. Capture Host Environment for Docker Compose mapping
-export USER_ID=$(id -u)
-export GROUP_ID=$(id -g)
+USER_ID=$(id -u)
+export USER_ID
+GROUP_ID=$(id -g)
+export GROUP_ID
 export TZ=${TZ:-UTC}
 export PYTHONPATH=/app
 

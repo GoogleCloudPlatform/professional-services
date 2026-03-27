@@ -22,13 +22,9 @@ from PIL import Image
 @pytest.mark.asyncio
 async def test_perception_engine_integration():
     # patch PerceptionService and async_playwright
-    with (
-        patch.dict(os.environ, {"ENABLE_PERCEPTION_ENGINE": "true"}),
-        patch("computer_use_eval.browser.perception.ScreenBuffer") as MockBuffer,
-        patch(
-            "computer_use_eval.browser.playwright_env.async_playwright"
-        ) as MockPlaywright,
-    ):
+    with patch.dict(os.environ, {"ENABLE_PERCEPTION_ENGINE": "true"}), \
+         patch("computer_use_eval.browser.perception.ScreenBuffer") as MockBuffer, \
+         patch("computer_use_eval.browser.playwright_env.async_playwright") as MockPlaywright:
         # Setup mocks
         mock_buffer_instance = MockBuffer.return_value
         # Mock get_latest_frame to return a red image
@@ -84,13 +80,9 @@ async def test_perception_engine_integration():
 
 @pytest.mark.asyncio
 async def test_perception_engine_fallback():
-    with (
-        patch.dict(os.environ, {"ENABLE_PERCEPTION_ENGINE": "true"}),
-        patch("computer_use_eval.browser.perception.ScreenBuffer") as MockBuffer,
-        patch(
-            "computer_use_eval.browser.playwright_env.async_playwright"
-        ) as MockPlaywright,
-    ):
+    with patch.dict(os.environ, {"ENABLE_PERCEPTION_ENGINE": "true"}), \
+         patch("computer_use_eval.browser.perception.ScreenBuffer") as MockBuffer, \
+         patch("computer_use_eval.browser.playwright_env.async_playwright") as MockPlaywright:
         # Setup: Buffer returns None (failed capture)
         mock_buffer_instance = MockBuffer.return_value
         mock_buffer_instance.get_latest_frame.return_value = None

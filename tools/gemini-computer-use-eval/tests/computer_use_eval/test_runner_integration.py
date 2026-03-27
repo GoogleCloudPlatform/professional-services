@@ -33,11 +33,9 @@ def mock_agent():
 @pytest.fixture
 def mock_judges():
     """Mocks all judge components."""
-    with (
-        patch("computer_use_eval.runner.AssertionJudge") as MockDetJudge,
-        patch("computer_use_eval.runner.LLMLogJudge") as MockLogJudge,
-        patch("computer_use_eval.runner.VideoJudge") as MockVideoJudge,
-    ):
+    with patch("computer_use_eval.runner.AssertionJudge") as MockDetJudge, \
+         patch("computer_use_eval.runner.LLMLogJudge") as MockLogJudge, \
+         patch("computer_use_eval.runner.VideoJudge") as MockVideoJudge:
         # Make the evaluate methods awaitable
         MockDetJudge.return_value.evaluate = AsyncMock(return_value={"score": 1.0})
         MockLogJudge.return_value.evaluate = AsyncMock(
@@ -62,13 +60,8 @@ async def test_run_single_resolution_success(mock_env, mock_agent, mock_judges):
     """Tests a successful run of a single resolution."""
     config = {"task": {"goal": "test"}}
 
-    with (
-        patch(
-            "computer_use_eval.runner.SessionFactory.create_session",
-            return_value=(mock_env, mock_agent, nullcontext()),
-        ),
-        patch("os.path.exists", return_value=True),
-    ):
+    with patch("computer_use_eval.runner.SessionFactory.create_session", return_value=(mock_env, mock_agent, nullcontext())), \
+         patch("os.path.exists", return_value=True):
         result = await runner.run_single_resolution(1280, 720, config, "run1", "/tmp")
 
         mock_env.start.assert_awaited_once()
@@ -89,12 +82,7 @@ async def test_run_single_resolution_agent_fails(mock_env, mock_agent, mock_judg
     )
     config = {"task": {"goal": "test"}}
 
-    with (
-        patch(
-            "computer_use_eval.runner.SessionFactory.create_session",
-            return_value=(mock_env, mock_agent, nullcontext()),
-        ),
-    ):
+    with patch("computer_use_eval.runner.SessionFactory.create_session", return_value=(mock_env, mock_agent, nullcontext())):
         result = await runner.run_single_resolution(1280, 720, config, "run1", "/tmp")
 
         assert result["success"] is False
@@ -130,14 +118,10 @@ async def test_runner_external_file_resolution(tmp_path):
     benchmark_yaml.write_text(yaml.dump(config), encoding="utf-8")
 
     # 3. Mock dependencies to avoid real execution overhead
-    with (
-        patch(
-            "computer_use_eval.runner.SessionFactory.create_session"
-        ) as mock_session_factory,
-        patch("computer_use_eval.runner.AssertionJudge"),
-        patch("computer_use_eval.runner.LLMLogJudge"),
-        patch("computer_use_eval.runner.VideoJudge"),
-    ):
+    with patch("computer_use_eval.runner.SessionFactory.create_session") as mock_session_factory, \
+         patch("computer_use_eval.runner.AssertionJudge"), \
+         patch("computer_use_eval.runner.LLMLogJudge"), \
+         patch("computer_use_eval.runner.VideoJudge"):
         # Setup mocks
         mock_env = AsyncMock()
         mock_agent_instance = AsyncMock()
