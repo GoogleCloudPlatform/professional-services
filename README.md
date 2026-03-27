@@ -502,6 +502,7 @@ Platform usage.
     project to generate recommended object lifecycle management.
 *   [GCVE2BQ](tools/gcve2bq) - A tool for scheduled exports of VM, datastore and ESXi
     utilization data from vCenter to BigQuery for billing and reporting use cases.
+*   [Gemini Computer Use Evaluation Pipeline](tools/gemini-computer-use-eval) - A lightweight framework for benchmarking browser agents with multimodal visual and log judging.
 *   [GenAI-Powered Code Modification Cloud Function](tools/genai-code-mod-auto) - A deployable Google Cloud Function that, powered by the Vertex AI Gemini API, automates code modification. It reads files from GitHub, processes them with an LLM to generate new versions, and then saves those modifications back to the repositories.
 *   [GKE AutoPSC Controller](tools/gke-autopsc-controller) - Google Kubernetes Engine
     controller, to setup PSC ServiceAttachment for Gateway API managed Forwarding Rules.
