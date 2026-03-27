@@ -118,15 +118,15 @@ The pipeline evaluates agents using three methods:
 
 ### Safety Modes
 Control how the agent handles high-stakes actions:
-*   `interactive` (Default): Pauses for human confirmation.
 *   `auto_approve`: Automatically allows actions (for CI/CD).
 *   `auto_deny`: Automatically blocks actions (for safety testing).
+*   `interactive` (Default): Pauses for human confirmation.
 
 ### Metrics
 We track:
-*   **Success Rate:** Did the agent complete the task?
 *   **Autonomy Score:** Percentage of steps completed without human help.
 *   **Cost:** Input/output token usage.
+*   **Success Rate:** Did the agent complete the task?
 
 ---
 
