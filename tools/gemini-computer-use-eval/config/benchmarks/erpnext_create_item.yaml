@@ -1,0 +1,117 @@
+# Copyright 2026 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: "erpnext-create-item"
+description: "Create a new Item in ERPNext."
+
+agent:
+  model: "gemini-2.5-computer-use-preview-10-2025"
+  temperature: 0.1
+  system_prompt: |
+    You are controlling ERPNext in a Chromium browser.
+
+    CRITICAL RULES FOR TYPE-AHEAD FIELDS:
+    When interacting with a type-ahead dropdown (like "Item Group"):
+    1. Click the field.
+    2. Type the exact value (e.g., "Products").
+    3. WAIT 2-3 seconds for the suggestion list to appear below the cursor.
+    4. You MUST CLICK the matching option in the suggestion list to confirm it.
+    5. DO NOT just type and press Save; the form will remain empty if you don't click the suggestion.
+
+    NAVIGATION:
+    - If the Home page shows the onboarding card "Let's begin your journey with ERPNext",
+      prefer its actions: "Create a new Item", "Show Item List", etc.
+    - Otherwise, use the left sidebar or global search (Ctrl+G) to open doctypes.
+
+    GENERAL RULES:
+    - Group actions in the same viewport into a single turn.
+    - For dropdowns: open, then click the exact value.
+    - For tables/grids: add a row, then fill columns left-to-right.
+    - Never upload files or change site settings.
+    - Pause if a confirmation dialog appears.
+
+    CREDENTIALS:
+    - Username: {{ERP_USERNAME}}
+    - Password: {{ERP_PASSWORD}}
+
+task:
+  start_url: "{{ERP_BASE_URL}}"
+  goal: |
+    TASK: Create a new Item in ERPNext
+
+    NAVIGATION (choose one):
+    - If you see the onboarding card "Let's begin your journey with ERPNext",
+      click "Create a new Item" or "Show Item List".
+    - Otherwise: Click the Search bar (or press Ctrl+G), type "Item List" slowly,
+      wait for the dropdown, and click specifically on "Item List" (under "Lists").
+      Do NOT click "Item-wise Price List Rate".
+
+    FORM ENTRY:
+    - Click the "Add Item" button (top right).
+    - Item Code: test-item-{{UNIQUE_ID}}
+    - Item Group:
+      1. Click the field
+      2. Type "Products"
+      3. WAIT 2-3 seconds for suggestions to appear
+      4. CLICK on "Products" in the suggestion dropdown
+    - Stock UOM: Leave the default option.
+
+    SAVE & VERIFY:
+    - Click Save.
+    - Wait 5 seconds for the system to process.
+    - Verify success: look for either:
+      - A "Saved" notification/toast message, OR
+      - The green "Enabled" status indicator at the top of the item page
+
+criteria:
+  assertions:
+    - type: "url"
+      condition: "matches_regex"
+      value: ".*app/item.*"
+    - type: "script"
+      code: |
+        (() => {
+          const targetName = "test-item-{{UNIQUE_ID}}";
+
+          // Case 1: We are on the Item Detail Page
+          const title = document.querySelector(".title-text")?.innerText?.trim();
+          if (title === targetName) {
+            // Check for green "Enabled" indicator
+            const indicator = document.querySelector(".indicator-pill.green");
+            if (indicator && indicator.innerText?.includes("Enabled")) {
+              return true;
+            }
+            // Fallback: Check for any success indicator in page header
+            const pageIndicator = document.querySelector(".page-head .indicator-pill");
+            if (pageIndicator && pageIndicator.innerText?.includes("Enabled")) {
+              return true;
+            }
+          }
+
+          // Case 2: We are on the Item List View
+          const rows = Array.from(document.querySelectorAll(".list-row, .list-row-container, .grid-row, [data-name]"));
+          const targetRow = rows.find(r => r.innerText?.includes(targetName));
+          if (targetRow) {
+            return targetRow.innerText?.includes("Enabled");
+          }
+
+          // Case 3: Fallback - Check if item exists anywhere on page with enabled status
+          const pageText = document.body.innerText || "";
+          return pageText.includes(targetName) && pageText.includes("Enabled");
+        })()
+
+
+
+domain_whitelist:
+  - "{{ERP_BASE_URL}}"
