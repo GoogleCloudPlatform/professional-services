@@ -20,15 +20,15 @@ class LogJudgeResult(BaseModel):
     summary: str = Field(..., description="1-sentence summary.")
     score: float = Field(
         ...,
-        description="0.0 if the task failed or got stuck, 1.0 if the task was successfully completed.",
+        description=
+        "0.0 if the task failed or got stuck, 1.0 if the task was successfully completed.",
     )
-    fail_why: str = Field(..., description="Root cause analysis (RCA) or 'None'.")
-    errors: List[str] = Field(
-        default_factory=list, description="Specific errors found."
-    )
+    fail_why: str = Field(...,
+                          description="Root cause analysis (RCA) or 'None'.")
+    errors: List[str] = Field(default_factory=list,
+                              description="Specific errors found.")
     fix_prompt: str = Field(
-        ..., description="Actionable suggestions for System Prompt."
-    )
+        ..., description="Actionable suggestions for System Prompt.")
 
 
 class VideoJudgeResult(BaseModel):
@@ -36,16 +36,17 @@ class VideoJudgeResult(BaseModel):
     score: float = Field(..., description="0.0-1.0")
     reasoning: str = Field(..., description="Explanation.")
     ux: str = Field(..., description="UX critique.")
-    fail_cat: Literal["None", "Nav", "Form", "Visual", "Loop", "Sys"] = Field(
-        ..., description="Failure category."
-    )
+    fail_cat: Literal["None", "Nav", "Form", "Visual", "Loop",
+                      "Sys"] = Field(..., description="Failure category.")
 
 
 class BaseJudge(ABC):
+
     @abstractmethod
-    async def evaluate(
-        self, env: PlaywrightEnv, criteria: Any, video_paths: list[str] = None
-    ) -> Dict[str, Any]:
+    async def evaluate(self,
+                       env: PlaywrightEnv,
+                       criteria: Any,
+                       video_paths: list[str] = None) -> Dict[str, Any]:
         pass
 
 
@@ -101,11 +102,13 @@ class AssertionJudge(BaseJudge):
                     result, msg = await handler(env, assertion)
 
                 status = "PASS" if result else "FAIL"
-                reasoning.append(f"[{status}] Assertion {i + 1} ({atype}): {msg}")
+                reasoning.append(
+                    f"[{status}] Assertion {i + 1} ({atype}): {msg}")
                 if result:
                     passed_count += 1
             except Exception as e:
-                reasoning.append(f"[ERROR] Assertion {i + 1} ({atype}): {str(e)}")
+                reasoning.append(
+                    f"[ERROR] Assertion {i + 1} ({atype}): {str(e)}")
 
         final_score = passed_count / total_count if total_count > 0 else 0.0
 
@@ -115,7 +118,8 @@ class AssertionJudge(BaseJudge):
             "details": criteria,
         }
 
-    async def _check_url(self, env: PlaywrightEnv, assertion: Dict) -> tuple[bool, str]:
+    async def _check_url(self, env: PlaywrightEnv,
+                         assertion: Dict) -> tuple[bool, str]:
         current_url = env.page.url
         condition = assertion.get("condition", "matches_regex")
         value = assertion.get("value", "")
@@ -132,7 +136,8 @@ class AssertionJudge(BaseJudge):
 
         return False, f"Unknown URL condition: {condition}"
 
-    async def _check_dom(self, env: PlaywrightEnv, assertion: Dict) -> tuple[bool, str]:
+    async def _check_dom(self, env: PlaywrightEnv,
+                         assertion: Dict) -> tuple[bool, str]:
         selector = assertion.get("selector")
         condition = assertion.get("condition", "exists")
         value = assertion.get("value")
@@ -143,11 +148,8 @@ class AssertionJudge(BaseJudge):
         exists = await env.page.locator(selector).count() > 0
 
         if condition == "exists":
-            return (
-                (exists, f"Element '{selector}' found")
-                if exists
-                else (False, f"Element '{selector}' not found")
-            )
+            return ((exists, f"Element '{selector}' found") if exists else
+                    (False, f"Element '{selector}' not found"))
 
         if not exists:
             return (
@@ -163,9 +165,8 @@ class AssertionJudge(BaseJudge):
 
         return False, f"Unknown DOM condition: {condition}"
 
-    async def _check_script(
-        self, env: PlaywrightEnv, assertion: Dict
-    ) -> tuple[bool, str]:
+    async def _check_script(self, env: PlaywrightEnv,
+                            assertion: Dict) -> tuple[bool, str]:
         code = assertion.get("code")
         result = await env.get_js_state(code)
         if result is True:
@@ -193,13 +194,15 @@ class LLMLogJudge(BaseJudge):
         video_paths: list[str] = None,
     ) -> Dict[str, Any]:
         if not history:
-            return {"fail_why": "No history provided for analysis.", "errors": []}
+            return {
+                "fail_why": "No history provided for analysis.",
+                "errors": []
+            }
 
         # Format history
         trace_text = self._format_history(history)
-        termination_reason = (
-            metadata.get("termination_reason", "Unknown") if metadata else "Unknown"
-        )
+        termination_reason = (metadata.get("termination_reason", "Unknown")
+                              if metadata else "Unknown")
         task_goal = criteria.get("task_goal", "Unknown Task")
 
         if settings.USE_VERTEX_EVAL:
@@ -207,14 +210,14 @@ class LLMLogJudge(BaseJudge):
                 from computer_use_eval.evaluation.vertex_eval import VertexLogJudge
 
                 v_judge = VertexLogJudge()
-                return await v_judge.evaluate(trace_text, task_goal, termination_reason)
+                return await v_judge.evaluate(trace_text, task_goal,
+                                              termination_reason)
             except Exception as e:
                 logger.error(f"Failed to load Vertex Eval Judge: {e}")
                 return {"error": f"Failed to load Vertex Eval Judge: {str(e)}"}
         else:
-            return await self._evaluate_custom(
-                trace_text, task_goal, termination_reason
-            )
+            return await self._evaluate_custom(trace_text, task_goal,
+                                               termination_reason)
 
     def _format_history(self, history: list) -> str:
         trace_text = ""
@@ -234,9 +237,8 @@ class LLMLogJudge(BaseJudge):
             trace_text += f"Turn {i + 1} ({role}): {text_content}\n"
         return trace_text
 
-    async def _evaluate_custom(
-        self, trace_text: str, task_goal: str, termination_reason: str
-    ) -> Dict[str, Any]:
+    async def _evaluate_custom(self, trace_text: str, task_goal: str,
+                               termination_reason: str) -> Dict[str, Any]:
         prompt = f"""
         You are a Principal Systems Architect auditing an Autonomous Agent's execution trace.
         
@@ -314,7 +316,8 @@ class VideoJudge(BaseJudge):
         bucket = storage_client.bucket(bucket_name)
         blob = bucket.blob(blob_name)
 
-        logger.info(f"Uploading {local_path} to gs://{bucket_name}/{blob_name}...")
+        logger.info(
+            f"Uploading {local_path} to gs://{bucket_name}/{blob_name}...")
         blob.upload_from_filename(local_path)
 
         return f"gs://{bucket_name}/{blob_name}"
@@ -364,9 +367,10 @@ class VideoJudge(BaseJudge):
         try:
             logger.info(f"Compressing video: {input_path} -> {output_path}")
             # Run quietly
-            subprocess.run(
-                cmd, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
-            )
+            subprocess.run(cmd,
+                           check=True,
+                           stdout=subprocess.DEVNULL,
+                           stderr=subprocess.DEVNULL)
             return output_path
         except subprocess.CalledProcessError as e:
             logger.error(f"ffmpeg compression failed: {e}")
@@ -397,8 +401,7 @@ class VideoJudge(BaseJudge):
                 continue
 
             processed_video_path = await asyncio.to_thread(
-                self._compress_video, video_path
-            )
+                self._compress_video, video_path)
             logger.info(
                 f"Uploading video part {i + 1}/{len(video_paths)}: {processed_video_path}"
             )
@@ -406,24 +409,22 @@ class VideoJudge(BaseJudge):
             try:
                 # Path A: AI Studio
                 if settings.API_KEY:
-                    file = await asyncio.to_thread(
-                        self.client.files.upload, file=processed_video_path
-                    )
+                    file = await asyncio.to_thread(self.client.files.upload,
+                                                   file=processed_video_path)
                     while file.state.name == "PROCESSING":
                         await asyncio.sleep(2)
-                        file = await asyncio.to_thread(
-                            self.client.files.get, name=file.name
-                        )
+                        file = await asyncio.to_thread(self.client.files.get,
+                                                       name=file.name)
                     content_parts.append(file)
 
                 # Path B: Vertex AI
                 elif settings.GCS_BUCKET:
-                    gcs_uri = await asyncio.to_thread(
-                        self._upload_to_gcs, processed_video_path, settings.GCS_BUCKET
-                    )
+                    gcs_uri = await asyncio.to_thread(self._upload_to_gcs,
+                                                      processed_video_path,
+                                                      settings.GCS_BUCKET)
                     content_parts.append(
-                        types.Part.from_uri(file_uri=gcs_uri, mime_type="video/webm")
-                    )
+                        types.Part.from_uri(file_uri=gcs_uri,
+                                            mime_type="video/webm"))
 
                 # Path C: Fallback to Inline Bytes (Vertex without GCS bucket)
                 else:
@@ -433,8 +434,8 @@ class VideoJudge(BaseJudge):
                     with open(processed_video_path, "rb") as f:
                         video_bytes = f.read()
                     content_parts.append(
-                        types.Part.from_bytes(data=video_bytes, mime_type="video/webm")
-                    )
+                        types.Part.from_bytes(data=video_bytes,
+                                              mime_type="video/webm"))
 
             except Exception as e:
                 logger.error(f"Failed to upload video {video_path}: {e}")
@@ -481,11 +482,8 @@ class VideoJudge(BaseJudge):
                         self.client.files.delete(name=part.name)
 
             if response.parsed:
-                return (
-                    response.parsed.model_dump()
-                    if isinstance(response.parsed, VideoJudgeResult)
-                    else response.parsed
-                )
+                return (response.parsed.model_dump() if isinstance(
+                    response.parsed, VideoJudgeResult) else response.parsed)
 
             import json
 

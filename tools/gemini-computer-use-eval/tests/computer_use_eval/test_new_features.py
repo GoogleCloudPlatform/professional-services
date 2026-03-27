@@ -69,7 +69,8 @@ async def test_summarization_with_real_metadata():
     mock_client = MagicMock()
     mock_response = MagicMock()
     mock_response.text = "Summary text"
-    mock_client.aio.models.generate_content = AsyncMock(return_value=mock_response)
+    mock_client.aio.models.generate_content = AsyncMock(
+        return_value=mock_response)
 
     # Threshold = 1000
     strategy = SummarizationStrategy(client=mock_client, token_threshold=1000)
@@ -92,9 +93,11 @@ async def test_summarization_with_real_metadata():
     # Let's add more turns to force a middle.
     history = [
         types.Content(role="user", parts=[types.Part(text="Goal")]),  # 0
-        types.Content(role="user", parts=[types.Part(text="Middle")]),  # 1 (Root)
+        types.Content(role="user",
+                      parts=[types.Part(text="Middle")]),  # 1 (Root)
         types.Content(role="model", parts=[types.Part(text="Action")]),  # 2
-        types.Content(role="user", parts=[types.Part(text="Final")]),  # 3 (Root)
+        types.Content(role="user",
+                      parts=[types.Part(text="Final")]),  # 3 (Root)
     ]
     # keep_tail=1. ideal=3. history[3] is root. target=3.
     # middle = history[1:3] = [1, 2].
@@ -116,6 +119,7 @@ async def test_summarization_with_real_metadata():
     ]
     metadata_low = {"last_input_tokens": 500}
 
-    not_summarized = await strategy.apply_with_metadata(history_long, metadata_low)
+    not_summarized = await strategy.apply_with_metadata(history_long,
+                                                        metadata_low)
     assert not_summarized == history_long
     mock_client.aio.models.generate_content.assert_not_called()

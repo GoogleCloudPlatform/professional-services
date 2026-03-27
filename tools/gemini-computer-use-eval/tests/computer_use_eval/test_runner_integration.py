@@ -24,9 +24,11 @@ def mock_env():
 def mock_agent():
     """Provides a mock GeminiAgent."""
     agent = AsyncMock()
-    agent.run_task.return_value = AgentResult(
-        success=True, steps=1, retries=0, history=[], metadata={}
-    )
+    agent.run_task.return_value = AgentResult(success=True,
+                                              steps=1,
+                                              retries=0,
+                                              history=[],
+                                              metadata={})
     return agent
 
 
@@ -37,16 +39,17 @@ def mock_judges():
          patch("computer_use_eval.runner.LLMLogJudge") as MockLogJudge, \
          patch("computer_use_eval.runner.VideoJudge") as MockVideoJudge:
         # Make the evaluate methods awaitable
-        MockDetJudge.return_value.evaluate = AsyncMock(return_value={"score": 1.0})
+        MockDetJudge.return_value.evaluate = AsyncMock(
+            return_value={"score": 1.0})
         MockLogJudge.return_value.evaluate = AsyncMock(
             return_value={
                 "summary": "Test Summary",
                 "fail_why": "None",
                 "errors": [],
                 "fix_prompt": "None",
-            }
-        )
-        MockVideoJudge.return_value.evaluate = AsyncMock(return_value={"score": 1.0})
+            })
+        MockVideoJudge.return_value.evaluate = AsyncMock(
+            return_value={"score": 1.0})
 
         yield {
             "det": MockDetJudge.return_value,
@@ -62,7 +65,8 @@ async def test_run_single_resolution_success(mock_env, mock_agent, mock_judges):
 
     with patch("computer_use_eval.runner.SessionFactory.create_session", return_value=(mock_env, mock_agent, nullcontext())), \
          patch("os.path.exists", return_value=True):
-        result = await runner.run_single_resolution(1280, 720, config, "run1", "/tmp")
+        result = await runner.run_single_resolution(1280, 720, config, "run1",
+                                                    "/tmp")
 
         mock_env.start.assert_awaited_once()
         mock_agent.run_task.assert_awaited_once()
@@ -74,16 +78,21 @@ async def test_run_single_resolution_success(mock_env, mock_agent, mock_judges):
 
 
 @pytest.mark.asyncio
-async def test_run_single_resolution_agent_fails(mock_env, mock_agent, mock_judges):
+async def test_run_single_resolution_agent_fails(mock_env, mock_agent,
+                                                 mock_judges):
     """Tests a run where the agent fails."""
     # Correctly set the metadata in the AgentResult
-    mock_agent.run_task.return_value = AgentResult(
-        success=False, steps=1, retries=0, history=[], metadata={"error": "failed"}
-    )
+    mock_agent.run_task.return_value = AgentResult(success=False,
+                                                   steps=1,
+                                                   retries=0,
+                                                   history=[],
+                                                   metadata={"error": "failed"})
     config = {"task": {"goal": "test"}}
 
-    with patch("computer_use_eval.runner.SessionFactory.create_session", return_value=(mock_env, mock_agent, nullcontext())):
-        result = await runner.run_single_resolution(1280, 720, config, "run1", "/tmp")
+    with patch("computer_use_eval.runner.SessionFactory.create_session",
+               return_value=(mock_env, mock_agent, nullcontext())):
+        result = await runner.run_single_resolution(1280, 720, config, "run1",
+                                                    "/tmp")
 
         assert result["success"] is False
         # Correctly check for the error key in the metadata
@@ -109,8 +118,13 @@ async def test_runner_external_file_resolution(tmp_path):
             "system_prompt_file": "system.md",
             "max_steps": 1,
         },
-        "task": {"start_url": "about:blank", "goal": "Do nothing"},
-        "environment": {"headless": True},
+        "task": {
+            "start_url": "about:blank",
+            "goal": "Do nothing"
+        },
+        "environment": {
+            "headless": True
+        },
     }
 
     import yaml
@@ -125,11 +139,8 @@ async def test_runner_external_file_resolution(tmp_path):
         # Setup mocks
         mock_env = AsyncMock()
         mock_agent_instance = AsyncMock()
-        mock_agent_instance.run_task = AsyncMock(
-            return_value=MagicMock(
-                success=True, history=[], metadata={}, steps=1, retries=0
-            )
-        )
+        mock_agent_instance.run_task = AsyncMock(return_value=MagicMock(
+            success=True, history=[], metadata={}, steps=1, retries=0))
         mock_agent_instance.client = MagicMock()  # For Judge init
 
         mock_session_factory.return_value = (
@@ -148,7 +159,8 @@ async def test_runner_external_file_resolution(tmp_path):
         resolved_config = resolve_config_files(loaded_config, str(tmp_path))
 
         # Assert resolution happened correctly
-        assert resolved_config["agent"]["system_prompt"] == "EXTERNALLY LOADED PROMPT"
+        assert resolved_config["agent"][
+            "system_prompt"] == "EXTERNALLY LOADED PROMPT"
         assert "system_prompt_file" not in resolved_config["agent"]
 
         # Now pass this resolved config to the runner to ensure it doesn't crash
@@ -166,4 +178,5 @@ async def test_runner_external_file_resolution(tmp_path):
         # Verify the config passed to factory contains the prompt
         call_args = mock_session_factory.call_args[0]
         passed_config = call_args[1]
-        assert passed_config["agent"]["system_prompt"] == "EXTERNALLY LOADED PROMPT"
+        assert passed_config["agent"][
+            "system_prompt"] == "EXTERNALLY LOADED PROMPT"

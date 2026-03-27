@@ -35,26 +35,26 @@ async def test_agent_telemetry_captures_granular_timings():
     mock_response.candidates = [mock_candidate]
 
     # Mock _predict to return response
-    mock_client.aio.models.generate_content = AsyncMock(return_value=mock_response)
+    mock_client.aio.models.generate_content = AsyncMock(
+        return_value=mock_response)
 
     # Mock ToolExecutor
-    with patch("computer_use_eval.core.gemini_agent.ToolExecutor") as MockExecutor:
+    with patch(
+            "computer_use_eval.core.gemini_agent.ToolExecutor") as MockExecutor:
         mock_executor_instance = MagicMock()
         from computer_use_eval.core.base import ActionExecutionResult
 
-        mock_executor_instance.execute_bundle = AsyncMock(
-            return_value=(
-                [
-                    ActionExecutionResult(
-                        action_id="mock_id_123",
-                        action_name="click_at",
-                        result_data={"status": "success"},
-                        safety_acknowledged=False,
-                    )
-                ],
-                0.05,
-            )
-        )
+        mock_executor_instance.execute_bundle = AsyncMock(return_value=(
+            [
+                ActionExecutionResult(
+                    action_id="mock_id_123",
+                    action_name="click_at",
+                    result_data={"status": "success"},
+                    safety_acknowledged=False,
+                )
+            ],
+            0.05,
+        ))
 
         mock_inner = MagicMock()
         mock_inner.is_terminal.return_value = False

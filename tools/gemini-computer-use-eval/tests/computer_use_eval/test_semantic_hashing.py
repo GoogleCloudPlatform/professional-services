@@ -13,8 +13,7 @@
 # limitations under the License.
 
 from computer_use_eval.core.middleware.stalemate_detection import (
-    StalemateDetectionMiddleware,
-)
+    StalemateDetectionMiddleware,)
 from unittest.mock import MagicMock
 
 

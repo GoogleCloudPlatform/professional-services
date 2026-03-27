@@ -28,8 +28,8 @@ class MotionDetector:
 
     @staticmethod
     def calculate_diff(
-        img1: Image.Image, img2: Image.Image, size: tuple[int, int] = (64, 64)
-    ) -> float:
+        img1: Image.Image, img2: Image.Image,
+        size: tuple[int, int] = (64, 64)) -> float:
         """
         Calculates a normalized difference score (0.0 to 1.0) between two images.
 
@@ -127,9 +127,11 @@ class ScreenBuffer:
                 return
 
             self.running = True
-            self._thread = threading.Thread(target=self._capture_loop, daemon=True)
+            self._thread = threading.Thread(target=self._capture_loop,
+                                            daemon=True)
             self._thread.start()
-            self.logger.info(f"ScreenBuffer started at {self.capture_rate} FPS.")
+            self.logger.info(
+                f"ScreenBuffer started at {self.capture_rate} FPS.")
 
     def stop(self) -> None:
         """
@@ -154,7 +156,8 @@ class ScreenBuffer:
             # mss.monitors[0] is a virtual monitor that combines all screens.
             # mss.monitors[1] is the first physical monitor (primary).
             # We default to the primary monitor, falling back to 'all' if 1 is unavailable.
-            monitor = sct.monitors[1] if len(sct.monitors) > 1 else sct.monitors[0]
+            monitor = sct.monitors[1] if len(
+                sct.monitors) > 1 else sct.monitors[0]
 
             while self.running:
                 start_time = time.time()
@@ -172,9 +175,8 @@ class ScreenBuffer:
                     # - "raw": The decoder to use.
                     # - "BGRX": The input mode. 'BGR' matches the byte order, and 'X'
                     #           tells PIL to ignore the 4th Alpha byte.
-                    img = Image.frombytes(
-                        "RGB", sct_img.size, sct_img.bgra, "raw", "BGRX"
-                    )
+                    img = Image.frombytes("RGB", sct_img.size, sct_img.bgra,
+                                          "raw", "BGRX")
 
                     # 3. Store in Buffer
                     # We lock to ensure atomic updates, preventing the main thread
@@ -195,9 +197,9 @@ class ScreenBuffer:
                 if elapsed < target_interval:
                     time.sleep(target_interval - elapsed)
 
-    def get_latest_frame(
-        self, wait_for_stability: bool = False, timeout: float = 2.0
-    ) -> Optional[Image.Image]:
+    def get_latest_frame(self,
+                         wait_for_stability: bool = False,
+                         timeout: float = 2.0) -> Optional[Image.Image]:
         """
         Retrieves the most recent frame from the buffer.
 

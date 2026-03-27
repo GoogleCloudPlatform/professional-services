@@ -27,7 +27,10 @@ def template_value(value: typing.Any) -> typing.Any:
 
             template = Template(value)
             # Pass os.environ as 'env' namespace and preserve {{DEFAULT}} tag
-            render_kwargs = {**os.environ, "env": os.environ, "DEFAULT": "{{DEFAULT}}"}
+            render_kwargs = {
+                **os.environ, "env": os.environ,
+                "DEFAULT": "{{DEFAULT}}"
+            }
             return template.render(**render_kwargs)
         except Exception as e:
             logger.warning(f"Failed to template string '{value}': {e}")
@@ -93,7 +96,8 @@ def load_custom_function(import_string: str):
         if module_name in sys.modules:
             module = sys.modules[module_name]
         else:
-            spec = importlib.util.spec_from_file_location(module_name, module_path)
+            spec = importlib.util.spec_from_file_location(
+                module_name, module_path)
             if spec is None or spec.loader is None:
                 raise ImportError(f"Could not load script: {module_path}")
 
@@ -105,7 +109,8 @@ def load_custom_function(import_string: str):
         module = importlib.import_module(module_path)
 
     if not hasattr(module, func_name):
-        raise AttributeError(f"Function '{func_name}' not found in {module_path}")
+        raise AttributeError(
+            f"Function '{func_name}' not found in {module_path}")
 
     return getattr(module, func_name)
 
@@ -123,7 +128,8 @@ def load_file_content(base_path: str, file_path: str) -> str:
         raise PermissionError("Path traversal attempt detected!")
 
     if not os.path.exists(full_path):
-        raise FileNotFoundError(f"Config referenced file not found: {full_path}")
+        raise FileNotFoundError(
+            f"Config referenced file not found: {full_path}")
 
     with open(full_path, "r", encoding="utf-8") as f:
         return f.read()
@@ -225,9 +231,10 @@ async def await_if_needed(obj):
     return obj
 
 
-def resize_image(
-    image_bytes: bytes, max_width: int, max_height: int, grayscale: bool = False
-) -> bytes:
+def resize_image(image_bytes: bytes,
+                 max_width: int,
+                 max_height: int,
+                 grayscale: bool = False) -> bytes:
     """Resizes an image and optionally converts it to grayscale to save tokens."""
     try:
         from PIL import Image

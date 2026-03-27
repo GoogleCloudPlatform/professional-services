@@ -9,7 +9,9 @@ from .base import BaseAction
 
 
 class ClickAction(BaseAction):
-    async def execute(self, env: PlaywrightEnv, args: Dict[str, Any]) -> Dict[str, Any]:
+
+    async def execute(self, env: PlaywrightEnv,
+                      args: Dict[str, Any]) -> Dict[str, Any]:
         x, y = self.denormalize(args["x"], args["y"], env)
         await self.highlight_click(env, x, y)
         await env.page.mouse.click(x, y)
@@ -26,7 +28,9 @@ class ClickAction(BaseAction):
 
 
 class DoubleClickAction(BaseAction):
-    async def execute(self, env: PlaywrightEnv, args: Dict[str, Any]) -> Dict[str, Any]:
+
+    async def execute(self, env: PlaywrightEnv,
+                      args: Dict[str, Any]) -> Dict[str, Any]:
         x, y = self.denormalize(args["x"], args["y"], env)
         await self.highlight_click(env, x, y)
         # Playwright's mouse.dblclick handles the two clicks with appropriate delay
@@ -42,20 +46,25 @@ class DoubleClickAction(BaseAction):
 
 
 class HoverAction(BaseAction):
+
     @property
     def is_passive(self) -> bool:
         return True
 
-    async def execute(self, env: PlaywrightEnv, args: Dict[str, Any]) -> Dict[str, Any]:
+    async def execute(self, env: PlaywrightEnv,
+                      args: Dict[str, Any]) -> Dict[str, Any]:
         x, y = self.denormalize(args["x"], args["y"], env)
         await env.page.mouse.move(x, y)
         return {"status": "ok"}
 
 
 class DragAndDropAction(BaseAction):
-    async def execute(self, env: PlaywrightEnv, args: Dict[str, Any]) -> Dict[str, Any]:
+
+    async def execute(self, env: PlaywrightEnv,
+                      args: Dict[str, Any]) -> Dict[str, Any]:
         sx, sy = self.denormalize(args["x"], args["y"], env)
-        dx, dy = self.denormalize(args["destination_x"], args["destination_y"], env)
+        dx, dy = self.denormalize(args["destination_x"], args["destination_y"],
+                                  env)
         await env.page.mouse.move(sx, sy)
         await env.page.mouse.down()
         # Use steps=10 to simulate a human-like drag speed, which is

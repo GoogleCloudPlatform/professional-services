@@ -2,7 +2,6 @@
 #
 # This software is provided as-is, without warranty or representation for any use or purpose.
 # Your use of it is subject to your agreement with Google.
-
 """
 System prompts and instruction templates for the Computer Use Agent.
 """
@@ -56,7 +55,6 @@ You control a Chromium browser using a 1440x900 viewport.
 - If the task is complete, output a concise final summary as a text part in the final turn.
 </format>
 """
-
 
 MICRO_REFLECTION_TEMPLATE = """
 <system_note>

@@ -11,6 +11,7 @@ logger = logging.getLogger(__name__)
 
 
 class BigQueryReporter:
+
     def __init__(self):
         self.enabled = settings.ENABLE_BIGQUERY
         self.client = None
@@ -26,8 +27,7 @@ class BigQueryReporter:
             except ImportError:
                 logger.error(
                     "google-cloud-bigquery is not installed. Install it with: "
-                    "pip install google-cloud-bigquery"
-                )
+                    "pip install google-cloud-bigquery")
                 self.enabled = False
             except Exception as e:
                 logger.error(f"Failed to initialize BigQuery client: {e}")
@@ -48,29 +48,41 @@ class BigQueryReporter:
             # Create Table Schema
             schema = [
                 self._bigquery.SchemaField("run_id", "STRING", mode="REQUIRED"),
-                self._bigquery.SchemaField("timestamp", "TIMESTAMP", mode="REQUIRED"),
-                self._bigquery.SchemaField("batch_id", "STRING", mode="NULLABLE"),
-                self._bigquery.SchemaField("benchmark", "STRING", mode="REQUIRED"),
+                self._bigquery.SchemaField("timestamp",
+                                           "TIMESTAMP",
+                                           mode="REQUIRED"),
+                self._bigquery.SchemaField("batch_id",
+                                           "STRING",
+                                           mode="NULLABLE"),
+                self._bigquery.SchemaField("benchmark",
+                                           "STRING",
+                                           mode="REQUIRED"),
                 self._bigquery.SchemaField("model", "STRING", mode="REQUIRED"),
-                self._bigquery.SchemaField(
-                    "global_success", "BOOLEAN", mode="REQUIRED"
-                ),
-                self._bigquery.SchemaField("aggregates", "JSON", mode="NULLABLE"),
-                self._bigquery.SchemaField("resolutions", "JSON", mode="NULLABLE"),
+                self._bigquery.SchemaField("global_success",
+                                           "BOOLEAN",
+                                           mode="REQUIRED"),
+                self._bigquery.SchemaField("aggregates",
+                                           "JSON",
+                                           mode="NULLABLE"),
+                self._bigquery.SchemaField("resolutions",
+                                           "JSON",
+                                           mode="NULLABLE"),
                 self._bigquery.SchemaField("config", "JSON", mode="NULLABLE"),
-                self._bigquery.SchemaField(
-                    "total_input_tokens", "INTEGER", mode="NULLABLE"
-                ),
-                self._bigquery.SchemaField(
-                    "total_output_tokens", "INTEGER", mode="NULLABLE"
-                ),
-                self._bigquery.SchemaField(
-                    "safety_trigger_count", "INTEGER", mode="NULLABLE"
-                ),
-                self._bigquery.SchemaField(
-                    "intervention_count", "INTEGER", mode="NULLABLE"
-                ),
-                self._bigquery.SchemaField("autonomy_score", "FLOAT", mode="NULLABLE"),
+                self._bigquery.SchemaField("total_input_tokens",
+                                           "INTEGER",
+                                           mode="NULLABLE"),
+                self._bigquery.SchemaField("total_output_tokens",
+                                           "INTEGER",
+                                           mode="NULLABLE"),
+                self._bigquery.SchemaField("safety_trigger_count",
+                                           "INTEGER",
+                                           mode="NULLABLE"),
+                self._bigquery.SchemaField("intervention_count",
+                                           "INTEGER",
+                                           mode="NULLABLE"),
+                self._bigquery.SchemaField("autonomy_score",
+                                           "FLOAT",
+                                           mode="NULLABLE"),
             ]
 
             table = self._bigquery.Table(self.table_id, schema=schema)
@@ -108,6 +120,7 @@ class BigQueryReporter:
             if errors:
                 logger.error(f"BigQuery insert errors: {errors}")
             else:
-                logger.info(f"Successfully exported run {row['run_id']} to BigQuery.")
+                logger.info(
+                    f"Successfully exported run {row['run_id']} to BigQuery.")
         except Exception as e:
             logger.error(f"Failed to export to BigQuery: {e}")

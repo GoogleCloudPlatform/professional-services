@@ -16,8 +16,15 @@ async def test_golden_path_execution():
     bypassing the model prediction.
     """
     golden_path = [
-        Action(name="click_at", args={"x": 10, "y": 20}),
-        Action(name="type_text_at", args={"x": 10, "y": 20, "text": "hello"}),
+        Action(name="click_at", args={
+            "x": 10,
+            "y": 20
+        }),
+        Action(name="type_text_at", args={
+            "x": 10,
+            "y": 20,
+            "text": "hello"
+        }),
     ]
 
     agent = GeminiAgent()
@@ -25,37 +32,36 @@ async def test_golden_path_execution():
     agent._predict = AsyncMock()
 
     # Mock ToolExecutor
-    with patch("computer_use_eval.core.gemini_agent.ToolExecutor") as mock_executor_cls:
+    with patch("computer_use_eval.core.gemini_agent.ToolExecutor"
+              ) as mock_executor_cls:
         from computer_use_eval.core.base import ActionExecutionResult
 
         mock_executor = MagicMock()
         mock_executor_cls.return_value = mock_executor
-        mock_executor.execute_bundle = AsyncMock(
-            side_effect=[
-                (
-                    [
-                        ActionExecutionResult(
-                            action_id="mock_id_1",
-                            action_name="click_at",
-                            result_data={"status": "ok"},
-                            safety_acknowledged=False,
-                        )
-                    ],
-                    0.05,
-                ),
-                (
-                    [
-                        ActionExecutionResult(
-                            action_id="mock_id_2",
-                            action_name="type_text_at",
-                            result_data={"status": "ok"},
-                            safety_acknowledged=False,
-                        )
-                    ],
-                    0.05,
-                ),
-            ]
-        )
+        mock_executor.execute_bundle = AsyncMock(side_effect=[
+            (
+                [
+                    ActionExecutionResult(
+                        action_id="mock_id_1",
+                        action_name="click_at",
+                        result_data={"status": "ok"},
+                        safety_acknowledged=False,
+                    )
+                ],
+                0.05,
+            ),
+            (
+                [
+                    ActionExecutionResult(
+                        action_id="mock_id_2",
+                        action_name="type_text_at",
+                        result_data={"status": "ok"},
+                        safety_acknowledged=False,
+                    )
+                ],
+                0.05,
+            ),
+        ])
         mock_inner = MagicMock()
         mock_inner.is_terminal.return_value = False
         mock_executor.executor = mock_inner

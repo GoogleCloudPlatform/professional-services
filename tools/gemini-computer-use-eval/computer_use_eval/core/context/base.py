@@ -9,22 +9,22 @@ from google.genai import types
 
 
 class ContextStrategy(ABC):
+
     @abstractmethod
     async def apply(self, history: List[types.Content]) -> List[types.Content]:
         pass
 
     async def apply_with_metadata(
-        self, history: List[types.Content], metadata: Dict[str, Any]
-    ) -> List[types.Content]:
+            self, history: List[types.Content],
+            metadata: Dict[str, Any]) -> List[types.Content]:
         """
         Optional: Allows strategies to use telemetry (e.g. token counts) to make decisions.
         Defaults to standard apply if not overridden.
         """
         return await self.apply(history)
 
-    def find_safe_tail_start(
-        self, history: List[types.Content], keep_tail: int, protected_head: int
-    ) -> int:
+    def find_safe_tail_start(self, history: List[types.Content], keep_tail: int,
+                             protected_head: int) -> int:
         """
         Calculates a safe index to start the 'Tail' section of history.
         Ensures we don't cut between a function_call and its response.
@@ -51,10 +51,8 @@ class ContextStrategy(ABC):
             # 2. Remove matching calls
             if content.role == "model" and content.parts:
                 for p in content.parts:
-                    if (
-                        p.function_call
-                        and p.function_call.name in unmatched_response_names
-                    ):
+                    if (p.function_call and
+                            p.function_call.name in unmatched_response_names):
                         unmatched_response_names.remove(p.function_call.name)
 
             # 3. If we've reached our target length AND have no hanging responses, we are safe.
@@ -64,9 +62,8 @@ class ContextStrategy(ABC):
         # Fallback to protected head if we can't find a clean break
         return protected_head
 
-    def find_safe_head_end(
-        self, history: List[types.Content], protected_head: int
-    ) -> int:
+    def find_safe_head_end(self, history: List[types.Content],
+                           protected_head: int) -> int:
         """
         Calculates a safe index to end the 'Head' section.
         Ensures we don't leave an orphaned function_call at the end of the head.
@@ -79,18 +76,12 @@ class ContextStrategy(ABC):
         # 1. Walk forward to include all function responses for calls in the head
         while index < len(history):
             current_turn = history[index - 1]
-            has_fc = (
-                any(p.function_call for p in current_turn.parts)
-                if current_turn.parts
-                else False
-            )
+            has_fc = (any(p.function_call for p in current_turn.parts)
+                      if current_turn.parts else False)
 
             next_turn = history[index]
-            has_fr = (
-                any(p.function_response for p in next_turn.parts)
-                if next_turn.parts
-                else False
-            )
+            has_fr = (any(p.function_response for p in next_turn.parts)
+                      if next_turn.parts else False)
 
             if has_fc and has_fr:
                 index += 1
@@ -103,8 +94,7 @@ class ContextStrategy(ABC):
         while index > 0:
             last_turn = history[index - 1]
             if last_turn.role == "model" and any(
-                p.function_call for p in last_turn.parts
-            ):
+                    p.function_call for p in last_turn.parts):
                 index -= 1
             else:
                 break
@@ -113,12 +103,13 @@ class ContextStrategy(ABC):
 
 
 class ContextPipeline:
+
     def __init__(self, strategies: List[ContextStrategy]):
         self.strategies = strategies
 
-    async def process(
-        self, history: List[types.Content], metadata: Dict[str, Any] = None
-    ) -> List[types.Content]:
+    async def process(self,
+                      history: List[types.Content],
+                      metadata: Dict[str, Any] = None) -> List[types.Content]:
         context = list(history)  # Create a shallow copy
         for strategy in self.strategies:
             if metadata is not None:

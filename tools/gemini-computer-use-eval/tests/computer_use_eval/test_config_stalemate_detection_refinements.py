@@ -6,8 +6,7 @@
 import pytest
 from unittest.mock import MagicMock, AsyncMock
 from computer_use_eval.core.middleware.stalemate_detection import (
-    StalemateDetectionMiddleware,
-)
+    StalemateDetectionMiddleware,)
 
 
 @pytest.fixture

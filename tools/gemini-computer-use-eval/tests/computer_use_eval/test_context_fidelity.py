@@ -28,10 +28,8 @@ def create_mock_history(num_turns: int, image_data: bytes = b"fake_png"):
         if role == "user":
             # Real image data if provided, otherwise fake
             parts.append(
-                types.Part(
-                    inline_data=types.Blob(mime_type="image/png", data=image_data)
-                )
-            )
+                types.Part(inline_data=types.Blob(mime_type="image/png",
+                                                  data=image_data)))
         history.append(types.Content(role=role, parts=parts))
     return history
 
@@ -47,16 +45,13 @@ async def test_image_strategy_aggressive():
     # keep last 2: 8, 6
     # always keep: 0, 9 (model)
     strategy = ImageContextStrategy(
-        max_images=2, retention_strategy=ImageRetentionStrategy.AGGRESSIVE
-    )
+        max_images=2, retention_strategy=ImageRetentionStrategy.AGGRESSIVE)
     result = await strategy.apply(history)
 
     turns_with_images = []
     for i, content in enumerate(result):
-        has_img = any(
-            p.inline_data and p.inline_data.mime_type == "image/png"
-            for p in content.parts
-        )
+        has_img = any(p.inline_data and p.inline_data.mime_type == "image/png"
+                      for p in content.parts)
         if has_img:
             turns_with_images.append(i)
 
@@ -80,8 +75,8 @@ async def test_image_strategy_variable_fidelity():
     # degraded: 4, 2
     # always keep: 0, 15
     strategy = ImageContextStrategy(
-        max_images=5, retention_strategy=ImageRetentionStrategy.VARIABLE_FIDELITY
-    )
+        max_images=5,
+        retention_strategy=ImageRetentionStrategy.VARIABLE_FIDELITY)
 
     # Mock _degrade_image to consistently return a 50x50 image
     def mock_degrade(image_bytes):
@@ -116,17 +111,14 @@ async def test_image_strategy_full_fidelity():
     history = create_mock_history(10)
     # FULL_FIDELITY with max_images=20
     strategy = ImageContextStrategy(
-        max_images=20, retention_strategy=ImageRetentionStrategy.FULL_FIDELITY
-    )
+        max_images=20, retention_strategy=ImageRetentionStrategy.FULL_FIDELITY)
     result = await strategy.apply(history)
 
     # Should keep ALL images as total user turns (5) < max_images (20)
     turns_with_images = []
     for i, content in enumerate(result):
-        has_img = any(
-            p.inline_data and p.inline_data.mime_type == "image/png"
-            for p in content.parts
-        )
+        has_img = any(p.inline_data and p.inline_data.mime_type == "image/png"
+                      for p in content.parts)
         if has_img:
             turns_with_images.append(i)
 

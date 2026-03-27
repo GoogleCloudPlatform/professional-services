@@ -24,16 +24,13 @@ from autoresearch.evaluate_task_prompt import (
 
 def test_calculate_reward_failure():
     # Success rate == 0% should result in 0 reward
-    assert (
-        calculate_reward(
-            success_rate=0.0,
-            avg_steps=5,
-            avg_tokens=500,
-            step_variance=0.0,
-            prompt_length=100,
-        )
-        == 0.0
-    )
+    assert (calculate_reward(
+        success_rate=0.0,
+        avg_steps=5,
+        avg_tokens=500,
+        step_variance=0.0,
+        prompt_length=100,
+    ) == 0.0)
 
     # Success rate == 0.66 should yield partial reward
     # success_score = (0.66**2) * 1000 = 435.6
@@ -112,8 +109,7 @@ def test_log_to_tsv(tmp_path):
          mock.patch("autoresearch.evaluate_task_prompt.open", mock.mock_open()) as mocked_file, \
          mock.patch("autoresearch.evaluate_task_prompt.datetime") as mock_datetime:
         mock_datetime.datetime.now.return_value.strftime.return_value = (
-            "20260316_120000"
-        )
+            "20260316_120000")
 
         aggregated = {
             "reward": 100.1,
@@ -126,11 +122,9 @@ def test_log_to_tsv(tmp_path):
 
         # Check if header and line were written
         mocked_file().write.assert_any_call(
-            "run_id\tscore\tavg_steps\tavg_tokens\tstatus\tdescription\n"
-        )
+            "run_id\tscore\tavg_steps\tavg_tokens\tstatus\tdescription\n")
         mocked_file().write.assert_any_call(
-            "20260316_120000\t100.100000\t10.0\t1000.0\tKEEP\ttest desc\n"
-        )
+            "20260316_120000\t100.100000\t10.0\t1000.0\tKEEP\ttest desc\n")
 
 
 @pytest.mark.asyncio
@@ -150,9 +144,18 @@ async def test_run_evaluation(tmp_path):
             "total_output_tokens": 100,
         },
         "judges": {
-            "assertion": {"score": 1.0, "reasoning": "passed"},
-            "visual": {"score": 1.0, "reasoning": "looks good"},
-            "trace": {"score": 1.0, "reasoning": "trace good"},
+            "assertion": {
+                "score": 1.0,
+                "reasoning": "passed"
+            },
+            "visual": {
+                "score": 1.0,
+                "reasoning": "looks good"
+            },
+            "trace": {
+                "score": 1.0,
+                "reasoning": "trace good"
+            },
         },
     }
 

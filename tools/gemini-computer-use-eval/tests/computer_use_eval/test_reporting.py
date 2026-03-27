@@ -43,7 +43,11 @@ def test_bq_reporter_enabled(mock_bigquery):
                 "timestamp": "2024-01-01T00:00:00",
                 "benchmark": "test_bench",
                 "global_success": True,
-                "aggregates": {"deterministic": 1.0, "visual": 1.0, "trace": 1.0},
+                "aggregates": {
+                    "deterministic": 1.0,
+                    "visual": 1.0,
+                    "trace": 1.0
+                },
                 "resolutions": {},
             }
             reporter.report(data)

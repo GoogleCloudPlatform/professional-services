@@ -15,8 +15,7 @@
 import pytest
 from unittest.mock import MagicMock, AsyncMock
 from computer_use_eval.core.middleware.stalemate_detection import (
-    StalemateDetectionMiddleware,
-)
+    StalemateDetectionMiddleware,)
 
 
 @pytest.fixture
@@ -57,7 +56,8 @@ async def test_stalemate_detection_consecutive_failures(mock_env):
     assert "reflection_guidance" in res1
     assert "Retry attempt 1" in res1["reflection_guidance"]
 
-    res2 = await mw.after_action(action, args, {"error": "Element not found again"})
+    res2 = await mw.after_action(action, args,
+                                 {"error": "Element not found again"})
     assert "Retry attempt 2" in res2["reflection_guidance"]
 
     res3 = await mw.after_action(action, args, {"status": "ok"})
@@ -69,9 +69,10 @@ async def test_stalemate_detection_consecutive_failures(mock_env):
 
 @pytest.mark.asyncio
 async def test_stalemate_detection_tiered_thresholds(mock_env):
-    mw = StalemateDetectionMiddleware(
-        mock_env, goal="Task Goal", strict_threshold=3, loose_threshold=10
-    )
+    mw = StalemateDetectionMiddleware(mock_env,
+                                      goal="Task Goal",
+                                      strict_threshold=3,
+                                      loose_threshold=10)
 
     for i in range(1, 3):
         res = await mw.after_action("click_at", {}, {"error": "fail"})
@@ -80,9 +81,10 @@ async def test_stalemate_detection_tiered_thresholds(mock_env):
     res = await mw.after_action("click_at", {}, {"error": "fail"})
     assert "Maximum retries (3) reached" in res["reflection_guidance"]
 
-    mw = StalemateDetectionMiddleware(
-        mock_env, goal="Task Goal", strict_threshold=3, loose_threshold=10
-    )
+    mw = StalemateDetectionMiddleware(mock_env,
+                                      goal="Task Goal",
+                                      strict_threshold=3,
+                                      loose_threshold=10)
     for i in range(1, 10):
         res = await mw.after_action("scroll_document", {}, {"error": "fail"})
         assert f"Retry attempt {i}" in res["reflection_guidance"]
@@ -112,7 +114,8 @@ async def test_stalemate_detection_action_loop_detection(mock_env):
     await mw.before_action(action, args)
     res = await mw.after_action(action, args, {"status": "ok"})
     assert "stalemate_warning" in res
-    assert "not reacted to your last 3 consecutive actions" in res["stalemate_warning"]
+    assert "not reacted to your last 3 consecutive actions" in res[
+        "stalemate_warning"]
 
 
 @pytest.mark.asyncio
@@ -135,11 +138,17 @@ async def test_stalemate_detection_cyclic_detection(mock_env):
     ]
 
     actions = [
-        ("type_text", {"text": "foo"}),  # Turn 1: ends in B
+        ("type_text", {
+            "text": "foo"
+        }),  # Turn 1: ends in B
         ("click", {}),  # Turn 2: ends in A
-        ("type_text", {"text": "bar"}),  # Turn 3: ends in B
+        ("type_text", {
+            "text": "bar"
+        }),  # Turn 3: ends in B
         ("click", {}),  # Turn 4: ends in A
-        ("type_text", {"text": "baz"}),  # Turn 5: ends in B (3rd occurrence of B)
+        ("type_text", {
+            "text": "baz"
+        }),  # Turn 5: ends in B (3rd occurrence of B)
     ]
 
     for i in range(4):
@@ -173,8 +182,7 @@ async def test_stalemate_detection_auto_inject_on_failure(mock_env):
     mw.reflection_engine.get_aria_snapshot = AsyncMock(return_value="{}")
     mw.reflection_engine.get_recent_console_logs = MagicMock(return_value="")
     mw.reflection_engine.get_context_for_failure = AsyncMock(
-        return_value="- [button] 'Mocked Element'"
-    )
+        return_value="- [button] 'Mocked Element'")
     mock_env.get_aria_snapshot = AsyncMock(return_value="{}")
 
     action = "click"
@@ -211,8 +219,7 @@ async def test_stalemate_detection_auto_inject_on_loop(mock_env):
     mw.reflection_engine.get_aria_snapshot = AsyncMock(return_value="{}")
     mw.reflection_engine.get_recent_console_logs = MagicMock(return_value="")
     mw.reflection_engine.get_context_for_loop = AsyncMock(
-        return_value="- [link] 'Smart Target'"
-    )
+        return_value="- [link] 'Smart Target'")
 
     action = "click_at"
     args = {"x": 10, "y": 10}

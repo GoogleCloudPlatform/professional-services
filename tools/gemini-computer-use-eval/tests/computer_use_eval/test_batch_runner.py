@@ -27,15 +27,14 @@ def mock_bigquery_reporter():
 
 
 @pytest.mark.asyncio
-async def test_batch_runner_main_single_benchmark(
-    mock_settings,
-):
+async def test_batch_runner_main_single_benchmark(mock_settings,):
     """Test batch_runner.run_batch with a single benchmark."""
 
-    with patch("glob.glob", return_value=["config/benchmarks/test_benchmark.yaml"]):
+    with patch("glob.glob",
+               return_value=["config/benchmarks/test_benchmark.yaml"]):
         with patch(
-            "computer_use_eval.core.batch_runner.run_benchmark_main",
-            new_callable=AsyncMock,
+                "computer_use_eval.core.batch_runner.run_benchmark_main",
+                new_callable=AsyncMock,
         ) as mock_run_main:
             await batch_runner.run_batch(patterns=["config/benchmarks/*.yaml"])
 
@@ -44,9 +43,7 @@ async def test_batch_runner_main_single_benchmark(
 
 
 @pytest.mark.asyncio
-async def test_batch_runner_main_multiple_benchmarks(
-    mock_settings,
-):
+async def test_batch_runner_main_multiple_benchmarks(mock_settings,):
     """Test batch_runner.run_batch with multiple benchmarks."""
 
     benchmark_files = [
@@ -56,8 +53,8 @@ async def test_batch_runner_main_multiple_benchmarks(
 
     with patch("glob.glob", return_value=benchmark_files):
         with patch(
-            "computer_use_eval.core.batch_runner.run_benchmark_main",
-            new_callable=AsyncMock,
+                "computer_use_eval.core.batch_runner.run_benchmark_main",
+                new_callable=AsyncMock,
         ) as mock_run_main:
             await batch_runner.run_batch(patterns=["config/benchmarks/*.yaml"])
 

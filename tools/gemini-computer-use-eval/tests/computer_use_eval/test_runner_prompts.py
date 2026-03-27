@@ -15,7 +15,9 @@ async def test_runner_uses_default_prompt_when_none_provided():
     """
     config = {
         "agent": {},  # No system_prompt
-        "task": {"goal": "Do something"},
+        "task": {
+            "goal": "Do something"
+        },
     }
 
     with patch("computer_use_eval.core.session_factory.PlaywrightEnv"), \
@@ -27,9 +29,10 @@ async def test_runner_uses_default_prompt_when_none_provided():
 
         from computer_use_eval.core.session_factory import SessionFactory
 
-        SessionFactory.create_session(
-            (1000, 1000), config=config, run_id="run_id", video_output_path="path"
-        )
+        SessionFactory.create_session((1000, 1000),
+                                      config=config,
+                                      run_id="run_id",
+                                      video_output_path="path")
 
         call_kwargs = mock_agent_cls.call_args.kwargs
         assert call_kwargs["system_prompt"] == DEFAULT_SYSTEM_PROMPT
@@ -41,7 +44,14 @@ async def test_runner_respects_full_override():
     Verify that SessionFactory uses ONLY the custom prompt if provided (no {{DEFAULT}}).
     """
     custom = "You are a custom agent."
-    config = {"agent": {"system_prompt": custom}, "task": {"goal": "Do something"}}
+    config = {
+        "agent": {
+            "system_prompt": custom
+        },
+        "task": {
+            "goal": "Do something"
+        }
+    }
 
     with patch("computer_use_eval.core.session_factory.PlaywrightEnv"), \
          patch("computer_use_eval.core.session_factory.GeminiAgent") as mock_agent_cls, \
@@ -52,9 +62,10 @@ async def test_runner_respects_full_override():
 
         from computer_use_eval.core.session_factory import SessionFactory
 
-        SessionFactory.create_session(
-            (1000, 1000), config=config, run_id="run_id", video_output_path="path"
-        )
+        SessionFactory.create_session((1000, 1000),
+                                      config=config,
+                                      run_id="run_id",
+                                      video_output_path="path")
 
         call_kwargs = mock_agent_cls.call_args.kwargs
         assert call_kwargs["system_prompt"] == custom
@@ -67,7 +78,14 @@ async def test_runner_supports_extension_substitution():
     Verify that SessionFactory substitutes {{DEFAULT}} with DEFAULT_SYSTEM_PROMPT.
     """
     custom = "PREAMBLE\n\n{{DEFAULT}}\n\nPOSTSCRIPT"
-    config = {"agent": {"system_prompt": custom}, "task": {"goal": "Do something"}}
+    config = {
+        "agent": {
+            "system_prompt": custom
+        },
+        "task": {
+            "goal": "Do something"
+        }
+    }
 
     with patch("computer_use_eval.core.session_factory.PlaywrightEnv"), \
          patch("computer_use_eval.core.session_factory.GeminiAgent") as mock_agent_cls, \
@@ -78,9 +96,10 @@ async def test_runner_supports_extension_substitution():
 
         from computer_use_eval.core.session_factory import SessionFactory
 
-        SessionFactory.create_session(
-            (1000, 1000), config=config, run_id="run_id", video_output_path="path"
-        )
+        SessionFactory.create_session((1000, 1000),
+                                      config=config,
+                                      run_id="run_id",
+                                      video_output_path="path")
 
         call_kwargs = mock_agent_cls.call_args.kwargs
         prompt = call_kwargs["system_prompt"]

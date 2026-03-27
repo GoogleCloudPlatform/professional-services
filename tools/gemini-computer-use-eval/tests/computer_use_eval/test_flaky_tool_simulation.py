@@ -6,11 +6,11 @@
 import pytest
 from unittest.mock import MagicMock, AsyncMock
 from computer_use_eval.core.middleware.stalemate_detection import (
-    StalemateDetectionMiddleware,
-)
+    StalemateDetectionMiddleware,)
 
 
 class FlakyTool:
+
     def __init__(self, failures_before_success=2):
         self.call_count = 0
         self.failures_before_success = failures_before_success

@@ -17,7 +17,8 @@ class ScrollToViewAction(BaseAction):
     Useful for stubborn horizontal scrollbars or nested containers.
     """
 
-    async def execute(self, env: PlaywrightEnv, args: Dict[str, Any]) -> Dict[str, Any]:
+    async def execute(self, env: PlaywrightEnv,
+                      args: Dict[str, Any]) -> Dict[str, Any]:
         x, y = self.denormalize(args["x"], args["y"], env)
 
         if not env.page:
@@ -35,14 +36,19 @@ class ScrollToViewAction(BaseAction):
                     }
                     return false;
                 }""",
-                {"x": x, "y": y},
+                {
+                    "x": x,
+                    "y": y
+                },
             )
-            logger.info(f"SMART_SCROLL: Scrolled element at ({x}, {y}) into view.")
+            logger.info(
+                f"SMART_SCROLL: Scrolled element at ({x}, {y}) into view.")
             return {
                 "status": "ok",
                 "message": f"Scrolled element at ({x}, {y}) into view",
             }
 
         except Exception as e:
-            logger.error(f"SMART_SCROLL: Failed to scroll element at ({x}, {y}): {e}")
+            logger.error(
+                f"SMART_SCROLL: Failed to scroll element at ({x}, {y}): {e}")
             return {"error": str(e)}

@@ -61,31 +61,34 @@ def calculate_reward(
     return max(0.0, reward)
 
 
-def aggregate_results(
-    runs: List[Dict[str, Any]], prompt_length: int = 0
-) -> Dict[str, Any]:
+def aggregate_results(runs: List[Dict[str, Any]],
+                      prompt_length: int = 0) -> Dict[str, Any]:
     """
     Aggregates multiple benchmark runs into a single result.
     Expects each run to have 'success' (bool), 'steps' (int), and 'tokens' (int).
     """
     if not runs:
-        return {"success_rate": 0.0, "avg_steps": 0.0, "avg_tokens": 0.0, "reward": 0.0}
+        return {
+            "success_rate": 0.0,
+            "avg_steps": 0.0,
+            "avg_tokens": 0.0,
+            "reward": 0.0
+        }
 
     total_runs = len(runs)
     success_scores = [r.get("success_score", 0.0) for r in runs]
 
     steps_list = [r.get("steps", 0) for r in runs]
     total_steps = sum(steps_list)
-    step_variance = statistics.variance(steps_list) if len(steps_list) > 1 else 0.0
+    step_variance = statistics.variance(steps_list) if len(
+        steps_list) > 1 else 0.0
 
     # Calculate total tokens per run
     def get_run_tokens(r):
         meta = r.get("metadata", {})
-        return (
-            meta.get("total_input_tokens", 0)
-            + meta.get("total_cached_tokens", 0)
-            + meta.get("total_output_tokens", 0)
-        )
+        return (meta.get("total_input_tokens", 0) +
+                meta.get("total_cached_tokens", 0) +
+                meta.get("total_output_tokens", 0))
 
     total_tokens = sum(get_run_tokens(r) for r in runs)
 
@@ -93,9 +96,8 @@ def aggregate_results(
     avg_steps = total_steps / total_runs
     avg_tokens = total_tokens / total_runs
 
-    reward = calculate_reward(
-        success_rate, avg_steps, avg_tokens, step_variance, prompt_length
-    )
+    reward = calculate_reward(success_rate, avg_steps, avg_tokens,
+                              step_variance, prompt_length)
 
     return {
         "success_rate": success_rate,
@@ -105,9 +107,9 @@ def aggregate_results(
     }
 
 
-async def run_evaluation(
-    benchmark_path: str, num_runs: int = 3, model_name: str = None
-):
+async def run_evaluation(benchmark_path: str,
+                         num_runs: int = 3,
+                         model_name: str = None):
     """
     Runs the benchmark multiple times and returns the aggregated result.
     """
@@ -121,7 +123,8 @@ async def run_evaluation(
 
     # Resolve model
     agent_config = config.get("agent", {})
-    final_model_name = model_name or agent_config.get("model") or settings.MODEL_NAME
+    final_model_name = model_name or agent_config.get(
+        "model") or settings.MODEL_NAME
     agent_config["model"] = final_model_name
     config["agent"] = agent_config
 
@@ -129,7 +132,8 @@ async def run_evaluation(
     width, height = resolutions[0]
 
     task_name = config.get("name", "unknown_task").replace(" ", "_").lower()
-    run_id_base = "autoresearch_" + datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+    run_id_base = "autoresearch_" + datetime.datetime.now().strftime(
+        "%Y%m%d_%H%M%S")
 
     runs = []
     failures = []
@@ -140,9 +144,8 @@ async def run_evaluation(
         os.makedirs(run_dir, exist_ok=True)
 
         logger.info(f"Starting run {i + 1}/{num_runs} for task: {task_name}")
-        result = await run_single_resolution(
-            width, height, config, run_id, run_dir, final_model_name
-        )
+        result = await run_single_resolution(width, height, config, run_id,
+                                             run_dir, final_model_name)
 
         # Determine success based on judges
         judges = result.get("judges", {})
@@ -151,23 +154,28 @@ async def run_evaluation(
         trace_score = float(judges.get("trace", {}).get("score", 0.0) or 0.0)
 
         result["success_score"] = (det_score + vis_score + trace_score) / 3.0
-        result["success"] = (
-            (det_score == 1.0) and (vis_score >= 0.8) and (trace_score >= 0.8)
-        )
+        result["success"] = ((det_score == 1.0) and (vis_score >= 0.8) and
+                             (trace_score >= 0.8))
 
         failure_info = None
         if not result["success"]:
             # Capture failure details
             failure_info = {
-                "run": i + 1,
-                "error": result.get("error", "Unknown error"),
-                "assertion_reasoning": judges.get("assertion", {}).get("reasoning", ""),
-                "visual_reasoning": judges.get("visual", {}).get("reasoning", ""),
-                "trace_reasoning": judges.get("trace", {}).get("fail_why", ""),
-                "steps": result.get("steps", 0),
-                "last_action": result.get("history", [])[-1]
-                if result.get("history")
-                else "N/A",
+                "run":
+                    i + 1,
+                "error":
+                    result.get("error", "Unknown error"),
+                "assertion_reasoning":
+                    judges.get("assertion", {}).get("reasoning", ""),
+                "visual_reasoning":
+                    judges.get("visual", {}).get("reasoning", ""),
+                "trace_reasoning":
+                    judges.get("trace", {}).get("fail_why", ""),
+                "steps":
+                    result.get("steps", 0),
+                "last_action":
+                    result.get("history", [])[-1]
+                    if result.get("history") else "N/A",
             }
         return result, failure_info
 
@@ -202,7 +210,8 @@ async def run_evaluation(
     return aggregated
 
 
-def log_to_tsv(aggregated: Dict[str, Any], benchmark_path: str, description: str):
+def log_to_tsv(aggregated: Dict[str, Any], benchmark_path: str,
+               description: str):
     """
     Logs the result to results.tsv in Karpathy style.
     run_id	score	avg_steps	avg_tokens	status	description
@@ -229,16 +238,18 @@ def log_to_tsv(aggregated: Dict[str, Any], benchmark_path: str, description: str
 
 async def main():
     parser = argparse.ArgumentParser(
-        description="Evaluate task prompt for autoresearch"
-    )
-    parser.add_argument("--benchmark", required=True, help="Path to the benchmark YAML")
-    parser.add_argument(
-        "--runs", type=int, default=3, help="Number of runs per evaluation"
-    )
+        description="Evaluate task prompt for autoresearch")
+    parser.add_argument("--benchmark",
+                        required=True,
+                        help="Path to the benchmark YAML")
+    parser.add_argument("--runs",
+                        type=int,
+                        default=3,
+                        help="Number of runs per evaluation")
     parser.add_argument("--model", help="Override model name")
-    parser.add_argument(
-        "--description", default="no description", help="Description for results.tsv"
-    )
+    parser.add_argument("--description",
+                        default="no description",
+                        help="Description for results.tsv")
 
     args = parser.parse_args()
 

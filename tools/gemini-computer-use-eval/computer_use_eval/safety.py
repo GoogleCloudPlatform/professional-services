@@ -17,8 +17,9 @@ class SafetyPolicy(ABC):
 
     @abstractmethod
     def confirm_action(
-        self, safety_decision: Dict[str, Any]
-    ) -> Literal["CONTINUE", "TERMINATE"]:
+            self,
+            safety_decision: Dict[str,
+                                  Any]) -> Literal["CONTINUE", "TERMINATE"]:
         """
         Determines whether to proceed with an action flagged by the safety system.
 
@@ -35,16 +36,16 @@ class InteractiveSafetyPolicy(SafetyPolicy):
     """Prompts the user via CLI for confirmation (Human-in-the-Loop)."""
 
     def confirm_action(
-        self, safety_decision: Dict[str, Any]
-    ) -> Literal["CONTINUE", "TERMINATE"]:
+            self,
+            safety_decision: Dict[str,
+                                  Any]) -> Literal["CONTINUE", "TERMINATE"]:
         self.trigger_count += 1
         self.intervention_count += 1
         try:
             import termcolor
 
-            termcolor.cprint(
-                "Safety service requires explicit confirmation!", color="red"
-            )
+            termcolor.cprint("Safety service requires explicit confirmation!",
+                             color="red")
         except ImportError:
             print("Safety service requires explicit confirmation!")
 
@@ -69,8 +70,9 @@ class AutoApproveSafetyPolicy(SafetyPolicy):
         self.logger = logging.getLogger(__name__)
 
     def confirm_action(
-        self, safety_decision: Dict[str, Any]
-    ) -> Literal["CONTINUE", "TERMINATE"]:
+            self,
+            safety_decision: Dict[str,
+                                  Any]) -> Literal["CONTINUE", "TERMINATE"]:
         self.trigger_count += 1
         self.logger.warning(
             f"Auto-approving safety check. Explanation: {safety_decision.get('explanation')}"
@@ -86,8 +88,9 @@ class AutoDenySafetyPolicy(SafetyPolicy):
         self.logger = logging.getLogger(__name__)
 
     def confirm_action(
-        self, safety_decision: Dict[str, Any]
-    ) -> Literal["CONTINUE", "TERMINATE"]:
+            self,
+            safety_decision: Dict[str,
+                                  Any]) -> Literal["CONTINUE", "TERMINATE"]:
         self.trigger_count += 1
         self.logger.warning(
             f"Auto-denying safety check. Explanation: {safety_decision.get('explanation')}"
@@ -114,6 +117,5 @@ def get_safety_policy(mode: str, headless: bool) -> SafetyPolicy:
         return AutoDenySafetyPolicy()
     else:
         logging.getLogger(__name__).warning(
-            f"Unknown safety mode: {mode}. Defaulting to AutoApprove."
-        )
+            f"Unknown safety mode: {mode}. Defaulting to AutoApprove.")
         return AutoApproveSafetyPolicy()

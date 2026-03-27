@@ -16,7 +16,8 @@ class HelloWorldAction(BaseAction):
     A simple example action that logs a message.
     """
 
-    async def execute(self, env: PlaywrightEnv, args: Dict[str, Any]) -> Dict[str, Any]:
+    async def execute(self, env: PlaywrightEnv,
+                      args: Dict[str, Any]) -> Dict[str, Any]:
         message = args.get("message", "Hello, World!")
         logger.info(f"PLUGIN: {message}")
 

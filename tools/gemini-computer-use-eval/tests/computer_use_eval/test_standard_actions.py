@@ -85,9 +85,12 @@ async def test_drag_and_drop_action():
     mock_env.scaler = CoordinateScaler(1000, 1000)
 
     action = DragAndDropAction()
-    await action.execute(
-        mock_env, {"x": 100, "y": 100, "destination_x": 500, "destination_y": 500}
-    )
+    await action.execute(mock_env, {
+        "x": 100,
+        "y": 100,
+        "destination_x": 500,
+        "destination_y": 500
+    })
 
     assert mock_env.page.mouse.move.call_count == 2
     mock_env.page.mouse.down.assert_called_once()

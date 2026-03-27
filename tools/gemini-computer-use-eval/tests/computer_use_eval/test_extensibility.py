@@ -94,8 +94,12 @@ def my_config_loader(config):
             return {
                 "success": True,
                 "judges": {
-                    "assertion": {"score": 1.0},
-                    "visual": {"score": 1.0},
+                    "assertion": {
+                        "score": 1.0
+                    },
+                    "visual": {
+                        "score": 1.0
+                    },
                     "trace": {},
                 },
             }
@@ -125,13 +129,11 @@ def my_cool_tool(x: int) -> int:
         script_path = f.name
 
     with tempfile.NamedTemporaryFile(suffix=".yaml", delete=False) as f:
-        f.write(
-            f"""
+        f.write(f"""
 agent:
   custom_tools:
     - "{script_path}:my_cool_tool"
-""".encode()
-        )
+""".encode())
         f.flush()
         yaml_path = f.name
 
@@ -164,9 +166,11 @@ agent:
             from computer_use_eval.core.base import AgentResult
 
             async def mock_run(*args, **kwargs):
-                return AgentResult(
-                    success=True, steps=1, retries=0, history=[], metadata={}
-                )
+                return AgentResult(success=True,
+                                   steps=1,
+                                   retries=0,
+                                   history=[],
+                                   metadata={})
 
             mock_agent.run_task = mock_run
 
@@ -219,16 +223,14 @@ def my_after_run(result):
         script_path = f.name
 
     with tempfile.NamedTemporaryFile(suffix=".yaml", delete=False) as f:
-        f.write(
-            f"""
+        f.write(f"""
 task:
   goal: "Hook test"
 hooks:
   before_run: "{script_path}:my_before_run"
   after_step: "{script_path}:my_after_step"
   after_run: "{script_path}:my_after_run"
-""".encode()
-        )
+""".encode())
         f.flush()
         yaml_path = f.name
 
@@ -245,7 +247,8 @@ hooks:
             for k, v in hooks_config.items():
                 loaded_hooks[k] = load_custom_function(v)
 
-            mock_env = AsyncMock(**{"get_video_path.return_value": "/tmp/video.webm"})
+            mock_env = AsyncMock(
+                **{"get_video_path.return_value": "/tmp/video.webm"})
             mock_env.get_all_video_paths.return_value = ["/tmp/video.webm"]
             mock_env.headless = True
             mock_agent = AsyncMock()
@@ -262,9 +265,11 @@ hooks:
                 # simulate a step hook
                 if "after_step" in loaded_hooks:
                     loaded_hooks["after_step"](0, [])
-                return AgentResult(
-                    success=True, steps=1, retries=0, history=[], metadata={}
-                )
+                return AgentResult(success=True,
+                                   steps=1,
+                                   retries=0,
+                                   history=[],
+                                   metadata={})
 
             mock_agent.run_task = mock_run
             return mock_env, mock_agent, MagicMock()

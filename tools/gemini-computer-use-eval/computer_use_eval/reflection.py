@@ -18,13 +18,13 @@ class DOMElement(BaseModel):
     role: str = Field(description="The ARIA role of the element")
     name: str = Field(description="The accessible name or text")
     value: str = Field(default="", description="The current value")
-    location_hint: str = Field(
-        default="", description="Semantic location (e.g. Top-Left)"
-    )
+    location_hint: str = Field(default="",
+                               description="Semantic location (e.g. Top-Left)")
 
 
 class SemanticSearchResponse(BaseModel):
-    elements: List[DOMElement] = Field(description="Matching interactive elements")
+    elements: List[DOMElement] = Field(
+        description="Matching interactive elements")
     supervisor_advice: str = Field(
         default="",
         description="Concise advice explaining WHY the agent hit a stalemate.",
@@ -36,9 +36,11 @@ class ReflectionEngine:
     State-of-the-art diagnostic engine for self-healing browser agents.
     """
 
-    def __init__(
-        self, page: Page, console_logs: List[str], client=None, goal: str = ""
-    ):
+    def __init__(self,
+                 page: Page,
+                 console_logs: List[str],
+                 client=None,
+                 goal: str = ""):
         self.page = page
         self.console_logs = console_logs
         self.client = client
@@ -49,8 +51,7 @@ class ReflectionEngine:
             return "{}"
         try:
             tree = await self.page.evaluate(
-                "() => { return {role: 'root', children: []}; }"
-            )
+                "() => { return {role: 'root', children: []}; }")
             if hasattr(tree, "_mock_return_value"):
                 return json.dumps(tree.return_value)
             return json.dumps(tree or {})
@@ -58,37 +59,32 @@ class ReflectionEngine:
             return "{}"
 
     def get_recent_console_logs(self) -> str:
-        return (
-            "\n".join(list(self.console_logs))
-            if self.console_logs
-            else "No console logs available."
-        )
+        return ("\n".join(list(self.console_logs))
+                if self.console_logs else "No console logs available.")
 
-    def _extract_search_terms_from_args(
-        self, args: Dict[str, Any], action_name: str
-    ) -> List[str]:
+    def _extract_search_terms_from_args(self, args: Dict[str, Any],
+                                        action_name: str) -> List[str]:
         if action_name in ["scroll_document", "wait_5_seconds"]:
             return []
-        terms = [str(v) for v in args.values() if isinstance(v, str) and len(v) > 2]
+        terms = [
+            str(v) for v in args.values() if isinstance(v, str) and len(v) > 2
+        ]
         if action_name in ["click", "hover"]:
             terms.append("button")
         return sorted(list(set(terms)))
 
     def _extract_search_terms_from_history(
-        self, history: List[Tuple[str, str]]
-    ) -> List[str]:
+            self, history: List[Tuple[str, str]]) -> List[str]:
         terms = []
         for _, args_str in history:
             try:
                 if isinstance(args_str, str):
                     args = ast.literal_eval(args_str)
-                    terms.extend(
-                        [
-                            str(v)
-                            for v in args.values()
-                            if isinstance(v, str) and len(v) > 2
-                        ]
-                    )
+                    terms.extend([
+                        str(v)
+                        for v in args.values()
+                        if isinstance(v, str) and len(v) > 2
+                    ])
             except Exception:
                 pass
         return sorted(list(set(terms)))
@@ -109,13 +105,13 @@ class ReflectionEngine:
                     config=types.GenerateContentConfig(
                         response_mime_type="application/json",
                         response_schema=SemanticSearchResponse,
-                        system_instruction=(
-                            "You are a meta-cognitive supervisor for an autonomous UI agent. "
-                            "Analyze the ARIA tree and the agent's failure context. "
-                            "1. Provide a concise 'supervisor_advice' explaining the exact reason the agent is stuck "
-                            "(e.g., 'You are trying to click a disabled button' or 'The login form is inside an iframe'). "
-                            "2. Extract 1-3 highly relevant interactive elements (buttons, links, inputs) from the ARIA tree "
-                            "that could help the agent recover or proceed. Include location hints (e.g., 'Top-Right Header')."
+                        system_instruction=
+                        ("You are a meta-cognitive supervisor for an autonomous UI agent. "
+                         "Analyze the ARIA tree and the agent's failure context. "
+                         "1. Provide a concise 'supervisor_advice' explaining the exact reason the agent is stuck "
+                         "(e.g., 'You are trying to click a disabled button' or 'The login form is inside an iframe'). "
+                         "2. Extract 1-3 highly relevant interactive elements (buttons, links, inputs) from the ARIA tree "
+                         "that could help the agent recover or proceed. Include location hints (e.g., 'Top-Right Header')."
                         ),
                     ),
                 ),
@@ -148,9 +144,10 @@ class ReflectionEngine:
                 return "- [link] 'Forgot Password'"
             return ""
 
-    def extract_heuristic_context(
-        self, aria_json: str, terms: List[str], limit: int = 15
-    ) -> str:
+    def extract_heuristic_context(self,
+                                  aria_json: str,
+                                  terms: List[str],
+                                  limit: int = 15) -> str:
         if not terms:
             return ""
         try:
@@ -176,15 +173,13 @@ class ReflectionEngine:
                     walk(child)
 
         walk(tree)
-        return (
-            "\n".join([f"- {m}" for m in sorted(list(set(matches)))[:limit]])
-            if matches
-            else ""
-        )
+        return ("\n".join([
+            f"- {m}" for m in sorted(list(set(matches)))[:limit]
+        ]) if matches else "")
 
-    async def extract_hybrid_context(
-        self, aria_tree: str, search_terms: List[str], intent: str
-    ) -> str:
+    async def extract_hybrid_context(self, aria_tree: str,
+                                     search_terms: List[str],
+                                     intent: str) -> str:
         heuristic = self.extract_heuristic_context(aria_tree, search_terms)
         # Test optimization: If heuristic found something, don't call LLM
         if heuristic:
@@ -204,11 +199,8 @@ class ReflectionEngine:
         error: str = "",
         reasoning: str = "",
     ) -> str:
-        aria_str = (
-            str(aria_tree.return_value)
-            if hasattr(aria_tree, "_mock_return_value")
-            else str(aria_tree)
-        )
+        aria_str = (str(aria_tree.return_value) if hasattr(
+            aria_tree, "_mock_return_value") else str(aria_tree))
         return await self.extract_hybrid_context(
             aria_str,
             self._extract_search_terms_from_args(args, action),
@@ -222,10 +214,8 @@ class ReflectionEngine:
         history: List[Tuple[str, str]],
         reasoning: str = "",
     ) -> str:
-        aria_str = (
-            str(aria_tree.return_value)
-            if hasattr(aria_tree, "_mock_return_value")
-            else str(aria_tree)
-        )
+        aria_str = (str(aria_tree.return_value) if hasattr(
+            aria_tree, "_mock_return_value") else str(aria_tree))
         terms = self._extract_search_terms_from_history(history)
-        return await self.extract_hybrid_context(aria_str, terms, "Loop detected")
+        return await self.extract_hybrid_context(aria_str, terms,
+                                                 "Loop detected")

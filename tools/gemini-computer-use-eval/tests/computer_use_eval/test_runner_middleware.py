@@ -19,23 +19,30 @@ async def test_runner_passes_config_to_agent():
 
     mock_agent = MagicMock()
     # Fix the object MagicMock can't be used in 'await' expression error
-    mock_agent.run_task = AsyncMock(
-        return_value=MagicMock(
-            success=True, steps=1, retries=0, history=[], metadata={}
-        )
-    )
+    mock_agent.run_task = AsyncMock(return_value=MagicMock(
+        success=True, steps=1, retries=0, history=[], metadata={}))
 
-    with patch("computer_use_eval.runner.SessionFactory.create_session", return_value=(mock_env, mock_agent, nullcontext())) as mock_factory:
+    with patch("computer_use_eval.runner.SessionFactory.create_session",
+               return_value=(mock_env, mock_agent,
+                             nullcontext())) as mock_factory:
         config = {
-            "task": {"goal": "test"},
-            "agent": {"context": {"reflection_strategy": "DOM_SEARCH"}},
+            "task": {
+                "goal": "test"
+            },
+            "agent": {
+                "context": {
+                    "reflection_strategy": "DOM_SEARCH"
+                }
+            },
             "environment": {},
         }
 
-        await run_single_resolution(1280, 720, config, "run1", "/tmp", None, None)
+        await run_single_resolution(1280, 720, config, "run1", "/tmp", None,
+                                    None)
 
         # Verify SessionFactory was initialized with correct context config
         _, kwargs = mock_factory.call_args
         # In the new implementation, we pass the raw config to the factory
         passed_config = mock_factory.call_args[0][1]
-        assert passed_config["agent"]["context"]["reflection_strategy"] == "DOM_SEARCH"
+        assert passed_config["agent"]["context"][
+            "reflection_strategy"] == "DOM_SEARCH"

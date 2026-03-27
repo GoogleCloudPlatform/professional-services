@@ -27,64 +27,65 @@ async def test_action_sequence_logging_structure():
     # Mock predict to return a batch of 2 actions
     mock_response = MagicMock()
     mock_response.candidates = [
-        MagicMock(
-            content=types.Content(
-                role="model",
-                parts=[
-                    types.Part(
-                        function_call=types.FunctionCall(
-                            name="hover_at", args={"x": 1, "y": 2}
-                        )
-                    ),
-                    types.Part(
-                        function_call=types.FunctionCall(
-                            name="type_text_at", args={"x": 3, "y": 4, "text": "hi"}
-                        )
-                    ),
-                ],
-            )
-        )
+        MagicMock(content=types.Content(
+            role="model",
+            parts=[
+                types.Part(function_call=types.FunctionCall(name="hover_at",
+                                                            args={
+                                                                "x": 1,
+                                                                "y": 2
+                                                            })),
+                types.Part(function_call=types.FunctionCall(name="type_text_at",
+                                                            args={
+                                                                "x": 3,
+                                                                "y": 4,
+                                                                "text": "hi"
+                                                            })),
+            ],
+        ))
     ]
-    mock_response.usage_metadata = MagicMock(
-        prompt_token_count=10, candidates_token_count=5
-    )
+    mock_response.usage_metadata = MagicMock(prompt_token_count=10,
+                                             candidates_token_count=5)
 
     mock_stop_response = MagicMock()
     mock_stop_response.candidates = [
-        MagicMock(content=types.Content(role="model", parts=[types.Part(text="Done")]))
+        MagicMock(
+            content=types.Content(role="model", parts=[types.Part(
+                text="Done")]))
     ]
-    mock_stop_response.usage_metadata = MagicMock(
-        prompt_token_count=10, candidates_token_count=5
-    )
+    mock_stop_response.usage_metadata = MagicMock(prompt_token_count=10,
+                                                  candidates_token_count=5)
 
     agent._predict = AsyncMock(side_effect=[mock_response, mock_stop_response])
 
     # Mock ToolExecutor
-    with patch("computer_use_eval.core.gemini_agent.ToolExecutor") as mock_executor_cls:
+    with patch("computer_use_eval.core.gemini_agent.ToolExecutor"
+              ) as mock_executor_cls:
         mock_executor = MagicMock()
         mock_executor_cls.return_value = mock_executor
 
         from computer_use_eval.core.base import ActionExecutionResult
 
-        mock_executor.execute_bundle = AsyncMock(
-            return_value=(
-                [
-                    ActionExecutionResult(
-                        action_id="mock_id_1",
-                        action_name="hover_at",
-                        result_data={"status": "clicked"},
-                        safety_acknowledged=False,
-                    ),
-                    ActionExecutionResult(
-                        action_id="mock_id_2",
-                        action_name="type_text_at",
-                        result_data={"status": "typed", "bundled": True},
-                        safety_acknowledged=False,
-                    ),
-                ],
-                0.1,
-            )
-        )
+        mock_executor.execute_bundle = AsyncMock(return_value=(
+            [
+                ActionExecutionResult(
+                    action_id="mock_id_1",
+                    action_name="hover_at",
+                    result_data={"status": "clicked"},
+                    safety_acknowledged=False,
+                ),
+                ActionExecutionResult(
+                    action_id="mock_id_2",
+                    action_name="type_text_at",
+                    result_data={
+                        "status": "typed",
+                        "bundled": True
+                    },
+                    safety_acknowledged=False,
+                ),
+            ],
+            0.1,
+        ))
 
         # is_terminal is sync, and nested inside executor.executor
         mock_inner_executor = MagicMock()

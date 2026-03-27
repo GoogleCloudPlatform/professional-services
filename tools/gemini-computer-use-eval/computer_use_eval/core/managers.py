@@ -45,8 +45,7 @@ class HistoryManager:
                 is_function_response = False
                 if content.parts:
                     is_function_response = any(
-                        p.function_response for p in content.parts
-                    )
+                        p.function_response for p in content.parts)
                 if not is_function_response:
                     break
             target_start_index += 1
@@ -71,26 +70,23 @@ class TelemetryTracker:
         self.start_time = 0.0
         self.step_details = []
 
-    def log_usage(self, response: types.GenerateContentResponse) -> Dict[str, int]:
+    def log_usage(self,
+                  response: types.GenerateContentResponse) -> Dict[str, int]:
         """Accumulates token usage from a model response and returns the extracted counts."""
         usage = {"input": 0, "output": 0, "thinking": 0, "cached": 0}
         if response.usage_metadata:
-            usage["input"] = (
-                getattr(response.usage_metadata, "prompt_token_count", 0) or 0
-            )
-            usage["output"] = (
-                getattr(response.usage_metadata, "candidates_token_count", 0) or 0
-            )
-            usage["cached"] = (
-                getattr(response.usage_metadata, "cached_content_token_count", 0) or 0
-            )
+            usage["input"] = (getattr(response.usage_metadata,
+                                      "prompt_token_count", 0) or 0)
+            usage["output"] = (getattr(response.usage_metadata,
+                                       "candidates_token_count", 0) or 0)
+            usage["cached"] = (getattr(response.usage_metadata,
+                                       "cached_content_token_count", 0) or 0)
 
             # Gemini 3 Support: Check both potential fields for thinking tokens
             usage["thinking"] = (
-                getattr(response.usage_metadata, "thinking_token_count", 0)
-                or getattr(response.usage_metadata, "thoughts_token_count", 0)
-                or 0
-            )
+                getattr(response.usage_metadata, "thinking_token_count", 0) or
+                getattr(response.usage_metadata, "thoughts_token_count", 0) or
+                0)
 
             self.total_input_tokens += usage["input"]
             self.total_output_tokens += usage["output"]
@@ -124,17 +120,17 @@ class SafetyCoordinator:
     def __init__(self, safety_policy: Any):
         self.safety_policy = safety_policy
 
-    def check_action(self, action_name: str, action_args: Dict[str, Any]) -> str:
+    def check_action(self, action_name: str, action_args: Dict[str,
+                                                               Any]) -> str:
         """
         Checks if an action requires manual approval or should be blocked.
         Returns 'PROCEED', 'TERMINATE', or 'APPROVED'.
         """
         safety_decision = action_args.get("safety_decision")
-        if (
-            safety_decision
-            and safety_decision.get("decision") == "require_confirmation"
-        ):
-            explanation = safety_decision.get("explanation", "No explanation provided.")
+        if (safety_decision and
+                safety_decision.get("decision") == "require_confirmation"):
+            explanation = safety_decision.get("explanation",
+                                              "No explanation provided.")
             logger.warning(f"[SAFETY] Intervention triggered: {explanation}")
             decision = self.safety_policy.confirm_action(safety_decision)
             if decision == "CONTINUE":

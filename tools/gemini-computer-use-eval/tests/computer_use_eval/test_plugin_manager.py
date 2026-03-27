@@ -9,6 +9,7 @@ from computer_use_eval.actions import BaseAction
 
 
 class MockAction(BaseAction):
+
     async def execute(self, env, args):
         pass
 

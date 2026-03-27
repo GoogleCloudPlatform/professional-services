@@ -29,8 +29,7 @@ async def test_perception_engine_integration():
         mock_buffer_instance = MockBuffer.return_value
         # Mock get_latest_frame to return a red image
         mock_buffer_instance.get_latest_frame.return_value = Image.new(
-            "RGB", (100, 100), color="red"
-        )
+            "RGB", (100, 100), color="red")
 
         # Setup Playwright mocks
         mock_playwright_cm = MockPlaywright.return_value
@@ -66,8 +65,7 @@ async def test_perception_engine_integration():
 
         # Verify it used the buffer
         mock_buffer_instance.get_latest_frame.assert_called_once_with(
-            wait_for_stability=False
-        )
+            wait_for_stability=False)
         assert len(screenshot_bytes) > 0
 
         # Verify fallback was NOT called
@@ -124,9 +122,8 @@ async def test_perception_engine_fallback():
 async def test_highlight_click():
     from computer_use_eval.actions import ClickAction
 
-    with patch(
-        "computer_use_eval.browser.playwright_env.async_playwright"
-    ) as MockPlaywright:
+    with patch("computer_use_eval.browser.playwright_env.async_playwright"
+              ) as MockPlaywright:
         mock_playwright_cm = MockPlaywright.return_value
         mock_playwright_obj = AsyncMock()
         mock_playwright_cm.start = AsyncMock(return_value=mock_playwright_obj)
@@ -143,7 +140,8 @@ async def test_highlight_click():
         mock_context.new_page.return_value = mock_page
 
         # Mock PerceptionService so we don't need mss.
-        with patch("computer_use_eval.browser.playwright_env.PerceptionService"):
+        with patch(
+                "computer_use_eval.browser.playwright_env.PerceptionService"):
             env = PlaywrightEnv(headless=True)
             await env.start()
             env.page = mock_page

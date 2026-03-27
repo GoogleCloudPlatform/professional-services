@@ -35,6 +35,7 @@ class AgentResult:
 
 
 class BaseAgent(ABC):
+
     @abstractmethod
     async def run_task(self, task: str, env: Any) -> AgentResult:
         pass
@@ -56,8 +57,8 @@ class ActionMiddleware(ABC):
 
     @abstractmethod
     async def before_action(
-        self, action_name: str, args: Dict[str, Any]
-    ) -> Tuple[str, Dict[str, Any], bool]:
+            self, action_name: str,
+            args: Dict[str, Any]) -> Tuple[str, Dict[str, Any], bool]:
         """
         Intersects an action before it is executed.
         Returns: (action_name, args, skip_execution)
@@ -65,9 +66,8 @@ class ActionMiddleware(ABC):
         return action_name, args, False
 
     @abstractmethod
-    async def after_action(
-        self, action_name: str, args: Dict[str, Any], result: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    async def after_action(self, action_name: str, args: Dict[str, Any],
+                           result: Dict[str, Any]) -> Dict[str, Any]:
         """
         Intersects an action result after it is executed.
         """

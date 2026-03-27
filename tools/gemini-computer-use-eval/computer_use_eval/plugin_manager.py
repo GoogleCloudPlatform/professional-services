@@ -46,7 +46,8 @@ class PluginManager:
                 logger.error(f"Failed to load plugin action {ep.name}: {e}")
 
     @staticmethod
-    def load_custom_actions(action_map: Dict[str, str], executor: ActionExecutor):
+    def load_custom_actions(action_map: Dict[str, str],
+                            executor: ActionExecutor):
         """
         Loads custom action classes and registers them with the executor.
         Args:
@@ -73,4 +74,5 @@ class PluginManager:
                 logger.info(f"Registered custom action: {name} from {cls_path}")
 
             except Exception as e:
-                logger.error(f"Failed to load custom action {name} ({cls_path}): {e}")
+                logger.error(
+                    f"Failed to load custom action {name} ({cls_path}): {e}")

@@ -67,11 +67,8 @@ class GeminiAgent(BaseAgent):
         self.system_prompt = system_prompt
         self.max_history_turns = max_history_turns or settings.MAX_HISTORY_TURNS
         self.max_steps = max_steps or settings.MAX_STEPS
-        self.step_delay = (
-            context_config.step_delay
-            if context_config and hasattr(context_config, "step_delay")
-            else 0.0
-        )
+        self.step_delay = (context_config.step_delay if context_config and
+                           hasattr(context_config, "step_delay") else 0.0)
         self.excluded_functions = excluded_functions or []
         self.custom_tools = custom_tools or []
         self.hooks = hooks or {}
@@ -82,24 +79,25 @@ class GeminiAgent(BaseAgent):
         self.logger = logging.getLogger(__name__)
 
         self.safety_policy = safety_policy or get_safety_policy(
-            settings.SAFETY_MODE, settings.HEADLESS_MODE
-        )
+            settings.SAFETY_MODE, settings.HEADLESS_MODE)
         self.safety_coordinator = SafetyCoordinator(self.safety_policy)
-        self.history_manager = HistoryManager(max_history_turns=self.max_history_turns)
+        self.history_manager = HistoryManager(
+            max_history_turns=self.max_history_turns)
         self.telemetry = TelemetryTracker()
 
         if client:
             self.client = client
         elif settings.API_KEY:
-            self.logger.info("Initializing Gemini Client using AI Studio (API Key)")
+            self.logger.info(
+                "Initializing Gemini Client using AI Studio (API Key)")
             self.client = genai.Client(api_key=settings.API_KEY)
         else:
             self.logger.info(
                 f"Initializing Gemini Client using Vertex AI (Project: {settings.PROJECT_ID})"
             )
-            self.client = genai.Client(
-                vertexai=True, project=settings.PROJECT_ID, location=settings.REGION
-            )
+            self.client = genai.Client(vertexai=True,
+                                       project=settings.PROJECT_ID,
+                                       location=settings.REGION)
 
         if context_pipeline:
             self.context_pipeline = context_pipeline
@@ -108,8 +106,7 @@ class GeminiAgent(BaseAgent):
             from computer_use_eval.core.context.factory import ContextPipelineFactory
 
             self.context_pipeline = ContextPipelineFactory.build(
-                ContextConfig(), self.client, self.max_history_turns
-            )
+                ContextConfig(), self.client, self.max_history_turns)
 
         self.context_cache_name = None
 
@@ -139,18 +136,12 @@ class GeminiAgent(BaseAgent):
                 if p.text:
                     parts_desc.append(f"Text({len(p.text)})")
                 if getattr(p, "function_call", None):
-                    fc_id = (
-                        f"[{p.function_call.id}]"
-                        if getattr(p.function_call, "id", None)
-                        else ""
-                    )
+                    fc_id = (f"[{p.function_call.id}]" if getattr(
+                        p.function_call, "id", None) else "")
                     parts_desc.append(f"FC:{p.function_call.name}{fc_id}")
                 if getattr(p, "function_response", None):
-                    fr_id = (
-                        f"[{p.function_response.id}]"
-                        if getattr(p.function_response, "id", None)
-                        else ""
-                    )
+                    fr_id = (f"[{p.function_response.id}]" if getattr(
+                        p.function_response, "id", None) else "")
                     parts_desc.append(f"FR:{p.function_response.name}{fr_id}")
                 if getattr(p, "inline_data", None):
                     parts_desc.append(f"Img:{p.inline_data.mime_type}")
@@ -159,20 +150,18 @@ class GeminiAgent(BaseAgent):
                 if getattr(p, "thought_signature", None):
                     parts_desc.append(f"Sig:{len(p.thought_signature)}b")
 
-            self.logger.debug(f"  {i:2}: {turn.role:5} | {' | '.join(parts_desc)}")
+            self.logger.debug(
+                f"  {i:2}: {turn.role:5} | {' | '.join(parts_desc)}")
 
-    def _get_or_create_cache(
-        self, initial_contents: List[types.Content], all_tools: list
-    ) -> str:
+    def _get_or_create_cache(self, initial_contents: List[types.Content],
+                             all_tools: list) -> str:
         """
         Creates or retrieves a context cache for the static parts of the prompt.
         We cache the system prompt, tools, and the very first turn (the Goal).
         """
         enable_caching = settings.ENABLE_CONTEXT_CACHING
-        if (
-            self.context_config
-            and self.context_config.enable_context_caching is not None
-        ):
+        if (self.context_config and
+                self.context_config.enable_context_caching is not None):
             enable_caching = self.context_config.enable_context_caching
 
         if not enable_caching:
@@ -185,25 +174,26 @@ class GeminiAgent(BaseAgent):
             return None
 
         try:
-            self.logger.info("📦 Creating Context Cache for System Prompt and Tools...")
+            self.logger.info(
+                "📦 Creating Context Cache for System Prompt and Tools...")
             ttl_seconds = settings.CACHE_TTL_MINUTES * 60
 
             cache_config = types.CreateCachedContentConfig(
-                system_instruction=self.system_prompt if self.system_prompt else None,
+                system_instruction=self.system_prompt
+                if self.system_prompt else None,
                 tools=all_tools,
                 ttl=f"{ttl_seconds}s",
                 contents=[initial_contents[0]],  # Cache the initial goal turn
             )
 
             # Use synchronous create if possible, or assume client handles it
-            cache = self.client.caches.create(
-                model=self.model_version, config=cache_config
-            )
+            cache = self.client.caches.create(model=self.model_version,
+                                              config=cache_config)
 
-            self.context_cache_name = (
-                cache.name if isinstance(cache.name, str) else "mock_cache"
-            )
-            self.logger.info(f"✅ Context Cache created: {self.context_cache_name}")
+            self.context_cache_name = (cache.name if isinstance(
+                cache.name, str) else "mock_cache")
+            self.logger.info(
+                f"✅ Context Cache created: {self.context_cache_name}")
             return self.context_cache_name
         except Exception as e:
             self.logger.warning(f"Failed to create context cache: {e}")
@@ -214,8 +204,7 @@ class GeminiAgent(BaseAgent):
         if self.context_cache_name and self.client:
             try:
                 self.logger.info(
-                    f"🧹 Deleting Context Cache: {self.context_cache_name}"
-                )
+                    f"🧹 Deleting Context Cache: {self.context_cache_name}")
                 self.client.caches.delete(name=self.context_cache_name)
                 self.context_cache_name = None
             except Exception as e:
@@ -227,11 +216,12 @@ class GeminiAgent(BaseAgent):
         stop=stop_after_attempt(settings.MODEL_API_RETRIES),
         wait=wait_exponential(multiplier=2, min=4, max=60),
         retry=retry_if_exception_type((TemporaryGeminiError, Exception)),
-        before_sleep=before_sleep_log(logging.getLogger(__name__), logging.WARNING),
+        before_sleep=before_sleep_log(logging.getLogger(__name__),
+                                      logging.WARNING),
     )
     async def _predict(
-        self, contents: List[types.Content]
-    ) -> types.GenerateContentResponse:
+            self,
+            contents: List[types.Content]) -> types.GenerateContentResponse:
         """
         Calls Gemini 2.5 with retry logic and a MANUAL tool configuration.
         """
@@ -248,8 +238,10 @@ class GeminiAgent(BaseAgent):
             parts_copy = list(turn.parts) if turn.parts else []
 
             if turn.role == "model":
-                has_sig = any(getattr(p, "thought_signature", None) for p in parts_copy)
-                has_fc = any(getattr(p, "function_call", None) for p in parts_copy)
+                has_sig = any(
+                    getattr(p, "thought_signature", None) for p in parts_copy)
+                has_fc = any(
+                    getattr(p, "function_call", None) for p in parts_copy)
 
                 if has_fc and not has_sig:
                     # Inject dummy signature onto the FIRST function_call part
@@ -258,8 +250,7 @@ class GeminiAgent(BaseAgent):
                         if getattr(p, "function_call", None):
                             part_copy = p.model_copy()
                             part_copy.thought_signature = (
-                                b"skip_thought_signature_validator"
-                            )
+                                b"skip_thought_signature_validator")
                             parts_copy[idx] = part_copy
                             break
 
@@ -271,21 +262,15 @@ class GeminiAgent(BaseAgent):
             # Role Merge Logic: Only merge if they aren't tool-related turns
             # Merging tool turns breaks the 1:1 call/response mapping.
             is_tool_turn = any(
-                getattr(p, "function_call", None)
-                or getattr(p, "function_response", None)
-                for p in new_turn.parts
-            )
+                getattr(p, "function_call", None) or
+                getattr(p, "function_response", None) for p in new_turn.parts)
             prev_is_tool_turn = any(
-                getattr(p, "function_call", None)
-                or getattr(p, "function_response", None)
-                for p in safe_contents[-1].parts
-            )
+                getattr(p, "function_call", None) or
+                getattr(p, "function_response", None)
+                for p in safe_contents[-1].parts)
 
-            if (
-                new_turn.role == safe_contents[-1].role
-                and not is_tool_turn
-                and not prev_is_tool_turn
-            ):
+            if (new_turn.role == safe_contents[-1].role and not is_tool_turn and
+                    not prev_is_tool_turn):
                 self.logger.warning(
                     f"⚠️ [CONTEXT] Role clash detected ({new_turn.role}). Merging turns."
                 )
@@ -295,16 +280,13 @@ class GeminiAgent(BaseAgent):
                     # If we MUST have different roles but can't merge (tool turns),
                     # we insert a dummy turn. This is rare but safer for the backend.
                     dummy_role = "user" if new_turn.role == "model" else "model"
-                    dummy_text = (
-                        "Acknowledged." if dummy_role == "user" else "I understand."
-                    )
+                    dummy_text = ("Acknowledged."
+                                  if dummy_role == "user" else "I understand.")
                     dummy_turn = types.Content(
-                        role=dummy_role, parts=[types.Part(text=dummy_text)]
-                    )
+                        role=dummy_role, parts=[types.Part(text=dummy_text)])
                     if dummy_role == "model":
                         dummy_turn.parts[
-                            0
-                        ].thought_signature = b"skip_thought_signature_validator"
+                            0].thought_signature = b"skip_thought_signature_validator"
                     safe_contents.append(dummy_turn)
 
                 safe_contents.append(new_turn)
@@ -316,12 +298,10 @@ class GeminiAgent(BaseAgent):
             # Per working examples, only the computer_use tool should be passed.
             # Custom tools are handled by our manual ToolExecutor.
             base_tools = [
-                types.Tool(
-                    computer_use=types.ComputerUse(
-                        environment=types.Environment.ENVIRONMENT_BROWSER,
-                        excluded_predefined_functions=self.excluded_functions,
-                    )
-                )
+                types.Tool(computer_use=types.ComputerUse(
+                    environment=types.Environment.ENVIRONMENT_BROWSER,
+                    excluded_predefined_functions=self.excluded_functions,
+                ))
             ]
 
             # Combine ComputerUse tool with any user-provided custom Python tools
@@ -346,8 +326,7 @@ class GeminiAgent(BaseAgent):
                     thinking_lvl = settings.THINKING_LEVEL.value
 
                 config_kwargs["thinking_config"] = types.ThinkingConfig(
-                    include_thoughts=True, thinking_level=thinking_lvl
-                )
+                    include_thoughts=True, thinking_level=thinking_lvl)
 
             if cache_name:
                 config_kwargs["cached_content"] = str(cache_name)
@@ -360,7 +339,9 @@ class GeminiAgent(BaseAgent):
                     contents_to_send = [
                         types.Content(
                             role="user",
-                            parts=[types.Part(text="Awaiting next instruction.")],
+                            parts=[
+                                types.Part(text="Awaiting next instruction.")
+                            ],
                         )
                     ]
             else:
@@ -372,8 +353,9 @@ class GeminiAgent(BaseAgent):
                 config.system_instruction = self.system_prompt
 
             response = await self.client.aio.models.generate_content(
-                model=self.model_version, contents=contents_to_send, config=config
-            )
+                model=self.model_version,
+                contents=contents_to_send,
+                config=config)
 
             # Accumulate token usage via telemetry manager
             usage = self.telemetry.log_usage(response)
@@ -399,13 +381,11 @@ class GeminiAgent(BaseAgent):
             u_think = get_int(usage.get("thinking"))
 
             if u_in > 0 or u_out > 0:
-                think_status = (
-                    f", Think={u_think}" if has_thoughts or u_think > 0 else ""
-                )
+                think_status = (f", Think={u_think}"
+                                if has_thoughts or u_think > 0 else "")
                 self.logger.info(
                     f"🧠 [PREDICTION] Model reasoning complete "
-                    f"(Tokens: In={u_in}, Out={u_out}{think_status})"
-                )
+                    f"(Tokens: In={u_in}, Out={u_out}{think_status})")
             else:
                 self.logger.info(
                     "🧠 [PREDICTION] Model reasoning complete (Token usage unavailable)"
@@ -417,7 +397,8 @@ class GeminiAgent(BaseAgent):
             self.logger.exception("Model prediction failed.")
             raise e
 
-    def _extract_actions(self, response: types.GenerateContentResponse) -> list[Action]:
+    def _extract_actions(
+            self, response: types.GenerateContentResponse) -> list[Action]:
         """
         Parses the model response to extract tool calls.
         """
@@ -439,8 +420,7 @@ class GeminiAgent(BaseAgent):
         content = getattr(candidate, "content", None)
         if not content or not getattr(content, "parts", None):
             self.logger.warning(
-                f"Model returned empty content. Finish Reason: {finish_reason}"
-            )
+                f"Model returned empty content. Finish Reason: {finish_reason}")
             if finish_reason == "SAFETY":
                 self.logger.error("Response blocked by Safety Filters.")
             return actions
@@ -464,17 +444,18 @@ class GeminiAgent(BaseAgent):
                         f"Fixed missing ID for parallel call: {action_name} -> {action_id}"
                     )
 
-                actions.append(Action(name=action_name, args=action_args, id=action_id))
+                actions.append(
+                    Action(name=action_name, args=action_args, id=action_id))
 
         return actions
 
-    def _build_result(
-        self, success: bool, step: int, step_details: list, **metadata_overrides
-    ) -> AgentResult:
+    def _build_result(self, success: bool, step: int, step_details: list,
+                      **metadata_overrides) -> AgentResult:
         """Helper to construct AgentResult with consistent telemetry."""
         autonomy_score = 1.0
         if step > 0:
-            autonomy_score = 1.0 - (self.safety_coordinator.intervention_count / step)
+            autonomy_score = 1.0 - (self.safety_coordinator.intervention_count /
+                                    step)
 
         metadata = {
             "total_input_tokens": self.telemetry.total_input_tokens,
@@ -515,21 +496,18 @@ class GeminiAgent(BaseAgent):
         # Delegating batch execution to the specialized ToolExecutor
         self.logger.info(f"⚡ BATCH START: Processing {len(actions)} actions.")
         results_with_safety, total_mw_time = await executor.execute_bundle(
-            actions, self.safety_coordinator
-        )
+            actions, self.safety_coordinator)
 
         batch_duration = time.perf_counter() - start_batch
 
         # Calculate Mix for High-Signal Logging
         bundled_count = sum(
-            1 for res in results_with_safety if res.result_data.get("bundled")
-        )
+            1 for res in results_with_safety if res.result_data.get("bundled"))
         seq_count = len(results_with_safety) - bundled_count
 
         self.logger.info(
             f"✅ BATCH COMPLETE: {len(results_with_safety)} actions in {batch_duration:.2f}s "
-            f"(Bundled: {bundled_count}, Sequential: {seq_count})"
-        )
+            f"(Bundled: {bundled_count}, Sequential: {seq_count})")
 
         action_durations = []
         if results_with_safety:
@@ -538,9 +516,10 @@ class GeminiAgent(BaseAgent):
             # start/stop times.
             avg_duration = batch_duration / len(results_with_safety)
             for res in results_with_safety:
-                action_durations.append(
-                    {"name": res.action_name, "duration": avg_duration}
-                )
+                action_durations.append({
+                    "name": res.action_name,
+                    "duration": avg_duration
+                })
 
         return results_with_safety, action_durations, total_mw_time
 
@@ -556,24 +535,15 @@ class GeminiAgent(BaseAgent):
         """
         self._start_time = time.perf_counter()
 
-        thinking_lvl = (
-            self.context_config.thinking_level.value
-            if self.context_config and self.context_config.thinking_level
-            else (
-                settings.THINKING_LEVEL.value
-                if hasattr(settings, "THINKING_LEVEL")
-                else "N/A"
-            )
-        )
-        ctx_dump = (
-            "\n".join(
-                f"      {k}: {v.value if hasattr(v, 'value') else v}"
-                for k, v in self.context_config.__dict__.items()
-                if v is not None
-            )
-            if self.context_config
-            else "None"
-        )
+        thinking_lvl = (self.context_config.thinking_level.value
+                        if self.context_config and
+                        self.context_config.thinking_level else
+                        (settings.THINKING_LEVEL.value if hasattr(
+                            settings, "THINKING_LEVEL") else "N/A"))
+        ctx_dump = ("\n".join(
+            f"      {k}: {v.value if hasattr(v, 'value') else v}"
+            for k, v in self.context_config.__dict__.items()
+            if v is not None) if self.context_config else "None")
         self.logger.info(
             f"\n"
             f"🚀 [AGENT START]\n"
@@ -581,8 +551,7 @@ class GeminiAgent(BaseAgent):
             f"   Thinking: {thinking_lvl}\n"
             f"   Context Config:\n{ctx_dump}\n"
             f"   Task:     {goal}\n"
-            f"   System Instructions: {self.system_prompt[:500]}..."
-        )
+            f"   System Instructions: {self.system_prompt[:500]}...")
 
         # Initialize Middleware
         from computer_use_eval.core.middleware import DialogMiddleware, SafetyMiddleware
@@ -597,8 +566,8 @@ class GeminiAgent(BaseAgent):
         if self.reflection_strategy == ReflectionStrategy.NONE:
             enable_stalemate = False
         elif self.reflection_strategy in (
-            ReflectionStrategy.NUDGE,
-            ReflectionStrategy.INJECT,
+                ReflectionStrategy.NUDGE,
+                ReflectionStrategy.INJECT,
         ):
             enable_stalemate = True
         else:
@@ -607,24 +576,17 @@ class GeminiAgent(BaseAgent):
 
         if enable_stalemate:
             from computer_use_eval.core.middleware.stalemate_detection import (
-                StalemateDetectionMiddleware,
-            )
+                StalemateDetectionMiddleware,)
 
-            strict_val = (
-                getattr(self.context_config, "stalemate_strict_threshold", None)
-                if self.context_config
-                else None
-            )
-            loose_val = (
-                getattr(self.context_config, "stalemate_loose_threshold", None)
-                if self.context_config
-                else None
-            )
-            window_val = (
-                getattr(self.context_config, "stalemate_history_window", None)
-                if self.context_config
-                else None
-            )
+            strict_val = (getattr(self.context_config,
+                                  "stalemate_strict_threshold", None)
+                          if self.context_config else None)
+            loose_val = (getattr(self.context_config,
+                                 "stalemate_loose_threshold", None)
+                         if self.context_config else None)
+            window_val = (getattr(self.context_config,
+                                  "stalemate_history_window", None)
+                          if self.context_config else None)
 
             middleware.append(
                 StalemateDetectionMiddleware(
@@ -635,8 +597,7 @@ class GeminiAgent(BaseAgent):
                     history_window=window_val,
                     goal=goal,
                     client=self.client,
-                )
-            )
+                ))
             self.logger.info(
                 f"Stalemate detection middleware enabled (Strategy: {self.reflection_strategy})."
             )
@@ -646,9 +607,9 @@ class GeminiAgent(BaseAgent):
             custom_actions=custom_actions,
             middleware=middleware,
             custom_tools_list=self.custom_tools,
-            disable_fast_typing_bundles=getattr(
-                self.context_config, "disable_fast_typing_bundles", False
-            ),
+            disable_fast_typing_bundles=getattr(self.context_config,
+                                                "disable_fast_typing_bundles",
+                                                False),
         )
 
         step = 0
@@ -691,7 +652,8 @@ class GeminiAgent(BaseAgent):
                             f"{env.viewport_size['width']}x{env.viewport_size['height']}",
                         )
                         os.makedirs(images_dir, exist_ok=True)
-                        image_path = os.path.join(images_dir, "step_0_initial.png")
+                        image_path = os.path.join(images_dir,
+                                                  "step_0_initial.png")
                         with open(image_path, "wb") as f:
                             f.write(screenshot_bytes)
                         self.logger.info(
@@ -708,23 +670,20 @@ class GeminiAgent(BaseAgent):
                             role="user",
                             parts=[
                                 types.Part(text=user_text),
-                                types.Part(
-                                    inline_data=types.Blob(
-                                        mime_type="image/png",
-                                        data=screenshot_bytes,
-                                    )
-                                ),
+                                types.Part(inline_data=types.Blob(
+                                    mime_type="image/png",
+                                    data=screenshot_bytes,
+                                )),
                             ],
-                        )
-                    )
+                        ))
 
                 # Process history through pipeline to create an optimized context for prediction
                 start_ctx = time.perf_counter()
                 metadata = self.telemetry.get_summary()
                 context = await self.context_pipeline.process(
-                    self.history_manager.get_full_history(), metadata=metadata
-                )
-                durations["context_processing"] = time.perf_counter() - start_ctx
+                    self.history_manager.get_full_history(), metadata=metadata)
+                durations["context_processing"] = time.perf_counter(
+                ) - start_ctx
 
                 self.logger.debug(
                     f"History size: {len(self.history_manager.get_full_history())}, Context size: {len(context)}"
@@ -746,11 +705,8 @@ class GeminiAgent(BaseAgent):
                         synthetic_content = types.Content(
                             role="model",
                             parts=[
-                                types.Part(
-                                    function_call=types.FunctionCall(
-                                        name=action.name, args=action.args
-                                    )
-                                )
+                                types.Part(function_call=types.FunctionCall(
+                                    name=action.name, args=action.args))
                             ],
                         )
                         self.history_manager.add_content(synthetic_content)
@@ -772,7 +728,8 @@ class GeminiAgent(BaseAgent):
 
                     # Log reasoning text if present
                     agent_reasoning = ""
-                    if response.candidates and response.candidates[0].content.parts:
+                    if response.candidates and response.candidates[
+                            0].content.parts:
                         for p in response.candidates[0].content.parts:
                             if p.text:
                                 agent_reasoning += p.text.strip() + "\n"
@@ -788,7 +745,8 @@ class GeminiAgent(BaseAgent):
                     if hasattr(env, "current_reasoning"):
                         env.current_reasoning = agent_reasoning.strip()
                     else:
-                        setattr(env, "current_reasoning", agent_reasoning.strip())
+                        setattr(env, "current_reasoning",
+                                agent_reasoning.strip())
 
                     actions = self._extract_actions(response)
 
@@ -810,7 +768,8 @@ class GeminiAgent(BaseAgent):
 
                 if not actions and not golden_path and not finish_action:
                     text_response = ""
-                    if response.candidates and response.candidates[0].content.parts:
+                    if response.candidates and response.candidates[
+                            0].content.parts:
                         for p in response.candidates[0].content.parts:
                             if p.text:
                                 text_response += p.text
@@ -833,25 +792,22 @@ class GeminiAgent(BaseAgent):
                         name_result_safety_triples,
                         action_durations,
                         total_mw_time,
-                    ) = await self._execute_batch(
-                        env, executor, actions, step, step_details
-                    )
+                    ) = await self._execute_batch(env, executor, actions, step,
+                                                  step_details)
                     durations["middleware_batch"] = total_mw_time
-                    durations["execution"] = (
-                        time.perf_counter() - start_exec
-                    ) - total_mw_time
+                    durations["execution"] = (time.perf_counter() -
+                                              start_exec) - total_mw_time
 
                     # Check for safety termination
-                    if (
-                        name_result_safety_triples
-                        and name_result_safety_triples[-1].result_data.get("error")
-                        == "TERMINATED_BY_SAFETY"
-                    ):
+                    if (name_result_safety_triples and
+                            name_result_safety_triples[-1].result_data.get(
+                                "error") == "TERMINATED_BY_SAFETY"):
                         return self._build_result(
                             success=False,
                             step=step,
                             step_details=step_details,
-                            error=f"Action denied by safety: {name_result_safety_triples[-1].action_name}",
+                            error=
+                            f"Action denied by safety: {name_result_safety_triples[-1].action_name}",
                         )
 
                 # If finish was called, terminate the run AFTER executing the other actions
@@ -863,19 +819,19 @@ class GeminiAgent(BaseAgent):
                     )
 
                     # Log it as a completed step
-                    step_details.append(
-                        {
-                            "step": step,
-                            "durations": durations,
-                            "actions": [
-                                {
-                                    "name": "finish",
-                                    "args": finish_action.args,
-                                    "result": {"status": "ok"},
-                                }
-                            ],
-                        }
-                    )
+                    step_details.append({
+                        "step":
+                            step,
+                        "durations":
+                            durations,
+                        "actions": [{
+                            "name": "finish",
+                            "args": finish_action.args,
+                            "result": {
+                                "status": "ok"
+                            },
+                        }],
+                    })
 
                     return self._build_result(
                         success=(status == "success"),
@@ -910,7 +866,8 @@ class GeminiAgent(BaseAgent):
                         f"{env.viewport_size['width']}x{env.viewport_size['height']}",
                     )
                     os.makedirs(images_dir, exist_ok=True)
-                    image_path = os.path.join(images_dir, f"step_{step}_post.png")
+                    image_path = os.path.join(images_dir,
+                                              f"step_{step}_post.png")
                     with open(image_path, "wb") as f:
                         f.write(post_action_bytes)
                     self.logger.info(
@@ -920,7 +877,8 @@ class GeminiAgent(BaseAgent):
                 self.logger.info(
                     f"📸 [OBSERVATION] Post-action screenshot captured ({len(post_action_bytes)} bytes). Passing state back to model..."
                 )
-                durations["post_observation"] = time.perf_counter() - start_post_obs
+                durations["post_observation"] = time.perf_counter(
+                ) - start_post_obs
 
                 start_mw_end = time.perf_counter()
                 for mw in middleware:
@@ -933,19 +891,11 @@ class GeminiAgent(BaseAgent):
                 pred_time = durations.get("prediction", 0)
                 exec_time = durations.get("execution", 0)
                 ctx_time = durations.get("context_processing", 0)
-                mw_time = (
-                    durations.get("middleware_start", 0)
-                    + durations.get("middleware_end", 0)
-                    + durations.get("middleware_batch", 0)
-                )
-                total_time = (
-                    obs_time
-                    + post_obs_time
-                    + pred_time
-                    + exec_time
-                    + ctx_time
-                    + mw_time
-                )
+                mw_time = (durations.get("middleware_start", 0) +
+                           durations.get("middleware_end", 0) +
+                           durations.get("middleware_batch", 0))
+                total_time = (obs_time + post_obs_time + pred_time + exec_time +
+                              ctx_time + mw_time)
 
                 # We need a cumulative duration. Start with a naive one if we don't have it tracked exactly,
                 # or compute it roughly from start of run. We'll use self.telemetry which might track it.
@@ -972,16 +922,15 @@ class GeminiAgent(BaseAgent):
 
                 # Record step details via telemetry tracker
                 step_record = {
-                    "step": step,
-                    "durations": durations,
-                    "actions": [
-                        {
-                            "name": res.action_name,
-                            "args": actions[idx].args,
-                            "result": res.result_data,
-                        }
-                        for idx, res in enumerate(name_result_safety_triples)
-                    ],
+                    "step":
+                        step,
+                    "durations":
+                        durations,
+                    "actions": [{
+                        "name": res.action_name,
+                        "args": actions[idx].args,
+                        "result": res.result_data,
+                    } for idx, res in enumerate(name_result_safety_triples)],
                 }
                 self.telemetry.add_step_detail(step_record)
                 step_details = self.telemetry.step_details
@@ -992,10 +941,8 @@ class GeminiAgent(BaseAgent):
 
                 history = self.history_manager.get_full_history()
                 if history and history[-1].role == "model":
-                    if (
-                        "gemini-3" in self.model_version
-                        and len(name_result_safety_triples) > 1
-                    ):
+                    if ("gemini-3" in self.model_version and
+                            len(name_result_safety_triples) > 1):
                         self.logger.warning(
                             f"\n"
                             f"╭──────────────────────────────────────────────────────────────────────────╮\n"
@@ -1032,8 +979,7 @@ class GeminiAgent(BaseAgent):
                             parts.append(types.Part(function_call=fc))
 
                             self.history_manager.add_content(
-                                types.Content(role="model", parts=parts)
-                            )
+                                types.Content(role="model", parts=parts))
 
                             # 2. Create corresponding User Response Turn
                             response_data = {
@@ -1044,7 +990,10 @@ class GeminiAgent(BaseAgent):
                             if safety_acknowledged:
                                 response_data["safety_acknowledgement"] = "true"
 
-                            fr_kwargs = {"name": name, "response": response_data}
+                            fr_kwargs = {
+                                "name": name,
+                                "response": response_data
+                            }
                             if call_id:
                                 fr_kwargs["id"] = call_id
 
@@ -1055,8 +1004,7 @@ class GeminiAgent(BaseAgent):
                                         inline_data=types.FunctionResponseBlob(
                                             mime_type="image/png",
                                             data=post_action_bytes,
-                                        )
-                                    )
+                                        ))
                                 ]
 
                             fr = types.FunctionResponse(**fr_kwargs)
@@ -1064,8 +1012,7 @@ class GeminiAgent(BaseAgent):
                                 types.Content(
                                     role="user",
                                     parts=[types.Part(function_response=fr)],
-                                )
-                            )
+                                ))
                     else:
                         # True Parallel Function Calling (Gemini 2.5, or single action)
                         fr_parts = []
@@ -1083,7 +1030,10 @@ class GeminiAgent(BaseAgent):
                             if safety_acknowledged:
                                 response_data["safety_acknowledgement"] = "true"
 
-                            fr_kwargs = {"name": name, "response": response_data}
+                            fr_kwargs = {
+                                "name": name,
+                                "response": response_data
+                            }
                             if call_id:
                                 fr_kwargs["id"] = call_id
 
@@ -1094,16 +1044,14 @@ class GeminiAgent(BaseAgent):
                                         inline_data=types.FunctionResponseBlob(
                                             mime_type="image/png",
                                             data=post_action_bytes,
-                                        )
-                                    )
+                                        ))
                                 ]
 
                             fr = types.FunctionResponse(**fr_kwargs)
                             fr_parts.append(types.Part(function_response=fr))
 
                         self.history_manager.add_content(
-                            types.Content(role="user", parts=fr_parts)
-                        )
+                            types.Content(role="user", parts=fr_parts))
                 else:
                     # Fallback for synthetic/golden path turns which might already be sequential
                     self.logger.warning(
@@ -1116,7 +1064,8 @@ class GeminiAgent(BaseAgent):
                     import inspect
 
                     if inspect.iscoroutinefunction(hook_fn):
-                        await hook_fn(step, self.history_manager.get_full_history())
+                        await hook_fn(step,
+                                      self.history_manager.get_full_history())
                     else:
                         hook_fn(step, self.history_manager.get_full_history())
 
@@ -1128,7 +1077,8 @@ class GeminiAgent(BaseAgent):
             )
 
         except Exception as e:
-            self.logger.exception("Agent execution failed due to an unexpected error.")
+            self.logger.exception(
+                "Agent execution failed due to an unexpected error.")
 
             return self._build_result(
                 success=False,

@@ -50,7 +50,8 @@ def test_playwright_launch():
     with sync_playwright() as p:
         # We test both headless=True (default) and headless=False (Xvfb mode)
         # depending on the environment variables.
-        headless = os.environ.get("PLAYWRIGHT_HEADLESS", "true").lower() == "true"
+        headless = os.environ.get("PLAYWRIGHT_HEADLESS",
+                                  "true").lower() == "true"
 
         browser = p.chromium.launch(headless=headless)
         page = browser.new_page(viewport={"width": 1280, "height": 1024})
@@ -59,14 +60,16 @@ def test_playwright_launch():
         page.goto("about:blank")
 
         # Inject a simple element to verify rendering
-        page.evaluate("document.body.innerHTML = '<h1>Docker Smoke Test SUCCESS</h1>'")
+        page.evaluate(
+            "document.body.innerHTML = '<h1>Docker Smoke Test SUCCESS</h1>'")
 
         screenshot_path = "artifacts/smoke_test.png"
         os.makedirs("artifacts", exist_ok=True)
         page.screenshot(path=screenshot_path)
 
         assert os.path.exists(screenshot_path)
-        print(f"✅ Verified: Playwright captured screenshot at {screenshot_path}")
+        print(
+            f"✅ Verified: Playwright captured screenshot at {screenshot_path}")
         browser.close()
 
 

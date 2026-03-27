@@ -41,7 +41,8 @@ class PlaywrightEnv:
 
         self.slow_mo = slow_mo
         self.viewport_size = {"width": resolution[0], "height": resolution[1]}
-        self.scaler = CoordinateScaler(width=resolution[0], height=resolution[1])
+        self.scaler = CoordinateScaler(width=resolution[0],
+                                       height=resolution[1])
         self.video_dir = video_dir
         self.cdp_url = cdp_url
         self.cdp_headers = cdp_headers
@@ -58,25 +59,25 @@ class PlaywrightEnv:
 
         # Perception Engine: Opt-in via environment variable
         # This uses 'mss' for high-speed capture but requires a visible display (Xvfb or Desktop).
-        enable_perception = (
-            os.environ.get("ENABLE_PERCEPTION_ENGINE", "false").lower() == "true"
-        )
+        enable_perception = (os.environ.get("ENABLE_PERCEPTION_ENGINE",
+                                            "false").lower() == "true")
         self.perception_service = perception_service
 
         if enable_perception and not self.perception_service:
             if cdp_url:
                 self.logger.warning(
-                    "Perception Engine disabled: Incompatible with remote CDP."
-                )
+                    "Perception Engine disabled: Incompatible with remote CDP.")
             else:
                 self.logger.info(
                     "Perception Engine ENABLED. Forcing headless=False for screen capture."
                 )
                 self.headless = False  # mss requires a real display surface
-                self.perception_service = PerceptionService(enable_screen_buffer=True)
+                self.perception_service = PerceptionService(
+                    enable_screen_buffer=True)
 
         if not self.perception_service:
-            self.perception_service = PerceptionService(enable_screen_buffer=False)
+            self.perception_service = PerceptionService(
+                enable_screen_buffer=False)
 
     async def __aenter__(self):
         return self
@@ -97,10 +98,10 @@ class PlaywrightEnv:
             self.perception_service.start()
 
         if self.cdp_url:
-            self.logger.info(f"Connecting to remote browser at {self.cdp_url}...")
+            self.logger.info(
+                f"Connecting to remote browser at {self.cdp_url}...")
             self.browser = await self.playwright.chromium.connect_over_cdp(
-                self.cdp_url, headers=self.cdp_headers or {}
-            )
+                self.cdp_url, headers=self.cdp_headers or {})
         else:
             launch_args = [
                 "--disable-blink-features=AutomationControlled",
@@ -120,15 +121,16 @@ class PlaywrightEnv:
             viewport=self.viewport_size,
             record_video_dir=self.video_dir if self.video_dir else None,
             ignore_https_errors=True,
-            user_agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+            user_agent=
+            "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
             locale="en-US",
             timezone_id="UTC",
         )
 
         if self.enable_tracing:
-            await self.context.tracing.start(
-                screenshots=True, snapshots=True, sources=True
-            )
+            await self.context.tracing.start(screenshots=True,
+                                             snapshots=True,
+                                             sources=True)
 
         if getattr(self, "enable_mutation_observer", False):
             self.logger.info(
@@ -153,7 +155,8 @@ class PlaywrightEnv:
 
         # Resource Blocking Logic
         if getattr(self, "block_heavy_resources", False):
-            self.logger.info("Resource blocking enabled: Intercepting media and fonts.")
+            self.logger.info(
+                "Resource blocking enabled: Intercepting media and fonts.")
             await self.page.route(
                 "**/*.{png,jpg,jpeg,webp,gif,svg,woff,woff2,mp3,mp4}",
                 lambda route: route.abort(),
@@ -161,8 +164,8 @@ class PlaywrightEnv:
 
         # Buffer console logs for diagnostic reflection
         self.page.on(
-            "console", lambda msg: self.console_logs.append(f"[{msg.type}] {msg.text}")
-        )
+            "console",
+            lambda msg: self.console_logs.append(f"[{msg.type}] {msg.text}"))
 
         # Environment Fingerprinting
         ua = await self.page.evaluate("navigator.userAgent")
@@ -178,7 +181,8 @@ class PlaywrightEnv:
         Handler for the 'page' event on the context.
         Automatically updates self.page to point to the most recently opened tab.
         """
-        self.logger.info(f"✨ [TAB DETECTION] New page/tab opened: {new_page.url}")
+        self.logger.info(
+            f"✨ [TAB DETECTION] New page/tab opened: {new_page.url}")
         self.page = new_page
 
     async def stop(self):
@@ -202,7 +206,8 @@ class PlaywrightEnv:
 
         if self.context:
             if self.enable_tracing:
-                trace_path = os.path.join(self.video_dir or "artifacts", "trace.zip")
+                trace_path = os.path.join(self.video_dir or "artifacts",
+                                          "trace.zip")
                 self.logger.info(f"Saving execution trace to {trace_path}...")
                 try:
                     await self.context.tracing.stop(path=trace_path)
@@ -328,15 +333,16 @@ class PlaywrightEnv:
                         continue
 
                     role = node.get("role", {}).get("value", "")
-                    if not role or role in ("RootWebArea", "WebArea", "generic"):
+                    if not role or role in ("RootWebArea", "WebArea",
+                                            "generic"):
                         continue
 
                     name = node.get("name", {}).get("value", "")
                     if not name and role not in (
-                        "textbox",
-                        "searchbox",
-                        "combobox",
-                        "button",
+                            "textbox",
+                            "searchbox",
+                            "combobox",
+                            "button",
                     ):
                         continue
 
@@ -347,9 +353,11 @@ class PlaywrightEnv:
                             val = prop.get("value", {}).get("value", "")
                             break
 
-                    elements.append(
-                        {"role": role, "name": name, "value": str(val) if val else ""}
-                    )
+                    elements.append({
+                        "role": role,
+                        "name": name,
+                        "value": str(val) if val else ""
+                    })
 
             snapshot_str = json.dumps({"role": "root", "children": elements})
             self._last_aria_snapshot = snapshot_str

@@ -14,6 +14,7 @@ from computer_use_eval.core.middleware import (
 
 
 class MockMiddleware(ActionMiddleware):
+
     def __init__(self):
         self.before_called = False
         self.after_called = False
@@ -39,7 +40,8 @@ async def test_tool_executor_middleware_pipeline():
     executor = ToolExecutor(mock_env, middleware=[mw1, mw2])
 
     # Mock a browser action so it doesn't actually try to run playwright
-    executor.browser_action_executor.execute = AsyncMock(return_value={"status": "ok"})
+    executor.browser_action_executor.execute = AsyncMock(
+        return_value={"status": "ok"})
 
     result, mw_dur = await executor.execute("click_at", {"x": 100, "y": 100})
 

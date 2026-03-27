@@ -35,7 +35,8 @@ async def test_agent_result_includes_thinking_tokens():
     mock_candidate.content.parts = [types.Part(text="Final answer.")]
     mock_response.candidates = [mock_candidate]
 
-    mock_client.aio.models.generate_content = AsyncMock(return_value=mock_response)
+    mock_client.aio.models.generate_content = AsyncMock(
+        return_value=mock_response)
 
     # Mock env
     mock_env = MagicMock()

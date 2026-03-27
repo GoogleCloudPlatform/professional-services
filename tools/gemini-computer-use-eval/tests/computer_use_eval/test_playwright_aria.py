@@ -14,9 +14,10 @@ async def test_get_aria_snapshot_exists():
     # Mock the page object
     env.page = MagicMock()
     env.page.accessibility = MagicMock()
-    env.page.accessibility.snapshot = AsyncMock(
-        return_value={"role": "root", "name": "Test Page"}
-    )
+    env.page.accessibility.snapshot = AsyncMock(return_value={
+        "role": "root",
+        "name": "Test Page"
+    })
 
     # Check if the method exists and is callable
     assert hasattr(env, "get_aria_snapshot")

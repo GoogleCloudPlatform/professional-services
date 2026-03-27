@@ -33,8 +33,7 @@ class TestSafetyPolicies:
     @patch("builtins.input", return_value="YES")
     @patch("builtins.print")
     def test_interactive_policy_accept_yes_case_insensitive(
-        self, mock_print, mock_input
-    ):
+            self, mock_print, mock_input):
         """Should return CONTINUE when user inputs 'YES'."""
         policy = InteractiveSafetyPolicy()
         decision = {"explanation": "Risky action"}

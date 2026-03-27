@@ -20,9 +20,8 @@ class ContextPipelineFactory:
     """Factory for building a ContextPipeline from configuration."""
 
     @staticmethod
-    def build(
-        ctx_conf: ContextConfig, client, max_history_turns: int
-    ) -> ContextPipeline:
+    def build(ctx_conf: ContextConfig, client,
+              max_history_turns: int) -> ContextPipeline:
         preset = ctx_conf.preset.upper()
 
         # --- Strengthened Preset Logic ---
@@ -48,43 +47,32 @@ class ContextPipelineFactory:
             default_summarization = False
 
         # Apply Overrides (if any)
-        max_images = (
-            ctx_conf.max_images_in_history
-            if ctx_conf.max_images_in_history is not None
-            else default_max_images
-        )
+        max_images = (ctx_conf.max_images_in_history
+                      if ctx_conf.max_images_in_history is not None else
+                      default_max_images)
 
-        enable_compaction = (
-            ctx_conf.enable_compaction
-            if ctx_conf.enable_compaction is not None
-            else default_compaction
-        )
-        enable_summarization = (
-            ctx_conf.enable_summarization
-            if ctx_conf.enable_summarization is not None
-            else default_summarization
-        )
+        enable_compaction = (ctx_conf.enable_compaction
+                             if ctx_conf.enable_compaction is not None else
+                             default_compaction)
+        enable_summarization = (ctx_conf.enable_summarization
+                                if ctx_conf.enable_summarization is not None
+                                else default_summarization)
 
-        summarization_model = (
-            ctx_conf.summarization_model or settings.SUMMARIZATION_MODEL
-        )
-        summarization_token_threshold = (
-            ctx_conf.summarization_token_threshold
-            or settings.SUMMARIZATION_TOKEN_THRESHOLD
-        )
+        summarization_model = (ctx_conf.summarization_model or
+                               settings.SUMMARIZATION_MODEL)
+        summarization_token_threshold = (ctx_conf.summarization_token_threshold
+                                         or
+                                         settings.SUMMARIZATION_TOKEN_THRESHOLD)
 
-        retention_strategy = (
-            ctx_conf.image_retention_strategy or settings.IMAGE_RETENTION_STRATEGY
-        )
+        retention_strategy = (ctx_conf.image_retention_strategy or
+                              settings.IMAGE_RETENTION_STRATEGY)
 
         strategies = []
 
         # 1. Image Retention Strategy
         strategies.append(
-            ImageContextStrategy(
-                max_images=max_images, retention_strategy=retention_strategy
-            )
-        )
+            ImageContextStrategy(max_images=max_images,
+                                 retention_strategy=retention_strategy))
 
         # 2. Compaction Strategy
         if enable_compaction:
@@ -99,16 +87,14 @@ class ContextPipelineFactory:
                     token_threshold=summarization_token_threshold,
                     keep_tail=10,
                     protected_head=settings.PROTECTED_HEAD_TURNS,
-                )
-            )
+                ))
 
         # 4. SmartTrim (Final Safety Layer)
         strategies.append(
             SmartTrimStrategy(
                 max_turns=max_history_turns,
                 protected_head=settings.PROTECTED_HEAD_TURNS,
-            )
-        )
+            ))
 
         pipeline = ContextPipeline(strategies)
         logger.info(

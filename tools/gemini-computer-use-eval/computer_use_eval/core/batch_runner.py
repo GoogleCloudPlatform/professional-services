@@ -16,7 +16,9 @@ from unittest.mock import patch
 logger = logging.getLogger(__name__)
 
 
-async def run_batch(patterns: List[str], model: str = None, batch_id: str = None):
+async def run_batch(patterns: List[str],
+                    model: str = None,
+                    batch_id: str = None):
     """
     Finds all benchmark files matching the patterns and runs them sequentially.
     """
@@ -43,12 +45,14 @@ async def run_batch(patterns: List[str], model: str = None, batch_id: str = None
         logger.error(f"No benchmark files found matching patterns: {patterns}")
         return
 
-    logger.info(f"Starting batch '{batch_id}' with {len(benchmark_files)} benchmarks.")
+    logger.info(
+        f"Starting batch '{batch_id}' with {len(benchmark_files)} benchmarks.")
 
     results = []
 
     for benchmark_path in benchmark_files:
-        logger.info(f"=== Starting Benchmark: {os.path.basename(benchmark_path)} ===")
+        logger.info(
+            f"=== Starting Benchmark: {os.path.basename(benchmark_path)} ===")
 
         cli_args = ["--benchmark", benchmark_path, "--batch-id", batch_id]
         if model:
@@ -63,9 +67,11 @@ async def run_batch(patterns: List[str], model: str = None, batch_id: str = None
 
         except Exception as e:
             logger.error(f"Failed to run {benchmark_path}: {e}")
-            results.append(
-                {"path": benchmark_path, "status": "failed", "error": str(e)}
-            )
+            results.append({
+                "path": benchmark_path,
+                "status": "failed",
+                "error": str(e)
+            })
 
     # Summary
     print(f"\n=== Batch Execution Summary: {batch_id} ===")
@@ -82,7 +88,8 @@ def main():
     parser.add_argument(
         "patterns",
         nargs="+",
-        help="Glob patterns for benchmark YAML files (e.g., config/benchmarks/*.yaml)",
+        help=
+        "Glob patterns for benchmark YAML files (e.g., config/benchmarks/*.yaml)",
     )
     parser.add_argument("-m", "--model", help="Override model name")
     parser.add_argument("--batch-id", help="Logical ID for grouping runs")

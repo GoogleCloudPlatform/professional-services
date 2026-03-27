@@ -10,7 +10,9 @@ from .base import BaseAction
 
 
 class NavigateAction(BaseAction):
-    async def execute(self, env: PlaywrightEnv, args: Dict[str, Any]) -> Dict[str, Any]:
+
+    async def execute(self, env: PlaywrightEnv,
+                      args: Dict[str, Any]) -> Dict[str, Any]:
         url = args.get("url")
         if not url:
             return {"error": "url argument is required"}
@@ -29,32 +31,40 @@ class NavigateAction(BaseAction):
 
 
 class OpenBrowserAction(BaseAction):
+
     @property
     def is_passive(self) -> bool:
         return True
 
-    async def execute(self, env: PlaywrightEnv, args: Dict[str, Any]) -> Dict[str, Any]:
+    async def execute(self, env: PlaywrightEnv,
+                      args: Dict[str, Any]) -> Dict[str, Any]:
         return {"status": "ok"}
 
 
 class GoBackAction(BaseAction):
-    async def execute(self, env: PlaywrightEnv, args: Dict[str, Any]) -> Dict[str, Any]:
+
+    async def execute(self, env: PlaywrightEnv,
+                      args: Dict[str, Any]) -> Dict[str, Any]:
         await env.page.go_back()
         return {"status": "ok"}
 
 
 class GoForwardAction(BaseAction):
-    async def execute(self, env: PlaywrightEnv, args: Dict[str, Any]) -> Dict[str, Any]:
+
+    async def execute(self, env: PlaywrightEnv,
+                      args: Dict[str, Any]) -> Dict[str, Any]:
         await env.page.go_forward()
         return {"status": "ok"}
 
 
 class ScrollAction(BaseAction):
+
     @property
     def is_passive(self) -> bool:
         return True
 
-    async def execute(self, env: PlaywrightEnv, args: Dict[str, Any]) -> Dict[str, Any]:
+    async def execute(self, env: PlaywrightEnv,
+                      args: Dict[str, Any]) -> Dict[str, Any]:
         direction = args.get("direction", "down")
         magnitude = args.get("magnitude", 800)
         dimension = "height" if direction in ["up", "down"] else "width"
@@ -72,11 +82,13 @@ class ScrollAction(BaseAction):
 
 
 class ScrollAtAction(BaseAction):
+
     @property
     def is_passive(self) -> bool:
         return True
 
-    async def execute(self, env: PlaywrightEnv, args: Dict[str, Any]) -> Dict[str, Any]:
+    async def execute(self, env: PlaywrightEnv,
+                      args: Dict[str, Any]) -> Dict[str, Any]:
         x, y = self.denormalize(args["x"], args["y"], env)
         direction = args.get("direction", "down")
         magnitude = args.get("magnitude", 600)
@@ -98,11 +110,13 @@ class ScrollAtAction(BaseAction):
 
 
 class WaitAction(BaseAction):
+
     @property
     def is_passive(self) -> bool:
         return True
 
-    async def execute(self, env: PlaywrightEnv, args: Dict[str, Any]) -> Dict[str, Any]:
+    async def execute(self, env: PlaywrightEnv,
+                      args: Dict[str, Any]) -> Dict[str, Any]:
         # Explicit wait requested by the model.
         # Useful for async background processes or legacy slow UIs.
         await asyncio.sleep(5)

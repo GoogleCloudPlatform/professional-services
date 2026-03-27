@@ -14,8 +14,14 @@ async def test_plugin_integration_runner():
     Verify that custom_actions from config are passed to run_task.
     """
     config = {
-        "agent": {"custom_actions": {"my_tool": "pkg.MyClass"}},
-        "task": {"goal": "test"},
+        "agent": {
+            "custom_actions": {
+                "my_tool": "pkg.MyClass"
+            }
+        },
+        "task": {
+            "goal": "test"
+        },
     }
 
     with patch("computer_use_eval.runner.SessionFactory.create_session") as mock_factory, \
@@ -25,9 +31,10 @@ async def test_plugin_integration_runner():
         mock_agent_instance = AsyncMock()
         mock_factory.return_value = (mock_env, mock_agent_instance, MagicMock())
 
-        mock_agent_instance.run_task.return_value = MagicMock(
-            success=True, steps=1, retries=0, metadata={}
-        )
+        mock_agent_instance.run_task.return_value = MagicMock(success=True,
+                                                              steps=1,
+                                                              retries=0,
+                                                              metadata={})
         mock_agent_instance.client = MagicMock()
 
         await run_single_resolution(1000, 1000, config, "run_id", "run_dir")

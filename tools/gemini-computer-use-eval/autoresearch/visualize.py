@@ -28,17 +28,15 @@ def generate_dashboard():
         reader = csv.DictReader(f, delimiter="\t")
         for idx, row in enumerate(reader):
             # Parse row: run_id, score, avg_steps, avg_tokens, status, description
-            runs.append(
-                {
-                    "experiment": idx + 1,
-                    "run_id": row["run_id"],
-                    "score": float(row["score"]),
-                    "avg_steps": float(row["avg_steps"]),
-                    "avg_tokens": float(row["avg_tokens"]),
-                    "status": row["status"],
-                    "description": row["description"],
-                }
-            )
+            runs.append({
+                "experiment": idx + 1,
+                "run_id": row["run_id"],
+                "score": float(row["score"]),
+                "avg_steps": float(row["avg_steps"]),
+                "avg_tokens": float(row["avg_tokens"]),
+                "status": row["status"],
+                "description": row["description"],
+            })
 
     if not runs:
         print("No data in results.tsv")

@@ -40,37 +40,31 @@ class SandboxManager:
         """
         import asyncio
 
-        if (
-            hasattr(self, "sandbox_name")
-            and self.client
-            and getattr(self, "_created_sandbox", False)
-        ):
+        if (hasattr(self, "sandbox_name") and self.client and
+                getattr(self, "_created_sandbox", False)):
             try:
-                self.logger.info(f"Deleting ephemeral Sandbox {self.sandbox_name}...")
+                self.logger.info(
+                    f"Deleting ephemeral Sandbox {self.sandbox_name}...")
                 start_time = time.time()
                 await asyncio.to_thread(
-                    self.client.agent_engines.sandboxes.delete, name=self.sandbox_name
-                )
-                self.logger.info(f"Sandbox deleted in {time.time() - start_time:.3f}s")
+                    self.client.agent_engines.sandboxes.delete,
+                    name=self.sandbox_name)
+                self.logger.info(
+                    f"Sandbox deleted in {time.time() - start_time:.3f}s")
             except Exception as e:
                 self.logger.warning(f"Failed to delete sandbox: {e}")
 
-        if (
-            hasattr(self, "agent_engine_name")
-            and self.client
-            and getattr(self, "_created_engine", False)
-        ):
+        if (hasattr(self, "agent_engine_name") and self.client and
+                getattr(self, "_created_engine", False)):
             try:
                 self.logger.info(
                     f"Deleting ephemeral Agent Engine {self.agent_engine_name}..."
                 )
                 start_time = time.time()
-                await asyncio.to_thread(
-                    self.client.agent_engines.delete, name=self.agent_engine_name
-                )
+                await asyncio.to_thread(self.client.agent_engines.delete,
+                                        name=self.agent_engine_name)
                 self.logger.info(
-                    f"Agent Engine deleted in {time.time() - start_time:.3f}s"
-                )
+                    f"Agent Engine deleted in {time.time() - start_time:.3f}s")
             except Exception as e:
                 self.logger.warning(f"Failed to delete agent engine: {e}")
 
@@ -84,7 +78,8 @@ class SandboxManager:
 
             total_start = time.time()
 
-            client = vertexai.Client(project=self.project_id, location=self.location)
+            client = vertexai.Client(project=self.project_id,
+                                     location=self.location)
 
             # 1. Resolve Agent Engine
             self.agent_engine_name = settings.SANDBOX_AGENT_ENGINE_NAME
@@ -103,8 +98,7 @@ class SandboxManager:
                 )
             else:
                 self.logger.info(
-                    f"Using existing Agent Engine: {self.agent_engine_name}"
-                )
+                    f"Using existing Agent Engine: {self.agent_engine_name}")
 
             # 2. Resolve Sandbox (Reuse or Create)
             self._created_sandbox = False
@@ -112,15 +106,18 @@ class SandboxManager:
 
             try:
                 existing_sandboxes = list(
-                    client.agent_engines.sandboxes.list(name=self.agent_engine_name)
-                )
+                    client.agent_engines.sandboxes.list(
+                        name=self.agent_engine_name))
                 for sb in existing_sandboxes:
-                    if str(sb.state) == "STATE_RUNNING" or "RUNNING" in str(sb.state):
-                        self.logger.info(f"Reusing existing running Sandbox: {sb.name}")
+                    if str(sb.state) == "STATE_RUNNING" or "RUNNING" in str(
+                            sb.state):
+                        self.logger.info(
+                            f"Reusing existing running Sandbox: {sb.name}")
                         self.sandbox_name = sb.name
                         break
             except Exception as list_err:
-                self.logger.warning(f"Failed to list existing sandboxes: {list_err}")
+                self.logger.warning(
+                    f"Failed to list existing sandboxes: {list_err}")
 
             if not self.sandbox_name:
                 self.logger.info("Creating fresh Sandbox...")
@@ -133,8 +130,7 @@ class SandboxManager:
                 self.sandbox_name = operation.response.name
                 self._created_sandbox = True
                 self.logger.info(
-                    f"Sandbox created in {time.time() - sandbox_start:.3f}s"
-                )
+                    f"Sandbox created in {time.time() - sandbox_start:.3f}s")
 
             # 3. Get Credentials via Official SDK
             self.logger.info("Generating CDP Auth Headers via SDK...")
@@ -142,22 +138,20 @@ class SandboxManager:
 
             # Fetch fresh resource info
             sandbox_resource = client.agent_engines.sandboxes.get(
-                name=self.sandbox_name
-            )
+                name=self.sandbox_name)
 
             service_account = settings.SANDBOX_SERVICE_ACCOUNT
             if not service_account:
                 raise ValueError(
-                    "SANDBOX_SERVICE_ACCOUNT must be set for sandbox mode."
-                )
+                    "SANDBOX_SERVICE_ACCOUNT must be set for sandbox mode.")
 
-            if not hasattr(
-                client.agent_engines.sandboxes, "generate_browser_ws_headers"
-            ):
+            if not hasattr(client.agent_engines.sandboxes,
+                           "generate_browser_ws_headers"):
                 import importlib.metadata
 
                 try:
-                    sdk_version = importlib.metadata.version("google-cloud-aiplatform")
+                    sdk_version = importlib.metadata.version(
+                        "google-cloud-aiplatform")
                 except Exception:
                     sdk_version = "unknown"
                 raise RuntimeError(
@@ -171,8 +165,7 @@ class SandboxManager:
                 client.agent_engines.sandboxes.generate_browser_ws_headers(
                     sandbox_environment=sandbox_resource,
                     service_account_email=service_account,
-                )
-            )
+                ))
 
             # 4. Generate VNC Debug Token (Optional but very helpful for UI debugging)
             try:
@@ -183,18 +176,18 @@ class SandboxManager:
                     timeout=3600,
                 )
                 lb_ip = (
-                    sandbox_resource.connection_info.load_balancer_ip
-                    or sandbox_resource.connection_info.load_balancer_hostname
-                )
+                    sandbox_resource.connection_info.load_balancer_ip or
+                    sandbox_resource.connection_info.load_balancer_hostname)
                 self.logger.info("--- SANDBOX LIVE VIEW ---")
-                self.logger.info(f"VNC URL: http://{lb_ip}:5091/?token={vnc_token}")
+                self.logger.info(
+                    f"VNC URL: http://{lb_ip}:5091/?token={vnc_token}")
                 self.logger.info("-------------------------")
             except Exception as vnc_err:
-                self.logger.warning(f"Failed to generate VNC debug token: {vnc_err}")
+                self.logger.warning(
+                    f"Failed to generate VNC debug token: {vnc_err}")
 
             self.logger.info(
-                f"Auth headers generated in {time.time() - auth_start:.3f}s"
-            )
+                f"Auth headers generated in {time.time() - auth_start:.3f}s")
 
             self.client = client  # Keep reference for teardown
             self.logger.info(
@@ -203,5 +196,6 @@ class SandboxManager:
             return ws_url, headers
 
         except Exception as e:
-            self.logger.error(f"Failed to setup sandbox session: {e}", exc_info=True)
+            self.logger.error(f"Failed to setup sandbox session: {e}",
+                              exc_info=True)
             raise e

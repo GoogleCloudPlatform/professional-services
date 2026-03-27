@@ -34,7 +34,8 @@ def destroy_infra(project_id: str, location: str, engine_name: str) -> None:
         # 1. List and Delete all Sandboxes
         logger.info(f"Checking for sandboxes under engine: {engine_name}")
         try:
-            sandboxes = list(client.agent_engines.sandboxes.list(name=engine_name))
+            sandboxes = list(
+                client.agent_engines.sandboxes.list(name=engine_name))
             if not sandboxes:
                 logger.info("No sandboxes found.")
             for sb in sandboxes:
@@ -69,12 +70,12 @@ def main() -> None:
         description="Destruction Utility for Agent Engine Sandbox Infrastructure"
     )
     parser.add_argument("--project", help="GCP Project ID", required=True)
-    parser.add_argument(
-        "--location", help="GCP Location (Region)", default="us-central1"
-    )
-    parser.add_argument(
-        "--engine", help="Full Agent Engine Resource Name to delete", required=True
-    )
+    parser.add_argument("--location",
+                        help="GCP Location (Region)",
+                        default="us-central1")
+    parser.add_argument("--engine",
+                        help="Full Agent Engine Resource Name to delete",
+                        required=True)
 
     args = parser.parse_args()
 

@@ -24,6 +24,7 @@ from computer_use_eval.browser.screen_buffer import ScreenBuffer
 
 
 class TestScreenBuffer:
+
     @pytest.fixture
     def mock_mss(self):
         with patch("computer_use_eval.browser.screen_buffer.mss.mss") as mock:
@@ -38,10 +39,15 @@ class TestScreenBuffer:
 
     def test_start_stop(self, mock_mss):
         mock_sct = mock_mss.return_value.__enter__.return_value
-        mock_sct.monitors = [{}, {"top": 0, "left": 0, "width": 100, "height": 100}]
-        mock_sct.grab.return_value = MagicMock(
-            rgb=b"\x00" * 30000, size=(100, 100), bgra=b"\x00" * 40000
-        )
+        mock_sct.monitors = [{}, {
+            "top": 0,
+            "left": 0,
+            "width": 100,
+            "height": 100
+        }]
+        mock_sct.grab.return_value = MagicMock(rgb=b"\x00" * 30000,
+                                               size=(100, 100),
+                                               bgra=b"\x00" * 40000)
 
         sb = ScreenBuffer()
         sb.start()
@@ -58,7 +64,12 @@ class TestScreenBuffer:
 
     def test_capture_loop_adds_to_buffer(self, mock_mss):
         mock_sct = mock_mss.return_value.__enter__.return_value
-        mock_sct.monitors = [{}, {"top": 0, "left": 0, "width": 10, "height": 10}]
+        mock_sct.monitors = [{}, {
+            "top": 0,
+            "left": 0,
+            "width": 10,
+            "height": 10
+        }]
         # Mocking the ScreenShot object from mss
         mock_shot = MagicMock()
         mock_shot.size = (10, 10)
@@ -122,7 +133,8 @@ class TestScreenBuffer:
         # Should have waited at least 0.3s
         assert (end_time - start_time) >= 0.3
         # Should return the stable (green) frame
-        assert frame.getpixel((0, 0)) == (0, 128, 0)  # PIL 'green' is (0, 128, 0)
+        assert frame.getpixel(
+            (0, 0)) == (0, 128, 0)  # PIL 'green' is (0, 128, 0)
         t.join()
 
     def test_get_latest_frame_stable_timeout(self):

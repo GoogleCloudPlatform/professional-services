@@ -15,10 +15,12 @@ def test_session_factory_config_overrides():
     # Override settings passed to create
     config = {"environment": {"slow_mo": 100, "headless": False}}
 
-    with patch("computer_use_eval.core.session_factory.PlaywrightEnv") as mock_env_cls:
-        SessionFactory.create_session(
-            (1000, 1000), config=config, run_id="test", video_output_path="/tmp"
-        )
+    with patch("computer_use_eval.core.session_factory.PlaywrightEnv"
+              ) as mock_env_cls:
+        SessionFactory.create_session((1000, 1000),
+                                      config=config,
+                                      run_id="test",
+                                      video_output_path="/tmp")
 
         # Verify PlaywrightEnv was initialized with overrides
         mock_env_cls.assert_called_once()

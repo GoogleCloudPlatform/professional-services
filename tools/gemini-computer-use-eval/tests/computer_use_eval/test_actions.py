@@ -55,6 +55,7 @@ def executor():
 
 
 class TestActionExecutor:
+
     @pytest.mark.asyncio
     async def test_execute_known_action(self, executor, mock_env):
         """Should execute a registered action."""
@@ -70,6 +71,7 @@ class TestActionExecutor:
 
 
 class TestActions:
+
     @pytest.mark.asyncio
     async def test_click_action(self, mock_env):
         """ClickAction should denormalize coordinates and delegate."""
@@ -140,9 +142,12 @@ class TestActions:
     async def test_scroll_at_action(self, mock_env):
         """ScrollAtAction should move then wheel."""
         action = ScrollAtAction()
-        await action.execute(
-            mock_env, {"x": 50, "y": 50, "direction": "up", "magnitude": 200}
-        )
+        await action.execute(mock_env, {
+            "x": 50,
+            "y": 50,
+            "direction": "up",
+            "magnitude": 200
+        })
         mock_env.page.mouse.move.assert_awaited_once_with(50, 50)
         mock_env.page.mouse.wheel.assert_awaited_once_with(0, -200)
 
@@ -154,9 +159,9 @@ class TestActions:
 
         result = await action.execute(mock_env, args)
 
-        mock_env.page.goto.assert_awaited_once_with(
-            "https://example.com", wait_until="networkidle", timeout=60000
-        )
+        mock_env.page.goto.assert_awaited_once_with("https://example.com",
+                                                    wait_until="networkidle",
+                                                    timeout=60000)
         assert result == {"status": "ok"}
 
     @pytest.mark.asyncio

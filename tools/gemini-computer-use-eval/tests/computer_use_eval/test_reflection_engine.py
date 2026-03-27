@@ -24,7 +24,10 @@ async def test_reflection_engine_aria():
     mock_page = AsyncMock()
     mock_page.evaluate.return_value = {
         "role": "root",
-        "children": [{"role": "button", "name": "Submit"}],
+        "children": [{
+            "role": "button",
+            "name": "Submit"
+        }],
     }
 
     engine = ReflectionEngine(mock_page, deque())
@@ -51,11 +54,24 @@ def test_extract_heuristic_context():
     engine = ReflectionEngine(AsyncMock(), deque())
 
     mock_tree = {
-        "role": "group",
+        "role":
+            "group",
         "children": [
-            {"role": "button", "name": "Submit Form", "value": ""},
-            {"role": "button", "name": "Cancel", "value": ""},
-            {"role": "input", "name": "Username", "value": "testuser"},
+            {
+                "role": "button",
+                "name": "Submit Form",
+                "value": ""
+            },
+            {
+                "role": "button",
+                "name": "Cancel",
+                "value": ""
+            },
+            {
+                "role": "input",
+                "name": "Username",
+                "value": "testuser"
+            },
             {
                 "role": "button",
                 "name": "Submit Form",
@@ -123,9 +139,10 @@ async def test_extract_llm_context_with_goal():
     mock_aio_client.models.generate_content.return_value = mock_response
 
     # Initialize with goal
-    engine = ReflectionEngine(
-        AsyncMock(), deque(), client=mock_client, goal="Log into the portal"
-    )
+    engine = ReflectionEngine(AsyncMock(),
+                              deque(),
+                              client=mock_client,
+                              goal="Log into the portal")
 
     result = await engine.extract_llm_context("{}", "stuck in scroll loop")
 
@@ -133,7 +150,8 @@ async def test_extract_llm_context_with_goal():
 
     # Verify the prompt contains the goal
     args, kwargs = mock_aio_client.models.generate_content.call_args
-    prompt = kwargs["contents"]  # Assuming we pass it as string or content object
+    prompt = kwargs[
+        "contents"]  # Assuming we pass it as string or content object
     assert "Log into the portal" in prompt
 
 

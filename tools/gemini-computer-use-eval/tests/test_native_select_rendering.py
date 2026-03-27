@@ -34,7 +34,8 @@ def test_native_select_rendering():
     with sync_playwright() as p:
         # We MUST use headless=False to use the Xvfb virtual display
         # where the OS rendering bug normally occurs.
-        headless = os.environ.get("PLAYWRIGHT_HEADLESS", "false").lower() == "true"
+        headless = os.environ.get("PLAYWRIGHT_HEADLESS",
+                                  "false").lower() == "true"
 
         print(f"Launching Chromium (Headless: {headless})...")
         browser = p.chromium.launch(headless=headless)

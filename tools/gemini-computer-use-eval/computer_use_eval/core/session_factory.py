@@ -50,20 +50,16 @@ class SessionFactory:
         # FIX: step_delay and disable_fast_typing_bundles are sometimes placed under agent: directly
         if "step_delay" in agent_config and "step_delay" not in context_dict:
             context_dict["step_delay"] = agent_config["step_delay"]
-        if (
-            "disable_fast_typing_bundles" in agent_config
-            and "disable_fast_typing_bundles" not in context_dict
-        ):
+        if ("disable_fast_typing_bundles" in agent_config and
+                "disable_fast_typing_bundles" not in context_dict):
             context_dict["disable_fast_typing_bundles"] = agent_config[
-                "disable_fast_typing_bundles"
-            ]
+                "disable_fast_typing_bundles"]
 
         try:
             context_config = ContextConfig(**context_dict)
         except Exception:
-            logger.warning(
-                "Invalid context config, falling back to defaults.", exc_info=True
-            )
+            logger.warning("Invalid context config, falling back to defaults.",
+                           exc_info=True)
             context_config = ContextConfig()
 
         # Determine Image Quality Override
@@ -72,19 +68,18 @@ class SessionFactory:
             img_qual = "medium"
 
         # 1. Create Perception Service
-        enable_perception = (
-            os.environ.get("ENABLE_PERCEPTION_ENGINE", "false").lower() == "true"
-        )
+        enable_perception = (os.environ.get("ENABLE_PERCEPTION_ENGINE",
+                                            "false").lower() == "true")
         perception_service = PerceptionService(
-            enable_screen_buffer=enable_perception, image_quality=img_qual
-        )
+            enable_screen_buffer=enable_perception, image_quality=img_qual)
 
         # 2. Create Environment
         width, height = resolution
         headless = env_config.get("headless", settings.HEADLESS_MODE)
         slow_mo = env_config.get("slow_mo", 0)
         enable_video = env_config.get("enable_video", True)
-        enable_tracing = env_config.get("enable_tracing", settings.ENABLE_TRACING)
+        enable_tracing = env_config.get("enable_tracing",
+                                        settings.ENABLE_TRACING)
         final_video_path = video_output_path if enable_video else None
 
         env: PlaywrightEnv
@@ -156,30 +151,26 @@ class SessionFactory:
             logger.info("   Method: Vertex AI")
             logger.info(f"   Project: {override_project}")
             logger.info(f"   Location: {override_location}")
-            client = genai.Client(
-                vertexai=True, project=override_project, location=override_location
-            )
+            client = genai.Client(vertexai=True,
+                                  project=override_project,
+                                  location=override_location)
         else:
             logger.info("Initializing Gemini Client using AI Studio (API Key)")
             client = genai.Client(api_key=settings.API_KEY)
 
-        max_history_turns = (
-            agent_config.get("max_history_turns") or settings.MAX_HISTORY_TURNS
-        )
-        context_pipeline = ContextPipelineFactory.build(
-            context_config, client, max_history_turns
-        )
+        max_history_turns = (agent_config.get("max_history_turns") or
+                             settings.MAX_HISTORY_TURNS)
+        context_pipeline = ContextPipelineFactory.build(context_config, client,
+                                                        max_history_turns)
 
         # Determine Effective System Prompt
         custom_prompt = agent_config.get("system_prompt", None)
         from computer_use_eval.prompts import DEFAULT_SYSTEM_PROMPT
 
         if custom_prompt:
-            full_system_prompt = (
-                custom_prompt.replace("{{DEFAULT}}", DEFAULT_SYSTEM_PROMPT)
-                if "{{DEFAULT}}" in custom_prompt
-                else custom_prompt
-            )
+            full_system_prompt = (custom_prompt.replace(
+                "{{DEFAULT}}", DEFAULT_SYSTEM_PROMPT) if "{{DEFAULT}}"
+                                  in custom_prompt else custom_prompt)
         else:
             full_system_prompt = DEFAULT_SYSTEM_PROMPT
 
@@ -192,9 +183,8 @@ class SessionFactory:
             max_history_turns=max_history_turns,
             max_steps=agent_config.get("max_steps"),
             context_pipeline=context_pipeline,
-            reflection_strategy=context_config.reflection_strategy
-            if hasattr(context_config, "reflection_strategy")
-            else "NUDGE",
+            reflection_strategy=context_config.reflection_strategy if hasattr(
+                context_config, "reflection_strategy") else "NUDGE",
             context_config=context_config,
             excluded_functions=agent_config.get("excluded_functions"),
             custom_tools=custom_tools_list,

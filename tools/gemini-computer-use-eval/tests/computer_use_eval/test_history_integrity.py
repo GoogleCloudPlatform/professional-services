@@ -47,8 +47,7 @@ def validate_history_integrity(history: List[types.Content]):
             if prev_turn.role != "model":
                 raise ValueError(
                     f"Turn {i} (User Response) is preceded by a {prev_turn.role} turn. "
-                    "Gemini API requires the preceding turn to be 'model'."
-                )
+                    "Gemini API requires the preceding turn to be 'model'.")
 
             has_call = any(p.function_call for p in (prev_turn.parts or []))
             if not has_call:
@@ -65,48 +64,51 @@ def create_complex_history() -> List[types.Content]:
             role="model",
             parts=[
                 types.Part(text="Thinking"),
-                types.Part(function_call=types.FunctionCall(name="tool1", args={})),
+                types.Part(
+                    function_call=types.FunctionCall(name="tool1", args={})),
             ],
         ),  # 1
         types.Content(
             role="user",
             parts=[
-                types.Part(
-                    function_response=types.FunctionResponse(name="tool1", response={})
-                )
+                types.Part(function_response=types.FunctionResponse(
+                    name="tool1", response={}))
             ],
         ),  # 2
         types.Content(
             role="model",
             parts=[
                 types.Part(text="Reasoning"),  # 3 (PFC Start)
-                types.Part(function_call=types.FunctionCall(name="tool2", args={})),
-                types.Part(function_call=types.FunctionCall(name="tool3", args={})),
+                types.Part(
+                    function_call=types.FunctionCall(name="tool2", args={})),
+                types.Part(
+                    function_call=types.FunctionCall(name="tool3", args={})),
             ],
         ),
         types.Content(
             role="user",
             parts=[
-                types.Part(
-                    function_response=types.FunctionResponse(name="tool2", response={})
-                ),  # 4 (PFC End)
-                types.Part(
-                    function_response=types.FunctionResponse(name="tool3", response={})
-                ),
+                types.Part(function_response=types.FunctionResponse(
+                    name="tool2", response={})),  # 4 (PFC End)
+                types.Part(function_response=types.FunctionResponse(
+                    name="tool3", response={})),
             ],
         ),
-        types.Content(role="model", parts=[types.Part(text="Middle thought")]),  # 5
+        types.Content(role="model",
+                      parts=[types.Part(text="Middle thought")]),  # 5
         types.Content(role="user", parts=[types.Part(text="User nudge")]),  # 6
         types.Content(
             role="model",
-            parts=[types.Part(function_call=types.FunctionCall(name="tool4", args={}))],
+            parts=[
+                types.Part(
+                    function_call=types.FunctionCall(name="tool4", args={}))
+            ],
         ),  # 7
         types.Content(
             role="user",
             parts=[
-                types.Part(
-                    function_response=types.FunctionResponse(name="tool4", response={})
-                )
+                types.Part(function_response=types.FunctionResponse(
+                    name="tool4", response={}))
             ],
         ),  # 8
     ]
@@ -122,7 +124,8 @@ def test_exhaustive_slicing_integrity(keep_tail):
     history = create_complex_history()
     protected_head = 1
 
-    start_index = strategy.find_safe_tail_start(history, keep_tail, protected_head)
+    start_index = strategy.find_safe_tail_start(history, keep_tail,
+                                                protected_head)
 
     # Resulting history is Head + Tail
     sliced_history = [history[0]] + history[start_index:]
@@ -147,38 +150,30 @@ async def test_compaction_strategy_integrity():
         types.Content(
             role="model",
             parts=[
-                types.Part(
-                    function_call=types.FunctionCall(name="wait_5_seconds", args={})
-                )
+                types.Part(function_call=types.FunctionCall(
+                    name="wait_5_seconds", args={}))
             ],
         ),
         types.Content(
             role="user",
             parts=[
-                types.Part(
-                    function_response=types.FunctionResponse(
-                        name="wait_5_seconds", response={}
-                    )
-                )
+                types.Part(function_response=types.FunctionResponse(
+                    name="wait_5_seconds", response={}))
             ],
         ),
         # Loop Pair 2
         types.Content(
             role="model",
             parts=[
-                types.Part(
-                    function_call=types.FunctionCall(name="wait_5_seconds", args={})
-                )
+                types.Part(function_call=types.FunctionCall(
+                    name="wait_5_seconds", args={}))
             ],
         ),
         types.Content(
             role="user",
             parts=[
-                types.Part(
-                    function_response=types.FunctionResponse(
-                        name="wait_5_seconds", response={}
-                    )
-                )
+                types.Part(function_response=types.FunctionResponse(
+                    name="wait_5_seconds", response={}))
             ],
         ),
         # Terminal Turn
@@ -195,16 +190,20 @@ async def test_summarization_strategy_integrity():
     mock_client = MagicMock()
     mock_response = MagicMock()
     mock_response.text = "Summary of events"
-    mock_client.aio.models.generate_content = AsyncMock(return_value=mock_response)
+    mock_client.aio.models.generate_content = AsyncMock(
+        return_value=mock_response)
 
     strategy = SummarizationStrategy(client=mock_client, token_threshold=1)
 
     # History long enough to trigger summarization
     history = [
         types.Content(role="user", parts=[types.Part(text="Goal")]),  # Head
-        types.Content(role="model", parts=[types.Part(text="Action 1")]),  # Middle
-        types.Content(role="user", parts=[types.Part(text="Response 1")]),  # Middle
-        types.Content(role="model", parts=[types.Part(text="Final Action")]),  # Tail
+        types.Content(role="model",
+                      parts=[types.Part(text="Action 1")]),  # Middle
+        types.Content(role="user",
+                      parts=[types.Part(text="Response 1")]),  # Middle
+        types.Content(role="model",
+                      parts=[types.Part(text="Final Action")]),  # Tail
     ]
 
     summarized = await strategy.apply(history)

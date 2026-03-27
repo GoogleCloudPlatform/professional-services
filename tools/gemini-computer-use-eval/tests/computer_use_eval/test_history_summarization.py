@@ -25,50 +25,39 @@ async def test_summarize_history():
             types.Content(
                 role="model",
                 parts=[
-                    types.Part(
-                        function_call=types.FunctionCall(name="wait_5_seconds", args={})
-                    )
+                    types.Part(function_call=types.FunctionCall(
+                        name="wait_5_seconds", args={}))
                 ],
-            )
-        )
+            ))
         history.append(
             types.Content(
                 role="user",
                 parts=[
-                    types.Part(
-                        function_response=types.FunctionResponse(
-                            name="wait_5_seconds", response={"status": "ok"}
-                        )
-                    )
+                    types.Part(function_response=types.FunctionResponse(
+                        name="wait_5_seconds", response={"status": "ok"}))
                 ],
-            )
-        )
+            ))
 
     # Final Turn: Something else (don't summarize last turn)
     history.append(
         types.Content(
             role="model",
             parts=[
-                types.Part(
-                    function_call=types.FunctionCall(
-                        name="click_at", args={"x": 100, "y": 100}
-                    )
-                )
+                types.Part(function_call=types.FunctionCall(name="click_at",
+                                                            args={
+                                                                "x": 100,
+                                                                "y": 100
+                                                            }))
             ],
-        )
-    )
+        ))
     history.append(
         types.Content(
             role="user",
             parts=[
-                types.Part(
-                    function_response=types.FunctionResponse(
-                        name="click_at", response={"status": "ok"}
-                    )
-                )
+                types.Part(function_response=types.FunctionResponse(
+                    name="click_at", response={"status": "ok"}))
             ],
-        )
-    )
+        ))
 
     new_history = await strategy.apply(history)
 

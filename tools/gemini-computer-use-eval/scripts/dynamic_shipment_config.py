@@ -19,10 +19,13 @@ def replace_placeholders(obj, placeholder, replacement):
     """Recursively traverses a dictionary or list and replaces string placeholders."""
     if isinstance(obj, dict):
         return {
-            k: replace_placeholders(v, placeholder, replacement) for k, v in obj.items()
+            k: replace_placeholders(v, placeholder, replacement)
+            for k, v in obj.items()
         }
     elif isinstance(obj, list):
-        return [replace_placeholders(item, placeholder, replacement) for item in obj]
+        return [
+            replace_placeholders(item, placeholder, replacement) for item in obj
+        ]
     elif isinstance(obj, str):
         return obj.replace(placeholder, replacement)
     return obj

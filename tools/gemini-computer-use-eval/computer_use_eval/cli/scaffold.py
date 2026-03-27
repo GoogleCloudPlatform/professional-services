@@ -12,9 +12,9 @@ from computer_use_eval.cli.templates import (
 logger = logging.getLogger(__name__)
 
 
-def create_benchmark(
-    name: str, template: str = "standard", output_dir: str = "config/benchmarks"
-):
+def create_benchmark(name: str,
+                     template: str = "standard",
+                     output_dir: str = "config/benchmarks"):
     """
     Creates a new benchmark template.
     """
@@ -23,7 +23,9 @@ def create_benchmark(
     target_dir = os.path.join(output_dir, safe_name)
 
     if os.path.exists(target_dir) or os.path.exists(f"{target_dir}.yaml"):
-        print(f"Error: A benchmark named '{safe_name}' already exists at {target_dir}")
+        print(
+            f"Error: A benchmark named '{safe_name}' already exists at {target_dir}"
+        )
         return
 
     if template == "basic":
@@ -47,7 +49,8 @@ def create_benchmark(
             f.write(STANDARD_PROMPT.format(name=name))
 
         # 3. assertions/success.js
-        with open(os.path.join(target_dir, "assertions", "success.js"), "w") as f:
+        with open(os.path.join(target_dir, "assertions", "success.js"),
+                  "w") as f:
             f.write(STANDARD_ASSERTION.format(name=name))
 
         print(f"✅ Created standard benchmark structure at: {target_dir}/")

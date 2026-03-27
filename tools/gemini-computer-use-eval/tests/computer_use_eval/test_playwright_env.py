@@ -10,7 +10,8 @@ from computer_use_eval.browser.playwright_env import PlaywrightEnv
 
 @pytest.fixture
 def mock_playwright_setup():
-    with patch("computer_use_eval.browser.playwright_env.async_playwright") as mock_pw:
+    with patch("computer_use_eval.browser.playwright_env.async_playwright"
+              ) as mock_pw:
         mock_pw_instance = MagicMock()
         mock_browser = MagicMock()
         mock_context = MagicMock()
@@ -20,25 +21,26 @@ def mock_playwright_setup():
         mock_pw.return_value.start = AsyncMock(return_value=mock_pw_instance)
         mock_pw_instance.chromium.launch = AsyncMock(return_value=mock_browser)
         mock_pw_instance.chromium.connect_over_cdp = AsyncMock(
-            return_value=mock_browser
-        )
+            return_value=mock_browser)
         mock_browser.new_context = AsyncMock(return_value=mock_context)
         mock_context.new_page = AsyncMock(return_value=mock_page)
 
         # Setup page methods used in start() fingerprinting
-        mock_page.evaluate = AsyncMock(
-            side_effect=[
-                "Mozilla/5.0",  # User agent
-                {"w": 1280, "h": 720, "devicePixelRatio": 1},  # Viewport/DPR
-            ]
-        )
+        mock_page.evaluate = AsyncMock(side_effect=[
+            "Mozilla/5.0",  # User agent
+            {
+                "w": 1280,
+                "h": 720,
+                "devicePixelRatio": 1
+            },  # Viewport/DPR
+        ])
         mock_page.wait_for_load_state = AsyncMock()
         mock_page.screenshot = AsyncMock(return_value=b"fake_image")
         mock_page.wait_for_timeout = (
-            AsyncMock()
-        )  # Ensure wait_for_timeout is an AsyncMock
+            AsyncMock())  # Ensure wait_for_timeout is an AsyncMock
         mock_page.click = AsyncMock()  # Ensure click is an AsyncMock
-        mock_page.mouse.click = AsyncMock()  # Ensure mouse.click is an AsyncMock
+        mock_page.mouse.click = AsyncMock(
+        )  # Ensure mouse.click is an AsyncMock
 
         # Setup cleanup methods
         mock_context.close = AsyncMock()
@@ -72,8 +74,7 @@ async def test_playwright_env_start_remote(mock_playwright_setup):
 
     setup = mock_playwright_setup
     setup["pw_instance"].chromium.connect_over_cdp.assert_called_with(
-        "ws://remote", headers=headers
-    )
+        "ws://remote", headers=headers)
 
 
 @pytest.mark.asyncio

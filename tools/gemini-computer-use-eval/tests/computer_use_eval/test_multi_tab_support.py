@@ -43,6 +43,7 @@ def mock_env():
 
 
 class TestMultiTabSupport:
+
     @pytest.mark.asyncio
     async def test_double_click_action(self, mock_env):
         """DoubleClickAction should call mouse.dblclick with denormalized coordinates."""
@@ -50,7 +51,9 @@ class TestMultiTabSupport:
         args = {"x": 500, "y": 500}
 
         # We need to mock highlight_click as it's a method of BaseAction
-        with patch.object(DoubleClickAction, "highlight_click", new_callable=AsyncMock):
+        with patch.object(DoubleClickAction,
+                          "highlight_click",
+                          new_callable=AsyncMock):
             result = await action.execute(mock_env, args)
 
         mock_env.page.mouse.dblclick.assert_awaited_once_with(500, 500)
@@ -97,7 +100,9 @@ class TestMultiTabSupport:
                 criteria = {"task_goal": "Test goal"}
                 video_paths = ["/tmp/v1.webm", "/tmp/v2.webm"]
 
-                result = await judge.evaluate(None, criteria, video_paths=video_paths)
+                result = await judge.evaluate(None,
+                                              criteria,
+                                              video_paths=video_paths)
 
                 assert result["success"] is True
                 assert result["score"] == 1.0
@@ -117,7 +122,9 @@ class TestMultiTabSupport:
         judge = AssertionJudge()
         criteria = {"assertions": []}
         # This should NOT raise TypeError
-        result = await judge.evaluate(mock_env, criteria, video_paths=["/tmp/v1.webm"])
+        result = await judge.evaluate(mock_env,
+                                      criteria,
+                                      video_paths=["/tmp/v1.webm"])
         assert "score" in result
 
     @pytest.mark.asyncio
@@ -141,7 +148,8 @@ class TestMultiTabSupport:
         turn.parts = [part]
 
         # This should NOT raise TypeError
-        result = await judge.evaluate(
-            mock_env, criteria={}, history=[turn], video_paths=["/tmp/v1.webm"]
-        )
+        result = await judge.evaluate(mock_env,
+                                      criteria={},
+                                      history=[turn],
+                                      video_paths=["/tmp/v1.webm"])
         assert "summary" in result

@@ -30,9 +30,8 @@ def mock_genai_client():
 
 
 @pytest.mark.asyncio
-async def test_run_task_saves_screenshots_to_disk(
-    mock_env, mock_genai_client, tmp_path, monkeypatch
-):
+async def test_run_task_saves_screenshots_to_disk(mock_env, mock_genai_client,
+                                                  tmp_path, monkeypatch):
     """Test that the agent saves screenshots to disk when RUN_DIR is set."""
     # Set the RUN_DIR environment variable to our temporary test path
     run_dir = str(tmp_path / "test_run")
@@ -43,23 +42,23 @@ async def test_run_task_saves_screenshots_to_disk(
     # Mock the model to return a single 'click' action
     mock_response = MagicMock()
     mock_part = MagicMock()
-    mock_part.function_call = types.FunctionCall(
-        name="click_at", args={"x": 500, "y": 500}
-    )
+    mock_part.function_call = types.FunctionCall(name="click_at",
+                                                 args={
+                                                     "x": 500,
+                                                     "y": 500
+                                                 })
     mock_candidate = MagicMock()
     mock_candidate.content.parts = [mock_part]
     mock_response.candidates = [mock_candidate]
     mock_genai_client.aio.models.generate_content = AsyncMock(
-        return_value=mock_response
-    )
+        return_value=mock_response)
 
     # We patch _predict so we don't have to deal with the real genai API call logic
     agent._predict = AsyncMock(return_value=mock_response)
 
     # Mock the executor to return a success status
-    with patch(
-        "computer_use_eval.core.gemini_agent.ToolExecutor", new_callable=MagicMock
-    ) as MockExecutor:
+    with patch("computer_use_eval.core.gemini_agent.ToolExecutor",
+               new_callable=MagicMock) as MockExecutor:
         mock_executor_instance = MockExecutor.return_value
 
         from computer_use_eval.core.base import ActionExecutionResult
@@ -71,8 +70,7 @@ async def test_run_task_saves_screenshots_to_disk(
             safety_acknowledged=False,
         )
         mock_executor_instance.execute_bundle = AsyncMock(
-            return_value=([mock_result], 0.05)
-        )
+            return_value=([mock_result], 0.05))
         mock_inner = MagicMock()
         mock_inner.is_terminal.return_value = False
         mock_executor_instance.browser_action_executor = mock_inner
@@ -86,7 +84,8 @@ async def test_run_task_saves_screenshots_to_disk(
             assert os.path.exists(images_dir)
 
             # Check that initial screenshot was saved
-            initial_screenshot_path = os.path.join(images_dir, "step_0_initial.png")
+            initial_screenshot_path = os.path.join(images_dir,
+                                                   "step_0_initial.png")
             assert os.path.exists(initial_screenshot_path)
             with open(initial_screenshot_path, "rb") as f:
                 assert f.read() == b"fake_screenshot_bytes"

@@ -26,9 +26,11 @@ async def test_thinking_config_injected_for_gemini_3():
     # Mock response to avoid parsing errors
     mock_response = MagicMock(spec=types.GenerateContentResponse)
     mock_response.usage_metadata = None
-    mock_client.aio.models.generate_content = AsyncMock(return_value=mock_response)
+    mock_client.aio.models.generate_content = AsyncMock(
+        return_value=mock_response)
 
-    await agent._predict([types.Content(role="user", parts=[types.Part(text="hi")])])
+    await agent._predict(
+        [types.Content(role="user", parts=[types.Part(text="hi")])])
 
     # Check the call args
     _, kwargs = mock_client.aio.models.generate_content.call_args
@@ -45,11 +47,14 @@ async def test_thinking_config_NOT_injected_for_gemini_2():
 
     mock_response = MagicMock(spec=types.GenerateContentResponse)
     mock_response.usage_metadata = None
-    mock_client.aio.models.generate_content = AsyncMock(return_value=mock_response)
+    mock_client.aio.models.generate_content = AsyncMock(
+        return_value=mock_response)
 
-    await agent._predict([types.Content(role="user", parts=[types.Part(text="hi")])])
+    await agent._predict(
+        [types.Content(role="user", parts=[types.Part(text="hi")])])
 
     _, kwargs = mock_client.aio.models.generate_content.call_args
     config = kwargs["config"]
 
-    assert not hasattr(config, "thinking_config") or config.thinking_config is None
+    assert not hasattr(config,
+                       "thinking_config") or config.thinking_config is None

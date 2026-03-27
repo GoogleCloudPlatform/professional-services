@@ -59,7 +59,8 @@ def run_gcloud_command(cmd: list[str], check: bool = True) -> Optional[str]:
     except subprocess.CalledProcessError as e:
         if check:
             error_msg = e.stderr.strip() if e.stderr else "Unknown error"
-            logger.error(f"Command failed: {' '.join(full_cmd)}\nError: {error_msg}")
+            logger.error(
+                f"Command failed: {' '.join(full_cmd)}\nError: {error_msg}")
             raise InfraSetupError(f"gcloud command failed: {error_msg}")
         return None
     except FileNotFoundError:
@@ -83,12 +84,15 @@ def check_gcloud_auth() -> None:
 def enable_apis(project_id: str) -> None:
     """Idempotently enables required GCP APIs."""
     logger.info("Verifying required APIs...")
-    required_apis = ["aiplatform.googleapis.com", "iamcredentials.googleapis.com"]
+    required_apis = [
+        "aiplatform.googleapis.com", "iamcredentials.googleapis.com"
+    ]
 
     # Check currently enabled APIs
-    enabled_apis_output = run_gcloud_command(
-        ["services", "list", f"--project={project_id}", "--format=value(config.name)"]
-    )
+    enabled_apis_output = run_gcloud_command([
+        "services", "list", f"--project={project_id}",
+        "--format=value(config.name)"
+    ])
     enabled_apis = enabled_apis_output.split() if enabled_apis_output else []
 
     apis_to_enable = [api for api in required_apis if api not in enabled_apis]
@@ -96,35 +100,36 @@ def enable_apis(project_id: str) -> None:
     if apis_to_enable:
         logger.info(f"Enabling APIs: {', '.join(apis_to_enable)}...")
         run_gcloud_command(
-            ["services", "enable", *apis_to_enable, f"--project={project_id}"]
-        )
+            ["services", "enable", *apis_to_enable, f"--project={project_id}"])
     else:
         logger.info("All required APIs are already enabled.")
 
 
-def ensure_service_account(project_id: str, sa_name: str, sa_email: str) -> None:
+def ensure_service_account(project_id: str, sa_name: str,
+                           sa_email: str) -> None:
     """Idempotently creates the service account."""
     logger.info(f"Checking Service Account: {sa_email}")
 
     # Check if exists
     exists = run_gcloud_command(
-        ["iam", "service-accounts", "describe", sa_email, f"--project={project_id}"],
+        [
+            "iam", "service-accounts", "describe", sa_email,
+            f"--project={project_id}"
+        ],
         check=False,
     )
 
     if not exists:
         logger.info(f"Creating new Service Account: {sa_name}")
-        run_gcloud_command(
-            [
-                "iam",
-                "service-accounts",
-                "create",
-                sa_name,
-                "--display-name",
-                "Gemini Sandbox Runner",
-                f"--project={project_id}",
-            ]
-        )
+        run_gcloud_command([
+            "iam",
+            "service-accounts",
+            "create",
+            sa_name,
+            "--display-name",
+            "Gemini Sandbox Runner",
+            f"--project={project_id}",
+        ])
     else:
         logger.info("Service Account already exists.")
 
@@ -141,46 +146,40 @@ def grant_iam_roles(project_id: str, sa_email: str) -> None:
 
     # 1. Project-level grant
     logger.info(f"Ensuring project-level IAM role binding: {role}")
-    run_gcloud_command(
-        [
-            "projects",
-            "add-iam-policy-binding",
-            project_id,
-            f"--member=serviceAccount:{sa_email}",
-            f"--role={role}",
-            "--condition=None",
-        ]
-    )
+    run_gcloud_command([
+        "projects",
+        "add-iam-policy-binding",
+        project_id,
+        f"--member=serviceAccount:{sa_email}",
+        f"--role={role}",
+        "--condition=None",
+    ])
 
     # 2. Resource-level grant (Self-impersonation)
     logger.info(f"Ensuring resource-level self-impersonation for: {sa_email}")
-    run_gcloud_command(
-        [
-            "iam",
-            "service-accounts",
-            "add-iam-policy-binding",
-            sa_email,
-            f"--member=serviceAccount:{sa_email}",
-            f"--role={role}",
-            f"--project={project_id}",
-        ]
-    )
+    run_gcloud_command([
+        "iam",
+        "service-accounts",
+        "add-iam-policy-binding",
+        sa_email,
+        f"--member=serviceAccount:{sa_email}",
+        f"--role={role}",
+        f"--project={project_id}",
+    ])
 
     # 3. Grant to current user (to allow token generation from CLI)
     current_user = run_gcloud_command(["config", "get-value", "account"])
     if current_user:
         logger.info(f"Granting {role} to current gcloud user: {current_user}")
-        run_gcloud_command(
-            [
-                "iam",
-                "service-accounts",
-                "add-iam-policy-binding",
-                sa_email,
-                f"--member=user:{current_user}",
-                f"--role={role}",
-                f"--project={project_id}",
-            ]
-        )
+        run_gcloud_command([
+            "iam",
+            "service-accounts",
+            "add-iam-policy-binding",
+            sa_email,
+            f"--member=user:{current_user}",
+            f"--role={role}",
+            f"--project={project_id}",
+        ])
     else:
         logger.warning(
             "Could not determine current gcloud user to grant Token Creator role."
@@ -236,9 +235,8 @@ def provision_infra(
             logger.info(
                 f"Provisioning new long-lived Agent Engine: {engine_display_name}..."
             )
-            engine = client.agent_engines.create(
-                config=types.AgentEngineConfig(display_name=engine_display_name)
-            )
+            engine = client.agent_engines.create(config=types.AgentEngineConfig(
+                display_name=engine_display_name))
             engine_name = engine.api_resource.name
             logger.info(f"Successfully provisioned Agent Engine: {engine_name}")
 
@@ -246,8 +244,7 @@ def provision_infra(
         sandbox_name = None
         try:
             existing_sandboxes = list(
-                client.agent_engines.sandboxes.list(name=engine_name)
-            )
+                client.agent_engines.sandboxes.list(name=engine_name))
             for sb in existing_sandboxes:
                 if "RUNNING" in str(sb.state):
                     logger.info(f"Reusing existing running Sandbox: {sb.name}")
@@ -264,15 +261,15 @@ def provision_infra(
                 spec={"computer_use_environment": {}},
                 name=engine_name,
                 config=types.CreateAgentEngineSandboxConfig(
-                    display_name=sandbox_display_name
-                ),
+                    display_name=sandbox_display_name),
             )
             sandbox_name = operation.response.name
             logger.info(f"Successfully provisioned Sandbox: {sandbox_name}")
 
         return engine_name, sandbox_name
     except Exception as e:
-        logger.error(f"Failed to provision infrastructure via Vertex AI SDK: {e}")
+        logger.error(
+            f"Failed to provision infrastructure via Vertex AI SDK: {e}")
         raise InfraSetupError(str(e))
 
 
@@ -296,12 +293,12 @@ def main() -> None:
     sync_dependencies()
 
     parser = argparse.ArgumentParser(
-        description="Idempotent Setup Utility for Agent Engine Sandbox Infrastructure"
-    )
+        description=
+        "Idempotent Setup Utility for Agent Engine Sandbox Infrastructure")
     parser.add_argument("--project", help="GCP Project ID", required=True)
-    parser.add_argument(
-        "--location", help="GCP Location (Region)", default="us-central1"
-    )
+    parser.add_argument("--location",
+                        help="GCP Location (Region)",
+                        default="us-central1")
     parser.add_argument(
         "--service-account",
         help="Service Account Name (without domain)",
@@ -347,7 +344,8 @@ def main() -> None:
             args.sandbox_display_name,
         )
 
-        logger.info("\n========================================================")
+        logger.info(
+            "\n========================================================")
         logger.info("✅ INFRASTRUCTURE SETUP COMPLETE")
         logger.info("========================================================")
         logger.info(

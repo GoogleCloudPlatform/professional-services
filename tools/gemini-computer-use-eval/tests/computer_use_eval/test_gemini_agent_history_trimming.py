@@ -20,12 +20,14 @@ async def test_trim_history():
         role = "user" if i % 2 == 0 else "model"
         parts = [types.Part(text=f"Turn {i}")]
         if role == "model":
-            parts = [types.Part(function_call=types.FunctionCall(name="test", args={}))]
-        elif i > 0:  # User turn that is a function response
             parts = [
                 types.Part(
-                    function_response=types.FunctionResponse(name="test", response={})
-                )
+                    function_call=types.FunctionCall(name="test", args={}))
+            ]
+        elif i > 0:  # User turn that is a function response
+            parts = [
+                types.Part(function_response=types.FunctionResponse(
+                    name="test", response={}))
             ]
 
         history.append(types.Content(role=role, parts=parts))
@@ -65,38 +67,36 @@ async def test_trim_history_no_break_pairs():
     history.append(
         types.Content(
             role="model",
-            parts=[types.Part(function_call=types.FunctionCall(name="c1", args={}))],
-        )
-    )
+            parts=[
+                types.Part(function_call=types.FunctionCall(name="c1", args={}))
+            ],
+        ))
     # Turn 2: User (Response)
     history.append(
         types.Content(
             role="user",
             parts=[
-                types.Part(
-                    function_response=types.FunctionResponse(name="c1", response={})
-                )
+                types.Part(function_response=types.FunctionResponse(
+                    name="c1", response={}))
             ],
-        )
-    )
+        ))
     # Turn 3: Model (Call)
     history.append(
         types.Content(
             role="model",
-            parts=[types.Part(function_call=types.FunctionCall(name="c2", args={}))],
-        )
-    )
+            parts=[
+                types.Part(function_call=types.FunctionCall(name="c2", args={}))
+            ],
+        ))
     # Turn 4: User (Response)
     history.append(
         types.Content(
             role="user",
             parts=[
-                types.Part(
-                    function_response=types.FunctionResponse(name="c2", response={})
-                )
+                types.Part(function_response=types.FunctionResponse(
+                    name="c2", response={}))
             ],
-        )
-    )
+        ))
 
     strategy = SmartTrimStrategy(max_turns=2, keep_tail=2, protected_head=3)
     new_history = await strategy.apply(history)

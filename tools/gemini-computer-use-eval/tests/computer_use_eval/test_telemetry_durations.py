@@ -28,52 +28,49 @@ async def test_granular_telemetry_timings():
     # Mock predict to return one action then stop
     mock_response = MagicMock()
     mock_response.candidates = [
-        MagicMock(
-            content=types.Content(
-                role="model",
-                parts=[
-                    types.Part(
-                        function_call=types.FunctionCall(
-                            name="click_at", args={"x": 1, "y": 2}
-                        )
-                    )
-                ],
-            )
-        )
+        MagicMock(content=types.Content(
+            role="model",
+            parts=[
+                types.Part(function_call=types.FunctionCall(name="click_at",
+                                                            args={
+                                                                "x": 1,
+                                                                "y": 2
+                                                            }))
+            ],
+        ))
     ]
-    mock_response.usage_metadata = MagicMock(
-        prompt_token_count=10, candidates_token_count=5
-    )
+    mock_response.usage_metadata = MagicMock(prompt_token_count=10,
+                                             candidates_token_count=5)
 
     mock_stop_response = MagicMock()
     mock_stop_response.candidates = [
-        MagicMock(content=types.Content(role="model", parts=[types.Part(text="Done")]))
+        MagicMock(
+            content=types.Content(role="model", parts=[types.Part(
+                text="Done")]))
     ]
-    mock_stop_response.usage_metadata = MagicMock(
-        prompt_token_count=10, candidates_token_count=5
-    )
+    mock_stop_response.usage_metadata = MagicMock(prompt_token_count=10,
+                                                  candidates_token_count=5)
 
     agent._predict = AsyncMock(side_effect=[mock_response, mock_stop_response])
 
     # Mock ToolExecutor
     from computer_use_eval.core.base import ActionExecutionResult
 
-    with patch("computer_use_eval.core.gemini_agent.ToolExecutor") as mock_executor_cls:
+    with patch("computer_use_eval.core.gemini_agent.ToolExecutor"
+              ) as mock_executor_cls:
         mock_executor = MagicMock()
         mock_executor_cls.return_value = mock_executor
-        mock_executor.execute_bundle = AsyncMock(
-            return_value=(
-                [
-                    ActionExecutionResult(
-                        action_id="mock_id",
-                        action_name="click_at",
-                        result_data={"status": "ok"},
-                        safety_acknowledged=False,
-                    )
-                ],
-                0.05,  # total_mw_time
-            )
-        )
+        mock_executor.execute_bundle = AsyncMock(return_value=(
+            [
+                ActionExecutionResult(
+                    action_id="mock_id",
+                    action_name="click_at",
+                    result_data={"status": "ok"},
+                    safety_acknowledged=False,
+                )
+            ],
+            0.05,  # total_mw_time
+        ))
         mock_inner = MagicMock()
         mock_inner.is_terminal.return_value = False
         mock_executor.executor = mock_inner

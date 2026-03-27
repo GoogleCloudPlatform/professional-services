@@ -124,38 +124,38 @@ def test_history_manager():
     mgr.add_content(
         types.Content(
             role="model",
-            parts=[types.Part(function_call=types.FunctionCall(name="click", args={}))],
-        )
-    )
+            parts=[
+                types.Part(
+                    function_call=types.FunctionCall(name="click", args={}))
+            ],
+        ))
     # Turn 3: User response
     mgr.add_content(
         types.Content(
             role="user",
             parts=[
-                types.Part(
-                    function_response=types.FunctionResponse(name="click", response={})
-                )
+                types.Part(function_response=types.FunctionResponse(
+                    name="click", response={}))
             ],
-        )
-    )
+        ))
     # Turn 4: Model action 2
     mgr.add_content(
         types.Content(
             role="model",
-            parts=[types.Part(function_call=types.FunctionCall(name="hover", args={}))],
-        )
-    )
+            parts=[
+                types.Part(
+                    function_call=types.FunctionCall(name="hover", args={}))
+            ],
+        ))
     # Turn 5: User response 2
     mgr.add_content(
         types.Content(
             role="user",
             parts=[
-                types.Part(
-                    function_response=types.FunctionResponse(name="hover", response={})
-                )
+                types.Part(function_response=types.FunctionResponse(
+                    name="hover", response={}))
             ],
-        )
-    )
+        ))
 
     assert len(mgr.get_full_history()) == 5
     # If we want the last 2 turns, it would be Turns 4 and 5.
@@ -218,13 +218,14 @@ async def test_terminal_slicing_logic():
     executor = ActionExecutor()
 
     # Navigation is terminal
-    assert executor.is_terminal("navigate", {"url": "http://google.com"}) is True
+    assert executor.is_terminal("navigate",
+                                {"url": "http://google.com"}) is True
 
     # Type with press_enter is terminal
-    assert (
-        executor.is_terminal("type_text_at", {"text": "hello", "press_enter": True})
-        is True
-    )
+    assert (executor.is_terminal("type_text_at", {
+        "text": "hello",
+        "press_enter": True
+    }) is True)
 
     # Standard click is NOT terminal (by current definition)
     assert executor.is_terminal("click_at", {"x": 10, "y": 10}) is False
@@ -243,11 +244,20 @@ async def test_input_bundling_fast_path():
     env = MagicMock()
     env.page = AsyncMock()
     env.scaler = MagicMock()
-    env.scaler.denormalize.side_effect = lambda x, y: (x * 2, y * 2)  # Mock scaling
+    env.scaler.denormalize.side_effect = lambda x, y: (x * 2, y * 2
+                                                      )  # Mock scaling
 
     actions = [
-        Action(name="type_text_at", args={"x": 10, "y": 20, "text": "First"}),
-        Action(name="type_text_at", args={"x": 30, "y": 40, "text": "Last"}),
+        Action(name="type_text_at", args={
+            "x": 10,
+            "y": 20,
+            "text": "First"
+        }),
+        Action(name="type_text_at", args={
+            "x": 30,
+            "y": 40,
+            "text": "Last"
+        }),
     ]
 
     results = await executor.execute_bundle(env, actions)
@@ -279,8 +289,14 @@ async def test_execute_bundle_perception_guard_cancellation():
     executor.browser_action_executor.is_terminal = MagicMock(return_value=False)
 
     actions = [
-        Action(name="click_at", args={"x": 1, "y": 2}),
-        Action(name="click_at", args={"x": 3, "y": 4}),
+        Action(name="click_at", args={
+            "x": 1,
+            "y": 2
+        }),
+        Action(name="click_at", args={
+            "x": 3,
+            "y": 4
+        }),
     ]
 
     # Mock URL change after first action

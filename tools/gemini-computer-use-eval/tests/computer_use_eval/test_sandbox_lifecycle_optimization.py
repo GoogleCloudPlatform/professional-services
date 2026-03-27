@@ -14,10 +14,10 @@ async def test_sandbox_manager_uses_existing_engine():
     Ensures that SandboxManager uses an existing Agent Engine if provided in settings.
     """
     # 1. Setup mock settings
-    with patch("computer_use_eval.browser.sandbox_manager.settings") as mock_settings:
+    with patch("computer_use_eval.browser.sandbox_manager.settings"
+              ) as mock_settings:
         mock_settings.SANDBOX_AGENT_ENGINE_NAME = (
-            "projects/test/locations/us-central1/agentEngines/existing-engine"
-        )
+            "projects/test/locations/us-central1/agentEngines/existing-engine")
         mock_settings.SANDBOX_SERVICE_ACCOUNT = "test-sa@test.iam.gserviceaccount.com"
         mock_settings.VERTEX_API_BASE_URL = None
 
@@ -34,7 +34,9 @@ async def test_sandbox_manager_uses_existing_engine():
             # Mock header generation
             mock_client.agent_engines.sandboxes.generate_browser_ws_headers.return_value = (
                 "ws://test",
-                {"Authorization": "Bearer test"},
+                {
+                    "Authorization": "Bearer test"
+                },
             )
 
             manager = SandboxManager(project_id="test", location="us-central1")
@@ -47,8 +49,8 @@ async def test_sandbox_manager_uses_existing_engine():
             mock_client.agent_engines.sandboxes.create.assert_called_once()
             args, kwargs = mock_client.agent_engines.sandboxes.create.call_args
             assert (
-                kwargs["name"]
-                == "projects/test/locations/us-central1/agentEngines/existing-engine"
+                kwargs["name"] ==
+                "projects/test/locations/us-central1/agentEngines/existing-engine"
             )
 
             # VERIFY: Teardown does NOT delete the engine
@@ -64,7 +66,8 @@ async def test_sandbox_manager_creates_ephemeral_engine_if_missing():
     """
     Ensures that SandboxManager creates a new Agent Engine if none is provided.
     """
-    with patch("computer_use_eval.browser.sandbox_manager.settings") as mock_settings:
+    with patch("computer_use_eval.browser.sandbox_manager.settings"
+              ) as mock_settings:
         mock_settings.SANDBOX_AGENT_ENGINE_NAME = None  # Missing engine
         mock_settings.SANDBOX_SERVICE_ACCOUNT = "test-sa@test.iam.gserviceaccount.com"
         mock_settings.VERTEX_API_BASE_URL = None
@@ -76,8 +79,7 @@ async def test_sandbox_manager_creates_ephemeral_engine_if_missing():
             # Mock engine creation
             mock_engine = MagicMock()
             mock_engine.api_resource.name = (
-                "projects/test/locations/us-central1/agentEngines/new-engine"
-            )
+                "projects/test/locations/us-central1/agentEngines/new-engine")
             mock_client.agent_engines.create.return_value = mock_engine
 
             # Mock sandbox creation
@@ -88,7 +90,9 @@ async def test_sandbox_manager_creates_ephemeral_engine_if_missing():
             # Mock header generation
             mock_client.agent_engines.sandboxes.generate_browser_ws_headers.return_value = (
                 "ws://test",
-                {"Authorization": "Bearer test"},
+                {
+                    "Authorization": "Bearer test"
+                },
             )
 
             manager = SandboxManager(project_id="test", location="us-central1")

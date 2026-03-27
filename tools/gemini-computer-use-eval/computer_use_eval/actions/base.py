@@ -27,16 +27,19 @@ class BaseAction(ABC):
         return False
 
     @abstractmethod
-    async def execute(self, env: PlaywrightEnv, args: Dict[str, Any]) -> Dict[str, Any]:
+    async def execute(self, env: PlaywrightEnv,
+                      args: Dict[str, Any]) -> Dict[str, Any]:
         pass
 
-    def denormalize(self, x: int, y: int, env: PlaywrightEnv) -> tuple[int, int]:
+    def denormalize(self, x: int, y: int,
+                    env: PlaywrightEnv) -> tuple[int, int]:
         """Convert normalized 0-1000 coordinates to actual pixels."""
         return env.scaler.denormalize(x, y)
 
-    def denormalize_magnitude(
-        self, magnitude: int, env: PlaywrightEnv, dimension: str = "height"
-    ) -> int:
+    def denormalize_magnitude(self,
+                              magnitude: int,
+                              env: PlaywrightEnv,
+                              dimension: str = "height") -> int:
         """Convert normalized 0-1000 magnitude to actual pixels."""
         return env.scaler.scale_magnitude(magnitude, dimension)
 
@@ -127,7 +130,8 @@ class ActionExecutor:
         self.actions[name] = action
         logger.info(f"Registered action: {name}")
 
-    def denormalize(self, x: int, y: int, env: PlaywrightEnv) -> Tuple[int, int]:
+    def denormalize(self, x: int, y: int,
+                    env: PlaywrightEnv) -> Tuple[int, int]:
         """Helper to denormalize coordinates via environment scaler."""
         return env.scaler.denormalize(x, y)
 
@@ -138,9 +142,8 @@ class ActionExecutor:
             any_action = next(iter(self.actions.values()))
             await any_action.highlight_click(env, x, y)
 
-    async def execute(
-        self, env: PlaywrightEnv, action_name: str, args: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    async def execute(self, env: PlaywrightEnv, action_name: str,
+                      args: Dict[str, Any]) -> Dict[str, Any]:
         action = self.actions.get(action_name)
         if not action:
             return {"error": f"Unknown action: {action_name}"}
@@ -153,8 +156,8 @@ class ActionExecutor:
             return {"error": str(e)}
 
     async def execute_bundle(
-        self, env: PlaywrightEnv, actions: List[Any]
-    ) -> List[Tuple[str, Dict[str, Any]]]:
+            self, env: PlaywrightEnv,
+            actions: List[Any]) -> List[Tuple[str, Dict[str, Any]]]:
         """
         Executes a sequence of actions, attempting to bundle inputs for performance.
         Returns a list of (action_name, result) tuples.
@@ -167,18 +170,14 @@ class ActionExecutor:
             action = actions[i]
 
             # FAST PATH: Bundle consecutive 'type_text_at' calls that don't press enter
-            if (
-                action.name == ToolNames.TYPE_TEXT_AT
-                and not action.args.get("press_enter")
-                and i + 1 < len(actions)
-                and actions[i + 1].name == ToolNames.TYPE_TEXT_AT
-            ):
+            if (action.name == ToolNames.TYPE_TEXT_AT and
+                    not action.args.get("press_enter") and
+                    i + 1 < len(actions) and
+                    actions[i + 1].name == ToolNames.TYPE_TEXT_AT):
                 bundle = []
-                while (
-                    i < len(actions)
-                    and actions[i].name == ToolNames.TYPE_TEXT_AT
-                    and not actions[i].args.get("press_enter")
-                ):
+                while (i < len(actions) and
+                       actions[i].name == ToolNames.TYPE_TEXT_AT and
+                       not actions[i].args.get("press_enter")):
                     bundle.append(actions[i])
                     i += 1
 
@@ -202,24 +201,24 @@ class ActionExecutor:
         return results
 
     async def _execute_input_bundle(
-        self, env: PlaywrightEnv, bundle: List[Any]
-    ) -> List[Tuple[str, str, Dict[str, Any]]]:
+            self, env: PlaywrightEnv,
+            bundle: List[Any]) -> List[Tuple[str, str, Dict[str, Any]]]:
         """Executes multiple type actions using a single JS evaluate call."""
         if not env.page:
-            return [(a.id, a.name, {"error": "Page not available"}) for a in bundle]
+            return [(a.id, a.name, {
+                "error": "Page not available"
+            }) for a in bundle]
 
         # Prepare payload: list of {x, y, text, clear}
         payload = []
         for a in bundle:
             x, y = self.denormalize(a.args["x"], a.args["y"], env)
-            payload.append(
-                {
-                    "x": x,
-                    "y": y,
-                    "text": a.args.get("text", ""),
-                    "clear": a.args.get("clear_before_typing", True),
-                }
-            )
+            payload.append({
+                "x": x,
+                "y": y,
+                "text": a.args.get("text", ""),
+                "clear": a.args.get("clear_before_typing", True),
+            })
 
         # Single execution JS: finds elements at points and sets values
         # We also trigger input/change events to ensure framework state sync.
@@ -244,14 +243,16 @@ class ActionExecutor:
             await env.page.evaluate(BUNDLE_JS, payload)
             # Short wait for any batched UI reactions
             await env.page.wait_for_timeout(500)
-            return [(a.id, a.name, {"status": "ok", "bundled": True}) for a in bundle]
+            return [(a.id, a.name, {
+                "status": "ok",
+                "bundled": True
+            }) for a in bundle]
         except Exception as e:
             logger.error(f"Input bundle failed: {e}")
             # Fallback results if JS fails
-            return [
-                (a.id, a.name, {"error": f"Bundled execution failed: {e}"})
-                for a in bundle
-            ]
+            return [(a.id, a.name, {
+                "error": f"Bundled execution failed: {e}"
+            }) for a in bundle]
 
     def is_terminal(self, action_name: str, args: Dict[str, Any]) -> bool:
         """
@@ -262,11 +263,11 @@ class ActionExecutor:
 
         # 1. Navigation is always terminal
         if action_name in [
-            ToolNames.NAVIGATE,
-            ToolNames.DOUBLE_CLICK_AT,
-            ToolNames.GO_BACK,
-            ToolNames.GO_FORWARD,
-            ToolNames.SEARCH,
+                ToolNames.NAVIGATE,
+                ToolNames.DOUBLE_CLICK_AT,
+                ToolNames.GO_BACK,
+                ToolNames.GO_FORWARD,
+                ToolNames.SEARCH,
         ]:
             return True
 

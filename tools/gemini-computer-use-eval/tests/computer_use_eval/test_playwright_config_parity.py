@@ -19,12 +19,12 @@ async def test_playwright_default_config_parity():
     TARGET_TIMEOUT = 60000
     TARGET_SLOW_MO = 0
 
-    with patch(
-        "computer_use_eval.browser.playwright_env.async_playwright"
-    ) as mock_playwright:
+    with patch("computer_use_eval.browser.playwright_env.async_playwright"
+              ) as mock_playwright:
         mock_playwright_obj = MagicMock()
         mock_playwright_obj.stop = AsyncMock()
-        mock_playwright.return_value.start = AsyncMock(return_value=mock_playwright_obj)
+        mock_playwright.return_value.start = AsyncMock(
+            return_value=mock_playwright_obj)
 
         mock_browser_type = AsyncMock()
         mock_playwright_obj.chromium = mock_browser_type
@@ -62,6 +62,7 @@ async def test_playwright_default_config_parity():
 
         # Verify Timeouts - Current implementation doesn't set them. These assertions should fail.
         mock_page.set_default_timeout.assert_called_with(TARGET_TIMEOUT)
-        mock_page.set_default_navigation_timeout.assert_called_with(TARGET_TIMEOUT)
+        mock_page.set_default_navigation_timeout.assert_called_with(
+            TARGET_TIMEOUT)
 
         await env.stop()

@@ -53,9 +53,9 @@ class StalemateDetectionMiddleware(ActionMiddleware):
         if not self._reflection_engine:
             from computer_use_eval.reflection import ReflectionEngine
 
-            self._reflection_engine = ReflectionEngine(
-                self.env.page, [], client=self.client, goal=self.goal
-            )
+            self._reflection_engine = ReflectionEngine(self.env.page, [],
+                                                       client=self.client,
+                                                       goal=self.goal)
         return self._reflection_engine
 
     @reflection_engine.setter
@@ -75,9 +75,8 @@ class StalemateDetectionMiddleware(ActionMiddleware):
 
         # 2. Remove highly volatile temporal data (e.g. "12:00 PM", "updated 5 mins ago")
         # This matches basic time patterns like HH:MM AM/PM and simple relative times.
-        sanitized = re.sub(
-            r"\b\d{1,2}:\d{2}\s*(?:AM|PM|am|pm)?\b", "[TIME_MASK]", sanitized
-        )
+        sanitized = re.sub(r"\b\d{1,2}:\d{2}\s*(?:AM|PM|am|pm)?\b",
+                           "[TIME_MASK]", sanitized)
         sanitized = re.sub(
             r"\b(?:updated|created)?\s*(?:\d+)\s*(?:sec|min|hour|day)s?\s*(?:ago)?\b",
             "[TIME_MASK]",
@@ -113,7 +112,8 @@ class StalemateDetectionMiddleware(ActionMiddleware):
                     return len(self.state_history) - 1 - i
         return 0
 
-    def _normalize_args(self, action: str, args: Dict[str, Any]) -> Dict[str, Any]:
+    def _normalize_args(self, action: str, args: Dict[str,
+                                                      Any]) -> Dict[str, Any]:
         norm = dict(args)
         for key in ["x", "y", "destination_x", "destination_y"]:
             if key in norm and isinstance(norm[key], (int, float)):
@@ -137,8 +137,8 @@ class StalemateDetectionMiddleware(ActionMiddleware):
         pass
 
     async def before_action(
-        self, action_name: str, args: Dict[str, Any]
-    ) -> Tuple[str, Dict[str, Any], bool]:
+            self, action_name: str,
+            args: Dict[str, Any]) -> Tuple[str, Dict[str, Any], bool]:
         from computer_use_eval.utils import await_if_needed
 
         norm_args = self._normalize_args(action_name, args)
@@ -164,16 +164,17 @@ class StalemateDetectionMiddleware(ActionMiddleware):
             "----------------------------------",
         ]
 
-    async def after_action(
-        self, action_name: str, args: Dict[str, Any], result: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    async def after_action(self, action_name: str, args: Dict[str, Any],
+                           result: Dict[str, Any]) -> Dict[str, Any]:
         from computer_use_eval.utils import await_if_needed
 
         # Query the tool registry for passive status
         is_passive = False
         try:
-            if hasattr(self.env, "executor") and hasattr(self.env.executor, "executor"):
-                action_instance = self.env.executor.executor.get_action(action_name)
+            if hasattr(self.env, "executor") and hasattr(
+                    self.env.executor, "executor"):
+                action_instance = self.env.executor.executor.get_action(
+                    action_name)
                 if action_instance:
                     is_passive = action_instance.is_passive
         except Exception:
@@ -199,10 +200,8 @@ class StalemateDetectionMiddleware(ActionMiddleware):
             ]
             if count == 2:
                 guidance.append(
-                    MICRO_REFLECTION_TEMPLATE.format(
-                        action=action_name, error=error_msg
-                    )
-                )
+                    MICRO_REFLECTION_TEMPLATE.format(action=action_name,
+                                                     error=error_msg))
             if count >= thresh:
                 guidance.append(
                     f"CRITICAL: Maximum retries ({thresh}) reached for this specific action."
@@ -213,14 +212,15 @@ class StalemateDetectionMiddleware(ActionMiddleware):
                 strategy_str = str(self.reflection_strategy)
                 if "INJECT" in strategy_str:
                     try:
-                        aria = await await_if_needed(self.env.get_aria_snapshot())
+                        aria = await await_if_needed(
+                            self.env.get_aria_snapshot())
                     except Exception:
                         aria = "{}"
 
                     reasoning = getattr(self.env, "current_reasoning", None)
                     context = await self.reflection_engine.get_context_for_failure(
-                        strategy_str, aria, action_name, args, error_msg, reasoning
-                    )
+                        strategy_str, aria, action_name, args, error_msg,
+                        reasoning)
                     guidance.extend(await self._get_injected_context(context))
             result["reflection_guidance"] = "\n".join(guidance)
         else:
@@ -252,9 +252,9 @@ class StalemateDetectionMiddleware(ActionMiddleware):
 
         is_loop_trigger = cycle_len > 0
 
-        is_stagnant_trigger = (
-            self.stagnation_counter >= self.stagnation_threshold and not is_loop_trigger
-        )
+        is_stagnant_trigger = (self.stagnation_counter
+                               >= self.stagnation_threshold and
+                               not is_loop_trigger)
 
         if is_stagnant_trigger or is_loop_trigger:
             warning_parts = [
@@ -285,15 +285,16 @@ class StalemateDetectionMiddleware(ActionMiddleware):
             if "INJECT" in strategy_str:
                 if not self._loop_injected:
                     try:
-                        aria = await await_if_needed(self.env.get_aria_snapshot())
+                        aria = await await_if_needed(
+                            self.env.get_aria_snapshot())
                     except Exception:
                         aria = "{}"
 
                     reasoning = getattr(self.env, "current_reasoning", None)
                     context = await self.reflection_engine.get_context_for_loop(
-                        strategy_str, aria, self.action_history[-4:], reasoning
-                    )
-                    warning_parts.extend(await self._get_injected_context(context))
+                        strategy_str, aria, self.action_history[-4:], reasoning)
+                    warning_parts.extend(await
+                                         self._get_injected_context(context))
                     if is_loop_trigger:
                         self._loop_injected = True
 

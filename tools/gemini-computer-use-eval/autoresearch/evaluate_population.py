@@ -21,12 +21,14 @@ from evaluate_task_prompt import run_evaluation, log_to_tsv
 
 
 async def evaluate_candidate(candidate_path, num_runs, model_name):
-    print(f"Evaluating candidate: {os.path.basename(candidate_path)}", flush=True)
+    print(f"Evaluating candidate: {os.path.basename(candidate_path)}",
+          flush=True)
     try:
         result = await run_evaluation(candidate_path, num_runs, model_name)
         return candidate_path, result
     except Exception as e:
-        print(f"Candidate {os.path.basename(candidate_path)} crashed: {e}", flush=True)
+        print(f"Candidate {os.path.basename(candidate_path)} crashed: {e}",
+              flush=True)
         return candidate_path, {
             "success_rate": 0.0,
             "avg_score": 0.0,
@@ -57,7 +59,7 @@ async def main():
     # Process in batches
     all_results = []
     for i in range(0, len(candidates), args.batch_size):
-        batch = candidates[i : i + args.batch_size]
+        batch = candidates[i:i + args.batch_size]
         print(f"\n--- Running batch of {len(batch)} candidates ---")
         tasks = [evaluate_candidate(c, args.runs, None) for c in batch]
         batch_results = await asyncio.gather(*tasks)
@@ -87,9 +89,9 @@ async def main():
             best_candidate = path
             best_result = res
         elif reward == best_reward and best_reward > 0:
-            if res.get("avg_steps", float("inf")) < best_result.get(
-                "avg_steps", float("inf")
-            ):
+            if res.get("avg_steps",
+                       float("inf")) < best_result.get("avg_steps",
+                                                       float("inf")):
                 best_candidate = path
                 best_result = res
 

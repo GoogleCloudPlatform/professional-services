@@ -24,9 +24,10 @@ class SmartTrimStrategy(ContextStrategy):
     4. Function call/response pairs are never split (Atomic Slicing).
     """
 
-    def __init__(
-        self, max_turns: int = 30, keep_tail: int = 10, protected_head: int = 1
-    ):
+    def __init__(self,
+                 max_turns: int = 30,
+                 keep_tail: int = 10,
+                 protected_head: int = 1):
         self.max_turns = max_turns
         self.keep_tail = keep_tail
         self.protected_head = protected_head
@@ -40,12 +41,11 @@ class SmartTrimStrategy(ContextStrategy):
         )
 
         # Always keep Turn 0-N (Goal + Plan)
-        head = history[: self.protected_head]
+        head = history[:self.protected_head]
 
         # Calculate a safe start index for the Tail (Root Turn)
-        target_start_index = self.find_safe_tail_start(
-            history, self.keep_tail, self.protected_head
-        )
+        target_start_index = self.find_safe_tail_start(history, self.keep_tail,
+                                                       self.protected_head)
 
         # Construct new history: Head + Tail
         tail = history[target_start_index:]
@@ -66,15 +66,13 @@ class SmartTrimStrategy(ContextStrategy):
                 if last_head_role == "user":
                     bridge.append(
                         types.Content(
-                            role="model", parts=[types.Part(text="[History Trimmed]")]
-                        )
-                    )
+                            role="model",
+                            parts=[types.Part(text="[History Trimmed]")]))
                 else:
                     bridge.append(
                         types.Content(
-                            role="user", parts=[types.Part(text="[History Trimmed]")]
-                        )
-                    )
+                            role="user",
+                            parts=[types.Part(text="[History Trimmed]")]))
 
         new_history = head + bridge + tail
         logger.info(
@@ -91,7 +89,8 @@ class ImageContextStrategy(ContextStrategy):
     def __init__(
         self,
         max_images: int = 3,
-        retention_strategy: ImageRetentionStrategy = ImageRetentionStrategy.AGGRESSIVE,
+        retention_strategy: ImageRetentionStrategy = ImageRetentionStrategy.
+        AGGRESSIVE,
     ):
         self.max_images = max_images
         self.retention_strategy = retention_strategy
@@ -109,10 +108,8 @@ class ImageContextStrategy(ContextStrategy):
         )
 
     async def apply(self, history: List[types.Content]) -> List[types.Content]:
-        if (
-            self.max_images == -1
-            and self.retention_strategy != ImageRetentionStrategy.VARIABLE_FIDELITY
-        ):
+        if (self.max_images == -1 and self.retention_strategy
+                != ImageRetentionStrategy.VARIABLE_FIDELITY):
             return history
 
         if len(history) <= 1:
@@ -130,18 +127,13 @@ class ImageContextStrategy(ContextStrategy):
                 continue
             if content.role == "user":
                 has_img = any(
-                    (p.inline_data and p.inline_data.mime_type.startswith("image/"))
-                    or (
-                        p.function_response
-                        and p.function_response.parts
-                        and any(
-                            frp.inline_data
-                            and frp.inline_data.mime_type.startswith("image/")
-                            for frp in p.function_response.parts
-                        )
-                    )
-                    for p in content.parts
-                )
+                    (p.inline_data and
+                     p.inline_data.mime_type.startswith("image/")) or
+                    (p.function_response and p.function_response.parts and any(
+                        frp.inline_data and
+                        frp.inline_data.mime_type.startswith("image/")
+                        for frp in p.function_response.parts))
+                    for p in content.parts)
                 if has_img:
                     eligible_user_turns.append(i)
 
@@ -182,47 +174,41 @@ class ImageContextStrategy(ContextStrategy):
             new_parts = []
             modified = False
             for part in content.parts:
-                if part.inline_data and part.inline_data.mime_type.startswith("image/"):
+                if part.inline_data and part.inline_data.mime_type.startswith(
+                        "image/"):
                     modified = True
                     if is_degraded:
-                        degraded_bytes = self._degrade_image(part.inline_data.data)
+                        degraded_bytes = self._degrade_image(
+                            part.inline_data.data)
                         new_parts.append(
-                            types.Part(
-                                inline_data=types.Blob(
-                                    mime_type="image/png", data=degraded_bytes
-                                )
-                            )
-                        )
+                            types.Part(inline_data=types.Blob(
+                                mime_type="image/png", data=degraded_bytes)))
                     continue
 
                 if part.function_response:
                     has_images = False
                     if part.function_response.parts:
                         has_images = any(
-                            p.inline_data
-                            and p.inline_data.mime_type.startswith("image/")
-                            for p in part.function_response.parts
-                        )
+                            p.inline_data and
+                            p.inline_data.mime_type.startswith("image/")
+                            for p in part.function_response.parts)
 
                     if has_images:
                         modified = True
                         new_fr_parts = []
                         for frp in part.function_response.parts:
                             if frp.inline_data and frp.inline_data.mime_type.startswith(
-                                "image/"
-                            ):
+                                    "image/"):
                                 if is_degraded:
                                     degraded_bytes = self._degrade_image(
-                                        frp.inline_data.data
-                                    )
+                                        frp.inline_data.data)
                                     new_fr_parts.append(
                                         types.FunctionResponsePart(
-                                            inline_data=types.FunctionResponseBlob(
+                                            inline_data=types.
+                                            FunctionResponseBlob(
                                                 mime_type="image/png",
                                                 data=degraded_bytes,
-                                            )
-                                        )
-                                    )
+                                            )))
                             else:
                                 new_fr_parts.append(frp)
 
@@ -241,7 +227,8 @@ class ImageContextStrategy(ContextStrategy):
                 new_parts.append(part)
 
             if modified:
-                new_history.append(types.Content(role=content.role, parts=new_parts))
+                new_history.append(
+                    types.Content(role=content.role, parts=new_parts))
             else:
                 new_history.append(content)
 
@@ -269,38 +256,33 @@ class CompactionStrategy(ContextStrategy):
         while i < len(history) - 2:
             current_model_turn = history[i]
 
-            if (
-                current_model_turn.role == "model"
-                and current_model_turn.parts
-                and len(current_model_turn.parts) == 1
-                and current_model_turn.parts[0].function_call
-            ):
+            if (current_model_turn.role == "model" and
+                    current_model_turn.parts and
+                    len(current_model_turn.parts) == 1 and
+                    current_model_turn.parts[0].function_call):
                 fc = current_model_turn.parts[0].function_call
                 if fc.name in [
-                    "wait_5_seconds",
-                    "scroll_at",
-                    "scroll_document",
-                    "mouse_move",
+                        "wait_5_seconds",
+                        "scroll_at",
+                        "scroll_document",
+                        "mouse_move",
                 ]:
                     next_model_turn = history[i + 2]
-                    if (
-                        next_model_turn.role == "model"
-                        and next_model_turn.parts
-                        and len(next_model_turn.parts) == 1
-                        and next_model_turn.parts[0].function_call
-                        and next_model_turn.parts[0].function_call.name == fc.name
-                    ):
+                    if (next_model_turn.role == "model" and
+                            next_model_turn.parts and
+                            len(next_model_turn.parts) == 1 and
+                            next_model_turn.parts[0].function_call and
+                            next_model_turn.parts[0].function_call.name
+                            == fc.name):
                         loop_name = fc.name
                         loop_count = 0
                         while i < len(history) - 2:
                             m_turn = history[i]
-                            if (
-                                m_turn.role == "model"
-                                and m_turn.parts
-                                and len(m_turn.parts) == 1
-                                and m_turn.parts[0].function_call
-                                and m_turn.parts[0].function_call.name == loop_name
-                            ):
+                            if (m_turn.role == "model" and m_turn.parts and
+                                    len(m_turn.parts) == 1 and
+                                    m_turn.parts[0].function_call and
+                                    m_turn.parts[0].function_call.name
+                                    == loop_name):
                                 loop_count += 1
                                 i += 2
                             else:
@@ -317,20 +299,14 @@ class CompactionStrategy(ContextStrategy):
                         new_history.append(
                             types.Content(
                                 role="model",
-                                parts=[
-                                    types.Part(
-                                        text=summary,
-                                    )
-                                ],
-                            )
-                        )
+                                parts=[types.Part(text=summary,)],
+                            ))
                         # CRITICAL: We MUST append a User turn here to maintain the
                         # mandatory User-Model-User alternation in history.
                         new_history.append(
                             types.Content(
-                                role="user", parts=[types.Part(text="Acknowledged.")]
-                            )
-                        )
+                                role="user",
+                                parts=[types.Part(text="Acknowledged.")]))
                         continue
 
             new_history.append(history[i])
@@ -372,16 +348,15 @@ class SummarizationStrategy(ContextStrategy):
             "Summarize the conversation history between the User and Browser Agent. "
             "Focus on the PROGRESS made toward the goal, key UI elements interacted with, "
             "and any specific failures or hurdles encountered. Keep it concise. "
-            "Output only the summary text."
-        )
+            "Output only the summary text.")
 
     async def apply(self, history: List[types.Content]) -> List[types.Content]:
         # Standard apply without metadata uses heuristic
         return await self.apply_with_metadata(history, {})
 
     async def apply_with_metadata(
-        self, history: List[types.Content], metadata: Dict[str, Any]
-    ) -> List[types.Content]:
+            self, history: List[types.Content],
+            metadata: Dict[str, Any]) -> List[types.Content]:
         # 1. Decision: Trigger based on metadata if available, else heuristic
         # Use 'last_input_tokens' to measure the current context window size,
         # NOT 'total_input_tokens' which is the lifetime cumulative sum.
@@ -401,7 +376,8 @@ class SummarizationStrategy(ContextStrategy):
 
         # 2. Slicing
         head_end = self.find_safe_head_end(history, self.protected_head)
-        tail_start = self.find_safe_tail_start(history, self.keep_tail, head_end)
+        tail_start = self.find_safe_tail_start(history, self.keep_tail,
+                                               head_end)
 
         head = history[:head_end]
         tail = history[tail_start:]
@@ -421,7 +397,9 @@ class SummarizationStrategy(ContextStrategy):
         try:
             response = await self.client.aio.models.generate_content(
                 model=self.model_name,
-                contents=[types.Content(role="user", parts=[types.Part(text=prompt)])],
+                contents=[
+                    types.Content(role="user", parts=[types.Part(text=prompt)])
+                ],
             )
 
             logger.info("✅ [CONTEXT] Summarization complete.")
@@ -430,35 +408,36 @@ class SummarizationStrategy(ContextStrategy):
             first_tail_role = tail[0].role if tail else "model"
 
             injected_turns = []
-            summary_part = types.Part(text=f"[History Summary: {response.text}]")
+            summary_part = types.Part(
+                text=f"[History Summary: {response.text}]")
             ack_part = types.Part(text="Acknowledged.")
 
             if last_head_role == "user":
                 if first_tail_role == "user":
                     # User -> [Model(Summary)] -> User
                     injected_turns.append(
-                        types.Content(role="model", parts=[summary_part])
-                    )
+                        types.Content(role="model", parts=[summary_part]))
                 else:
                     # User -> [Model(Summary), User(Ack)] -> Model
                     injected_turns.append(
-                        types.Content(role="model", parts=[summary_part])
-                    )
-                    injected_turns.append(types.Content(role="user", parts=[ack_part]))
+                        types.Content(role="model", parts=[summary_part]))
+                    injected_turns.append(
+                        types.Content(role="user", parts=[ack_part]))
             else:  # last_head_role == "model"
                 if first_tail_role == "user":
                     # Model -> [User(Ack), Model(Summary)] -> User
-                    injected_turns.append(types.Content(role="user", parts=[ack_part]))
                     injected_turns.append(
-                        types.Content(role="model", parts=[summary_part])
-                    )
+                        types.Content(role="user", parts=[ack_part]))
+                    injected_turns.append(
+                        types.Content(role="model", parts=[summary_part]))
                 else:
                     # Model -> [User(Ack), Model(Summary), User(Ack)] -> Model
-                    injected_turns.append(types.Content(role="user", parts=[ack_part]))
                     injected_turns.append(
-                        types.Content(role="model", parts=[summary_part])
-                    )
-                    injected_turns.append(types.Content(role="user", parts=[ack_part]))
+                        types.Content(role="user", parts=[ack_part]))
+                    injected_turns.append(
+                        types.Content(role="model", parts=[summary_part]))
+                    injected_turns.append(
+                        types.Content(role="user", parts=[ack_part]))
 
             return head + injected_turns + tail
 

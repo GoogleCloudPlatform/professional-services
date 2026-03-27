@@ -11,6 +11,7 @@ describe_template_value = "template_value"
 
 
 class TestTemplateValue:
+
     def test_simple_string_substitution(self):
         """Should replace {{VAR}} with environment variable value."""
         with patch.dict(os.environ, {"MY_VAR": "Hello World"}):
@@ -38,7 +39,8 @@ class TestTemplateValue:
     def test_default_filter_support(self):
         """Should use the default value if the environment variable is missing."""
         with patch.dict(os.environ, {}, clear=True):
-            result = template_value("Value: {{ env.MISSING | default('fallback') }}")
+            result = template_value(
+                "Value: {{ env.MISSING | default('fallback') }}")
             assert result == "Value: fallback"
 
     def test_no_template_returns_original_string(self):
@@ -51,7 +53,9 @@ class TestTemplateValue:
         """Should recursively template values in dictionaries."""
         data = {
             "key1": "Value {{ VAR1 }}",
-            "nested": {"key2": "{{ env.VAR2 | upper }}"},
+            "nested": {
+                "key2": "{{ env.VAR2 | upper }}"
+            },
         }
         with patch.dict(os.environ, {"VAR1": "A", "VAR2": "b"}):
             result = template_value(data)
@@ -79,6 +83,7 @@ describe_parse_resolutions = "parse_resolutions"
 
 
 class TestParseResolutions:
+
     def test_parse_single_valid(self):
         """Should parse a single resolution string."""
         result = parse_resolutions("1920x1080")

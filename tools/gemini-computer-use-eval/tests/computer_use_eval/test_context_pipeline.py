@@ -22,19 +22,22 @@ async def test_image_context_strategy_accurate():
         types.Content(
             role="user",
             parts=[
-                types.Part(inline_data=types.Blob(mime_type="image/png", data=b"img0"))
+                types.Part(
+                    inline_data=types.Blob(mime_type="image/png", data=b"img0"))
             ],
         ),
         types.Content(
             role="user",
             parts=[
-                types.Part(inline_data=types.Blob(mime_type="image/png", data=b"img1"))
+                types.Part(
+                    inline_data=types.Blob(mime_type="image/png", data=b"img1"))
             ],
         ),
         types.Content(
             role="user",
             parts=[
-                types.Part(inline_data=types.Blob(mime_type="image/png", data=b"img2"))
+                types.Part(
+                    inline_data=types.Blob(mime_type="image/png", data=b"img2"))
             ],
         ),
     ]
@@ -53,7 +56,8 @@ async def test_image_context_strategy_balanced():
             role="user",
             parts=[
                 types.Part(text="0"),
-                types.Part(inline_data=types.Blob(mime_type="image/png", data=b"img0")),
+                types.Part(inline_data=types.Blob(mime_type="image/png",
+                                                  data=b"img0")),
             ],
         ),
         # Turn 1 (Scrub)
@@ -61,7 +65,8 @@ async def test_image_context_strategy_balanced():
             role="user",
             parts=[
                 types.Part(text="1"),
-                types.Part(inline_data=types.Blob(mime_type="image/png", data=b"img1")),
+                types.Part(inline_data=types.Blob(mime_type="image/png",
+                                                  data=b"img1")),
             ],
         ),
         # Turn 2 (Keep)
@@ -69,7 +74,8 @@ async def test_image_context_strategy_balanced():
             role="user",
             parts=[
                 types.Part(text="2"),
-                types.Part(inline_data=types.Blob(mime_type="image/png", data=b"img2")),
+                types.Part(inline_data=types.Blob(mime_type="image/png",
+                                                  data=b"img2")),
             ],
         ),
         # Turn 3 (Keep)
@@ -77,7 +83,8 @@ async def test_image_context_strategy_balanced():
             role="user",
             parts=[
                 types.Part(text="3"),
-                types.Part(inline_data=types.Blob(mime_type="image/png", data=b"img3")),
+                types.Part(inline_data=types.Blob(mime_type="image/png",
+                                                  data=b"img3")),
             ],
         ),
         # Turn 4 (Keep)
@@ -85,7 +92,8 @@ async def test_image_context_strategy_balanced():
             role="user",
             parts=[
                 types.Part(text="4"),
-                types.Part(inline_data=types.Blob(mime_type="image/png", data=b"img4")),
+                types.Part(inline_data=types.Blob(mime_type="image/png",
+                                                  data=b"img4")),
             ],
         ),
         # Turn 5 (Keep)
@@ -93,7 +101,8 @@ async def test_image_context_strategy_balanced():
             role="user",
             parts=[
                 types.Part(text="5"),
-                types.Part(inline_data=types.Blob(mime_type="image/png", data=b"img5")),
+                types.Part(inline_data=types.Blob(mime_type="image/png",
+                                                  data=b"img5")),
             ],
         ),
     ]
@@ -118,21 +127,24 @@ async def test_image_context_strategy_efficient():
             role="user",
             parts=[
                 types.Part(text="0"),
-                types.Part(inline_data=types.Blob(mime_type="image/png", data=b"img0")),
+                types.Part(inline_data=types.Blob(mime_type="image/png",
+                                                  data=b"img0")),
             ],
         ),
         types.Content(
             role="user",
             parts=[
                 types.Part(text="1"),
-                types.Part(inline_data=types.Blob(mime_type="image/png", data=b"img1")),
+                types.Part(inline_data=types.Blob(mime_type="image/png",
+                                                  data=b"img1")),
             ],
         ),
         types.Content(
             role="user",
             parts=[
                 types.Part(text="2"),
-                types.Part(inline_data=types.Blob(mime_type="image/png", data=b"img2")),
+                types.Part(inline_data=types.Blob(mime_type="image/png",
+                                                  data=b"img2")),
             ],
         ),
     ]
@@ -152,10 +164,13 @@ async def test_summarization_strategy():
     mock_client = MagicMock()
     mock_response = MagicMock()
     mock_response.text = "The user did some things."
-    mock_client.aio.models.generate_content = AsyncMock(return_value=mock_response)
+    mock_client.aio.models.generate_content = AsyncMock(
+        return_value=mock_response)
 
     # Use low token_threshold to trigger summarization in the test
-    strategy = SummarizationStrategy(client=mock_client, token_threshold=1, keep_tail=1)
+    strategy = SummarizationStrategy(client=mock_client,
+                                     token_threshold=1,
+                                     keep_tail=1)
 
     history = [
         types.Content(role="user", parts=[types.Part(text="Goal")]),
@@ -174,9 +189,8 @@ async def test_summarization_strategy():
 
     assert len(new_history) == 4
     assert "Goal" in new_history[0].parts[0].text
-    assert (
-        "[History Summary: The user did some things.]" in new_history[1].parts[0].text
-    )
+    assert ("[History Summary: The user did some things.]"
+            in new_history[1].parts[0].text)
     assert "Acknowledged" in new_history[2].parts[0].text
     assert "Final Action" in new_history[3].parts[0].text
 
@@ -220,14 +234,16 @@ async def test_smart_trim_respects_function_response():
         types.Content(role="user", parts=[types.Part(text="Turn 0")]),
         types.Content(
             role="model",
-            parts=[types.Part(function_call=types.FunctionCall(name="cmd", args={}))],
+            parts=[
+                types.Part(
+                    function_call=types.FunctionCall(name="cmd", args={}))
+            ],
         ),
         types.Content(
             role="user",
             parts=[
-                types.Part(
-                    function_response=types.FunctionResponse(name="cmd", response={})
-                )
+                types.Part(function_response=types.FunctionResponse(
+                    name="cmd", response={}))
             ],
         ),
         types.Content(role="model", parts=[types.Part(text="Turn 3")]),
@@ -249,14 +265,16 @@ async def test_smart_trim_avoids_orphaned_function_response():
         types.Content(role="model", parts=[types.Part(text="Turn 1")]),
         types.Content(
             role="model",
-            parts=[types.Part(function_call=types.FunctionCall(name="cmd", args={}))],
+            parts=[
+                types.Part(
+                    function_call=types.FunctionCall(name="cmd", args={}))
+            ],
         ),
         types.Content(
             role="user",
             parts=[
-                types.Part(
-                    function_response=types.FunctionResponse(name="cmd", response={})
-                )
+                types.Part(function_response=types.FunctionResponse(
+                    name="cmd", response={}))
             ],
         ),
     ]
@@ -277,26 +295,22 @@ async def test_image_context_strategy_scrubbing():
             role="user",
             parts=[
                 types.Part(text="Goal"),
-                types.Part(inline_data=types.Blob(mime_type="image/png", data=b"img0")),
+                types.Part(inline_data=types.Blob(mime_type="image/png",
+                                                  data=b"img0")),
             ],
         ),
         # Turn 1 (Intermediate) - Remove image
         types.Content(
             role="user",
             parts=[
-                types.Part(
-                    function_response=types.FunctionResponse(
-                        name="cmd",
-                        response={},
-                        parts=[
-                            types.Part(
-                                inline_data=types.Blob(
-                                    mime_type="image/png", data=b"img1"
-                                )
-                            )
-                        ],
-                    )
-                )
+                types.Part(function_response=types.FunctionResponse(
+                    name="cmd",
+                    response={},
+                    parts=[
+                        types.Part(inline_data=types.Blob(mime_type="image/png",
+                                                          data=b"img1"))
+                    ],
+                ))
             ],
         ),
         # Turn 2 (Last) - Keep image
@@ -304,7 +318,8 @@ async def test_image_context_strategy_scrubbing():
             role="user",
             parts=[
                 types.Part(text="Current"),
-                types.Part(inline_data=types.Blob(mime_type="image/png", data=b"img2")),
+                types.Part(inline_data=types.Blob(mime_type="image/png",
+                                                  data=b"img2")),
             ],
         ),
     ]
@@ -316,7 +331,8 @@ async def test_image_context_strategy_scrubbing():
     fr = new_history[1].parts[0].function_response
     assert len(fr.parts) == 0
     assert any(p.inline_data for p in new_history[2].parts)
-    assert any(frp.inline_data for frp in history[1].parts[0].function_response.parts)
+    assert any(
+        frp.inline_data for frp in history[1].parts[0].function_response.parts)
 
 
 @pytest.mark.asyncio
@@ -327,37 +343,29 @@ async def test_loop_compression_strategy():
         types.Content(
             role="model",
             parts=[
-                types.Part(
-                    function_call=types.FunctionCall(name="wait_5_seconds", args={})
-                )
+                types.Part(function_call=types.FunctionCall(
+                    name="wait_5_seconds", args={}))
             ],
         ),
         types.Content(
             role="user",
             parts=[
-                types.Part(
-                    function_response=types.FunctionResponse(
-                        name="wait_5_seconds", response={}
-                    )
-                )
+                types.Part(function_response=types.FunctionResponse(
+                    name="wait_5_seconds", response={}))
             ],
         ),
         types.Content(
             role="model",
             parts=[
-                types.Part(
-                    function_call=types.FunctionCall(name="wait_5_seconds", args={})
-                )
+                types.Part(function_call=types.FunctionCall(
+                    name="wait_5_seconds", args={}))
             ],
         ),
         types.Content(
             role="user",
             parts=[
-                types.Part(
-                    function_response=types.FunctionResponse(
-                        name="wait_5_seconds", response={}
-                    )
-                )
+                types.Part(function_response=types.FunctionResponse(
+                    name="wait_5_seconds", response={}))
             ],
         ),
         types.Content(role="model", parts=[types.Part(text="Final")]),
@@ -372,13 +380,11 @@ async def test_loop_compression_strategy():
 
 @pytest.mark.asyncio
 async def test_pipeline_composition():
-    pipeline = ContextPipeline(
-        [
-            CompactionStrategy(),
-            ImageContextStrategy(max_images=0),
-            SmartTrimStrategy(max_turns=3, keep_tail=1),
-        ]
-    )
+    pipeline = ContextPipeline([
+        CompactionStrategy(),
+        ImageContextStrategy(max_images=0),
+        SmartTrimStrategy(max_turns=3, keep_tail=1),
+    ])
 
     history = [
         types.Content(role="user", parts=[types.Part(text="Goal")]),
@@ -386,37 +392,29 @@ async def test_pipeline_composition():
         types.Content(
             role="model",
             parts=[
-                types.Part(
-                    function_call=types.FunctionCall(name="wait_5_seconds", args={})
-                )
+                types.Part(function_call=types.FunctionCall(
+                    name="wait_5_seconds", args={}))
             ],
         ),
         types.Content(
             role="user",
             parts=[
-                types.Part(
-                    function_response=types.FunctionResponse(
-                        name="wait_5_seconds", response={}
-                    )
-                )
+                types.Part(function_response=types.FunctionResponse(
+                    name="wait_5_seconds", response={}))
             ],
         ),
         types.Content(
             role="model",
             parts=[
-                types.Part(
-                    function_call=types.FunctionCall(name="wait_5_seconds", args={})
-                )
+                types.Part(function_call=types.FunctionCall(
+                    name="wait_5_seconds", args={}))
             ],
         ),
         types.Content(
             role="user",
             parts=[
-                types.Part(
-                    function_response=types.FunctionResponse(
-                        name="wait_5_seconds", response={}
-                    )
-                )
+                types.Part(function_response=types.FunctionResponse(
+                    name="wait_5_seconds", response={}))
             ],
         ),
         types.Content(role="model", parts=[types.Part(text="Current")]),

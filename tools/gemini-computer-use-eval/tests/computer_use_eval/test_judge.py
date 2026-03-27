@@ -29,6 +29,7 @@ describe_assertion_judge = "AssertionJudge"
 
 
 class TestAssertionJudge:
+
     @pytest.mark.asyncio
     async def test_evaluate_empty_criteria(self, mock_env):
         """Should return 0.0 score when no assertions are provided."""
@@ -46,9 +47,11 @@ class TestAssertionJudge:
         judge = AssertionJudge()
         mock_env.page.url = "https://google.com"
         criteria = {
-            "assertions": [
-                {"type": "url", "condition": "equals", "value": "https://google.com"}
-            ]
+            "assertions": [{
+                "type": "url",
+                "condition": "equals",
+                "value": "https://google.com"
+            }]
         }
 
         result = await judge.evaluate(mock_env, criteria)
@@ -64,9 +67,11 @@ class TestAssertionJudge:
         mock_env.page.locator.return_value = mock_locator
 
         criteria = {
-            "assertions": [
-                {"type": "dom", "selector": "#success-btn", "condition": "exists"}
-            ]
+            "assertions": [{
+                "type": "dom",
+                "selector": "#success-btn",
+                "condition": "exists"
+            }]
         }
 
         result = await judge.evaluate(mock_env, criteria)
@@ -105,6 +110,7 @@ describe_llm_log_judge = "LLMLogJudge"
 
 
 class TestLLMLogJudge:
+
     @pytest.mark.asyncio
     async def test_evaluate_no_history(self, mock_client, mock_env):
         """Should return default structure if no history is provided."""
@@ -196,6 +202,5 @@ class TestLLMLogJudge:
         prompt_sent = call_args.kwargs["contents"]
 
         assert "Turn 1 (user): Hello" in prompt_sent
-        assert (
-            "Turn 2 (model): [Tool Call: click_at({'x': 10, 'y': 10})]" in prompt_sent
-        )
+        assert ("Turn 2 (model): [Tool Call: click_at({'x': 10, 'y': 10})]"
+                in prompt_sent)

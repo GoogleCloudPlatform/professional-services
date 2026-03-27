@@ -25,7 +25,8 @@ def test_init(sandbox_manager):
 
 
 def test_setup_session_success(sandbox_manager, mock_vertexai):
-    with patch("computer_use_eval.browser.sandbox_manager.settings") as mock_settings:
+    with patch("computer_use_eval.browser.sandbox_manager.settings"
+              ) as mock_settings:
         mock_settings.SANDBOX_AGENT_ENGINE_NAME = None
         mock_settings.SANDBOX_SERVICE_ACCOUNT = "sa@test.com"
 
@@ -38,17 +39,17 @@ def test_setup_session_success(sandbox_manager, mock_vertexai):
         mock_operation = MagicMock()
         mock_operation.response.name = "sandbox-123"
         mock_client_instance.agent_engines.sandboxes.create.return_value = (
-            mock_operation
-        )
+            mock_operation)
 
         mock_sandbox_resource = MagicMock()
         mock_client_instance.agent_engines.sandboxes.get.return_value = (
-            mock_sandbox_resource
-        )
+            mock_sandbox_resource)
 
         mock_client_instance.agent_engines.sandboxes.generate_browser_ws_headers.return_value = (
             "ws://test-url",
-            {"Authorization": "Bearer token"},
+            {
+                "Authorization": "Bearer token"
+            },
         )
 
         ws_url, headers = sandbox_manager.setup_session("session-1")
@@ -59,11 +60,13 @@ def test_setup_session_success(sandbox_manager, mock_vertexai):
         # Verify calls
         mock_client_instance.agent_engines.create.assert_called_once()
         mock_client_instance.agent_engines.sandboxes.create.assert_called_once()
-        mock_client_instance.agent_engines.sandboxes.generate_browser_ws_headers.assert_called_once()
+        mock_client_instance.agent_engines.sandboxes.generate_browser_ws_headers.assert_called_once(
+        )
 
 
 def test_setup_session_with_service_account(mock_vertexai):
-    with patch("computer_use_eval.browser.sandbox_manager.settings") as mock_settings:
+    with patch("computer_use_eval.browser.sandbox_manager.settings"
+              ) as mock_settings:
         mock_settings.SANDBOX_SERVICE_ACCOUNT = "sa@test.com"
 
         # Use a valid region (e.g. us-central1) to pass validation
@@ -81,13 +84,15 @@ def test_setup_session_with_service_account(mock_vertexai):
         manager.setup_session("test")
 
         mock_client.agent_engines.sandboxes.generate_browser_ws_headers.assert_called_with(
-            sandbox_environment=ANY,  # we don't care about the specific mock object here
+            sandbox_environment=
+            ANY,  # we don't care about the specific mock object here
             service_account_email="sa@test.com",
         )
 
 
 def test_setup_session_failure(sandbox_manager, mock_vertexai):
-    with patch("computer_use_eval.browser.sandbox_manager.settings") as mock_settings:
+    with patch("computer_use_eval.browser.sandbox_manager.settings"
+              ) as mock_settings:
         mock_settings.SANDBOX_AGENT_ENGINE_NAME = None
         mock_settings.SANDBOX_SERVICE_ACCOUNT = "sa@test.com"
 

@@ -2,7 +2,6 @@
 #
 # This software is provided as-is, without warranty or representation for any use or purpose.
 # Your use of it is subject to your agreement with Google.
-
 """
 This module allows users to define custom Python functions (tools) that the Agent can invoke.
 Any function decorated with `@tool` will be automatically exposed to the Gemini model.

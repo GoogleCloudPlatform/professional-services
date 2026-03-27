@@ -20,9 +20,8 @@ def mock_output_dir(tmp_path):
     # A cleaner way is to patch the ENV VAR if settings are loaded from env,
     # but since 'settings' is instantiated at module level, we patch the attribute.
 
-    with patch(
-        "computer_use_eval.config.settings.OUTPUT_DIR", str(tmp_path / "artifacts")
-    ):
+    with patch("computer_use_eval.config.settings.OUTPUT_DIR",
+               str(tmp_path / "artifacts")):
         yield
 
 

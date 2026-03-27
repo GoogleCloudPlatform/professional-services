@@ -27,7 +27,8 @@ class TypeAction(BaseAction):
         }
     }"""
 
-    async def execute(self, env: PlaywrightEnv, args: Dict[str, Any]) -> Dict[str, Any]:
+    async def execute(self, env: PlaywrightEnv,
+                      args: Dict[str, Any]) -> Dict[str, Any]:
         x, y = self.denormalize(args["x"], args["y"], env)
         text = args.get("text", "")
         clear_before = args.get("clear_before_typing", True)
@@ -37,9 +38,8 @@ class TypeAction(BaseAction):
         # Smart Handling for Time Inputs (HH:MM)
         # Ported from legacy reference scripts. Some time inputs handle typed
         # separators poorly; stripping them and using raw digits is more robust.
-        is_time_value = (
-            ":" in text and len(text) <= 5 and text.replace(":", "").isdigit()
-        )
+        is_time_value = (":" in text and len(text) <= 5 and
+                         text.replace(":", "").isdigit())
 
         if is_time_value:
             digits = text.replace(":", "")
@@ -53,7 +53,8 @@ class TypeAction(BaseAction):
             if args.get("press_enter", False):
                 await env.page.keyboard.press("Enter")
                 try:
-                    await env.page.wait_for_load_state("domcontentloaded", timeout=3000)
+                    await env.page.wait_for_load_state("domcontentloaded",
+                                                       timeout=3000)
                 except Exception:
                     pass
                 await env.page.wait_for_timeout(500)
@@ -87,7 +88,8 @@ class TypeAction(BaseAction):
         if args.get("press_enter", False):
             await env.page.keyboard.press("Enter")
             try:
-                await env.page.wait_for_load_state("domcontentloaded", timeout=3000)
+                await env.page.wait_for_load_state("domcontentloaded",
+                                                   timeout=3000)
             except Exception:
                 pass
             await env.page.wait_for_timeout(500)
@@ -96,7 +98,9 @@ class TypeAction(BaseAction):
 
 
 class KeyCombinationAction(BaseAction):
-    async def execute(self, env: PlaywrightEnv, args: Dict[str, Any]) -> Dict[str, Any]:
+
+    async def execute(self, env: PlaywrightEnv,
+                      args: Dict[str, Any]) -> Dict[str, Any]:
         keys = args.get("keys")
         if not keys:
             return {"error": "keys argument is required"}
@@ -138,7 +142,8 @@ class KeyCombinationAction(BaseAction):
         try:
             await env.page.keyboard.press(normalized_keys)
             try:
-                await env.page.wait_for_load_state("domcontentloaded", timeout=3000)
+                await env.page.wait_for_load_state("domcontentloaded",
+                                                   timeout=3000)
             except Exception:
                 pass
             await env.page.wait_for_timeout(500)

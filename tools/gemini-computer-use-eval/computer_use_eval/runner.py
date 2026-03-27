@@ -62,7 +62,8 @@ async def _evaluate_run(env, result, config, agent_client) -> tuple:
     judge = AssertionJudge()
     criteria = config.get("criteria", {})
     # Inject goal into criteria for context-aware judging
-    criteria["task_goal"] = config.get("task", {}).get("goal", "Start operation.")
+    criteria["task_goal"] = config.get("task", {}).get("goal",
+                                                       "Start operation.")
 
     judge_result = await judge.evaluate(env, criteria)
 
@@ -75,9 +76,10 @@ async def _evaluate_run(env, result, config, agent_client) -> tuple:
 
     try:
         llm_judge = LLMLogJudge(agent_client)
-        llm_analysis = await llm_judge.evaluate(
-            env, criteria, history=result.history, metadata=result.metadata
-        )
+        llm_analysis = await llm_judge.evaluate(env,
+                                                criteria,
+                                                history=result.history,
+                                                metadata=result.metadata)
     except Exception as e:
         logger.exception("LLM Judge evaluation failed.")
         llm_analysis = {"error": str(e)}
@@ -93,7 +95,9 @@ async def _evaluate_run(env, result, config, agent_client) -> tuple:
 
         if video_paths:
             v_judge = VideoJudge(agent_client)
-            v_out = await v_judge.evaluate(None, criteria, video_paths=video_paths)
+            v_out = await v_judge.evaluate(None,
+                                           criteria,
+                                           video_paths=video_paths)
             video_result = {
                 "score": v_out.get("score", 0.0),
                 "reasoning": v_out.get("reasoning", "No reasoning"),
@@ -107,9 +111,9 @@ async def _evaluate_run(env, result, config, agent_client) -> tuple:
         logger.warning("Video Judge skipped or failed.", exc_info=True)
         video_result = {"score": 0.0, "reasoning": f"Error: {str(e)}"}
 
-    trace_result = (
-        llm_analysis if isinstance(llm_analysis, dict) else {"error": str(llm_analysis)}
-    )
+    trace_result = (llm_analysis if isinstance(llm_analysis, dict) else {
+        "error": str(llm_analysis)
+    })
 
     det_result = {"score": score, "reasoning": reasoning, "details": criteria}
 
@@ -156,7 +160,8 @@ async def run_single_resolution(
             try:
                 loaded_hooks[hook_name] = load_custom_function(hook_str)
             except Exception:
-                logger.exception(f"Failed to load hook '{hook_name}' ({hook_str}).")
+                logger.exception(
+                    f"Failed to load hook '{hook_name}' ({hook_str}).")
 
     if "before_run" in loaded_hooks:
         import inspect
@@ -195,7 +200,9 @@ async def run_single_resolution(
             start_url = task_config.get("start_url")
             if start_url:
                 logger.info(f"Navigating to start URL: {start_url}")
-                await env.page.goto(start_url, wait_until="networkidle", timeout=60000)
+                await env.page.goto(start_url,
+                                    wait_until="networkidle",
+                                    timeout=60000)
                 await env.page.wait_for_timeout(500)
 
             # Determine User Message (Goal)
@@ -205,9 +212,9 @@ async def run_single_resolution(
             import time
 
             agent_start_time = time.time()
-            result = await agent.run_task(
-                user_message, env, custom_actions=custom_actions
-            )
+            result = await agent.run_task(user_message,
+                                          env,
+                                          custom_actions=custom_actions)
             agent_latency = time.time() - agent_start_time
 
             # Clean up noise and add precise timing
@@ -216,8 +223,7 @@ async def run_single_resolution(
             result.metadata["agent_latency_seconds"] = round(agent_latency, 2)
 
             det_result, trace_result, video_result, video_path = await _evaluate_run(
-                env, result, config, agent.client
-            )
+                env, result, config, agent.client)
             # The env might have been stopped during evaluate_run, so we ensure no double stop
             env = None
 
@@ -255,11 +261,12 @@ def _mask_secrets(data: dict) -> dict:
         if isinstance(v, dict):
             masked[k] = _mask_secrets(v)
         elif isinstance(v, list):
-            masked[k] = [_mask_secrets(i) if isinstance(i, dict) else i for i in v]
+            masked[k] = [
+                _mask_secrets(i) if isinstance(i, dict) else i for i in v
+            ]
         elif isinstance(v, str) and any(
-            secret_word in k.lower()
-            for secret_word in ["password", "token", "secret", "key", "credential"]
-        ):
+                secret_word in k.lower() for secret_word in
+            ["password", "token", "secret", "key", "credential"]):
             masked[k] = "********"
         else:
             masked[k] = v
@@ -285,17 +292,14 @@ def _build_final_report(
 ):
     """Aggregates telemetry, prints the summary, saves artifacts, and reports to BigQuery."""
     num_resolutions = len(matrix_results)
-    adaptability_score = (
-        (aggregated_success / num_resolutions) if num_resolutions > 0 else 0.0
-    )
+    adaptability_score = ((aggregated_success /
+                           num_resolutions) if num_resolutions > 0 else 0.0)
 
     aggregates = {
-        "assertion": (total_scores["assertion"] / num_resolutions)
-        if num_resolutions > 0
-        else 0.0,
-        "visual": (total_scores["visual"] / num_resolutions)
-        if num_resolutions > 0
-        else 0.0,
+        "assertion": (total_scores["assertion"] /
+                      num_resolutions) if num_resolutions > 0 else 0.0,
+        "visual": (total_scores["visual"] /
+                   num_resolutions) if num_resolutions > 0 else 0.0,
     }
 
     global_success = aggregated_success == num_resolutions
@@ -312,31 +316,46 @@ def _build_final_report(
     for res_key, res_data in matrix_results.items():
         if "history" in res_data:
             full_histories[res_key] = res_data.pop("history")
-        total_agent_latency += res_data.get("metadata", {}).get(
-            "agent_latency_seconds", 0.0
-        )
+        total_agent_latency += res_data.get("metadata",
+                                            {}).get("agent_latency_seconds",
+                                                    0.0)
 
     # Output Data Construction (Summary)
     output = {
-        "run_id": run_id,
-        "batch_id": batch_id,
-        "timestamp": datetime.datetime.now().isoformat(),
-        "benchmark": benchmark_path,
-        "name": task_name,
-        "config_snapshot": _mask_secrets(config)
-        if isinstance(config, dict)
-        else config,
-        "global_success": global_success,
-        "adaptability_score": adaptability_score,
-        "aggregates": aggregates,
-        "resolutions": matrix_results,
-        "total_input_tokens": total_input_tokens,
-        "total_cached_tokens": total_cached_tokens,
-        "total_output_tokens": total_output_tokens,
-        "safety_trigger_count": total_safety_triggers,
-        "intervention_count": total_interventions,
-        "autonomy_score": max(0.0, global_autonomy_score),
-        "agent_latency_seconds": round(total_agent_latency, 2),
+        "run_id":
+            run_id,
+        "batch_id":
+            batch_id,
+        "timestamp":
+            datetime.datetime.now().isoformat(),
+        "benchmark":
+            benchmark_path,
+        "name":
+            task_name,
+        "config_snapshot":
+            _mask_secrets(config) if isinstance(config, dict) else config,
+        "global_success":
+            global_success,
+        "adaptability_score":
+            adaptability_score,
+        "aggregates":
+            aggregates,
+        "resolutions":
+            matrix_results,
+        "total_input_tokens":
+            total_input_tokens,
+        "total_cached_tokens":
+            total_cached_tokens,
+        "total_output_tokens":
+            total_output_tokens,
+        "safety_trigger_count":
+            total_safety_triggers,
+        "intervention_count":
+            total_interventions,
+        "autonomy_score":
+            max(0.0, global_autonomy_score),
+        "agent_latency_seconds":
+            round(total_agent_latency, 2),
     }
 
     print(json.dumps(output, indent=2))
@@ -379,14 +398,18 @@ async def main():
     parser = argparse.ArgumentParser(description="Computer Use Eval Runner")
 
     # Add subcommands
-    subparsers = parser.add_subparsers(dest="command", help="Command to execute")
+    subparsers = parser.add_subparsers(dest="command",
+                                       help="Command to execute")
 
     # Run command
     run_parser = subparsers.add_parser("run", help="Run a benchmark")
-    run_parser.add_argument("--benchmark", help="Path to Benchmark YAML", required=True)
+    run_parser.add_argument("--benchmark",
+                            help="Path to Benchmark YAML",
+                            required=True)
     run_parser.add_argument(
-        "-m", "--model", help="Override the model name (e.g., gemini-3.0-flash)"
-    )
+        "-m",
+        "--model",
+        help="Override the model name (e.g., gemini-3.0-flash)")
     run_parser.add_argument(
         "--resolutions",
         help="Comma-separated list of resolutions (e.g., 1920x1080,1280x720)",
@@ -411,20 +434,22 @@ async def main():
     )
     run_parser.add_argument(
         "--script",
-        help="Optional Python script to load dynamic configuration (format: path/to/script.py:load_config)",
+        help=
+        "Optional Python script to load dynamic configuration (format: path/to/script.py:load_config)",
         default=None,
     )
 
     # Create command
     create_parser = subparsers.add_parser(
-        "create", help="Create a new benchmark template"
-    )
-    create_parser.add_argument("name", help="Human-readable name of the benchmark")
+        "create", help="Create a new benchmark template")
+    create_parser.add_argument("name",
+                               help="Human-readable name of the benchmark")
     create_parser.add_argument(
         "--template",
         choices=["basic", "standard"],
         default="standard",
-        help="Template to use (basic=single file, standard=enterprise directory structure)",
+        help=
+        "Template to use (basic=single file, standard=enterprise directory structure)",
     )
 
     # BACKWARD COMPATIBILITY HACK:
@@ -455,13 +480,11 @@ async def main():
     logger.info(f"Running benchmark with resolutions: {resolution_list}")
 
     from computer_use_eval.safety import (
-        get_safety_policy,
-    )
+        get_safety_policy,)
 
     # Initialize Safety Policy
-    safety_policy = get_safety_policy(
-        args.safety_mode or settings.SAFETY_MODE, settings.HEADLESS_MODE
-    )
+    safety_policy = get_safety_policy(args.safety_mode or settings.SAFETY_MODE,
+                                      settings.HEADLESS_MODE)
     logger.info(
         f"Using Safety Policy Mode: {args.safety_mode or settings.SAFETY_MODE} (Instance: {type(safety_policy).__name__})"
     )
@@ -478,7 +501,8 @@ async def main():
     from computer_use_eval.utils import resolve_config_files
 
     benchmark_dir = os.path.dirname(os.path.abspath(args.benchmark))
-    logger.info(f"Resolving external configuration files relative to: {benchmark_dir}")
+    logger.info(
+        f"Resolving external configuration files relative to: {benchmark_dir}")
     config = resolve_config_files(config, benchmark_dir)
 
     # Handle Config Loader Script
@@ -497,14 +521,14 @@ async def main():
                 logger.info("Successfully applied dynamic configuration.")
         except Exception:
             logger.exception(
-                f"Failed to load or execute config script '{config_script}'."
-            )
+                f"Failed to load or execute config script '{config_script}'.")
             raise
 
     # Consolidate Model Name Resolution (Single Source of Truth)
     # Priority: CLI Override > YAML Config > Global Settings (.env)
     agent_config = config.get("agent", {})
-    final_model_name = args.model or agent_config.get("model") or settings.MODEL_NAME
+    final_model_name = args.model or agent_config.get(
+        "model") or settings.MODEL_NAME
     agent_config["model"] = final_model_name
     config["agent"] = agent_config
 
@@ -514,7 +538,8 @@ async def main():
     # Format: timestamp_shortrandom (e.g. 0112_a1b2) to keep it typing-friendly but unique
     import uuid
 
-    unique_id = datetime.datetime.now().strftime("%m%d") + "_" + uuid.uuid4().hex[:4]
+    unique_id = datetime.datetime.now().strftime(
+        "%m%d") + "_" + uuid.uuid4().hex[:4]
     os.environ["UNIQUE_ID"] = unique_id
 
     # Apply templating to the entire config
@@ -557,9 +582,9 @@ async def main():
     # Main Loop
     for width, height in resolution_list:
         res_key = f"{width}x{height}"
-        result_data = await run_single_resolution(
-            width, height, config, run_id, run_dir, final_model_name, safety_policy
-        )
+        result_data = await run_single_resolution(width, height, config, run_id,
+                                                  run_dir, final_model_name,
+                                                  safety_policy)
         matrix_results[res_key] = result_data
 
         judges = result_data.get("judges", {})
@@ -567,7 +592,8 @@ async def main():
         vis_score = judges.get("visual", {}).get("score", 0.0)
         trace_score = float(judges.get("trace", {}).get("score", 0.0) or 0.0)
 
-        run_success = (det_score == 1.0) and (vis_score >= 0.8) and (trace_score >= 0.8)
+        run_success = (det_score == 1.0) and (vis_score >= 0.8) and (trace_score
+                                                                     >= 0.8)
         result_data["success"] = run_success
 
         if run_success:

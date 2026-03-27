@@ -26,10 +26,11 @@ async def test_agent_initializes_stalemate_detection_middleware():
     original_val = settings.ENABLE_STALEMATE_DETECTION
     settings.ENABLE_STALEMATE_DETECTION = True
     try:
-        with patch("computer_use_eval.core.gemini_agent.ToolExecutor") as MockExecutor:
+        with patch("computer_use_eval.core.gemini_agent.ToolExecutor"
+                  ) as MockExecutor:
             with patch("computer_use_eval.core.gemini_agent.genai.Client"):
                 with patch(
-                    "computer_use_eval.core.middleware.stalemate_detection.StalemateDetectionMiddleware",
+                        "computer_use_eval.core.middleware.stalemate_detection.StalemateDetectionMiddleware",
                 ) as MockStalemateDetection:
                     agent = GeminiAgent(reflection_strategy="NUDGE")
 

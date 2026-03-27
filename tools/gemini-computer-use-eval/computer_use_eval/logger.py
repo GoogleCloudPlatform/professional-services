@@ -15,6 +15,7 @@ batch_id_var = contextvars.ContextVar("batch_id", default="")
 
 
 class ContextFilter(logging.Filter):
+
     def filter(self, record):
         record.run_id = run_id_var.get()
         record.batch_id = batch_id_var.get()
@@ -22,16 +23,21 @@ class ContextFilter(logging.Filter):
 
 
 class JSONFormatter(logging.Formatter):
+
     def format(self, record):
         log_obj = {
-            "timestamp": datetime.fromtimestamp(
-                record.created, tz=timezone.utc
-            ).isoformat(),
-            "name": record.name,
-            "level": record.levelname,
-            "message": record.getMessage(),
+            "timestamp":
+                datetime.fromtimestamp(record.created,
+                                       tz=timezone.utc).isoformat(),
+            "name":
+                record.name,
+            "level":
+                record.levelname,
+            "message":
+                record.getMessage(),
         }
-        if hasattr(record, "run_id") and record.run_id and record.run_id != "no-run":
+        if hasattr(record,
+                   "run_id") and record.run_id and record.run_id != "no-run":
             log_obj["run_id"] = record.run_id
         if hasattr(record, "batch_id") and record.batch_id:
             log_obj["batch_id"] = record.batch_id
@@ -63,9 +69,8 @@ def setup_logging(run_id: str = None, batch_id: str = None):
     # Determine log level
     from computer_use_eval.config import settings
 
-    log_level_str = os.getenv(
-        "LOG_LEVEL", getattr(settings, "LOG_LEVEL", "INFO")
-    ).upper()
+    log_level_str = os.getenv("LOG_LEVEL", getattr(settings, "LOG_LEVEL",
+                                                   "INFO")).upper()
     log_level = getattr(logging, log_level_str, logging.INFO)
 
     handler = logging.StreamHandler()

@@ -49,18 +49,16 @@ class ToolExecutor:
 
         # 2. Load explicit custom actions from config
         if custom_actions:
-            PluginManager.load_custom_actions(
-                custom_actions, self.browser_action_executor
-            )
+            PluginManager.load_custom_actions(custom_actions,
+                                              self.browser_action_executor)
 
     @property
     def executor(self) -> ActionExecutor:
         """Exposes the underlying browser action executor."""
         return self.browser_action_executor
 
-    async def execute(
-        self, action_name: str, args: Dict[str, Any]
-    ) -> Tuple[Dict[str, Any], float]:
+    async def execute(self, action_name: str,
+                      args: Dict[str, Any]) -> Tuple[Dict[str, Any], float]:
         """
         Executes a given tool/action by name and tracks middleware execution time.
         Returns: (result_dict, middleware_duration_seconds)
@@ -75,8 +73,7 @@ class ToolExecutor:
         start_mw = time.perf_counter()
         for mw in self.middleware:
             action_name, args, should_continue = await mw.before_action(
-                action_name, args
-            )
+                action_name, args)
             if not should_continue:
                 mw_duration += time.perf_counter() - start_mw
                 return {
@@ -86,11 +83,11 @@ class ToolExecutor:
         mw_duration += time.perf_counter() - start_mw
 
         try:
-            if action_name in self.browser_action_executor.get_available_action_names():
+            if action_name in self.browser_action_executor.get_available_action_names(
+            ):
                 # Browser action
                 result = await self.browser_action_executor.execute(
-                    self.env, action_name, args
-                )
+                    self.env, action_name, args)
             elif action_name in self.custom_tools_map:
                 # Custom Python function
                 tool_func = self.custom_tools_map[action_name]
@@ -103,7 +100,8 @@ class ToolExecutor:
             else:
                 result = {"error": f"Unknown tool: {action_name}"}
         except Exception as e:
-            logger.error(f"Tool '{action_name}' failed with error: {e}", exc_info=True)
+            logger.error(f"Tool '{action_name}' failed with error: {e}",
+                         exc_info=True)
             result = {"error": str(e)}
 
         # 2. Run after_action middleware (in reverse order)
@@ -115,7 +113,9 @@ class ToolExecutor:
         return result, mw_duration
 
     async def execute_bundle(
-        self, actions: List[Any], safety_coordinator: Any = None
+        self,
+        actions: List[Any],
+        safety_coordinator: Any = None
     ) -> Tuple[List["ActionExecutionResult"], float]:
         """
         Executes a sequence of actions, attempting to bundle inputs for performance.
@@ -135,11 +135,11 @@ class ToolExecutor:
         pre_bundle_url = self.env.page.url if self.env.page else ""
         pre_bundle_aria = ""
         try:
-            if getattr(self.env, "enable_mutation_observer", False) and self.env.page:
+            if getattr(self.env, "enable_mutation_observer",
+                       False) and self.env.page:
                 # Fast perception engine active, just reset the flag
                 await self.env.page.evaluate(
-                    "if (window.reset_ui_changed) window.reset_ui_changed()"
-                )
+                    "if (window.reset_ui_changed) window.reset_ui_changed()")
             else:
                 pre_bundle_aria = await self.env.get_aria_snapshot()
         except Exception:
@@ -163,13 +163,14 @@ class ToolExecutor:
                                 action_id=actions[i].id,
                                 action_name=actions[i].name,
                                 result_data={
-                                    "error": "CANCELLED_BY_PERCEPTION_GUARD",
-                                    "details": "Navigation detected between batched steps.",
+                                    "error":
+                                        "CANCELLED_BY_PERCEPTION_GUARD",
+                                    "details":
+                                        "Navigation detected between batched steps.",
                                 },
                                 safety_acknowledged=False,
                                 mw_duration=0.0,
-                            )
-                        )
+                            ))
                         i += 1
                     break
 
@@ -181,20 +182,16 @@ class ToolExecutor:
                 if should_check:
                     try:
                         major_mutation = False
-                        if (
-                            getattr(self.env, "enable_mutation_observer", False)
-                            and self.env.page
-                        ):
+                        if (getattr(self.env, "enable_mutation_observer", False)
+                                and self.env.page):
                             major_mutation = await self.env.page.evaluate(
-                                "window.ui_changed === true"
-                            )
+                                "window.ui_changed === true")
                         else:
                             current_aria = await self.env.get_aria_snapshot()
-                            major_mutation = (
-                                self.env.perception_service.is_significant_change(
-                                    pre_bundle_aria, current_aria
-                                )
-                            )
+                            major_mutation = (self.env.perception_service.
+                                              is_significant_change(
+                                                  pre_bundle_aria,
+                                                  current_aria))
 
                         if major_mutation:
                             logger.warning(
@@ -206,12 +203,13 @@ class ToolExecutor:
                                         action_id=actions[i].id,
                                         action_name=actions[i].name,
                                         result_data={
-                                            "error": "CANCELLED_BY_PERCEPTION_GUARD",
-                                            "details": "Major UI mutation detected between batched steps.",
+                                            "error":
+                                                "CANCELLED_BY_PERCEPTION_GUARD",
+                                            "details":
+                                                "Major UI mutation detected between batched steps.",
                                         },
                                         safety_acknowledged=False,
-                                    )
-                                )
+                                    ))
                                 i += 1
                             break
                     except Exception:
@@ -221,8 +219,7 @@ class ToolExecutor:
             safety_acknowledged = False
             if safety_coordinator:
                 safety_result = safety_coordinator.check_action(
-                    action.name, action.args
-                )
+                    action.name, action.args)
                 if safety_result == "TERMINATE":
                     results_with_safety.append(
                         ActionExecutionResult(
@@ -230,8 +227,7 @@ class ToolExecutor:
                             action_name=action.name,
                             result_data={"error": "TERMINATED_BY_SAFETY"},
                             safety_acknowledged=False,
-                        )
-                    )
+                        ))
                     i += 1
                     while i < len(actions):
                         results_with_safety.append(
@@ -239,11 +235,11 @@ class ToolExecutor:
                                 action_id=actions[i].id,
                                 action_name=actions[i].name,
                                 result_data={
-                                    "error": "CANCELLED_BY_PREVIOUS_SAFETY_TERMINATION"
+                                    "error":
+                                        "CANCELLED_BY_PREVIOUS_SAFETY_TERMINATION"
                                 },
                                 safety_acknowledged=False,
-                            )
-                        )
+                            ))
                         i += 1
                     break
                 elif safety_result == "APPROVED":
@@ -256,28 +252,22 @@ class ToolExecutor:
             # We gate this via 'disable_fast_typing_bundles' for high-concurrency models like Flash.
             from computer_use_eval.constants import ToolNames
 
-            if (
-                not self.disable_fast_typing_bundles
-                and action.name == ToolNames.TYPE_TEXT_AT
-                and not action.args.get("press_enter")
-                and i + 1 < len(actions)
-                and actions[i + 1].name == ToolNames.TYPE_TEXT_AT
-            ):
+            if (not self.disable_fast_typing_bundles and
+                    action.name == ToolNames.TYPE_TEXT_AT and
+                    not action.args.get("press_enter") and
+                    i + 1 < len(actions) and
+                    actions[i + 1].name == ToolNames.TYPE_TEXT_AT):
                 bundle = []
-                while (
-                    i < len(actions)
-                    and actions[i].name == ToolNames.TYPE_TEXT_AT
-                    and not actions[i].args.get("press_enter")
-                ):
+                while (i < len(actions) and
+                       actions[i].name == ToolNames.TYPE_TEXT_AT and
+                       not actions[i].args.get("press_enter")):
                     bundle.append(actions[i])
                     i += 1
 
                 logger.info(f"FAST PATH: Bundling {len(bundle)} input actions.")
                 bundle_results = (
                     await self.browser_action_executor._execute_input_bundle(
-                        self.env, bundle
-                    )
-                )
+                        self.env, bundle))
                 for action_id, name, res in bundle_results:
                     results_with_safety.append(
                         ActionExecutionResult(
@@ -285,8 +275,7 @@ class ToolExecutor:
                             action_name=name,
                             result_data=res,
                             safety_acknowledged=safety_acknowledged,
-                        )
-                    )
+                        ))
                 continue
 
             # 3. Standard Path
@@ -299,11 +288,11 @@ class ToolExecutor:
                     result_data=result,
                     safety_acknowledged=safety_acknowledged,
                     mw_duration=mw_dur,
-                )
-            )
+                ))
 
             start_mw = time.perf_counter()
-            if self.browser_action_executor.is_terminal(action.name, action.args):
+            if self.browser_action_executor.is_terminal(action.name,
+                                                        action.args):
                 is_last_in_batch = i == len(actions) - 1
                 if not is_last_in_batch:
                     logger.info(

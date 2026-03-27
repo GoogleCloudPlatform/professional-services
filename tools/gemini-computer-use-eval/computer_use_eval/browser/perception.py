@@ -58,7 +58,8 @@ class PerceptionService:
         # Try ScreenBuffer first (high-speed MSS capture)
         if self.screen_buffer:
             try:
-                frame = self.screen_buffer.get_latest_frame(wait_for_stability=False)
+                frame = self.screen_buffer.get_latest_frame(
+                    wait_for_stability=False)
                 if frame:
                     buffer = BytesIO()
                     frame.save(buffer, format="PNG")
@@ -93,8 +94,7 @@ class PerceptionService:
                     # Force a reflow to help recovery
                     try:
                         await page.evaluate(
-                            "window.scrollBy(0,1);window.scrollBy(0,-1);"
-                        )
+                            "window.scrollBy(0,1);window.scrollBy(0,-1);")
                     except Exception:
                         pass
                     await asyncio.sleep(0.5)
@@ -103,9 +103,8 @@ class PerceptionService:
                 raise last_error or RuntimeError("Screenshot capture failed.")
             else:
                 capture_duration = time.time() - start_capture
-                if (
-                    capture_duration > 0.1
-                ):  # Only log if it's noticeably slow (e.g. over CDP)
+                if (capture_duration > 0.1
+                   ):  # Only log if it's noticeably slow (e.g. over CDP)
                     logger.info(
                         f"Playwright CDP Screenshot captured in {capture_duration:.3f}s"
                     )

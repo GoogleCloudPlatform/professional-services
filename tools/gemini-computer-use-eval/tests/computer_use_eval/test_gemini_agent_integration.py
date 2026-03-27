@@ -39,24 +39,25 @@ async def test_run_task_single_step_success(mock_env, mock_genai_client):
     # Mock the model to return a single 'click' action
     mock_response = MagicMock()
     mock_part = MagicMock()
-    mock_part.function_call = types.FunctionCall(
-        name="click_at", args={"x": 500, "y": 500}
-    )
+    mock_part.function_call = types.FunctionCall(name="click_at",
+                                                 args={
+                                                     "x": 500,
+                                                     "y": 500
+                                                 })
     mock_candidate = MagicMock()
     mock_candidate.content.parts = [mock_part]
     mock_response.candidates = [mock_candidate]
     mock_genai_client.aio.models.generate_content = AsyncMock(
-        return_value=mock_response
-    )
+        return_value=mock_response)
 
     # Mock the executor to return a success status
-    with patch(
-        "computer_use_eval.core.gemini_agent.ToolExecutor", new_callable=MagicMock
-    ) as MockExecutor:
+    with patch("computer_use_eval.core.gemini_agent.ToolExecutor",
+               new_callable=MagicMock) as MockExecutor:
         mock_executor_instance = MockExecutor.return_value
         mock_executor_instance.execute_bundle = AsyncMock(
-            return_value=[("mock_id", "click_at", {"status": "ok"}, False)]
-        )
+            return_value=[("mock_id", "click_at", {
+                "status": "ok"
+            }, False)])
 
         mock_inner = MagicMock()
         mock_inner.is_terminal.return_value = False
@@ -72,9 +73,8 @@ async def test_run_task_single_step_success(mock_env, mock_genai_client):
             # Assertions
             agent._predict.assert_called_once()
             mock_executor_instance.execute_bundle.assert_awaited_once()
-            assert (
-                result.success is False
-            )  # Since it hits MAX_STEPS without a text response
+            assert (result.success
+                    is False)  # Since it hits MAX_STEPS without a text response
 
 
 @pytest.mark.asyncio
@@ -91,8 +91,7 @@ async def test_run_task_model_finishes(mock_env, mock_genai_client):
     mock_candidate.content.parts = [mock_part]
     mock_response.candidates = [mock_candidate]
     mock_genai_client.aio.models.generate_content = AsyncMock(
-        return_value=mock_response
-    )
+        return_value=mock_response)
 
     result = await agent.run_task("test goal", mock_env)
 
@@ -111,53 +110,41 @@ async def test_run_task_handles_unknown_tool(mock_env, mock_genai_client):
     mock_candidate.content = types.Content(
         role="model",
         parts=[
-            types.Part(
-                function_call=types.FunctionCall(
-                    name="unknown_tool", args={}, id="mock_id"
-                )
-            )
+            types.Part(function_call=types.FunctionCall(
+                name="unknown_tool", args={}, id="mock_id"))
         ],
     )
     mock_response.candidates = [mock_candidate]
     mock_genai_client.aio.models.generate_content = AsyncMock(
-        return_value=mock_response
-    )
+        return_value=mock_response)
 
     from computer_use_eval.core.base import ActionExecutionResult
 
-    with patch(
-        "computer_use_eval.core.gemini_agent.ToolExecutor", new_callable=MagicMock
-    ) as MockExecutor:
+    with patch("computer_use_eval.core.gemini_agent.ToolExecutor",
+               new_callable=MagicMock) as MockExecutor:
         mock_executor_instance = MockExecutor.return_value
-        mock_executor_instance.execute_bundle = AsyncMock(
-            return_value=(
-                [
-                    ActionExecutionResult(
-                        action_id="mock_id",
-                        action_name="unknown_tool",
-                        result_data={"error": "Unknown tool: unknown_tool"},
-                        safety_acknowledged=False,
-                    )
-                ],
-                0.05,
-            )
-        )
+        mock_executor_instance.execute_bundle = AsyncMock(return_value=(
+            [
+                ActionExecutionResult(
+                    action_id="mock_id",
+                    action_name="unknown_tool",
+                    result_data={"error": "Unknown tool: unknown_tool"},
+                    safety_acknowledged=False,
+                )
+            ],
+            0.05,
+        ))
         mock_inner = MagicMock()
         mock_inner.is_terminal.return_value = False
         mock_executor_instance.executor = mock_inner
 
         # Ensure run_task loop terminates after 1 step
         agent._predict = AsyncMock(
-            side_effect=[mock_response, MagicMock(candidates=[])]
-        )
+            side_effect=[mock_response, MagicMock(candidates=[])])
 
         with patch.object(agent, "max_steps", 1):
             result = await agent.run_task("test goal", mock_env)
 
             assert result.success is False
-            assert (
-                "unknown_tool"
-                == agent.history_manager.get_full_history()[-1]
-                .parts[0]
-                .function_response.name
-            )
+            assert ("unknown_tool" == agent.history_manager.get_full_history()
+                    [-1].parts[0].function_response.name)

@@ -13,7 +13,8 @@ async def test_standard_local_execution_no_cdp():
     """
     Ensures that when no CDP URL is provided, PlaywrightEnv launches a local browser.
     """
-    with patch("computer_use_eval.browser.playwright_env.async_playwright") as mock_ap:
+    with patch("computer_use_eval.browser.playwright_env.async_playwright"
+              ) as mock_ap:
         mock_playwright = AsyncMock()
         mock_ap.return_value.start = AsyncMock(return_value=mock_playwright)
 
@@ -37,13 +38,15 @@ async def test_sandbox_connection_routing():
     """
     Ensures that when a CDP URL is provided, PlaywrightEnv connects via CDP.
     """
-    with patch("computer_use_eval.browser.playwright_env.async_playwright") as mock_ap:
+    with patch("computer_use_eval.browser.playwright_env.async_playwright"
+              ) as mock_ap:
         mock_playwright = AsyncMock()
         mock_ap.return_value.start = AsyncMock(return_value=mock_playwright)
 
         # Mock CDP connection
         mock_browser = AsyncMock()
-        mock_playwright.chromium.connect_over_cdp = AsyncMock(return_value=mock_browser)
+        mock_playwright.chromium.connect_over_cdp = AsyncMock(
+            return_value=mock_browser)
 
         cdp_url = "ws://test-sandbox:9222"
         cdp_headers = {"Authorization": "Bearer test-token"}
@@ -53,8 +56,7 @@ async def test_sandbox_connection_routing():
 
         # Verify connect_over_cdp was called with correct args
         mock_playwright.chromium.connect_over_cdp.assert_called_once_with(
-            cdp_url, headers=cdp_headers
-        )
+            cdp_url, headers=cdp_headers)
         # Verify local launch was NOT called
         mock_playwright.chromium.launch.assert_not_called()
 
@@ -67,14 +69,14 @@ async def test_sandbox_fail_fast_behavior():
     RED PHASE: Ensures that if connection to the sandbox fails, the system
     crashes immediately instead of falling back to local.
     """
-    with patch("computer_use_eval.browser.playwright_env.async_playwright") as mock_ap:
+    with patch("computer_use_eval.browser.playwright_env.async_playwright"
+              ) as mock_ap:
         mock_playwright = AsyncMock()
         mock_ap.return_value.start = AsyncMock(return_value=mock_playwright)
 
         # Simulate a connection failure (e.g., Timeout or Auth Error)
         mock_playwright.chromium.connect_over_cdp.side_effect = Exception(
-            "Connection Refused"
-        )
+            "Connection Refused")
 
         env = PlaywrightEnv(cdp_url="ws://broken-sandbox")
 
@@ -91,7 +93,8 @@ async def test_teardown_reliability():
     """
     Ensures that teardown is idempotent and closes all resources.
     """
-    with patch("computer_use_eval.browser.playwright_env.async_playwright") as mock_ap:
+    with patch("computer_use_eval.browser.playwright_env.async_playwright"
+              ) as mock_ap:
         mock_playwright = AsyncMock()
         mock_ap.return_value.start = AsyncMock(return_value=mock_playwright)
 

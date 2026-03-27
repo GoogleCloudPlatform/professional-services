@@ -17,6 +17,7 @@ from computer_use_eval.browser.screen_buffer import MotionDetector
 
 
 class TestMotionDetector:
+
     def test_calculate_diff_identical(self):
         img1 = Image.new("RGB", (100, 100), color="white")
         img2 = Image.new("RGB", (100, 100), color="white")
@@ -54,4 +55,5 @@ class TestMotionDetector:
         MotionDetector.calculate_diff(img1, img2)
         end = time.time()
 
-        assert (end - start) < 0.1  # Should be faster than 100ms (relaxed for CI)
+        assert (end -
+                start) < 0.1  # Should be faster than 100ms (relaxed for CI)

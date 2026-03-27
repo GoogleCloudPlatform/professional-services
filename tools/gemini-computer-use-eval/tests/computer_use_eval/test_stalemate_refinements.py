@@ -6,8 +6,7 @@
 import pytest
 from unittest.mock import MagicMock, AsyncMock
 from computer_use_eval.core.middleware.stalemate_detection import (
-    StalemateDetectionMiddleware,
-)
+    StalemateDetectionMiddleware,)
 
 
 @pytest.fixture
@@ -100,18 +99,15 @@ async def test_micro_reflection_on_2nd_failure(mock_env):
     # 1st failure
     res1 = await mw.after_action(action, args, {"error": "timeout"})
     assert "Retry attempt 1" in res1["reflection_guidance"]
-    assert (
-        "System Note" not in res1["reflection_guidance"]
-    )  # MICRO_REFLECTION not yet in 1st
+    assert ("System Note" not in res1["reflection_guidance"]
+           )  # MICRO_REFLECTION not yet in 1st
 
     # 2nd failure - Should trigger Micro-Reflection
     res2 = await mw.after_action(action, args, {"error": "timeout"})
     assert "Retry attempt 2" in res2["reflection_guidance"]
     assert "<system_note>" in res2["reflection_guidance"]
-    assert (
-        "Your last action 'click_at' failed with error: 'timeout'"
-        in res2["reflection_guidance"]
-    )
+    assert ("Your last action 'click_at' failed with error: 'timeout'"
+            in res2["reflection_guidance"])
 
 
 @pytest.mark.asyncio
@@ -119,18 +115,16 @@ async def test_state_stagnation_reset_on_change(mock_env):
     mw = StalemateDetectionMiddleware(mock_env)
 
     # Sequence of events: Same, Same, Change, Same
-    mock_env.get_aria_snapshot = AsyncMock(
-        side_effect=[
-            "State A",
-            "State A",  # 1st action (pre=A, post=A) -> count=1
-            "State A",
-            "State A",  # 2nd action (pre=A, post=A) -> count=2
-            "State A",
-            "State B",  # 3rd action (pre=A, post=B) -> count=0 (RESET)
-            "State B",
-            "State B",  # 4th action (pre=B, post=B) -> count=1
-        ]
-    )
+    mock_env.get_aria_snapshot = AsyncMock(side_effect=[
+        "State A",
+        "State A",  # 1st action (pre=A, post=A) -> count=1
+        "State A",
+        "State A",  # 2nd action (pre=A, post=A) -> count=2
+        "State A",
+        "State B",  # 3rd action (pre=A, post=B) -> count=0 (RESET)
+        "State B",
+        "State B",  # 4th action (pre=B, post=B) -> count=1
+    ])
 
     action = "click_at"
     args = {"x": 100, "y": 100}
