@@ -17,7 +17,7 @@ import logging
 from computer_use_eval.browser.playwright_env import PlaywrightEnv
 
 if TYPE_CHECKING:
-    from computer_use_eval.core.base import ActionExecutionResult
+    from computer_use_eval.core.base import ActionExecutionResult  # noqa: F401
 from computer_use_eval.actions import ActionExecutor
 from computer_use_eval.core.middleware import ActionMiddleware
 import computer_use_eval.custom_tools as custom_tools
@@ -132,7 +132,7 @@ class ToolExecutor:
         Perception guards prevent executing actions on stale UI state.
         Returns: (results_list, total_middleware_duration_seconds)
         """
-        from computer_use_eval.core.base import ActionExecutionResult
+        from computer_use_eval.core.base import ActionExecutionResult  # noqa: F811
         import time
 
         results_with_safety = []

@@ -25,8 +25,8 @@ from typing import TYPE_CHECKING, Optional
 from computer_use_eval.config import settings
 
 if TYPE_CHECKING:
-    from computer_use_eval.browser.playwright_env import PlaywrightEnv
-    from computer_use_eval.safety import SafetyPolicy
+    from computer_use_eval.browser.playwright_env import PlaywrightEnv  # noqa: F401
+    from computer_use_eval.safety import SafetyPolicy  # noqa: F401
 from computer_use_eval.evaluation.judge import AssertionJudge, LLMLogJudge, VideoJudge
 from computer_use_eval.utils import (
     template_value,

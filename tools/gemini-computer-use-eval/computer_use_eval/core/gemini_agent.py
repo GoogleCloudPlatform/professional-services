@@ -31,12 +31,12 @@ from computer_use_eval.core.base import (
     BaseAgent,
     AgentResult,
     Action,
-    ActionExecutionResult,
 )
 from computer_use_eval.config import settings, ContextConfig
 
 if TYPE_CHECKING:
     from computer_use_eval.browser.playwright_env import PlaywrightEnv
+    from computer_use_eval.core.base import ActionExecutionResult  # noqa: F401
 from computer_use_eval.tool_executor import ToolExecutor
 from computer_use_eval.safety import SafetyPolicy, get_safety_policy
 from computer_use_eval.core.context.base import ContextPipeline
