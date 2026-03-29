@@ -30,7 +30,7 @@
     "angular-google-chart": "^1.0.0-beta.1",
     "angular-local-storage": "^0.7.1",
     "angular-oauth2-oidc": "^15.0.1",
-    "angular-oauth2-oidc-jwks": "^15.0.1",
+    "angular-oauth2-oidc-jwks": "^20.0.0",
     "axios": "^1.13.5",
     "core-js": "^3.19.1",
     "dagre": "^0.8.5",
