@@ -41,7 +41,7 @@ pyasn1==0.6.3
 pyasn1_modules==0.4.2
 pydantic==2.11.3
 pydantic_core==2.33.1
-Pygments==2.19.1
+Pygments==2.20.0
 python-dateutil==2.9.0.post0
 python-dotenv==1.1.0
 python-multipart==0.0.22
