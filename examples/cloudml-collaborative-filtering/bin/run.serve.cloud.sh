@@ -34,7 +34,7 @@ PROJECT_ID="$(get_project_id)"
 VERSION_NAME="v${MODEL_OUTPUTS_DIR}_${TRIAL}"
 INPUT_BUCKET="gs://${PROJECT_ID}-bucket"
 MODEL_OUTPUTS_PATH="${INPUT_BUCKET}/${USER}/${MODEL_DIR}/${MODEL_OUTPUTS_DIR}/${TRIAL}/export/export"
-MODEL_PATH="$(gsutil ls ${MODEL_OUTPUTS_PATH} | tail -n1)"
+MODEL_PATH="$(gcloud storage ls ${MODEL_OUTPUTS_PATH} | tail -n1)"
 
 gcloud ai-platform models create "${MODEL_NAME}" \
   --regions us-east1 \

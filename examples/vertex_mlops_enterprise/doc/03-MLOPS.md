@@ -31,7 +31,7 @@ BUCKET=gs://$PROJECT/data/credit_cards*
 #Extract & Load
 bq extract --project_id $PROJECT --destination_format PARQUET $SRC_TABLE  $BUCKET
 bq load    --project_id $PROJECT --source_format=PARQUET --replace=true $DST_TABLE $BUCKET 
-gsutil rm $BUCKET
+gcloud storage rm $BUCKET
 ```
 
 As next steps, we will create the base table we will use for the ML process:

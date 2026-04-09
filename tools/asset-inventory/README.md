@@ -81,7 +81,7 @@ It's suggested to create a new project to hold the asset inventory resources. Es
 
     ```
     export BUCKET=gs://${ORGANIZATION_ID}-assets
-    gsutil mb $BUCKET
+    gcloud storage buckets create $BUCKET
     ```
 
 1. Create the dataset to hold the resource tables in BigQuey.

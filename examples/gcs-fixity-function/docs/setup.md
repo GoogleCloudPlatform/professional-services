@@ -23,15 +23,15 @@ If you have already created a bucket and uploaded files to the bucket, you can s
 
 1. [Create a GCS bucket](https://cloud.google.com/storage/docs/creating-buckets#storage-create-bucket-gsutil) that will contain your file archive bag(s).
 ```bash
-gsutil mb gs://$BUCKET_NAME
+gcloud storage buckets create gs://$BUCKET_NAME
 ```
 2. Turn on [file versioning](https://cloud.google.com/storage/docs/object-versioning) for your GCS bucket to ensure files are never overwritten.
 ```bash
-gsutil versioning set on gs://$BUCKET_NAME
+gcloud storage buckets update --versioning gs://$BUCKET_NAME
 ```
 3. Upload files using the structure into the `data/` directories created for each Bag. Note: It's a good idea to bulk upload files _before_ deploying/invoking the Fixity script, since each file upload will trigger a script invokation for each uploaded file if the script is deployed first.
 ```bash
-gsutil cp * gs://$BUCKET_NAME/<bag_path>/data/
+gcloud storage cp * gs://$BUCKET_NAME/<bag_path>/data/
 ```
 If you know the MD5 of a file before uploading you can specify it in the Content-MD5 header, which will cause the cloud storage service to reject the upload if the MD5 doesn't match the value computed by the service. See more [here](https://cloud.google.com/storage/docs/gsutil/commands/cp#checksum-validation)
 

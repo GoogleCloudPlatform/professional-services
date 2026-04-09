@@ -308,6 +308,7 @@ Built for creators, marketers, and developers, this application provides a hands
 *   [Redis Cluster on GKE Example](examples/redis-cluster-gke) - Deploying Redis
     cluster on GKE.
 *   [Risk Analysis Asset](examples/risk-analysis-asset) - Deploying Reliability Risk analysis tool on Cloud Run.
+*   [slo-assistant](examples/slo-assistant) - AI-Powered SLO Consultant for Automated Site Reliability Engineering
 *   [Spanner Interleave Subquery](examples/spanner-interleave-subquery) -
     Example code to benchmark Cloud Spanner's subqueries for interleaved tables.
 *   [Spanner Change Stream to BigQuery using Dataflow](examples/spanner-changestreams-bigquery) -
@@ -501,6 +502,7 @@ Platform usage.
     project to generate recommended object lifecycle management.
 *   [GCVE2BQ](tools/gcve2bq) - A tool for scheduled exports of VM, datastore and ESXi
     utilization data from vCenter to BigQuery for billing and reporting use cases.
+*   [Gemini Computer Use Evaluation Pipeline](tools/gemini-computer-use-eval) - A lightweight framework for benchmarking browser agents with multimodal visual and log judging.
 *   [GenAI-Powered Code Modification Cloud Function](tools/genai-code-mod-auto) - A deployable Google Cloud Function that, powered by the Vertex AI Gemini API, automates code modification. It reads files from GitHub, processes them with an LLM to generate new versions, and then saves those modifications back to the repositories.
 *   [GKE AutoPSC Controller](tools/gke-autopsc-controller) - Google Kubernetes Engine
     controller, to setup PSC ServiceAttachment for Gateway API managed Forwarding Rules.

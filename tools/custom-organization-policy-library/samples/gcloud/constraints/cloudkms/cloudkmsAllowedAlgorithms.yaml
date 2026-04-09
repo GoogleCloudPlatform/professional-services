@@ -4,7 +4,17 @@ resourceTypes:
 methodTypes:
   - CREATE
   - UPDATE
-condition: resource.versionTemplate.algorithm in ["GOOGLE_SYMMETRIC_ENCRYPTION"] == false
+condition: |-
+  has(resource.versionTemplate.algorithm) && resource.versionTemplate.algorithm in [
+    'GOOGLE_SYMMETRIC_ENCRYPTION',
+    'RSA_SIGN_PSS_2048_SHA256',
+    'RSA_SIGN_PSS_3072_SHA256',
+    'RSA_SIGN_PSS_4096_SHA256',
+    'RSA_DECRYPT_OAEP_2048_SHA256',
+    'RSA_DECRYPT_OAEP_4096_SHA256',
+    'RSA_DECRYPT_OAEP_2048_SHA1',
+    'RSA_DECRYPT_OAEP_4096_SHA1'
+  ] == false
 actionType: DENY
 displayName: Require Cloud KMS keys algorithm to be configured correctly
 description: Ensure the algorithm for Cloud KMS keys is configured correctly

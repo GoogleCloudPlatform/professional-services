@@ -24,7 +24,7 @@ documentation:
   content: #@ documentation_content()
   mimeType: text/markdown
 conditions:
-- displayName: 'Log match condition: Cloud SQL instance configuration changes'
+- displayName: "Log match condition: Binary Authorization policy configuration changes"
   conditionThreshold:
     filter: >-
       resource.type = "logging_bucket" AND metric.type = "logging.googleapis.com/user/binaryAuthorizationPolicyChanges"

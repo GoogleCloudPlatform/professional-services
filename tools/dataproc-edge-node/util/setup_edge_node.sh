@@ -53,13 +53,13 @@ cd /usr/share/google
 BUCKET=$(/usr/share/google/get_metadata_value attributes/config-bucket)
 FILES="config-files configure.sh create-templates.sh disable-services.sh"
 for f in $FILES; do
-  gsutil cp "gs://${BUCKET}/${f}" .
+  gcloud storage cp "gs://${BUCKET}/${f}" .
 done
 chmod +x configure.sh create-templates.sh disable-services.sh
 
 # Install configuration startup service
 SERVICE_URI="gs://${BUCKET}/google-edgenode-configure.service"
-gsutil cp "${SERVICE_URI}" /etc/systemd/system/
+gcloud storage cp "${SERVICE_URI}" /etc/systemd/system/
 systemctl daemon-reload
 systemctl enable google-edgenode-configure
 

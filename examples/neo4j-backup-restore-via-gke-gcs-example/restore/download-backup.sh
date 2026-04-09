@@ -25,7 +25,7 @@
 export BACKUP_NAME=graph.db-backup
 
 echo "Fetch the latest copy of backup"
-response=$(gsutil ls -l gs://"<GCS_BUCKET>"|sort -k 2|tail -2|head -1 || true)
+response=$(gcloud storage ls --long gs://"<GCS_BUCKET>"|sort -k 2|tail -2|head -1 || true)
 latest_backup=$(${response[2]})
 
 echo "Make directory for Backups"

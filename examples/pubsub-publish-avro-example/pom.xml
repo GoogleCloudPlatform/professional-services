@@ -39,7 +39,7 @@
     <project.test.coverage.targetPercentage>80%</project.test.coverage.targetPercentage>
 
     <!-- Dependency properties -->
-    <avro.version>1.11.4</avro.version>
+    <avro.version>1.11.5</avro.version>
     <beam.version>2.7.0</beam.version>
     <checkstyle.version>8.11</checkstyle.version>
     <google.cloud.pubsub.version>1.49.0</google.cloud.pubsub.version>

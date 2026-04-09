@@ -48,4 +48,3 @@ In order to run the proxy will need to checkout the sources and use `go build ma
 | providerId               	|                                                	| Provider ID of the Workload Identity provider to use (required)                	|
 | poolId                   	|                                                	| Pool ID of the Workload Identity Pool to use (required)                        	|
 | scope                    	| https://www.googleapis.com/auth/cloud-platform 	| Scope to request from GCP, e.g. https://www.googleapis.com/auth/cloud-platform 	|
-

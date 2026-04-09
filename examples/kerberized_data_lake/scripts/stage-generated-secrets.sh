@@ -65,7 +65,7 @@ function encrypt_to_file_with_kms_key() {
 
 # GCS copy wrapper
 function g_cp() {
-  CMD="gsutil cp ${1} ${2}"
+  CMD="gcloud storage cp ${1} ${2}"
   ${CMD} || log_and_fail "Unable to execute ${CMD}"
 }
 

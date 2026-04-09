@@ -72,7 +72,7 @@ Terraform needs a GCS bucket to store its state file for each environment. This 
 ```bash
 # Example for the 'dev' environment
 export PROJECT_ID=creative-studio-arena && \
-gsutil mb -p $PROJECT_ID gs://$PROJECT_ID-cstudio-dev-tfstate
+gcloud storage buckets create --project $PROJECT_ID gs://$PROJECT_ID-cstudio-dev-tfstate
 ```
 
 ### 4. Connect GitHub to Cloud Build
@@ -144,4 +144,3 @@ All commands should be run from within a specific environment's directory.
     ```bash
     terraform apply -var-file="dev.tfvars"
     ```
-

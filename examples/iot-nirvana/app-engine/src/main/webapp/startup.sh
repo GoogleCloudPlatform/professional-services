@@ -32,7 +32,7 @@ INDEX_START=$[$INSTANCE_NUMBER*10]
 # Create a temporary folder and copy the client
 echo "Creating temporary folder and downloading the client"
 mkdir ${TMP_FOLDER}
-/usr/bin/gsutil cp \
+/usr/bin/gcloud storage cp \
   gs://${BUCKET_NAME}/client/${CLIENT_JAR} \
   ${TMP_FOLDER}/${CLIENT_JAR} 1>${TMP_FOLDER}/startup_log.txt 2>&1
 

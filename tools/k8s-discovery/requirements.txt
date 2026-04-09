@@ -1,4 +1,4 @@
-azure-core==1.35.0
+azure-core==1.38.0
 azure-identity==1.24.0
 azure-mgmt-containerservice==39.1.0
 azure-mgmt-core==1.6.0

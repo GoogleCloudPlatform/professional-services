@@ -92,3 +92,4 @@
 ./tools/mosaic-rag-ai
 ./examples/creative-studio
 ./tools/oas-mcp-tools-weaver
+./examples/slo-assistant

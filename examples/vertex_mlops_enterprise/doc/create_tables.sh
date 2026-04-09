@@ -28,7 +28,7 @@ ENDPOINT="$REGION-aiplatform.googleapis.com"
 #Extract & Load
 bq extract --project_id "$PROJECT" --destination_format PARQUET "$SRC_TABLE"  "$BUCKET"
 bq load    --project_id "$PROJECT" --source_format=PARQUET --replace=true "$DST_TABLE" "$BUCKET" 
-gsutil rm "$BUCKET"
+gcloud storage rm "$BUCKET"
 
 
 sql_script="CREATE OR REPLACE TABLE \`${PROJECT}.${BQ_DATASET_NAME}.${ML_TABLE}\` 

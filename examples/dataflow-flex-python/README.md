@@ -93,10 +93,10 @@ gcloud storage buckets create gs://$INPUT_BUCKET_NAME --location $LOCATION --pro
 # Create a bucket for dataflow staging and temp locations
 gcloud storage buckets create gs://$STAGING_BUCKET_NAME --location $LOCATION --project $PROJECT_ID
 
-gsutil iam ch serviceAccount:dataflow-worker-sa@$PROJECT_ID.iam.gserviceaccount.com:roles/storage.legacyBucketWriter gs://$STAGING_BUCKET_NAME
+gcloud storage buckets add-iam-policy-binding gs://$STAGING_BUCKET_NAME --member="serviceAccount:dataflow-worker-sa@$PROJECT_ID.iam.gserviceaccount.com" --role="roles/storage.legacyBucketWriter"
 
 # Assign Legacy Bucket Writer Role on Input bucket in order to move the object
-gsutil iam ch serviceAccount:dataflow-worker-sa@$PROJECT_ID.iam.gserviceaccount.com:roles/storage.legacyBucketWriter gs://$INPUT_BUCKET_NAME
+gcloud storage buckets add-iam-policy-binding gs://$INPUT_BUCKET_NAME --member="serviceAccount:dataflow-worker-sa@$PROJECT_ID.iam.gserviceaccount.com" --role="roles/storage.legacyBucketWriter"
 ```
 
 #### Create BQ Dataset

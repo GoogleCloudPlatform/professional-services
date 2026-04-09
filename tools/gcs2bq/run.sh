@@ -50,15 +50,15 @@ fi
 # shellcheck disable=SC2086
 ./gcs2bq $GCS2BQ_FLAGS || error "Export failed!" 2
 
-gsutil mb -p "${GCS2BQ_PROJECT}" -c standard -l "${GCS2BQ_LOCATION}" -b on "gs://${GCS2BQ_BUCKET}" || echo "Info: Storage bucket already exists: ${GCS2BQ_BUCKET}"
+gcloud storage buckets create "gs://${GCS2BQ_BUCKET}" --project="${GCS2BQ_PROJECT}" --default-storage-class=standard --location="${GCS2BQ_LOCATION}" --uniform-bucket-level-access || echo "Info: Storage bucket already exists: ${GCS2BQ_BUCKET}"
 
-gsutil cp "${GCS2BQ_FILE}" "gs://${GCS2BQ_BUCKET}/${GCS2BQ_FILENAME}" || error "Failed copying ${GCS2BQ_FILE} to gs://${GCS2BQ_BUCKET}/${GCS2BQ_FILENAME}!" 3
+gcloud storage cp "${GCS2BQ_FILE}" "gs://${GCS2BQ_BUCKET}/${GCS2BQ_FILENAME}" || error "Failed copying ${GCS2BQ_FILE} to gs://${GCS2BQ_BUCKET}/${GCS2BQ_FILENAME}!" 3
 
 bq mk --project_id="${GCS2BQ_PROJECT}" --location="${GCS2BQ_LOCATION}" "${GCS2BQ_DATASET}" || echo "Info: BigQuery dataset already exists: ${GCS2BQ_DATASET}"
 
 bq load --project_id="${GCS2BQ_PROJECT}" --location="${GCS2BQ_LOCATION}" --schema bigquery.schema --source_format=AVRO --use_avro_logical_types --replace=true "${GCS2BQ_DATASET}.${GCS2BQ_TABLE}" "gs://${GCS2BQ_BUCKET}/${GCS2BQ_FILENAME}" || \
   error "Failed to load gs://${GCS2BQ_BUCKET}/${GCS2BQ_FILENAME} to BigQuery table ${GCS2BQ_DATASET}.${GCS2BQ_TABLE}!" 4
 
-gsutil rm "gs://${GCS2BQ_BUCKET}/${GCS2BQ_FILENAME}" || error "Failed deleting gs://${GCS2BQ_BUCKET}/${GCS2BQ_FILENAME}!" 5
+gcloud storage rm "gs://${GCS2BQ_BUCKET}/${GCS2BQ_FILENAME}" || error "Failed deleting gs://${GCS2BQ_BUCKET}/${GCS2BQ_FILENAME}!" 5
 
 rm -f "${GCS2BQ_FILE}"

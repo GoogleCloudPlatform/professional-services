@@ -60,7 +60,7 @@ def _upload_blob(bucket_name: str, source_file_name: str,
 
 
 def _copy_gcs_folder(bucket_from: str, bucket_to: str) -> None:
-    command_utils.sh(['gsutil', '-m', 'rsync', '-r', bucket_from, bucket_to])
+    command_utils.sh(['gcloud', 'storage', 'rsync', '--recursive', bucket_from, bucket_to])
 
 
 def _check_cli_depdendencies() -> None:

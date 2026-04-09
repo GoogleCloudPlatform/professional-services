@@ -34,7 +34,7 @@
 
 - name: Download bmctl
   shell:
-    cmd: gsutil cp {{ bmctl_download_url }} .
+    cmd: gcloud storage cp {{ bmctl_download_url }} .
 
 - name: Make bmctl executable
   ansible.builtin.file:

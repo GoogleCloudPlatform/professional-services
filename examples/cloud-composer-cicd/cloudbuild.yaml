@@ -65,15 +65,15 @@ steps:
     find /workspace/airflow/logs/ -type f -name *.log | sort | xargs cat
     # Fail if the backfill failed.
     exit $ret
-- name: gcr.io/cloud-builders/gsutil
+- name: gcr.io/cloud-builders/gcloud
   # Deploy the DAGs to your composer environment DAGs GCS folder
   id: Deploy DAGs
   args:
-  - -m
+  - storage
   - rsync
-  - -r
-  - -c
-  - -x
+  - --recursive
+  - --checksums-only
+  - --exclude
   - .*\.pyc|airflow_monitoring.py
   - /workspace/${_DIRECTORY}/dags/
   - ${_DEPLOY_DAGS_LOCATION}

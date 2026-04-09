@@ -82,7 +82,7 @@ When running the program using Dataflow, the config file needs to be stored in G
 Upload the config file to GCS, for example:
 ```
 CONFIG_FILE_PATH=gs://${TMP_BUCKET}/config.json
-gsutil cp config_file_samples/sales_sample_bigquery.json $CONFIG_FILE_PATH
+gcloud storage cp config_file_samples/sales_sample_bigquery.json $CONFIG_FILE_PATH
 ```
 
 submitting the Dataflow job
@@ -107,4 +107,3 @@ This project was developed using a GCP sandbox that has policies that make the c
 Given these restrictions, a custom Dataflow container is being used (defined by the [Dockerfile](Dockerfile)) that installs the dependencies. The Dataflow job is submitted to run inside a VPC with no public IP address.
 
 Feel free to run the data generator process as best fits your needs.
-

@@ -315,8 +315,8 @@ example_dag_factory.generate_dags(globals())
     gcloud_gcs_command = (
         f"gcloud composer environments describe {ENV_TEMPL}"
         f" --location us-central1 --format=\"get(config.dagGcsPrefix)\"")
-    gsutil_cp_command = (
-        f"gsutil cp {dag_factory_yaml_file} gs://{ENV_TEMPL}/data")
+    gcloud_storage_cp_command = (
+        f"gcloud storage cp {dag_factory_yaml_file} gs://{ENV_TEMPL}/data")
 
     gcloud_upload_command = (
         f"gcloud composer environments storage dags import --environment"
@@ -327,7 +327,7 @@ example_dag_factory.generate_dags(globals())
             f"Run the following to get your GCS Bucket \n"
             f"{gcloud_gcs_command}\n\n"
             f"Run the following to upload the dag-factory yaml file to the "
-            f"bucket:\n{gsutil_cp_command}\n\n"
+            f"bucket:\n{gcloud_storage_cp_command}\n\n"
             f"Then run the following to upload the airflow dag python"
             f" script to your composer environment: \n"
             f"{gcloud_upload_command}\n\n"

@@ -56,13 +56,13 @@ DISTRIBUTION_BUCKET="<DISTRIBUTION BUCKET NAME>"
 LIFECYCLE_POLICY_FILE="./lifecycle.json"
 
 # Creates the uploadable bucket
-gsutil mb -p $PROJECT_ID -l $REGION --retention 900s gs://$UPLOADABLE_BUCKET
+gcloud storage buckets create gs://$UPLOADABLE_BUCKET --project=$PROJECT_ID --location=$REGION --retention-period=900s
 # Creates the bucket for distribution
-gsutil mb -p $PROJECT_ID -l $REGION gs://$DISTRIBUTION_BUCKET
+gcloud storage buckets create gs://$DISTRIBUTION_BUCKET --project=$PROJECT_ID --location=$REGION
 # Set lifecycle for the uploadable bucket
-gsutil lifecycle set $LIFECYCLE_POLICY_FILE gs://$UPLOADABLE_BUCKET
+gcloud storage buckets update gs://$UPLOADABLE_BUCKET --lifecycle-file=$LIFECYCLE_POLICY_FILE
 # Publish all objects to all users
-gsutil iam ch allUsers:objectViewer gs://$DISTRIBUTION_BUCKET
+gcloud storage buckets add-iam-policy-binding gs://$DISTRIBUTION_BUCKET --member=allUsers --role=objectViewer
 ```
 
 ### Step.2 Deploy to App Engine Standard
