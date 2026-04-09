@@ -31,13 +31,14 @@ resource "google_project_iam_member" "crl_job_metric_writer" {
 }
 
 module "crl_monitor" {
-  source = "./crl-monitor"
+  source   = "./crl-monitor"
   for_each = { for m in var.crl_monitors : m.target_url => m }
 
-  project_id = var.project_id
-  region     = each.value.region
-  name       = each.value.name
-  target_url = each.value.target_url
-  schedule = each.value.schedule
+  project_id            = var.project_id
+  region                = each.value.region
+  name                  = each.value.name
+  target_url            = each.value.target_url
+  schedule              = each.value.schedule
   crl_expiration_buffer = each.value.crl_expiration_buffer
+  proxy_url             = each.value.proxy_url
 }

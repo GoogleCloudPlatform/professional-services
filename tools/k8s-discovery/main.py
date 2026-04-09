@@ -2,6 +2,7 @@ import typer
 import eks_discovery
 import aks_discovery
 import gke_discovery
+import generic_discovery
 import common
 import boto3
 import logging
@@ -154,6 +155,40 @@ def gke(
             common.save_to_csvs(all_gke_data, output_dir, "gke")
     else:
         logging.info("No GKE data found across scanned projects.")
+
+
+@app.command()
+def generic(
+    contexts: list[str] = typer.Option(
+        [],
+        "--context",
+        help="Specific kubeconfig context names to scan. If empty, all contexts in kubeconfig will be scanned.",
+    ),
+    kubeconfig: str = typer.Option(
+        None,
+        "--kubeconfig",
+        help="Path to the kubeconfig file. Defaults to ~/.kube/config",
+    ),
+    output_dir: str = typer.Option(
+        "./discovery_output", help="The directory to save the output CSV files."
+    ),
+):
+    """
+    Discover generic Kubernetes clusters (k3s, microk8s, minikube, etc.) using local kubeconfig.
+    """
+    logging.info("Starting Generic Kubernetes discovery...")
+    
+    # Run the discovery
+    all_data = generic_discovery.run_generic_discovery(kubeconfig, contexts)
+
+    if all_data:
+        logging.info(f"Found a total of {len(all_data)} clusters.")
+        if output_dir:
+            json_filepath = os.path.join(output_dir, "generic_data.json")
+            common.save_to_json(all_data, json_filepath)
+            common.save_to_csvs(all_data, output_dir, "generic")
+    else:
+        logging.info("No data found.")
 
 
 if __name__ == "__main__":
