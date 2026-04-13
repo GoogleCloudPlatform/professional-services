@@ -9,5 +9,5 @@
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 
-pytest==7.1.1
+pytest==9.0.3
 pylint==2.13.8
