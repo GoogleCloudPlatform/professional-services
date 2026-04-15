@@ -5,7 +5,7 @@ google-cloud-bigquery-storage==2.13.2
 google-cloud-aiplatform==1.15.0
 google-cloud-pubsub
 cloudml-hypertune==0.1.0.dev6
-pytest==7.1.2
+pytest==9.0.3
 #tensorflow==2.8.2
 tensorflow-data-validation==1.8.0
 tensorflow-transform==1.8.0
