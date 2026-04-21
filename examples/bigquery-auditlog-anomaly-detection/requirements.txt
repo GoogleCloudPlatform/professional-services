@@ -7,7 +7,7 @@ sklearn==0.0
 google-cloud==0.34.0
 google-cloud-bigquery==2.20.0
 chart_studio==1.1.0
-python-dotenv==0.19.0
+python-dotenv==1.2.2
 cufflinks==0.17.3
 ipywidgets==7.6.3
 tabulate==0.8.9
