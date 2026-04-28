@@ -24,7 +24,7 @@ googleapis-common-protos==1.70.0
 grpc-google-iam-v1==0.14.2
 grpcio==1.72.0rc1
 grpcio-status==1.72.0rc1
-h11==0.14.0
+h11==0.16.0
 httpcore==1.0.8
 httptools==0.6.4
 httpx==0.28.1
