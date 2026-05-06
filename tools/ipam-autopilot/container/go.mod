@@ -7,7 +7,7 @@ require (
 	cloud.google.com/go/storage v1.50.0
 	github.com/apparentlymart/go-cidr v1.1.0
 	github.com/go-sql-driver/mysql v1.6.0
-	github.com/gofiber/fiber/v2 v2.52.12
+	github.com/gofiber/fiber/v2 v2.52.13
 	github.com/golang-migrate/migrate/v4 v4.15.1
 	github.com/jackc/pgtype v1.14.0
 	github.com/stretchr/testify v1.11.1
