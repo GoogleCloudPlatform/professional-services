@@ -50,7 +50,10 @@ echo ""
 echo "Wheel built successfully:"
 ls -lh dist/*.whl
 echo ""
-WHEEL_NAME=$(ls dist/*.whl | xargs basename)
+# shellcheck SC2011: prefer `find` over `ls | xargs` to handle filenames
+# with spaces / special chars (wheel names never have either, but the
+# upstream PSO CI runs shellcheck and rejects SC2011).
+WHEEL_NAME=$(find dist -maxdepth 1 -name '*.whl' -exec basename {} \;)
 echo "To install in another project:"
 echo "  1. Copy dist/$WHEEL_NAME to your project (e.g., vendor/ folder)"
 echo "  2. Install:  uv pip install ./vendor/$WHEEL_NAME"

@@ -1437,6 +1437,19 @@ Cumulative log maintained in the parent results directory (`eval/results/`). Eac
 
 ---
 
+## Building a distributable wheel
+
+`build_wheel.sh` at the repo root packages `agent-eval` into a `.whl` you can install elsewhere — useful when you want to vendor it into a downstream project (e.g. ship `agent-eval` to a customer or pin it as an internal tool dependency) without cloning the full source tree.
+
+```bash
+./build_wheel.sh
+# → dist/agent_eval-<version>-py3-none-any.whl
+```
+
+In the destination project: `uv pip install ./vendor/agent_eval-<version>-py3-none-any.whl`. The wheel is self-contained — no source clone needed by the consumer.
+
+---
+
 ## Run Comparison
 
 The `analyze` command automatically compares against the most recent previous run. This powers:
