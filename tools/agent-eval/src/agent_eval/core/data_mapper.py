@@ -122,9 +122,8 @@ def reference_field_candidates() -> List[str]:
     return list(_REFERENCE_FIELD_PRIORITY)
 
 
-def convert_interactions_to_events(
-    val: Any, sub_agent_trace: Any = None
-) -> List[Dict]:
+def convert_interactions_to_events(val: Any,
+                                   sub_agent_trace: Any = None) -> List[Dict]:
     """
     Converts tool interactions and agent text responses into Vertex AI SDK Event dictionaries.
 
@@ -188,9 +187,8 @@ def convert_interactions_to_events(
         events.append(model_event.model_dump(mode="json", exclude_none=True))
 
         # 2. Tool Response Event (System provided) - as dict for SDK validation
-        fr_part = genai_types.Part.from_function_response(
-            name=tool_name, response=response
-        )
+        fr_part = genai_types.Part.from_function_response(name=tool_name,
+                                                          response=response)
         tool_content = genai_types.Content(role="tool", parts=[fr_part])
         tool_event = types.evals.Event(content=tool_content, author="tool")
         events.append(tool_event.model_dump(mode="json", exclude_none=True))
@@ -198,7 +196,8 @@ def convert_interactions_to_events(
     return events
 
 
-def build_conversation_history(user_inputs: Any, sub_agent_trace: Any) -> List[Dict]:
+def build_conversation_history(user_inputs: Any,
+                               sub_agent_trace: Any) -> List[Dict]:
     """
     Builds conversation_history for multi-turn metrics from user_inputs and sub_agent_trace.
 
@@ -220,22 +219,31 @@ def build_conversation_history(user_inputs: Any, sub_agent_trace: Any) -> List[D
     if not isinstance(trace, list):
         trace = []
 
-    text_responses = [t.get("text_response", "") for t in trace if isinstance(t, dict) and t.get("text_response")]
+    text_responses = [
+        t.get("text_response", "")
+        for t in trace
+        if isinstance(t, dict) and t.get("text_response")
+    ]
 
     conversation_history = []
     # Build conversation pairs (user input -> model response)
     # The last user input is the "prompt", so exclude it from history
-    for i, user_input in enumerate(user_inputs[:-1] if len(user_inputs) > 1 else []):
+    for i, user_input in enumerate(user_inputs[:-1] if len(user_inputs) >
+                                   1 else []):
         # Add user turn
         conversation_history.append({
             "role": "user",
-            "parts": [{"text": str(user_input)}]
+            "parts": [{
+                "text": str(user_input)
+            }]
         })
         # Add corresponding model response if available
         if i < len(text_responses):
             conversation_history.append({
                 "role": "model",
-                "parts": [{"text": text_responses[i]}]
+                "parts": [{
+                    "text": text_responses[i]
+                }]
             })
 
     return conversation_history
@@ -285,13 +293,8 @@ def map_dataset_columns(
         if "user_inputs" in agent_df.columns:
             inputs = agent_df["user_inputs"]
             # Normalize multi-turn lists into a single context string.
-            eval_dataset["prompt"] = inputs.apply(
-                lambda x: "\n".join(x)
-                if isinstance(x, list)
-                else str(x)
-                if x is not None
-                else ""
-            )
+            eval_dataset["prompt"] = inputs.apply(lambda x: "\n".join(
+                x) if isinstance(x, list) else str(x) if x is not None else "")
         else:
             eval_dataset["prompt"] = ""
 
@@ -311,6 +314,7 @@ def map_dataset_columns(
                 if isinstance(x, (dict, list)):
                     return json.dumps(x)
                 return str(x) if x is not None else ""
+
             eval_dataset["response"] = response_col.apply(to_string)
         else:
             eval_dataset["response"] = ""
@@ -339,13 +343,14 @@ def map_dataset_columns(
                 # First check agent_df for the root key (supports dict columns)
                 if root_key and root_key in agent_df.columns:
                     val_series = agent_df[root_key].apply(
-                        lambda x: get_nested_value(x if isinstance(x, dict) else robust_json_loads(x), col_path)
-                    )
+                        lambda x: get_nested_value(
+                            x if isinstance(x, dict) else robust_json_loads(x),
+                            col_path))
                 # Then fall back to original_df
                 elif root_key and root_key in original_df.columns:
                     val_series = original_df[root_key].apply(
-                        lambda x: get_nested_value(robust_json_loads(x), col_path)
-                    )
+                        lambda x: get_nested_value(robust_json_loads(x),
+                                                   col_path))
 
             # Apply transform if specified
             if val_series is not None and transform:
@@ -360,6 +365,7 @@ def map_dataset_columns(
                             if isinstance(parsed, list) and len(parsed) > 0:
                                 return parsed[-1]
                         return x if x is not None else ""
+
                     val_series = val_series.apply(get_last_item)
 
             # Get default value if column not found
@@ -369,44 +375,51 @@ def map_dataset_columns(
                 # Special Case: Tool Interactions to Events
                 # Agent metrics that require intermediate_events in Event format
                 AGENT_METRICS_REQUIRING_EVENTS = {
-                    "TOOL_USE_QUALITY", "FINAL_RESPONSE_QUALITY", "HALLUCINATION",
-                    "tool_use_quality", "final_response_quality", "hallucination",
+                    "TOOL_USE_QUALITY", "FINAL_RESPONSE_QUALITY",
+                    "HALLUCINATION", "tool_use_quality",
+                    "final_response_quality", "hallucination",
                     "agent_tool_use_quality", "agent_hallucination"
                 }
                 is_agent_metric = metric_name.upper().replace("AGENT_", "") in {
-                    m.upper().replace("AGENT_", "") for m in AGENT_METRICS_REQUIRING_EVENTS
+                    m.upper().replace("AGENT_", "")
+                    for m in AGENT_METRICS_REQUIRING_EVENTS
                 }
-                is_event_col = placeholder in ["intermediate_events", "tool_usage"]
+                is_event_col = placeholder in [
+                    "intermediate_events", "tool_usage"
+                ]
 
                 if is_agent_metric and is_event_col:
                     # Get sub_agent_trace for text response events
                     sub_agent_trace_series = None
                     if "extracted_data.sub_agent_trace" in agent_df.columns:
-                        sub_agent_trace_series = agent_df["extracted_data.sub_agent_trace"]
+                        sub_agent_trace_series = agent_df[
+                            "extracted_data.sub_agent_trace"]
                     elif "extracted_data" in original_df.columns:
-                        sub_agent_trace_series = original_df["extracted_data"].apply(
-                            lambda x: get_nested_value(robust_json_loads(x), "extracted_data:sub_agent_trace")
-                        )
+                        sub_agent_trace_series = original_df[
+                            "extracted_data"].apply(lambda x: get_nested_value(
+                                robust_json_loads(x),
+                                "extracted_data:sub_agent_trace"))
 
                     if sub_agent_trace_series is not None:
                         # Pass both tool_interactions and sub_agent_trace
                         eval_dataset[placeholder] = pd.DataFrame({
                             "tools": val_series,
                             "trace": sub_agent_trace_series
-                        }).apply(
-                            lambda row: convert_interactions_to_events(row["tools"], row["trace"]),
-                            axis=1
-                        )
+                        }).apply(lambda row: convert_interactions_to_events(
+                            row["tools"], row["trace"]),
+                                 axis=1)
                     else:
                         eval_dataset[placeholder] = val_series.apply(
-                            convert_interactions_to_events
-                        )
+                            convert_interactions_to_events)
                 else:
                     # Special handling for fields that need to stay as lists/objects
                     # These are passed directly to the SDK without string conversion
                     # Note: "history" is NOT included here - it needs to be converted to string
                     # for MULTI_TURN_CHAT_QUALITY template substitution ({history} placeholder)
-                    SDK_LIST_FIELDS = {"tool_declarations", "conversation_history", "intermediate_events"}
+                    SDK_LIST_FIELDS = {
+                        "tool_declarations", "conversation_history",
+                        "intermediate_events"
+                    }
 
                     if placeholder in SDK_LIST_FIELDS:
                         # Keep as list/object - SDK expects these as proper structures
@@ -415,7 +428,9 @@ def map_dataset_columns(
                                 parsed = robust_json_loads(x)
                                 return parsed if parsed is not None else []
                             return x if x is not None else []
-                        eval_dataset[placeholder] = val_series.apply(parse_if_needed)
+
+                        eval_dataset[placeholder] = val_series.apply(
+                            parse_if_needed)
                     else:
                         # Robust Flattening for custom placeholders (Templates need strings)
                         def normalize_input(x):
@@ -432,37 +447,46 @@ def map_dataset_columns(
                                 return json.dumps(x)
                             return str(x) if x is not None else ""
 
-                        eval_dataset[placeholder] = val_series.apply(normalize_input)
+                        eval_dataset[placeholder] = val_series.apply(
+                            normalize_input)
             else:
                 # Column not found - check for special fallback cases
                 if placeholder in ("conversation_history", "history"):
                     # Build conversation_history on-the-fly from user_inputs and sub_agent_trace
-                    logger.info(f"Building {placeholder} on-the-fly (column not found in processed data)")
-                    user_inputs_series = agent_df.get("user_inputs", pd.Series([""] * len(agent_df)))
+                    logger.info(
+                        f"Building {placeholder} on-the-fly (column not found in processed data)"
+                    )
+                    user_inputs_series = agent_df.get(
+                        "user_inputs", pd.Series([""] * len(agent_df)))
 
                     # Get sub_agent_trace
                     sub_agent_trace_series = None
                     if "extracted_data.sub_agent_trace" in agent_df.columns:
-                        sub_agent_trace_series = agent_df["extracted_data.sub_agent_trace"]
+                        sub_agent_trace_series = agent_df[
+                            "extracted_data.sub_agent_trace"]
                     elif "extracted_data" in original_df.columns:
-                        sub_agent_trace_series = original_df["extracted_data"].apply(
-                            lambda x: get_nested_value(robust_json_loads(x), "extracted_data:sub_agent_trace")
-                        )
+                        sub_agent_trace_series = original_df[
+                            "extracted_data"].apply(lambda x: get_nested_value(
+                                robust_json_loads(x),
+                                "extracted_data:sub_agent_trace"))
 
                     if sub_agent_trace_series is not None:
                         eval_dataset[placeholder] = pd.DataFrame({
                             "inputs": user_inputs_series,
                             "trace": sub_agent_trace_series
-                        }).apply(
-                            lambda row: build_conversation_history(row["inputs"], row["trace"]),
-                            axis=1
-                        )
+                        }).apply(lambda row: build_conversation_history(
+                            row["inputs"], row["trace"]),
+                                 axis=1)
                     else:
                         # No sub_agent_trace available, use empty history
-                        eval_dataset[placeholder] = [[] for _ in range(len(agent_df))]
+                        eval_dataset[placeholder] = [
+                            [] for _ in range(len(agent_df))
+                        ]
                 else:
                     # Use default value for other columns
-                    logger.debug(f"Column '{col_path}' not found for placeholder '{placeholder}', using default: '{default_value}'")
+                    logger.debug(
+                        f"Column '{col_path}' not found for placeholder '{placeholder}', using default: '{default_value}'"
+                    )
                     eval_dataset[placeholder] = default_value
 
         elif "template" in details:
@@ -478,7 +502,8 @@ def map_dataset_columns(
                         sc,
                     ]
                     found_sc = next(
-                        (c for c in cands if c in row.index and row[c] is not None),
+                        (c for c in cands
+                         if c in row.index and row[c] is not None),
                         None,
                     )
                     val = row[found_sc] if found_sc else ""
@@ -486,11 +511,8 @@ def map_dataset_columns(
                     if isinstance(val, (dict, list)):
                         val = json.dumps(val)
                     template_vars[sc.replace(":", "_")] = val
-                return (
-                    details["template"].format(**template_vars)
-                    if template_vars
-                    else details["template"]
-                )
+                return (details["template"].format(
+                    **template_vars) if template_vars else details["template"])
 
             eval_dataset[placeholder] = agent_df.apply(format_template, axis=1)
 

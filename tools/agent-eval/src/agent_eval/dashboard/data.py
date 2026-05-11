@@ -31,31 +31,32 @@ import pandas as pd
 
 from agent_eval.core.analyzer import LOWER_IS_BETTER, _is_lower_better
 
-
 # ---------------------------------------------------------------------------
 # Data model
 # ---------------------------------------------------------------------------
+
 
 @dataclass
 class RunInfo:
     """Metadata and metrics for a single evaluation run."""
 
-    run_id: str                                        # folder name
-    experiment_id: str                                 # from eval_summary
+    run_id: str  # folder name
+    experiment_id: str  # from eval_summary
     run_type: str
     timestamp: datetime
-    timestamp_str: str                                 # ISO formatted
-    git_info: dict[str, Any]                           # {commit, branch, dirty}
-    deterministic_metrics: dict[str, float]            # flattened
-    llm_metrics: dict[str, dict[str, Any]]             # name -> {average, score_range}
+    timestamp_str: str  # ISO formatted
+    git_info: dict[str, Any]  # {commit, branch, dirty}
+    deterministic_metrics: dict[str, float]  # flattened
+    llm_metrics: dict[str, dict[str, Any]]  # name -> {average, score_range}
     per_question_summary: list[dict[str, Any]]
     folder_path: Path
-    has_analysis: bool                                 # gemini_analysis.md exists
+    has_analysis: bool  # gemini_analysis.md exists
 
 
 # ---------------------------------------------------------------------------
 # Discovery & loading
 # ---------------------------------------------------------------------------
+
 
 def discover_runs(results_dir: Path) -> list[RunInfo]:
     """Scan *results_dir* for sub-directories that contain an ``eval_summary.json``.
@@ -156,6 +157,7 @@ def load_analysis(run: RunInfo) -> str:
 # DataFrames
 # ---------------------------------------------------------------------------
 
+
 def runs_to_overview_df(runs: list[RunInfo]) -> pd.DataFrame:
     """One row per run, every metric as a column.
 
@@ -167,13 +169,21 @@ def runs_to_overview_df(runs: list[RunInfo]) -> pd.DataFrame:
     rows: list[dict[str, Any]] = []
     for r in runs:
         row: dict[str, Any] = {
-            "experiment_id": r.experiment_id,
-            "run_id": r.run_id,
-            "datetime": r.timestamp,
-            "run_type": r.run_type,
-            "git_commit": r.git_info.get("commit", "")[:8] if r.git_info.get("commit") else "",
-            "git_branch": r.git_info.get("branch", ""),
-            "git_dirty": r.git_info.get("dirty", False),
+            "experiment_id":
+                r.experiment_id,
+            "run_id":
+                r.run_id,
+            "datetime":
+                r.timestamp,
+            "run_type":
+                r.run_type,
+            "git_commit":
+                r.git_info.get("commit", "")[:8]
+                if r.git_info.get("commit") else "",
+            "git_branch":
+                r.git_info.get("branch", ""),
+            "git_dirty":
+                r.git_info.get("dirty", False),
         }
         row.update(r.deterministic_metrics)
         for name, info in r.llm_metrics.items():
@@ -226,6 +236,7 @@ def runs_to_per_question_df(
 # Metric classification
 # ---------------------------------------------------------------------------
 
+
 def classify_metrics(
     det_names: list[str],
     llm_names: list[str],
@@ -260,6 +271,7 @@ def classify_metrics(
 # Delta computation
 # ---------------------------------------------------------------------------
 
+
 def compute_delta(
     baseline_val: float,
     current_val: float,
@@ -270,12 +282,20 @@ def compute_delta(
     Returns ``{"pct_change": float, "direction": str, "is_improvement": bool}``.
     """
     if baseline_val == 0:
-        return {"pct_change": 0.0, "direction": "neutral", "is_improvement": False}
+        return {
+            "pct_change": 0.0,
+            "direction": "neutral",
+            "is_improvement": False
+        }
 
     pct = ((current_val - baseline_val) / abs(baseline_val)) * 100.0
 
     if abs(pct) < 1.0:
-        return {"pct_change": pct, "direction": "neutral", "is_improvement": False}
+        return {
+            "pct_change": pct,
+            "direction": "neutral",
+            "is_improvement": False
+        }
 
     lower_better = _is_lower_better(metric_name)
     is_improvement = (pct < 0) if lower_better else (pct > 0)

@@ -21,12 +21,14 @@ from typing import Dict, Optional
 
 logger = logging.getLogger("agent_eval.utils")
 
-
 # Directories to skip when scanning agent source trees.
-_EXCLUDE_PATTERNS = [".venv", "venv", "__pycache__", ".git", "node_modules", "site-packages"]
+_EXCLUDE_PATTERNS = [
+    ".venv", "venv", "__pycache__", ".git", "node_modules", "site-packages"
+]
 
 
-def discover_agent_context(agent_dir: Optional[Path], quiet: bool = False) -> Dict[str, str]:
+def discover_agent_context(agent_dir: Optional[Path],
+                           quiet: bool = False) -> Dict[str, str]:
     """Discover and load agent source code and ADK context from an agent directory.
 
     Scans for agent.py, tools.py, and GEMINI.md files while skipping
@@ -82,7 +84,9 @@ def discover_agent_context(agent_dir: Optional[Path], quiet: bool = False) -> Di
             section_count = 0
 
             for line in lines:
-                if line.startswith('## 1.') or line.startswith('## 2.') or line.startswith('## 7.') or line.startswith('## 8.'):
+                if line.startswith('## 1.') or line.startswith(
+                        '## 2.') or line.startswith('## 7.') or line.startswith(
+                            '## 8.'):
                     in_relevant_section = True
                     section_count += 1
                 elif line.startswith('## ') and section_count > 0:

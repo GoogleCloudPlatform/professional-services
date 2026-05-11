@@ -139,7 +139,13 @@ Everything you see here is months of *"this didn't work — what do we actually 
 
 — *other engineers wanting to scientifically improve their agents, not only vibe (vibe, yes, but then quantify)*
 
-> ⚠️ **One caveat — tied to today's Gemini response schema.** Token / cache / thinking metrics read specific field names off each LLM response's `usage_metadata` (`prompt_token_count`, `cached_content_token_count`, `thoughts_token_count`, …). Verified against Gemini 3 / 3.1 Flash and Pro. If a future model family renames or restructures these fields, those metrics will silently read `0` until the extractor is updated. Sanity-check `eval_summary.json` for unexpected zeros after a model bump. Details in [`docs/reference.md`](docs/reference.md#deterministic-metrics).
+**Honest caveats up front** — see [`docs/FUTURE_WORK.md`](docs/FUTURE_WORK.md) for the full context on each:
+
+- The streamlined Agent Engine pass (`agent-eval agent-engine`) is currently being re-validated; the local pipeline (`agent-eval run`) is what we ship and recommend.
+- Token / cache / thinking metrics read Gemini-specific field names from `usage_metadata` — verified against Gemini 3 / 3.1 Flash and Pro. After a model-family bump, sanity-check `eval_summary.json` for unexpected zeros.
+- ADK is the only agent framework supported out of the box. Other frameworks need the trace-collection layer abstracted.
+
+If any of these matter for your use case, the FUTURE_WORK doc has reproduction steps and concrete pickup hooks.
 
 ---
 

@@ -32,6 +32,7 @@ def _touch(path: Path, content: str = "{}") -> Path:
 
 
 class TestFindEvalDir(unittest.TestCase):
+
     def test_prefers_canonical_tests_eval(self):
         with tempfile.TemporaryDirectory() as td:
             root = Path(td)
@@ -58,16 +59,19 @@ class TestFindEvalDir(unittest.TestCase):
 
 
 class TestFindMetricsPath(unittest.TestCase):
+
     def test_finds_canonical_metrics(self):
         with tempfile.TemporaryDirectory() as td:
             root = Path(td)
-            target = _touch(root / "tests" / "eval" / "metrics" / "metric_definitions.json")
+            target = _touch(root / "tests" / "eval" / "metrics" /
+                            "metric_definitions.json")
             assert find_metrics_path(root) == target
 
     def test_falls_back_to_legacy_metrics(self):
         with tempfile.TemporaryDirectory() as td:
             root = Path(td)
-            target = _touch(root / "eval" / "metrics" / "metric_definitions.json")
+            target = _touch(root / "eval" / "metrics" /
+                            "metric_definitions.json")
             assert find_metrics_path(root) == target
 
     def test_returns_none_when_missing(self):
@@ -76,10 +80,12 @@ class TestFindMetricsPath(unittest.TestCase):
 
 
 class TestFindDatasetPath(unittest.TestCase):
+
     def test_finds_canonical_dataset(self):
         with tempfile.TemporaryDirectory() as td:
             root = Path(td)
-            target = _touch(root / "tests" / "eval" / "dataset.jsonl", '{"prompt": "x"}\n')
+            target = _touch(root / "tests" / "eval" / "dataset.jsonl",
+                            '{"prompt": "x"}\n')
             assert find_dataset_path(root) == target
 
     def test_returns_none_when_missing(self):

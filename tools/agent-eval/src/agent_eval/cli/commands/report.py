@@ -82,16 +82,20 @@ def _serve(report: Path, port_hint: int = 0) -> None:
     rel_to_serve_root = report.name  # always 'report.html'
 
     handler_cls = http.server.SimpleHTTPRequestHandler
+
     # Quiet logging — http.server logs every request to stderr by default.
     class _QuietHandler(handler_cls):
-        def log_message(self, *args, **kwargs): pass
+
+        def log_message(self, *args, **kwargs):
+            pass
 
     # Pick a port: try the hint, then bump to OS-assigned if taken.
     port = port_hint
     httpd = None
     for attempt_port in (port_hint, 0) if port_hint else (0,):
         try:
-            httpd = socketserver.TCPServer(("127.0.0.1", attempt_port), _QuietHandler)
+            httpd = socketserver.TCPServer(("127.0.0.1", attempt_port),
+                                           _QuietHandler)
             port = httpd.server_address[1]
             break
         except OSError:
@@ -105,18 +109,19 @@ def _serve(report: Path, port_hint: int = 0) -> None:
 
     url = f"http://127.0.0.1:{port}/{rel_to_serve_root}"
     console.print()
-    console.print(Panel(
-        f"[bold]Serving:[/] {report}\n"
-        f"[bold]URL:[/]     [cyan]{url}[/]\n\n"
-        f"[dim]Local browser:[/] open the URL above\n"
-        f"[dim]SSH tunnel:[/]    [cyan]ssh -L {port}:localhost:{port} <host>[/]\n"
-        f"[dim]Cloud Workstation:[/] use the [bold]Web Preview[/] button → "
-        f"change port to [cyan]{port}[/]\n\n"
-        f"[bold]Ctrl+C[/] to stop the server.",
-        title="[bold]agent-eval report[/]",
-        border_style="cyan",
-        padding=(1, 2),
-    ))
+    console.print(
+        Panel(
+            f"[bold]Serving:[/] {report}\n"
+            f"[bold]URL:[/]     [cyan]{url}[/]\n\n"
+            f"[dim]Local browser:[/] open the URL above\n"
+            f"[dim]SSH tunnel:[/]    [cyan]ssh -L {port}:localhost:{port} <host>[/]\n"
+            f"[dim]Cloud Workstation:[/] use the [bold]Web Preview[/] button → "
+            f"change port to [cyan]{port}[/]\n\n"
+            f"[bold]Ctrl+C[/] to stop the server.",
+            title="[bold]agent-eval report[/]",
+            border_style="cyan",
+            padding=(1, 2),
+        ))
     try:
         httpd.serve_forever()
     except KeyboardInterrupt:
@@ -126,16 +131,27 @@ def _serve(report: Path, port_hint: int = 0) -> None:
 
 
 @click.command(name="report")
-@click.option("--run-id", default=None,
-              help="Open the report for a specific run ID instead of the latest.")
-@click.option("--results-dir", default=None,
-              help="Path to tests/eval/results/. Auto-detected from cwd if omitted.")
-@click.option("--serve", is_flag=True,
-              help="Start a localhost HTTP server instead of opening in the default browser. "
-                   "Use this on remote dev boxes (Cloud Workstation, SSH) where no display exists.")
-@click.option("--port", type=int, default=0,
+@click.option(
+    "--run-id",
+    default=None,
+    help="Open the report for a specific run ID instead of the latest.")
+@click.option(
+    "--results-dir",
+    default=None,
+    help="Path to tests/eval/results/. Auto-detected from cwd if omitted.")
+@click.option(
+    "--serve",
+    is_flag=True,
+    help=
+    "Start a localhost HTTP server instead of opening in the default browser. "
+    "Use this on remote dev boxes (Cloud Workstation, SSH) where no display exists."
+)
+@click.option("--port",
+              type=int,
+              default=0,
               help="With --serve, the port to bind. Default: OS-assigned.")
-@click.option("--no-open", is_flag=True,
+@click.option("--no-open",
+              is_flag=True,
               help="Just print the path; don't open a browser.")
 def report(run_id, results_dir, serve, port, no_open):
     """Open the latest evaluation report in your default browser.
@@ -162,8 +178,7 @@ def report(run_id, results_dir, serve, port, no_open):
         if not report_path.exists():
             console.print(
                 f"  [red]No report.html for run [cyan]{run_id}[/]:[/] {report_path}\n"
-                f"  [dim]Available runs:[/]"
-            )
+                f"  [dim]Available runs:[/]")
             for run_dir in sorted(results.iterdir()):
                 if (run_dir / "report.html").exists():
                     console.print(f"    [cyan]{run_dir.name}[/]")
@@ -209,5 +224,4 @@ def report(run_id, results_dir, serve, port, no_open):
             "  [yellow]Couldn't open a browser automatically.[/] "
             "[dim]On a remote dev box?[/]\n"
             "  [bold]Try:[/]  [cyan]agent-eval report --serve[/]  "
-            "[dim](starts a localhost HTTP server you can SSH-tunnel to)[/]"
-        )
+            "[dim](starts a localhost HTTP server you can SSH-tunnel to)[/]")

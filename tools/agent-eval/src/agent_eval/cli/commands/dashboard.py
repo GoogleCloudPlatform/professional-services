@@ -22,11 +22,18 @@ console = Console()
 
 
 @click.command()
-@click.option("--results-dir", required=True,
-              help="Path to the results directory containing run sub-folders (e.g., tests/eval/results/).")
-@click.option("--port", default=7860, type=int,
+@click.option(
+    "--results-dir",
+    required=True,
+    help=
+    "Path to the results directory containing run sub-folders (e.g., tests/eval/results/)."
+)
+@click.option("--port",
+              default=7860,
+              type=int,
               help="Port for the dashboard server (default: 7860).")
-@click.option("--share", is_flag=True,
+@click.option("--share",
+              is_flag=True,
               help="Create a public Gradio share link.")
 def dashboard(results_dir, port, share):
     """Launch the interactive dashboard for comparing evaluation runs.

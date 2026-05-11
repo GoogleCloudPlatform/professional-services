@@ -24,8 +24,8 @@ import pandas as pd
 from agent_eval.core.evaluator import save_metrics_summary
 from agent_eval.core.converters import write_jsonl, read_jsonl
 
-
 # ── Helpers ──────────────────────────────────────────────────────────
+
 
 def _make_eval_row(question_id, source_type, metrics):
     """Create a row dict matching what the evaluator produces after consolidation.
@@ -36,8 +36,10 @@ def _make_eval_row(question_id, source_type, metrics):
         metrics: Dict of {metric_name: score} — simplified for testing.
     """
     eval_results = {
-        name: {"score": score, "explanation": f"Score {score} for {name}"}
-        for name, score in metrics.items()
+        name: {
+            "score": score,
+            "explanation": f"Score {score} for {name}"
+        } for name, score in metrics.items()
     }
     return {
         "question_id": question_id,
@@ -47,7 +49,9 @@ def _make_eval_row(question_id, source_type, metrics):
     }
 
 
-def _make_interaction_record(question_id, source_type="interaction", app_name="app"):
+def _make_interaction_record(question_id,
+                             source_type="interaction",
+                             app_name="app"):
     """Create a minimal JSONL interaction record."""
     return {
         "question_id": question_id,
@@ -56,10 +60,15 @@ def _make_interaction_record(question_id, source_type="interaction", app_name="a
         "agents_evaluated": [app_name],
         "user_inputs": [f"Question {question_id}"],
         "final_response": f"Answer for {question_id}",
-        "question_metadata": {"category": "test"},
+        "question_metadata": {
+            "category": "test"
+        },
         "reference_data": {},
         "extracted_data": {
-            "tool_interactions": [{"tool_name": "search", "output_result": "ok"}],
+            "tool_interactions": [{
+                "tool_name": "search",
+                "output_result": "ok"
+            }],
         },
         "final_session_state": {},
         "session_trace": [],
@@ -69,7 +78,9 @@ def _make_interaction_record(question_id, source_type="interaction", app_name="a
 
 # ── Tests for save_metrics_summary ───────────────────────────────────
 
+
 class TestSaveMetricsSummary(unittest.TestCase):
+
     def setUp(self):
         self.test_dir = Path(tempfile.mkdtemp())
 
@@ -84,18 +95,25 @@ class TestSaveMetricsSummary(unittest.TestCase):
         """Standard summary works when source_type is absent (backward compat)."""
         df = pd.DataFrame([
             {
-                "question_id": "q1",
-                "eval_results": json.dumps({
-                    "quality": {"score": 4.0, "explanation": "Good"},
-                }),
-                "question_metadata": "{}",
+                "question_id":
+                    "q1",
+                "eval_results":
+                    json.dumps({
+                        "quality": {
+                            "score": 4.0,
+                            "explanation": "Good"
+                        },
+                    }),
+                "question_metadata":
+                    "{}",
             },
         ])
         save_metrics_summary(df, self.test_dir, "exp-1", "manual", "Test run")
         summary = self._read_summary()
 
         assert "per_source_summary" not in summary
-        assert summary["overall_summary"]["llm_based_metrics"]["quality"]["average"] == 4.0
+        assert summary["overall_summary"]["llm_based_metrics"]["quality"][
+            "average"] == 4.0
 
     def test_single_source_type_no_per_source_summary(self):
         """When all rows have the same source_type, no per_source_summary is added."""
@@ -111,9 +129,18 @@ class TestSaveMetricsSummary(unittest.TestCase):
     def test_multiple_source_types_produces_per_source_summary(self):
         """When rows have different source_types, per_source_summary is generated."""
         df = pd.DataFrame([
-            _make_eval_row("sim_q1", "simulation", {"quality": 5.0, "accuracy": 4.0}),
-            _make_eval_row("sim_q2", "simulation", {"quality": 3.0, "accuracy": 2.0}),
-            _make_eval_row("int_q1", "interaction", {"quality": 4.0, "accuracy": 3.0}),
+            _make_eval_row("sim_q1", "simulation", {
+                "quality": 5.0,
+                "accuracy": 4.0
+            }),
+            _make_eval_row("sim_q2", "simulation", {
+                "quality": 3.0,
+                "accuracy": 2.0
+            }),
+            _make_eval_row("int_q1", "interaction", {
+                "quality": 4.0,
+                "accuracy": 3.0
+            }),
         ])
         save_metrics_summary(df, self.test_dir, "exp-1", "manual", "Test run")
         summary = self._read_summary()
@@ -140,7 +167,9 @@ class TestSaveMetricsSummary(unittest.TestCase):
         save_metrics_summary(df, self.test_dir, "exp-1", "manual", "Test run")
         summary = self._read_summary()
 
-        questions = {q["question_id"]: q for q in summary["per_question_summary"]}
+        questions = {
+            q["question_id"]: q for q in summary["per_question_summary"]
+        }
         assert questions["q1"]["source_type"] == "simulation"
         assert questions["q2"]["source_type"] == "interaction"
 
@@ -154,7 +183,8 @@ class TestSaveMetricsSummary(unittest.TestCase):
         summary = self._read_summary()
 
         # Overall average: (5+3)/2 = 4.0
-        assert summary["overall_summary"]["llm_based_metrics"]["quality"]["average"] == 4.0
+        assert summary["overall_summary"]["llm_based_metrics"]["quality"][
+            "average"] == 4.0
 
     def test_score_range_preserved(self):
         """score_range from metric_definitions is included in the summary."""
@@ -162,15 +192,24 @@ class TestSaveMetricsSummary(unittest.TestCase):
             _make_eval_row("q1", "simulation", {"quality": 4.0}),
         ])
         metric_defs = {
-            "quality": {"score_range": {"min": 0, "max": 5, "description": "Quality score"}}
+            "quality": {
+                "score_range": {
+                    "min": 0,
+                    "max": 5,
+                    "description": "Quality score"
+                }
+            }
         }
-        save_metrics_summary(df, self.test_dir, "exp-1", "manual", "Test", metric_defs)
+        save_metrics_summary(df, self.test_dir, "exp-1", "manual", "Test",
+                             metric_defs)
         summary = self._read_summary()
 
-        assert summary["overall_summary"]["llm_based_metrics"]["quality"]["score_range"]["max"] == 5
+        assert summary["overall_summary"]["llm_based_metrics"]["quality"][
+            "score_range"]["max"] == 5
 
 
 # ── Tests for multi-file JSONL loading ───────────────────────────────
+
 
 class TestMultiFileLoading(unittest.TestCase):
     """Tests that multiple JSONL files can be loaded and concatenated."""
@@ -219,7 +258,9 @@ class TestMultiFileLoading(unittest.TestCase):
         combined = pd.concat(all_dfs, ignore_index=True)
 
         assert len(combined) == 3
-        assert list(combined["source_type"]) == ["simulation", "simulation", "interaction"]
+        assert list(combined["source_type"]) == [
+            "simulation", "simulation", "interaction"
+        ]
         assert list(combined["question_id"]) == ["sim_q1", "sim_q2", "int_q1"]
 
     def test_source_type_preserved_through_concat(self):
@@ -242,6 +283,7 @@ class TestMultiFileLoading(unittest.TestCase):
 
 
 # ── Tests for source_type in record creation ─────────────────────────
+
 
 class TestSourceTypeInRecords(unittest.TestCase):
     """Verify source_type is set correctly in converters and interactions."""

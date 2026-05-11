@@ -79,15 +79,15 @@ def _clean_env(project_root: Path) -> dict[str, str]:
 
 
 # Files ADK expects inside the agent module directory
-_ADK_REQUIRED_FILES = ["session_input.json", "conversation_scenarios.json", "eval_config.json"]
+_ADK_REQUIRED_FILES = [
+    "session_input.json", "conversation_scenarios.json", "eval_config.json"
+]
 
 # Default eval_config — empty criteria so ADK skips its built-in per-interaction
 # LLM scoring (hallucination, safety). These are slow because ADK scores each
 # interaction individually. agent-eval runs its own evaluation in batch via
 # Vertex AI Evaluation, which is faster and more configurable.
-_DEFAULT_EVAL_CONFIG = {
-    "criteria": {}
-}
+_DEFAULT_EVAL_CONFIG = {"criteria": {}}
 
 TOTAL_STEPS = 5
 
@@ -95,7 +95,8 @@ TOTAL_STEPS = 5
 def _step_header(n: int, title: str, description: str) -> None:
     """Print a formatted step header."""
     console.print()
-    console.print(Rule(f"  Step {n}/{TOTAL_STEPS}: {title}  ", style="bold blue"))
+    console.print(
+        Rule(f"  Step {n}/{TOTAL_STEPS}: {title}  ", style="bold blue"))
     console.print(f"  [dim]{description}[/]")
     console.print()
 
@@ -140,6 +141,7 @@ def _row_to_adk_scenario(row: dict, idx: int) -> dict:
         numbered goal list; otherwise rebuilt from row["history"] + the
         canonical prompt as the final follow-up.
     """
+
     def _plan_to_string(items: list) -> str:
         clean = [str(item).strip() for item in items if str(item).strip()]
         if not clean:
@@ -154,14 +156,20 @@ def _row_to_adk_scenario(row: dict, idx: int) -> dict:
     if plan:
         starting = row.get("prompt") or ""
         plan_list = list(plan) if isinstance(plan, list) else [str(plan)]
-        return {"starting_prompt": starting, "conversation_plan": _plan_to_string(plan_list)}
+        return {
+            "starting_prompt": starting,
+            "conversation_plan": _plan_to_string(plan_list)
+        }
 
     history = row.get("history") or row.get("conversation_history") or []
     history_texts: list[str] = []
     for turn in history:
         if isinstance(turn, dict):
             parts = (turn.get("parts") or [])
-            text = " ".join(p.get("text", "") for p in parts if isinstance(p, dict)).strip()
+            text = " ".join(
+                p.get("text", "")
+                for p in parts
+                if isinstance(p, dict)).strip()
             if text:
                 history_texts.append(text)
 
@@ -175,7 +183,10 @@ def _row_to_adk_scenario(row: dict, idx: int) -> dict:
     else:
         starting = prompt
         plan_list = []
-    return {"starting_prompt": starting, "conversation_plan": _plan_to_string(plan_list)}
+    return {
+        "starting_prompt": starting,
+        "conversation_plan": _plan_to_string(plan_list)
+    }
 
 
 def _project_dataset_to_adk_files(
@@ -200,15 +211,23 @@ def _project_dataset_to_adk_files(
 
     rows = read_dataset(dataset_path)
     multi_turn_rows = [r for r in rows if is_multi_turn(r)]
-    scenarios = [_row_to_adk_scenario(r, i) for i, r in enumerate(multi_turn_rows)]
+    scenarios = [
+        _row_to_adk_scenario(r, i) for i, r in enumerate(multi_turn_rows)
+    ]
     scenarios = [s for s in scenarios if s.get("starting_prompt")]
     if not scenarios:
         return 0, "no-multi-turn-rows"
 
     # Pick session_inputs from the first multi-turn row that has them.
     session_inputs = next(
-        (r["session_inputs"] for r in multi_turn_rows if r.get("session_inputs")),
-        {"app_name": agent_dir.name, "user_id": "eval_user", "state": {}},
+        (r["session_inputs"]
+         for r in multi_turn_rows
+         if r.get("session_inputs")),
+        {
+            "app_name": agent_dir.name,
+            "user_id": "eval_user",
+            "state": {}
+        },
     )
 
     # Write the three files ADK reads. Marker comment tells future devs
@@ -248,7 +267,8 @@ def _project_dataset_to_adk_files(
             existing_criteria = (existing or {}).get("criteria") or {}
             if isinstance(existing_criteria, dict) and existing_criteria:
                 from datetime import datetime as _dt
-                backup_dir = project_root / "tests" / "eval" / ".backup" / _dt.now().strftime("%Y%m%d_%H%M%S")
+                backup_dir = project_root / "tests" / "eval" / ".backup" / _dt.now(
+                ).strftime("%Y%m%d_%H%M%S")
                 backup_dir.mkdir(parents=True, exist_ok=True)
                 backup_path = backup_dir / "eval_config.json"
                 backup_path.write_text(project_eval_config.read_text())
@@ -257,7 +277,8 @@ def _project_dataset_to_adk_files(
                 # Replace the source with an empty config — preserve any
                 # non-criteria keys the user may have set (model defaults etc.).
                 existing["criteria"] = {}
-                project_eval_config.write_text(json.dumps(existing, indent=2) + "\n")
+                project_eval_config.write_text(
+                    json.dumps(existing, indent=2) + "\n")
         except (json.JSONDecodeError, TypeError):
             pass
         try:
@@ -284,8 +305,10 @@ def _project_dataset_to_adk_files(
         if isinstance(plan, str) and plan:
             # Already projected to a numbered string — count "<n>." markers.
             import re
-            return max(1, len(re.findall(r"^\s*\d+\.", plan, flags=re.MULTILINE)))
+            return max(1, len(re.findall(r"^\s*\d+\.", plan,
+                                         flags=re.MULTILINE)))
         return 1
+
     deepest_plan = max((_plan_depth(s) for s in scenarios), default=1)
     max_invocations = deepest_plan + 2  # +2 = small safety margin for clarification turns
     sim_cfg = (cfg.get("user_simulator_config") or {}).copy()
@@ -298,16 +321,13 @@ def _project_dataset_to_adk_files(
 
     console.print(
         f"    [green]+[/] Projected {len(scenarios)} multi-turn row(s) → "
-        f"{agent_dir.name}/conversation_scenarios.json"
-    )
+        f"{agent_dir.name}/conversation_scenarios.json")
     console.print(
         f"    [green]+[/] Wrote {agent_dir.name}/session_input.json from row session_inputs"
     )
-    _cap_note = (
-        f"capped to {max_invocations} sim turns"
-        if sim_cfg.get("max_allowed_invocations") == max_invocations
-        else "user-pinned max_allowed_invocations preserved"
-    )
+    _cap_note = (f"capped to {max_invocations} sim turns"
+                 if sim_cfg.get("max_allowed_invocations") == max_invocations
+                 else "user-pinned max_allowed_invocations preserved")
     console.print(
         f"    [green]+[/] Wrote {agent_dir.name}/eval_config.json "
         f"[dim](empty criteria + {_cap_note}; ADK default is 20 → can stall on slow agents)[/]"
@@ -324,23 +344,19 @@ def _project_dataset_to_adk_files(
         console.print(
             f"    [yellow]![/] [bold]Backed up your existing ADK eval_config[/] "
             f"({backed_up_count} criterion{'s' if backed_up_count != 1 else ''}: "
-            f"[cyan]{names}[/]{more})"
-        )
+            f"[cyan]{names}[/]{more})")
         console.print(f"      [dim]→ {rel_backup}[/]")
         console.print(
             "      [dim]Why: ADK's per-interaction scorers + agent-eval's batch "
-            "scorers would double-score every row (slow + confusing).[/]"
-        )
+            "scorers would double-score every row (slow + confusing).[/]")
         console.print(
             "      [dim]Want those rubrics back? Add them as `custom_llm_judge` "
             "metrics in tests/eval/metrics/metric_definitions.json — "
-            "agent-eval will score them in batch via Vertex AI.[/]"
-        )
+            "agent-eval will score them in batch via Vertex AI.[/]")
 
     console.print(
         "    [dim]Source of truth: tests/eval/dataset.jsonl — these files are "
-        "regenerated on each `simulate` run.[/]"
-    )
+        "regenerated on each `simulate` run.[/]")
     return len(scenarios), "dataset.jsonl"
 
 
@@ -389,60 +405,65 @@ def _step_symlinks(agent_dir: Path, eval_dir: Path) -> None:
         console.print(
             f"    [yellow]![/] Neither {project_root.name}/tests/eval/dataset.jsonl "
             f"nor {agent_dir.name}/eval/scenarios/ found. Run `agent-eval init` "
-            f"first to scaffold a dataset."
-        )
+            f"first to scaffold a dataset.")
         return
 
     console.print(
         "    [dim]Using legacy eval/scenarios/ — run `agent-eval migrate` "
-        "to fold these into the unified dataset.jsonl.[/]"
-    )
+        "to fold these into the unified dataset.jsonl.[/]")
     for filename in _ADK_REQUIRED_FILES:
         target = agent_dir / filename
         source_file = scenarios_dir / filename
 
         if filename == "eval_config.json" and not source_file.exists():
             source_file.parent.mkdir(parents=True, exist_ok=True)
-            source_file.write_text(json.dumps(_DEFAULT_EVAL_CONFIG, indent=2) + "\n")
+            source_file.write_text(
+                json.dumps(_DEFAULT_EVAL_CONFIG, indent=2) + "\n")
             console.print(f"    [green]+[/] Created {source_file}")
 
         if not source_file.exists():
-            console.print(f"    [yellow]![/] Skipping {filename} — not in {scenarios_dir}")
+            console.print(
+                f"    [yellow]![/] Skipping {filename} — not in {scenarios_dir}"
+            )
             continue
 
-        action = "updated" if (target.is_symlink() or target.exists()) else "created"
+        action = "updated" if (target.is_symlink() or
+                               target.exists()) else "created"
         if target.is_symlink() or target.exists():
             target.unlink()
 
         rel_path = os.path.relpath(source_file, agent_dir)
         target.symlink_to(rel_path)
-        console.print(
-            f"    [green]+[/] {action.capitalize()} symlink: "
-            f"{agent_dir.name}/{filename} → {rel_path}"
-        )
+        console.print(f"    [green]+[/] {action.capitalize()} symlink: "
+                      f"{agent_dir.name}/{filename} → {rel_path}")
 
 
 def _step_clear_history(agent_dir: Path) -> None:
     """Step 2: Clear ADK eval_history to avoid stale traces."""
-    _step_header(2, "Clear eval history",
-                 "Removing previous ADK traces so this run starts fresh.\n"
-                 "  Stale traces would mix with new results and corrupt metrics.")
+    _step_header(
+        2, "Clear eval history",
+        "Removing previous ADK traces so this run starts fresh.\n"
+        "  Stale traces would mix with new results and corrupt metrics.")
 
     eval_history = agent_dir / ".adk" / "eval_history"
     if eval_history.exists():
         n_files = sum(1 for _ in eval_history.rglob("*") if _.is_file())
         shutil.rmtree(eval_history)
-        console.print(f"    [green]+[/] Cleared {n_files} file{'s' if n_files != 1 else ''} from {eval_history}")
+        console.print(
+            f"    [green]+[/] Cleared {n_files} file{'s' if n_files != 1 else ''} from {eval_history}"
+        )
     else:
-        console.print(f"    [dim]Nothing to clear — no previous eval_history found.[/]")
+        console.print(
+            f"    [dim]Nothing to clear — no previous eval_history found.[/]")
 
 
 def _step_create_eval_set(agent_name: str, agent_dir: Path) -> bool:
     """Step 3: Create a fresh eval_set and add scenarios."""
-    _step_header(3, "Create eval set",
-                 "Creating a fresh ADK eval_set and loading your scenarios.\n"
-                 "  The eval_set is recreated from scratch each time to avoid\n"
-                 "  duplicate scenarios (adk add_eval_case appends, not replaces).")
+    _step_header(
+        3, "Create eval set",
+        "Creating a fresh ADK eval_set and loading your scenarios.\n"
+        "  The eval_set is recreated from scratch each time to avoid\n"
+        "  duplicate scenarios (adk add_eval_case appends, not replaces).")
 
     eval_set_name = "eval_set"
     project_root = agent_dir.parent
@@ -460,7 +481,8 @@ def _step_create_eval_set(agent_name: str, agent_dir: Path) -> bool:
         shutil.rmtree(eval_set_dir)
         removed = True
     if removed:
-        console.print(f"    [green]+[/] Removed existing eval_set (prevents duplicates)")
+        console.print(
+            f"    [green]+[/] Removed existing eval_set (prevents duplicates)")
     else:
         console.print(f"    [dim]No existing eval_set to remove.[/]")
 
@@ -490,10 +512,16 @@ def _step_create_eval_set(agent_name: str, agent_dir: Path) -> bool:
     console.print(f"    [dim]$ {cmd}[/]")
     result = subprocess.run(
         [
-            *_UV_RUN_ADK, "adk", "eval_set", "add_eval_case",
-            agent_name, eval_set_name,
-            "--scenarios_file", str(scenarios_file),
-            "--session_input_file", str(session_file),
+            *_UV_RUN_ADK,
+            "adk",
+            "eval_set",
+            "add_eval_case",
+            agent_name,
+            eval_set_name,
+            "--scenarios_file",
+            str(scenarios_file),
+            "--session_input_file",
+            str(session_file),
         ],
         cwd=str(project_root),
         env=_clean_env(project_root),
@@ -505,22 +533,27 @@ def _step_create_eval_set(agent_name: str, agent_dir: Path) -> bool:
         if result.stderr.strip():
             console.print(f"    [red]{result.stderr.strip()}[/]")
         return False
-    console.print(f"    [green]+[/] Added [cyan]{n_scenarios}[/] scenario{'s' if n_scenarios != 1 else ''} to eval_set")
+    console.print(
+        f"    [green]+[/] Added [cyan]{n_scenarios}[/] scenario{'s' if n_scenarios != 1 else ''} to eval_set"
+    )
 
     return True
 
 
-def _step_run_sim(agent_name: str, agent_dir: Path, debug: bool = False) -> bool:
+def _step_run_sim(agent_name: str,
+                  agent_dir: Path,
+                  debug: bool = False) -> bool:
     """Step 4: Run adk eval (the actual User Sim)."""
-    _step_header(4, "Run ADK User Sim",
-                 "An LLM will now play the role of a user, following each scenario.\n"
-                 "  This generates OpenTelemetry traces that capture every tool call,\n"
-                 "  response, and token count. This step may take a few minutes.\n\n"
-                 "  After the simulation, ADK runs its own built-in evaluation\n"
-                 "  (hallucination + safety checks). These are a useful starting point,\n"
-                 "  but agent-eval's evaluate command adds much deeper analysis:\n"
-                 "  deterministic metrics (latency, tokens, cost, cache efficiency)\n"
-                 "  and your custom LLM-as-judge metrics via Vertex AI.")
+    _step_header(
+        4, "Run ADK User Sim",
+        "An LLM will now play the role of a user, following each scenario.\n"
+        "  This generates OpenTelemetry traces that capture every tool call,\n"
+        "  response, and token count. This step may take a few minutes.\n\n"
+        "  After the simulation, ADK runs its own built-in evaluation\n"
+        "  (hallucination + safety checks). These are a useful starting point,\n"
+        "  but agent-eval's evaluate command adds much deeper analysis:\n"
+        "  deterministic metrics (latency, tokens, cost, cache efficiency)\n"
+        "  and your custom LLM-as-judge metrics via Vertex AI.")
 
     eval_set_name = "eval_set"
     project_root = agent_dir.parent
@@ -562,31 +595,44 @@ def _step_run_sim(agent_name: str, agent_dir: Path, debug: bool = False) -> bool
     has_traces = eval_history.exists() and any(eval_history.rglob("*.json"))
 
     if result.returncode != 0 and has_traces:
-        console.print(f"\n    [yellow]![/] ADK simulation completed, but ADK's built-in scoring had errors.")
-        console.print(f"    [dim]This is expected — agent-eval runs its own evaluation separately.[/]")
+        console.print(
+            f"\n    [yellow]![/] ADK simulation completed, but ADK's built-in scoring had errors."
+        )
+        console.print(
+            f"    [dim]This is expected — agent-eval runs its own evaluation separately.[/]"
+        )
         return True
 
     if result.returncode != 0:
         # Show captured output only on real failures
         if result.stderr:
             console.print(f"\n    [dim]{result.stderr.strip()}[/]")
-        console.print(f"\n    [red]ADK eval failed with exit code {result.returncode}[/]")
+        console.print(
+            f"\n    [red]ADK eval failed with exit code {result.returncode}[/]")
         console.print(f"    [dim]No traces were generated. Common issues:[/]")
-        console.print(f"    [dim]  - Missing GOOGLE_CLOUD_PROJECT or GOOGLE_CLOUD_LOCATION[/]")
-        console.print(f"    [dim]  - Agent module not found (app_name mismatch)[/]")
-        console.print(f"    [dim]  - Missing dependencies (run uv sync in agent project)[/]")
+        console.print(
+            f"    [dim]  - Missing GOOGLE_CLOUD_PROJECT or GOOGLE_CLOUD_LOCATION[/]"
+        )
+        console.print(
+            f"    [dim]  - Agent module not found (app_name mismatch)[/]")
+        console.print(
+            f"    [dim]  - Missing dependencies (run uv sync in agent project)[/]"
+        )
         return False
 
     console.print(f"\n    [green]+[/] ADK User Sim completed successfully")
     return True
 
 
-def _step_convert(agent_dir: Path, eval_dir: Path, run_id: str | None = None) -> str | None:
+def _step_convert(agent_dir: Path,
+                  eval_dir: Path,
+                  run_id: str | None = None) -> str | None:
     """Step 5: Convert ADK traces to evaluation format."""
-    _step_header(5, "Convert traces",
-                 "Converting ADK's OpenTelemetry traces into agent-eval's JSONL format.\n"
-                 "  This extracts tool calls, responses, token counts, and timing data\n"
-                 "  so they can be scored by the evaluate command.")
+    _step_header(
+        5, "Convert traces",
+        "Converting ADK's OpenTelemetry traces into agent-eval's JSONL format.\n"
+        "  This extracts tool calls, responses, token counts, and timing data\n"
+        "  so they can be scored by the evaluate command.")
 
     from agent_eval.core.converters import AdkHistoryConverter, write_jsonl
 
@@ -596,11 +642,16 @@ def _step_convert(agent_dir: Path, eval_dir: Path, run_id: str | None = None) ->
 
         if not records:
             console.print("    [yellow]![/] No traces found to convert.")
-            console.print("    [dim]This usually means ADK eval didn't produce any output.[/]")
-            console.print("    [dim]Check that eval_history exists in {agent_dir}/.adk/[/]")
+            console.print(
+                "    [dim]This usually means ADK eval didn't produce any output.[/]"
+            )
+            console.print(
+                "    [dim]Check that eval_history exists in {agent_dir}/.adk/[/]"
+            )
             return None
 
-        folder_name = run_id if run_id else datetime.now().strftime("%Y%m%d_%H%M%S")
+        folder_name = run_id if run_id else datetime.now().strftime(
+            "%Y%m%d_%H%M%S")
         results_dir = eval_dir / "results"
         run_dir = results_dir / folder_name
         raw_dir = run_dir / "raw"
@@ -609,7 +660,9 @@ def _step_convert(agent_dir: Path, eval_dir: Path, run_id: str | None = None) ->
         output_path = raw_dir / "processed_interaction_sim.jsonl"
         write_jsonl(records, str(output_path))
 
-        console.print(f"    [green]+[/] Converted [cyan]{len(records)}[/] interaction{'s' if len(records) != 1 else ''}")
+        console.print(
+            f"    [green]+[/] Converted [cyan]{len(records)}[/] interaction{'s' if len(records) != 1 else ''}"
+        )
         console.print(f"    [green]+[/] Output: {output_path}")
         console.print(f"    [green]+[/] Run directory: {run_dir}")
 
@@ -621,15 +674,22 @@ def _step_convert(agent_dir: Path, eval_dir: Path, run_id: str | None = None) ->
 
 
 @click.command()
-@click.option("--agent-dir", required=True,
+@click.option("--agent-dir",
+              required=True,
               help="Path to the agent module directory (containing agent.py).")
-@click.option("--eval-dir", default=None,
+@click.option("--eval-dir",
+              default=None,
               help="Path to eval/ directory (auto-detected if omitted).")
-@click.option("--run-id", default=None,
-              help="Name for the results folder (e.g., 'baseline', 'tool-hardening'). "
-                   "Defaults to a timestamp like 20260319_060430. Use meaningful names "
-                   "to keep track of optimization iterations.")
-@click.option("--debug", is_flag=True, help="Show detailed logs from ADK, Vertex AI SDK, and other services.")
+@click.option(
+    "--run-id",
+    default=None,
+    help="Name for the results folder (e.g., 'baseline', 'tool-hardening'). "
+    "Defaults to a timestamp like 20260319_060430. Use meaningful names "
+    "to keep track of optimization iterations.")
+@click.option(
+    "--debug",
+    is_flag=True,
+    help="Show detailed logs from ADK, Vertex AI SDK, and other services.")
 def simulate(agent_dir, eval_dir, run_id, debug):
     """Run ADK User Sim scenarios and convert traces to evaluation format.
 
@@ -662,7 +722,9 @@ def simulate(agent_dir, eval_dir, run_id, debug):
 
     if not (agent_path / "agent.py").exists():
         console.print(f"\n  [red]Error:[/] No agent.py found in {agent_path}")
-        console.print(f"  [dim]The --agent-dir should point to the folder containing agent.py[/]")
+        console.print(
+            f"  [dim]The --agent-dir should point to the folder containing agent.py[/]"
+        )
         sys.exit(1)
 
     agent_name = agent_path.name
@@ -673,8 +735,11 @@ def simulate(agent_dir, eval_dir, run_id, debug):
     else:
         eval_path = _find_eval_dir(agent_path)
         if not eval_path:
-            console.print(f"\n  [red]Error:[/] No eval/ directory found near {agent_path}")
-            console.print(f"  [dim]Run `agent-eval init` first to scaffold one.[/]")
+            console.print(
+                f"\n  [red]Error:[/] No eval/ directory found near {agent_path}"
+            )
+            console.print(
+                f"  [dim]Run `agent-eval init` first to scaffold one.[/]")
             sys.exit(1)
 
     from agent_eval.core.config import find_eval_files
@@ -682,14 +747,21 @@ def simulate(agent_dir, eval_dir, run_id, debug):
     if discovered["scenarios"]:
         scenarios_file = discovered["scenarios"][0]
     else:
-        console.print(f"\n  [red]Error:[/] No scenario files found in {eval_path / 'scenarios'}")
-        console.print(f"  [dim]Add multi-turn rows (with history or conversation_plan) to tests/eval/dataset.jsonl[/]")
+        console.print(
+            f"\n  [red]Error:[/] No scenario files found in {eval_path / 'scenarios'}"
+        )
+        console.print(
+            f"  [dim]Add multi-turn rows (with history or conversation_plan) to tests/eval/dataset.jsonl[/]"
+        )
         sys.exit(1)
 
     session_file = eval_path / "scenarios" / "session_input.json"
     if not session_file.exists():
-        console.print(f"\n  [red]Error:[/] No session input file at {session_file}")
-        console.print(f"  [dim]Create session_input.json with your app_name and user_id[/]")
+        console.print(
+            f"\n  [red]Error:[/] No session input file at {session_file}")
+        console.print(
+            f"  [dim]Create session_input.json with your app_name and user_id[/]"
+        )
         sys.exit(1)
 
     n_scenarios = _count_scenarios(scenarios_file)
@@ -703,15 +775,16 @@ def simulate(agent_dir, eval_dir, run_id, debug):
         else:
             from rich.prompt import Prompt
             console.print()
-            console.print(Panel(
-                "[bold]Give this run a name[/] so you can easily find it later.\n\n"
-                "Examples: [cyan]baseline[/], [cyan]v2-tool-hardening[/], [cyan]cache-optimization[/]\n\n"
-                "[dim]Results will be saved to tests/eval/results/<run-id>/.\n"
-                "Press Enter to use an auto-generated timestamp instead.[/]",
-                title="[bold]Run ID[/]",
-                border_style="blue",
-                padding=(1, 2),
-            ))
+            console.print(
+                Panel(
+                    "[bold]Give this run a name[/] so you can easily find it later.\n\n"
+                    "Examples: [cyan]baseline[/], [cyan]v2-tool-hardening[/], [cyan]cache-optimization[/]\n\n"
+                    "[dim]Results will be saved to tests/eval/results/<run-id>/.\n"
+                    "Press Enter to use an auto-generated timestamp instead.[/]",
+                    title="[bold]Run ID[/]",
+                    border_style="blue",
+                    padding=(1, 2),
+                ))
             run_id = Prompt.ask(
                 "  Run ID",
                 default=default_ts,
@@ -721,23 +794,24 @@ def simulate(agent_dir, eval_dir, run_id, debug):
 
     # ── Overview ────────────────────────────────────────────────────────────
 
-    console.print(Panel(
-        f"[bold]Agent:[/]      [cyan]{agent_name}[/]  [dim]({agent_path})[/]\n"
-        f"[bold]Eval dir:[/]   {eval_path}\n"
-        f"[bold]Scenarios:[/]  [cyan]{n_scenarios}[/] scenario{'s' if n_scenarios != 1 else ''}"
-        f" in conversation_scenarios.json\n"
-        f"[bold]Run ID:[/]     [cyan]{run_id}[/]"
-        f"  [dim](results saved to tests/eval/results/{run_id}/)[/]\n\n"
-        f"[bold]What will happen:[/]\n"
-        f"  [dim]1.[/] Symlink scenario files into agent directory (for ADK)\n"
-        f"  [dim]2.[/] Clear previous eval_history (avoid stale traces)\n"
-        f"  [dim]3.[/] Create fresh eval_set + load scenarios (avoid duplicates)\n"
-        f"  [dim]4.[/] Run ADK User Sim (LLM simulates users from your scenarios)\n"
-        f"  [dim]5.[/] Convert traces to agent-eval JSONL format",
-        title="[bold]Simulate[/]",
-        border_style="blue",
-        padding=(1, 2),
-    ))
+    console.print(
+        Panel(
+            f"[bold]Agent:[/]      [cyan]{agent_name}[/]  [dim]({agent_path})[/]\n"
+            f"[bold]Eval dir:[/]   {eval_path}\n"
+            f"[bold]Scenarios:[/]  [cyan]{n_scenarios}[/] scenario{'s' if n_scenarios != 1 else ''}"
+            f" in conversation_scenarios.json\n"
+            f"[bold]Run ID:[/]     [cyan]{run_id}[/]"
+            f"  [dim](results saved to tests/eval/results/{run_id}/)[/]\n\n"
+            f"[bold]What will happen:[/]\n"
+            f"  [dim]1.[/] Symlink scenario files into agent directory (for ADK)\n"
+            f"  [dim]2.[/] Clear previous eval_history (avoid stale traces)\n"
+            f"  [dim]3.[/] Create fresh eval_set + load scenarios (avoid duplicates)\n"
+            f"  [dim]4.[/] Run ADK User Sim (LLM simulates users from your scenarios)\n"
+            f"  [dim]5.[/] Convert traces to agent-eval JSONL format",
+            title="[bold]Simulate[/]",
+            border_style="blue",
+            padding=(1, 2),
+        ))
     _continue("Press Enter to start the simulation →", console=console)
 
     # ── Execute steps ───────────────────────────────────────────────────────
@@ -761,20 +835,22 @@ def simulate(agent_dir, eval_dir, run_id, debug):
     # Use relative paths for clean copy-pasteable commands
     cwd = Path.cwd()
     rel_run = os.path.relpath(run_dir, cwd)
-    rel_metrics = os.path.relpath(eval_path / "metrics" / "metric_definitions.json", cwd)
+    rel_metrics = os.path.relpath(
+        eval_path / "metrics" / "metric_definitions.json", cwd)
     rel_agent = os.path.relpath(agent_path, cwd)
 
     console.print()
-    console.print(Panel(
-        f"[bold green]Simulation complete![/]\n\n"
-        f"[bold]Results:[/]  {rel_run}/\n\n"
-        "[dim]ADK's built-in eval covers hallucination + safety checks.\n"
-        "agent-eval evaluate adds: latency, tokens, cost, cache efficiency,\n"
-        "and your custom LLM-as-judge metrics from metric_definitions.json.[/]",
-        title="[bold]Done[/]",
-        border_style="green",
-        padding=(1, 2),
-    ))
+    console.print(
+        Panel(
+            f"[bold green]Simulation complete![/]\n\n"
+            f"[bold]Results:[/]  {rel_run}/\n\n"
+            "[dim]ADK's built-in eval covers hallucination + safety checks.\n"
+            "agent-eval evaluate adds: latency, tokens, cost, cache efficiency,\n"
+            "and your custom LLM-as-judge metrics from metric_definitions.json.[/]",
+            title="[bold]Done[/]",
+            border_style="green",
+            padding=(1, 2),
+        ))
 
     console.print()
     console.print("[bold]Next steps — copy and paste:[/]")
@@ -782,7 +858,9 @@ def simulate(agent_dir, eval_dir, run_id, debug):
     console.print("[bold]1.[/] Run deterministic + LLM-as-judge metrics:")
     console.print()
     console.print(f"agent-eval evaluate \\")
-    console.print(f"  --interaction-file {rel_run}/raw/processed_interaction_sim.jsonl \\")
+    console.print(
+        f"  --interaction-file {rel_run}/raw/processed_interaction_sim.jsonl \\"
+    )
     console.print(f"  --metrics-files {rel_metrics} \\")
     console.print(f"  --results-dir {rel_run}")
     console.print()

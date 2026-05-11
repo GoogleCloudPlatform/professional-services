@@ -153,7 +153,6 @@ from __future__ import annotations
 
 from typing import Final
 
-
 # ── Canonical kinds (our vocabulary, not the SDK's) ───────────────────────
 
 KIND_MANAGED: Final[str] = "managed"
@@ -183,7 +182,6 @@ REQUIRED_FIELDS: Final[dict[str, frozenset[str]]] = {
     KIND_REMOTE_CODE: frozenset({"code_snippet"}),
 }
 
-
 # ── Per-row column defaults (docs-mirror; SDK doesn't expose) ─────────────
 #
 # Maps SDK FLATTEN-schema column names → source-column expression in our ADK
@@ -192,8 +190,8 @@ REQUIRED_FIELDS: Final[dict[str, frozenset[str]]] = {
 # scaffold can reference the same defaults.
 
 SDK_COLUMN_DEFAULTS: Final[dict[str, str]] = {
-    "prompt":              "user_inputs[-1]",
-    "response":            "final_response",
+    "prompt": "user_inputs[-1]",
+    "response": "final_response",
     # Pull `reference` from the NESTED reference_data dict — single source of
     # truth for golden-comparison metrics. A metric can override the field
     # name via its `reference_field` setting (e.g. "expected_response" or
@@ -201,12 +199,11 @@ SDK_COLUMN_DEFAULTS: Final[dict[str, str]] = {
     # scaffold mirrored expected_behavior to a top-level `reference` column;
     # that created two copies of the same content in user-facing files and
     # forced a "don't hand-edit `reference`" caveat in the editing guide.
-    "reference":           "reference_data:expected_behavior",
-    "history":             "extracted_data:conversation_history",
+    "reference": "reference_data:expected_behavior",
+    "history": "extracted_data:conversation_history",
     # special: pulled from final_session_state.events
     "intermediate_events": "events",
 }
-
 
 # ── Per-managed-metric required columns (docs-mirror) ─────────────────────
 #
@@ -228,33 +225,33 @@ DEFAULT_REQUIRED_COLUMNS: Final[tuple[str, ...]] = ("prompt", "response")
 
 MANAGED_METRIC_REQUIRED_COLUMNS: Final[dict[str, tuple[str, ...]]] = {
     # Adaptive rubric — no reference needed (judge generates rubrics adaptively)
-    "GENERAL_QUALITY":                ("prompt", "response"),
-    "TEXT_QUALITY":                   ("prompt", "response"),
-    "INSTRUCTION_FOLLOWING":          ("prompt", "response"),
-    "QUESTION_ANSWERING_QUALITY":     ("prompt", "response"),
-    "SUMMARIZATION_QUALITY":          ("prompt", "response"),
-    "VERBOSITY":                      ("prompt", "response"),
-    "FLUENCY":                        ("response",),
-    "GECKO_TEXT2IMAGE":               ("prompt", "response"),
-    "GECKO_TEXT2VIDEO":               ("prompt", "response"),
+    "GENERAL_QUALITY": ("prompt", "response"),
+    "TEXT_QUALITY": ("prompt", "response"),
+    "INSTRUCTION_FOLLOWING": ("prompt", "response"),
+    "QUESTION_ANSWERING_QUALITY": ("prompt", "response"),
+    "SUMMARIZATION_QUALITY": ("prompt", "response"),
+    "VERBOSITY": ("prompt", "response"),
+    "FLUENCY": ("response",),
+    "GECKO_TEXT2IMAGE": ("prompt", "response"),
+    "GECKO_TEXT2VIDEO": ("prompt", "response"),
     # Adaptive rubric — agent-specific (use intermediate_events)
-    "FINAL_RESPONSE_QUALITY":         ("prompt", "response", "intermediate_events"),
-    "FINAL_RESPONSE_REFERENCE_FREE":  ("prompt", "response"),
-    "TOOL_USE_QUALITY":               ("prompt", "response", "intermediate_events"),
+    "FINAL_RESPONSE_QUALITY": ("prompt", "response", "intermediate_events"),
+    "FINAL_RESPONSE_REFERENCE_FREE": ("prompt", "response"),
+    "TOOL_USE_QUALITY": ("prompt", "response", "intermediate_events"),
     # Adaptive rubric — multi-turn (history-based)
-    "MULTI_TURN_GENERAL_QUALITY":     ("prompt", "response", "history"),
-    "MULTI_TURN_TEXT_QUALITY":        ("prompt", "response", "history"),
-    "MULTI_TURN_CHAT_QUALITY":        ("prompt", "response", "history"),
-    "MULTI_TURN_SAFETY":              ("prompt", "response", "history"),
+    "MULTI_TURN_GENERAL_QUALITY": ("prompt", "response", "history"),
+    "MULTI_TURN_TEXT_QUALITY": ("prompt", "response", "history"),
+    "MULTI_TURN_CHAT_QUALITY": ("prompt", "response", "history"),
+    "MULTI_TURN_SAFETY": ("prompt", "response", "history"),
     # Adaptive rubric — multi-turn agent (full trace)
-    "MULTI_TURN_TASK_SUCCESS":        ("agent_eval_data",),
-    "MULTI_TURN_TOOL_USE_QUALITY":    ("agent_eval_data",),
-    "MULTI_TURN_TRAJECTORY_QUALITY":  ("agent_eval_data",),
+    "MULTI_TURN_TASK_SUCCESS": ("agent_eval_data",),
+    "MULTI_TURN_TOOL_USE_QUALITY": ("agent_eval_data",),
+    "MULTI_TURN_TRAJECTORY_QUALITY": ("agent_eval_data",),
     # Static rubric
-    "SAFETY":                         ("prompt", "response"),
-    "GROUNDING":                      ("prompt", "response", "context"),
-    "FINAL_RESPONSE_MATCH":           ("prompt", "response", "reference"),
-    "HALLUCINATION":                  ("prompt", "response", "intermediate_events"),
+    "SAFETY": ("prompt", "response"),
+    "GROUNDING": ("prompt", "response", "context"),
+    "FINAL_RESPONSE_MATCH": ("prompt", "response", "reference"),
+    "HALLUCINATION": ("prompt", "response", "intermediate_events"),
 }
 
 
@@ -285,13 +282,13 @@ DEFAULT_BINARY_RATING_SCORES: Final[dict[str, str]] = {
     "0": "Fail: does not meet at least one criterion above",
 }
 
-
 # ── Read-side helpers (use these instead of raw .get() on legacy fields) ──
 #
 # Every call site that needs to know "is this a managed metric?" or "what's
 # the SDK base name?" or "what's the score range to display?" should go
 # through these helpers. That way the schema can evolve without 30
 # scattered .get() calls breaking.
+
 
 def is_managed_entry(info: dict) -> bool:
     """True for ``kind: managed`` and ``kind: parametrized_managed``."""

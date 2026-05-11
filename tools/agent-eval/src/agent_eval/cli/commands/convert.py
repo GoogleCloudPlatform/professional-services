@@ -26,8 +26,13 @@ console = Console()
 
 
 @click.command()
-@click.option("--agent-dir", required=True, help="Path to the agent directory (containing .adk/eval_history).")
-@click.option("--questions-file", default=None, help="Path to Golden Dataset to merge reference data.")
+@click.option(
+    "--agent-dir",
+    required=True,
+    help="Path to the agent directory (containing .adk/eval_history).")
+@click.option("--questions-file",
+              default=None,
+              help="Path to Golden Dataset to merge reference data.")
 @click.option("--output-dir", default="results", help="Directory for outputs.")
 @click.option("--output-file", default=None, help="Custom output filename.")
 def convert(agent_dir, questions_file, output_dir, output_file):
@@ -49,7 +54,8 @@ def convert(agent_dir, questions_file, output_dir, output_file):
         os.makedirs(raw_dir, exist_ok=True)
 
         if not output_file:
-            output_path = os.path.join(raw_dir, "processed_interaction_sim.jsonl")
+            output_path = os.path.join(raw_dir,
+                                       "processed_interaction_sim.jsonl")
         else:
             fname = output_file
             if not fname.endswith(".jsonl"):
@@ -59,10 +65,14 @@ def convert(agent_dir, questions_file, output_dir, output_file):
             output_path = os.path.join(raw_dir, fname)
 
         write_jsonl(records, output_path)
-        console.print(f"\n[bold green]SUCCESS:[/] Converted {len(records)} interactions to: {output_path}")
+        console.print(
+            f"\n[bold green]SUCCESS:[/] Converted {len(records)} interactions to: {output_path}"
+        )
         console.print(f"Run folder: {run_dir}")
         console.print(f"\nTo evaluate, run:")
-        console.print(f"  agent-eval evaluate --interaction-file {output_path} --metrics-files <metrics.json> --results-dir {run_dir}")
+        console.print(
+            f"  agent-eval evaluate --interaction-file {output_path} --metrics-files <metrics.json> --results-dir {run_dir}"
+        )
 
     except Exception as e:
         console.print(f"[bold red]Error converting history:[/] {e}")

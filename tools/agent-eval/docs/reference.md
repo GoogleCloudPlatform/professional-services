@@ -70,6 +70,7 @@ For installation and getting started, see the [README](../README.md).
     - [BYOD — `agent-eval ingest-traces`](#byod-bring-your-own-data--agent-eval-ingest-traces)
     - [Other deferred items from the plan](#other-deferred-items-from-the-plan)
     - [SDK features `agent-eval` doesn't surface yet](#sdk-features-agent-eval-doesnt-surface-yet)
+18. [**`FUTURE_WORK.md`**](FUTURE_WORK.md) — contributor pickup hooks: AE re-validation, model API schema portability, framework portability beyond ADK
 
 ---
 
@@ -824,7 +825,9 @@ See [Run Comparison](#run-comparison) for details on how comparison works.
 
 ### agent-engine
 
-> ⚠️ **Currently being re-validated.** We've recently started hitting an issue when sending the inference request via `create_evaluation_run()`. The local pipeline (`agent-eval run`) works as expected. If we don't get this fixed before publishing, the full investigation + recovery plan will move into `docs/FUTURE_WORK.md` for contributors to pick up. The command is documented here for completeness — feel free to skip ahead to the next section.
+> ⚠️ **Currently deferred.** The streamlined Agent Engine pass (`create_evaluation_run`) is being re-validated — we recently started hitting an issue when sending the inference request. The command is **not registered in `--help`** in this build. The implementation still ships at `src/agent_eval/cli/commands/agent_engine.py` and the full investigation context (current status, what's already AE-ready, SDK pin notes, reproduction steps, suggested debugging path) lives in [`docs/FUTURE_WORK.md`](FUTURE_WORK.md#1-re-validate-the-streamlined-agent-engine-pass-agent-eval-agent-engine). The local pipeline (`agent-eval run`) is unaffected — it imports the agent module directly and never goes through `create_evaluation_run`.
+>
+> The reference text below is preserved for the eventual re-enable; skip it if you just need the working flow.
 
 The **streamlined Agent Engine pass** — for agents deployed to a Reasoning Engine. Wraps `client.evals.create_evaluation_run()` so Vertex handles inference, scoring, and GCS upload in one managed call. This is additive to the local pipeline; you don't choose between them.
 

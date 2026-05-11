@@ -65,6 +65,7 @@ def _vt():
 # Builders for the five custom metric patterns
 # ---------------------------------------------------------------------------
 
+
 def parametrized_managed(
     base: str,
     *,
@@ -81,10 +82,8 @@ def parametrized_managed(
     attr = base.upper()
     rubric = getattr(vt.RubricMetric, attr, None)
     if rubric is None:
-        raise ValueError(
-            f"Unknown managed metric base '{base}'. "
-            f"Must be a RubricMetric attribute name."
-        )
+        raise ValueError(f"Unknown managed metric base '{base}'. "
+                         f"Must be a RubricMetric attribute name.")
 
     kwargs: Dict[str, Any] = {}
     if version:
@@ -154,12 +153,8 @@ def computation(name: str, metric_name: str):
 
 # Single source of truth — see ``core/metric_schema.py``.
 from agent_eval.core.metric_schema import (  # noqa: E402
-    ALL_KINDS as _KNOWN_KINDS,
-    KIND_MANAGED,
-    KIND_PARAMETRIZED_MANAGED,
-    KIND_CUSTOM_LLM_JUDGE,
-    KIND_COMPUTATION,
-    KIND_PYTHON_FUNCTION,
+    ALL_KINDS as _KNOWN_KINDS, KIND_MANAGED, KIND_PARAMETRIZED_MANAGED,
+    KIND_CUSTOM_LLM_JUDGE, KIND_COMPUTATION, KIND_PYTHON_FUNCTION,
     KIND_REMOTE_CODE,
 )
 
@@ -168,7 +163,8 @@ def _load_python_callable(module_path: str | Path, function: str) -> Callable:
     """Load a callable from an arbitrary file path."""
     module_path = Path(module_path)
     if not module_path.exists():
-        raise FileNotFoundError(f"Python function module not found: {module_path}")
+        raise FileNotFoundError(
+            f"Python function module not found: {module_path}")
     spec = importlib.util.spec_from_file_location(module_path.stem, module_path)
     if spec is None or spec.loader is None:
         raise ImportError(f"Could not load module from {module_path}")
@@ -177,12 +173,14 @@ def _load_python_callable(module_path: str | Path, function: str) -> Callable:
     fn = getattr(module, function, None)
     if fn is None or not callable(fn):
         raise AttributeError(
-            f"Function '{function}' not found in {module_path}"
-        )
+            f"Function '{function}' not found in {module_path}")
     return fn
 
 
-def build_metric(name: str, spec: Dict[str, Any], *, base_dir: Path | None = None):
+def build_metric(name: str,
+                 spec: Dict[str, Any],
+                 *,
+                 base_dir: Path | None = None):
     """Build a single SDK metric object from a canonical-schema entry.
 
     Six supported ``kind`` values, mirroring the docs at
@@ -197,8 +195,7 @@ def build_metric(name: str, spec: Dict[str, Any], *, base_dir: Path | None = Non
     if kind not in _KNOWN_KINDS:
         raise ValueError(
             f"Metric '{name}': unknown or missing 'kind'. "
-            f"Expected one of {sorted(_KNOWN_KINDS)}, got {kind!r}."
-        )
+            f"Expected one of {sorted(_KNOWN_KINDS)}, got {kind!r}.")
 
     if kind in (KIND_MANAGED, KIND_PARAMETRIZED_MANAGED):
         base = spec.get("base", name)
@@ -215,8 +212,7 @@ def build_metric(name: str, spec: Dict[str, Any], *, base_dir: Path | None = Non
         if not criteria or not rating_scores:
             raise ValueError(
                 f"Metric '{name}' (custom_llm_judge): both 'criteria' and "
-                f"'rating_scores' are required."
-            )
+                f"'rating_scores' are required.")
         return custom_llm_judge(
             name=name,
             criteria=criteria,
@@ -250,8 +246,7 @@ def build_metric(name: str, spec: Dict[str, Any], *, base_dir: Path | None = Non
         code = spec.get("code_snippet")
         if not code:
             raise ValueError(
-                f"Metric '{name}' (remote_code): 'code_snippet' is required."
-            )
+                f"Metric '{name}' (remote_code): 'code_snippet' is required.")
         return remote_code(name, code)
 
     raise AssertionError("unreachable")  # pragma: no cover
@@ -281,6 +276,7 @@ def build_all(
 # Agent Engine bridge — wrap any built metric for create_evaluation_run
 # ---------------------------------------------------------------------------
 
+
 def to_evaluation_run_metric(metric: Any):
     """Wrap a metric for ``client.evals.create_evaluation_run``.
 
@@ -306,33 +302,30 @@ def to_evaluation_run_metric(metric: Any):
             from google.genai.types import LLMBasedMetricSpec as spec_cls
         return vt.EvaluationRunMetric(
             metric=metric.name,
-            metric_config=vt.UnifiedMetric(
-                llm_based_metric_spec=spec_cls(
-                    metric_prompt_template=metric.prompt_template,
-                ),
-            ),
+            metric_config=vt.UnifiedMetric(llm_based_metric_spec=spec_cls(
+                metric_prompt_template=metric.prompt_template,),),
         )
 
     # Bare Metric with remote_custom_function -> custom_code_execution_spec
-    if isinstance(metric, vt.Metric) and getattr(metric, "remote_custom_function", None):
+    if isinstance(metric, vt.Metric) and getattr(
+            metric, "remote_custom_function", None):
         return vt.EvaluationRunMetric(
             metric=metric.name,
             metric_config=vt.UnifiedMetric(
                 custom_code_execution_spec=vt.CustomCodeExecutionSpec(
-                    remote_custom_function=metric.remote_custom_function,
-                ),
-            ),
+                    remote_custom_function=metric.remote_custom_function,),),
         )
 
     # Bare Metric with custom_function: in-process only; not supported by
     # the streamlined `agent-engine` runner. Caller must convert it to
     # remote_code or skip.
-    if isinstance(metric, vt.Metric) and getattr(metric, "custom_function", None):
+    if isinstance(metric, vt.Metric) and getattr(metric, "custom_function",
+                                                 None):
         raise ValueError(
             f"Metric '{metric.name}' is a local Python function and cannot run "
             f"in the streamlined Agent Engine path. Convert it to remote_code "
             f"(custom_code_execution_spec) by providing a code_snippet, or run "
-            f"it via the standard `evaluate` command instead."
-        )
+            f"it via the standard `evaluate` command instead.")
 
-    raise TypeError(f"Cannot wrap metric of type {type_name} for create_evaluation_run.")
+    raise TypeError(
+        f"Cannot wrap metric of type {type_name} for create_evaluation_run.")

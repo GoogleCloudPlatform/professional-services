@@ -60,7 +60,6 @@ VALID_SOURCE_COLUMNS = {
     "extracted_data:stop_reasons",
 }
 
-
 # ---------------------------------------------------------------------------
 # Multi-step prompts for focused Gemini calls (reduced hallucination)
 # ---------------------------------------------------------------------------
@@ -470,10 +469,10 @@ Good golden data covers:
 **When a metric flags BOTH `requires_multi_turn: true` AND `requires_reference: true`** (a "trajectory + final-answer" metric like `dynamic_retrieval_and_routing_success`), AT LEAST ONE multi-turn scenario MUST include a `reference_data` block carrying the field that metric reads. Without it, the metric will skip every row at evaluation time.
 """
 
-
 # ---------------------------------------------------------------------------
 # Multi-step generation functions
 # ---------------------------------------------------------------------------
+
 
 def analyze_agent_data(
     agent_dir: Path,
@@ -493,8 +492,7 @@ def analyze_agent_data(
     if not agent_context:
         raise MetricGenerationError(
             f"No agent source code found in {agent_dir}. "
-            "Make sure the directory contains agent.py."
-        )
+            "Make sure the directory contains agent.py.")
 
     source_parts = _format_source_code(agent_context)
     prompt = AGENT_ANALYSIS_PROMPT.format(agent_source_code=source_parts)
@@ -502,10 +500,12 @@ def analyze_agent_data(
     raw = _call_gemini(prompt, model)
     parsed = _extract_json(raw)
     if not parsed:
-        raise MetricGenerationError("Could not parse agent analysis from Gemini response.")
+        raise MetricGenerationError(
+            "Could not parse agent analysis from Gemini response.")
 
     # Validate expected keys
-    for key in ("tools", "state_variables", "key_behaviors", "suggested_state_variables"):
+    for key in ("tools", "state_variables", "key_behaviors",
+                "suggested_state_variables"):
         if key not in parsed:
             parsed[key] = [] if key != "state_variables" else {}
 
@@ -540,8 +540,7 @@ def generate_metric_definitions(
             "**DEVELOPER PRIORITIES:**\n"
             "The developer considers these aspects important to evaluate:\n"
             f"> {user_priorities}\n\n"
-            "Prioritize custom metrics that address these concerns."
-        )
+            "Prioritize custom metrics that address these concerns.")
     else:
         user_priorities_section = ""
 
@@ -551,7 +550,8 @@ def generate_metric_definitions(
         # Filter to just custom (non-managed) metrics for the prompt
         from agent_eval.core.metric_schema import is_managed_entry
         custom_existing = {
-            k: v for k, v in existing_metrics.items()
+            k: v
+            for k, v in existing_metrics.items()
             if isinstance(v, dict) and not is_managed_entry(v)
         }
         if custom_existing:
@@ -559,16 +559,16 @@ def generate_metric_definitions(
                 "## Existing Custom Metrics (preserve and improve)\n\n"
                 "The agent already has these custom metrics. Include them in your output "
                 "(improved or as-is). Only remove a metric with a clear reason in the rationale.\n\n"
-                f"```json\n{json.dumps(custom_existing, indent=2)}\n```"
-            )
+                f"```json\n{json.dumps(custom_existing, indent=2)}\n```")
 
     # Format example metrics
-    example_trajectory = json.dumps(METRIC_TEMPLATES["trajectory_accuracy"], indent=2)
-    example_tool_use = json.dumps(METRIC_TEMPLATES["tool_use_quality"], indent=2)
+    example_trajectory = json.dumps(METRIC_TEMPLATES["trajectory_accuracy"],
+                                    indent=2)
+    example_tool_use = json.dumps(METRIC_TEMPLATES["tool_use_quality"],
+                                  indent=2)
     example_metrics = (
         f"**trajectory_accuracy:**\n```json\n{example_trajectory}\n```\n\n"
-        f"**tool_use_quality:**\n```json\n{example_tool_use}\n```"
-    )
+        f"**tool_use_quality:**\n```json\n{example_tool_use}\n```")
 
     # Get managed metrics reference and ADK knowledge
     managed_ref = format_metrics_for_prompt()
@@ -590,8 +590,7 @@ def generate_metric_definitions(
 
     if not metrics:
         raise MetricGenerationError(
-            "Gemini generated metrics but none passed validation."
-        )
+            "Gemini generated metrics but none passed validation.")
 
     # Extract rationale
     rationale = ""
@@ -637,7 +636,8 @@ def generate_eval_data(
         Dict with keys: scenarios, golden_data, strategy
     """
     agent_context = discover_agent_context(agent_dir, quiet=True)
-    source_parts = _format_source_code(agent_context) if agent_context else "No source code available."
+    source_parts = _format_source_code(
+        agent_context) if agent_context else "No source code available."
 
     # Existing data section
     existing_data_section = ""
@@ -645,16 +645,19 @@ def generate_eval_data(
     parts = []
     if existing_scenarios:
         preview = existing_scenarios[:3]
-        parts.append(f"**Existing scenarios (preview):**\n```json\n{json.dumps(preview, indent=2)}\n```")
+        parts.append(
+            f"**Existing scenarios (preview):**\n```json\n{json.dumps(preview, indent=2)}\n```"
+        )
     if existing_golden:
         preview = existing_golden[:3]
-        parts.append(f"**Existing golden data (preview):**\n```json\n{json.dumps(preview, indent=2)}\n```")
+        parts.append(
+            f"**Existing golden data (preview):**\n```json\n{json.dumps(preview, indent=2)}\n```"
+        )
     if parts:
         existing_data_section = (
             "## Existing Test Data\n\n"
             "The agent already has test data. Preserve and extend — don't replace.\n\n"
-            + "\n\n".join(parts)
-        )
+            + "\n\n".join(parts))
         existing_data_instructions = (
             "**For existing data:** Preserve what's there. Add NEW entries that "
             "cover gaps. If an existing entry has issues, include an improved version."
@@ -681,8 +684,7 @@ def generate_eval_data(
             "Use this rationale to design test cases that ACTUALLY EXERCISE each metric. "
             "If a metric checks 'did the agent call set_active_dataset before any subagent?', "
             "include test queries where that prerequisite matters. Generic happy-path queries "
-            "that don't exercise the criteria above are wasted rows."
-        )
+            "that don't exercise the criteria above are wasted rows.")
 
     # Required reference fields — the dangerous gap. Each metric with
     # requires_reference: true points at a specific reference_data:<field>
@@ -693,8 +695,7 @@ def generate_eval_data(
     if required_reference_fields:
         rows = "\n".join(
             f"- `reference_data.{field}` — required by metric `{metric_name}`"
-            for metric_name, field in required_reference_fields
-        )
+            for metric_name, field in required_reference_fields)
         required_fields_section = (
             "## REQUIRED `reference_data` field names (CRITICAL — read carefully)\n\n"
             "Each metric below needs a SPECIFIC field populated under "
@@ -708,8 +709,7 @@ def generate_eval_data(
             "the field names listed above. If a metric needs `expected_docs`, "
             "the golden row's `reference_data` MUST contain an `expected_docs` key. "
             "Free to ALSO include `expected_behavior` as a human-readable description, "
-            "but the listed fields above are the load-bearing ones."
-        )
+            "but the listed fields above are the load-bearing ones.")
 
     prompt = EVAL_DATA_PROMPT.format(
         agent_source_code=source_parts,
@@ -727,7 +727,8 @@ def generate_eval_data(
     raw = _call_gemini(prompt, model)
     parsed = _extract_json(raw)
     if not parsed:
-        raise MetricGenerationError("Could not parse eval data from Gemini response.")
+        raise MetricGenerationError(
+            "Could not parse eval data from Gemini response.")
 
     # Deduplicate golden data by user_inputs and fill empty expected_behavior
     golden = parsed.get("golden_data", [])
@@ -739,11 +740,15 @@ def generate_eval_data(
             seen_queries.add(query_key)
             # Ensure expected_behavior is not empty
             ref = entry.get("reference_data", {})
-            if isinstance(ref, dict) and not ref.get("expected_behavior", "").strip():
-                ref["expected_behavior"] = entry.get("description", "Agent should respond appropriately")
+            if isinstance(
+                    ref, dict) and not ref.get("expected_behavior", "").strip():
+                ref["expected_behavior"] = entry.get(
+                    "description", "Agent should respond appropriately")
                 entry["reference_data"] = ref
-            elif not isinstance(ref, dict) and not entry.get("expected_behavior", "").strip():
-                entry["expected_behavior"] = entry.get("description", "Agent should respond appropriately")
+            elif not isinstance(ref, dict) and not entry.get(
+                    "expected_behavior", "").strip():
+                entry["expected_behavior"] = entry.get(
+                    "description", "Agent should respond appropriately")
             unique_golden.append(entry)
 
     return {
@@ -758,10 +763,13 @@ def _format_source_code(agent_context: Dict[str, str]) -> str:
     source_parts = []
     for filepath, content in agent_context.items():
         if filepath.endswith(".py"):
-            source_parts.append(f"**File: `{filepath}`**\n```python\n{content}\n```")
+            source_parts.append(
+                f"**File: `{filepath}`**\n```python\n{content}\n```")
         elif "GEMINI.md" in filepath:
-            source_parts.append(f"**{filepath}**\n```markdown\n{content[:5000]}\n```")
-    return "\n\n".join(source_parts) if source_parts else "No source code available."
+            source_parts.append(
+                f"**{filepath}**\n```markdown\n{content[:5000]}\n```")
+    return "\n\n".join(
+        source_parts) if source_parts else "No source code available."
 
 
 def _discover_existing_eval_files(agent_dir: Path) -> Dict[str, str]:
@@ -807,7 +815,8 @@ def _discover_existing_eval_files(agent_dir: Path) -> Dict[str, str]:
     for golden_file in discovered["golden_data"]:
         try:
             content = json.loads(golden_file.read_text())
-            all_questions.extend(content.get("golden_questions", content.get("questions", [])))
+            all_questions.extend(
+                content.get("golden_questions", content.get("questions", [])))
         except Exception:
             pass
     if all_questions:
@@ -828,7 +837,10 @@ def _discover_existing_eval_files(agent_dir: Path) -> Dict[str, str]:
     results_dir = eval_dir / "results"
     if results_dir.exists():
         run_folders = sorted(
-            [d for d in results_dir.iterdir() if d.is_dir() and (d / "gemini_analysis.md").exists()],
+            [
+                d for d in results_dir.iterdir()
+                if d.is_dir() and (d / "gemini_analysis.md").exists()
+            ],
             key=lambda d: d.stat().st_mtime,
             reverse=True,
         )
@@ -844,7 +856,6 @@ def _discover_existing_eval_files(agent_dir: Path) -> Dict[str, str]:
                 pass
 
     return existing
-
 
 
 # Backoff schedule for 429 / RESOURCE_EXHAUSTED retries: 2s, 4s, 8s, 16s.
@@ -870,10 +881,8 @@ def _call_gemini(prompt: str, model: str) -> str:
         from google import genai
         from google.genai.types import HttpOptions
     except ImportError:
-        raise MetricGenerationError(
-            "google-genai package not installed. "
-            "Install it with: pip install google-genai"
-        )
+        raise MetricGenerationError("google-genai package not installed. "
+                                    "Install it with: pip install google-genai")
 
     from agent_eval.core.config import get_project_id, get_location
 
@@ -883,8 +892,7 @@ def _call_gemini(prompt: str, model: str) -> str:
     if not project:
         raise MetricGenerationError(
             "GOOGLE_CLOUD_PROJECT environment variable not set. "
-            "Set it with: export GOOGLE_CLOUD_PROJECT=your-project-id"
-        )
+            "Set it with: export GOOGLE_CLOUD_PROJECT=your-project-id")
 
     client = genai.Client(
         vertexai=True,
@@ -903,7 +911,8 @@ def _call_gemini(prompt: str, model: str) -> str:
             return response.text
         except Exception as e:
             last_exc = e
-            if not _is_rate_limited(e) or attempt == len(_RETRY_BACKOFF_SECONDS):
+            if not _is_rate_limited(e) or attempt == len(
+                    _RETRY_BACKOFF_SECONDS):
                 break
             time.sleep(_RETRY_BACKOFF_SECONDS[attempt])
 
@@ -988,8 +997,11 @@ def _validate_single_metric(name: str, defn: Dict) -> List[str]:
     errors (empty = valid).
     """
     from agent_eval.core.metric_schema import (
-        ALL_KINDS, REQUIRED_FIELDS,
-        KIND_CUSTOM_LLM_JUDGE, KIND_MANAGED, KIND_PARAMETRIZED_MANAGED,
+        ALL_KINDS,
+        REQUIRED_FIELDS,
+        KIND_CUSTOM_LLM_JUDGE,
+        KIND_MANAGED,
+        KIND_PARAMETRIZED_MANAGED,
     )
     errors: List[str] = []
 
@@ -1000,8 +1012,7 @@ def _validate_single_metric(name: str, defn: Dict) -> List[str]:
     if not kind:
         errors.append(
             f"'{name}': missing 'kind' — every metric must declare one of "
-            f"{sorted(ALL_KINDS)}"
-        )
+            f"{sorted(ALL_KINDS)}")
         return errors
     if kind not in ALL_KINDS:
         errors.append(
@@ -1020,35 +1031,43 @@ def _validate_single_metric(name: str, defn: Dict) -> List[str]:
     if kind == KIND_CUSTOM_LLM_JUDGE:
         criteria = defn.get("criteria")
         if criteria is not None and not isinstance(criteria, dict):
-            errors.append(f"'{name}': 'criteria' must be a dict of name → description")
+            errors.append(
+                f"'{name}': 'criteria' must be a dict of name → description")
         elif isinstance(criteria, dict) and not criteria:
             errors.append(f"'{name}': 'criteria' dict must be non-empty")
 
         rs = defn.get("rating_scores")
         if rs is not None and not isinstance(rs, dict):
-            errors.append(f"'{name}': 'rating_scores' must be a dict of score-as-string → description")
+            errors.append(
+                f"'{name}': 'rating_scores' must be a dict of score-as-string → description"
+            )
         elif isinstance(rs, dict):
             if not rs:
-                errors.append(f"'{name}': 'rating_scores' dict must be non-empty")
+                errors.append(
+                    f"'{name}': 'rating_scores' dict must be non-empty")
             for k, v in rs.items():
                 if not isinstance(k, str):
-                    errors.append(f"'{name}': rating_scores keys must be strings, got {type(k).__name__} for {k!r}")
+                    errors.append(
+                        f"'{name}': rating_scores keys must be strings, got {type(k).__name__} for {k!r}"
+                    )
                 else:
                     try:
                         int(k)
                     except ValueError:
                         errors.append(
                             f"'{name}': rating_scores key {k!r} must be an integer-as-string "
-                            f"(per docs/determine-eval — e.g. '1', '0', '5')"
-                        )
+                            f"(per docs/determine-eval — e.g. '1', '0', '5')")
                 if not isinstance(v, str):
-                    errors.append(f"'{name}': rating_scores value for {k!r} must be a string description")
+                    errors.append(
+                        f"'{name}': rating_scores value for {k!r} must be a string description"
+                    )
 
     # managed / parametrized_managed — base must look like an SDK metric name.
     if kind in (KIND_MANAGED, KIND_PARAMETRIZED_MANAGED):
         base = defn.get("base", "")
         if not isinstance(base, str) or not base:
-            errors.append(f"'{name}': 'base' must be a non-empty string SDK metric name")
+            errors.append(
+                f"'{name}': 'base' must be a non-empty string SDK metric name")
 
     # dataset_mapping is OPTIONAL — when omitted, the evaluator falls back to
     # SDK_COLUMN_DEFAULTS. When present, check the placeholder names.
@@ -1059,28 +1078,24 @@ def _validate_single_metric(name: str, defn: Dict) -> List[str]:
         else:
             for placeholder, config in mapping.items():
                 if not isinstance(config, dict):
-                    errors.append(f"'{name}.{placeholder}': mapping value must be a dict")
+                    errors.append(
+                        f"'{name}.{placeholder}': mapping value must be a dict")
                     continue
                 if "source_column" in config:
                     col = config["source_column"]
-                    if (
-                        col not in VALID_SOURCE_COLUMNS
-                        and not col.startswith("extracted_data:")
-                        and not col.startswith("reference_data:")
-                    ):
+                    if (col not in VALID_SOURCE_COLUMNS and
+                            not col.startswith("extracted_data:") and
+                            not col.startswith("reference_data:")):
                         errors.append(
                             f"'{name}.{placeholder}': invalid source_column '{col}'. "
                             f"Must be one of: {', '.join(sorted(VALID_SOURCE_COLUMNS))}, "
-                            "extracted_data:<name>, or reference_data:<name>"
-                        )
+                            "extracted_data:<name>, or reference_data:<name>")
                 elif "source_columns" in config and "template" in config:
                     cols = config["source_columns"]
                     for col in cols:
-                        if (
-                            col not in VALID_SOURCE_COLUMNS
-                            and not col.startswith("extracted_data:")
-                            and not col.startswith("reference_data:")
-                        ):
+                        if (col not in VALID_SOURCE_COLUMNS and
+                                not col.startswith("extracted_data:") and
+                                not col.startswith("reference_data:")):
                             errors.append(
                                 f"'{name}.{placeholder}': invalid source_column '{col}' in source_columns"
                             )
@@ -1091,7 +1106,6 @@ def _validate_single_metric(name: str, defn: Dict) -> List[str]:
                 else:
                     errors.append(
                         f"'{name}.{placeholder}': must have 'source_column' OR "
-                        f"'source_columns' + 'template'"
-                    )
+                        f"'source_columns' + 'template'")
 
     return errors

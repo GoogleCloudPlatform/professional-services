@@ -34,7 +34,6 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Optional
 
-
 _CANONICAL_EVAL = Path("tests") / "eval"
 _LEGACY_EVAL_FLAT = Path("eval")
 _LEGACY_EVAL_NESTED = Path("app") / "eval"
@@ -89,10 +88,10 @@ def find_eval_dir(agent_dir: Path | str) -> Path:
     base = Path(agent_dir)
     project_root = agent_project_root(base)
     for candidate in (
-        project_root / _CANONICAL_EVAL,
-        base / _CANONICAL_EVAL,
-        base / _LEGACY_EVAL_FLAT,
-        base / _LEGACY_EVAL_NESTED,
+            project_root / _CANONICAL_EVAL,
+            base / _CANONICAL_EVAL,
+            base / _LEGACY_EVAL_FLAT,
+            base / _LEGACY_EVAL_NESTED,
     ):
         if candidate.exists():
             return candidate
@@ -110,10 +109,11 @@ def find_metrics_path(agent_dir: Path | str) -> Optional[Path]:
     base = Path(agent_dir)
     project_root = agent_project_root(base)
     for candidate in (
-        project_root / _CANONICAL_EVAL / "metrics" / "metric_definitions.json",
-        base / _CANONICAL_EVAL / "metrics" / "metric_definitions.json",
-        base / _LEGACY_EVAL_FLAT / "metrics" / "metric_definitions.json",
-        base / _LEGACY_EVAL_NESTED / "metrics" / "metric_definitions.json",
+            project_root / _CANONICAL_EVAL / "metrics" /
+            "metric_definitions.json",
+            base / _CANONICAL_EVAL / "metrics" / "metric_definitions.json",
+            base / _LEGACY_EVAL_FLAT / "metrics" / "metric_definitions.json",
+            base / _LEGACY_EVAL_NESTED / "metrics" / "metric_definitions.json",
     ):
         if candidate.exists():
             return candidate
@@ -129,8 +129,8 @@ def find_dataset_path(agent_dir: Path | str) -> Optional[Path]:
     base = Path(agent_dir)
     project_root = agent_project_root(base)
     for candidate in (
-        project_root / _CANONICAL_EVAL / "dataset.jsonl",
-        base / _CANONICAL_EVAL / "dataset.jsonl",
+            project_root / _CANONICAL_EVAL / "dataset.jsonl",
+            base / _CANONICAL_EVAL / "dataset.jsonl",
     ):
         if candidate.exists():
             return candidate
@@ -148,7 +148,8 @@ def find_dataset_path(agent_dir: Path | str) -> Optional[Path]:
 _PROJECT_ROOT_MARKERS = ("pyproject.toml", "setup.py", "setup.cfg")
 
 
-def find_project_root(start: Path | None = None, max_depth: int = 6) -> Optional[Path]:
+def find_project_root(start: Path | None = None,
+                      max_depth: int = 6) -> Optional[Path]:
     """Walk up from ``start`` (default cwd) looking for a project-root marker.
 
     Returns the directory containing the marker, or None if nothing matches

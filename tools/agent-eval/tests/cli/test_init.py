@@ -32,10 +32,10 @@ from click.testing import CliRunner
 from agent_eval.cli.commands.init import _derive_chosen_paths, init
 from agent_eval.core.path_detector import PathDetection
 
-
 # ---------------------------------------------------------------------------
 # Unit tests — _derive_chosen_paths
 # ---------------------------------------------------------------------------
+
 
 class TestDeriveChosenPaths(unittest.TestCase):
     """Lock the auto-derivation rule: detection state → which surfaces to scaffold.
@@ -56,7 +56,8 @@ class TestDeriveChosenPaths(unittest.TestCase):
         detection = PathDetection(
             path="A",
             evidence="env",
-            agent_engine_resource="projects/p/locations/us-central1/reasoningEngines/123",
+            agent_engine_resource=
+            "projects/p/locations/us-central1/reasoningEngines/123",
         )
         assert _derive_chosen_paths(detection) == {"A"}
 
@@ -64,7 +65,8 @@ class TestDeriveChosenPaths(unittest.TestCase):
         detection = PathDetection(
             path="A",  # primary, but B is also available
             evidence="both",
-            agent_engine_resource="projects/p/locations/us-central1/reasoningEngines/123",
+            agent_engine_resource=
+            "projects/p/locations/us-central1/reasoningEngines/123",
             local_agents=[Path("app/agent.py")],
         )
         assert _derive_chosen_paths(detection) == {"A", "B"}
@@ -80,25 +82,26 @@ class TestDeriveChosenPaths(unittest.TestCase):
 # Helpers for the CliRunner integration tests
 # ---------------------------------------------------------------------------
 
+
 def _seed_local_agent(root: Path, *, module_name: str = "app") -> Path:
     """Drop a minimal agent.py + __init__.py so path detection finds it."""
     pkg = root / module_name
     pkg.mkdir(parents=True)
     (pkg / "__init__.py").write_text("from .agent import root_agent\n")
-    (pkg / "agent.py").write_text(
-        "class _Stub:\n"
-        "    name = 'stub'\n"
-        "root_agent = _Stub()\n"
-    )
+    (pkg / "agent.py").write_text("class _Stub:\n"
+                                  "    name = 'stub'\n"
+                                  "root_agent = _Stub()\n")
     return pkg
 
 
 def _seed_deployment_metadata(root: Path) -> Path:
     """Drop a deployment_metadata.json with a real resource name."""
     md = root / "deployment_metadata.json"
-    md.write_text(json.dumps({
-        "remote_agent_engine_id": "projects/p/locations/us-central1/reasoningEngines/123",
-    }))
+    md.write_text(
+        json.dumps({
+            "remote_agent_engine_id":
+                "projects/p/locations/us-central1/reasoningEngines/123",
+        }))
     return md
 
 
@@ -124,6 +127,7 @@ def _env_for_init(root: Path) -> dict[str, str]:
 # Integration tests — CliRunner against `init -y`
 # ---------------------------------------------------------------------------
 
+
 class TestInitAutoApprove(unittest.TestCase):
     """`init -y` must derive surfaces from detection — no chooser, no prompts.
 
@@ -135,8 +139,8 @@ class TestInitAutoApprove(unittest.TestCase):
         """Invoke init -y with env stubbed and the gcloud check no-oped."""
         runner = CliRunner()
         with mock.patch(
-            "agent_eval.cli.commands.init._verify_environment",
-            return_value=None,
+                "agent_eval.cli.commands.init._verify_environment",
+                return_value=None,
         ):
             return runner.invoke(
                 init,
@@ -157,10 +161,13 @@ class TestInitAutoApprove(unittest.TestCase):
             # root. No more eval/scenarios/ or eval/eval_data/ files —
             # multi-turn rows go in dataset.jsonl and simulate.py projects
             # them to ADK's expected files at runtime.
-            assert (root / "tests" / "eval" / "metrics" / "metric_definitions.json").exists()
+            assert (root / "tests" / "eval" / "metrics" /
+                    "metric_definitions.json").exists()
             assert (root / "tests" / "eval" / "dataset.jsonl").exists()
-            assert not (root / "eval" / "scenarios" / "conversation_scenarios.json").exists()
-            assert not (root / "eval" / "eval_data" / "golden_dataset.json").exists()
+            assert not (root / "eval" / "scenarios" /
+                        "conversation_scenarios.json").exists()
+            assert not (root / "eval" / "eval_data" /
+                        "golden_dataset.json").exists()
             assert not (root / "app" / "tests").exists(), \
                 "F3 regression: app/tests/ must not exist; tests/eval/ lives at the project root"
             # Next-steps leads with the local iteration loop
@@ -180,7 +187,8 @@ class TestInitAutoApprove(unittest.TestCase):
 
             assert result.exit_code == 0, result.output
             # Same unified layout regardless of detection.
-            assert (root / "tests" / "eval" / "metrics" / "metric_definitions.json").exists()
+            assert (root / "tests" / "eval" / "metrics" /
+                    "metric_definitions.json").exists()
             assert (root / "tests" / "eval" / "dataset.jsonl").exists()
             assert not (root / "app" / "tests").exists(), \
                 "F3 regression: app/tests/ must not exist"
@@ -193,8 +201,7 @@ class TestInitAutoApprove(unittest.TestCase):
             assert run_idx < ae_idx, (
                 "Next-steps must lead with `agent-eval run` (local iteration "
                 "loop) and surface `agent-engine` second — got run at "
-                f"{run_idx}, agent-engine at {ae_idx}"
-            )
+                f"{run_idx}, agent-engine at {ae_idx}")
             assert "Path A" not in result.output
             assert "Path B" not in result.output
 
@@ -212,7 +219,8 @@ class TestInitAutoApprove(unittest.TestCase):
 
             assert result.exit_code == 0, result.output
             # Unified scaffold lands at <project_root>/tests/eval/.
-            assert (root / "tests" / "eval" / "metrics" / "metric_definitions.json").exists()
+            assert (root / "tests" / "eval" / "metrics" /
+                    "metric_definitions.json").exists()
             assert "Path A" not in result.output
             assert "Path B" not in result.output
 

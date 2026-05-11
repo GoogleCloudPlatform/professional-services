@@ -41,7 +41,6 @@ from typing import Any, Dict, List, Optional, Set
 
 logger = logging.getLogger("agent_eval")
 
-
 # Capability tags for per-row metric eligibility.
 CAP_REFERENCE = "has_reference"
 CAP_MULTI_TURN = "multi_turn"
@@ -49,10 +48,10 @@ CAP_SESSION_INPUTS = "has_session_inputs"
 CAP_INTERMEDIATE_EVENTS = "has_intermediate_events"
 CAP_RESPONSE = "has_response"
 
-
 # ---------------------------------------------------------------------------
 # Read / write
 # ---------------------------------------------------------------------------
+
 
 def read_dataset(path: Path | str) -> List[Dict[str, Any]]:
     """Read a JSONL dataset file. Returns ``[]`` if the file does not exist."""
@@ -69,8 +68,7 @@ def read_dataset(path: Path | str) -> List[Dict[str, Any]]:
                 rows.append(json.loads(line))
             except json.JSONDecodeError as exc:
                 raise ValueError(
-                    f"Invalid JSON in {p} on line {lineno}: {exc}"
-                ) from exc
+                    f"Invalid JSON in {p} on line {lineno}: {exc}") from exc
     return rows
 
 
@@ -96,6 +94,7 @@ def append_dataset(path: Path | str, rows: List[Dict[str, Any]]) -> None:
 # Capability detection (per-row metric eligibility)
 # ---------------------------------------------------------------------------
 
+
 def detect_capabilities(row: Dict[str, Any]) -> Set[str]:
     """Return the capabilities a row supports for metric routing.
 
@@ -110,9 +109,8 @@ def detect_capabilities(row: Dict[str, Any]) -> Set[str]:
 
     # Reference eligibility — both nested (canonical) and top-level (legacy mirror)
     has_reference = bool(
-        row.get("reference")
-        or (isinstance(row.get("reference_data"), dict) and row["reference_data"])
-    )
+        row.get("reference") or
+        (isinstance(row.get("reference_data"), dict) and row["reference_data"]))
     if has_reference:
         caps.add(CAP_REFERENCE)
 
@@ -121,7 +119,8 @@ def detect_capabilities(row: Dict[str, Any]) -> Set[str]:
         caps.add(CAP_MULTI_TURN)
     elif kind == "single_turn":
         pass  # explicitly single-turn — don't add multi-turn cap even if fields are there
-    elif row.get("history") or row.get("conversation_history") or row.get("conversation_plan"):
+    elif row.get("history") or row.get("conversation_history") or row.get(
+            "conversation_plan"):
         caps.add(CAP_MULTI_TURN)
 
     if row.get("session_inputs"):
@@ -168,12 +167,15 @@ def is_multi_turn(row: Dict[str, Any]) -> bool:
 # ADK evalset import
 # ---------------------------------------------------------------------------
 
+
 def _adk_text_from_content(content: Optional[Dict[str, Any]]) -> str:
     """Extract joined text from an ADK ``user_content``-shaped dict."""
     if not content:
         return ""
     parts = content.get("parts") or []
-    chunks = [p.get("text") for p in parts if isinstance(p, dict) and p.get("text")]
+    chunks = [
+        p.get("text") for p in parts if isinstance(p, dict) and p.get("text")
+    ]
     return "\n".join(chunks)
 
 
@@ -201,7 +203,8 @@ def import_adk_evalset(evalset_path: Path | str) -> List[Dict[str, Any]]:
         for i, turn in enumerate(conversation):
             user_content = turn.get("user_content") or {}
             text = _adk_text_from_content(user_content)
-            tool_uses = ((turn.get("intermediate_data") or {}).get("tool_uses") or [])
+            tool_uses = ((turn.get("intermediate_data") or {}).get("tool_uses")
+                         or [])
             tool_calls.extend(tool_uses)
 
             if i == len(conversation) - 1:
@@ -263,7 +266,8 @@ def _migrate_scenarios(
     scen_data = json.loads(scenarios_path.read_text(encoding="utf-8"))
     session_inputs: Optional[Dict[str, Any]] = None
     if session_input_path and session_input_path.exists():
-        session_inputs = json.loads(session_input_path.read_text(encoding="utf-8"))
+        session_inputs = json.loads(
+            session_input_path.read_text(encoding="utf-8"))
 
     rows: List[Dict[str, Any]] = []
     for scen in scen_data.get("scenarios") or []:
@@ -291,10 +295,12 @@ def _migrate_golden_dataset(golden_path: Path) -> List[Dict[str, Any]]:
         row: Dict[str, Any] = {"prompt": user_inputs[-1]}
         if len(user_inputs) > 1:
             # Canonical SDK FLATTEN column name.
-            row["history"] = [
-                {"role": "user", "parts": [{"text": t}]}
-                for t in user_inputs[:-1]
-            ]
+            row["history"] = [{
+                "role": "user",
+                "parts": [{
+                    "text": t
+                }]
+            } for t in user_inputs[:-1]]
 
         ref_data = q.get("reference_data") or {}
         row.update(_flatten_reference_data(ref_data))
@@ -380,12 +386,14 @@ def migrate_legacy(
     # project-root location and then delete the source.
     f3_dataset = agent_dir / "tests" / "eval" / "dataset.jsonl"
     canonical_dataset = project_root / "tests" / "eval" / "dataset.jsonl"
-    f3_active = f3_dataset.exists() and f3_dataset.resolve() != canonical_dataset.resolve()
+    f3_active = f3_dataset.exists() and f3_dataset.resolve(
+    ) != canonical_dataset.resolve()
     if f3_active:
         try:
             f3_rows = read_dataset(f3_dataset)
         except Exception as exc:
-            logger.warning("Couldn't read F3 dataset at %s: %s", f3_dataset, exc)
+            logger.warning("Couldn't read F3 dataset at %s: %s", f3_dataset,
+                           exc)
             f3_rows = []
         sources_present.append(f3_dataset)
         # Also pick up F3-located metrics if present (and no legacy_eval source).
@@ -400,7 +408,8 @@ def migrate_legacy(
     if rows or not out_path.exists():
         write_dataset(out_path, rows)
 
-    if metrics_src and metrics_dst and metrics_src.resolve() != metrics_dst.resolve():
+    if metrics_src and metrics_dst and metrics_src.resolve(
+    ) != metrics_dst.resolve():
         metrics_dst.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(metrics_src, metrics_dst)
 
@@ -424,12 +433,14 @@ def migrate_legacy(
 
     # Once F3 rows are safely in the canonical file AND backed up, remove
     # the F3 source so the user no longer sees the duplicate folder.
-    if f3_active and backup_dir is not None and (project_root / "tests" / "eval" / "dataset.jsonl").exists():
+    if f3_active and backup_dir is not None and (
+            project_root / "tests" / "eval" / "dataset.jsonl").exists():
         try:
             f3_root = agent_dir / "tests" / "eval"
             shutil.rmtree(f3_root)
         except Exception as exc:
-            logger.warning("Couldn't remove F3 dir %s: %s", agent_dir / "tests", exc)
+            logger.warning("Couldn't remove F3 dir %s: %s", agent_dir / "tests",
+                           exc)
 
     return {
         "legacy_eval_dir": str(legacy_eval) if legacy_eval else None,

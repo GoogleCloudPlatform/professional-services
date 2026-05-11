@@ -86,7 +86,9 @@ def import_adk(source_path: Path, output_path: Path, overwrite: bool) -> None:
         raise click.Abort()
 
     if not rows:
-        console.print("  [yellow]![/] No eval_cases found in the source file. Nothing to import.")
+        console.print(
+            "  [yellow]![/] No eval_cases found in the source file. Nothing to import."
+        )
         return
 
     if overwrite or not output_path.exists():
@@ -97,7 +99,9 @@ def import_adk(source_path: Path, output_path: Path, overwrite: bool) -> None:
         verb = "Appended"
 
     console.print()
-    console.print(f"  [green]>[/] {verb} [bold]{len(rows)}[/] row(s) to [cyan]{output_path}[/]")
+    console.print(
+        f"  [green]>[/] {verb} [bold]{len(rows)}[/] row(s) to [cyan]{output_path}[/]"
+    )
 
     sample = rows[0]
     preview_keys = ", ".join(sorted(sample.keys()))

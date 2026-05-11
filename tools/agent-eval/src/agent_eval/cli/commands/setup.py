@@ -44,7 +44,6 @@ from agent_eval.cli.commands.init import _PAUSE_LONG, _pause
 
 console = Console()
 
-
 # ── Step definitions ────────────────────────────────────────────────────────
 
 _FOUNDATION_APIS: List[Tuple[str, str]] = [
@@ -61,12 +60,10 @@ _FOUNDATION_APIS: List[Tuple[str, str]] = [
 _ASP_APIS: List[Tuple[str, str]] = [
     ("cloudbuild.googleapis.com",
      "ASP CI/CD pipelines (the `google_cloud_build` runner choice)."),
-    ("run.googleapis.com",
-     "ASP `-d cloud_run` deployment target."),
+    ("run.googleapis.com", "ASP `-d cloud_run` deployment target."),
     ("artifactregistry.googleapis.com",
      "Where ASP pushes the container images Cloud Build produces."),
 ]
-
 
 # ── Small helpers ───────────────────────────────────────────────────────────
 
@@ -107,8 +104,8 @@ def _after_failure(action_label: str) -> str:
         choices=[
             questionary.Choice("Try again", value="retry"),
             questionary.Choice(
-                "Skip this step (I'll fix it manually before re-running)", value="skip"
-            ),
+                "Skip this step (I'll fix it manually before re-running)",
+                value="skip"),
             questionary.Choice("Exit setup", value="exit"),
         ],
         default="retry",  # matches the Choice value, not the label
@@ -119,7 +116,9 @@ def _after_failure(action_label: str) -> str:
 def _abort_setup() -> None:
     """Print a clean exit banner and abort the click command."""
     console.print()
-    _hint("Setup aborted. Re-run `agent-eval setup` after fixing the issue above.")
+    _hint(
+        "Setup aborted. Re-run `agent-eval setup` after fixing the issue above."
+    )
     raise click.Abort()
 
 
@@ -130,8 +129,10 @@ def _adc_file_path() -> Path:
     if config_dir := os.environ.get("CLOUDSDK_CONFIG"):
         return Path(config_dir) / "application_default_credentials.json"
     if os.name == "nt":
-        return Path(os.environ.get("APPDATA", "")) / "gcloud" / "application_default_credentials.json"
-    return Path.home() / ".config" / "gcloud" / "application_default_credentials.json"
+        return Path(os.environ.get(
+            "APPDATA", "")) / "gcloud" / "application_default_credentials.json"
+    return Path.home(
+    ) / ".config" / "gcloud" / "application_default_credentials.json"
 
 
 def _adc_account(path: Path) -> Optional[str]:
@@ -164,7 +165,9 @@ def _active_account() -> str:
     try:
         result = subprocess.run(
             ["gcloud", "config", "get-value", "account"],
-            capture_output=True, text=True, timeout=5,
+            capture_output=True,
+            text=True,
+            timeout=5,
         )
         account = (result.stdout or "").strip()
         return "" if account in ("", "(unset)") else account
@@ -173,7 +176,8 @@ def _active_account() -> str:
 
 
 def _is_service_account(account: str) -> bool:
-    return account.endswith(".gserviceaccount.com") or account.startswith("gce-sa@")
+    return account.endswith(".gserviceaccount.com") or account.startswith(
+        "gce-sa@")
 
 
 # Sentinel returned by gcloud helpers to tell the caller *why* a check failed,
@@ -216,7 +220,9 @@ def _token_valid() -> bool:
     try:
         result = subprocess.run(
             ["gcloud", "auth", "print-access-token"],
-            capture_output=True, text=True, timeout=10,
+            capture_output=True,
+            text=True,
+            timeout=10,
         )
         return result.returncode == 0
     except (FileNotFoundError, subprocess.TimeoutExpired):
@@ -243,13 +249,15 @@ def _ensure_session(account: str, *, auto_approve: bool) -> None:
         return
 
     if not questionary.confirm(
-        "  Run `gcloud auth login --update-adc` now?", default=True,
+            "  Run `gcloud auth login --update-adc` now?",
+            default=True,
     ).ask():
         return
 
     while True:
         try:
-            subprocess.run(["gcloud", "auth", "login", "--update-adc"], check=True)
+            subprocess.run(["gcloud", "auth", "login", "--update-adc"],
+                           check=True)
             if _token_valid():
                 _ok("Session refreshed.")
                 return
@@ -280,10 +288,14 @@ def _check_api_enabled(project: str, api: str):
     """
     try:
         result = subprocess.run(
-            ["gcloud", "services", "list", "--enabled",
-             f"--project={project}", "--format=value(config.name)",
-             f"--filter=config.name:{api}"],
-            capture_output=True, text=True, timeout=15,
+            [
+                "gcloud", "services", "list", "--enabled",
+                f"--project={project}", "--format=value(config.name)",
+                f"--filter=config.name:{api}"
+            ],
+            capture_output=True,
+            text=True,
+            timeout=15,
         )
     except FileNotFoundError:
         return _GcloudFailure("missing")
@@ -303,7 +315,8 @@ def _enable_api(project: str, api: str) -> Tuple[bool, str]:
         with console.status(f"  [bold blue]Enabling {api}…[/]", spinner="dots"):
             subprocess.run(
                 ["gcloud", "services", "enable", api, f"--project={project}"],
-                check=True, capture_output=True,
+                check=True,
+                capture_output=True,
             )
         return True, ""
     except subprocess.CalledProcessError as e:
@@ -324,17 +337,27 @@ def _ensure_quota_project(project: str) -> None:
         return
     try:
         result = subprocess.run(
-            ["gcloud", "auth", "application-default", "set-quota-project", project],
-            capture_output=True, text=True, timeout=10,
+            [
+                "gcloud", "auth", "application-default", "set-quota-project",
+                project
+            ],
+            capture_output=True,
+            text=True,
+            timeout=10,
         )
         if result.returncode == 0:
-            _ok(f"Quota project bound to [cyan]{project}[/] [dim](so API calls bill correctly)[/]")
+            _ok(f"Quota project bound to [cyan]{project}[/] [dim](so API calls bill correctly)[/]"
+               )
             return
-        _warn("Could not bind quota project — Vertex API calls may bill the wrong project.")
+        _warn(
+            "Could not bind quota project — Vertex API calls may bill the wrong project."
+        )
         err = (result.stderr or "").strip()
         if err:
             _hint(err.splitlines()[-1][:300])
-        _hint(f"Run manually: gcloud auth application-default set-quota-project {project}")
+        _hint(
+            f"Run manually: gcloud auth application-default set-quota-project {project}"
+        )
     except FileNotFoundError:
         return
     except subprocess.TimeoutExpired:
@@ -370,21 +393,28 @@ def _step_1_account(auto_approve: bool) -> str:
         return account
 
     if not questionary.confirm(
-        "  Run `gcloud auth login` now? (opens a browser flow)",
-        default=True,
+            "  Run `gcloud auth login` now? (opens a browser flow)",
+            default=True,
     ).ask():
         return account
 
     while True:
         try:
-            subprocess.run(["gcloud", "auth", "login", "--update-adc"], check=True)
+            subprocess.run(["gcloud", "auth", "login", "--update-adc"],
+                           check=True)
             new_account = _active_account()
             if new_account and not _is_service_account(new_account):
                 _ok(f"Now logged in as: [cyan]{new_account}[/]")
-                _hint("Note: --update-adc also refreshed your Application Default Credentials.")
+                _hint(
+                    "Note: --update-adc also refreshed your Application Default Credentials."
+                )
                 return new_account
-            _warn(f"After login, active account is still: {new_account or 'none'}")
-            _hint(f"Switch with: gcloud config set account {new_account or 'YOUR_EMAIL'}")
+            _warn(
+                f"After login, active account is still: {new_account or 'none'}"
+            )
+            _hint(
+                f"Switch with: gcloud config set account {new_account or 'YOUR_EMAIL'}"
+            )
         except subprocess.CalledProcessError as e:
             _warn("gcloud auth login failed.")
             err = (e.stderr or b"").decode().strip() if e.stderr else ""
@@ -402,7 +432,9 @@ def _step_1_account(auto_approve: bool) -> str:
         return account  # skip
 
 
-def _step_3_adc(auto_approve: bool, active_account: str = "", project: str = "") -> bool:
+def _step_3_adc(auto_approve: bool,
+                active_account: str = "",
+                project: str = "") -> bool:
     """Verify the ADC file exists AND matches the active gcloud account.
 
     Two reasons we don't just trust file existence:
@@ -438,14 +470,18 @@ def _step_3_adc(auto_approve: bool, active_account: str = "", project: str = "")
 
     if not adc_file.exists():
         _warn(f"No ADC file at [cyan]{adc_file}[/]")
-        _hint("On a VM, gcloud may fall back to metadata creds — that's not what we want.")
+        _hint(
+            "On a VM, gcloud may fall back to metadata creds — that's not what we want."
+        )
         needs_login = True
         reason = "missing"
     else:
         adc_email = _adc_account(adc_file)
         if adc_email is None:
             _warn(f"ADC file at [cyan]{adc_file}[/] is present but unreadable.")
-            _hint("It may be a leftover from `gcloud auth application-default revoke`.")
+            _hint(
+                "It may be a leftover from `gcloud auth application-default revoke`."
+            )
             needs_login = True
             reason = "unreadable"
         elif adc_email == "":
@@ -458,27 +494,30 @@ def _step_3_adc(auto_approve: bool, active_account: str = "", project: str = "")
         elif active_account and adc_email.lower() != active_account.lower():
             _warn(
                 f"ADC file is for [cyan]{adc_email}[/] but you're logged in as "
-                f"[cyan]{active_account}[/]."
-            )
+                f"[cyan]{active_account}[/].")
             _hint(
                 "These need to match — otherwise the Python SDK will use the wrong identity."
             )
             needs_login = True
             reason = "mismatch"
         else:
-            _ok(f"ADC file present at [cyan]{adc_file}[/]  [dim](account: {adc_email})[/]")
+            _ok(f"ADC file present at [cyan]{adc_file}[/]  [dim](account: {adc_email})[/]"
+               )
             _ensure_quota_project(project)
             return True
 
     if auto_approve:
-        _hint("Run:  gcloud auth application-default login"
-              + (f" --billing-project={project}" if project else ""))
+        _hint("Run:  gcloud auth application-default login" +
+              (f" --billing-project={project}" if project else ""))
         return False
 
     prompt_text = {
-        "missing": "  Run `gcloud auth application-default login` now?",
-        "unreadable": "  Re-run `gcloud auth application-default login` to fix the ADC file?",
-        "mismatch": "  Re-run `gcloud auth application-default login` so ADC matches your gcloud account?",
+        "missing":
+            "  Run `gcloud auth application-default login` now?",
+        "unreadable":
+            "  Re-run `gcloud auth application-default login` to fix the ADC file?",
+        "mismatch":
+            "  Re-run `gcloud auth application-default login` so ADC matches your gcloud account?",
     }[reason]
 
     if not questionary.confirm(prompt_text, default=True).ask():
@@ -500,7 +539,9 @@ def _step_3_adc(auto_approve: bool, active_account: str = "", project: str = "")
                     _ok("ADC file created.")
                 _ensure_quota_project(project)
                 return True
-            _warn("Login completed but ADC file still missing — check gcloud version.")
+            _warn(
+                "Login completed but ADC file still missing — check gcloud version."
+            )
         except subprocess.CalledProcessError as e:
             _warn("gcloud auth application-default login failed.")
             err = (e.stderr or b"").decode().strip() if e.stderr else ""
@@ -536,7 +577,8 @@ def _step_2_project(auto_approve: bool) -> Tuple[Optional[str], Optional[str]]:
         "ADC creation time (avoids the awkward set-quota-project-after-the-fact dance).",
     )
 
-    project = os.environ.get("GOOGLE_CLOUD_PROJECT") or os.environ.get("PROJECT_ID")
+    project = os.environ.get("GOOGLE_CLOUD_PROJECT") or os.environ.get(
+        "PROJECT_ID")
     location = os.environ.get("GOOGLE_CLOUD_LOCATION")
     env_changed = False
 
@@ -546,13 +588,17 @@ def _step_2_project(auto_approve: bool) -> Tuple[Optional[str], Optional[str]]:
     else:
         if auto_approve:
             console.print("  [red]Cannot continue without a project ID.[/]")
-            console.print("  [dim]Set it with:[/]  export GOOGLE_CLOUD_PROJECT=your-project-id")
+            console.print(
+                "  [dim]Set it with:[/]  export GOOGLE_CLOUD_PROJECT=your-project-id"
+            )
             raise click.Abort()
         # Try to suggest the gcloud config project
         try:
             result = subprocess.run(
                 ["gcloud", "config", "get-value", "project"],
-                capture_output=True, text=True, timeout=5,
+                capture_output=True,
+                text=True,
+                timeout=5,
             )
             suggested = (result.stdout or "").strip()
             suggested = "" if suggested in ("", "(unset)") else suggested
@@ -561,7 +607,8 @@ def _step_2_project(auto_approve: bool) -> Tuple[Optional[str], Optional[str]]:
         project = questionary.text(
             "    GCP project ID:",
             default=suggested,
-            instruction=f"(your gcloud default: {suggested or 'unset'})" if suggested else "(e.g., my-project-123)",
+            instruction=f"(your gcloud default: {suggested or 'unset'})"
+            if suggested else "(e.g., my-project-123)",
         ).ask()
         if not project or not project.strip():
             raise click.Abort()
@@ -576,7 +623,8 @@ def _step_2_project(auto_approve: bool) -> Tuple[Optional[str], Optional[str]]:
         location = "us-central1"
         os.environ["GOOGLE_CLOUD_LOCATION"] = location
         env_changed = True
-        _ok(f"GOOGLE_CLOUD_LOCATION = [cyan]{location}[/] [dim](default — change in .env if you need a different region)[/]")
+        _ok(f"GOOGLE_CLOUD_LOCATION = [cyan]{location}[/] [dim](default — change in .env if you need a different region)[/]"
+           )
 
     if env_changed:
         _write_env(project, location)
@@ -588,13 +636,17 @@ def _step_2_project(auto_approve: bool) -> Tuple[Optional[str], Optional[str]]:
     try:
         result = subprocess.run(
             ["gcloud", "config", "set", "project", project],
-            capture_output=True, text=True, timeout=10,
+            capture_output=True,
+            text=True,
+            timeout=10,
         )
         if result.returncode == 0:
             _ok(f"gcloud config: project = [cyan]{project}[/]")
         else:
             err = (result.stderr or "").strip()
-            _warn("Could not update gcloud config — later steps will fall back to --project flags.")
+            _warn(
+                "Could not update gcloud config — later steps will fall back to --project flags."
+            )
             if err:
                 _hint(err.splitlines()[-1][:300])
     except FileNotFoundError:
@@ -632,8 +684,13 @@ def _step_5_autorater_iam(project: str, auto_approve: bool) -> None:
     failure_reason = ""
     try:
         result = subprocess.run(
-            ["gcloud", "projects", "describe", project, "--format=value(projectNumber)"],
-            capture_output=True, text=True, timeout=10,
+            [
+                "gcloud", "projects", "describe", project,
+                "--format=value(projectNumber)"
+            ],
+            capture_output=True,
+            text=True,
+            timeout=10,
         )
         if result.returncode == 0:
             project_number = (result.stdout or "").strip()
@@ -641,10 +698,9 @@ def _step_5_autorater_iam(project: str, auto_approve: bool) -> None:
             err = (result.stderr or "").strip()
             kind = _classify_stderr(err)
             failure_reason = (
-                "gcloud session expired" if kind == "reauth"
-                else "permission denied" if kind == "permission"
-                else (err.splitlines()[-1][:200] if err else "unknown gcloud error")
-            )
+                "gcloud session expired" if kind == "reauth" else
+                "permission denied" if kind == "permission" else
+                (err.splitlines()[-1][:200] if err else "unknown gcloud error"))
     except FileNotFoundError:
         failure_reason = "gcloud not on PATH"
     except subprocess.TimeoutExpired:
@@ -658,10 +714,14 @@ def _step_5_autorater_iam(project: str, auto_approve: bool) -> None:
             _hint("Then re-run `agent-eval setup`.")
         else:
             _hint(f"Run manually:")
-            _hint(f"  PN=$(gcloud projects describe {project} --format='value(projectNumber)')")
+            _hint(
+                f"  PN=$(gcloud projects describe {project} --format='value(projectNumber)')"
+            )
             _hint(f"  gcloud projects add-iam-policy-binding {project} \\")
-            _hint( "    --member=\"serviceAccount:service-$PN@gcp-sa-aiplatform.iam.gserviceaccount.com\" \\")
-            _hint( "    --role=\"roles/aiplatform.serviceAgent\"")
+            _hint(
+                "    --member=\"serviceAccount:service-$PN@gcp-sa-aiplatform.iam.gserviceaccount.com\" \\"
+            )
+            _hint("    --role=\"roles/aiplatform.serviceAgent\"")
         return
 
     member = f"serviceAccount:service-{project_number}@gcp-sa-aiplatform.iam.gserviceaccount.com"
@@ -671,19 +731,25 @@ def _step_5_autorater_iam(project: str, auto_approve: bool) -> None:
 
     if not auto_approve:
         if not questionary.confirm(
-            f"  Apply this binding to {project} now?",
-            default=True,
+                f"  Apply this binding to {project} now?",
+                default=True,
         ).ask():
             _hint("Skipped — eval runs will fail until this binding exists.")
             return
 
     while True:
         try:
-            with console.status("  [bold blue]Adding IAM binding…[/]", spinner="dots"):
+            with console.status("  [bold blue]Adding IAM binding…[/]",
+                                spinner="dots"):
                 result = subprocess.run(
-                    ["gcloud", "projects", "add-iam-policy-binding", project,
-                     f"--member={member}", f"--role={role}", "--condition=None"],
-                    capture_output=True, text=True, timeout=30,
+                    [
+                        "gcloud", "projects", "add-iam-policy-binding", project,
+                        f"--member={member}", f"--role={role}",
+                        "--condition=None"
+                    ],
+                    capture_output=True,
+                    text=True,
+                    timeout=30,
                 )
             if result.returncode == 0:
                 _ok("Binding applied.")
@@ -692,7 +758,8 @@ def _step_5_autorater_iam(project: str, auto_approve: bool) -> None:
             err = (result.stderr or "").strip()
             if err:
                 _hint(err.splitlines()[-1][:300])
-            if "PERMISSION_DENIED" in err or "does not have permission" in err.lower():
+            if "PERMISSION_DENIED" in err or "does not have permission" in err.lower(
+            ):
                 _hint(
                     "Looks like you don't have IAM admin on this project — ask a project owner "
                     "to run the command shown above, then re-run `agent-eval setup`."
@@ -700,7 +767,9 @@ def _step_5_autorater_iam(project: str, auto_approve: bool) -> None:
         except subprocess.TimeoutExpired:
             _warn("gcloud timed out while applying the IAM binding.")
         except FileNotFoundError:
-            _warn("gcloud not on PATH — apply the binding manually before continuing.")
+            _warn(
+                "gcloud not on PATH — apply the binding manually before continuing."
+            )
             return
 
         if auto_approve:
@@ -713,7 +782,8 @@ def _step_5_autorater_iam(project: str, auto_approve: bool) -> None:
         return  # skip
 
 
-def _step_6_asp_apis(project: str, *, asp: Optional[bool], auto_approve: bool) -> None:
+def _step_6_asp_apis(project: str, *, asp: Optional[bool],
+                     auto_approve: bool) -> None:
     """Enable Cloud Build / Cloud Run / Artifact Registry for ASP deployments."""
     if asp is None and not auto_approve:
         asp = questionary.confirm(
@@ -746,7 +816,8 @@ def _enable_apis(
         already = _check_api_enabled(project, api)
         if isinstance(already, _GcloudFailure):
             if already.kind == "missing":
-                console.print("    [dim]skip[/]   gcloud not on PATH — can't check.")
+                console.print(
+                    "    [dim]skip[/]   gcloud not on PATH — can't check.")
                 continue
             if already.kind == "timeout":
                 _warn("    gcloud check timed out — skipping.")
@@ -756,20 +827,27 @@ def _enable_apis(
                 _hint("    Run:  gcloud auth login --update-adc")
                 _hint("    Then re-run `agent-eval setup`.")
                 if not auto_approve and questionary.confirm(
-                    "    Run `gcloud auth login --update-adc` now?", default=True,
+                        "    Run `gcloud auth login --update-adc` now?",
+                        default=True,
                 ).ask():
                     try:
-                        subprocess.run(["gcloud", "auth", "login", "--update-adc"], check=True)
+                        subprocess.run(
+                            ["gcloud", "auth", "login", "--update-adc"],
+                            check=True)
                         already = _check_api_enabled(project, api)
                     except subprocess.CalledProcessError:
-                        _warn("    Login failed — skipping the rest of this step.")
+                        _warn(
+                            "    Login failed — skipping the rest of this step."
+                        )
                         return
                     except FileNotFoundError:
                         return
                 else:
                     continue
             else:
-                _warn(f"    gcloud check failed: {already.message.splitlines()[-1][:300] if already.message else 'unknown error'}")
+                _warn(
+                    f"    gcloud check failed: {already.message.splitlines()[-1][:300] if already.message else 'unknown error'}"
+                )
                 continue
         if isinstance(already, _GcloudFailure):
             # Re-auth attempt above could still leave us in a failure state.
@@ -779,9 +857,12 @@ def _enable_apis(
             continue
 
         if not (auto_approve or questionary.confirm(
-            f"    Enable on {project}?", default=True,
+                f"    Enable on {project}?",
+                default=True,
         ).ask()):
-            _hint(f"    skipped — enable later with: gcloud services enable {api} --project={project}")
+            _hint(
+                f"    skipped — enable later with: gcloud services enable {api} --project={project}"
+            )
             continue
 
         # Enable, with retry/skip/exit on failure. Many users don't have the
@@ -796,16 +877,17 @@ def _enable_apis(
             _warn("    could not enable")
             if err:
                 console.print(f"      [dim]{err.splitlines()[-1][:300]}[/]")
-            if "PERMISSION_DENIED" in err or "does not have permission" in err.lower():
+            if "PERMISSION_DENIED" in err or "does not have permission" in err.lower(
+            ):
                 _hint(
                     "      You don't seem to have permission to enable APIs on this project."
                 )
-                _hint(
-                    "      Ask a project owner to run:  "
-                    f"gcloud services enable {api} --project={project}"
-                )
+                _hint("      Ask a project owner to run:  "
+                      f"gcloud services enable {api} --project={project}")
             else:
-                _hint(f"      Run manually: gcloud services enable {api} --project={project}")
+                _hint(
+                    f"      Run manually: gcloud services enable {api} --project={project}"
+                )
 
             if auto_approve:
                 break
@@ -848,10 +930,11 @@ def _write_env(project: str, location: str) -> None:
     "--asp/--no-asp",
     default=None,
     help="Also enable Cloud Build / Cloud Run / Artifact Registry "
-         "(needed for Agent Starter Pack deployments). Prompts if omitted.",
+    "(needed for Agent Starter Pack deployments). Prompts if omitted.",
 )
 @click.option(
-    "--auto-approve", "-y",
+    "--auto-approve",
+    "-y",
     is_flag=True,
     help="Skip interactive prompts; assume yes to everything.",
 )
@@ -876,7 +959,9 @@ def setup(asp: bool, auto_approve: bool) -> None:
     _display_banner()
 
     console.print()
-    console.print("  [bold]agent-eval setup[/] — preparing your Google Cloud environment.")
+    console.print(
+        "  [bold]agent-eval setup[/] — preparing your Google Cloud environment."
+    )
     console.print(
         "  [dim]Six steps. Already-done work is detected and skipped, so re-running is cheap.[/]"
     )
@@ -899,7 +984,9 @@ def setup(asp: bool, auto_approve: bool) -> None:
 
     # 3. Application Default Credentials (validated against the active account
     #    from step 1 — file existence alone is not enough, see _step_3_adc).
-    _step_3_adc(auto_approve=auto_approve, active_account=account, project=project)
+    _step_3_adc(auto_approve=auto_approve,
+                active_account=account,
+                project=project)
 
     # 4. Foundation APIs
     _step_4_foundation_apis(project, auto_approve=auto_approve)
@@ -916,8 +1003,10 @@ def setup(asp: bool, auto_approve: bool) -> None:
     console.print()
     console.print("  [bold green]Setup complete.[/]")
     if account and _is_service_account(account):
-        _warn("Heads-up: your active gcloud account is still a service account.")
-        _hint("If you skipped Step 1, run `gcloud auth login` before continuing.")
+        _warn(
+            "Heads-up: your active gcloud account is still a service account.")
+        _hint(
+            "If you skipped Step 1, run `gcloud auth login` before continuing.")
     console.print(
         "  [dim]Next:[/] [cyan]uvx agent-starter-pack create my-agent -a adk -d agent_engine[/]   [dim](if you need an agent)[/]"
     )

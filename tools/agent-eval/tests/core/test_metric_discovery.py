@@ -40,29 +40,43 @@ class MockRubricMetric:
     GENERAL_QUALITY = _make_mock_metric("GENERAL_QUALITY", "general_quality_v1")
     GROUNDEDNESS = _make_mock_metric("GROUNDEDNESS")
     HALLUCINATION = _make_mock_metric("HALLUCINATION", "hallucination_v1")
-    INSTRUCTION_FOLLOWING = _make_mock_metric("INSTRUCTION_FOLLOWING", "instruction_following_v1")
+    INSTRUCTION_FOLLOWING = _make_mock_metric("INSTRUCTION_FOLLOWING",
+                                              "instruction_following_v1")
     MULTI_TURN_CHAT_QUALITY = _make_mock_metric("MULTI_TURN_CHAT_QUALITY")
-    MULTI_TURN_GENERAL_QUALITY = _make_mock_metric("MULTI_TURN_GENERAL_QUALITY", "multi_turn_general_quality_v1")
+    MULTI_TURN_GENERAL_QUALITY = _make_mock_metric(
+        "MULTI_TURN_GENERAL_QUALITY", "multi_turn_general_quality_v1")
     MULTI_TURN_SAFETY = _make_mock_metric("MULTI_TURN_SAFETY")
-    MULTI_TURN_TEXT_QUALITY = _make_mock_metric("MULTI_TURN_TEXT_QUALITY", "multi_turn_text_quality_v1")
+    MULTI_TURN_TEXT_QUALITY = _make_mock_metric("MULTI_TURN_TEXT_QUALITY",
+                                                "multi_turn_text_quality_v1")
     SAFETY = _make_mock_metric("SAFETY", "safety_v1")
     TEXT_QUALITY = _make_mock_metric("TEXT_QUALITY", "text_quality_v1")
-    TOOL_USE_QUALITY = _make_mock_metric("TOOL_USE_QUALITY", "tool_use_quality_v1")
+    TOOL_USE_QUALITY = _make_mock_metric("TOOL_USE_QUALITY",
+                                         "tool_use_quality_v1")
     VERBOSITY = _make_mock_metric("VERBOSITY")
     SUMMARIZATION_QUALITY = _make_mock_metric("SUMMARIZATION_QUALITY")
     QUESTION_ANSWERING_QUALITY = _make_mock_metric("QUESTION_ANSWERING_QUALITY")
-    FINAL_RESPONSE_MATCH = _make_mock_metric("FINAL_RESPONSE_MATCH", "final_response_match_v2")
-    FINAL_RESPONSE_QUALITY = _make_mock_metric("FINAL_RESPONSE_QUALITY", "final_response_quality_v1")
-    FINAL_RESPONSE_REFERENCE_FREE = _make_mock_metric("FINAL_RESPONSE_REFERENCE_FREE", "final_response_reference_free_v1")
+    FINAL_RESPONSE_MATCH = _make_mock_metric("FINAL_RESPONSE_MATCH",
+                                             "final_response_match_v2")
+    FINAL_RESPONSE_QUALITY = _make_mock_metric("FINAL_RESPONSE_QUALITY",
+                                               "final_response_quality_v1")
+    FINAL_RESPONSE_REFERENCE_FREE = _make_mock_metric(
+        "FINAL_RESPONSE_REFERENCE_FREE", "final_response_reference_free_v1")
     GROUNDING = _make_mock_metric("GROUNDING", "grounding_v1")
 
 
 MOCK_SUPPORTED_PREDEFINED = {
-    "final_response_match_v2", "final_response_quality_v1",
-    "final_response_reference_free_v1", "general_quality_v1",
-    "grounding_v1", "hallucination_v1", "instruction_following_v1",
-    "multi_turn_general_quality_v1", "multi_turn_text_quality_v1",
-    "safety_v1", "text_quality_v1", "tool_use_quality_v1",
+    "final_response_match_v2",
+    "final_response_quality_v1",
+    "final_response_reference_free_v1",
+    "general_quality_v1",
+    "grounding_v1",
+    "hallucination_v1",
+    "instruction_following_v1",
+    "multi_turn_general_quality_v1",
+    "multi_turn_text_quality_v1",
+    "safety_v1",
+    "text_quality_v1",
+    "tool_use_quality_v1",
 }
 
 
@@ -72,7 +86,8 @@ def mock_sdk(monkeypatch):
     # `from vertexai import types` accesses sys.modules["vertexai"].types
     vertexai_mod = sys.modules.get("vertexai")
     if vertexai_mod is not None:
-        monkeypatch.setattr(vertexai_mod, "types", MagicMock(RubricMetric=MockRubricMetric))
+        monkeypatch.setattr(vertexai_mod, "types",
+                            MagicMock(RubricMetric=MockRubricMetric))
 
     # Also patch sys.modules["vertexai.types"] for direct imports
     mock_types = sys.modules.get("vertexai.types")
@@ -82,9 +97,8 @@ def mock_sdk(monkeypatch):
     # Patch SUPPORTED_PREDEFINED_METRICS
     evals_const_mod = MagicMock()
     evals_const_mod.SUPPORTED_PREDEFINED_METRICS = MOCK_SUPPORTED_PREDEFINED
-    monkeypatch.setitem(
-        sys.modules, "vertexai._genai._evals_constant", evals_const_mod
-    )
+    monkeypatch.setitem(sys.modules, "vertexai._genai._evals_constant",
+                        evals_const_mod)
 
 
 class TestIsApiPredefined:
@@ -149,13 +163,19 @@ class TestDiscoverManagedMetrics:
         # the kind+base IS the SDK contract.
         from agent_eval.core.metric_discovery import discover_managed_metrics
         metrics = discover_managed_metrics()
-        api = [info for info in metrics.values() if info["resolution"] == "api_predefined"]
+        api = [
+            info for info in metrics.values()
+            if info["resolution"] == "api_predefined"
+        ]
         assert api, "expected at least one api_predefined metric in the catalog"
 
     def test_gcs_yaml_metrics_carry_resolution(self):
         from agent_eval.core.metric_discovery import discover_managed_metrics
         metrics = discover_managed_metrics()
-        gcs = [info for info in metrics.values() if info["resolution"] == "gcs_yaml"]
+        gcs = [
+            info for info in metrics.values()
+            if info["resolution"] == "gcs_yaml"
+        ]
         assert gcs, "expected at least one gcs_yaml metric in the catalog"
 
     def test_multi_turn_metrics_have_requires_multi_turn_flag(self):
@@ -165,8 +185,7 @@ class TestDiscoverManagedMetrics:
             key = name.lower()
             if key in metrics:
                 assert metrics[key]["requires_multi_turn"] is True, (
-                    f"{key} should set requires_multi_turn=True"
-                )
+                    f"{key} should set requires_multi_turn=True")
 
     def test_single_turn_metrics_do_not_require_multi_turn(self):
         from agent_eval.core.metric_discovery import discover_managed_metrics, _MULTI_TURN_METRICS
@@ -174,8 +193,7 @@ class TestDiscoverManagedMetrics:
         for key, info in metrics.items():
             if info["base"] not in _MULTI_TURN_METRICS:
                 assert info["requires_multi_turn"] is False, (
-                    f"{key} should not require multi-turn"
-                )
+                    f"{key} should not require multi-turn")
 
     def test_all_entries_have_required_fields(self):
         # Canonical schema: every discovered metric is a `kind: managed` entry
@@ -184,7 +202,8 @@ class TestDiscoverManagedMetrics:
         from agent_eval.core.metric_discovery import discover_managed_metrics
         metrics = discover_managed_metrics()
         for key, info in metrics.items():
-            assert info.get("kind") == "managed", f"{key} should be kind=managed"
+            assert info.get(
+                "kind") == "managed", f"{key} should be kind=managed"
             assert "base" in info, f"{key} missing base"
             assert "resolution" in info, f"{key} missing resolution"
             assert "score_range" in info, f"{key} missing score_range"
@@ -236,15 +255,11 @@ class TestFormatting:
         metrics = discover_managed_metrics()
         text = format_metrics_for_prompt(metrics)
         # Check at least one API predefined and one GCS YAML are present
-        has_api = any(
-            info["base"] in text
-            for info in metrics.values()
-            if info["resolution"] == "api_predefined"
-        )
-        has_gcs = any(
-            info["base"] in text
-            for info in metrics.values()
-            if info["resolution"] == "gcs_yaml"
-        )
+        has_api = any(info["base"] in text
+                      for info in metrics.values()
+                      if info["resolution"] == "api_predefined")
+        has_gcs = any(info["base"] in text
+                      for info in metrics.values()
+                      if info["resolution"] == "gcs_yaml")
         assert has_api, "Should include API predefined metrics"
         assert has_gcs, "Should include GCS YAML metrics"

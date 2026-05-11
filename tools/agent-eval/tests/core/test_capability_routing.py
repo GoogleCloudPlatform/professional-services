@@ -33,6 +33,7 @@ def _row(**kwargs) -> pd.Series:
 
 
 class TestInteractionRowCapabilities:
+
     def test_reference_data_with_value_yields_reference_capability(self):
         row = _row(reference_data={"expected_behavior": "Foggy"})
         assert _CAP_REFERENCE in _interaction_row_capabilities(row)
@@ -61,14 +62,17 @@ class TestInteractionRowCapabilities:
 
 
 class TestRequiredCapabilities:
+
     def test_no_flags_means_no_requirements(self):
         assert _required_capabilities({}) == set()
 
     def test_requires_reference_flag(self):
-        assert _required_capabilities({"requires_reference": True}) == {_CAP_REFERENCE}
+        assert _required_capabilities({"requires_reference": True
+                                      }) == {_CAP_REFERENCE}
 
     def test_requires_multi_turn_flag(self):
-        assert _required_capabilities({"requires_multi_turn": True}) == {_CAP_MULTI_TURN}
+        assert _required_capabilities({"requires_multi_turn": True
+                                      }) == {_CAP_MULTI_TURN}
 
     def test_both_flags(self):
         caps = _required_capabilities({
@@ -94,26 +98,54 @@ class TestRoutingIntegration:
 
     def test_reference_metric_skips_rows_without_reference(self):
         rows = [
-            {"user_inputs": ["q1"], "reference_data": {"expected_behavior": "yes"}},
-            {"user_inputs": ["q2"], "reference_data": {}},
-            {"user_inputs": ["q3"], "reference_data": {"expected_behavior": "no"}},
+            {
+                "user_inputs": ["q1"],
+                "reference_data": {
+                    "expected_behavior": "yes"
+                }
+            },
+            {
+                "user_inputs": ["q2"],
+                "reference_data": {}
+            },
+            {
+                "user_inputs": ["q3"],
+                "reference_data": {
+                    "expected_behavior": "no"
+                }
+            },
         ]
         eligible = self._eligible({"requires_reference": True}, rows)
         assert eligible == [0, 2]
 
     def test_multi_turn_metric_skips_single_turn_rows(self):
         rows = [
-            {"user_inputs": ["a", "b"], "source_type": "interaction"},
-            {"user_inputs": ["only"], "source_type": "interaction"},
-            {"user_inputs": ["seed"], "source_type": "simulation"},
+            {
+                "user_inputs": ["a", "b"],
+                "source_type": "interaction"
+            },
+            {
+                "user_inputs": ["only"],
+                "source_type": "interaction"
+            },
+            {
+                "user_inputs": ["seed"],
+                "source_type": "simulation"
+            },
         ]
         eligible = self._eligible({"requires_multi_turn": True}, rows)
         assert eligible == [0, 2]
 
     def test_no_requirements_keeps_all_rows(self):
         rows = [
-            {"user_inputs": ["x"], "reference_data": {}},
-            {"user_inputs": ["y"], "reference_data": {}},
+            {
+                "user_inputs": ["x"],
+                "reference_data": {}
+            },
+            {
+                "user_inputs": ["y"],
+                "reference_data": {}
+            },
         ]
         eligible = self._eligible({}, rows)
         assert eligible == [0, 1]

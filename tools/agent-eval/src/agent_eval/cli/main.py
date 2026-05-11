@@ -46,7 +46,8 @@ def _display_banner() -> None:
     console.print(panel)
 
 
-def print_version(ctx: click.Context, param: click.Parameter, value: bool) -> None:
+def print_version(ctx: click.Context, param: click.Parameter,
+                  value: bool) -> None:
     if not value or ctx.resilient_parsing:
         return
     console.print(f"agent-eval v{_get_version()}")
@@ -67,7 +68,8 @@ class _OrderedGroup(click.Group):
 
 @click.group(cls=_OrderedGroup, help="Evaluation CLI for ADK agents.")
 @click.option(
-    "--version", "-v",
+    "--version",
+    "-v",
     is_flag=True,
     callback=print_version,
     expose_value=False,
@@ -99,21 +101,29 @@ from agent_eval.cli.commands.report import report  # noqa: E402
 # Order matches the Vertex AI eval docs sidebar workflow so `agent-eval --help`
 # reads top-down as: set up → bring in data → generate traces → score →
 # (Agent Engine streamlined shortcut) → view → orchestrate → utilities.
-cli.add_command(setup)                             # One-time GCP env preparation
-cli.add_command(init)                              # Tutorial / first-run scaffold
-cli.add_command(migrate)                           # Convert legacy eval/ → tests/eval/
-cli.add_command(import_adk, name="import")         # Prepare dataset (from existing ADK evalsets)
-cli.add_command(simulate)                          # Generate traces (multi-turn)
-cli.add_command(interact)                          # Generate traces (single-turn)
-cli.add_command(evaluate)                          # Run evaluation
-cli.add_command(agent_engine, name="agent-engine") # Streamlined eval against deployed Agent Engine
-cli.add_command(analyze)                           # View / interpret results
-cli.add_command(report)                            # Open the HTML report in a browser
-cli.add_command(dashboard)                         # View / interpret results (interactive)
-cli.add_command(run)                               # Full pipeline shortcut
-cli.add_command(convert)                           # Utility: ADK traces → JSONL
-cli.add_command(create_dataset, name="create-dataset")  # Utility: legacy dataset converter
-cli.add_command(stories)                           # Utility: browse the wait-time story library
+cli.add_command(setup)  # One-time GCP env preparation
+cli.add_command(init)  # Tutorial / first-run scaffold
+cli.add_command(migrate)  # Convert legacy eval/ → tests/eval/
+cli.add_command(import_adk,
+                name="import")  # Prepare dataset (from existing ADK evalsets)
+cli.add_command(simulate)  # Generate traces (multi-turn)
+cli.add_command(interact)  # Generate traces (single-turn)
+cli.add_command(evaluate)  # Run evaluation
+# `agent-engine` (streamlined Agent Engine pass via create_evaluation_run)
+# is intentionally NOT registered here while it's being re-validated. The
+# command implementation is still in agent_eval.cli.commands.agent_engine
+# and the import above stays so it doesn't bit-rot. To re-enable, uncomment
+# the cli.add_command(agent_engine, name="agent-engine") line below. See
+# docs/FUTURE_WORK.md for the investigation context.
+# cli.add_command(agent_engine, name="agent-engine")
+cli.add_command(analyze)  # View / interpret results
+cli.add_command(report)  # Open the HTML report in a browser
+cli.add_command(dashboard)  # View / interpret results (interactive)
+cli.add_command(run)  # Full pipeline shortcut
+cli.add_command(convert)  # Utility: ADK traces → JSONL
+cli.add_command(create_dataset,
+                name="create-dataset")  # Utility: legacy dataset converter
+cli.add_command(stories)  # Utility: browse the wait-time story library
 
 
 def main():

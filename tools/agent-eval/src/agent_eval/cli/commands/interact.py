@@ -38,7 +38,8 @@ TOTAL_STEPS = 2
 def _step_header(n: int, title: str, description: str) -> None:
     """Print a formatted step header."""
     console.print()
-    console.print(Rule(f"  Step {n}/{TOTAL_STEPS}: {title}  ", style="bold blue"))
+    console.print(
+        Rule(f"  Step {n}/{TOTAL_STEPS}: {title}  ", style="bold blue"))
     console.print(f"  [dim]{description}[/]")
     console.print()
 
@@ -52,7 +53,8 @@ def _find_eval_dir(agent_dir: Path) -> Path | None:
     return None
 
 
-def _prompt_for_config(agent_dir, app_name, questions_file, base_url, results_dir, run_id):
+def _prompt_for_config(agent_dir, app_name, questions_file, base_url,
+                       results_dir, run_id):
     """Interactively prompt for any missing configuration."""
     from rich.prompt import Prompt
 
@@ -61,14 +63,15 @@ def _prompt_for_config(agent_dir, app_name, questions_file, base_url, results_di
     # ── Agent directory ────────────────────────────────────────────────────
     if not agent_path:
         console.print()
-        console.print(Panel(
-            "[bold]Point to your agent module[/] — the folder containing agent.py.\n\n"
-            "[dim]agent-eval will look for tests/eval/dataset.jsonl + tests/eval/metrics/\n"
-            "relative to its project root (the nearest pyproject.toml).[/]",
-            title="[bold]Agent Directory[/]",
-            border_style="blue",
-            padding=(1, 2),
-        ))
+        console.print(
+            Panel(
+                "[bold]Point to your agent module[/] — the folder containing agent.py.\n\n"
+                "[dim]agent-eval will look for tests/eval/dataset.jsonl + tests/eval/metrics/\n"
+                "relative to its project root (the nearest pyproject.toml).[/]",
+                title="[bold]Agent Directory[/]",
+                border_style="blue",
+                padding=(1, 2),
+            ))
         raw = Prompt.ask("  Agent directory")
         agent_path = Path(raw).resolve()
 
@@ -94,35 +97,38 @@ def _prompt_for_config(agent_dir, app_name, questions_file, base_url, results_di
                 auto_detected = str(discovered["golden_data"][0])
 
         console.print()
-        console.print(Panel(
-            "[bold]Path to your test queries.[/]\n\n"
-            "[dim]Defaults to the unified tests/eval/dataset.jsonl scaffolded by\n"
-            "`agent-eval init`. Single-turn rows are auto-filtered for interact.[/]",
-            title="[bold]Questions File[/]",
-            border_style="blue",
-            padding=(1, 2),
-        ))
+        console.print(
+            Panel(
+                "[bold]Path to your test queries.[/]\n\n"
+                "[dim]Defaults to the unified tests/eval/dataset.jsonl scaffolded by\n"
+                "`agent-eval init`. Single-turn rows are auto-filtered for interact.[/]",
+                title="[bold]Questions File[/]",
+                border_style="blue",
+                padding=(1, 2),
+            ))
         questions_file = Prompt.ask(
             "  Questions file",
             default=auto_detected,
         )
 
     if not Path(questions_file).exists():
-        console.print(f"\n  [red]Error:[/] Questions file not found: {questions_file}")
+        console.print(
+            f"\n  [red]Error:[/] Questions file not found: {questions_file}")
         sys.exit(1)
 
     # ── Base URL ───────────────────────────────────────────────────────────
     if not base_url:
         console.print()
-        console.print(Panel(
-            "[bold]Your agent's API endpoint.[/]\n\n"
-            "[dim]For ADK Starter Pack agents, run `make playground` in the agent\n"
-            "directory — the API starts on http://localhost:8501.\n"
-            "For custom deployments, use your agent's serving URL.[/]",
-            title="[bold]Base URL[/]",
-            border_style="blue",
-            padding=(1, 2),
-        ))
+        console.print(
+            Panel(
+                "[bold]Your agent's API endpoint.[/]\n\n"
+                "[dim]For ADK Starter Pack agents, run `make playground` in the agent\n"
+                "directory — the API starts on http://localhost:8501.\n"
+                "For custom deployments, use your agent's serving URL.[/]",
+                title="[bold]Base URL[/]",
+                border_style="blue",
+                padding=(1, 2),
+            ))
         base_url = Prompt.ask("  Base URL", default="http://localhost:8501")
 
     # ── Results directory ──────────────────────────────────────────────────
@@ -133,45 +139,73 @@ def _prompt_for_config(agent_dir, app_name, questions_file, base_url, results_di
     # ── Run ID ─────────────────────────────────────────────────────────────
     if not run_id:
         console.print()
-        console.print(Panel(
-            "[bold]Give this run a name[/] so you can easily find it later.\n\n"
-            "Examples: [cyan]baseline[/], [cyan]v2-tool-hardening[/], [cyan]cache-optimization[/]\n\n"
-            "[dim]Results will be saved to tests/eval/results/<run-id>/.\n"
-            "Press Enter to use an auto-generated timestamp instead.[/]",
-            title="[bold]Run ID[/]",
-            border_style="blue",
-            padding=(1, 2),
-        ))
+        console.print(
+            Panel(
+                "[bold]Give this run a name[/] so you can easily find it later.\n\n"
+                "Examples: [cyan]baseline[/], [cyan]v2-tool-hardening[/], [cyan]cache-optimization[/]\n\n"
+                "[dim]Results will be saved to tests/eval/results/<run-id>/.\n"
+                "Press Enter to use an auto-generated timestamp instead.[/]",
+                title="[bold]Run ID[/]",
+                border_style="blue",
+                padding=(1, 2),
+            ))
         default_ts = datetime.now().strftime("%Y%m%d_%H%M%S")
-        run_id = Prompt.ask("  Run ID", default=default_ts).strip().replace(" ", "-")
+        run_id = Prompt.ask("  Run ID",
+                            default=default_ts).strip().replace(" ", "-")
 
     return agent_path, app_name, questions_file, base_url, results_dir, run_id
 
 
 @click.command()
-@click.option("--agent-dir", default=None,
+@click.option("--agent-dir",
+              default=None,
               help="Path to the agent module directory (containing agent.py).")
-@click.option("--app-name", default=None,
-              help="Name of the agent application (defaults to agent dir name).")
-@click.option("--questions-file", default=None,
+@click.option(
+    "--app-name",
+    default=None,
+    help="Name of the agent application (defaults to agent dir name).")
+@click.option("--questions-file",
+              default=None,
               help="Path to the Golden Dataset JSON.")
-@click.option("--base-url", default=None,
+@click.option("--base-url",
+              default=None,
               help="Agent API URL (default: http://localhost:8501).")
 @click.option("--user-id", default="eval_user", help="Session User ID.")
-@click.option("--results-dir", default=None,
-              help="Directory for outputs (auto-detected from eval/ if omitted).")
-@click.option("--run-id", default=None,
-              help="Name for the results folder (e.g., 'baseline', 'tool-hardening'). "
-                   "Defaults to a timestamp like 20260319_060430.")
-@click.option("--num-questions", type=int, default=-1, help="Limit number of questions (-1 = all).")
+@click.option(
+    "--results-dir",
+    default=None,
+    help="Directory for outputs (auto-detected from eval/ if omitted).")
+@click.option(
+    "--run-id",
+    default=None,
+    help="Name for the results folder (e.g., 'baseline', 'tool-hardening'). "
+    "Defaults to a timestamp like 20260319_060430.")
+@click.option("--num-questions",
+              type=int,
+              default=-1,
+              help="Limit number of questions (-1 = all).")
 @click.option("--runs", type=int, default=1, help="Runs per question.")
-@click.option("--skip-traces", is_flag=True, help="Skip trace retrieval (faster).")
-@click.option("--filter", "metadata_filters", multiple=True, help="Metadata filters (key:val).")
-@click.option("--state", "state_variables", multiple=True, help="State variables (key:val).")
-@click.option("--user", default=os.environ.get("USER"), help="Operator username.")
-@click.option("--debug", is_flag=True, help="Show detailed logs from agent interactions and trace retrieval.")
-def interact(agent_dir, app_name, questions_file, base_url, user_id, results_dir,
-             run_id, num_questions, runs, skip_traces, metadata_filters, state_variables, user, debug):
+@click.option("--skip-traces",
+              is_flag=True,
+              help="Skip trace retrieval (faster).")
+@click.option("--filter",
+              "metadata_filters",
+              multiple=True,
+              help="Metadata filters (key:val).")
+@click.option("--state",
+              "state_variables",
+              multiple=True,
+              help="State variables (key:val).")
+@click.option("--user",
+              default=os.environ.get("USER"),
+              help="Operator username.")
+@click.option(
+    "--debug",
+    is_flag=True,
+    help="Show detailed logs from agent interactions and trace retrieval.")
+def interact(agent_dir, app_name, questions_file, base_url, user_id,
+             results_dir, run_id, num_questions, runs, skip_traces,
+             metadata_filters, state_variables, user, debug):
     """Run interactions against a live agent and collect traces.
 
     Sends queries from a golden dataset to a running agent endpoint, collects
@@ -197,43 +231,56 @@ def interact(agent_dir, app_name, questions_file, base_url, user_id, results_dir
 
     # ── Overview ───────────────────────────────────────────────────────────
 
-    console.print(Panel(
-        f"[bold]Agent:[/]          [cyan]{app_name}[/]  [dim]({agent_path})[/]\n"
-        f"[bold]Questions:[/]      {questions_file}\n"
-        f"[bold]Base URL:[/]       {base_url}\n"
-        f"[bold]Run ID:[/]         [cyan]{run_id}[/]"
-        f"  [dim](results saved to {results_dir}/{run_id}/)[/]\n\n"
-        f"[bold]What will happen:[/]\n"
-        f"  [dim]1.[/] Send each question to the agent and collect responses + traces\n"
-        f"  [dim]2.[/] Process and enrich interaction logs into evaluation format",
-        title="[bold]Interact[/]",
-        border_style="blue",
-        padding=(1, 2),
-    ))
+    console.print(
+        Panel(
+            f"[bold]Agent:[/]          [cyan]{app_name}[/]  [dim]({agent_path})[/]\n"
+            f"[bold]Questions:[/]      {questions_file}\n"
+            f"[bold]Base URL:[/]       {base_url}\n"
+            f"[bold]Run ID:[/]         [cyan]{run_id}[/]"
+            f"  [dim](results saved to {results_dir}/{run_id}/)[/]\n\n"
+            f"[bold]What will happen:[/]\n"
+            f"  [dim]1.[/] Send each question to the agent and collect responses + traces\n"
+            f"  [dim]2.[/] Process and enrich interaction logs into evaluation format",
+            title="[bold]Interact[/]",
+            border_style="blue",
+            padding=(1, 2),
+        ))
     _continue("Press Enter to start interacting →", console=console)
 
     # ── Build config ───────────────────────────────────────────────────────
 
     config = {
-        "app_name": app_name,
-        "questions_file": questions_file,
-        "base_url": base_url,
-        "user_id": user_id,
-        "num_questions": num_questions,
-        "results_dir": results_dir,
-        "runs": runs,
-        "metadata_filters": list(metadata_filters) if metadata_filters else None,
-        "state_variables": list(state_variables) if state_variables else None,
-        "skip_traces": skip_traces,
-        "user": user,
+        "app_name":
+            app_name,
+        "questions_file":
+            questions_file,
+        "base_url":
+            base_url,
+        "user_id":
+            user_id,
+        "num_questions":
+            num_questions,
+        "results_dir":
+            results_dir,
+        "runs":
+            runs,
+        "metadata_filters":
+            list(metadata_filters) if metadata_filters else None,
+        "state_variables":
+            list(state_variables) if state_variables else None,
+        "skip_traces":
+            skip_traces,
+        "user":
+            user,
     }
 
     # ── Step 1: Run interactions ───────────────────────────────────────────
 
-    _step_header(1, "Run interactions",
-                 "Sending each question from the golden dataset to your agent.\n"
-                 "  The agent's responses and OpenTelemetry traces are captured\n"
-                 "  for evaluation.")
+    _step_header(
+        1, "Run interactions",
+        "Sending each question from the golden dataset to your agent.\n"
+        "  The agent's responses and OpenTelemetry traces are captured\n"
+        "  for evaluation.")
 
     runner = InteractionRunner(config)
 
@@ -241,21 +288,27 @@ def interact(agent_dir, app_name, questions_file, base_url, user_id, results_dir
         raw_df = asyncio.run(runner.run())
     except Exception as e:
         console.print(f"    [red]Error during interaction run:[/] {e}")
-        console.print(f"    [dim]Make sure your agent is running at {base_url}[/]")
+        console.print(
+            f"    [dim]Make sure your agent is running at {base_url}[/]")
         sys.exit(1)
 
     if raw_df.empty:
         console.print("    [yellow]![/] No interactions were captured.")
-        console.print("    [dim]Check that your golden dataset has questions and the agent is responding.[/]")
+        console.print(
+            "    [dim]Check that your golden dataset has questions and the agent is responding.[/]"
+        )
         sys.exit(0)
 
-    console.print(f"    [green]+[/] Captured [cyan]{len(raw_df)}[/] interaction{'s' if len(raw_df) != 1 else ''}")
+    console.print(
+        f"    [green]+[/] Captured [cyan]{len(raw_df)}[/] interaction{'s' if len(raw_df) != 1 else ''}"
+    )
 
     # ── Step 2: Process & enrich ───────────────────────────────────────────
 
-    _step_header(2, "Process & enrich logs",
-                 "Enriching raw interaction logs with trace data (tool calls,\n"
-                 "  token counts, timing) and saving in evaluation format.")
+    _step_header(
+        2, "Process & enrich logs",
+        "Enriching raw interaction logs with trace data (tool calls,\n"
+        "  token counts, timing) and saving in evaluation format.")
 
     processor = InteractionProcessor(config)
     try:
@@ -269,7 +322,8 @@ def interact(agent_dir, app_name, questions_file, base_url, user_id, results_dir
     raw_dir = os.path.join(run_dir, "raw")
     os.makedirs(raw_dir, exist_ok=True)
 
-    output_path = os.path.join(raw_dir, f"processed_interaction_{app_name}.jsonl")
+    output_path = os.path.join(raw_dir,
+                               f"processed_interaction_{app_name}.jsonl")
 
     records = enriched_df.to_dict(orient="records")
     for record in records:
@@ -284,7 +338,9 @@ def interact(agent_dir, app_name, questions_file, base_url, user_id, results_dir
 
     write_jsonl(records, output_path)
 
-    console.print(f"    [green]+[/] Saved [cyan]{len(records)}[/] enriched interaction{'s' if len(records) != 1 else ''}")
+    console.print(
+        f"    [green]+[/] Saved [cyan]{len(records)}[/] enriched interaction{'s' if len(records) != 1 else ''}"
+    )
     console.print(f"    [green]+[/] Output: {output_path}")
     console.print(f"    [green]+[/] Run directory: {run_dir}")
 
@@ -305,16 +361,19 @@ def interact(agent_dir, app_name, questions_file, base_url, user_id, results_dir
         _discovered = find_eval_files(eval_path)
         if _discovered["metrics"]:
             eval_metrics = _discovered["metrics"][0]
-    rel_metrics = os.path.relpath(eval_metrics, cwd) if eval_metrics else "<path/to/metric_definitions.json>"
+    rel_metrics = os.path.relpath(
+        eval_metrics,
+        cwd) if eval_metrics else "<path/to/metric_definitions.json>"
 
     console.print()
-    console.print(Panel(
-        f"[bold green]Interactions complete![/]\n\n"
-        f"[bold]Results:[/]  {rel_run}/",
-        title="[bold]Done[/]",
-        border_style="green",
-        padding=(1, 2),
-    ))
+    console.print(
+        Panel(
+            f"[bold green]Interactions complete![/]\n\n"
+            f"[bold]Results:[/]  {rel_run}/",
+            title="[bold]Done[/]",
+            border_style="green",
+            padding=(1, 2),
+        ))
 
     console.print()
     console.print("[bold]Next steps — copy and paste:[/]")

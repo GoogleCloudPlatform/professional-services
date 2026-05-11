@@ -41,13 +41,15 @@ from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger("agent_eval")
 
-
 # ---------------------------------------------------------------------------
 # Data extraction (turn analyzer outputs into JSON for the template)
 # ---------------------------------------------------------------------------
 
 _LOWER_IS_BETTER_PATTERNS = (
-    "latency", "tokens", "cost", "thinking_tokens",
+    "latency",
+    "tokens",
+    "cost",
+    "thinking_tokens",
 )
 
 
@@ -81,7 +83,8 @@ def _format_value(val: Any, metric: str) -> str:
     return str(val)
 
 
-def _normalize_score(val: Any, score_range: Optional[Dict[str, Any]]) -> Optional[float]:
+def _normalize_score(val: Any,
+                     score_range: Optional[Dict[str, Any]]) -> Optional[float]:
     if not isinstance(val, (int, float)):
         return None
     if not score_range:
@@ -93,31 +96,40 @@ def _normalize_score(val: Any, score_range: Optional[Dict[str, Any]]) -> Optiona
 
 
 def _build_overview_tiles(summary: Dict[str, Any]) -> List[Dict[str, Any]]:
-    det = (summary.get("overall_summary") or {}).get("deterministic_metrics") or {}
+    det = (summary.get("overall_summary") or
+           {}).get("deterministic_metrics") or {}
     tiles = []
     cost = det.get("token_usage.estimated_cost_usd")
     if cost is not None:
         tiles.append({
-            "label": "Estimated Cost", "value": f"${cost:.4f}",
-            "hint": "Per question on average", "color": "yellow",
+            "label": "Estimated Cost",
+            "value": f"${cost:.4f}",
+            "hint": "Per question on average",
+            "color": "yellow",
         })
     wall = det.get("latency_metrics.total_latency_seconds")
     if wall is not None:
         tiles.append({
-            "label": "Wall-clock", "value": f"{wall:.1f}s",
-            "hint": "Average per question", "color": "blue",
+            "label": "Wall-clock",
+            "value": f"{wall:.1f}s",
+            "hint": "Average per question",
+            "color": "blue",
         })
     cache = det.get("cache_efficiency.cache_hit_rate")
     if cache is not None:
         tiles.append({
-            "label": "Cache Hit Rate", "value": f"{cache * 100:.0f}%",
-            "hint": "Higher = cheaper", "color": "green",
+            "label": "Cache Hit Rate",
+            "value": f"{cache * 100:.0f}%",
+            "hint": "Higher = cheaper",
+            "color": "green",
         })
     tokens = det.get("token_usage.total_tokens")
     if tokens is not None:
         tiles.append({
-            "label": "Total Tokens", "value": f"{tokens:,.0f}",
-            "hint": "Prompt + completion + thinking", "color": "red",
+            "label": "Total Tokens",
+            "value": f"{tokens:,.0f}",
+            "hint": "Prompt + completion + thinking",
+            "color": "red",
         })
     return tiles
 
@@ -127,7 +139,8 @@ def _build_llm_metric_rows(
     comparison: Optional[Dict[str, Any]] = None,
 ) -> List[Dict[str, Any]]:
     llm = (summary.get("overall_summary") or {}).get("llm_based_metrics") or {}
-    skipped = (summary.get("overall_summary") or {}).get("skipped_metrics") or []
+    skipped = (summary.get("overall_summary") or
+               {}).get("skipped_metrics") or []
     delta_lookup = {}
     if comparison:
         for d in comparison.get("deltas", []):
@@ -154,8 +167,11 @@ def _build_llm_metric_rows(
     for s in skipped:
         if isinstance(s, dict):
             rows.append({
-                "name": s.get("metric", "?"), "score": "SKIPPED",
-                "range": "—", "skipped": True, "reason": s.get("reason", ""),
+                "name": s.get("metric", "?"),
+                "score": "SKIPPED",
+                "range": "—",
+                "skipped": True,
+                "reason": s.get("reason", ""),
             })
     return rows
 
@@ -164,7 +180,8 @@ def _build_deterministic_rows(
     summary: Dict[str, Any],
     comparison: Optional[Dict[str, Any]] = None,
 ) -> List[Dict[str, Any]]:
-    det = (summary.get("overall_summary") or {}).get("deterministic_metrics") or {}
+    det = (summary.get("overall_summary") or
+           {}).get("deterministic_metrics") or {}
     delta_lookup = {}
     if comparison:
         for d in comparison.get("deltas", []):
@@ -184,7 +201,8 @@ def _build_deterministic_rows(
     return rows
 
 
-def _flatten_det_metrics(det: Dict[str, Any], prefix: str = "") -> Dict[str, Any]:
+def _flatten_det_metrics(det: Dict[str, Any],
+                         prefix: str = "") -> Dict[str, Any]:
     flat: Dict[str, Any] = {}
     for k, v in (det or {}).items():
         if isinstance(v, dict):
@@ -308,17 +326,20 @@ def _build_csv_lookup(results_csv: Optional[Path]) -> Dict[str, Dict[str, Any]]:
                     args_obj = ti.get("input_arguments") or {}
                     result = ti.get("output_result") or ""
                     tool_calls.append({
-                        "name": ti.get("tool_name") or "?",
+                        "name":
+                            ti.get("tool_name") or "?",
                         "call_id": (ti.get("call_id") or "")[:24],
-                        "args": _truncate_for_payload(
-                            json.dumps(args_obj, default=str) if not isinstance(args_obj, str) else args_obj,
-                            800
-                        ),
-                        "result": _truncate_for_payload(
-                            json.dumps(result, default=str) if not isinstance(result, str) else result,
-                            2500
-                        ),
-                        "ok": _classify_tool_result(result),
+                        "args":
+                            _truncate_for_payload(
+                                json.dumps(args_obj, default=str)
+                                if not isinstance(args_obj, str) else args_obj,
+                                800),
+                        "result":
+                            _truncate_for_payload(
+                                json.dumps(result, default=str) if
+                                not isinstance(result, str) else result, 2500),
+                        "ok":
+                            _classify_tool_result(result),
                     })
 
                 # State variables (final state after all turns).
@@ -327,7 +348,8 @@ def _build_csv_lookup(results_csv: Optional[Path]) -> Dict[str, Dict[str, Any]]:
                     state_vars = {}
                 state_clean = {}
                 for k, v in list(state_vars.items())[:30]:
-                    rendered = json.dumps(v, default=str) if not isinstance(v, (str, int, float, bool, type(None))) else v
+                    rendered = json.dumps(v, default=str) if not isinstance(
+                        v, (str, int, float, bool, type(None))) else v
                     if isinstance(rendered, str) and len(rendered) > 1500:
                         rendered = rendered[:1500] + " …"
                     state_clean[k] = rendered
@@ -348,7 +370,8 @@ def _build_csv_lookup(results_csv: Optional[Path]) -> Dict[str, Dict[str, Any]]:
                 # (so the report shows what schema the LLM saw for tools).
                 system_instruction = ed.get("system_instruction") or ""
                 if isinstance(system_instruction, list):
-                    system_instruction = "\n\n".join(str(x) for x in system_instruction)
+                    system_instruction = "\n\n".join(
+                        str(x) for x in system_instruction)
                 # ADK wraps tool declarations as
                 #   [{"function_declarations": [{name, description}, ...]}]
                 # Flatten to a flat list of dicts so the JS render doesn't
@@ -357,29 +380,42 @@ def _build_csv_lookup(results_csv: Optional[Path]) -> Dict[str, Dict[str, Any]]:
                 tool_declarations: List[Dict[str, Any]] = []
                 if isinstance(raw_tds, list):
                     for td in raw_tds:
-                        if isinstance(td, dict) and isinstance(td.get("function_declarations"), list):
+                        if isinstance(td, dict) and isinstance(
+                                td.get("function_declarations"), list):
                             for fd in td["function_declarations"]:
                                 if isinstance(fd, dict):
                                     tool_declarations.append({
-                                        "name": fd.get("name") or "?",
-                                        "description": _truncate_for_payload(
-                                            fd.get("description") or "", 200),
+                                        "name":
+                                            fd.get("name") or "?",
+                                        "description":
+                                            _truncate_for_payload(
+                                                fd.get("description") or "",
+                                                200),
                                     })
                         elif isinstance(td, dict):
                             tool_declarations.append({
-                                "name": td.get("name") or td.get("tool_name") or "?",
-                                "description": _truncate_for_payload(
-                                    td.get("description") or "", 200),
+                                "name":
+                                    td.get("name") or td.get("tool_name")
+                                    or "?",
+                                "description":
+                                    _truncate_for_payload(
+                                        td.get("description") or "", 200),
                             })
                         elif isinstance(td, str):
-                            tool_declarations.append({"name": td, "description": ""})
+                            tool_declarations.append({
+                                "name": td,
+                                "description": ""
+                            })
 
                 # Thinking trace (Gemini reasoning tokens) — only the count
                 # + a sample, since these can be massive.
                 thinking_trace = ed.get("thinking_trace") or []
                 thinking_summary = {
-                    "n_thoughts": len(thinking_trace) if isinstance(thinking_trace, list) else 0,
-                    "sample": "",
+                    "n_thoughts":
+                        len(thinking_trace)
+                        if isinstance(thinking_trace, list) else 0,
+                    "sample":
+                        "",
                 }
                 if isinstance(thinking_trace, list) and thinking_trace:
                     first = thinking_trace[0]
@@ -389,7 +425,8 @@ def _build_csv_lookup(results_csv: Optional[Path]) -> Dict[str, Dict[str, Any]]:
                             600,
                         )
                     else:
-                        thinking_summary["sample"] = _truncate_for_payload(str(first), 600)
+                        thinking_summary["sample"] = _truncate_for_payload(
+                            str(first), 600)
 
                 # Conversation history — pair user inputs with model responses.
                 conv_history = ed.get("conversation_history") or []
@@ -400,9 +437,9 @@ def _build_csv_lookup(results_csv: Optional[Path]) -> Dict[str, Dict[str, Any]]:
                             continue
                         role = turn.get("role") or "user"
                         parts = turn.get("parts") or []
-                        text = " ".join(
-                            (p.get("text") or "") for p in parts if isinstance(p, dict)
-                        ).strip()
+                        text = " ".join((p.get("text") or "")
+                                        for p in parts
+                                        if isinstance(p, dict)).strip()
                         if text:
                             conversation.append({
                                 "role": role,
@@ -446,29 +483,40 @@ def _build_csv_lookup(results_csv: Optional[Path]) -> Dict[str, Dict[str, Any]]:
                         llm_s = _sum_by_type(t, "LLM_CALL")
                         tool_s = _sum_by_type(t, "TOOL_CALL")
                         turn_latencies.append({
-                            "turn": i + 1,
-                            "total_s": total if isinstance(total, (int, float)) else None,
-                            "llm_s": llm_s if llm_s > 0 else None,
-                            "tool_s": tool_s if tool_s > 0 else None,
+                            "turn":
+                                i + 1,
+                            "total_s":
+                                total if isinstance(total,
+                                                    (int, float)) else None,
+                            "llm_s":
+                                llm_s if llm_s > 0 else None,
+                            "tool_s":
+                                tool_s if tool_s > 0 else None,
                         })
 
                 lookup[qid] = {
-                    "conversation": conversation,
-                    "final_response": _truncate_for_payload(
-                        row.get("final_response") or "", 6000
-                    ),
-                    "tool_calls": tool_calls,
-                    "state_vars": state_clean,
-                    "agents_invoked": agents_invoked,
-                    "turn_latencies": turn_latencies,
-                    "trajectory": _truncate_for_payload(
-                        row.get("trace_summary") or "", 500
-                    ),
-                    "system_instruction": _truncate_for_payload(
-                        system_instruction, 4000
-                    ),
-                    "tool_declarations": tool_declarations[:30],
-                    "thinking": thinking_summary,
+                    "conversation":
+                        conversation,
+                    "final_response":
+                        _truncate_for_payload(
+                            row.get("final_response") or "", 6000),
+                    "tool_calls":
+                        tool_calls,
+                    "state_vars":
+                        state_clean,
+                    "agents_invoked":
+                        agents_invoked,
+                    "turn_latencies":
+                        turn_latencies,
+                    "trajectory":
+                        _truncate_for_payload(
+                            row.get("trace_summary") or "", 500),
+                    "system_instruction":
+                        _truncate_for_payload(system_instruction, 4000),
+                    "tool_declarations":
+                        tool_declarations[:30],
+                    "thinking":
+                        thinking_summary,
                 }
     except Exception as exc:
         logger.warning("Could not parse results CSV for HTML report: %s", exc)
@@ -487,15 +535,22 @@ def _build_per_question_data(
     structured data Chart.js + the heatmap need PLUS the rubric verdict
     trees the autorater emitted (which the markdown file doesn't include).
     """
-    qa_list = summary.get("per_question_summary") or summary.get("all_question_summaries") or []
+    qa_list = summary.get("per_question_summary") or summary.get(
+        "all_question_summaries") or []
     if not qa_list:
-        return {"questions": [], "metric_names": [], "matrix": [], "verdicts": []}
+        return {
+            "questions": [],
+            "metric_names": [],
+            "matrix": [],
+            "verdicts": []
+        }
 
     csv_lookup = csv_lookup or {}
 
     metric_names: List[str] = []
     for qa in qa_list:
-        for m in (qa.get("llm_metrics") or qa.get("llm_based_metrics") or {}).keys():
+        for m in (qa.get("llm_metrics") or qa.get("llm_based_metrics") or
+                  {}).keys():
             if m not in metric_names:
                 metric_names.append(m)
 
@@ -540,11 +595,17 @@ def _build_per_question_data(
                 ev = v.get("evaluated_rubric") or {}
                 content = (ev.get("content") or {}).get("property") or {}
                 entries.append({
-                    "rubric": _truncate_for_payload(content.get("description") or "", 400),
-                    "type": ev.get("type") or "",
-                    "importance": ev.get("importance") or "",
-                    "verdict": v.get("verdict"),
-                    "reasoning": _truncate_for_payload(v.get("reasoning") or "", 600),
+                    "rubric":
+                        _truncate_for_payload(
+                            content.get("description") or "", 400),
+                    "type":
+                        ev.get("type") or "",
+                    "importance":
+                        ev.get("importance") or "",
+                    "verdict":
+                        v.get("verdict"),
+                    "reasoning":
+                        _truncate_for_payload(v.get("reasoning") or "", 600),
                 })
             # Preserve the explanation's original shape — string, list (e.g.
             # hallucination's per-claim verdicts), or dict — the JS renders
@@ -554,16 +615,15 @@ def _build_per_question_data(
             if isinstance(raw_expl, str):
                 expl_payload: Any = _truncate_for_payload(raw_expl, 1200)
             elif isinstance(raw_expl, list):
-                expl_payload = [
-                    {k: (_truncate_for_payload(v, 1200) if isinstance(v, str) else v)
-                     for k, v in item.items()} if isinstance(item, dict)
-                    else _truncate_for_payload(str(item), 1200)
-                    for item in raw_expl
-                ]
+                expl_payload = [{
+                    k: (_truncate_for_payload(v, 1200)
+                        if isinstance(v, str) else v) for k, v in item.items()
+                } if isinstance(item, dict) else _truncate_for_payload(
+                    str(item), 1200) for item in raw_expl]
             elif isinstance(raw_expl, dict):
                 expl_payload = {
-                    k: (_truncate_for_payload(v, 1200) if isinstance(v, str) else v)
-                    for k, v in raw_expl.items()
+                    k: (_truncate_for_payload(v, 1200) if isinstance(v, str)
+                        else v) for k, v in raw_expl.items()
                 }
             else:
                 expl_payload = ""
@@ -575,7 +635,8 @@ def _build_per_question_data(
             err_str = ""
             if err is not None:
                 err_str = _truncate_for_payload(
-                    err if isinstance(err, str) else json.dumps(err, default=str),
+                    err if isinstance(err, str) else json.dumps(err,
+                                                                default=str),
                     600,
                 )
             per_metric_verdicts[mname] = {
@@ -596,23 +657,32 @@ def _build_per_question_data(
                 row.append(None)
                 cell_details.append(None)
             else:
-                row.append(float(score_val) if isinstance(score_val, (int, float)) else None)
+                row.append(
+                    float(score_val) if isinstance(score_val, (
+                        int, float)) else None)
                 cell_details.append(_format_value(score_val, m))
         questions.append({
-            "id": friendly, "raw_id": raw_qid,
-            "prompt_preview": prompt_preview, "source_type": source,
+            "id": friendly,
+            "raw_id": raw_qid,
+            "prompt_preview": prompt_preview,
+            "source_type": source,
         })
         matrix.append({
-            "id": friendly, "label": prompt_preview or friendly,
-            "raw_id": raw_qid, "source_type": source,
-            "row": row, "cells": cell_details,
+            "id": friendly,
+            "label": prompt_preview or friendly,
+            "raw_id": raw_qid,
+            "source_type": source,
+            "row": row,
+            "cells": cell_details,
         })
         # Pull the rich conversation/tool/state data from the CSV lookup
         # if it was pre-parsed. This is the wisely-extracted data the user
         # actually wants to see per question — what did the agent do?
         csv_extra = csv_lookup.get(raw_qid) or {}
         verdicts.append({
-            "id": friendly, "raw_id": raw_qid, "source_type": source,
+            "id": friendly,
+            "raw_id": raw_qid,
+            "source_type": source,
             "prompt_preview": prompt_preview,
             "metrics": per_metric_verdicts,
             "deterministic": det_flat,
@@ -637,7 +707,8 @@ def _build_per_question_data(
     }
 
 
-def _build_iterations_data(results_parent: Path, current_run_id: str) -> List[Dict[str, Any]]:
+def _build_iterations_data(results_parent: Path,
+                           current_run_id: str) -> List[Dict[str, Any]]:
     """Walk every run folder under ``results_parent`` and build a sorted
     list of iteration entries from each run's ``eval_summary.json``.
 
@@ -711,7 +782,9 @@ def _build_iterations_data(results_parent: Path, current_run_id: str) -> List[Di
         for src in ("llm_metrics", "det_metrics"):
             for k, v in (it[src] or {}).items():
                 pv = (prev[src] or {}).get(k)
-                if isinstance(v, (int, float)) and isinstance(pv, (int, float)) and pv:
+                if isinstance(v,
+                              (int, float)) and isinstance(pv,
+                                                           (int, float)) and pv:
                     deltas[k] = round((v - pv) / abs(pv) * 100, 1)
         it["deltas"] = deltas
     # Strip the internal sort key.
@@ -758,35 +831,55 @@ def _build_payload(
     git = summary.get("git_info") or {}
     return {
         "meta": {
-            "run_id": run_id,
-            "agent_name": agent_name,
-            "generated_at": datetime.now().strftime("%Y-%m-%d %H:%M"),
-            "experiment_id": summary.get("experiment_id", ""),
-            "test_description": summary.get("test_description", ""),
-            "interaction_datetime": summary.get("interaction_datetime", ""),
-            "run_type": summary.get("run_type", ""),
+            "run_id":
+                run_id,
+            "agent_name":
+                agent_name,
+            "generated_at":
+                datetime.now().strftime("%Y-%m-%d %H:%M"),
+            "experiment_id":
+                summary.get("experiment_id", ""),
+            "test_description":
+                summary.get("test_description", ""),
+            "interaction_datetime":
+                summary.get("interaction_datetime", ""),
+            "run_type":
+                summary.get("run_type", ""),
             "git_commit": (git.get("commit") or "")[:8],
-            "git_branch": git.get("branch") or "",
-            "git_dirty": bool(git.get("dirty")),
-            "has_comparison": bool(comparison),
-            "baseline_run": (comparison or {}).get("baseline_run_name") or (comparison or {}).get("baseline_id"),
+            "git_branch":
+                git.get("branch") or "",
+            "git_dirty":
+                bool(git.get("dirty")),
+            "has_comparison":
+                bool(comparison),
+            "baseline_run": (comparison or {}).get("baseline_run_name") or
+                            (comparison or {}).get("baseline_id"),
         },
-        "tiles": _build_overview_tiles(summary),
-        "llm_metrics": _build_llm_metric_rows(summary, comparison),
-        "deterministic_metrics": _build_deterministic_rows(summary, comparison),
-        "per_source": _build_per_source_data(summary),
-        "per_question": _build_per_question_data(
-            results_csv, summary, csv_lookup=_build_csv_lookup(results_csv)
-        ),
-        "qa_log_md": _truncate_for_payload(qa_log_md or "", 200000),
-        "iterations": iterations or [],
+        "tiles":
+            _build_overview_tiles(summary),
+        "llm_metrics":
+            _build_llm_metric_rows(summary, comparison),
+        "deterministic_metrics":
+            _build_deterministic_rows(summary, comparison),
+        "per_source":
+            _build_per_source_data(summary),
+        "per_question":
+            _build_per_question_data(results_csv,
+                                     summary,
+                                     csv_lookup=_build_csv_lookup(results_csv)),
+        "qa_log_md":
+            _truncate_for_payload(qa_log_md or "", 200000),
+        "iterations":
+            iterations or [],
         "comparison": {
             "deltas": (comparison or {}).get("deltas") or [],
             "baseline_git": (comparison or {}).get("baseline_git") or {},
             "current_git": (comparison or {}).get("current_git") or {},
         },
-        "gemini_analysis_md": _truncate_for_payload(gemini_analysis_md or "", 60000),
-        "optimization_log_md": _truncate_for_payload(optimization_log_md or "", 60000),
+        "gemini_analysis_md":
+            _truncate_for_payload(gemini_analysis_md or "", 60000),
+        "optimization_log_md":
+            _truncate_for_payload(optimization_log_md or "", 60000),
     }
 
 
@@ -2573,10 +2666,10 @@ _HTML_TEMPLATE = r"""<!doctype html>
 </html>
 """
 
-
 # ---------------------------------------------------------------------------
 # Public entrypoint
 # ---------------------------------------------------------------------------
+
 
 def generate_html_report(
     *,
@@ -2653,16 +2746,13 @@ def generate_html_report(
     #   - Replace `</` with `<\/` so any literal `</script>` substring in
     #     the data (agent responses sometimes scrape full HTML pages with
     #     analytics tags) doesn't prematurely close our <script> tag
-    data_json = (
-        json.dumps(payload, default=str, ensure_ascii=True)
-        .replace("</", "<\\/")
-    )
+    data_json = (json.dumps(payload, default=str,
+                            ensure_ascii=True).replace("</", "<\\/"))
 
-    html_text = (
-        _HTML_TEMPLATE
-        .replace("__RUN_ID__", html.escape(run_id))
-        .replace("__GENERATED_AT__", payload["meta"]["generated_at"])
-        .replace("__DATA_JSON__", data_json)
-    )
+    html_text = (_HTML_TEMPLATE.replace(
+        "__RUN_ID__", html.escape(run_id)).replace(
+            "__GENERATED_AT__",
+            payload["meta"]["generated_at"]).replace("__DATA_JSON__",
+                                                     data_json))
     output_path.write_text(html_text, encoding="utf-8")
     return output_path

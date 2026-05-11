@@ -41,10 +41,10 @@ _QUIET_ENV = {
     "AGENT_ENGINE_RESOURCE_NAME": "",
 }
 
-
 # ---------------------------------------------------------------------------
 # A1 / A1.5 — Managed metric request shape
 # ---------------------------------------------------------------------------
+
 
 class TestA15ManagedMetricColumnShape(unittest.TestCase):
     """The pydantic crash from F1 came from sending a JSON-wrapped
@@ -66,7 +66,9 @@ class TestA15ManagedMetricColumnShape(unittest.TestCase):
                         "timestamp": 1776962954.33858,
                         "content": {
                             "role": "user",
-                            "parts": [{"text": "What's in the legal docs?"}],
+                            "parts": [{
+                                "text": "What's in the legal docs?"
+                            }],
                         },
                     },
                     {
@@ -75,7 +77,9 @@ class TestA15ManagedMetricColumnShape(unittest.TestCase):
                         "timestamp": 1776962955.5,
                         "content": {
                             "role": "model",
-                            "parts": [{"text": "Which dataset?"}],
+                            "parts": [{
+                                "text": "Which dataset?"
+                            }],
                         },
                     },
                 ]
@@ -86,14 +90,21 @@ class TestA15ManagedMetricColumnShape(unittest.TestCase):
         from agent_eval.core.evaluator import _build_managed_eval_dataset
         df = pd.DataFrame([self._row()])
         ed, err = _build_managed_eval_dataset(
-            {"kind": "managed", "base": "GENERAL_QUALITY"},
-            "general_quality", "GENERAL_QUALITY", df,
+            {
+                "kind": "managed",
+                "base": "GENERAL_QUALITY"
+            },
+            "general_quality",
+            "GENERAL_QUALITY",
+            df,
         )
         self.assertIsNone(err)
         self.assertEqual(set(ed.columns), {"prompt", "response"})
         # Plain text — the F1 regression was sending the JSON wrapper here.
-        self.assertEqual(ed["prompt"].iloc[0], "What's in the legal docs about CrowdStrike?")
-        self.assertEqual(ed["response"].iloc[0], "Which dataset — Delta or CrowdStrike?")
+        self.assertEqual(ed["prompt"].iloc[0],
+                         "What's in the legal docs about CrowdStrike?")
+        self.assertEqual(ed["response"].iloc[0],
+                         "Which dataset — Delta or CrowdStrike?")
 
     def test_tool_use_quality_includes_intermediate_events(self):
         """TOOL_USE_QUALITY needs `intermediate_events` per the Vertex
@@ -102,11 +113,17 @@ class TestA15ManagedMetricColumnShape(unittest.TestCase):
         from agent_eval.core.evaluator import _build_managed_eval_dataset
         df = pd.DataFrame([self._row()])
         ed, err = _build_managed_eval_dataset(
-            {"kind": "managed", "base": "TOOL_USE_QUALITY"},
-            "tool_use_quality", "TOOL_USE_QUALITY", df,
+            {
+                "kind": "managed",
+                "base": "TOOL_USE_QUALITY"
+            },
+            "tool_use_quality",
+            "TOOL_USE_QUALITY",
+            df,
         )
         self.assertIsNone(err)
-        self.assertEqual(set(ed.columns), {"prompt", "response", "intermediate_events"})
+        self.assertEqual(set(ed.columns),
+                         {"prompt", "response", "intermediate_events"})
         events = ed["intermediate_events"].iloc[0]
         self.assertIsInstance(events, list)
         self.assertEqual(len(events), 2)
@@ -125,17 +142,23 @@ class TestA15ManagedMetricColumnShape(unittest.TestCase):
             "user_inputs": ["fallback prompt"],
             "final_response": "default response",
             "session_id": "use-this-instead",
-            "final_session_state": {"events": []},
+            "final_session_state": {
+                "events": []
+            },
         }])
         ed, err = _build_managed_eval_dataset(
             {
                 "kind": "managed",
                 "base": "GENERAL_QUALITY",
                 "dataset_mapping": {
-                    "prompt": {"source_column": "session_id"},
+                    "prompt": {
+                        "source_column": "session_id"
+                    },
                 },
             },
-            "gq", "GENERAL_QUALITY", df,
+            "gq",
+            "GENERAL_QUALITY",
+            df,
         )
         self.assertIsNone(err)
         self.assertEqual(ed["prompt"].iloc[0], "use-this-instead")
@@ -145,6 +168,7 @@ class TestA15ManagedMetricColumnShape(unittest.TestCase):
 # A4 — GCS bucket location decoupled from Vertex eval location
 # ---------------------------------------------------------------------------
 
+
 class TestA4BucketLocation(unittest.TestCase):
     """F5: passing Vertex's location verbatim to GCS broke first-time runs
     when Gemini 3+ defaults Vertex's location to 'global' (which GCS
@@ -153,7 +177,8 @@ class TestA4BucketLocation(unittest.TestCase):
 
     def test_global_vertex_location_falls_back_to_us_central1(self):
         from agent_eval.cli.commands.agent_engine import _resolve_bucket_location
-        self.assertEqual(_resolve_bucket_location("global", None), "us-central1")
+        self.assertEqual(_resolve_bucket_location("global", None),
+                         "us-central1")
 
     def test_real_region_passes_through(self):
         from agent_eval.cli.commands.agent_engine import _resolve_bucket_location
@@ -162,8 +187,10 @@ class TestA4BucketLocation(unittest.TestCase):
     def test_explicit_override_always_wins(self):
         from agent_eval.cli.commands.agent_engine import _resolve_bucket_location
         # Override beats both 'global' fallback AND a real region.
-        self.assertEqual(_resolve_bucket_location("global", "europe-west1"), "europe-west1")
-        self.assertEqual(_resolve_bucket_location("us-east1", "us-west2"), "us-west2")
+        self.assertEqual(_resolve_bucket_location("global", "europe-west1"),
+                         "europe-west1")
+        self.assertEqual(_resolve_bucket_location("us-east1", "us-west2"),
+                         "us-west2")
 
     def test_create_bucket_never_called_with_global(self):
         """The integration: when Vertex location is 'global', the
@@ -183,13 +210,16 @@ class TestA4BucketLocation(unittest.TestCase):
             )
 
             create_call = instance.create_bucket.call_args
-            self.assertIsNotNone(create_call, "create_bucket should have been called")
+            self.assertIsNotNone(create_call,
+                                 "create_bucket should have been called")
             # Could be positional or keyword — accept both.
             kwargs = create_call.kwargs
             args = create_call.args
-            location = kwargs.get("location") or (args[1] if len(args) > 1 else None)
+            location = kwargs.get("location") or (args[1]
+                                                  if len(args) > 1 else None)
             self.assertNotEqual(
-                location, "global",
+                location,
+                "global",
                 f"GCS rejects location='global' for STANDARD buckets — got: {location}",
             )
             self.assertEqual(location, "us-central1")
@@ -198,6 +228,7 @@ class TestA4BucketLocation(unittest.TestCase):
 # ---------------------------------------------------------------------------
 # D5 — Scaffold writes at the project root, NEVER inside the agent module
 # ---------------------------------------------------------------------------
+
 
 class TestD5ScaffoldAtProjectRoot(unittest.TestCase):
     """F3: pre-rescue ``scaffold.py`` wrote ``<agent_dir>/tests/eval/...``
@@ -235,7 +266,8 @@ class TestD5ScaffoldAtProjectRoot(unittest.TestCase):
             agent_dir = self._make_project(td)
             scaffold_metrics_only(agent_dir, agent_name="app")
             self.assertTrue(
-                (td / "tests" / "eval" / "metrics" / "metric_definitions.json").exists(),
+                (td / "tests" / "eval" / "metrics" /
+                 "metric_definitions.json").exists(),
                 "metric_definitions.json must land at <project_root>/tests/eval/metrics/",
             )
             self.assertFalse(
@@ -247,6 +279,7 @@ class TestD5ScaffoldAtProjectRoot(unittest.TestCase):
 # ---------------------------------------------------------------------------
 # Phase D unified dataset — interact + agent-engine + simulate share one file
 # ---------------------------------------------------------------------------
+
 
 class TestPhaseDUnifiedDataset(unittest.TestCase):
     """The Phase D promise: ONE ``tests/eval/dataset.jsonl`` feeds simulate
@@ -262,33 +295,41 @@ class TestPhaseDUnifiedDataset(unittest.TestCase):
             agent_dir.mkdir()
             eval_dir = td / "tests" / "eval"
             eval_dir.mkdir(parents=True)
-            (eval_dir / "dataset.jsonl").write_text(
-                "\n".join([
-                    json.dumps({"id": "single", "prompt": "single-turn"}),
-                    json.dumps({
-                        "id": "multi",
-                        "prompt": "follow-up",
-                        "history": [{"role": "user", "parts": [{"text": "first"}]}],
-                    }),
-                    json.dumps({
-                        "id": "plan",
-                        "prompt": "starter",
-                        "conversation_plan": ["step a", "step b"],
-                    }),
-                ]) + "\n"
-            )
+            (eval_dir / "dataset.jsonl").write_text("\n".join([
+                json.dumps({
+                    "id": "single",
+                    "prompt": "single-turn"
+                }),
+                json.dumps({
+                    "id": "multi",
+                    "prompt": "follow-up",
+                    "history": [{
+                        "role": "user",
+                        "parts": [{
+                            "text": "first"
+                        }]
+                    }],
+                }),
+                json.dumps({
+                    "id": "plan",
+                    "prompt": "starter",
+                    "conversation_plan": ["step a", "step b"],
+                }),
+            ]) + "\n")
             n, source = _project_dataset_to_adk_files(agent_dir, td)
             self.assertEqual(n, 2, "single-turn row must be filtered out")
             self.assertEqual(source, "dataset.jsonl")
-            scenarios = json.loads((agent_dir / "conversation_scenarios.json").read_text())
+            scenarios = json.loads(
+                (agent_dir / "conversation_scenarios.json").read_text())
             ids = [s["starting_prompt"] for s in scenarios["scenarios"]]
             self.assertNotIn("single-turn", ids)
 
             # ADK's ConversationScenarios pydantic schema is `extra="forbid"`
             # — only `scenarios` is allowed at the top level. The `_generated_by`
             # marker we used to write tripped pydantic validation in `adk eval`.
-            self.assertEqual(set(scenarios.keys()), {"scenarios"},
-                             "no extra top-level keys may leak into the projection")
+            self.assertEqual(
+                set(scenarios.keys()), {"scenarios"},
+                "no extra top-level keys may leak into the projection")
 
             # ADK expects `conversation_plan` to be a STRING (high-level goals)
             # per https://adk.dev/evaluate/user-sim/. Our row schema uses a list;
@@ -310,15 +351,22 @@ class TestPhaseDUnifiedDataset(unittest.TestCase):
         with tempfile.TemporaryDirectory() as raw_td:
             td = Path(raw_td).resolve()
             ds = td / "dataset.jsonl"
-            ds.write_text(
-                "\n".join([
-                    json.dumps({"id": "q1", "prompt": "single-turn"}),
-                    json.dumps({
-                        "id": "q2", "prompt": "follow-up",
-                        "history": [{"role": "user", "parts": [{"text": "x"}]}],
-                    }),
-                ]) + "\n"
-            )
+            ds.write_text("\n".join([
+                json.dumps({
+                    "id": "q1",
+                    "prompt": "single-turn"
+                }),
+                json.dumps({
+                    "id": "q2",
+                    "prompt": "follow-up",
+                    "history": [{
+                        "role": "user",
+                        "parts": [{
+                            "text": "x"
+                        }]
+                    }],
+                }),
+            ]) + "\n")
             qs = get_golden_questions(str(ds))
             self.assertEqual(len(qs), 1)
             self.assertEqual(qs[0]["id"], "q1")
@@ -337,21 +385,26 @@ class TestPhaseDUnifiedDataset(unittest.TestCase):
         with tempfile.TemporaryDirectory() as raw_td:
             td = Path(raw_td).resolve()
             ds = td / "dataset.jsonl"
-            ds.write_text(json.dumps({
-                "id": "q1",
-                "prompt": "What is X?",
-                "reference_data": {
-                    "expected_behavior": "agent answers grounded in docs",
-                    "expected_facts": ["X is a service", "It launched in 2023"],
-                },
-            }) + "\n")
+            ds.write_text(
+                json.dumps({
+                    "id": "q1",
+                    "prompt": "What is X?",
+                    "reference_data": {
+                        "expected_behavior":
+                            "agent answers grounded in docs",
+                        "expected_facts":
+                            ["X is a service", "It launched in 2023"],
+                    },
+                }) + "\n")
             qs = get_golden_questions(str(ds))
             self.assertEqual(len(qs), 1)
             ref = qs[0]["reference_data"]
-            self.assertIn("expected_behavior", ref,
-                          "nested reference_data fields must survive the loader")
-            self.assertIn("expected_facts", ref,
-                          "list-typed expected_* fields must survive the loader")
+            self.assertIn(
+                "expected_behavior", ref,
+                "nested reference_data fields must survive the loader")
+            self.assertIn(
+                "expected_facts", ref,
+                "list-typed expected_* fields must survive the loader")
             self.assertEqual(ref["expected_facts"],
                              ["X is a service", "It launched in 2023"])
 
@@ -359,6 +412,7 @@ class TestPhaseDUnifiedDataset(unittest.TestCase):
 # ---------------------------------------------------------------------------
 # A2 — Honest failure copy (no more "API rate limits" lie)
 # ---------------------------------------------------------------------------
+
 
 class TestA2HonestFailureCopy(unittest.TestCase):
     """When a metric exhausts retries, the worker now returns the actual
@@ -369,7 +423,9 @@ class TestA2HonestFailureCopy(unittest.TestCase):
         from agent_eval.core.evaluator import run_single_metric_evaluation
 
         class StubClient:
+
             class evals:
+
                 @staticmethod
                 def evaluate(*_, **__):
                     raise ValueError("contents/Extra inputs are not permitted")
@@ -378,8 +434,14 @@ class TestA2HonestFailureCopy(unittest.TestCase):
         metric_obj = mock.MagicMock(name="metric")
         metric_df = eval_dataset.copy()
         result = run_single_metric_evaluation((
-            eval_dataset, metric_obj, metric_df, "general_quality",
-            StubClient(), 1, 0, None,
+            eval_dataset,
+            metric_obj,
+            metric_df,
+            "general_quality",
+            StubClient(),
+            1,
+            0,
+            None,
         ))
         parsed_df, name, _, error_info = result
         self.assertIsNone(parsed_df)
