@@ -50,9 +50,9 @@ echo ""
 echo "Wheel built successfully:"
 ls -lh dist/*.whl
 echo ""
-# shellcheck SC2011: prefer `find` over `ls | xargs` to handle filenames
-# with spaces / special chars (wheel names never have either, but the
-# upstream PSO CI runs shellcheck and rejects SC2011).
+# Use `find` instead of `ls | xargs` (SC2011) so filenames with spaces
+# or special chars are safe. Wheel names never have either, but the
+# upstream PSO CI runs shellcheck strictly.
 WHEEL_NAME=$(find dist -maxdepth 1 -name '*.whl' -exec basename {} \;)
 echo "To install in another project:"
 echo "  1. Copy dist/$WHEEL_NAME to your project (e.g., vendor/ folder)"
