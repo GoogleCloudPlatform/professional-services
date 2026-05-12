@@ -360,6 +360,7 @@ Platform usage.
 *   [Airflow DAG Metadata Generator](tools/airflow-dag-metadata-generator) - Use Google's
     generative models to analyze Airflow DAGs and supplement them with generated `description`,
     `tags`, and `doc_md` values.
+*   [adk2-graph-asset](./tools/adk2-graph-asset) - Deploy LLM agent workflow to vertex AI Agent Engine using YAML definitions. Includes local testing, multi-node workflow and session management.
 *   [Airflow States Collector](tools/airflow-states-collector) -
       A tool that creates and uploads an airflow dag to the dags GCS folder. The dag incrementally collect airflow task states and stores to BQ. It also autogenerates a LookerStudio dashboard querying the BQ view.
 *   [Airpiler](tools/airpiler) - A python script to convert Autosys JIL files to
