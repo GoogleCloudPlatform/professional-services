@@ -22,14 +22,14 @@ requiring the heavy dashboard extras.
 from __future__ import annotations
 
 import json
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 from typing import Any
 
 import pandas as pd
 
-from agent_eval.core.analyzer import LOWER_IS_BETTER, _is_lower_better
+from agent_eval.core.analyzer import _is_lower_better
 
 # ---------------------------------------------------------------------------
 # Data model

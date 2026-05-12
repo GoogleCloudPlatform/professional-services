@@ -290,7 +290,6 @@ def _build_csv_lookup(results_csv: Optional[Path]) -> Dict[str, Dict[str, Any]]:
                 if not qid:
                     continue
                 ed = _safe_parse(row.get("extracted_data")) or {}
-                fss = _safe_parse(row.get("final_session_state")) or {}
                 lat = _safe_parse(row.get("latency_data")) or []
                 user_inputs = _safe_parse(row.get("user_inputs")) or []
                 if not isinstance(user_inputs, list):

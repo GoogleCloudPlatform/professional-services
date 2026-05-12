@@ -14,14 +14,11 @@
 """Tests for the dashboard data layer (no Gradio dependency needed)."""
 
 import json
-from datetime import datetime
 from pathlib import Path
 
-import pandas as pd
 import pytest
 
 from agent_eval.dashboard.data import (
-    RunInfo,
     classify_metrics,
     compute_delta,
     discover_runs,

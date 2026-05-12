@@ -21,16 +21,12 @@ scenarios, golden datasets, and evaluation strategy.
 from __future__ import annotations
 
 import json
-import os
 import re
 import time
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
-from agent_eval.core.adk_optimization_patterns import ADK_OPTIMIZATION_PATTERNS
 from agent_eval.core.metric_discovery import (
-    discover_managed_metrics,
-    extract_adk_eval_knowledge,
     format_adk_knowledge_for_prompt,
     format_metrics_for_prompt,
 )

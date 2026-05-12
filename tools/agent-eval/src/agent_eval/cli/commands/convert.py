@@ -69,7 +69,7 @@ def convert(agent_dir, questions_file, output_dir, output_file):
             f"\n[bold green]SUCCESS:[/] Converted {len(records)} interactions to: {output_path}"
         )
         console.print(f"Run folder: {run_dir}")
-        console.print(f"\nTo evaluate, run:")
+        console.print("\nTo evaluate, run:")
         console.print(
             f"  agent-eval evaluate --interaction-file {output_path} --metrics-files <metrics.json> --results-dir {run_dir}"
         )

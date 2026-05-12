@@ -124,9 +124,13 @@ def _abort_setup() -> None:
 
 def _adc_file_path() -> Path:
     """Return the canonical path to the ADC file for the current OS."""
-    if path := os.environ.get("GOOGLE_APPLICATION_CREDENTIALS"):
+    # NOTE: walrus operators (`:=`) avoided here because the upstream
+    # PSO CI's pyflakes can't parse them and crashes the lint.
+    path = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS")
+    if path:
         return Path(path)
-    if config_dir := os.environ.get("CLOUDSDK_CONFIG"):
+    config_dir = os.environ.get("CLOUDSDK_CONFIG")
+    if config_dir:
         return Path(config_dir) / "application_default_credentials.json"
     if os.name == "nt":
         return Path(os.environ.get(
@@ -465,7 +469,6 @@ def _step_3_adc(auto_approve: bool,
     adc_file = _adc_file_path()
     console.print()
 
-    needs_login = False
     reason = ""
 
     if not adc_file.exists():
@@ -473,7 +476,6 @@ def _step_3_adc(auto_approve: bool,
         _hint(
             "On a VM, gcloud may fall back to metadata creds — that's not what we want."
         )
-        needs_login = True
         reason = "missing"
     else:
         adc_email = _adc_account(adc_file)
@@ -482,7 +484,6 @@ def _step_3_adc(auto_approve: bool,
             _hint(
                 "It may be a leftover from `gcloud auth application-default revoke`."
             )
-            needs_login = True
             reason = "unreadable"
         elif adc_email == "":
             # Valid user ADC file (modern gcloud doesn't store an email in it).
@@ -498,7 +499,6 @@ def _step_3_adc(auto_approve: bool,
             _hint(
                 "These need to match — otherwise the Python SDK will use the wrong identity."
             )
-            needs_login = True
             reason = "mismatch"
         else:
             _ok(f"ADC file present at [cyan]{adc_file}[/]  [dim](account: {adc_email})[/]"
@@ -713,7 +713,7 @@ def _step_5_autorater_iam(project: str, auto_approve: bool) -> None:
             _hint("Run:  gcloud auth login --update-adc")
             _hint("Then re-run `agent-eval setup`.")
         else:
-            _hint(f"Run manually:")
+            _hint("Run manually:")
             _hint(
                 f"  PN=$(gcloud projects describe {project} --format='value(projectNumber)')"
             )

@@ -206,7 +206,7 @@ def _project_for_inference(dataset: Any, vt_evals: Any) -> Any:
         c for c in dataset.columns if c not in ("prompt", "session_inputs")
     ]
     console.print(
-        f"  [dim]>[/] [bold]What we're sending to[/] [cyan]run_inference[/] "
+        "  [dim]>[/] [bold]What we're sending to[/] [cyan]run_inference[/] "
         "[dim](per docs/evaluation-agents-client):[/]")
     console.print(
         f"      [cyan]•[/] [bold]{len(rows)} row(s)[/] × 2 columns: "
@@ -465,33 +465,33 @@ def _load_local_agent(agent_module: Optional[str], cwd: Path) -> Optional[Any]:
         console.print(
             f"  [yellow]![/] Couldn't import [cyan]{spec}[/] locally: "
             f"missing dependency [bold]{missing}[/]")
-        console.print(f"    [dim]Two ways to fix in your agent-eval venv:[/]")
+        console.print("    [dim]Two ways to fix in your agent-eval venv:[/]")
         console.print(f"    [dim]  a) install just the missing dep:[/]  "
                       f"[cyan]uv pip install {missing}[/]")
         if extra_sys_path is not None:
             console.print(f"    [dim]  b) install the agent's full deps:[/]  "
                           f"[cyan]uv pip install -e {extra_sys_path}[/]")
-        console.print(f"    [dim]Continuing with a minimal AgentInfo "
-                      f"(resource_name only — see below).[/]")
+        console.print("    [dim]Continuing with a minimal AgentInfo "
+                      "(resource_name only — see below).[/]")
         return None
     except ImportError as exc:
         # Top-level import worked but pulled in a sub-import that failed.
         # Same remediation as ModuleNotFoundError.
         console.print(f"  [yellow]![/] Couldn't import [cyan]{spec}[/]: {exc}")
         console.print(
-            f"    [dim]Looks like a transitive import error. Try installing the "
-            f"agent's deps in agent-eval's venv:[/]")
+            "    [dim]Looks like a transitive import error. Try installing the "
+            "agent's deps in agent-eval's venv:[/]")
         if extra_sys_path is not None:
             console.print(f"    [cyan]uv pip install -e {extra_sys_path}[/]")
         console.print(
-            f"    [dim]Continuing with a minimal AgentInfo (resource_name only).[/]"
+            "    [dim]Continuing with a minimal AgentInfo (resource_name only).[/]"
         )
         return None
     except (AttributeError, Exception) as exc:  # noqa: BLE001
         console.print(f"  [yellow]![/] Could not load [cyan]{spec}[/]: {exc}")
-        console.print(f"    [dim]Wrong path? Override with[/] "
-                      f"[cyan]--agent-module pkg.module:attr[/][dim]. "
-                      f"Continuing with a minimal AgentInfo.[/]")
+        console.print("    [dim]Wrong path? Override with[/] "
+                      "[cyan]--agent-module pkg.module:attr[/][dim]. "
+                      "Continuing with a minimal AgentInfo.[/]")
         return None
 
     console.print(f"  [dim]Local agent:[/] [cyan]{spec}[/]")
@@ -848,7 +848,7 @@ def agent_engine(
         f"  [dim]Project: [/] [cyan]{project}[/] [dim](location: {location})[/]"
     )
     console.print(
-        f"  [yellow]⚠[/] [dim]This eval hits the[/] [bold]deployed[/] [dim]agent above — "
+        "  [yellow]⚠[/] [dim]This eval hits the[/] [bold]deployed[/] [dim]agent above — "
         "if you've changed[/] [cyan]agent.py[/] [dim]since the last[/] [cyan]make backend[/][dim], "
         "re-deploy first or you'll evaluate the stale version.[/]")
 
@@ -1020,7 +1020,7 @@ def agent_engine(
     agent_info_layer = "none — submitting without agent_info" if agent_info is None else _agent_info_fidelity_label(
         agent_info, local_agent)
     console.print(
-        f"  [dim]>[/] [bold]What we're submitting to[/] [cyan]create_evaluation_run[/]:"
+        "  [dim]>[/] [bold]What we're submitting to[/] [cyan]create_evaluation_run[/]:"
     )
     _inf_df = getattr(inference_df, "eval_dataset_df", inference_df)
     console.print(
@@ -1042,7 +1042,7 @@ def agent_engine(
         console.print(f"  [red]create_evaluation_run failed:[/] {exc}")
         raise click.Abort()
 
-    console.print(f"  [green]✓[/] Evaluation run submitted.")
+    console.print("  [green]✓[/] Evaluation run submitted.")
     run_name = getattr(run, "name", None)
     if run_name:
         console.print(f"  [dim]Run:[/]      [cyan]{run_name}[/]")
@@ -1061,7 +1061,7 @@ def agent_engine(
     console.print()
     console.rule("[dim]Result[/]", style="grey50", align="left")
     if str(state_value).upper() == "SUCCEEDED":
-        console.print(f"  [green]✓[/] Run [bold]SUCCEEDED[/].")
+        console.print("  [green]✓[/] Run [bold]SUCCEEDED[/].")
     elif str(state_value).upper() in {"FAILED", "CANCELLED"}:
         console.print(
             f"  [red]✗[/] Run finished with state [bold]{state_value}[/].")

@@ -14,7 +14,6 @@
 """agent-eval CLI — evaluate your ADK agents with confidence."""
 
 import importlib.metadata
-import sys
 
 import click
 from rich.console import Console
@@ -92,7 +91,6 @@ from agent_eval.cli.commands.setup import setup  # noqa: E402
 from agent_eval.cli.commands.simulate import simulate  # noqa: E402
 from agent_eval.cli.commands.run import run  # noqa: E402
 from agent_eval.cli.commands.dashboard import dashboard  # noqa: E402
-from agent_eval.cli.commands.agent_engine import agent_engine  # noqa: E402
 from agent_eval.cli.commands.import_adk import import_adk  # noqa: E402
 from agent_eval.cli.commands.migrate import migrate  # noqa: E402
 from agent_eval.cli.commands.stories import stories  # noqa: E402

@@ -531,10 +531,14 @@ class Analyzer:
             df = pd.read_csv(results_file)
             logger.debug("Loaded %d evaluation results.", len(df))
 
-            log_entries = [
-                entry for index, row in df.iterrows()
-                if (entry := self._process_log_row(row, index)) is not None
-            ]
+            # NOTE: rewritten from a walrus-operator comprehension because
+            # the upstream PSO CI's pyflakes can't parse `:=` and crashes
+            # the lint with "FlakesChecker has no attribute NAMEDEXPR".
+            log_entries = []
+            for index, row in df.iterrows():
+                entry = self._process_log_row(row, index)
+                if entry is not None:
+                    log_entries.append(entry)
 
             header = f"# Question-Answer Analysis Log\n\n**Generated:** {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n**Total Questions:** {len(log_entries)}\n"
             markdown_content = [header]
@@ -600,7 +604,8 @@ class Analyzer:
                 mean_score, (int, float)) else str(mean_score))
             output_lines.append(f"**Average Score:** {score_str}\n")
 
-            if explanations := all_explanations.get(metric):
+            explanations = all_explanations.get(metric)
+            if explanations:
                 # Show first 10 explanations as a sample
                 explanation_summary = "\n".join(
                     f"- [Score: {exp['score']}] {exp['explanation']}"

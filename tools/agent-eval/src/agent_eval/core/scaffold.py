@@ -175,8 +175,7 @@ def scaffold_eval_structure(
         backed_up = _backup_existing_files(eval_dir, mode)
         if backed_up:
             backup_dir = backed_up
-            console.print(
-                f"  [dim]Previous files backed up to eval/.backup/[/]")
+            console.print("  [dim]Previous files backed up to eval/.backup/[/]")
 
     display_prefix = str(eval_dir)
 
@@ -448,7 +447,7 @@ def scaffold_metrics_only(
             backup = _backup_existing_files(eval_dir, mode="dataset-only")
             if backup:
                 console.print(
-                    f"  [dim]Previous metrics backed up to tests/eval/.backup/[/]"
+                    "  [dim]Previous metrics backed up to tests/eval/.backup/[/]"
                 )
         if if_exists == "backup_and_overwrite" and not custom_metric_definitions:
             console.print(

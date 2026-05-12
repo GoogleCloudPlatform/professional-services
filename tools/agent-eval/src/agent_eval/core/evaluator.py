@@ -11,12 +11,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import argparse
 import concurrent.futures
 import json
 import logging
 import math
-import os
 import subprocess
 import sys
 import time
@@ -33,7 +31,6 @@ from vertexai import Client, types
 from agent_eval.core.config import CONFIG, get_project_id
 from agent_eval.core.deterministic_metrics import DETERMINISTIC_METRICS, evaluate_deterministic_metrics
 from agent_eval.core.data_mapper import (
-    extract_reference_text,
     map_dataset_columns,
     robust_json_loads,
 )

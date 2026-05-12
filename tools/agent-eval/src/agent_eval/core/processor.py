@@ -31,7 +31,6 @@ async def enrich_single_interaction(row: pd.Series,
     # Create a copy to avoid SettingWithCopy warnings if row is part of a dataframe slice
     row = row.copy()
 
-    question_id = row["question_id"]
     session_id = row["session_id"]
 
     # Skip processing if session_id is missing (failed interaction)

@@ -76,7 +76,7 @@ def dashboard(results_dir, port, share):
     console.print(f"  [bold]Results:[/]  {results_dir}")
     console.print(f"  [bold]Port:[/]     {port}")
     if share:
-        console.print(f"  [bold]Share:[/]    public link enabled")
+        console.print("  [bold]Share:[/]    public link enabled")
     console.print()
 
     launch(results_dir, port=port, share=share)

@@ -454,7 +454,7 @@ def _step_clear_history(agent_dir: Path) -> None:
         )
     else:
         console.print(
-            f"    [dim]Nothing to clear — no previous eval_history found.[/]")
+            "    [dim]Nothing to clear — no previous eval_history found.[/]")
 
 
 def _step_create_eval_set(agent_name: str, agent_dir: Path) -> bool:
@@ -482,9 +482,9 @@ def _step_create_eval_set(agent_name: str, agent_dir: Path) -> bool:
         removed = True
     if removed:
         console.print(
-            f"    [green]+[/] Removed existing eval_set (prevents duplicates)")
+            "    [green]+[/] Removed existing eval_set (prevents duplicates)")
     else:
-        console.print(f"    [dim]No existing eval_set to remove.[/]")
+        console.print("    [dim]No existing eval_set to remove.[/]")
 
     # Create eval_set
     cmd = f"uv run adk eval_set create {agent_name} {eval_set_name}"
@@ -497,7 +497,7 @@ def _step_create_eval_set(agent_name: str, agent_dir: Path) -> bool:
         text=True,
     )
     if result.returncode != 0:
-        console.print(f"    [red]Failed to create eval_set[/]")
+        console.print("    [red]Failed to create eval_set[/]")
         if result.stderr.strip():
             console.print(f"    [red]{result.stderr.strip()}[/]")
         return False
@@ -529,7 +529,7 @@ def _step_create_eval_set(agent_name: str, agent_dir: Path) -> bool:
         text=True,
     )
     if result.returncode != 0:
-        console.print(f"    [red]Failed to add eval cases[/]")
+        console.print("    [red]Failed to add eval cases[/]")
         if result.stderr.strip():
             console.print(f"    [red]{result.stderr.strip()}[/]")
         return False
@@ -572,7 +572,7 @@ def _step_run_sim(agent_name: str,
     # In normal mode, capture it — ADK's "Tests passed/failed" summary refers
     # to its built-in scoring, not the simulation quality, which confuses users.
     if debug:
-        console.print(f"    [dim]Debug: streaming ADK output...[/]")
+        console.print("    [dim]Debug: streaming ADK output...[/]")
         result = subprocess.run(
             adk_cmd,
             cwd=str(project_root),
@@ -596,10 +596,10 @@ def _step_run_sim(agent_name: str,
 
     if result.returncode != 0 and has_traces:
         console.print(
-            f"\n    [yellow]![/] ADK simulation completed, but ADK's built-in scoring had errors."
+            "\n    [yellow]![/] ADK simulation completed, but ADK's built-in scoring had errors."
         )
         console.print(
-            f"    [dim]This is expected — agent-eval runs its own evaluation separately.[/]"
+            "    [dim]This is expected — agent-eval runs its own evaluation separately.[/]"
         )
         return True
 
@@ -609,18 +609,18 @@ def _step_run_sim(agent_name: str,
             console.print(f"\n    [dim]{result.stderr.strip()}[/]")
         console.print(
             f"\n    [red]ADK eval failed with exit code {result.returncode}[/]")
-        console.print(f"    [dim]No traces were generated. Common issues:[/]")
+        console.print("    [dim]No traces were generated. Common issues:[/]")
         console.print(
-            f"    [dim]  - Missing GOOGLE_CLOUD_PROJECT or GOOGLE_CLOUD_LOCATION[/]"
+            "    [dim]  - Missing GOOGLE_CLOUD_PROJECT or GOOGLE_CLOUD_LOCATION[/]"
         )
         console.print(
-            f"    [dim]  - Agent module not found (app_name mismatch)[/]")
+            "    [dim]  - Agent module not found (app_name mismatch)[/]")
         console.print(
-            f"    [dim]  - Missing dependencies (run uv sync in agent project)[/]"
+            "    [dim]  - Missing dependencies (run uv sync in agent project)[/]"
         )
         return False
 
-    console.print(f"\n    [green]+[/] ADK User Sim completed successfully")
+    console.print("\n    [green]+[/] ADK User Sim completed successfully")
     return True
 
 
@@ -723,7 +723,7 @@ def simulate(agent_dir, eval_dir, run_id, debug):
     if not (agent_path / "agent.py").exists():
         console.print(f"\n  [red]Error:[/] No agent.py found in {agent_path}")
         console.print(
-            f"  [dim]The --agent-dir should point to the folder containing agent.py[/]"
+            "  [dim]The --agent-dir should point to the folder containing agent.py[/]"
         )
         sys.exit(1)
 
@@ -739,7 +739,7 @@ def simulate(agent_dir, eval_dir, run_id, debug):
                 f"\n  [red]Error:[/] No eval/ directory found near {agent_path}"
             )
             console.print(
-                f"  [dim]Run `agent-eval init` first to scaffold one.[/]")
+                "  [dim]Run `agent-eval init` first to scaffold one.[/]")
             sys.exit(1)
 
     from agent_eval.core.config import find_eval_files
@@ -751,7 +751,7 @@ def simulate(agent_dir, eval_dir, run_id, debug):
             f"\n  [red]Error:[/] No scenario files found in {eval_path / 'scenarios'}"
         )
         console.print(
-            f"  [dim]Add multi-turn rows (with history or conversation_plan) to tests/eval/dataset.jsonl[/]"
+            "  [dim]Add multi-turn rows (with history or conversation_plan) to tests/eval/dataset.jsonl[/]"
         )
         sys.exit(1)
 
@@ -760,7 +760,7 @@ def simulate(agent_dir, eval_dir, run_id, debug):
         console.print(
             f"\n  [red]Error:[/] No session input file at {session_file}")
         console.print(
-            f"  [dim]Create session_input.json with your app_name and user_id[/]"
+            "  [dim]Create session_input.json with your app_name and user_id[/]"
         )
         sys.exit(1)
 
@@ -857,7 +857,7 @@ def simulate(agent_dir, eval_dir, run_id, debug):
     console.print()
     console.print("[bold]1.[/] Run deterministic + LLM-as-judge metrics:")
     console.print()
-    console.print(f"agent-eval evaluate \\")
+    console.print("agent-eval evaluate \\")
     console.print(
         f"  --interaction-file {rel_run}/raw/processed_interaction_sim.jsonl \\"
     )
@@ -866,7 +866,7 @@ def simulate(agent_dir, eval_dir, run_id, debug):
     console.print()
     console.print("[bold]2.[/] Generate AI-powered analysis:")
     console.print()
-    console.print(f"agent-eval analyze \\")
+    console.print("agent-eval analyze \\")
     console.print(f"  --results-dir {rel_run} \\")
     console.print(f"  --agent-dir {rel_agent}")
     console.print()

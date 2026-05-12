@@ -13,11 +13,6 @@
 # limitations under the License.
 """Tests for analyzer comparison logic: deltas, direction, optimization log, prompts."""
 
-import json
-import pytest
-from pathlib import Path
-from unittest.mock import patch
-
 from agent_eval.core.analyzer import (
     compute_comparison,
     format_comparison_table,

@@ -29,10 +29,8 @@ from rich.panel import Panel
 from rich.prompt import IntPrompt, Prompt
 from rich.rule import Rule
 from rich.table import Table
-from rich.text import Text
 
-from agent_eval.cli._pacing import _PAUSE_LONG, _PAUSE_SHORT, _continue, _pause, _pauses_disabled, styled_pager
-from agent_eval.core.scaffold import scaffold_eval_structure
+from agent_eval.cli._pacing import _PAUSE_LONG, _continue, _pause, _pauses_disabled, styled_pager
 from agent_eval.core.metric_schema import is_managed_entry, managed_base_name
 
 # ---------------------------------------------------------------------------
@@ -110,7 +108,7 @@ def _summarize_diff(before: Any, after: Any) -> List[str]:
                 f"[yellow]~ same row count[/] ({len(after)}); content edited")
 
     if not lines:
-        lines.append(f"[yellow]~ file changed[/] (couldn't structurally diff)")
+        lines.append("[yellow]~ file changed[/] (couldn't structurally diff)")
 
     return lines
 
@@ -141,7 +139,7 @@ def _review_artifact(
     explanation()
     console.print()
     _continue(
-        f"Open the file, edit anything that doesn't fit. When you're done, continue →",
+        "Open the file, edit anything that doesn't fit. When you're done, continue →",
         console=console,
     )
 
@@ -155,7 +153,7 @@ def _review_artifact(
     post_hash = _hash_file(path)
     if pre_hash == post_hash:
         console.print(
-            f"  [dim]No edits — continuing with the generated version.[/]")
+            "  [dim]No edits — continuing with the generated version.[/]")
         snap = path.with_suffix(path.suffix + ".gen")
         if snap.exists():
             try:
@@ -2858,7 +2856,6 @@ def _display_next_steps(
     custom_metrics: dict | None = None,
     chosen_paths: set[str] | None = None,
 ) -> None:
-    eval_path = agent_dir / "eval"
     from agent_eval.core.path_resolver import agent_project_root
     project_root = agent_project_root(agent_dir).resolve()
     unified_eval = project_root / "tests" / "eval"
@@ -2896,10 +2893,10 @@ def _display_next_steps(
     # Plus both import the agent's `agent.py` for AgentInfo, so the agent's
     # deps need to be in agent-eval's venv too (otherwise: missing-dep
     # warnings + reduced-fidelity scoring).
-    lines.append(f"[bold yellow]→ Before you run anything below:[/]")
+    lines.append("[bold yellow]→ Before you run anything below:[/]")
     lines.append(f"   [dim]$[/] cd {project_root}")
     lines.append(
-        f"   [dim]$[/] uv pip install -e .   [dim](one-time — install agent deps into agent-eval's venv)[/]"
+        "   [dim]$[/] uv pip install -e .   [dim](one-time — install agent deps into agent-eval's venv)[/]"
     )
     lines.append("")
 
@@ -2925,9 +2922,9 @@ def _display_next_steps(
             f"[bold]{step}.[/] Run the streamlined pass against the deployed agent:"
         )
         lines.append(
-            f"   [dim]$[/] make backend            [dim](redeploy if you changed[/] [cyan]agent.py[/] [dim]since last deploy)[/]"
+            "   [dim]$[/] make backend            [dim](redeploy if you changed[/] [cyan]agent.py[/] [dim]since last deploy)[/]"
         )
-        lines.append(f"   [dim]$[/] agent-eval agent-engine")
+        lines.append("   [dim]$[/] agent-eval agent-engine")
         lines.append("")
         lines.append(
             "   [dim]Auto-discovers[/] [cyan]tests/eval/dataset.jsonl[/] [dim]and[/] "

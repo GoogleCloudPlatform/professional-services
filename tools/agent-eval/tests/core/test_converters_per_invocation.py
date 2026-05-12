@@ -17,9 +17,7 @@ import shutil
 import tempfile
 import unittest
 from pathlib import Path
-from unittest.mock import MagicMock, patch
-
-import pandas as pd
+from unittest.mock import MagicMock
 
 # Mock Google Cloud libraries
 import sys

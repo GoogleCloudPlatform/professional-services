@@ -285,7 +285,7 @@ def evaluate(interaction_file, metrics_files, results_dir, input_label,
         console.print()
         console.print("[bold]Next step — copy and paste:[/]")
         console.print()
-        console.print(f"agent-eval analyze \\")
+        console.print("agent-eval analyze \\")
         console.print(f"  --results-dir {rel_results}")
         console.print()
 

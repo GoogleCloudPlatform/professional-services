@@ -34,7 +34,6 @@ Use ``--overwrite`` to replace the file instead.
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Optional
 
 import click
 from rich.console import Console

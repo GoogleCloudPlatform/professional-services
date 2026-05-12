@@ -13,7 +13,6 @@
 # limitations under the License.
 """Tests for ``core.path_resolver`` — canonical/legacy eval-folder discovery."""
 
-import json
 import tempfile
 import unittest
 from pathlib import Path

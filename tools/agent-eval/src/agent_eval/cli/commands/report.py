@@ -39,8 +39,6 @@ import click
 from rich.console import Console
 from rich.panel import Panel
 
-from agent_eval.cli._pacing import _pauses_disabled
-
 console = Console()
 
 

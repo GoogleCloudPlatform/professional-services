@@ -20,7 +20,6 @@ Requires optional dependencies: ``pip install agent-eval[dashboard]``
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any
 
 import pandas as pd
 
@@ -33,7 +32,6 @@ except ImportError as exc:
         "Install them with:  pip install agent-eval[dashboard]\n"
         "            or:     uv pip install gradio plotly") from exc
 
-from agent_eval.core.analyzer import _is_lower_better
 from agent_eval.dashboard.data import (
     RunInfo,
     classify_metrics,
@@ -454,7 +452,7 @@ def create_app(results_dir: str) -> gr.Blocks:
             for col in display_df.select_dtypes(include=["number"]).columns:
                 display_df[col] = display_df[col].apply(
                     lambda x: f"{x:.4f}" if pd.notnull(x) else "")
-            raw_table = gr.Dataframe(value=display_df, interactive=False)
+            gr.Dataframe(value=display_df, interactive=False)
 
         # ── Event handlers ────────────────────────────────────────────────
 

@@ -13,7 +13,6 @@
 # limitations under the License.
 """agent-eval analyze — generate reports and AI-powered root cause analysis."""
 
-import json
 import os
 import sys
 from pathlib import Path
@@ -27,7 +26,7 @@ from rich.rule import Rule
 
 from rich.table import Table
 
-from agent_eval.cli._pacing import _continue, _pauses_disabled
+from agent_eval.cli._pacing import _pauses_disabled
 from agent_eval.core.analyzer import Analyzer
 
 console = Console()
@@ -149,10 +148,8 @@ def _display_metrics_table(
             sr = current_val.get("score_range", {})
             max_v = sr.get("max", 5) if sr else 5
             current_str = f"{avg:.2f}/{max_v}"
-            current_num = avg
         else:
             current_str = _format_value(current_val, metric_name)
-            current_num = current_val
 
         # Style for focused rows
         name_style = "bold cyan" if focused else ""

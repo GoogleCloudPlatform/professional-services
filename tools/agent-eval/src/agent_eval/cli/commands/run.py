@@ -15,6 +15,7 @@
 
 import json
 import os
+import subprocess
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -326,7 +327,7 @@ def run(agent_dir, eval_dir, run_id, run_simulate, sim_parallelism,
             console.print(
                 f"\n  [red]Error:[/] No agent.py found at or below {cwd}")
             console.print(
-                f"  [dim]Run this from your agent project, or pass --agent-dir <path>.[/]"
+                "  [dim]Run this from your agent project, or pass --agent-dir <path>.[/]"
             )
             sys.exit(1)
         if len(agents) > 1:
@@ -337,7 +338,7 @@ def run(agent_dir, eval_dir, run_id, run_simulate, sim_parallelism,
                     console.print(f"    [dim]-[/] {a.relative_to(cwd)}")
                 except ValueError:
                     console.print(f"    [dim]-[/] {a}")
-            console.print(f"  [dim]Pick one with --agent-dir <path>.[/]")
+            console.print("  [dim]Pick one with --agent-dir <path>.[/]")
             sys.exit(1)
         agent_path = agents[0].parent.resolve()
         try:
@@ -354,7 +355,7 @@ def run(agent_dir, eval_dir, run_id, run_simulate, sim_parallelism,
     if not (agent_path / "agent.py").exists():
         console.print(f"\n  [red]Error:[/] No agent.py found in {agent_path}")
         console.print(
-            f"  [dim]The --agent-dir should point to the folder containing agent.py[/]"
+            "  [dim]The --agent-dir should point to the folder containing agent.py[/]"
         )
         sys.exit(1)
 
@@ -378,14 +379,14 @@ def run(agent_dir, eval_dir, run_id, run_simulate, sim_parallelism,
                 f"\n  [red]Error:[/] No tests/eval/ directory at {project_root}"
             )
             console.print(
-                f"  [dim]Run `agent-eval init` first to scaffold one.[/]")
+                "  [dim]Run `agent-eval init` first to scaffold one.[/]")
             sys.exit(1)
 
     dataset_path = eval_path / "dataset.jsonl"
     if not dataset_path.exists():
         console.print(f"\n  [red]Error:[/] No dataset.jsonl at {dataset_path}")
         console.print(
-            f"  [dim]Run `agent-eval init` to scaffold one, or `agent-eval migrate` for legacy eval/ files.[/]"
+            "  [dim]Run `agent-eval init` to scaffold one, or `agent-eval migrate` for legacy eval/ files.[/]"
         )
         sys.exit(1)
 
@@ -406,8 +407,8 @@ def run(agent_dir, eval_dir, run_id, run_simulate, sim_parallelism,
                 f"\n  [yellow]Warning:[/] No multi-turn rows in {dataset_path.name}. "
                 f"Skipping simulate phase.")
             console.print(
-                f"  [dim]Multi-turn rows have a `history` or `conversation_plan` field. "
-                f"Add some, or stick with --no-simulate.[/]")
+                "  [dim]Multi-turn rows have a `history` or `conversation_plan` field. "
+                "Add some, or stick with --no-simulate.[/]")
             run_simulate = False
 
     # Validate interact prerequisites — point at unified dataset.jsonl.
@@ -432,7 +433,6 @@ def run(agent_dir, eval_dir, run_id, run_simulate, sim_parallelism,
         # of common ADK / FastAPI / dev-server ports on localhost so users
         # who started the agent on a non-default port aren't punished.
         if run_interact:
-            import urllib.request
             from concurrent.futures import ThreadPoolExecutor
             from rich.prompt import Prompt
 
@@ -506,7 +506,7 @@ def run(agent_dir, eval_dir, run_id, run_simulate, sim_parallelism,
                         )
                         for i, u in enumerate(live, 1):
                             console.print(f"    [cyan]{i}.[/] {u}")
-                        console.print(f"    [dim]0. Skip interact[/]")
+                        console.print("    [dim]0. Skip interact[/]")
                         choice = Prompt.ask(
                             "  Pick",
                             choices=[str(i) for i in range(0,
@@ -579,7 +579,7 @@ def run(agent_dir, eval_dir, run_id, run_simulate, sim_parallelism,
                             )
                             run_interact = False
                         else:
-                            console.print(f"  [dim]Skipping interact phase.[/]")
+                            console.print("  [dim]Skipping interact phase.[/]")
                             run_interact = False
 
     # Metric files for evaluation. User can pass --metrics-files one or more
@@ -605,7 +605,7 @@ def run(agent_dir, eval_dir, run_id, run_simulate, sim_parallelism,
                 f"\n  [yellow]Warning:[/] No metric files found in {eval_path / 'metrics'}/"
             )
             console.print(
-                f"  [dim]Evaluation will be skipped. Run `agent-eval init` to scaffold one, or pass --metrics-files <path>.[/]"
+                "  [dim]Evaluation will be skipped. Run `agent-eval init` to scaffold one, or pass --metrics-files <path>.[/]"
             )
             run_evaluate = False
 
@@ -783,7 +783,7 @@ def run(agent_dir, eval_dir, run_id, run_simulate, sim_parallelism,
                     "  [dim]Aborted. Fix the simulate failure and re-run.[/]")
                 sys.exit(1)
             console.print(
-                f"  [yellow]Continuing with interact only — multi-turn metrics will be skipped.[/]"
+                "  [yellow]Continuing with interact only — multi-turn metrics will be skipped.[/]"
             )
 
     # ── Phase: Interact ────────────────────────────────────────────────────
@@ -891,7 +891,7 @@ def run(agent_dir, eval_dir, run_id, run_simulate, sim_parallelism,
 
     if not interaction_files:
         console.print(
-            f"\n  [red]Error:[/] No interaction files were produced. Nothing to evaluate."
+            "\n  [red]Error:[/] No interaction files were produced. Nothing to evaluate."
         )
         sys.exit(1)
 
@@ -1123,7 +1123,7 @@ def run(agent_dir, eval_dir, run_id, run_simulate, sim_parallelism,
                           f"  [dim](opening below)[/]")
         body_lines.append("")
     # Subordinate raw markdown files — still on disk for tooling.
-    body_lines.append(f"[bold]Raw artifacts:[/]")
+    body_lines.append("[bold]Raw artifacts:[/]")
     for f in output_files:
         if "report.html" not in f:
             body_lines.append(f)
@@ -1165,7 +1165,7 @@ def run(agent_dir, eval_dir, run_id, run_simulate, sim_parallelism,
         console.print()
         console.print("[bold]Next step — run evaluation:[/]")
         console.print()
-        console.print(f"agent-eval evaluate \\")
+        console.print("agent-eval evaluate \\")
         console.print(f"  {rel_files} \\")
         console.print(f"  {rel_metrics} \\")
         console.print(f"  --results-dir {rel_run}")
@@ -1174,7 +1174,7 @@ def run(agent_dir, eval_dir, run_id, run_simulate, sim_parallelism,
         console.print()
         console.print("[bold]Next step — generate analysis:[/]")
         console.print()
-        console.print(f"agent-eval analyze \\")
+        console.print("agent-eval analyze \\")
         console.print(f"  --results-dir {rel_run} \\")
         console.print(f"  --agent-dir {rel_agent}")
         console.print()
@@ -1656,7 +1656,7 @@ def _run_simulate_phase(
             )
         console.print(f"     [green]+[/] Cleared {' + '.join(bits)}")
     else:
-        console.print(f"     [dim]Nothing to clear.[/]")
+        console.print("     [dim]Nothing to clear.[/]")
 
     # 3. Create one eval_set per scenario (so we can parallelize step 4).
     console.print(
@@ -1692,11 +1692,11 @@ def _run_simulate_phase(
         f"  [bold]4.[/] Running ADK User Sim — {len(evalsets)} scenario(s) {parallel_note}..."
     )
     console.print(
-        f"     [dim]An LLM simulates users following your scenario scripts.[/]")
+        "     [dim]An LLM simulates users following your scenario scripts.[/]")
     if actual_parallel > 1:
         console.print(
-            f"     [dim]Wall-clock = the slowest single scenario "
-            f"(parallel can't shortcut a heavy one — Amdahl's law).[/]")
+            "     [dim]Wall-clock = the slowest single scenario "
+            "(parallel can't shortcut a heavy one — Amdahl's law).[/]")
     console.print()
 
     eval_config = agent_path / "eval_config.json"
@@ -1792,7 +1792,7 @@ def _run_simulate_phase(
     console.print()
     if failures and not has_traces:
         console.print(
-            f"     [red]ADK eval failed across all scenarios — no traces generated.[/]"
+            "     [red]ADK eval failed across all scenarios — no traces generated.[/]"
         )
         for name, rc, tail in failures[:3]:
             console.print(f"     [dim]{name} (rc={rc}): {tail}[/]")
@@ -1845,7 +1845,7 @@ def _run_simulate_phase(
     has_traces = eval_history.exists() and any(eval_history.rglob("*.json"))
 
     if result.returncode != 0 and not has_traces:
-        console.print(f"     [red]ADK eval failed — no traces generated.[/]")
+        console.print("     [red]ADK eval failed — no traces generated.[/]")
         if result.stderr.strip():
             # Show last few lines of error for debugging
             last_lines = result.stderr.strip().split("\n")[-3:]
@@ -1854,11 +1854,11 @@ def _run_simulate_phase(
         return False
     if result.returncode != 0 and has_traces:
         console.print(
-            f"     [yellow]![/] ADK eval exited non-zero, but trace files were captured."
+            "     [yellow]![/] ADK eval exited non-zero, but trace files were captured."
         )
         console.print(
-            f"     [dim]Use --debug to see ADK's full stderr (deprecation/EXPERIMENTAL warnings, "
-            f"missing scoring criteria, etc).[/]")
+            "     [dim]Use --debug to see ADK's full stderr (deprecation/EXPERIMENTAL warnings, "
+            "missing scoring criteria, etc).[/]")
 
     if has_traces:
         n_traces = sum(1 for _ in eval_history.rglob("*.json"))
@@ -1879,8 +1879,8 @@ def _run_simulate_phase(
                 f"— {lost} row{'s' if lost != 1 else ''} lost (likely timeout / sim error)."
             )
             console.print(
-                f"     [dim]Re-run with --debug to see which scenario(s) failed; "
-                f"those rows won't score multi-turn metrics this run.[/]")
+                "     [dim]Re-run with --debug to see which scenario(s) failed; "
+                "those rows won't score multi-turn metrics this run.[/]")
         else:
             console.print(
                 f"     [green]+[/] Simulation complete — {n_traces} trace file{'s' if n_traces != 1 else ''} generated"
@@ -1910,7 +1910,7 @@ def _run_simulate_phase(
                                         prompt_to_reference=prompt_to_ref)
         records = converter.run()
         if not records:
-            console.print(f"     [yellow]![/] No traces found to convert.")
+            console.print("     [yellow]![/] No traces found to convert.")
             return False
 
         sim_output = raw_dir / "processed_interaction_sim.jsonl"
@@ -2001,7 +2001,7 @@ def _run_interact_phase(
         return None
 
     if raw_df is None or raw_df.empty:
-        console.print(f"    [yellow]![/] No interactions were captured.")
+        console.print("    [yellow]![/] No interactions were captured.")
         return None
 
     console.print(
@@ -2075,7 +2075,7 @@ def _run_evaluate_phase(
         traceback.print_exc()
         console.print(f"\n  [red]Evaluation error:[/] {e}")
         console.print(
-            f"  [dim]Interaction files were saved. You can re-run evaluate manually.[/]"
+            "  [dim]Interaction files were saved. You can re-run evaluate manually.[/]"
         )
 
 
@@ -2088,7 +2088,7 @@ def _run_analyze_phase(
 ) -> dict:
     """Run the analyze workflow. Returns the analysis result dict or None."""
     from agent_eval.core.analyzer import Analyzer
-    from agent_eval.cli.commands.analyze import _display_metrics_table, _display_analysis
+    from agent_eval.cli.commands.analyze import _display_metrics_table
 
     config = {
         "results_dir": str(run_dir),
@@ -2105,7 +2105,7 @@ def _run_analyze_phase(
     except Exception as e:
         console.print(f"\n  [red]Analysis error:[/] {e}")
         console.print(
-            f"  [dim]Evaluation results were saved. You can run analyze manually.[/]"
+            "  [dim]Evaluation results were saved. You can run analyze manually.[/]"
         )
         return None
 
