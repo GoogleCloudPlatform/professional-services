@@ -341,7 +341,7 @@ def _install_clean_handler() -> None:
             logger.removeHandler(h)
     handler = logging.StreamHandler()
     handler.setFormatter(logging.Formatter(_CLEAN_LOG_FORMAT))
-    handler._agent_eval_clean = True  # type: ignore[attr-defined]
+    handler._agent_eval_clean = True  # type: ignore
     logger.addHandler(handler)
     logger.propagate = False
 

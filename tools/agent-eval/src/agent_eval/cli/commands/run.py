@@ -880,7 +880,7 @@ def run(agent_dir, eval_dir, run_id, run_simulate, sim_parallelism,
                 auto_started_proc.wait(timeout=2)
             try:
                 auto_started_proc._agent_eval_log_fp.close(
-                )  # type: ignore[attr-defined]
+                )  # type: ignore
             except Exception:
                 pass
             console.print("  [dim]Stopped auto-started ADK web server.[/]")
@@ -1492,8 +1492,8 @@ def _start_adk_api_server(agent_path: Path, project_root: Path,
         text=True,
         start_new_session=True,
     )
-    proc._agent_eval_log = log  # type: ignore[attr-defined]
-    proc._agent_eval_log_fp = fp  # type: ignore[attr-defined]
+    proc._agent_eval_log = log  # type: ignore
+    proc._agent_eval_log_fp = fp  # type: ignore
 
     def _atexit_kill() -> None:
         if proc.poll() is not None:
@@ -1512,7 +1512,7 @@ def _start_adk_api_server(agent_path: Path, project_root: Path,
             pass
 
     atexit.register(_atexit_kill)
-    proc._agent_eval_atexit = _atexit_kill  # type: ignore[attr-defined]
+    proc._agent_eval_atexit = _atexit_kill  # type: ignore
     return proc
 
 

@@ -149,6 +149,12 @@ If any of these matter for your use case, the FUTURE_WORK doc has reproduction s
 
 ---
 
+## Acknowledgements
+
+This release was incubated by the **GSD Incubation Services (GIS)** team and brought to the [Google Cloud Professional Services repository](https://github.com/GoogleCloudPlatform/professional-services) in collaboration with **PSO**. GIS works alongside Product, Engineering, and PSO/GCC delivery teams to design and run customer pilots for major new GCP releases — `agent-eval` grew out of one of those engagements. Big thanks to the partners and reviewers who made this land.
+
+---
+
 ## License
 
 Apache 2.0
