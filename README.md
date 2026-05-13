@@ -345,6 +345,14 @@ Built for creators, marketers, and developers, this application provides a hands
 The tools folder contains ready-made utilities which can simplify Google Cloud
 Platform usage.
 
+*   [agent-eval](tools/agent-eval) - A hand-on-shoulder CLI walkthrough of the
+    Vertex AI Generative AI Evaluation Service for ADK agents. Drives the full
+    eval loop — set up GCP, scaffold metrics + dataset, collect traces (UserSim
+    multi-turn + DIY single-turn), score with Vertex's `client.evals.evaluate()`,
+    and write a self-contained HTML report with Gemini-authored diagnosis.
+    Surfaces deterministic metrics (tokens, cost, latency, cache hit, reasoning
+    ratio) alongside LLM-as-judge metrics so you see code quality and runtime
+    cost on the same page.
 *   [Agile Machine Learning API](tools/agile-machine-learning-api) - A web
     application which provides the ability to train and deploy ML models on
     Google Cloud Machine Learning Engine, and visualize the predicted results
