@@ -62,7 +62,7 @@ echo "===================================================="
 echo " Removing old infrastructure ..."
 
 
-gsutil -m rm -r gs://"$bucket"
+gcloud storage rm --recursive gs://"$bucket"
 bq rm -t=true -f=true "$bucket".myTableCopy
 bq rm -t=true -f=true "$bucket".yellow_trips_copy
 
@@ -70,11 +70,11 @@ bq rm -t=true -f=true "$bucket".yellow_trips_copy
 echo "===================================================="
 echo " Building infrastructure ..."
 
-gsutil mb -c regional -l "$region" gs://"$bucket"
+gcloud storage buckets create --default-storage-class=regional --location="$region" gs://"$bucket"
 
 bq mk "$bucket"
 
-gsutil cp scripts/spark_average_speed.py gs://"$bucket"/scripts/spark_average_speed.py
+gcloud storage cp scripts/spark_average_speed.py gs://"$bucket"/scripts/spark_average_speed.py
 
 echo "===================================================="
 echo " Loading data ..."

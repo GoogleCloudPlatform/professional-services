@@ -37,7 +37,7 @@ gcloud config set project $GCP_PROJECT
 
 Then, create a GCS bucket for this demo
 ```
-gsutil mb -l $REGION -p $GCP_PROJECT gs://$BUCKET_NAME
+gcloud storage buckets create gs://$BUCKET_NAME --location $REGION --project $GCP_PROJECT
 ```
 
 
@@ -181,4 +181,3 @@ To trigger a build on certain actions (e.g. commits to master)
 2. Configure the trigger
 3. Point the trigger to the [cloudbuild.yaml](ml_preproc/cloudbuild.yaml) file in the repository
 4. Add the substitution variables as explained in the [Substitution variables](#substitution-variables) section.
-

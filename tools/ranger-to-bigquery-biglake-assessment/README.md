@@ -153,7 +153,7 @@ cat <RANGER EXPORT>.json | jq -c '.policies[]' > ranger_policies.jsonl
 4. copy the policy export to GCS: 
     ```sh
     export PROJECT_ID=<your project id>
-    gsutil cp ranger_policies.jsonl gs://$PROJECT_ID-ranger-assessment/
+    gcloud storage cp ranger_policies.jsonl gs://$PROJECT_ID-ranger-assessment/
     ```
 5. load into BQ:
     ```sh

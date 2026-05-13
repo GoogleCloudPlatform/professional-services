@@ -95,7 +95,7 @@ gcloud pubsub topics create $TOPIC_ID
 The output will write to a GCS bucket:
 ```
 export BUCKET_NAME=<CHANGE_ME>
-gsutil mb gs://$BUCKET_NAME
+gcloud storage buckets create gs://$BUCKET_NAME
 ```
 
 # 4. Run the test
@@ -151,8 +151,8 @@ monitoring screen.
 
 List the generated files in the GCS bucket and inspect their contents
 ```
-gsutil ls gs://${BUCKET_NAME}/output_location/
-gsutil cat gs://${BUCKET_NAME}/output_location/*
+gcloud storage ls gs://${BUCKET_NAME}/output_location/
+gcloud storage cat gs://${BUCKET_NAME}/output_location/*
 ```
 
 # 5. Clean up
@@ -164,11 +164,11 @@ gcloud pubsub topics delete $TOPIC_ID
 ```
 2. Delete the GCS files
 ```
-gsutil -m rm -rf "gs://${BUCKET_NAME}/output_location/*"
+gcloud storage rm --recursive --continue-on-error "gs://${BUCKET_NAME}/output_location/*"
 ```
 3. Remove the GCS bucket
 ```
-gsutil rb gs://${BUCKET_NAME}
+gcloud storage buckets delete gs://${BUCKET_NAME}
 ```
 4. **Optionally** Revoke the authentication credentials that you created, and delete the local credential file.
 ```

@@ -30,7 +30,7 @@ class TestBigQueryLoadBatches(unittest.TestCase):
     output into batches of <= 15TB.
     """
     def setUp(self):
-        cmd = 'gsutil ls -l gs://python-dataflow-example/data_files/*.csv >> /tmp/files_to_load.txt'
+        cmd = 'gcloud storage ls --long gs://python-dataflow-example/data_files/*.csv >> /tmp/files_to_load.txt'
         self.filename = '/tmp/files_to_load.txt'
         os.system(cmd)
 

@@ -24,11 +24,11 @@ steps:
     dir: /workspace
   - id: deploy-dags
     dir: tools/cloud-composer-dag-validation
-    name: 'gcr.io/cloud-builders/gsutil'
+    name: 'gcr.io/cloud-builders/gcloud'
     entrypoint: bash
     args:
     - '-c'
     - |
-      gsutil -m cp -r 'dags/' '${_COMPOSER_BUCKET}/dags_export'
+      gcloud storage cp --recursive 'dags/' '${_COMPOSER_BUCKET}/dags_export'
 options:
   logging: CLOUD_LOGGING_ONLY

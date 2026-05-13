@@ -152,7 +152,7 @@ The SavedModel was saved in a timestamped subdirectory of model_dir.
 ```shell
 MODEL_NAME="survival_model"
 VERSION_NAME="demo_version"
-SAVED_MODEL_DIR=$(gsutil ls $MODEL_DIR/export/export | tail -1)
+SAVED_MODEL_DIR=$(gcloud storage ls $MODEL_DIR/export/export | tail -1)
 
 gcloud ai-platform models create $MODEL_NAME \
 --regions us-east1

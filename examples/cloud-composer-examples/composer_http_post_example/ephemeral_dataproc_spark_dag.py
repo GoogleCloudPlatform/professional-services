@@ -126,14 +126,14 @@ with DAG('average-speed',
     # Delete  gcs files in the timestamped transformed folder.
     delete_transformed_files = BashOperator(
         task_id='delete_transformed_files',
-        bash_command="gsutil -m rm -r gs://{{ var.value.gcs_bucket }}" +
+        bash_command="gcloud storage rm --recursive gs://{{ var.value.gcs_bucket }}" +
         "/{{ dag_run.conf['transformed_path'] }}/")
 
     # If the spark job or BQ Load fails we rename the timestamped raw path to
     # a timestamped failed path.
     move_failed_files = BashOperator(
         task_id='move_failed_files',
-        bash_command="gsutil mv gs://{{ var.value.gcs_bucket }}" +
+        bash_command="gcloud storage mv gs://{{ var.value.gcs_bucket }}" +
         "/{{ dag_run.conf['raw_path'] }}/ " +
         "gs://{{ var.value.gcs_bucket}}" +
         "/{{ dag_run.conf['failed_path'] }}/",

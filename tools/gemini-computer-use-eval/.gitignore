@@ -1,0 +1,44 @@
+# Caches and temporary files
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+*.py[cod]
+
+# Environments and Secrets
+.env*
+!.env.example
+!.env.docker.example
+.venv/
+.uv/
+
+# Build artifacts
+dist/
+build/
+*.egg-info/
+
+# Pipeline Outputs (Videos, Screenshots, JSON results)
+artifacts/
+results/
+*.mp4
+*.webm
+*.png
+*.json
+!pyproject.toml
+!uv.lock
+
+# Autoresearch Ephemeral Logs
+autoresearch/*.log
+autoresearch/*.err
+autoresearch/*.exit
+
+# Logs
+*.log
+nohup.out
+
+# OS and Editor specific
+.DS_Store
+.vscode/
+.idea/
+*.swp
+*.swo
+reference/Costco/

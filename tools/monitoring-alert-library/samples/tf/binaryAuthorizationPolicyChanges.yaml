@@ -19,7 +19,7 @@ alerts:
           threshold_value: 0
           trigger:
             count: 1
-        display_name: "Log match condition: Cloud SQL instance configuration changes"
+        display_name: "Log match condition: Binary Authorization policy configuration changes"
     display_name: Binary Authorization Policy Changes
     documentation:
       content: |-

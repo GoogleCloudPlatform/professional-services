@@ -1,0 +1,28 @@
+# Git
+.git
+.gitignore
+
+# Python / Virtual Environments
+venv/
+.venv/
+env/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env.yaml
+
+# Environment Variables / Secrets
+# (CRITICAL: Never bake secrets into the image)
+.env
+.env.local
+
+# Testing / Caches
+.pytest_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# Mac OS junk
+.DS_Store

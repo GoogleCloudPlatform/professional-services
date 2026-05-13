@@ -300,7 +300,7 @@ with models.DAG(
         rm -rf upgrade-check
         mkdir -p upgrade-check
         airflow upgrade_check > upgrade-check/results
-        gsutil cp -r upgrade-check gs://{bucket}/{root_path}/
+        gcloud storage cp --recursive upgrade-check gs://{bucket}/{root_path}/
     """.format(
         bucket=GCS_BUCKET, root_path=GCS_ROOT_PATH
     )
@@ -319,8 +319,8 @@ with models.DAG(
     mkdir -p v1-to-v2-report
     cp {root_dir}/airflow-v1-to-v2-migration/migration_rules/rules.csv v1-to-v2-report/rules.csv
     python3 {root_dir}/airflow-v1-to-v2-migration/run_mig.py --input_dag_folder={root_dir} --output_dag_folder=v1-to-v2-report --rules_file={root_dir}/airflow-v1-to-v2-migration/migration_rules/rules.csv
-    gsutil cp -r v1-to-v2-report gs://{gcs_bucket}/{root_path}/
-    gsutil rm gs://{gcs_bucket}/{root_path}/v1-to-v2-report/*.py
+    gcloud storage cp --recursive v1-to-v2-report gs://{gcs_bucket}/{root_path}/
+    gcloud storage rm gs://{gcs_bucket}/{root_path}/v1-to-v2-report/*.py
      """.format(
         root_dir=AIRFLOW_HOME_DIR, gcs_bucket=GCS_BUCKET, root_path=GCS_ROOT_PATH
     )

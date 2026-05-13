@@ -9,7 +9,7 @@ The code leverages pre-trained TF Hub image modules and uses Google Cloud Machin
 JOB_NAME = ml_job$(date +%Y%m%d%H%M%S)
 JOB_FOLDER = MLEngine/${JOB_NAME}
 BUCKET_NAME = bee-health
-MODEL_PATH = $(gsutil ls gs://${BUCKET_NAME}/${JOB_FOLDER}/export/estimator/ | tail -1)
+MODEL_PATH = $(gcloud storage ls gs://${BUCKET_NAME}/${JOB_FOLDER}/export/estimator/ | tail -1)
 MODEL_NAME = prediction_model
 MODEL_VERSION = version_1
 TEST_DATA = data/test.csv

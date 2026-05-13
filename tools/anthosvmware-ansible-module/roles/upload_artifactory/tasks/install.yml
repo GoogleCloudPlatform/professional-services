@@ -141,7 +141,8 @@
     - name: "[upload_artifactory] Download files from GCS"
       ansible.builtin.command: # noqa 305 301 no-changed-when
         argv:
-          - gsutil
+          - gcloud
+          - storage
           - cp
           - "{{ item.item.src }}"
           - "{{ workdir }}/{{ item.item.file }}"

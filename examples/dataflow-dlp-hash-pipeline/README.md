@@ -142,7 +142,7 @@ Now in a third terminal, run the following command to upload a file to the test 
 
 ```
 export BUCKET=<dataflow-test-bucket>
-gsutil cp inputs/small-input.txt gs://$BUCKET/small.txt
+gcloud storage cp inputs/small-input.txt gs://$BUCKET/small.txt
 ```
 
 After a little while, in your `subscribe` terminal, you should get something that looks like this, after

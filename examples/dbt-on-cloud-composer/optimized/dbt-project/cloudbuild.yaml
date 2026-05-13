@@ -47,14 +47,14 @@ steps:
     dbt docs generate --vars '{"project_id": "pso-dbt-airflow-demo","bigquery_location": "us","impersonate_service_account": ${_DBT_SERVICE_ACCOUNT},"execution_date": "1970-01-01","source_data_project": "bigquery-public-data"}' --profiles-dir .dbt --target cloud-build
 
 # _GCS_BUCKET is the GCS Bucket that will store the dbt documentation
-- name: gcr.io/cloud-builders/gsutil
+- name: gcr.io/cloud-builders/gcloud
   id: Copy the target to GCS
   args:
-  - -m
+  - storage
   - rsync
-  - -r
-  - -c
-  - -x
+  - --recursive
+  - --checksums-only
+  - --exclude
   - .dockerignore|key|logs|models|tests|.dockerignore|.gitignore|cloudbuild.yaml|Dockerfile|README.md|.git
   - .
   - gs://${_GCS_BUCKET}/data/dbt-docs-optimized/

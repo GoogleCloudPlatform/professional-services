@@ -20,7 +20,7 @@ Steps to run:
  a) modify config.json file to adjust size and type of tasks for the workload
  b) run $python main.py
  c) move dags folder generated to the dag buckets in composer like:
-        gsutil cp -r out  gs://BUCKET_NAME/dags
+        gcloud storage cp --recursive out  gs://BUCKET_NAME/dags
 NOTE: the "number_of_operators_defined" variable in the configuration file
         (config.json) allows to create up to 5 differents kind of task,
         none has complex functionallity:

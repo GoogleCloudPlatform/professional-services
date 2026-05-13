@@ -57,7 +57,7 @@ A sizing cluster can help determine the right number of workers for your applica
 
 
 ```bash
-gsutil -m rm -r gs://$BUCKET_NAME/transformed-$TIMESTAMP
+gcloud storage rm --recursive gs://$BUCKET_NAME/transformed-$TIMESTAMP
 
 gcloud dataproc jobs submit pyspark --region=$REGION --cluster=$CLUSTER_NAME-sizing scripts/spark_average_speed.py -- gs://$BUCKET_NAME/raw-$TIMESTAMP/ gs://$BUCKET_NAME/transformed-$TIMESTAMP/
 ```
@@ -93,7 +93,7 @@ gcloud dataproc clusters create $CLUSTER_NAME-testing-2x8-standard \
   --worker-boot-disk-size=1000GB \
   --region=$REGION
 
-gsutil -m rm -r gs://$BUCKET_NAME/transformed-$TIMESTAMP
+gcloud storage rm --recursive gs://$BUCKET_NAME/transformed-$TIMESTAMP
 
 gcloud dataproc jobs submit pyspark --region=$REGION --cluster=$CLUSTER_NAME-testing-2x8-standard scripts/spark_average_speed.py -- gs://$BUCKET_NAME/raw-$TIMESTAMP/ gs://$BUCKET_NAME/transformed-$TIMESTAMP/
 ```
@@ -114,7 +114,7 @@ gcloud dataproc clusters create $CLUSTER_NAME-testing-4x4-standard \
   --worker-boot-disk-size=1000GB \
   --region=$REGION
 
-gsutil -m rm -r gs://$BUCKET_NAME/transformed-$TIMESTAMP
+gcloud storage rm --recursive gs://$BUCKET_NAME/transformed-$TIMESTAMP
 
 gcloud dataproc jobs submit pyspark --region=$REGION --cluster=$CLUSTER_NAME-testing-4x4-standard scripts/spark_average_speed.py -- gs://$BUCKET_NAME/raw-$TIMESTAMP/ gs://$BUCKET_NAME/transformed-$TIMESTAMP/
 ```
@@ -135,7 +135,7 @@ gcloud dataproc clusters create $CLUSTER_NAME-testing-8x2-standard \
   --worker-boot-disk-size=1000GB \
   --region=$REGION
 
-gsutil -m rm -r gs://$BUCKET_NAME/transformed-$TIMESTAMP
+gcloud storage rm --recursive gs://$BUCKET_NAME/transformed-$TIMESTAMP
 
 gcloud dataproc jobs submit pyspark --region=$REGION --cluster=$CLUSTER_NAME-testing-8x2-standard scripts/spark_average_speed.py -- gs://$BUCKET_NAME/raw-$TIMESTAMP/ gs://$BUCKET_NAME/transformed-$TIMESTAMP/
 ```
@@ -169,7 +169,7 @@ gcloud dataproc clusters create $CLUSTER_NAME-testing-8x2-balanced \
   --worker-boot-disk-size=500GB \
   --region=$REGION
 
-gsutil -m rm -r gs://$BUCKET_NAME/transformed-$TIMESTAMP
+gcloud storage rm --recursive gs://$BUCKET_NAME/transformed-$TIMESTAMP
 
 gcloud dataproc jobs submit pyspark --region=$REGION --cluster=$CLUSTER_NAME-testing-8x2-balanced scripts/spark_average_speed.py -- gs://$BUCKET_NAME/raw-$TIMESTAMP/ gs://$BUCKET_NAME/transformed-$TIMESTAMP/
 ```
@@ -190,7 +190,7 @@ gcloud dataproc clusters create $CLUSTER_NAME-testing-8x2-ssd \
   --worker-boot-disk-size=250GB \
   --region=$REGION
 
-gsutil -m rm -r gs://$BUCKET_NAME/transformed-$TIMESTAMP
+gcloud storage rm --recursive gs://$BUCKET_NAME/transformed-$TIMESTAMP
 
 gcloud dataproc jobs submit pyspark --region=$REGION --cluster=$CLUSTER_NAME-testing-8x2-ssd scripts/spark_average_speed.py -- gs://$BUCKET_NAME/raw-$TIMESTAMP/ gs://$BUCKET_NAME/transformed-$TIMESTAMP/
 ```
@@ -213,7 +213,7 @@ gcloud dataproc clusters create $CLUSTER_NAME-testing-8x2-ssd-costop \
   --worker-boot-disk-size=30GB \
   --region=$REGION
 
-gsutil -m rm -r gs://$BUCKET_NAME/transformed-$TIMESTAMP
+gcloud storage rm --recursive gs://$BUCKET_NAME/transformed-$TIMESTAMP
 
 gcloud dataproc jobs submit pyspark --region=$REGION --cluster=$CLUSTER_NAME-testing-8x2-ssd-costop scripts/spark_average_speed.py -- gs://$BUCKET_NAME/raw-$TIMESTAMP/ gs://$BUCKET_NAME/transformed-$TIMESTAMP/
 ```
@@ -230,7 +230,7 @@ sample job submit:
 **2 x n2-standard-8-ssd-costop-appop = 1 min 15 seconds**
 
 ```bash
-gsutil -m rm -r gs://$BUCKET_NAME/transformed-$TIMESTAMP
+gcloud storage rm --recursive gs://$BUCKET_NAME/transformed-$TIMESTAMP
 
 gcloud dataproc jobs submit pyspark --region=$REGION --cluster=$CLUSTER_NAME-testing-8x2-ssd-costop scripts/spark_average_speed.py --properties='spark.executor.cores=5,spark.driver.cores=5,spark.executor.instances=1,spark.executor.memory=25459m,spark.driver.memory=25459m,spark.executor.memoryOverhead=2829m,spark.default.parallelism=10,spark.sql.shuffle.partitions=10,spark.shuffle.spill.compress=true,spark.checkpoint.compress=true,spark.io.compresion.codex=snappy,spark.dynamicAllocation=true,spark.shuffle.service.enabled=true' -- gs://$BUCKET_NAME/raw-$TIMESTAMP/ gs://$BUCKET_NAME/transformed-$TIMESTAMP/
 ```

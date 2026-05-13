@@ -14,5 +14,5 @@
 # limitations under the License.
 BUCKET=$(/usr/share/google/get_metadata_value attributes/config-bucket)
 LOG=/var/log/edgenode-startup.log
-gsutil cp "gs://${BUCKET}/setup_edge_node.sh" "/usr/share/google/"
+gcloud storage cp "gs://${BUCKET}/setup_edge_node.sh" "/usr/share/google/"
 nohup bash /usr/share/google/setup_edge_node.sh >"${LOG}" 2>&1 &

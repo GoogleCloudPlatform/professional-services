@@ -308,6 +308,7 @@ Built for creators, marketers, and developers, this application provides a hands
 *   [Redis Cluster on GKE Example](examples/redis-cluster-gke) - Deploying Redis
     cluster on GKE.
 *   [Risk Analysis Asset](examples/risk-analysis-asset) - Deploying Reliability Risk analysis tool on Cloud Run.
+*   [slo-assistant](examples/slo-assistant) - AI-Powered SLO Consultant for Automated Site Reliability Engineering
 *   [Spanner Interleave Subquery](examples/spanner-interleave-subquery) -
     Example code to benchmark Cloud Spanner's subqueries for interleaved tables.
 *   [Spanner Change Stream to BigQuery using Dataflow](examples/spanner-changestreams-bigquery) -
@@ -344,6 +345,14 @@ Built for creators, marketers, and developers, this application provides a hands
 The tools folder contains ready-made utilities which can simplify Google Cloud
 Platform usage.
 
+*   [agent-eval](tools/agent-eval) - A hand-on-shoulder CLI walkthrough of the
+    Vertex AI Generative AI Evaluation Service for ADK agents. Drives the full
+    eval loop — set up GCP, scaffold metrics + dataset, collect traces (UserSim
+    multi-turn + DIY single-turn), score with Vertex's `client.evals.evaluate()`,
+    and write a self-contained HTML report with Gemini-authored diagnosis.
+    Surfaces deterministic metrics (tokens, cost, latency, cache hit, reasoning
+    ratio) alongside LLM-as-judge metrics so you see code quality and runtime
+    cost on the same page.
 *   [Agile Machine Learning API](tools/agile-machine-learning-api) - A web
     application which provides the ability to train and deploy ML models on
     Google Cloud Machine Learning Engine, and visualize the predicted results
@@ -501,6 +510,7 @@ Platform usage.
     project to generate recommended object lifecycle management.
 *   [GCVE2BQ](tools/gcve2bq) - A tool for scheduled exports of VM, datastore and ESXi
     utilization data from vCenter to BigQuery for billing and reporting use cases.
+*   [Gemini Computer Use Evaluation Pipeline](tools/gemini-computer-use-eval) - A lightweight framework for benchmarking browser agents with multimodal visual and log judging.
 *   [GenAI-Powered Code Modification Cloud Function](tools/genai-code-mod-auto) - A deployable Google Cloud Function that, powered by the Vertex AI Gemini API, automates code modification. It reads files from GitHub, processes them with an LLM to generate new versions, and then saves those modifications back to the repositories.
 *   [GKE AutoPSC Controller](tools/gke-autopsc-controller) - Google Kubernetes Engine
     controller, to setup PSC ServiceAttachment for Gateway API managed Forwarding Rules.

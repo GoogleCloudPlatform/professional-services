@@ -126,7 +126,7 @@ update_connector_url() {
   fi
 
   # UPDATED this line to pull correct GCS connector
-  gsutil cp "gs://gcs-connector-init_actions/gcs-connector-${HADOOP_VERSION}-shaded.jar" "${vm_connectors_dir}/"
+  gcloud storage cp "gs://gcs-connector-init_actions/gcs-connector-${HADOOP_VERSION}-shaded.jar" "${vm_connectors_dir}/"
 
   local -r jar_name=${url##*/}
 

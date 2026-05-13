@@ -98,6 +98,6 @@ The following high-level steps describe the setup needed to run this example:
 The workflow is automatically triggered by Cloud Function that gets invoked when a new file is uploaded into the *input-gcs-bucket*
 For this example workflow, the [usa_names.csv](resources/usa_names.csv) file can be uploaded into the  *input-gcs-bucket*
 
-`gsutil cp resources/usa_names.csv gs://` **_input-gcs-bucket_**
+`gcloud storage cp resources/usa_names.csv gs://` **_input-gcs-bucket_**
 
 ***
