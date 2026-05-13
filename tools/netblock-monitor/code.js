@@ -287,7 +287,7 @@ function resetTriggers_() {
     .timeBased()
     .everyDays(1)
     .atHour(8)
-    .inTimezone('Europe/Rome')
+    .inTimezone(Session.getScriptTimeZone())
     .create();
 }
 
