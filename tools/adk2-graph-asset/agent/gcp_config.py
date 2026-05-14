@@ -38,8 +38,13 @@ def init_vertex_ai(staging_bucket: str | None = None) -> dict:
         if env_path.exists():
             load_dotenv(dotenv_path=env_path, override=False)
 
-    project_id = os.getenv("GOOGLE_CLOUD_PROJECT", "otl-eng-avstudio")
-    location = os.getenv("GOOGLE_CLOUD_LOCATION", "us-central1")
+    project_id = os.getenv("GOOGLE_CLOUD_PROJECT", "").strip()
+    location = os.getenv("GOOGLE_CLOUD_LOCATION", "us-central1").strip()
+
+    if not project_id:
+        raise ValueError(
+            "GOOGLE_CLOUD_PROJECT is required. Set it in your environment or agent/.env before running."
+        )
 
     # Tell google-adk to use Vertex AI (not Google AI Studio)
     os.environ["GOOGLE_GENAI_USE_VERTEXAI"] = "1"

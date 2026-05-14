@@ -189,15 +189,13 @@ class TestDotenvLoading:
 class TestErrorHandling:
     """Test error handling in initialization."""
 
-    def test_missing_project_id(self, monkeypatch, mock_vertexai):
+    @patch("agent.gcp_config.load_dotenv")
+    def test_missing_project_id(self, mock_load_dotenv, monkeypatch, mock_vertexai):
         """Test behavior when project ID is missing."""
         monkeypatch.delenv("GOOGLE_CLOUD_PROJECT", raising=False)
-        monkeypatch.delenv("GOOGLE_CLOUD_PROJECT", raising=False)
 
-        # Should work with defaults
-        config = init_vertex_ai()
-
-        assert config is not None
+        with pytest.raises(ValueError, match="GOOGLE_CLOUD_PROJECT"):
+            init_vertex_ai()
 
     def test_invalid_location(self, monkeypatch, mock_vertexai):
         """Test with invalid location (should still work)."""
