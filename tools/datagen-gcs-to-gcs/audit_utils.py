@@ -16,7 +16,7 @@ def start_audit_log(
         row_to_insert = [
             {
                 "batch_id": str(batch_id),
-                "gcs_bucket_name": config_vars.gcs_bucket_name,  
+                "gcs_bucket_name": config_vars.GCS_BUCKET_NAME,  
                 "input_gcs_path": gcs_path,
                 "header_gcs_path": header_gcs_path.get(
                     table_name, None
@@ -38,7 +38,7 @@ def start_audit_log(
                 "insert_timestamp": datetime.now().isoformat(),
             }
         ]
-        errors = bq_client_main.insert_rows_json(config_vars.audit_table, row_to_insert)
+        errors = bq_client_main.insert_rows_json(config_vars.get_audit_table(), row_to_insert)
         if errors:
             print(f"Encountered errors while inserting rows: {errors}")
         else:
@@ -56,7 +56,7 @@ def end_audit_log(
         row_to_insert = [
             {
                 "batch_id": str(batch_id),
-                "gcs_bucket_name": config_vars.gcs_bucket_name,  
+                "gcs_bucket_name": config_vars.GCS_BUCKET_NAME,  
                 "input_gcs_path": gcs_path,
                 "header_gcs_path": header_gcs_path.get(
                     table_name, None
@@ -80,7 +80,7 @@ def end_audit_log(
                 "insert_timestamp": datetime.now().isoformat(),
             }
         ]
-        errors = bq_client_main.insert_rows_json(config_vars.audit_table, row_to_insert)
+        errors = bq_client_main.insert_rows_json(config_vars.get_audit_table(), row_to_insert)
         if errors:
             print(f"Encountered errors while inserting rows: {errors}")
         else:

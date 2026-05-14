@@ -24,7 +24,7 @@ Usage
  
 Environment variables (or .env file)
 ─────────────────────────────────────
-    GOOGLE_CLOUD_PROJECT       GCP project ID          (default: otl-eng-avstudio)
+    GOOGLE_CLOUD_PROJECT       GCP project ID          (required)
     GOOGLE_CLOUD_LOCATION      Vertex AI region        (default: us-central1)
     GOOGLE_APPLICATION_CREDENTIALS  path to service-account key
     STAGING_BUCKET             GCS bucket for staging  (default: gs://adk2-graph-poc-staging)
