@@ -16,7 +16,7 @@
 # without warranty or representation for any use or purpose.
 # Your use of it is subject to your agreement with Google.
 
-pytest==7.1.3
+pytest==9.0.3
 
 
 
