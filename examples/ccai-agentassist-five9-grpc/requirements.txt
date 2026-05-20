@@ -11,7 +11,7 @@ googleapis-common-protos==1.63.2
 grpcio==1.65.0
 grpcio-status==1.65.0
 grpcio-tools==1.64.1
-idna==3.7
+idna==3.15
 isort==5.13.2
 mccabe==0.7.0
 platformdirs==4.2.2
