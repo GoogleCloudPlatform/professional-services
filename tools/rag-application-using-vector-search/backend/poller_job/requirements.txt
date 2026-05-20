@@ -17,7 +17,7 @@ googleapis-common-protos==1.70.0
 grpc-google-iam-v1==0.14.2
 grpcio==1.72.0rc1
 grpcio-status==1.72.0rc1
-idna==3.10
+idna==3.15
 numpy==2.2.5
 packaging==25.0
 proto-plus==1.26.1
