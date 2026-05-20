@@ -8,7 +8,8 @@ dependencies = [
     "rich>=13.0.0",
     "pandas>=2.0.0",
     "requests>=2.33.0",
-    "google-cloud-aiplatform[evaluation,agent-engines]>=1.132.0,<1.140.0",
+    "google-cloud-aiplatform[evaluation,agent-engines]>=1.132.0,<2.0.0",
+
     "db-dtypes>=1.4.2,<2.0.0",
     "google-cloud-bigquery>=3.25.0",
     "google-adk>=1.28.1",
