@@ -146,7 +146,7 @@ def _display_metrics_table(
         if metric_type == "llm" and isinstance(current_val, dict):
             avg = current_val.get("average", 0)
             sr = current_val.get("score_range", {})
-            max_v = sr.get("max", 5) if sr else 5
+            max_v = sr.get("max", 1) if sr else 1
             current_str = f"{avg:.2f}/{max_v}"
         else:
             current_str = _format_value(current_val, metric_name)
@@ -166,7 +166,7 @@ def _display_metrics_table(
             if metric_type == "llm":
                 sr = (current_val if isinstance(current_val, dict) else {}).get(
                     "score_range", {})
-                max_v = sr.get("max", 5) if sr else 5
+                max_v = sr.get("max", 1) if sr else 1
                 baseline_str = f"{baseline_val:.2f}/{max_v}"
             else:
                 baseline_str = _format_value(baseline_val, metric_name)
