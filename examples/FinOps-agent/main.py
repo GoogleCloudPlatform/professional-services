@@ -18,17 +18,14 @@ import json
 import logging
 import asyncio
 import contextvars
-from typing import Optional, Dict, Any
+
 from dotenv import load_dotenv
-from fastapi import FastAPI, Body, Request
-from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse, StreamingResponse
+from fastapi import FastAPI, Body
+from fastapi.responses import StreamingResponse
 
 from google.adk import Runner
 from google.adk.sessions import InMemorySessionService
-from google.genai import types
 from google.genai.types import Content, Part
-from google.cloud import logging as google_cloud_logging
 
 # Load environment variables
 load_dotenv(override=True)

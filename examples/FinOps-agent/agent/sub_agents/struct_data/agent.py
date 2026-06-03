@@ -15,7 +15,7 @@
 import os
 import logging
 from google.adk.agents import LlmAgent as Agent
-from google.genai import types
+
 
 from .tools import bigquery_toolset
 from .prompt import prompt
