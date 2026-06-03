@@ -249,6 +249,7 @@ Built for creators, marketers, and developers, this application provides a hands
     Creation and update of entities for Dialogflow in Python.
 *   [DLP API Examples](examples/dlp) - Examples of the DLP API usage.
 *   [Ephemeral Projects](examples/ephemeral-projects) - Creating short lived gcp projects for sandbox purposes.
+*   [FinOps Agent](examples/FinOps-agent) - A multi-agent FinOps agent that translates natural language to BigQuery SQL to analyze cloud billing data and enforce corporate governance.
 *   [GCE Access to Google AdminSDK](examples/gce-to-adminsdk) - Example to help
     manage access to Google's AdminSDK using GCE's service account identity
 *   [GCS Client Side Encryption via Sidecar](examples/gcs-client-encrypt/) - Example to show how to implement GCS client side encyrption via a sidecar

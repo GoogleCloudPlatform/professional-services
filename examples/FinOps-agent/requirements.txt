@@ -1,0 +1,7 @@
+google-adk[all]
+google-genai
+fastapi
+uvicorn
+python-dotenv
+google-cloud-logging
+google-cloud-bigquery
