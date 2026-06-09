@@ -1,0 +1,82 @@
+# OSX leaves these everywhere on SMB shares
+._*
+
+# OSX trash
+.DS_Store
+
+# Python
+*.pyc
+
+# Emacs save files
+*~
+\#*\#
+.\#*
+
+# Vim-related files
+[._]*.s[a-w][a-z]
+[._]s[a-w][a-z]
+*.un~
+Session.vim
+.netrwhist
+
+### https://raw.github.com/github/gitignore/90f149de451a5433aebd94d02d11b0e28843a1af/Terraform.gitignore
+
+# Local .terraform directories
+**/.terraform*
+
+# .tfstate files
+*.tfstate
+*.tfstate.*
+
+# Local tfvars terraform.tfvars
+**/*.tfvars
+
+# tf lock file
+**/.terraform.lock.hcl
+
+# Crash log files
+crash.log
+
+# Ignore any .tfvars files that are generated automatically for each Terraform run. Most
+# .tfvars files are managed as part of configuration and so should be included in
+# version control.
+#
+# example.tfvars
+
+# Ignore override files as they are usually used to override resources locally and so
+# are not checked in
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+.idea/
+.vscode/
+# Kitchen files
+**/inspec.lock
+**.gem
+**/.kitchen
+**/.kitchen.local.yml
+**/Gemfile.lock
+# Plan files
+**/tmp_plan
+**/.tmp
+**/tmp
+
+test/fixtures/shared/terraform.tfvars
+
+test/integration/gcloud/config.sh
+test/integration/tmp
+
+credentials.json
+
+helpers/foundation-deployer/foundation-deployer
+helpers/foundation-deployer/.steps.json
+
+# File to populate env vars used by Docker test runs
+.envrc
+
+# Handle files generated on sed command by old (2013-) MacOS versions
+*.tf-e
+
+# Go multi-module workspace sum
+go.work.sum
