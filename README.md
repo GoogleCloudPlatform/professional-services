@@ -291,6 +291,8 @@ Built for creators, marketers, and developers, this application provides a hands
     An example that uses a set of Bash scripts to set up a pre-commit hook that
     validates Kubernetes resources with Gatekeeper constraints and constraint
     templates from your choice of sources.
+*   [Gemini Live Multimodal Avatar](examples/gemini-live-multimodal-avatar) -
+    An enterprise blueprint for low-latency, real-time digital human advisors. Built with the Gemini Live API (Multimodal Live), it features synchronized video avatars, real-time audio streaming, and extensible tool integration using the Model Context Protocol (MCP).
 *   [LookerStudio Cost Optimization Dashboard](examples/cost-optimization-dashboard) -
     SQL scripts to help build Cost Optimization LookerStudio Dashboard.
 *   [Migrate Kafka to GMK using MM2](examples/mm2-gmk-migration) -  Terraform code to deploy resources to migrate data between two Google Managed Kafka clustes using MirrorMaker2

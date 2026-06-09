@@ -482,10 +482,9 @@ class VectorSearchHttpUser(FastHttpUser):
                 logging.error(f"Failed to refresh token: {str(e)}")
 
         # Handle sparse embedding case
-        if (config.sparse_embedding_num_dimensions > 0 and
-                config.sparse_embedding_num_dimensions_with_values > 0 and
-                config.sparse_embedding_num_dimensions_with_values <=
-                config.sparse_embedding_num_dimensions):
+        sparse_dims = config.sparse_embedding_num_dimensions
+        sparse_vals = config.sparse_embedding_num_dimensions_with_values
+        if sparse_dims > 0 and sparse_vals > 0 and sparse_vals <= sparse_dims:
 
             values, dimensions = self.base.generate_sparse_embedding()
             self.request["queries"][0]["datapoint"]["sparseEmbedding"] = {
@@ -577,10 +576,9 @@ class VectorSearchGrpcUser(User):
     def grpc_find_neighbors(self):
         """Execute a Vector Search query using gRPC."""
         # Create datapoint based on embedding type
-        if (config.sparse_embedding_num_dimensions > 0 and
-                config.sparse_embedding_num_dimensions_with_values > 0 and
-                config.sparse_embedding_num_dimensions_with_values <=
-                config.sparse_embedding_num_dimensions):
+        sparse_dims = config.sparse_embedding_num_dimensions
+        sparse_vals = config.sparse_embedding_num_dimensions_with_values
+        if sparse_dims > 0 and sparse_vals > 0 and sparse_vals <= sparse_dims:
             # Sparse embedding case
             values, dimensions = self.base.generate_sparse_embedding()
             datapoint = IndexDatapoint(datapoint_id='0',
