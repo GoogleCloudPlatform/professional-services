@@ -32,6 +32,7 @@
 ./tools/memorystore-cluster-ops-framework
 ./tools/ml-dataprep
 ./tools/ml-auto-eda
+./tools/monitoring-alert-library
 ./tools/netblock-monitor
 ./tools/site-verification-group-sync
 ./tools/terraform-module-update-scanner
@@ -93,3 +94,4 @@
 ./examples/creative-studio
 ./tools/oas-mcp-tools-weaver
 ./examples/slo-assistant
+./examples/gemini-live-multimodal-avatar/frontend

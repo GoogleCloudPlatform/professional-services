@@ -19,7 +19,7 @@ packaging==24.2
 pandas==2.2.3
 pillow==12.2.0
 protobuf==5.29.6
-pyarrow==19.0.1
+pyarrow==23.0.1
 pyasn1==0.6.3
 pyasn1_modules==0.4.2
 pydeck==0.9.1
