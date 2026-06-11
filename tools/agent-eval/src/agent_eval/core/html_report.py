@@ -347,10 +347,13 @@ def _build_csv_lookup(results_csv: Optional[Path]) -> Dict[str, Dict[str, Any]]:
                     state_vars = {}
                 state_clean = {}
                 for k, v in list(state_vars.items())[:30]:
-                    rendered = json.dumps(v, default=str) if not isinstance(
-                        v, (str, int, float, bool, type(None))) else v
-                    if isinstance(rendered, str) and len(rendered) > 1500:
-                        rendered = rendered[:1500] + " …"
+                    rendered = (
+                        json.dumps(v, default=str, indent=2)
+                        if not isinstance(
+                            v, (str, int, float, bool, type(None))
+                        )
+                        else v
+                    )
                     state_clean[k] = rendered
 
                 # Agents that participated. sub_agent_trace entries have
@@ -2223,14 +2226,16 @@ _HTML_TEMPLATE = r"""<!doctype html>
     (turns || []).forEach(function(t) {
       const cls = t.role === 'user' ? 'turn-user' : 'turn-model';
       const tag = t.role === 'user' ? 'User' : 'Agent';
-      html += '<div class="conv-turn ' + cls + '">' +
+      const style = t.text && t.text.length > 500 ? ' style="max-height: 250px; overflow-y: auto;"' : '';
+      html += '<div class="conv-turn ' + cls + '"' + style + '>' +
                 '<div class="conv-role">' + tag + '</div>' +
                 '<div class="conv-text">' + escapeHtml(t.text) + '</div>' +
               '</div>';
     });
     html += '</div>';
     if (finalResp) {
-      html += '<h4>🎯 Final response</h4><div class="text-block">' +
+      const respStyle = finalResp.length > 500 ? ' style="max-height: 250px; overflow-y: auto; white-space: pre-wrap; word-break: break-word;"' : '';
+      html += '<h4>🎯 Final response</h4><div class="text-block"' + respStyle + '>' +
               escapeHtml(finalResp) + '</div>';
     }
     return html;
@@ -2350,8 +2355,10 @@ _HTML_TEMPLATE = r"""<!doctype html>
       html += '<div class="state-card" style="grid-column:1/-1"><div class="tool-label">Final session state</div>' +
               '<table class="metrics" style="font-size:12px"><tbody>' +
               Object.entries(state).map(function(e) {
+                const s = typeof e[1] === 'string' ? e[1] : JSON.stringify(e[1]);
+                const wrapped = s.length > 500 ? '<pre class="state-inspection" style="max-height: 250px; overflow-y: auto;">' + escapeHtml(s) + '</pre>' : escapeHtml(s);
                 return '<tr><td><code style="font-size:11px">' + escapeHtml(e[0]) + '</code></td>' +
-                       '<td>' + escapeHtml(typeof e[1] === 'string' ? e[1] : JSON.stringify(e[1])) + '</td></tr>';
+                       '<td>' + wrapped + '</td></tr>';
               }).join('') +
               '</tbody></table></div>';
     }

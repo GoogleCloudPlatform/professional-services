@@ -93,17 +93,22 @@ def test_init_creates_eval_structure():
 
     runner = CliRunner()
     with tempfile.TemporaryDirectory() as tmpdir:
-        result = runner.invoke(cli, [
-            "init",
-            "--target-dir",
-            tmpdir,
-            "--agent-name",
-            "test_agent",
-            "--mode",
-            "both",
-            "-y",
-        ])
-        assert result.exit_code == 0
+        result = runner.invoke(
+            cli,
+            [
+                "init",
+                "--target-dir",
+                tmpdir,
+                "--agent-name",
+                "test_agent",
+                "--mode",
+                "both",
+                "-y",
+            ],
+            env={"GOOGLE_CLOUD_PROJECT": "test-project"},
+            catch_exceptions=False,
+        )
+        assert result.exit_code == 0, result.output
 
         # Phase D: unified layout at <project_root>/tests/eval/. No more
         # eval/scenarios/ or eval/eval_data/ split — multi-turn rows live
