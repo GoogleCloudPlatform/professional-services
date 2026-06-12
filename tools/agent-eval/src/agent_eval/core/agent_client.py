@@ -68,12 +68,14 @@ class AgentClient:
         """Fetches the gcloud identity token from the environment."""
         try:
             token = subprocess.check_output(
-                ["gcloud", "auth", "print-identity-token"], text=True).strip()
+                ["gcloud", "auth", "print-identity-token"], text=True
+            ).strip()
             return token
         except (subprocess.CalledProcessError, FileNotFoundError) as e:
             raise RuntimeError(
                 f"Error getting gcloud token: {e}. "
-                "Ensure you are logged in with 'gcloud auth login'.") from e
+                "Ensure you are logged in with 'gcloud auth login'."
+            ) from e
 
     def _get_headers(self) -> Dict[str, str]:
         """Returns the headers for API requests. Skips auth for localhost."""
@@ -104,10 +106,9 @@ class AgentClient:
         logger.debug("Session created successfully.")
         return session_id
 
-    def run_interaction(self,
-                        session_id: str,
-                        question: str,
-                        streaming: bool = False) -> Dict[str, Any]:
+    def run_interaction(
+        self, session_id: str, question: str, streaming: bool = False
+    ) -> Dict[str, Any]:
         """
         Sends a question to the agent.
 
@@ -123,12 +124,7 @@ class AgentClient:
             "app_name": self.app_name,
             "user_id": self.user_id,
             "session_id": session_id,
-            "new_message": {
-                "role": "user",
-                "parts": [{
-                    "text": question
-                }]
-            },
+            "new_message": {"role": "user", "parts": [{"text": question}]},
             "streaming": streaming,
         }
 
@@ -194,17 +190,14 @@ class AgentClient:
         delay = 1
         for i in range(retries):
             try:
-                response = requests.request(method,
-                                            url,
-                                            headers=headers,
-                                            **kwargs)
+                response = requests.request(method, url, headers=headers, **kwargs)
                 response.raise_for_status()
                 return response.json()
             except requests.exceptions.RequestException as e:
                 if i < retries - 1:
                     logger.debug(
-                        "Request failed with %s. Retrying in %d seconds...", e,
-                        delay)
+                        "Request failed with %s. Retrying in %d seconds...", e, delay
+                    )
                     time.sleep(delay)
                     delay *= 2
                 else:
@@ -224,8 +217,7 @@ class AgentClient:
                         delay *= 2
                         continue
                     else:
-                        raise requests.exceptions.HTTPError(
-                            f"404 Not Found: {url}")
+                        raise requests.exceptions.HTTPError(f"404 Not Found: {url}")
 
                 response.raise_for_status()
                 data = response.json()
@@ -249,7 +241,6 @@ class AgentClient:
         """Analyzes raw trace data to build a tree and extract classified information."""
 
         class _SpanNode:
-
             def __init__(self, span_data):
                 self.data = span_data
                 self.id = span_data.get("span_id")
@@ -277,8 +268,9 @@ class AgentClient:
             attributes = span_data.get("attributes", {})
             start_time = span_data.get("start_time", 0)
             end_time = span_data.get("end_time", 0)
-            duration_ms = ((end_time - start_time) /
-                           1_000_000 if start_time and end_time else 0)
+            duration_ms = (
+                (end_time - start_time) / 1_000_000 if start_time and end_time else 0
+            )
 
             extracted_info = {
                 "name": name,
@@ -295,13 +287,13 @@ class AgentClient:
                     # Support "agent_run [name]", "agent_run[name]", "invoke_agent name"
                     if "[" in name and "]" in name:
                         extracted_info["details"]["agent_name"] = re.search(
-                            r"\[(.*)\]", name).group(1)
+                            r"\[(.*)\]", name
+                        ).group(1)
                     else:
                         # Assume "invoke_agent name" or similar
                         parts = name.split(maxsplit=1)
                         if len(parts) > 1:
-                            extracted_info["details"]["agent_name"] = parts[
-                                1].strip()
+                            extracted_info["details"]["agent_name"] = parts[1].strip()
                         else:
                             extracted_info["details"]["agent_name"] = "unknown"
                 except (IndexError, AttributeError):
@@ -314,61 +306,69 @@ class AgentClient:
                         tool_name = re.search(r"\[(.*)\]", name).group(1)
                     except (IndexError, AttributeError):
                         # Fallback for "execute_tool name"
-                        tool_name = name.split(
-                            " ")[-1] if " " in name else "unknown"
+                        tool_name = name.split(" ")[-1] if " " in name else "unknown"
 
                 extracted_info["details"]["tool_name"] = tool_name
 
                 if "gcp.vertex.agent.tool_call_args" in attributes:
                     try:
                         extracted_info["details"]["arguments"] = json.loads(
-                            attributes["gcp.vertex.agent.tool_call_args"])
+                            attributes["gcp.vertex.agent.tool_call_args"]
+                        )
                     except (json.JSONDecodeError, TypeError):
                         extracted_info["details"]["arguments"] = attributes[
-                            "gcp.vertex.agent.tool_call_args"]
+                            "gcp.vertex.agent.tool_call_args"
+                        ]
 
             # Check if it's a tool response (sometimes unified in execute_tool span)
-            if "tool_response" in name or ("execute_tool" in name and
-                                           "gcp.vertex.agent.tool_response"
-                                           in attributes):
-                if (extracted_info["type"] == "OTHER"
-                   ):  # Don't overwrite if already classified as call
+            if "tool_response" in name or (
+                "execute_tool" in name
+                and "gcp.vertex.agent.tool_response" in attributes
+            ):
+                if (
+                    extracted_info["type"] == "OTHER"
+                ):  # Don't overwrite if already classified as call
                     extracted_info["type"] = "TOOL_RESPONSE"
 
                 if "gcp.vertex.agent.tool_response" in attributes:
                     try:
                         tool_response = json.loads(
-                            attributes["gcp.vertex.agent.tool_response"])
+                            attributes["gcp.vertex.agent.tool_response"]
+                        )
                         extracted_info["details"]["response"] = tool_response
                     except (json.JSONDecodeError, TypeError):
                         extracted_info["details"]["raw_response"] = attributes[
-                            "gcp.vertex.agent.tool_response"]
+                            "gcp.vertex.agent.tool_response"
+                        ]
 
             elif name == "call_llm":
                 extracted_info["type"] = "LLM_CALL"
                 if "gen_ai.request.model" in attributes:
                     extracted_info["details"]["model"] = attributes[
-                        "gen_ai.request.model"]
+                        "gen_ai.request.model"
+                    ]
                 if "gcp.vertex.agent.llm_request" in attributes:
                     try:
                         extracted_info["details"]["request"] = json.loads(
-                            attributes["gcp.vertex.agent.llm_request"])
+                            attributes["gcp.vertex.agent.llm_request"]
+                        )
                     except (json.JSONDecodeError, TypeError):
                         pass
                 if "gcp.vertex.agent.llm_response" in attributes:
                     try:
                         extracted_info["details"]["response"] = json.loads(
-                            attributes["gcp.vertex.agent.llm_response"])
+                            attributes["gcp.vertex.agent.llm_response"]
+                        )
                     except (json.JSONDecodeError, TypeError):
                         pass
 
             if "http.method" in attributes:
                 extracted_info["type"] = "HTTP_REQUEST"
-                extracted_info["details"]["method"] = attributes.get(
-                    "http.method")
+                extracted_info["details"]["method"] = attributes.get("http.method")
                 extracted_info["details"]["url"] = attributes.get("http.url")
                 extracted_info["details"]["status_code"] = attributes.get(
-                    "http.status_code")
+                    "http.status_code"
+                )
 
             return extracted_info
 
@@ -397,18 +397,13 @@ class AgentClient:
                 name = f"{method} [{url}]"
 
             latency_info = {
-                "name":
-                    name,
-                "type":
-                    span_type,
-                "duration_seconds":
-                    round(span.get("duration_ms", 0) / 1000.0, 4),
+                "name": name,
+                "type": span_type,
+                "duration_seconds": round(span.get("duration_ms", 0) / 1000.0, 4),
             }
             children = span.get("children")
             if children:
-                latency_info["children"] = [
-                    process_span(child) for child in children
-                ]
+                latency_info["children"] = [process_span(child) for child in children]
             return latency_info
 
         return [process_span(root) for root in analyzed_trace]
@@ -446,8 +441,7 @@ class AgentClient:
                 tool_name = details.get("tool_name")
                 if tool_name:
                     # Check if it looks like a sub-agent (typically PascalCase with "Agent" suffix)
-                    if tool_name.endswith(
-                            "Agent") or tool_name == "transfer_to_agent":
+                    if tool_name.endswith("Agent") or tool_name == "transfer_to_agent":
                         item = f"sub-agent:{tool_name}"
                     else:
                         item = f"tool:{tool_name}"
@@ -516,8 +510,7 @@ class AgentClient:
                         }
 
                 # Handle Function Response (supports both camelCase and snake_case)
-                response = part.get("functionResponse") or part.get(
-                    "function_response")
+                response = part.get("functionResponse") or part.get("function_response")
                 if response and isinstance(response, dict):
                     call_id = response.get("id")
                     resp_content = response.get("response")
@@ -572,11 +565,13 @@ class AgentClient:
                     text_content.append(part["text"])
 
             if text_content:
-                trace.append({
-                    "agent_name": author,
-                    "text_response": "\n".join(text_content),
-                    "timestamp": event.get("timestamp"),
-                })
+                trace.append(
+                    {
+                        "agent_name": author,
+                        "text_response": "\n".join(text_content),
+                        "timestamp": event.get("timestamp"),
+                    }
+                )
 
         return trace
 

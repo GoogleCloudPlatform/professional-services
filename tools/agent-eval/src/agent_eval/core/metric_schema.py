@@ -162,14 +162,16 @@ KIND_COMPUTATION: Final[str] = "computation"
 KIND_PYTHON_FUNCTION: Final[str] = "python_function"
 KIND_REMOTE_CODE: Final[str] = "remote_code"
 
-ALL_KINDS: Final[frozenset[str]] = frozenset({
-    KIND_MANAGED,
-    KIND_PARAMETRIZED_MANAGED,
-    KIND_CUSTOM_LLM_JUDGE,
-    KIND_COMPUTATION,
-    KIND_PYTHON_FUNCTION,
-    KIND_REMOTE_CODE,
-})
+ALL_KINDS: Final[frozenset[str]] = frozenset(
+    {
+        KIND_MANAGED,
+        KIND_PARAMETRIZED_MANAGED,
+        KIND_CUSTOM_LLM_JUDGE,
+        KIND_COMPUTATION,
+        KIND_PYTHON_FUNCTION,
+        KIND_REMOTE_CODE,
+    }
+)
 
 # Required fields per kind. Used by the validator. The SDK doesn't expose
 # this — it's our schema's invariant.

@@ -80,10 +80,7 @@ def test_cli_help_lists_all_commands():
     runner = CliRunner()
     result = runner.invoke(cli, ["--help"])
     assert result.exit_code == 0
-    for cmd in [
-            "init", "interact", "evaluate", "analyze", "convert",
-            "create-dataset"
-    ]:
+    for cmd in ["init", "interact", "evaluate", "analyze", "convert", "create-dataset"]:
         assert cmd in result.output, f"Command '{cmd}' missing from --help"
 
 
@@ -126,11 +123,11 @@ def test_init_creates_eval_structure():
         ]
         assert rows, "scaffold must seed at least one starter row"
         first_session = next(
-            (r["session_inputs"] for r in rows if r.get("session_inputs")),
-            None)
-        assert first_session is not None and first_session[
-            "app_name"] == "test_agent"
+            (r["session_inputs"] for r in rows if r.get("session_inputs")), None
+        )
+        assert first_session is not None and first_session["app_name"] == "test_agent"
 
         metrics = json.loads(
-            (eval_dir / "metrics" / "metric_definitions.json").read_text())
+            (eval_dir / "metrics" / "metric_definitions.json").read_text()
+        )
         assert "general_quality" in metrics["metrics"]

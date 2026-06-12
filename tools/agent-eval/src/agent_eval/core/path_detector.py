@@ -72,8 +72,7 @@ class PathDetection:
 
     def has_both(self) -> bool:
         """True when both a deployed Agent Engine AND a local agent are available."""
-        return self.agent_engine_resource is not None and bool(
-            self.local_agents)
+        return self.agent_engine_resource is not None and bool(self.local_agents)
 
 
 # ---------------------------------------------------------------------------
@@ -90,11 +89,15 @@ def _resource_from_metadata_file(path: Path) -> Optional[str]:
         return None
     try:
         import json
+
         data = json.loads(path.read_text(encoding="utf-8"))
     except (OSError, ValueError):
         return None
-    for key in ("remote_agent_engine_id", "agent_engine_resource_name",
-                "resource_name"):
+    for key in (
+        "remote_agent_engine_id",
+        "agent_engine_resource_name",
+        "resource_name",
+    ):
         value = data.get(key)
         if value and value not in _PLACEHOLDER_RESOURCE_VALUES:
             return value
@@ -142,8 +145,11 @@ def _detect_agent_engine(cwd: Path) -> Optional[PathDetection]:
     for candidate in _find_metadata_candidates(cwd):
         resource = _resource_from_metadata_file(candidate)
         if resource:
-            rel = candidate.relative_to(cwd) if candidate.is_relative_to(
-                cwd) else candidate
+            rel = (
+                candidate.relative_to(cwd)
+                if candidate.is_relative_to(cwd)
+                else candidate
+            )
             return PathDetection(
                 path="A",
                 evidence=f"{rel} (remote_agent_engine_id set)",
@@ -172,8 +178,7 @@ def _detect_local_adk(cwd: Path) -> Optional[PathDetection]:
     agents = _find_local_agents(cwd)
     if not agents:
         return None
-    rel = agents[0].relative_to(cwd) if agents[0].is_relative_to(
-        cwd) else agents[0]
+    rel = agents[0].relative_to(cwd) if agents[0].is_relative_to(cwd) else agents[0]
     extra = f" (+{len(agents) - 1} more)" if len(agents) > 1 else ""
     return PathDetection(
         path="B",
@@ -211,5 +216,6 @@ def detect_execution_path(cwd: Path | str | None = None) -> PathDetection:
     if local_detection is not None:
         return local_detection
 
-    return PathDetection(path="unknown",
-                         evidence="no agent.py or deployment metadata found")
+    return PathDetection(
+        path="unknown", evidence="no agent.py or deployment metadata found"
+    )
