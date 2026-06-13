@@ -28,10 +28,9 @@ class EvalConfig(BaseSettings):
     Reads from environment variables and provides type safety.
     """
 
-    model_config = SettingsConfigDict(env_prefix="EVAL_",
-                                      env_file=".env",
-                                      env_file_encoding="utf-8",
-                                      extra="ignore")
+    model_config = SettingsConfigDict(
+        env_prefix="EVAL_", env_file=".env", env_file_encoding="utf-8", extra="ignore"
+    )
 
     # Managed Metric Names
     METRIC_TOOL_USE_QUALITY: str = "TOOL_USE_QUALITY"
@@ -44,15 +43,13 @@ class EvalConfig(BaseSettings):
     COL_TOOL_USAGE: str = "tool_usage"
 
     # Execution Settings
-    GOOGLE_CLOUD_PROJECT: Optional[str] = Field(default=None,
-                                                description="GCP Project ID")
-    GOOGLE_CLOUD_LOCATION: str = Field(default="us-central1",
-                                       description="GCP Region")
+    GOOGLE_CLOUD_PROJECT: Optional[str] = Field(
+        default=None, description="GCP Project ID"
+    )
+    GOOGLE_CLOUD_LOCATION: str = Field(default="us-central1", description="GCP Region")
     MAX_RETRIES: int = Field(default=3, description="Max retries for LLM calls")
-    RETRY_DELAY_SECONDS: int = Field(default=5,
-                                     description="Base delay for retries")
-    MAX_WORKERS: int = Field(default=4,
-                             description="Threads for parallel evaluation")
+    RETRY_DELAY_SECONDS: int = Field(default=5, description="Base delay for retries")
+    MAX_WORKERS: int = Field(default=4, description="Threads for parallel evaluation")
 
     # Data Mappings
     EXTRACTED_DATA_PREFIX: str = "extracted_data"
@@ -71,8 +68,7 @@ def get_project_id() -> Optional[str]:
     wasn't imported earlier in the call chain.
     """
     load_dotenv(override=True)
-    return os.environ.get("GOOGLE_CLOUD_PROJECT") or os.environ.get(
-        "PROJECT_ID")
+    return os.environ.get("GOOGLE_CLOUD_PROJECT") or os.environ.get("PROJECT_ID")
 
 
 def get_location(model: Optional[str] = None) -> str:
@@ -117,9 +113,11 @@ def find_eval_files(eval_dir: Path) -> Dict[str, List[Path]]:
 
     scenarios_dir = eval_dir / "scenarios"
     if scenarios_dir.is_dir():
-        result["scenarios"] = sorted(f for f in scenarios_dir.glob("*.json")
-                                     if f.name not in ("session_input.json",
-                                                       "eval_config.json"))
+        result["scenarios"] = sorted(
+            f
+            for f in scenarios_dir.glob("*.json")
+            if f.name not in ("session_input.json", "eval_config.json")
+        )
         session = scenarios_dir / "session_input.json"
         if session.exists():
             result["session_input"] = [session]

@@ -30,7 +30,8 @@ except ImportError as exc:
     raise ImportError(
         "Dashboard requires optional dependencies.\n"
         "Install them with:  pip install agent-eval[dashboard]\n"
-        "            or:     uv pip install gradio plotly") from exc
+        "            or:     uv pip install gradio plotly"
+    ) from exc
 
 from agent_eval.dashboard.data import (
     RunInfo,
@@ -57,41 +58,27 @@ COLOR_NEUTRAL = "#9AA0A6"  # Light gray
 # ---------------------------------------------------------------------------
 
 _METRIC_DISPLAY = {
-    "token_usage.estimated_cost_usd":
-        "Est. Cost ($)",
-    "token_usage.total_tokens":
-        "Total Tokens",
-    "token_usage.prompt_tokens":
-        "Input Tokens",
-    "token_usage.completion_tokens":
-        "Output Tokens",
-    "token_usage.cached_tokens":
-        "Cached Tokens",
-    "token_usage.llm_calls":
-        "LLM Calls",
-    "latency_metrics.total_latency_seconds":
-        "Total Latency (s)",
-    "latency_metrics.time_to_first_response_seconds":
-        "Time to First Response (s)",
-    "latency_metrics.average_turn_latency_seconds":
-        "Avg Turn Latency (s)",
-    "latency_metrics.llm_latency_seconds":
-        "Model Latency (s)",
-    "latency_metrics.tool_latency_seconds":
-        "Tool Latency (s)",
-    "cache_efficiency.cache_hit_rate":
-        "Cache Hit Rate",
-    "tool_success_rate.tool_success_rate":
-        "Tool Success Rate",
-    "thinking_metrics.reasoning_ratio":
-        "Reasoning Ratio",
+    "token_usage.estimated_cost_usd": "Est. Cost ($)",
+    "token_usage.total_tokens": "Total Tokens",
+    "token_usage.prompt_tokens": "Input Tokens",
+    "token_usage.completion_tokens": "Output Tokens",
+    "token_usage.cached_tokens": "Cached Tokens",
+    "token_usage.llm_calls": "LLM Calls",
+    "latency_metrics.total_latency_seconds": "Total Latency (s)",
+    "latency_metrics.time_to_first_response_seconds": "Time to First Response (s)",
+    "latency_metrics.average_turn_latency_seconds": "Avg Turn Latency (s)",
+    "latency_metrics.llm_latency_seconds": "Model Latency (s)",
+    "latency_metrics.tool_latency_seconds": "Tool Latency (s)",
+    "cache_efficiency.cache_hit_rate": "Cache Hit Rate",
+    "tool_success_rate.tool_success_rate": "Tool Success Rate",
+    "thinking_metrics.reasoning_ratio": "Reasoning Ratio",
 }
 
 
 def _display_name(metric: str) -> str:
     return _METRIC_DISPLAY.get(
-        metric,
-        metric.replace("_", " ").replace(".", " > ").title())
+        metric, metric.replace("_", " ").replace(".", " > ").title()
+    )
 
 
 def _fmt_value(metric: str, val: float) -> str:
@@ -168,23 +155,24 @@ def _render_scorecard(
     """
 
 
-def _render_run_metadata(runs: list[RunInfo], baseline_id: str,
-                         compare_id: str) -> str:
+def _render_run_metadata(runs: list[RunInfo], baseline_id: str, compare_id: str) -> str:
     """Render an HTML banner showing metadata for baseline and compare runs."""
 
     def _run_row(run: RunInfo, label: str) -> str:
-        commit = run.git_info.get(
-            "commit", "")[:8] if run.git_info.get("commit") else "n/a"
+        commit = (
+            run.git_info.get("commit", "")[:8] if run.git_info.get("commit") else "n/a"
+        )
         branch = run.git_info.get("branch", "") or "n/a"
         dirty = " (dirty)" if run.git_info.get("dirty") else ""
         return (
-            f'<tr>'
+            f"<tr>"
             f'<td style="padding:4px 12px;font-weight:600;color:#1A73E8;">{label}</td>'
             f'<td style="padding:4px 12px;">{run.run_id}</td>'
             f'<td style="padding:4px 12px;">{run.timestamp.strftime("%Y-%m-%d %H:%M")}</td>'
             f'<td style="padding:4px 12px;"><code>{commit}</code>{dirty}</td>'
             f'<td style="padding:4px 12px;">{branch}</td>'
-            f'</tr>')
+            f"</tr>"
+        )
 
     baseline = next((r for r in runs if r.run_id == baseline_id), None)
     compare = next((r for r in runs if r.run_id == compare_id), None)
@@ -235,8 +223,7 @@ def _build_comparison_chart(
 
     # Ensure baseline is first
     baseline_rows = filtered[filtered["run_id"] == baseline_id]
-    other_rows = filtered[filtered["run_id"] != baseline_id].sort_values(
-        "datetime")
+    other_rows = filtered[filtered["run_id"] != baseline_id].sort_values("datetime")
     ordered = pd.concat([baseline_rows, other_rows])
 
     # Compute max values for normalization
@@ -255,8 +242,7 @@ def _build_comparison_chart(
         raw_values = [row.get(m, 0) or 0 for m in selected_metrics]
         if normalize:
             y_values = [
-                v / max_vals.get(m, 1.0)
-                for v, m in zip(raw_values, selected_metrics)
+                v / max_vals.get(m, 1.0) for v, m in zip(raw_values, selected_metrics)
             ]
         else:
             y_values = raw_values
@@ -271,12 +257,14 @@ def _build_comparison_chart(
                 text=[f"{v:.3f}" for v in raw_values],
                 textposition="auto",
                 hovertemplate="<b>%{x}</b><br>Value: %{text}<extra></extra>",
-            ))
+            )
+        )
 
     fig.update_layout(
         barmode="group",
         title_text="Metric Comparison (Normalized)"
-        if normalize else "Metric Comparison",
+        if normalize
+        else "Metric Comparison",
         xaxis_title="Metrics",
         yaxis_title="Normalized (0-1)" if normalize else "Value",
         template="plotly_white",
@@ -324,22 +312,20 @@ def create_app(results_dir: str) -> gr.Blocks:
 
     # Pick default scorecard metrics (first in each group if available)
     default_cost = metric_groups["Cost"][0] if metric_groups["Cost"] else None
-    default_latency = metric_groups["Latency"][0] if metric_groups[
-        "Latency"] else None
-    default_quality = metric_groups["Quality"][0] if metric_groups[
-        "Quality"] else None
+    default_latency = metric_groups["Latency"][0] if metric_groups["Latency"] else None
+    default_quality = metric_groups["Quality"][0] if metric_groups["Quality"] else None
 
     def _get_run(run_id: str) -> RunInfo | None:
         return next((r for r in runs if r.run_id == run_id), None)
 
     # ── Build Gradio UI ───────────────────────────────────────────────────
 
-    with gr.Blocks(theme=gr.themes.Default(),
-                   title="agent-eval Dashboard") as app:
+    with gr.Blocks(theme=gr.themes.Default(), title="agent-eval Dashboard") as app:
         gr.Markdown("# agent-eval Dashboard")
         gr.Markdown(
             f"Comparing **{len(runs)}** evaluation run{'s' if len(runs) != 1 else ''} "
-            f"from `{results_dir}`")
+            f"from `{results_dir}`"
+        )
 
         # ── Run selectors ─────────────────────────────────────────────────
         with gr.Row():
@@ -357,7 +343,8 @@ def create_app(results_dir: str) -> gr.Blocks:
             )
 
         run_meta_html = gr.HTML(
-            value=_render_run_metadata(runs, baseline_default, compare_default))
+            value=_render_run_metadata(runs, baseline_default, compare_default)
+        )
 
         # ── Tab 1: Overview (Scorecards) ──────────────────────────────────
         with gr.Tab("Overview"):
@@ -368,36 +355,42 @@ def create_app(results_dir: str) -> gr.Blocks:
                         value=default_cost,
                         label="Cost Metric",
                     )
-                    cost_html = gr.HTML(value=_render_scorecard(
-                        _get_run(baseline_default),
-                        _get_run(compare_default),
-                        default_cost,
-                        "Cost",
-                    ))
+                    cost_html = gr.HTML(
+                        value=_render_scorecard(
+                            _get_run(baseline_default),
+                            _get_run(compare_default),
+                            default_cost,
+                            "Cost",
+                        )
+                    )
                 with gr.Column():
                     latency_dd = gr.Dropdown(
                         choices=metric_groups["Latency"],
                         value=default_latency,
                         label="Latency Metric",
                     )
-                    latency_html = gr.HTML(value=_render_scorecard(
-                        _get_run(baseline_default),
-                        _get_run(compare_default),
-                        default_latency,
-                        "Latency",
-                    ))
+                    latency_html = gr.HTML(
+                        value=_render_scorecard(
+                            _get_run(baseline_default),
+                            _get_run(compare_default),
+                            default_latency,
+                            "Latency",
+                        )
+                    )
                 with gr.Column():
                     quality_dd = gr.Dropdown(
                         choices=metric_groups["Quality"],
                         value=default_quality,
                         label="Quality Metric",
                     )
-                    quality_html = gr.HTML(value=_render_scorecard(
-                        _get_run(baseline_default),
-                        _get_run(compare_default),
-                        default_quality,
-                        "Quality",
-                    ))
+                    quality_html = gr.HTML(
+                        value=_render_scorecard(
+                            _get_run(baseline_default),
+                            _get_run(compare_default),
+                            default_quality,
+                            "Quality",
+                        )
+                    )
 
             # Other metrics table
             gr.Markdown("### All Metrics — Baseline vs Compare")
@@ -411,7 +404,8 @@ def create_app(results_dir: str) -> gr.Blocks:
                     multiselect=True,
                     label="Metrics to Chart",
                     value=all_llm_metrics[:5]
-                    if all_llm_metrics else all_det_metrics[:5],
+                    if all_llm_metrics
+                    else all_det_metrics[:5],
                 )
                 chart_run_dd = gr.Dropdown(
                     choices=run_ids,
@@ -426,8 +420,7 @@ def create_app(results_dir: str) -> gr.Blocks:
         # ── Tab 3: Per-Question Drilldown ─────────────────────────────────
         with gr.Tab("Per-Question Drilldown"):
             pq_metric_dd = gr.Dropdown(
-                choices=all_llm_metrics +
-                ["tool_success_rate.tool_success_rate"],
+                choices=all_llm_metrics + ["tool_success_rate.tool_success_rate"],
                 label="Metric",
                 value=all_llm_metrics[0] if all_llm_metrics else None,
             )
@@ -439,8 +432,7 @@ def create_app(results_dir: str) -> gr.Blocks:
             analysis_run_dd = gr.Dropdown(
                 choices=[r.run_id for r in runs if r.has_analysis],
                 label="Select Run",
-                value=next((r.run_id for r in reversed(runs) if r.has_analysis),
-                           None),
+                value=next((r.run_id for r in reversed(runs) if r.has_analysis), None),
             )
             analysis_btn = gr.Button("Load Analysis", variant="primary")
             analysis_md = gr.Markdown()
@@ -451,7 +443,8 @@ def create_app(results_dir: str) -> gr.Blocks:
             display_df = overview_df.copy()
             for col in display_df.select_dtypes(include=["number"]).columns:
                 display_df[col] = display_df[col].apply(
-                    lambda x: f"{x:.4f}" if pd.notnull(x) else "")
+                    lambda x: f"{x:.4f}" if pd.notnull(x) else ""
+                )
             gr.Dataframe(value=display_df, interactive=False)
 
         # ── Event handlers ────────────────────────────────────────────────
@@ -460,8 +453,9 @@ def create_app(results_dir: str) -> gr.Blocks:
             return _render_run_metadata(runs, baseline_id, compare_id)
 
         def update_scorecard(baseline_id, compare_id, metric, category):
-            return _render_scorecard(_get_run(baseline_id),
-                                     _get_run(compare_id), metric, category)
+            return _render_scorecard(
+                _get_run(baseline_id), _get_run(compare_id), metric, category
+            )
 
         def update_overview_table(baseline_id, compare_id):
             b = _get_run(baseline_id)
@@ -473,54 +467,62 @@ def create_app(results_dir: str) -> gr.Blocks:
             # Deterministic
             all_keys = sorted(
                 set(
-                    list(b.deterministic_metrics.keys()) +
-                    list(c.deterministic_metrics.keys())))
+                    list(b.deterministic_metrics.keys())
+                    + list(c.deterministic_metrics.keys())
+                )
+            )
             for key in all_keys:
                 bv = b.deterministic_metrics.get(key)
                 cv = c.deterministic_metrics.get(key)
-                delta = compute_delta(
-                    bv or 0, cv or 0,
-                    key) if bv is not None and cv is not None else {}
-                rows.append({
-                    "Metric":
-                        _display_name(key),
-                    "Baseline":
-                        _fmt_value(key, bv) if bv is not None else "N/A",
-                    "Current":
-                        _fmt_value(key, cv) if cv is not None else "N/A",
-                    "Change":
-                        f"{delta.get('pct_change', 0):+.1f}%"
-                        if delta else "N/A",
-                    "Direction":
-                        delta.get("direction", "").capitalize()
-                        if delta else "",
-                })
+                delta = (
+                    compute_delta(bv or 0, cv or 0, key)
+                    if bv is not None and cv is not None
+                    else {}
+                )
+                rows.append(
+                    {
+                        "Metric": _display_name(key),
+                        "Baseline": _fmt_value(key, bv) if bv is not None else "N/A",
+                        "Current": _fmt_value(key, cv) if cv is not None else "N/A",
+                        "Change": f"{delta.get('pct_change', 0):+.1f}%"
+                        if delta
+                        else "N/A",
+                        "Direction": delta.get("direction", "").capitalize()
+                        if delta
+                        else "",
+                    }
+                )
             # LLM
             all_llm = sorted(
-                set(list(b.llm_metrics.keys()) + list(c.llm_metrics.keys())))
+                set(list(b.llm_metrics.keys()) + list(c.llm_metrics.keys()))
+            )
             for key in all_llm:
                 bv = b.llm_metrics.get(key, {}).get("average")
                 cv = c.llm_metrics.get(key, {}).get("average")
-                delta = compute_delta(
-                    bv or 0, cv or 0,
-                    key) if bv is not None and cv is not None else {}
+                delta = (
+                    compute_delta(bv or 0, cv or 0, key)
+                    if bv is not None and cv is not None
+                    else {}
+                )
                 sr = b.llm_metrics.get(key, c.llm_metrics.get(key, {})).get(
-                    "score_range", {})
-                score_label = f" ({sr.get('min', '?')}-{sr.get('max', '?')})" if sr else ""
-                rows.append({
-                    "Metric":
-                        f"{_display_name(key)}{score_label}",
-                    "Baseline":
-                        f"{bv:.3f}" if bv is not None else "N/A",
-                    "Current":
-                        f"{cv:.3f}" if cv is not None else "N/A",
-                    "Change":
-                        f"{delta.get('pct_change', 0):+.1f}%"
-                        if delta else "N/A",
-                    "Direction":
-                        delta.get("direction", "").capitalize()
-                        if delta else "",
-                })
+                    "score_range", {}
+                )
+                score_label = (
+                    f" ({sr.get('min', '?')}-{sr.get('max', '?')})" if sr else ""
+                )
+                rows.append(
+                    {
+                        "Metric": f"{_display_name(key)}{score_label}",
+                        "Baseline": f"{bv:.3f}" if bv is not None else "N/A",
+                        "Current": f"{cv:.3f}" if cv is not None else "N/A",
+                        "Change": f"{delta.get('pct_change', 0):+.1f}%"
+                        if delta
+                        else "N/A",
+                        "Direction": delta.get("direction", "").capitalize()
+                        if delta
+                        else "",
+                    }
+                )
 
             return pd.DataFrame(rows)
 

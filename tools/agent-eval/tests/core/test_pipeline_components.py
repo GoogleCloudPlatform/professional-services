@@ -25,13 +25,16 @@ import pandas as pd
 sys.modules["google.genai"] = MagicMock()
 sys.modules["google.genai.types"] = MagicMock()
 
-from agent_eval.core.converters import AdkHistoryConverter, synthesize_trace_from_events
-from agent_eval.core.analyzer import Analyzer, LogEntry
-
 
 class TestConverters(unittest.TestCase):
-
     def setUp(self):
+        from agent_eval.core.converters import (
+            AdkHistoryConverter,
+            synthesize_trace_from_events,
+        )
+
+        self.AdkHistoryConverter = AdkHistoryConverter
+        self.synthesize_trace_from_events = synthesize_trace_from_events
         self.test_dir = tempfile.mkdtemp()
         self.agent_dir = Path(self.test_dir) / "agent"
         self.history_dir = self.agent_dir / ".adk" / "eval_history"
@@ -42,24 +45,19 @@ class TestConverters(unittest.TestCase):
 
     def test_synthesize_trace_from_events(self):
         """Test that flat events are converted to nested spans."""
-        events = [{
-            "author": "user",
-            "timestamp": 1000,
-            "content": {
-                "parts": [{
-                    "text": "hello"
-                }]
-            }
-        }, {
-            "author": "model",
-            "timestamp": 1001,
-            "content": {
-                "parts": [{
-                    "text": "hi"
-                }]
-            }
-        }]
-        spans = synthesize_trace_from_events(events, "session-123", "test-app")
+        events = [
+            {
+                "author": "user",
+                "timestamp": 1000,
+                "content": {"parts": [{"text": "hello"}]},
+            },
+            {
+                "author": "model",
+                "timestamp": 1001,
+                "content": {"parts": [{"text": "hi"}]},
+            },
+        ]
+        spans = self.synthesize_trace_from_events(events, "session-123", "test-app")
 
         # Should have invocation span, agent span, and at least one step span (call_llm)
         self.assertTrue(len(spans) >= 3)
@@ -73,51 +71,41 @@ class TestConverters(unittest.TestCase):
 
         # Create a dummy ADK history file
         history_data = {
-            "eval_case_results": [{
-                "eval_id":
-                    "eval_1",
-                "session_details": {
-                    "id":
-                        "session_1",
-                    "app_name":
-                        "test_agent",
-                    "user_id":
-                        "user_1",
-                    "events": [{
-                        "author": "user",
-                        "timestamp": 1000,
-                        "content": {
-                            "parts": [{
-                                "text": "hi"
-                            }]
-                        }
-                    }, {
-                        "author": "agent",
-                        "timestamp": 1001,
-                        "content": {
-                            "parts": [{
-                                "text": "hello"
-                            }]
-                        },
-                        "text_response": "hello"
-                    }]
-                },
-                # This is the key part: Simulated scores
-                "eval_metric_results": [{
-                    "metric_name": "hallucination",
-                    "score": 0.1
-                }, {
-                    "metric_name": "safety",
-                    "score": 1.0
-                }]
-            }]
+            "eval_case_results": [
+                {
+                    "eval_id": "eval_1",
+                    "session_details": {
+                        "id": "session_1",
+                        "app_name": "test_agent",
+                        "user_id": "user_1",
+                        "events": [
+                            {
+                                "author": "user",
+                                "timestamp": 1000,
+                                "content": {"parts": [{"text": "hi"}]},
+                            },
+                            {
+                                "author": "agent",
+                                "timestamp": 1001,
+                                "content": {"parts": [{"text": "hello"}]},
+                                "text_response": "hello",
+                            },
+                        ],
+                    },
+                    # This is the key part: Simulated scores
+                    "eval_metric_results": [
+                        {"metric_name": "hallucination", "score": 0.1},
+                        {"metric_name": "safety", "score": 1.0},
+                    ],
+                }
+            ]
         }
 
         history_file = self.history_dir / "test_history.json"
         with open(history_file, "w") as f:
             json.dump(history_data, f)
 
-        converter = AdkHistoryConverter(str(self.agent_dir))
+        converter = self.AdkHistoryConverter(str(self.agent_dir))
         rows = converter.run()
 
         self.assertEqual(len(rows), 1)
@@ -135,29 +123,24 @@ class TestConverters(unittest.TestCase):
 
 
 class TestAnalyzer(unittest.TestCase):
-
     def setUp(self):
+        from agent_eval.core.analyzer import Analyzer, LogEntry
+
+        self.LogEntry = LogEntry
         self.config = {"results_dir": "/tmp"}
         self.analyzer = Analyzer(self.config)
 
     def test_process_log_row_robustness(self):
         """Test extracting log entry from a dataframe row with mixed types."""
         row_data = {
-            "question_id":
-                "q1",
-            "metadata":
-                '{"category": "test"}',  # JSON string
-            "user_inputs":
-                "['help']",  # Python string repr of list
-            "final_response":
-                "Here is help",
-            "eval_results":
-                json.dumps({"quality": {
-                    "score": 5,
-                    "explanation": "Good"
-                }}),
-            "adk_score.hallucination":
-                0.0  # Float directly in row
+            "question_id": "q1",
+            "metadata": '{"category": "test"}',  # JSON string
+            "user_inputs": "['help']",  # Python string repr of list
+            "final_response": "Here is help",
+            "eval_results": json.dumps(
+                {"quality": {"score": 5, "explanation": "Good"}}
+            ),
+            "adk_score.hallucination": 0.0,  # Float directly in row
         }
         row = pd.Series(row_data)
 
@@ -176,27 +159,25 @@ class TestAnalyzer(unittest.TestCase):
 
     def test_format_log_entry_markdown(self):
         """Test markdown generation."""
-        entry = LogEntry(
+        entry = self.LogEntry(
             question_id="q1",
             metadata={"priority": "high"},
             user_inputs=["input 1"],
             final_response="response 1",
             trace_summary=["step1", "step2"],
             sub_agent_trace=[],
-            tool_interactions=[{
-                "tool_name": "search",
-                "input_arguments": {
-                    "q": "foo"
-                },
-                "output_result": "bar"
-            }],
-            eval_results={"quality": {
-                "score": 5,
-                "explanation": "ok"
-            }},
+            tool_interactions=[
+                {
+                    "tool_name": "search",
+                    "input_arguments": {"q": "foo"},
+                    "output_result": "bar",
+                }
+            ],
+            eval_results={"quality": {"score": 5, "explanation": "ok"}},
             latency_summary={"total_seconds": 1.5},
             adk_scores={"hallucination": 0.0},
-            agents_evaluated=["agent_a"])
+            agents_evaluated=["agent_a"],
+        )
 
         md = self.analyzer._format_log_entry_markdown(entry, 1)
 

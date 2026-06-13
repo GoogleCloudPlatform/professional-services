@@ -37,8 +37,7 @@ def robust_json_load(file_path: str) -> Optional[Dict[str, Any]]:
             except json.JSONDecodeError:
                 pass
         if not isinstance(data, dict):
-            logger.warning("Skipping %s: Root content is not a dictionary.",
-                           file_path)
+            logger.warning("Skipping %s: Root content is not a dictionary.", file_path)
             return None
         return data
     except Exception as e:
@@ -64,8 +63,9 @@ def convert_keys_to_camel_case(data: Any) -> Any:
     return data
 
 
-def synthesize_trace_from_events(events: List[Dict[str, Any]], session_id: str,
-                                 agent_name: str) -> List[Dict[str, Any]]:
+def synthesize_trace_from_events(
+    events: List[Dict[str, Any]], session_id: str, agent_name: str
+) -> List[Dict[str, Any]]:
     """
     Constructs a synthetic OpenTelemetry-style span trace from a flat list of ADK events.
     Compatible with AgentClient analysis methods.
@@ -98,17 +98,15 @@ def synthesize_trace_from_events(events: List[Dict[str, Any]], session_id: str,
                     spans.append(current_agent_span)
                 spans.append(current_invocation_span)
 
-            current_invocation_span = create_span("invocation", timestamp,
-                                                  timestamp + 1, None, {})
+            current_invocation_span = create_span(
+                "invocation", timestamp, timestamp + 1, None, {}
+            )
             current_agent_span = create_span(
                 f"invoke_agent {agent_name}",
                 timestamp,
                 timestamp + 1,
                 current_invocation_span["span_id"],
-                {
-                    "gen_ai.agent.name": agent_name,
-                    "gen_ai.conversation.id": session_id
-                },
+                {"gen_ai.agent.name": agent_name, "gen_ai.conversation.id": session_id},
             )
 
         elif role != "user" and current_agent_span:
@@ -126,8 +124,7 @@ def synthesize_trace_from_events(events: List[Dict[str, Any]], session_id: str,
                         tool_name = fc.get("name")
                         break
                 if "functionResponse" in part or "function_response" in part:
-                    fr = part.get("functionResponse") or part.get(
-                        "function_response")
+                    fr = part.get("functionResponse") or part.get("function_response")
                     if fr:
                         is_tool = True
                         tool_name = fr.get("name")
@@ -145,19 +142,19 @@ def synthesize_trace_from_events(events: List[Dict[str, Any]], session_id: str,
                 # Try to extract args/response for proper trace analysis
                 for part in parts:
                     if "functionCall" in part or "function_call" in part:
-                        fc = part.get("functionCall") or part.get(
-                            "function_call")
+                        fc = part.get("functionCall") or part.get("function_call")
                         if fc:
-                            attrs[
-                                "gcp.vertex.agent.tool_call_args"] = json.dumps(
-                                    fc.get("args"))
+                            attrs["gcp.vertex.agent.tool_call_args"] = json.dumps(
+                                fc.get("args")
+                            )
                     if "functionResponse" in part or "function_response" in part:
                         fr = part.get("functionResponse") or part.get(
-                            "function_response")
+                            "function_response"
+                        )
                         if fr:
-                            attrs[
-                                "gcp.vertex.agent.tool_response"] = json.dumps(
-                                    fr.get("response") or fr.get("content"))
+                            attrs["gcp.vertex.agent.tool_response"] = json.dumps(
+                                fr.get("response") or fr.get("content")
+                            )
 
             # Capture finish reason if available
             finish_reason = None
@@ -165,26 +162,29 @@ def synthesize_trace_from_events(events: List[Dict[str, Any]], session_id: str,
                 # Some formats nest finishReason under candidates
                 candidates = content.get("candidates", [])
                 if candidates:
-                    finish_reason = candidates[0].get(
-                        "finishReason") or candidates[0].get("finish_reason")
+                    finish_reason = candidates[0].get("finishReason") or candidates[
+                        0
+                    ].get("finish_reason")
 
             # Fallback: check top-level of event or content (ADK variations)
             if not finish_reason:
                 finish_reason = event.get("finish_reason") or content.get(
-                    "finish_reason")
+                    "finish_reason"
+                )
 
             if finish_reason:
                 attrs["gen_ai.response.finish_reason"] = finish_reason
 
             usage = event.get("usage_metadata")
             if usage:
-                attrs["gen_ai.usage.input_tokens"] = usage.get(
-                    "prompt_token_count")
+                attrs["gen_ai.usage.input_tokens"] = usage.get("prompt_token_count")
                 attrs["gen_ai.usage.output_tokens"] = usage.get(
-                    "candidates_token_count")
+                    "candidates_token_count"
+                )
                 # LLM Response for token counting
                 attrs["gcp.vertex.agent.llm_response"] = json.dumps(
-                    {"usage_metadata": usage})
+                    {"usage_metadata": usage}
+                )
 
             step_span = create_span(
                 span_name,
@@ -207,7 +207,6 @@ def synthesize_trace_from_events(events: List[Dict[str, Any]], session_id: str,
 
 
 class AdkHistoryConverter:
-
     def __init__(
         self,
         agent_dir: str,
@@ -215,8 +214,9 @@ class AdkHistoryConverter:
         prompt_to_reference: Optional[Dict[str, Dict[str, Any]]] = None,
     ):
         self.agent_dir = agent_dir
-        self.golden_map = self._load_golden_map(
-            questions_file) if questions_file else {}
+        self.golden_map = (
+            self._load_golden_map(questions_file) if questions_file else {}
+        )
         # ADK auto-assigns its own `eval_id` per case (a random hex like
         # `d80d2c8b`) — so the golden_map (keyed by our `id`) won't match
         # sim traces. The prompt_to_reference fallback is keyed by the
@@ -224,9 +224,7 @@ class AdkHistoryConverter:
         # first user message in the trace), so multi-turn rows with
         # reference_data flow through. Built by run.py from dataset.jsonl
         # before invoking the converter.
-        self.prompt_to_reference: Dict[str,
-                                       Dict[str,
-                                            Any]] = prompt_to_reference or {}
+        self.prompt_to_reference: Dict[str, Dict[str, Any]] = prompt_to_reference or {}
 
     def _load_golden_map(self, filepath: str) -> Dict[str, Dict[str, Any]]:
         """Loads Golden Dataset to merge reference data based on ID."""
@@ -234,8 +232,7 @@ class AdkHistoryConverter:
         try:
             with open(filepath) as f:
                 data = json.load(f)
-                questions = data.get("questions") or data.get(
-                    "golden_questions", [])
+                questions = data.get("questions") or data.get("golden_questions", [])
                 for q in questions:
                     if "id" in q:
                         mapping[q["id"]] = q
@@ -243,8 +240,9 @@ class AdkHistoryConverter:
             logger.warning("Could not load golden dataset: %s", e)
         return mapping
 
-    def _resolve_reference_data(self, eval_id: str,
-                                user_inputs: List[str]) -> Dict[str, Any]:
+    def _resolve_reference_data(
+        self, eval_id: str, user_inputs: List[str]
+    ) -> Dict[str, Any]:
         """Try the golden_map (keyed by row id) first; fall back to
         prompt_to_reference (keyed by the scenario's starting_prompt) so
         sim traces inherit reference_data from the source dataset row."""
@@ -278,7 +276,8 @@ class AdkHistoryConverter:
                 per_invocation = case.get("eval_metric_result_per_invocation")
                 if per_invocation:
                     row = self._process_per_invocation_format(
-                        eval_id, session_id, per_invocation, case)
+                        eval_id, session_id, per_invocation, case
+                    )
                     if row:
                         extracted_rows.append(row)
                     continue
@@ -291,7 +290,7 @@ class AdkHistoryConverter:
                     "The app_name MUST match the folder name, NOT the agent's internal name.\n"
                     "Example:\n"
                     "  If your agent is in: retail-ai-location-strategy/app/agent.py\n"
-                    "  Then app_name must be: \"app\"\n"
+                    '  Then app_name must be: "app"\n'
                     "To fix: change 'app_name' in evalset.json, clear .adk/, re-run simulation.",
                     eval_id,
                 )
@@ -310,38 +309,30 @@ class AdkHistoryConverter:
                 continue
 
             # 1. Synthesize Trace
-            synthetic_trace = synthesize_trace_from_events(
-                events, session_id, app_name)
+            synthetic_trace = synthesize_trace_from_events(events, session_id, app_name)
 
             # 2. Analyze Trace (using AgentClient logic)
             analyzed_trace = AgentClient.analyze_trace_and_extract_spans(
-                synthetic_trace)
+                synthetic_trace
+            )
             latency_data = AgentClient.get_latency_from_spans(analyzed_trace)
             trace_summary = AgentClient.get_agent_trajectory(analyzed_trace)
 
             # 3. Reconstruct Session Object (CamelCase for consistency with runtime)
             camel_events = convert_keys_to_camel_case(events)
             final_session_state = {
-                "id":
-                    session_id,
-                "appName":
-                    app_name,
-                "userId":
-                    user_id,
-                "state":
-                    state,
-                "events":
-                    camel_events,
-                "lastUpdateTime":
-                    events[-1].get("timestamp") if events else None,
+                "id": session_id,
+                "appName": app_name,
+                "userId": user_id,
+                "state": state,
+                "events": camel_events,
+                "lastUpdateTime": events[-1].get("timestamp") if events else None,
             }
 
             # 4. Extracted Data
             # Use AgentClient helpers to ensure consistency
-            tool_interactions = AgentClient.get_tool_interactions(
-                final_session_state)
-            sub_agent_trace = AgentClient.get_sub_agent_trace(
-                final_session_state)
+            tool_interactions = AgentClient.get_tool_interactions(final_session_state)
+            sub_agent_trace = AgentClient.get_sub_agent_trace(final_session_state)
 
             # 4a. Generate tool_declarations from tools found in events
             # SDK format: [{"function_declarations": [{"name": "tool_name", ...}]}]
@@ -352,12 +343,13 @@ class AdkHistoryConverter:
 
             tool_declarations = []
             for tool_name in sorted(tool_names):
-                tool_declarations.append({
-                    "function_declarations": [{
-                        "name": tool_name,
-                        "description": f"Tool: {tool_name}"
-                    }]
-                })
+                tool_declarations.append(
+                    {
+                        "function_declarations": [
+                            {"name": tool_name, "description": f"Tool: {tool_name}"}
+                        ]
+                    }
+                )
 
             # 4b. Generate system_instruction from app_name
             # In a full implementation, this could come from the agent definition
@@ -382,16 +374,17 @@ class AdkHistoryConverter:
                 if candidates:
                     candidate = candidates[0]
                     gm = candidate.get("grounding_metadata") or candidate.get(
-                        "groundingMetadata")
+                        "groundingMetadata"
+                    )
                     if gm:
-                        chunks = gm.get("grounding_chunks") or gm.get(
-                            "groundingChunks")
+                        chunks = gm.get("grounding_chunks") or gm.get("groundingChunks")
                         if chunks:
                             grounding_chunks.extend(chunks)
 
                     # Extract Stop Reasons
-                    finish_reason = candidate.get(
-                        "finish_reason") or candidate.get("finishReason")
+                    finish_reason = candidate.get("finish_reason") or candidate.get(
+                        "finishReason"
+                    )
                     if finish_reason:
                         stop_reasons.append(finish_reason)
 
@@ -410,7 +403,7 @@ class AdkHistoryConverter:
                 "thinking_trace": thinking_trace,
                 "grounding_chunks": grounding_chunks,
                 "per_turn_tokens": per_turn_tokens,
-                "stop_reasons": stop_reasons
+                "stop_reasons": stop_reasons,
             }
             # Flatten state for legacy support if needed, but keeping clean is better.
             # Live path flattens it, so we should too for consistency.
@@ -456,37 +449,25 @@ class AdkHistoryConverter:
             contents = []
             for i, user_input in enumerate(user_inputs):
                 # Add user turn
-                contents.append({
-                    "role": "user",
-                    "parts": [{
-                        "text": user_input
-                    }]
-                })
+                contents.append({"role": "user", "parts": [{"text": user_input}]})
                 # Add corresponding model response if available (except after last user input)
                 if i < len(text_responses):
-                    contents.append({
-                        "role": "model",
-                        "parts": [{
-                            "text": text_responses[i]
-                        }]
-                    })
+                    contents.append(
+                        {"role": "model", "parts": [{"text": text_responses[i]}]}
+                    )
 
             # Build Gemini batch format for SDK auto-parsing
             gemini_request = {"contents": contents}
             gemini_response = {
-                "candidates": [{
-                    "content": {
-                        "role": "model",
-                        "parts": [{
-                            "text": final_response
-                        }]
-                    }
-                }]
+                "candidates": [
+                    {"content": {"role": "model", "parts": [{"text": final_response}]}}
+                ]
             }
 
             # Also store conversation_history separately for custom metrics
-            conversation_history = contents[:-1] if len(contents) > 1 else [
-            ]  # All but last user turn
+            conversation_history = (
+                contents[:-1] if len(contents) > 1 else []
+            )  # All but last user turn
             extracted_data["conversation_history"] = conversation_history
 
             # 8. Construct Row - JSONL format with Gemini batch structure
@@ -501,9 +482,7 @@ class AdkHistoryConverter:
                 "source_type": "simulation",
                 "app_name": app_name,
                 "ADK_USER_ID": user_id,
-                "status": {
-                    "boolean": "success"
-                },
+                "status": {"boolean": "success"},
                 "run_id": str(uuid.uuid4()),
                 "agents_evaluated": [app_name],
                 "user_inputs": user_inputs,
@@ -511,23 +490,24 @@ class AdkHistoryConverter:
                 "interaction_datetime": datetime.now().isoformat(),
                 "USER": os.environ.get("USER", "simulator"),
                 "reference_data": reference_data,
-                "missing_information": {
-                    "boolean": False
-                },
+                "missing_information": {"boolean": False},
                 "final_session_state": final_session_state,
                 "session_trace": synthetic_trace,
                 "latency_data": latency_data,
                 "trace_summary": trace_summary,
                 "extracted_data": extracted_data,
-                "final_response": final_response
+                "final_response": final_response,
             }
 
             # Preserve ADK Eval Scores as Metadata or separate columns?
             # User wants "same structure as processed_interactions".
             # Processed interactions doesn't have score columns yet (they come from evaluation).
             # But we can keep them as extra columns, they won't hurt.
-            adk_evals = case.get("eval_metric_results") or case.get(
-                "overall_eval_metric_results") or []
+            adk_evals = (
+                case.get("eval_metric_results")
+                or case.get("overall_eval_metric_results")
+                or []
+            )
             for eval_res in adk_evals:
                 m_name = eval_res.get("metric_name")
                 if m_name:
@@ -537,10 +517,9 @@ class AdkHistoryConverter:
 
         return extracted_rows
 
-    def _process_per_invocation_format(self, eval_id: str,
-                                       session_id: Optional[str],
-                                       per_invocation: list,
-                                       case: dict) -> Optional[Dict[str, Any]]:
+    def _process_per_invocation_format(
+        self, eval_id: str, session_id: Optional[str], per_invocation: list, case: dict
+    ) -> Optional[Dict[str, Any]]:
         """Process Format 2: eval_metric_result_per_invocation (no session_details).
 
         This format appears when ADK eval runs without capturing full session details.
@@ -586,11 +565,13 @@ class AdkHistoryConverter:
                 for part in parts:
                     fc = part.get("functionCall")
                     if fc:
-                        tool_calls.append({
-                            "tool_name": fc.get("name", ""),
-                            "input_arguments": fc.get("args", {}),
-                            "output_result": {}
-                        })
+                        tool_calls.append(
+                            {
+                                "tool_name": fc.get("name", ""),
+                                "input_arguments": fc.get("args", {}),
+                                "output_result": {},
+                            }
+                        )
 
         app_name = app_name or "unknown"
 
@@ -599,67 +580,57 @@ class AdkHistoryConverter:
         trace_id = str(uuid.uuid4())[:16]
 
         # Root invocation span
-        synthetic_trace.append({
-            "name": "invocation",
-            "context": {
-                "trace_id": trace_id,
-                "span_id": "0001"
-            },
-            "parent_id": None,
-            "start_time": datetime.now().isoformat(),
-            "end_time": datetime.now().isoformat(),
-            "attributes": {},
-        })
+        synthetic_trace.append(
+            {
+                "name": "invocation",
+                "context": {"trace_id": trace_id, "span_id": "0001"},
+                "parent_id": None,
+                "start_time": datetime.now().isoformat(),
+                "end_time": datetime.now().isoformat(),
+                "attributes": {},
+            }
+        )
 
         # Agent span
-        synthetic_trace.append({
-            "name": f"invoke_agent {app_name}",
-            "context": {
-                "trace_id": trace_id,
-                "span_id": "0002"
-            },
-            "parent_id": "0001",
-            "start_time": datetime.now().isoformat(),
-            "end_time": datetime.now().isoformat(),
-            "attributes": {},
-        })
+        synthetic_trace.append(
+            {
+                "name": f"invoke_agent {app_name}",
+                "context": {"trace_id": trace_id, "span_id": "0002"},
+                "parent_id": "0001",
+                "start_time": datetime.now().isoformat(),
+                "end_time": datetime.now().isoformat(),
+                "attributes": {},
+            }
+        )
 
         # Tool spans
         for i, tc in enumerate(tool_calls):
-            synthetic_trace.append({
-                "name": f"execute_tool {tc['tool_name']}",
-                "context": {
-                    "trace_id": trace_id,
-                    "span_id": f"{i+3:04d}"
-                },
-                "parent_id": "0002",
-                "start_time": datetime.now().isoformat(),
-                "end_time": datetime.now().isoformat(),
-                "attributes": {
-                    "tool_name": tc["tool_name"]
-                },
-            })
+            synthetic_trace.append(
+                {
+                    "name": f"execute_tool {tc['tool_name']}",
+                    "context": {"trace_id": trace_id, "span_id": f"{i + 3:04d}"},
+                    "parent_id": "0002",
+                    "start_time": datetime.now().isoformat(),
+                    "end_time": datetime.now().isoformat(),
+                    "attributes": {"tool_name": tc["tool_name"]},
+                }
+            )
 
         # Build tool declarations from discovered tool names
         tool_names = sorted(set(tc["tool_name"] for tc in tool_calls))
-        tool_declarations = [{
-            "function_declarations": [{
-                "name": tn,
-                "description": f"Tool: {tn}"
-            }]
-        } for tn in tool_names]
+        tool_declarations = [
+            {"function_declarations": [{"name": tn, "description": f"Tool: {tn}"}]}
+            for tn in tool_names
+        ]
 
         # Build Gemini batch format
         contents = []
         for i, user_input in enumerate(user_inputs):
             contents.append({"role": "user", "parts": [{"text": user_input}]})
             if i < len(text_responses):
-                contents.append({
-                    "role": "model",
-                    "parts": [{
-                        "text": text_responses[i]
-                    }]
-                })
+                contents.append(
+                    {"role": "model", "parts": [{"text": text_responses[i]}]}
+                )
 
         extracted_data = {
             "state_variables": {},
@@ -680,18 +651,11 @@ class AdkHistoryConverter:
         resolved_ref = self._resolve_reference_data(eval_id, user_inputs)
 
         row = {
-            "request": {
-                "contents": contents
-            },
+            "request": {"contents": contents},
             "response": {
-                "candidates": [{
-                    "content": {
-                        "role": "model",
-                        "parts": [{
-                            "text": final_response
-                        }]
-                    }
-                }]
+                "candidates": [
+                    {"content": {"role": "model", "parts": [{"text": final_response}]}}
+                ]
             },
             "question_id": eval_id,
             "session_id": session_id or str(uuid.uuid4()),
@@ -699,9 +663,7 @@ class AdkHistoryConverter:
             "source_type": "simulation",
             "app_name": app_name,
             "ADK_USER_ID": "eval_user",
-            "status": {
-                "boolean": "success"
-            },
+            "status": {"boolean": "success"},
             "run_id": str(uuid.uuid4()),
             "agents_evaluated": [app_name],
             "user_inputs": user_inputs,
@@ -709,9 +671,7 @@ class AdkHistoryConverter:
             "interaction_datetime": datetime.now().isoformat(),
             "USER": os.environ.get("USER", "simulator"),
             "reference_data": resolved_ref,
-            "missing_information": {
-                "boolean": False
-            },
+            "missing_information": {"boolean": False},
             "final_session_state": {},
             "session_trace": synthetic_trace,
             "latency_data": {},
@@ -721,8 +681,11 @@ class AdkHistoryConverter:
         }
 
         # ADK eval scores
-        adk_evals = case.get("eval_metric_results") or case.get(
-            "overall_eval_metric_results") or []
+        adk_evals = (
+            case.get("eval_metric_results")
+            or case.get("overall_eval_metric_results")
+            or []
+        )
         for eval_res in adk_evals:
             m_name = eval_res.get("metric_name")
             if m_name:
@@ -739,8 +702,7 @@ class AdkHistoryConverter:
         """
         history_dir = os.path.join(self.agent_dir, ".adk", "eval_history")
         if not os.path.exists(history_dir):
-            raise FileNotFoundError(
-                f"History directory not found: {history_dir}")
+            raise FileNotFoundError(f"History directory not found: {history_dir}")
 
         all_rows = []
         for file_path in glob.glob(os.path.join(history_dir, "*.json")):
@@ -756,9 +718,9 @@ def write_jsonl(records: List[Dict[str, Any]], output_path: str) -> None:
         records: List of dictionaries to write.
         output_path: Path to output .jsonl file.
     """
-    with open(output_path, 'w', encoding='utf-8') as f:
+    with open(output_path, "w", encoding="utf-8") as f:
         for record in records:
-            f.write(json.dumps(record, ensure_ascii=False, default=str) + '\n')
+            f.write(json.dumps(record, ensure_ascii=False, default=str) + "\n")
 
 
 def read_jsonl(input_path: str) -> List[Dict[str, Any]]:
@@ -771,7 +733,7 @@ def read_jsonl(input_path: str) -> List[Dict[str, Any]]:
         List of dictionaries.
     """
     records = []
-    with open(input_path, 'r', encoding='utf-8') as f:
+    with open(input_path, "r", encoding="utf-8") as f:
         for line in f:
             line = line.strip()
             if line:
@@ -798,19 +760,19 @@ class TestToGoldenConverter:
             result[key.strip()] = value.strip()
         return result
 
-    def convert(self,
-                input_path: str,
-                output_path: str,
-                agent_name: str,
-                metadata_pairs: Optional[List[str]] = None,
-                id_prefix: str = "q"):
-
+    def convert(
+        self,
+        input_path: str,
+        output_path: str,
+        agent_name: str,
+        metadata_pairs: Optional[List[str]] = None,
+        id_prefix: str = "q",
+    ):
         with open(input_path, "r") as f:
             data = json.load(f)
 
         if not isinstance(data, list):
-            raise ValueError(
-                f"Input data in {input_path} is not a list of turns.")
+            raise ValueError(f"Input data in {input_path} is not a list of turns.")
 
         user_inputs = []
         reference_tool_interactions = []
@@ -820,10 +782,12 @@ class TestToGoldenConverter:
 
             # Map expected_tool_use to reference_tool_interactions
             for tool in turn.get("expected_tool_use", []):
-                reference_tool_interactions.append({
-                    "tool_name": tool.get("tool_name"),
-                    "input_arguments": tool.get("tool_input"),
-                })
+                reference_tool_interactions.append(
+                    {
+                        "tool_name": tool.get("tool_name"),
+                        "input_arguments": tool.get("tool_input"),
+                    }
+                )
 
         # Prepare metadata
         metadata = self._parse_kv_pairs(metadata_pairs)
@@ -847,10 +811,11 @@ class TestToGoldenConverter:
             try:
                 with open(output_path, "r") as f:
                     existing_data = json.load(f)
-                    if isinstance(existing_data,
-                                  dict) and "golden_questions" in existing_data:
-                        existing_data["golden_questions"].append(
-                            golden_question)
+                    if (
+                        isinstance(existing_data, dict)
+                        and "golden_questions" in existing_data
+                    ):
+                        existing_data["golden_questions"].append(golden_question)
                         output_data = existing_data
             except Exception:
                 pass

@@ -18,6 +18,7 @@ makes the CLI feel like a false binary — it isn't, the two surfaces
 compose. This test wraps tools/check_no_path_ab.sh so any regression
 shows up under pytest, not just CI.
 """
+
 from __future__ import annotations
 
 import subprocess
@@ -37,6 +38,8 @@ def test_no_path_ab_strings_in_user_facing_code():
     if result.returncode != 0:
         # Surface the script's own diagnostic so the test failure is
         # actionable instead of just "exit 1."
-        raise AssertionError("tools/check_no_path_ab.sh failed:\n"
-                             f"--- stdout ---\n{result.stdout}\n"
-                             f"--- stderr ---\n{result.stderr}")
+        raise AssertionError(
+            "tools/check_no_path_ab.sh failed:\n"
+            f"--- stdout ---\n{result.stdout}\n"
+            f"--- stderr ---\n{result.stderr}"
+        )
