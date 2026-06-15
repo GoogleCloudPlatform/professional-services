@@ -41,9 +41,9 @@ console = Console()
 def convert(agent_dir, questions_file, output_dir, output_file):
     """Convert ADK simulation history to evaluation JSONL format."""
     console.print("\n[bold blue]Converting ADK History[/]")
-
     try:
-        converter = AdkHistoryConverter(agent_dir, questions_file)
+        history_dir = os.path.join(agent_dir, ".adk", "eval_history")
+        converter = AdkHistoryConverter(history_dir, questions_file)
         records = converter.run()
 
         if not records:

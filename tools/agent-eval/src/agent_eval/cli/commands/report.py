@@ -76,6 +76,7 @@ def _serve(report: Path, port_hint: int = 0) -> None:
     """
     import http.server
     import socketserver
+    import socket
 
     serve_dir = report.parent
     rel_to_serve_root = report.name  # always 'report.html'
@@ -92,7 +93,7 @@ def _serve(report: Path, port_hint: int = 0) -> None:
     httpd = None
     for attempt_port in (port_hint, 0) if port_hint else (0,):
         try:
-            httpd = socketserver.TCPServer(("127.0.0.1", attempt_port), _QuietHandler)
+            httpd = socketserver.TCPServer(("0.0.0.0", attempt_port), _QuietHandler)
             port = httpd.server_address[1]
             break
         except OSError:
@@ -104,7 +105,11 @@ def _serve(report: Path, port_hint: int = 0) -> None:
     # Re-root the handler at serve_dir.
     os.chdir(serve_dir)
 
-    url = f"http://127.0.0.1:{port}/{rel_to_serve_root}"
+    try:
+        hostname = socket.getfqdn()
+    except Exception:
+        hostname = "localhost"
+    url = f"http://{hostname}:{port}/{rel_to_serve_root}"
     console.print()
     console.print(
         Panel(

@@ -649,7 +649,8 @@ def _step_convert(
     from agent_eval.core.converters import AdkHistoryConverter, write_jsonl
 
     try:
-        converter = AdkHistoryConverter(str(agent_dir), None)
+        history_dir = agent_dir / ".adk" / "eval_history"
+        converter = AdkHistoryConverter(str(history_dir), None)
         records = converter.run()
 
         if not records:
@@ -707,7 +708,13 @@ def _step_convert(
     is_flag=True,
     help="Show detailed logs from ADK, Vertex AI SDK, and other services.",
 )
-def simulate(agent_dir, eval_dir, run_id, debug):
+@click.option(
+    "--in-process",
+    is_flag=True,
+    default=False,
+    help="Run simulation in-process using ADK Python APIs instead of CLI.",
+)
+def simulate(agent_dir, eval_dir, run_id, debug, in_process):
     """Run ADK User Sim scenarios and convert traces to evaluation format.
 
     This command wraps the full ADK User Sim workflow into a single step:
@@ -759,96 +766,138 @@ def simulate(agent_dir, eval_dir, run_id, debug):
             console.print("  [dim]Run `agent-eval init` first to scaffold one.[/]")
             sys.exit(1)
 
-    from agent_eval.core.config import find_eval_files
+    if in_process:
+        import asyncio
+        from agent_eval.core.simulation import run_simulation_in_process
+        from agent_eval.core.converters import write_jsonl
+        from agent_eval.core.path_resolver import agent_project_root, find_dataset_path
 
-    discovered = find_eval_files(eval_path)
-    if discovered["scenarios"]:
-        scenarios_file = discovered["scenarios"][0]
-    else:
-        console.print(
-            f"\n  [red]Error:[/] No scenario files found in {eval_path / 'scenarios'}"
-        )
-        console.print(
-            "  [dim]Add multi-turn rows (with history or conversation_plan) to tests/eval/dataset.jsonl[/]"
-        )
-        sys.exit(1)
+        project_root = agent_project_root(agent_path)
+        dataset_path = find_dataset_path(agent_path)
+        if not dataset_path:
+            console.print(f"\n  [red]Error:[/] No dataset.jsonl found for {agent_path}")
+            sys.exit(1)
 
-    session_file = eval_path / "scenarios" / "session_input.json"
-    if not session_file.exists():
-        console.print(f"\n  [red]Error:[/] No session input file at {session_file}")
-        console.print(
-            "  [dim]Create session_input.json with your app_name and user_id[/]"
-        )
-        sys.exit(1)
-
-    n_scenarios = _count_scenarios(scenarios_file)
-
-    # ── Run ID ─────────────────────────────────────────────────────────────
-
-    if not run_id:
-        default_ts = datetime.now().strftime("%Y%m%d_%H%M%S")
-        if _pauses_disabled():
-            run_id = default_ts
+        if not run_id:
+            run_id = datetime.now().strftime("%Y%m%d_%H%M%S")
         else:
-            from rich.prompt import Prompt
+            run_id = run_id.replace(" ", "-")
 
-            console.print()
-            console.print(
-                Panel(
-                    "[bold]Give this run a name[/] so you can easily find it later.\n\n"
-                    "Examples: [cyan]baseline[/], [cyan]v2-tool-hardening[/], [cyan]cache-optimization[/]\n\n"
-                    "[dim]Results will be saved to tests/eval/results/<run-id>/.\n"
-                    "Press Enter to use an auto-generated timestamp instead.[/]",
-                    title="[bold]Run ID[/]",
-                    border_style="blue",
-                    padding=(1, 2),
+        console.print(f"\n  Running simulation in-process (Run ID: {run_id})...")
+        try:
+            records = asyncio.run(
+                run_simulation_in_process(
+                    agent_dir=agent_path,
+                    project_root=project_root,
+                    dataset_path=dataset_path,
+                    parallelism=4,
                 )
             )
-            run_id = Prompt.ask(
-                "  Run ID",
-                default=default_ts,
-            ).strip()
-        # Sanitize: replace spaces with hyphens, remove problematic chars
-        run_id = run_id.replace(" ", "-")
+            if not records:
+                console.print("  [yellow]No simulation records generated.[/]")
+                sys.exit(1)
 
-    # ── Overview ────────────────────────────────────────────────────────────
+            run_dir = eval_path / "results" / run_id
+            raw_dir = run_dir / "raw"
+            raw_dir.mkdir(parents=True, exist_ok=True)
+            output_path = raw_dir / "processed_interaction_sim.jsonl"
 
-    console.print(
-        Panel(
-            f"[bold]Agent:[/]      [cyan]{agent_name}[/]  [dim]({agent_path})[/]\n"
-            f"[bold]Eval dir:[/]   {eval_path}\n"
-            f"[bold]Scenarios:[/]  [cyan]{n_scenarios}[/] scenario{'s' if n_scenarios != 1 else ''}"
-            f" in conversation_scenarios.json\n"
-            f"[bold]Run ID:[/]     [cyan]{run_id}[/]"
-            f"  [dim](results saved to tests/eval/results/{run_id}/)[/]\n\n"
-            f"[bold]What will happen:[/]\n"
-            f"  [dim]1.[/] Symlink scenario files into agent directory (for ADK)\n"
-            f"  [dim]2.[/] Clear previous eval_history (avoid stale traces)\n"
-            f"  [dim]3.[/] Create fresh eval_set + load scenarios (avoid duplicates)\n"
-            f"  [dim]4.[/] Run ADK User Sim (LLM simulates users from your scenarios)\n"
-            f"  [dim]5.[/] Convert traces to agent-eval JSONL format",
-            title="[bold]Simulate[/]",
-            border_style="blue",
-            padding=(1, 2),
+            write_jsonl(records, str(output_path))
+            console.print(
+                f"    [green]+[/] Converted [cyan]{len(records)}[/] interactions"
+            )
+        except Exception as e:
+            console.print(f"  [red]Error running simulation in-process:[/] {e}")
+            if debug:
+                import traceback
+
+                traceback.print_exc()
+            sys.exit(1)
+
+    else:
+        from agent_eval.core.config import find_eval_files
+
+        discovered = find_eval_files(eval_path)
+        if discovered["scenarios"]:
+            scenarios_file = discovered["scenarios"][0]
+        else:
+            console.print(
+                f"\n  [red]Error:[/] No scenario files found in {eval_path / 'scenarios'}"
+            )
+            console.print(
+                "  [dim]Add multi-turn rows (with history or conversation_plan) to tests/eval/dataset.jsonl[/]"
+            )
+            sys.exit(1)
+
+        session_file = eval_path / "scenarios" / "session_input.json"
+        if not session_file.exists():
+            console.print(f"\n  [red]Error:[/] No session input file at {session_file}")
+            console.print(
+                "  [dim]Create session_input.json with your app_name and user_id[/]"
+            )
+            sys.exit(1)
+
+        n_scenarios = _count_scenarios(scenarios_file)
+
+        if not run_id:
+            default_ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+            if _pauses_disabled():
+                run_id = default_ts
+            else:
+                from rich.prompt import Prompt
+
+                console.print()
+                console.print(
+                    Panel(
+                        "[bold]Give this run a name[/] so you can easily find it later.\n\n"
+                        "Examples: [cyan]baseline[/], [cyan]v2-tool-hardening[/], [cyan]cache-optimization[/]\n\n"
+                        "[dim]Results will be saved to tests/eval/results/<run-id>/.\n"
+                        "Press Enter to use an auto-generated timestamp instead.[/]",
+                        title="[bold]Run ID[/]",
+                        border_style="blue",
+                        padding=(1, 2),
+                    )
+                )
+                run_id = Prompt.ask(
+                    "  Run ID",
+                    default=default_ts,
+                ).strip()
+            run_id = run_id.replace(" ", "-")
+
+        console.print(
+            Panel(
+                f"[bold]Agent:[/]      [cyan]{agent_name}[/]  [dim]({agent_path})[/]\n"
+                f"[bold]Eval dir:[/]   {eval_path}\n"
+                f"[bold]Scenarios:[/]  [cyan]{n_scenarios}[/] scenario{'s' if n_scenarios != 1 else ''}"
+                f" in conversation_scenarios.json\n"
+                f"[bold]Run ID:[/]     [cyan]{run_id}[/]"
+                f"  [dim](results saved to tests/eval/results/{run_id}/)[/]\n\n"
+                f"[bold]What will happen:[/]\n"
+                f"  [dim]1.[/] Symlink scenario files into agent directory (for ADK)\n"
+                f"  [dim]2.[/] Clear previous eval_history (avoid stale traces)\n"
+                f"  [dim]3.[/] Create fresh eval_set + load scenarios (avoid duplicates)\n"
+                f"  [dim]4.[/] Run ADK User Sim (LLM simulates users from your scenarios)\n"
+                f"  [dim]5.[/] Convert traces to agent-eval JSONL format",
+                title="[bold]Simulate[/]",
+                border_style="blue",
+                padding=(1, 2),
+            )
         )
-    )
-    _continue("Press Enter to start the simulation →", console=console)
+        _continue("Press Enter to start the simulation →", console=console)
 
-    # ── Execute steps ───────────────────────────────────────────────────────
+        _step_symlinks(agent_path, eval_path)
 
-    _step_symlinks(agent_path, eval_path)
+        _step_clear_history(agent_path)
 
-    _step_clear_history(agent_path)
+        if not _step_create_eval_set(agent_name, agent_path):
+            sys.exit(1)
 
-    if not _step_create_eval_set(agent_name, agent_path):
-        sys.exit(1)
+        if not _step_run_sim(agent_name, agent_path, debug=debug):
+            sys.exit(1)
 
-    if not _step_run_sim(agent_name, agent_path, debug=debug):
-        sys.exit(1)
-
-    run_dir = _step_convert(agent_path, eval_path, run_id)
-    if not run_dir:
-        sys.exit(1)
+        run_dir = _step_convert(agent_path, eval_path, run_id)
+        if not run_dir:
+            sys.exit(1)
 
     # ── Done ────────────────────────────────────────────────────────────────
 

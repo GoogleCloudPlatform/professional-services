@@ -13,17 +13,13 @@
 # limitations under the License.
 import json
 import shutil
-import sys
 import tempfile
 import unittest
 from pathlib import Path
-from unittest.mock import MagicMock
 
 import pandas as pd
 
-# Mock Google Cloud libraries
-sys.modules["google.genai"] = MagicMock()
-sys.modules["google.genai.types"] = MagicMock()
+# No mocks needed if google-genai is installed in the venv
 
 
 class TestConverters(unittest.TestCase):
@@ -105,7 +101,7 @@ class TestConverters(unittest.TestCase):
         with open(history_file, "w") as f:
             json.dump(history_data, f)
 
-        converter = self.AdkHistoryConverter(str(self.agent_dir))
+        converter = self.AdkHistoryConverter(str(self.history_dir))
         rows = converter.run()
 
         self.assertEqual(len(rows), 1)
