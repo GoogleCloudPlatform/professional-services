@@ -96,14 +96,16 @@ def _display_metrics_table(
     # Determine table title — prefer user-friendly folder names over experiment
     # IDs. Resolution order: explicit run_name → comparison's current_run_name
     # → results-dir folder name (the run_id the user typed) → experiment_id.
-    run_name = (run_name_override or
-                (comparison_data or {}).get("current_run_name") or
-                (Path(results_dir).name if results_dir else None) or
-                current_summary.get("experiment_id", "current"))
+    run_name = (
+        run_name_override
+        or (comparison_data or {}).get("current_run_name")
+        or (Path(results_dir).name if results_dir else None)
+        or current_summary.get("experiment_id", "current")
+    )
     if has_comparison:
-        baseline_name = comparison_data.get(
-            "baseline_run_name") or comparison_data.get("baseline_id",
-                                                        "baseline")
+        baseline_name = comparison_data.get("baseline_run_name") or comparison_data.get(
+            "baseline_id", "baseline"
+        )
         title = f"Evaluation Results: {run_name} vs {baseline_name}"
     else:
         title = f"Evaluation Results: {run_name}"
@@ -121,10 +123,14 @@ def _display_metrics_table(
         if isinstance(val, float):
             # Use the last segment of dotted metric names for format detection
             # e.g., "tool_success_rate.total_tool_calls" → "total_tool_calls"
-            field_name = metric_name.rsplit(
-                ".", 1)[-1] if "." in metric_name else metric_name
-            if field_name.endswith("_rate") or field_name.endswith(
-                    "_ratio") or field_name == "reasoning_ratio":
+            field_name = (
+                metric_name.rsplit(".", 1)[-1] if "." in metric_name else metric_name
+            )
+            if (
+                field_name.endswith("_rate")
+                or field_name.endswith("_ratio")
+                or field_name == "reasoning_ratio"
+            ):
                 return f"{val:.0%}"
             elif "cost" in field_name:
                 return f"${val:.4f}"
@@ -136,9 +142,9 @@ def _display_metrics_table(
                 return f"{val:.2f}"
         return str(val)
 
-    def _add_metric_row(metric_name: str,
-                        current_val,
-                        metric_type: str = "deterministic"):
+    def _add_metric_row(
+        metric_name: str, current_val, metric_type: str = "deterministic"
+    ):
         focused = _is_focused(metric_name)
         delta = delta_lookup.get(metric_name)
 
@@ -156,24 +162,20 @@ def _display_metrics_table(
         val_style = "bold" if focused else ""
         marker = " ★" if focused else ""
 
-        row = [
-            f"[{name_style}]{metric_name}{marker}[/]"
-            if name_style else metric_name
-        ]
+        row = [f"[{name_style}]{metric_name}{marker}[/]" if name_style else metric_name]
 
         if has_comparison and delta:
             baseline_val = delta["baseline"]
             if metric_type == "llm":
                 sr = (current_val if isinstance(current_val, dict) else {}).get(
-                    "score_range", {})
+                    "score_range", {}
+                )
                 max_v = sr.get("max", 1) if sr else 1
                 baseline_str = f"{baseline_val:.2f}/{max_v}"
             else:
                 baseline_str = _format_value(baseline_val, metric_name)
-            row.append(f"[{val_style}]{baseline_str}[/]"
-                       if val_style else baseline_str)
-            row.append(
-                f"[{val_style}]{current_str}[/]" if val_style else current_str)
+            row.append(f"[{val_style}]{baseline_str}[/]" if val_style else baseline_str)
+            row.append(f"[{val_style}]{current_str}[/]" if val_style else current_str)
 
             # Change column with emoji
             emoji = delta["emoji"]
@@ -194,13 +196,11 @@ def _display_metrics_table(
         elif has_comparison:
             # No delta for this metric (new or not comparable)
             row.append("—")
-            row.append(
-                f"[{val_style}]{current_str}[/]" if val_style else current_str)
+            row.append(f"[{val_style}]{current_str}[/]" if val_style else current_str)
             row.append("[dim]NEW[/]")
         else:
             # No comparison at all
-            row.append(
-                f"[{val_style}]{current_str}[/]" if val_style else current_str)
+            row.append(f"[{val_style}]{current_str}[/]" if val_style else current_str)
 
         table.add_row(*row)
 
@@ -231,55 +231,68 @@ def _display_metrics_table(
         regressions = sum(1 for d in deltas if d["direction"] == "regression")
         neutral = sum(1 for d in deltas if d["direction"] == "neutral")
         console.print()
-        console.print(f"  {improvements} 🟢 improvements, "
-                      f"{regressions} 🔴 regressions, "
-                      f"{neutral} ⚪ neutral")
+        console.print(
+            f"  {improvements} 🟢 improvements, "
+            f"{regressions} 🔴 regressions, "
+            f"{neutral} ⚪ neutral"
+        )
 
 
 @click.command()
-@click.option("--results-dir",
-              required=True,
-              help="Directory containing evaluation results.")
-@click.option("--agent-dir",
-              default=None,
-              help="Path to agent directory (for source code context).")
+@click.option(
+    "--results-dir", required=True, help="Directory containing evaluation results."
+)
+@click.option(
+    "--agent-dir",
+    default=None,
+    help="Path to agent directory (for source code context).",
+)
 @click.option(
     "--compare-to",
     default=None,
-    help="Previous run's results dir for comparison (auto-detected if omitted)."
+    help="Previous run's results dir for comparison (auto-detected if omitted).",
 )
 @click.option(
     "--focus",
     default=None,
-    help=
-    "Developer focus: metric names to highlight + analysis priority (e.g., 'latency, cache efficiency')."
+    help="Developer focus: metric names to highlight + analysis priority (e.g., 'latency, cache efficiency').",
 )
-@click.option("--strategy-file",
-              default=None,
-              help="Path to optimization strategy Markdown file.")
-@click.option("--report-audience",
-              default=None,
-              help="Target audience for the analysis report.")
-@click.option("--report-tone",
-              default=None,
-              help="Tone of the analysis report.")
-@click.option("--report-length",
-              default=None,
-              help="Length of the analysis report.")
-@click.option("--model",
-              default="gemini-3.1-pro-preview",
-              help="Gemini model for analysis.")
-@click.option("--location",
-              default=None,
-              help="Vertex AI location (e.g. us-central1, global).")
+@click.option(
+    "--strategy-file", default=None, help="Path to optimization strategy Markdown file."
+)
+@click.option(
+    "--report-audience", default=None, help="Target audience for the analysis report."
+)
+@click.option("--report-tone", default=None, help="Tone of the analysis report.")
+@click.option("--report-length", default=None, help="Length of the analysis report.")
+@click.option(
+    "--model", default="gemini-3.1-pro-preview", help="Gemini model for analysis."
+)
+@click.option(
+    "--location", default=None, help="Vertex AI location (e.g. us-central1, global)."
+)
 @click.option("--skip-gemini", is_flag=True, help="Skip AI-powered analysis.")
 @click.option("--gcs-bucket", default=None, help="GCS bucket for upload.")
-@click.option("--debug",
-              is_flag=True,
-              help="Show detailed logs from Gemini API and other services.")
-def analyze(results_dir, agent_dir, compare_to, focus, strategy_file,
-            report_audience, report_tone, report_length, model, location,
-            skip_gemini, gcs_bucket, debug):
+@click.option(
+    "--debug",
+    is_flag=True,
+    help="Show detailed logs from Gemini API and other services.",
+)
+def analyze(
+    results_dir,
+    agent_dir,
+    compare_to,
+    focus,
+    strategy_file,
+    report_audience,
+    report_tone,
+    report_length,
+    model,
+    location,
+    skip_gemini,
+    gcs_bucket,
+    debug,
+):
     """Analyze evaluation results and generate reports.
 
     \b
@@ -307,6 +320,7 @@ def analyze(results_dir, agent_dir, compare_to, focus, strategy_file,
       agent-eval analyze --results-dir tests/eval/results/v3 --compare-to tests/eval/results/v1
     """
     from agent_eval.core.evaluator import configure_logging
+
     configure_logging(debug=debug)
 
     console.print("\n[bold blue]Analyzing Results[/]")
@@ -333,14 +347,13 @@ def analyze(results_dir, agent_dir, compare_to, focus, strategy_file,
     # init.py for other Gemini calls. Skipped under --skip-gemini since
     # there's no slow blocking step in that case, and skipped when output
     # isn't a TTY (CI / piped runs) so logs stay clean.
-    use_spinner = (
-        not skip_gemini) and sys.stdout.isatty() and not _pauses_disabled()
+    use_spinner = (not skip_gemini) and sys.stdout.isatty() and not _pauses_disabled()
     try:
         if use_spinner:
             with console.status(
-                    "[bold blue]  Analyzing run with Gemini "
-                    "[dim](compares to previous run, drafts diagnosis with code citations)[/][/]",
-                    spinner="dots",
+                "[bold blue]  Analyzing run with Gemini "
+                "[dim](compares to previous run, drafts diagnosis with code citations)[/][/]",
+                spinner="dots",
             ):
                 analysis_result = analyzer.run()
         else:
@@ -348,6 +361,7 @@ def analyze(results_dir, agent_dir, compare_to, focus, strategy_file,
     except Exception as e:
         console.print(f"\n[bold red]Error during analysis:[/] {e}")
         import traceback
+
         traceback.print_exc()
         sys.exit(1)
 
@@ -379,14 +393,14 @@ def analyze(results_dir, agent_dir, compare_to, focus, strategy_file,
     ]
     if analysis_result and analysis_result.get("optimization_log_path"):
         rel_log = os.path.relpath(analysis_result["optimization_log_path"], cwd)
-        output_files.append(
-            f"  {rel_log}  — Cumulative comparison log (raw markdown)")
+        output_files.append(f"  {rel_log}  — Cumulative comparison log (raw markdown)")
 
     comparison_info = ""
     if analysis_result and analysis_result.get("comparison_data"):
         cmp = analysis_result["comparison_data"]
         baseline_label = cmp.get("baseline_run_name") or cmp.get(
-            "baseline_id", "previous")
+            "baseline_id", "previous"
+        )
         comparison_info = f"\n[bold]Compared to:[/]  {baseline_label}\n"
 
     main_block = ""
@@ -403,12 +417,12 @@ def analyze(results_dir, agent_dir, compare_to, focus, strategy_file,
 
     console.print(
         Panel(
-            f"[bold green]Analysis complete![/]"
-            f"{comparison_info}\n\n" + main_block,
+            f"[bold green]Analysis complete![/]{comparison_info}\n\n" + main_block,
             title="[bold]Done[/]",
             border_style="green",
             padding=(1, 2),
-        ))
+        )
+    )
 
     # Offer to open immediately. Skip in NO_PAUSES (CI) or when the user
     # already declined via --no-open at run time. webbrowser.open returns
@@ -416,11 +430,12 @@ def analyze(results_dir, agent_dir, compare_to, focus, strategy_file,
     if rel_html and not _pauses_disabled() and sys.stdin.isatty():
         from rich.prompt import Confirm
         import webbrowser
-        if Confirm.ask("\n  Open the report in your default browser now?",
-                       default=True):
+
+        if Confirm.ask(
+            "\n  Open the report in your default browser now?", default=True
+        ):
             try:
-                opened = webbrowser.open(f"file://{Path(html_path).resolve()}",
-                                         new=2)
+                opened = webbrowser.open(f"file://{Path(html_path).resolve()}", new=2)
             except Exception:
                 opened = False
             if not opened:

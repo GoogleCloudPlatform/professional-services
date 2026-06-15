@@ -48,69 +48,45 @@ def _make_eval_summary(
             {
                 "question_id": "q1",
                 "source_type": "interaction",
-                "llm_metrics": {
-                    "general_quality": {
-                        "score": 4.0
-                    }
-                },
-                "deterministic_metrics": {
-                    "token_usage.total_tokens": 750
-                },
+                "llm_metrics": {"general_quality": {"score": 4.0}},
+                "deterministic_metrics": {"token_usage.total_tokens": 750},
             },
             {
                 "question_id": "q2",
                 "source_type": "interaction",
-                "llm_metrics": {
-                    "general_quality": {
-                        "score": 4.4
-                    }
-                },
-                "deterministic_metrics": {
-                    "token_usage.total_tokens": 750
-                },
+                "llm_metrics": {"general_quality": {"score": 4.4}},
+                "deterministic_metrics": {"token_usage.total_tokens": 750},
             },
         ]
 
     return {
-        "experiment_id":
-            experiment_id,
-        "run_type":
-            run_type,
-        "interaction_datetime":
-            interaction_datetime,
-        "git_info":
-            git_info or {
-                "commit": "abc123def456",
-                "branch": "main",
-                "dirty": False
-            },
+        "experiment_id": experiment_id,
+        "run_type": run_type,
+        "interaction_datetime": interaction_datetime,
+        "git_info": git_info
+        or {"commit": "abc123def456", "branch": "main", "dirty": False},
         "overall_summary": {
-            "deterministic_metrics":
-                det_metrics or {
-                    "token_usage.total_tokens": 1500,
-                    "token_usage.estimated_cost_usd": 0.005,
-                    "latency_metrics.total_latency_seconds": 3.2,
+            "deterministic_metrics": det_metrics
+            or {
+                "token_usage.total_tokens": 1500,
+                "token_usage.estimated_cost_usd": 0.005,
+                "latency_metrics.total_latency_seconds": 3.2,
+            },
+            "llm_based_metrics": llm_metrics
+            or {
+                "general_quality": {
+                    "average": 4.2,
+                    "score_range": {"min": 1, "max": 5},
                 },
-            "llm_based_metrics":
-                llm_metrics or {
-                    "general_quality": {
-                        "average": 4.2,
-                        "score_range": {
-                            "min": 1,
-                            "max": 5
-                        }
-                    },
-                },
+            },
         },
-        "per_question_summary":
-            per_question,
+        "per_question_summary": per_question,
     }
 
 
-def _write_run(results_dir: Path,
-               run_name: str,
-               summary: dict,
-               analysis: str = "") -> Path:
+def _write_run(
+    results_dir: Path, run_name: str, summary: dict, analysis: str = ""
+) -> Path:
     """Write an eval_summary.json (and optional analysis) to a run subfolder."""
     run_dir = results_dir / run_name
     run_dir.mkdir(parents=True, exist_ok=True)
@@ -126,7 +102,6 @@ def _write_run(results_dir: Path,
 
 
 class TestDiscoverRuns:
-
     def test_empty_dir(self, tmp_path):
         assert discover_runs(tmp_path) == []
 
@@ -141,11 +116,15 @@ class TestDiscoverRuns:
 
     def test_sorted_by_timestamp(self, tmp_path):
         _write_run(
-            tmp_path, "later",
-            _make_eval_summary(interaction_datetime="2026-02-01T10:00:00"))
+            tmp_path,
+            "later",
+            _make_eval_summary(interaction_datetime="2026-02-01T10:00:00"),
+        )
         _write_run(
-            tmp_path, "earlier",
-            _make_eval_summary(interaction_datetime="2026-01-01T10:00:00"))
+            tmp_path,
+            "earlier",
+            _make_eval_summary(interaction_datetime="2026-01-01T10:00:00"),
+        )
         runs = discover_runs(tmp_path)
         assert runs[0].run_id == "earlier"
         assert runs[1].run_id == "later"
@@ -176,14 +155,12 @@ class TestDiscoverRuns:
 
 
 class TestLoadRun:
-
     def test_parses_deterministic_metrics(self, tmp_path):
         run_dir = _write_run(tmp_path, "r1", _make_eval_summary())
         run = load_run(run_dir / "eval_summary.json")
         assert run is not None
         assert run.deterministic_metrics["token_usage.total_tokens"] == 1500.0
-        assert run.deterministic_metrics[
-            "token_usage.estimated_cost_usd"] == 0.005
+        assert run.deterministic_metrics["token_usage.estimated_cost_usd"] == 0.005
 
     def test_parses_llm_metrics(self, tmp_path):
         run_dir = _write_run(tmp_path, "r1", _make_eval_summary())
@@ -202,27 +179,25 @@ class TestLoadRun:
 
     def test_git_info(self, tmp_path):
         run_dir = _write_run(
-            tmp_path, "r1",
-            _make_eval_summary(git_info={
-                "commit": "deadbeef",
-                "branch": "feature",
-                "dirty": True
-            }))
+            tmp_path,
+            "r1",
+            _make_eval_summary(
+                git_info={"commit": "deadbeef", "branch": "feature", "dirty": True}
+            ),
+        )
         run = load_run(run_dir / "eval_summary.json")
         assert run.git_info["commit"] == "deadbeef"
         assert run.git_info["branch"] == "feature"
         assert run.git_info["dirty"] is True
 
     def test_has_analysis_flag(self, tmp_path):
-        _write_run(tmp_path,
-                   "with_analysis",
-                   _make_eval_summary(),
-                   analysis="# Analysis")
+        _write_run(
+            tmp_path, "with_analysis", _make_eval_summary(), analysis="# Analysis"
+        )
         _write_run(tmp_path, "without_analysis", _make_eval_summary())
 
         run_with = load_run(tmp_path / "with_analysis" / "eval_summary.json")
-        run_without = load_run(tmp_path / "without_analysis" /
-                               "eval_summary.json")
+        run_without = load_run(tmp_path / "without_analysis" / "eval_summary.json")
 
         assert run_with.has_analysis is True
         assert run_without.has_analysis is False
@@ -234,12 +209,10 @@ class TestLoadRun:
 
 
 class TestLoadAnalysis:
-
     def test_loads_content(self, tmp_path):
-        _write_run(tmp_path,
-                   "r1",
-                   _make_eval_summary(),
-                   analysis="# My Analysis\nSome text.")
+        _write_run(
+            tmp_path, "r1", _make_eval_summary(), analysis="# My Analysis\nSome text."
+        )
         run = load_run(tmp_path / "r1" / "eval_summary.json")
         assert load_analysis(run) == "# My Analysis\nSome text."
 
@@ -255,7 +228,6 @@ class TestLoadAnalysis:
 
 
 class TestClassifyMetrics:
-
     def test_groups_correctly(self):
         det = [
             "token_usage.total_tokens",
@@ -287,11 +259,9 @@ class TestClassifyMetrics:
 
 
 class TestComputeDelta:
-
     def test_improvement_lower_is_better(self):
         # Latency went down — that's an improvement
-        result = compute_delta(10.0, 5.0,
-                               "latency_metrics.total_latency_seconds")
+        result = compute_delta(10.0, 5.0, "latency_metrics.total_latency_seconds")
         assert result["direction"] == "improvement"
         assert result["is_improvement"] is True
         assert result["pct_change"] == pytest.approx(-50.0)
@@ -331,17 +301,23 @@ class TestComputeDelta:
 
 
 class TestRunsToOverviewDf:
-
     def test_basic(self, tmp_path):
         _write_run(
-            tmp_path, "r1",
-            _make_eval_summary(interaction_datetime="2026-01-01T10:00:00",
-                               experiment_id="exp1"))
+            tmp_path,
+            "r1",
+            _make_eval_summary(
+                interaction_datetime="2026-01-01T10:00:00", experiment_id="exp1"
+            ),
+        )
         _write_run(
-            tmp_path, "r2",
-            _make_eval_summary(interaction_datetime="2026-01-02T10:00:00",
-                               experiment_id="exp2",
-                               det_metrics={"token_usage.total_tokens": 2000}))
+            tmp_path,
+            "r2",
+            _make_eval_summary(
+                interaction_datetime="2026-01-02T10:00:00",
+                experiment_id="exp2",
+                det_metrics={"token_usage.total_tokens": 2000},
+            ),
+        )
 
         runs = discover_runs(tmp_path)
         df = runs_to_overview_df(runs)
@@ -359,12 +335,12 @@ class TestRunsToOverviewDf:
 
     def test_includes_git_info(self, tmp_path):
         _write_run(
-            tmp_path, "r1",
-            _make_eval_summary(git_info={
-                "commit": "abc123",
-                "branch": "main",
-                "dirty": False
-            }))
+            tmp_path,
+            "r1",
+            _make_eval_summary(
+                git_info={"commit": "abc123", "branch": "main", "dirty": False}
+            ),
+        )
         runs = discover_runs(tmp_path)
         df = runs_to_overview_df(runs)
         assert df.iloc[0]["git_commit"] == "abc123"[:8]
@@ -377,7 +353,6 @@ class TestRunsToOverviewDf:
 
 
 class TestRunsToPerQuestionDf:
-
     def test_basic(self, tmp_path):
         _write_run(tmp_path, "r1", _make_eval_summary())
         runs = discover_runs(tmp_path)

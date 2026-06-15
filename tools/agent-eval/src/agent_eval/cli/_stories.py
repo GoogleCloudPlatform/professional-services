@@ -26,6 +26,7 @@ Tone:
 Add new stories freely — append to STORIES below. Each entry is a
 ``(title, body)`` tuple. The body is plain prose; Rich markup is allowed.
 """
+
 from __future__ import annotations
 
 import random
@@ -95,7 +96,7 @@ STORIES: list[Tuple[str, str]] = [
         "scores across a dataset gives you a continuous score with much better "
         "statistical properties than averaging 20 noisy 1-5 scores.\n\n"
         "There's a second reason: [bold]binary forces you to decompose[/]. "
-        "Instead of one fuzzy [cyan]\"response_quality\"[/] metric on a 1-5 "
+        'Instead of one fuzzy [cyan]"response_quality"[/] metric on a 1-5 '
         "scale, you write [cyan]cites_source_when_required[/] (binary), "
         "[cyan]respects_word_limit[/] (binary), [cyan]refuses_out_of_domain[/] "
         "(binary). Each one names a concrete observable behavior a human "
@@ -180,7 +181,7 @@ STORIES: list[Tuple[str, str]] = [
         "can read the autorater's exact rubric in Vertex's docs under "
         "[cyan]rubric-metric-details[/] — it's worth a 5-minute read.\n\n"
         "What this means in practice: a low [cyan]TOOL_USE_QUALITY[/] score "
-        "almost never means \"the tool crashed\". The deterministic "
+        'almost never means "the tool crashed". The deterministic '
         "[cyan]tool_success_rate[/] catches that — it'll be 1.0 when the "
         "Python functions executed cleanly. A low semantic score means the "
         "agent [bold]used the tool stupidly[/]: called it for an out-of-scope "
@@ -188,9 +189,9 @@ STORIES: list[Tuple[str, str]] = [
         "explain its reasoning, ignored the tool's output in the final "
         "response.\n\n"
         "The fix is rarely in the tool. It's in the orchestrator's "
-        "instructions and constraints — \"Do NOT call this tool more than "
-        "once per turn\", \"If the user's reference is ambiguous, ASK for "
-        "clarification\". The autorater rewards explicit guardrails.",
+        'instructions and constraints — "Do NOT call this tool more than '
+        'once per turn", "If the user\'s reference is ambiguous, ASK for '
+        'clarification". The autorater rewards explicit guardrails.',
     ),
     (
         "Why we cap max_allowed_invocations",
@@ -231,7 +232,7 @@ STORIES: list[Tuple[str, str]] = [
         "flagging both [cyan]requires_multi_turn[/] AND [cyan]requires_reference[/]. "
         "We just never produced such a row.\n\n"
         "The use case is real and powerful: \"judge the agent's trajectory "
-        "AND compare its final answer to a known-good answer\". Imagine a "
+        'AND compare its final answer to a known-good answer". Imagine a '
         "RAG agent that should both navigate clarification correctly AND land "
         "on the right document. That's two signals from one test, captured "
         "by one metric. Without multi-turn-with-reference rows, you'd have "
@@ -353,7 +354,7 @@ STORIES: list[Tuple[str, str]] = [
         "Run ID prompt fires, type [cyan]baseline[/], [cyan]v2-tool-hardening[/], "
         "[cyan]cache-optimization[/]. The log scans 10× better than a "
         "wall of timestamps. Second, [bold]use --focus to highlight specific "
-        "metrics[/]: [cyan]agent-eval run --focus \"latency, cache\"[/] "
+        'metrics[/]: [cyan]agent-eval run --focus "latency, cache"[/] '
         "tells the analyzer those are your priority this iteration, and "
         "the highlighted rows in the comparison table make screenshotting "
         "for design reviews trivial.",
@@ -427,21 +428,21 @@ STORIES: list[Tuple[str, str]] = [
         "ADK introspects each tool, generates a JSON schema from the type "
         "hints, and sends that schema (plus the docstring as the "
         "description) to the model on every turn. If your docstring says "
-        "\"Searches the database\", the LLM picks the tool when it thinks "
-        "a search is needed. If it says \"Searches the legal-discovery "
+        '"Searches the database", the LLM picks the tool when it thinks '
+        'a search is needed. If it says "Searches the legal-discovery '
         "Vertex Search index for documents matching `query`. Returns up to "
-        "10 documents with text + score. Returns [] when query is empty\", "
+        '10 documents with text + score. Returns [] when query is empty", '
         "the LLM picks it MUCH more accurately and avoids calling it with "
         "an empty query.\n\n"
         "This is the cheapest agent fix in the toolkit. Tighten three "
         "docstrings, watch [cyan]tool_use_quality[/] climb. Concrete moves:\n\n"
-        "[bold]1. Lead with the verb[/] — \"Searches\", \"Computes\", "
-        "\"Fetches\". Models pattern-match on the first phrase.\n"
-        "[bold]2. Document the failure modes[/] — \"Returns [] if X\", "
-        "\"Raises ValueError when Y\". The model learns when NOT to call.\n"
+        '[bold]1. Lead with the verb[/] — "Searches", "Computes", '
+        '"Fetches". Models pattern-match on the first phrase.\n'
+        '[bold]2. Document the failure modes[/] — "Returns [] if X", '
+        '"Raises ValueError when Y". The model learns when NOT to call.\n'
         "[bold]3. Add `**KNOWN LIMITATIONS:**`[/] for hard constraints — "
-        "\"Do NOT call more than once per user turn\", \"Only works for "
-        "the active dataset, set via set_active_dataset first\". The "
+        '"Do NOT call more than once per user turn", "Only works for '
+        'the active dataset, set via set_active_dataset first". The '
         "managed [cyan]TOOL_USE_QUALITY[/] rubric explicitly rewards "
         "constraint-respecting agents.",
     ),
@@ -451,16 +452,16 @@ STORIES: list[Tuple[str, str]] = [
         "agent's life — across tool calls, across LLM turns, even across "
         "process restarts when paired with a persistent SessionService. "
         "But not all keys live the same long. The PREFIX dictates scope:\n\n"
-        "[bold cyan]No prefix[/] — session-scoped. [cyan]state[\"step\"] = 2[/]. "
+        '[bold cyan]No prefix[/] — session-scoped. [cyan]state["step"] = 2[/]. '
         "Lives for the conversation. Most tool outputs go here.\n"
         "[bold cyan]user:[/] — survives across sessions for the same user. "
-        "[cyan]state[\"user:preferred_language\"] = \"en\"[/]. Use for user "
+        '[cyan]state["user:preferred_language"] = "en"[/]. Use for user '
         "preferences, learned facts about that specific user.\n"
         "[bold cyan]app:[/] — global to the entire app. "
-        "[cyan]state[\"app:active_dataset\"] = \"crwd\"[/]. Use for "
+        '[cyan]state["app:active_dataset"] = "crwd"[/]. Use for '
         "operator-set config, feature flags, anything ALL users see.\n"
         "[bold cyan]temp:[/] — single invocation only. "
-        "[cyan]state[\"temp:scratch\"] = data[/]. Cleared after the agent "
+        '[cyan]state["temp:scratch"] = data[/]. Cleared after the agent '
         "finishes its current call. Use for intermediate scratch space "
         "you don't want to persist.\n\n"
         "Two practical implications. First, [bold]agent-eval's data "
@@ -480,7 +481,7 @@ STORIES: list[Tuple[str, str]] = [
         "different control patterns. Picking the wrong one is one of the "
         "most common architecture mistakes.\n\n"
         "[bold cyan]sub_agents[/] is for [bold]LLM transfer[/]. The parent "
-        "looks at the user's request, decides \"this is a sales question\", "
+        'looks at the user\'s request, decides "this is a sales question", '
         "and TRANSFERS control to [cyan]sales_agent[/]. The parent is no "
         "longer in the loop — sales_agent owns the conversation until it "
         "returns. Use when each sub-agent is a self-contained specialist "
@@ -489,17 +490,17 @@ STORIES: list[Tuple[str, str]] = [
         "calls [cyan]AgentTool(specialist_agent)[/] like any other tool, "
         "gets a result back, and CONTINUES to drive the conversation. "
         "Use when the parent needs to weave specialist outputs together "
-        "(\"call the discovery agent for docs, then the summary agent for "
-        "a tldr, then write a final response combining both\").\n\n"
+        '("call the discovery agent for docs, then the summary agent for '
+        'a tldr, then write a final response combining both").\n\n'
         "Both have costs. Each AgentTool invocation spins a fresh LLM "
         "session for the child — full system instruction, full tool "
         "definitions, full reasoning loop. If your parent calls 3 "
         "AgentTools per query, you're paying 4× the prompt cost (parent + "
         "3 children). sub_agents is cheaper per call but less composable.\n\n"
         "Heuristic: if your top-level metric is [cyan]final_response_match[/] "
-        "(\"the agent answered correctly\"), AgentTool gives the parent the "
+        '("the agent answered correctly"), AgentTool gives the parent the '
         "raw materials to synthesize. If it's [cyan]agent_handoffs[/] "
-        "(\"routed to the right specialist\"), sub_agents tests routing "
+        '("routed to the right specialist"), sub_agents tests routing '
         "directly. Both are valid; agent-eval scores them the same way.",
     ),
     (
@@ -512,9 +513,9 @@ STORIES: list[Tuple[str, str]] = [
         "These are NOT just for logging. They're the cleanest place to "
         "add real behavior the LLM can't be trusted to enforce on its own.\n\n"
         "[bold]before_tool[/] — validate args before the tool runs. The "
-        "LLM occasionally calls [cyan]retrieve_docs(\"\")[/] — your "
-        "callback can short-circuit that and return [cyan]{\"error\": "
-        "\"Empty query\"}[/] without burning a Vertex Search call.\n\n"
+        'LLM occasionally calls [cyan]retrieve_docs("")[/] — your '
+        'callback can short-circuit that and return [cyan]{"error": '
+        '"Empty query"}[/] without burning a Vertex Search call.\n\n'
         "[bold]after_tool[/] — truncate massive outputs before they bloat "
         "context. A retrieval that returns 50KB of markdown will poison "
         "the cache for every subsequent turn. Truncate to the first 1KB + "
@@ -528,7 +529,7 @@ STORIES: list[Tuple[str, str]] = [
         "out-of-domain queries).\n\n"
         "[bold]after_model[/] — gate the model's output. Add safety "
         "filters, force structured output, or detect specific error "
-        "phrases (\"I cannot...\") and route to a fallback agent.\n\n"
+        'phrases ("I cannot...") and route to a fallback agent.\n\n'
         "Callbacks return [cyan]None[/] to continue or a typed override "
         "to short-circuit. Plugins are the same idea but global across "
         "all agents — use callbacks for per-agent logic, plugins for "
@@ -567,9 +568,9 @@ STORIES: list[Tuple[str, str]] = [
         "story for whoever inherits the project.",
     ),
     (
-        "\"I'll search\" without searching",
+        '"I\'ll search" without searching',
         "The most disorienting agent failure mode is the [bold]phantom "
-        "tool call[/]. The agent says \"Let me look that up for you\" or "
+        'tool call[/]. The agent says "Let me look that up for you" or '
         "\"I'll check the database\" — and then doesn't call any tools. "
         "It just hallucinates an answer.\n\n"
         "[cyan]tool_success_rate[/] reports 100% (no failures because no "
@@ -585,10 +586,10 @@ STORIES: list[Tuple[str, str]] = [
         "system prompt with [cyan]global_instruction[/] + RAG.\n\n"
         "[bold]2. Trained-in shortcut.[/] The model learned during "
         "post-training that confident answers score better than tool "
-        "calls + uncertainty. Fix: explicit instruction \"You MUST call "
+        'calls + uncertainty. Fix: explicit instruction "You MUST call '
         "[cyan]search_docs[/] before stating any factual claim. If you "
         "haven't called it, say 'I need to search' — don't make up an "
-        "answer.\" Combine with [cyan]hallucination[/] metric to verify.\n\n"
+        'answer." Combine with [cyan]hallucination[/] metric to verify.\n\n'
         "agent-eval surfaces this in two metrics. [cyan]tool_use_quality[/] "
         "(LLM-judged) penalizes claimed-but-not-executed tool calls "
         "directly. [cyan]hallucination[/] often spikes on the same rows "
@@ -609,13 +610,13 @@ STORIES: list[Tuple[str, str]] = [
         "Python flow).\n\n"
         "[bold cyan]ParallelAgent[/] fans out to N sub-agents at once and "
         "collects their results. Use when you have independent queries "
-        "to multiple sources: \"check email, check Slack, check GitHub "
+        'to multiple sources: "check email, check Slack, check GitHub '
         "for mentions of @user\". Wall-clock = slowest sub-agent (Amdahl's "
         "law again). The orchestrator merges their outputs into one "
         "final response.\n\n"
         "[bold cyan]LoopAgent[/] re-runs a sub-agent until a condition "
         "is met (with a [cyan]max_iterations[/] cap to avoid infinite "
-        "loops). Use for iterative refinement: \"draft → critique → "
+        'loops). Use for iterative refinement: "draft → critique → '
         "refine → critique → refine, stop when critique says 'good enough'.\"\n\n"
         "All three compose cleanly with each other and with regular "
         "LlmAgents. A common pattern is [cyan]SequentialAgent(intent_extractor, "
@@ -632,7 +633,7 @@ STORIES: list[Tuple[str, str]] = [
         "Why model choice matters more than instruction tuning",
         "Switching the model is often a bigger lever than rewriting the "
         "prompt. ADK lets you swap with one line: [cyan]model=Gemini("
-        "model=\"gemini-3-flash-preview\")[/]. The choice has cascading "
+        'model="gemini-3-flash-preview")[/]. The choice has cascading '
         "effects on latency, cost, tool-use quality, and how much "
         "instruction you need to write.\n\n"
         "[bold cyan]gemini-3-flash-preview[/] (default for most ADK "
@@ -666,13 +667,13 @@ STORIES: list[Tuple[str, str]] = [
         "span in a distributed trace. When something goes wrong in "
         "production, Cloud Trace is where the answer lives.\n\n"
         "Open Cloud Console → Observability → Trace. Filter by your "
-        "agent's service name (\"crwd-legal-discovery\" or whatever you "
+        'agent\'s service name ("crwd-legal-discovery" or whatever you '
         "deployed). You'll see one trace per user invocation. Click in: "
         "the timeline shows the agent's reasoning + every tool call + "
         "every sub-agent transfer + the response shape, all with timing.\n\n"
         "Three things this surfaces that no metric can:\n\n"
-        "[bold]1. Where time actually went.[/] The eval might say \"Wall-"
-        "clock 40s\" but the trace shows 32s of that was a single Vertex "
+        '[bold]1. Where time actually went.[/] The eval might say "Wall-'
+        'clock 40s" but the trace shows 32s of that was a single Vertex '
         "Search call. Now you know where to optimize — not the agent, "
         "the index.\n\n"
         "[bold]2. Silent tool failures.[/] If a tool returns an error "
@@ -745,11 +746,9 @@ def random_stories(n: int) -> list[Tuple[str, str]]:
     return random.sample(STORIES, sample_size)
 
 
-def render_story_panel(title: str,
-                       body: str,
-                       *,
-                       index: Optional[int] = None,
-                       total: Optional[int] = None):
+def render_story_panel(
+    title: str, body: str, *, index: Optional[int] = None, total: Optional[int] = None
+):
     """Render one story as a Rich Panel for display. Index/total optional
     for the browser context (e.g. \"Story 7 of 15\"); omitted in the
     while-you-wait context where users see one or two at a time.
@@ -761,6 +760,7 @@ def render_story_panel(title: str,
     """
     from rich.panel import Panel
     from rich.padding import Padding
+
     title_str = f"[bold]{title}[/]"
     if index is not None and total is not None:
         title_str = f"[dim]{index}/{total}[/]  {title_str}"
@@ -812,12 +812,14 @@ class StoryStreamer:
 
     def __init__(self, console):
         import threading
+
         self._console = console
         self._stop_event = threading.Event()
         self._thread: Optional[threading.Thread] = None
 
     def start(self) -> None:
         import threading
+
         if self._thread is not None:
             return
         self._thread = threading.Thread(target=self._run, daemon=True)
@@ -844,15 +846,17 @@ class StoryStreamer:
                 random.shuffle(state["deck"])
                 # Don't show the last story first in the new deck.
                 if state["last_title"] and state["deck"]:
-                    if state["deck"][-1][0] == state["last_title"] and len(
-                            state["deck"]) > 1:
+                    if (
+                        state["deck"][-1][0] == state["last_title"]
+                        and len(state["deck"]) > 1
+                    ):
                         state["deck"][-1], state["deck"][0] = (
-                            state["deck"][0], state["deck"][-1])
+                            state["deck"][0],
+                            state["deck"][-1],
+                        )
             title, body = state["deck"].pop()
             state["last_title"] = title
-            state["paragraphs"] = [
-                p.strip() for p in body.split("\n\n") if p.strip()
-            ]
+            state["paragraphs"] = [p.strip() for p in body.split("\n\n") if p.strip()]
             state["paragraph_idx"] = 0
             self._console.print()
             self._console.print(f"  [bold cyan]§[/]  [bold]{title}[/]")
@@ -897,7 +901,8 @@ class StoryStreamer:
         self._console.print(
             "  [dim italic]☕ Press [bold]Space[/] (or [bold]↓[/]) to read "
             "short field notes while you wait. They loop forever; scroll "
-            "your terminal up to re-read. [bold]Ctrl+C[/] cancels the run.[/]")
+            "your terminal up to re-read. [bold]Ctrl+C[/] cancels the run.[/]"
+        )
         self._console.print()
 
         # State that the closure mutates across keypresses.
@@ -947,9 +952,12 @@ class StoryStreamer:
                         self._print_paragraph(state)
                     # Other arrows / ESC alone — silently ignore so
                     # accidental key mashing doesn't burn through stories.
-                elif ch == "\x03":  # Ctrl+C — kernel doesn't deliver in cbreak; forward.
+                elif (
+                    ch == "\x03"
+                ):  # Ctrl+C — kernel doesn't deliver in cbreak; forward.
                     import os
                     import signal
+
                     self._stop_event.set()
                     os.kill(os.getpid(), signal.SIGINT)
                     return

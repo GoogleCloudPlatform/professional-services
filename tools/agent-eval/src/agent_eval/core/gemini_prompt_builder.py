@@ -162,17 +162,14 @@ Format your entire response as a single Markdown document.
         self.custom_strategy_content = custom_strategy_content
         self.focus_directive = focus_directive
 
-    def _format_context_section(self,
-                                title: str,
-                                content: str,
-                                lang: str = "") -> str:
+    def _format_context_section(self, title: str, content: str, lang: str = "") -> str:
         return f"**{title}**\n```{lang}\n{content}\n```"
 
     def _format_code_section(self, file_path: str, lang: str = "python") -> str:
         content = self.context_files.get(
-            file_path, f"Error: File '{file_path}' not found.")
-        return self._format_context_section(f"File: `{file_path}`", content,
-                                            lang)
+            file_path, f"Error: File '{file_path}' not found."
+        )
+        return self._format_context_section(f"File: `{file_path}`", content, lang)
 
     def _build_focus_section(self) -> str:
         """Build the focus directive section for prompts."""
@@ -183,37 +180,47 @@ Format your entire response as a single Markdown document.
             f"The developer has indicated the following priority for this analysis:\n"
             f"> {self.focus_directive}\n\n"
             "Weight your analysis toward these areas. Highlight metrics, code patterns, "
-            "and evidence that are most relevant to this priority.")
+            "and evidence that are most relevant to this priority."
+        )
 
     def build_prompt(self) -> str:
         """Builds the final prompt string for Call 1 (current run diagnosis)."""
         summary_section = self._format_context_section(
-            "Evaluation Summary", json.dumps(self.summary_data, indent=2),
-            "json")
+            "Evaluation Summary", json.dumps(self.summary_data, indent=2), "json"
+        )
 
         explanations_section = (
-            f"**Detailed Explanations per Metric:**\n{self.analysis_content}")
+            f"**Detailed Explanations per Metric:**\n{self.analysis_content}"
+        )
 
         metric_definitions_section = self._format_code_section(
-            self.consolidated_metrics_path, "json")
+            self.consolidated_metrics_path, "json"
+        )
 
         deterministic_logic_section = self._format_code_section(
-            "evaluation/core/deterministic_metrics.py")
+            "evaluation/core/deterministic_metrics.py"
+        )
 
         # Dynamically include all .py files except deterministic_metrics.py
         source_code_parts = []
         for file_path in self.context_files:
-            if (file_path.endswith(".py") and
-                    "deterministic_metrics.py" not in file_path):
+            if (
+                file_path.endswith(".py")
+                and "deterministic_metrics.py" not in file_path
+            ):
                 source_code_parts.append(self._format_code_section(file_path))
 
-        source_code_section = ("\n".join(source_code_parts) if source_code_parts
-                               else "No agent source code provided.")
+        source_code_section = (
+            "\n".join(source_code_parts)
+            if source_code_parts
+            else "No agent source code provided."
+        )
 
         questions_section = self._format_context_section(
             "Questions Evaluated",
-            self.context_files.get(self.question_file_path,
-                                   "Questions file not found."),
+            self.context_files.get(
+                self.question_file_path, "Questions file not found."
+            ),
             "json",
         )
 
@@ -224,10 +231,12 @@ Format your entire response as a single Markdown document.
                 f"**STRATEGIC FRAMEWORK:**\n"
                 f"Please adhere to the following framework when analyzing the agent:\n\n"
                 f"{self.custom_strategy_content}\n\n"
-                f"---")
+                f"---"
+            )
 
         # ADK optimization patterns
         from agent_eval.core.adk_optimization_patterns import ADK_OPTIMIZATION_PATTERNS
+
         adk_patterns_section = f"```markdown\n{ADK_OPTIMIZATION_PATTERNS}\n```"
 
         return self.BASE_TEMPLATE.format(
@@ -274,35 +283,44 @@ Format your entire response as a single Markdown document.
             elif b_git["commit"] == c_git["commit"]:
                 git_diff_section = (
                     "*Both runs share the same git commit (`{}`). The metric changes are likely due "
-                    "to non-determinism in LLM responses, not code changes.*".
-                    format(b_git["commit"][:8]))
+                    "to non-determinism in LLM responses, not code changes.*".format(
+                        b_git["commit"][:8]
+                    )
+                )
             else:
-                git_diff_section = "*Git diff could not be computed between the two commits.*"
+                git_diff_section = (
+                    "*Git diff could not be computed between the two commits.*"
+                )
 
         # Agent source code
         source_code_parts = []
         for file_path in self.context_files:
-            if file_path.endswith(
-                    ".py") and "deterministic_metrics.py" not in file_path:
+            if (
+                file_path.endswith(".py")
+                and "deterministic_metrics.py" not in file_path
+            ):
                 source_code_parts.append(self._format_code_section(file_path))
-        source_code_section = ("\n".join(source_code_parts) if source_code_parts
-                               else "No agent source code provided.")
+        source_code_section = (
+            "\n".join(source_code_parts)
+            if source_code_parts
+            else "No agent source code provided."
+        )
 
         # Current summary (compact)
-        current_summary = json.dumps(self.summary_data.get(
-            "overall_summary", {}),
-                                     indent=2)
+        current_summary = json.dumps(
+            self.summary_data.get("overall_summary", {}), indent=2
+        )
 
         return self.COMPARISON_TEMPLATE.format(
             focus_section=self._build_focus_section(),
             baseline_id=comparison_data.get("baseline_id", "unknown"),
             current_id=comparison_data.get("current_id", "unknown"),
             baseline_run_name=comparison_data.get(
-                "baseline_run_name",
-                comparison_data.get("baseline_id", "unknown")),
+                "baseline_run_name", comparison_data.get("baseline_id", "unknown")
+            ),
             current_run_name=comparison_data.get(
-                "current_run_name", comparison_data.get("current_id",
-                                                        "unknown")),
+                "current_run_name", comparison_data.get("current_id", "unknown")
+            ),
             comparison_table=comparison_table,
             git_diff_section=git_diff_section,
             current_summary=current_summary,

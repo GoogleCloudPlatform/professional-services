@@ -38,8 +38,7 @@ TOTAL_STEPS = 2
 def _step_header(n: int, title: str, description: str) -> None:
     """Print a formatted step header."""
     console.print()
-    console.print(
-        Rule(f"  Step {n}/{TOTAL_STEPS}: {title}  ", style="bold blue"))
+    console.print(Rule(f"  Step {n}/{TOTAL_STEPS}: {title}  ", style="bold blue"))
     console.print(f"  [dim]{description}[/]")
     console.print()
 
@@ -53,8 +52,9 @@ def _find_eval_dir(agent_dir: Path) -> Path | None:
     return None
 
 
-def _prompt_for_config(agent_dir, app_name, questions_file, base_url,
-                       results_dir, run_id):
+def _prompt_for_config(
+    agent_dir, app_name, questions_file, base_url, results_dir, run_id
+):
     """Interactively prompt for any missing configuration."""
     from rich.prompt import Prompt
 
@@ -71,7 +71,8 @@ def _prompt_for_config(agent_dir, app_name, questions_file, base_url,
                 title="[bold]Agent Directory[/]",
                 border_style="blue",
                 padding=(1, 2),
-            ))
+            )
+        )
         raw = Prompt.ask("  Agent directory")
         agent_path = Path(raw).resolve()
 
@@ -92,6 +93,7 @@ def _prompt_for_config(agent_dir, app_name, questions_file, base_url,
         auto_detected = None
         if eval_path:
             from agent_eval.core.config import find_eval_files
+
             discovered = find_eval_files(eval_path)
             if discovered["golden_data"]:
                 auto_detected = str(discovered["golden_data"][0])
@@ -105,15 +107,15 @@ def _prompt_for_config(agent_dir, app_name, questions_file, base_url,
                 title="[bold]Questions File[/]",
                 border_style="blue",
                 padding=(1, 2),
-            ))
+            )
+        )
         questions_file = Prompt.ask(
             "  Questions file",
             default=auto_detected,
         )
 
     if not Path(questions_file).exists():
-        console.print(
-            f"\n  [red]Error:[/] Questions file not found: {questions_file}")
+        console.print(f"\n  [red]Error:[/] Questions file not found: {questions_file}")
         sys.exit(1)
 
     # ── Base URL ───────────────────────────────────────────────────────────
@@ -128,7 +130,8 @@ def _prompt_for_config(agent_dir, app_name, questions_file, base_url,
                 title="[bold]Base URL[/]",
                 border_style="blue",
                 padding=(1, 2),
-            ))
+            )
+        )
         base_url = Prompt.ask("  Base URL", default="http://localhost:8501")
 
     # ── Results directory ──────────────────────────────────────────────────
@@ -148,64 +151,77 @@ def _prompt_for_config(agent_dir, app_name, questions_file, base_url,
                 title="[bold]Run ID[/]",
                 border_style="blue",
                 padding=(1, 2),
-            ))
+            )
+        )
         default_ts = datetime.now().strftime("%Y%m%d_%H%M%S")
-        run_id = Prompt.ask("  Run ID",
-                            default=default_ts).strip().replace(" ", "-")
+        run_id = Prompt.ask("  Run ID", default=default_ts).strip().replace(" ", "-")
 
     return agent_path, app_name, questions_file, base_url, results_dir, run_id
 
 
 @click.command()
-@click.option("--agent-dir",
-              default=None,
-              help="Path to the agent module directory (containing agent.py).")
+@click.option(
+    "--agent-dir",
+    default=None,
+    help="Path to the agent module directory (containing agent.py).",
+)
 @click.option(
     "--app-name",
     default=None,
-    help="Name of the agent application (defaults to agent dir name).")
-@click.option("--questions-file",
-              default=None,
-              help="Path to the Golden Dataset JSON.")
-@click.option("--base-url",
-              default=None,
-              help="Agent API URL (default: http://localhost:8501).")
+    help="Name of the agent application (defaults to agent dir name).",
+)
+@click.option("--questions-file", default=None, help="Path to the Golden Dataset JSON.")
+@click.option(
+    "--base-url", default=None, help="Agent API URL (default: http://localhost:8501)."
+)
 @click.option("--user-id", default="eval_user", help="Session User ID.")
 @click.option(
     "--results-dir",
     default=None,
-    help="Directory for outputs (auto-detected from eval/ if omitted).")
+    help="Directory for outputs (auto-detected from eval/ if omitted).",
+)
 @click.option(
     "--run-id",
     default=None,
     help="Name for the results folder (e.g., 'baseline', 'tool-hardening'). "
-    "Defaults to a timestamp like 20260319_060430.")
-@click.option("--num-questions",
-              type=int,
-              default=-1,
-              help="Limit number of questions (-1 = all).")
+    "Defaults to a timestamp like 20260319_060430.",
+)
+@click.option(
+    "--num-questions",
+    type=int,
+    default=-1,
+    help="Limit number of questions (-1 = all).",
+)
 @click.option("--runs", type=int, default=1, help="Runs per question.")
-@click.option("--skip-traces",
-              is_flag=True,
-              help="Skip trace retrieval (faster).")
-@click.option("--filter",
-              "metadata_filters",
-              multiple=True,
-              help="Metadata filters (key:val).")
-@click.option("--state",
-              "state_variables",
-              multiple=True,
-              help="State variables (key:val).")
-@click.option("--user",
-              default=os.environ.get("USER"),
-              help="Operator username.")
+@click.option("--skip-traces", is_flag=True, help="Skip trace retrieval (faster).")
+@click.option(
+    "--filter", "metadata_filters", multiple=True, help="Metadata filters (key:val)."
+)
+@click.option(
+    "--state", "state_variables", multiple=True, help="State variables (key:val)."
+)
+@click.option("--user", default=os.environ.get("USER"), help="Operator username.")
 @click.option(
     "--debug",
     is_flag=True,
-    help="Show detailed logs from agent interactions and trace retrieval.")
-def interact(agent_dir, app_name, questions_file, base_url, user_id,
-             results_dir, run_id, num_questions, runs, skip_traces,
-             metadata_filters, state_variables, user, debug):
+    help="Show detailed logs from agent interactions and trace retrieval.",
+)
+def interact(
+    agent_dir,
+    app_name,
+    questions_file,
+    base_url,
+    user_id,
+    results_dir,
+    run_id,
+    num_questions,
+    runs,
+    skip_traces,
+    metadata_filters,
+    state_variables,
+    user,
+    debug,
+):
     """Run interactions against a live agent and collect traces.
 
     Sends queries from a golden dataset to a running agent endpoint, collects
@@ -221,13 +237,17 @@ def interact(agent_dir, app_name, questions_file, base_url, user_id,
     """
     from agent_eval.cli.main import _display_banner
     from agent_eval.core.evaluator import configure_logging
+
     _display_banner()
     configure_logging(debug=debug)
 
     # ── Interactive prompts for missing config ─────────────────────────────
 
-    agent_path, app_name, questions_file, base_url, results_dir, run_id = \
-        _prompt_for_config(agent_dir, app_name, questions_file, base_url, results_dir, run_id)
+    agent_path, app_name, questions_file, base_url, results_dir, run_id = (
+        _prompt_for_config(
+            agent_dir, app_name, questions_file, base_url, results_dir, run_id
+        )
+    )
 
     # ── Overview ───────────────────────────────────────────────────────────
 
@@ -244,43 +264,35 @@ def interact(agent_dir, app_name, questions_file, base_url, user_id,
             title="[bold]Interact[/]",
             border_style="blue",
             padding=(1, 2),
-        ))
+        )
+    )
     _continue("Press Enter to start interacting →", console=console)
 
     # ── Build config ───────────────────────────────────────────────────────
 
     config = {
-        "app_name":
-            app_name,
-        "questions_file":
-            questions_file,
-        "base_url":
-            base_url,
-        "user_id":
-            user_id,
-        "num_questions":
-            num_questions,
-        "results_dir":
-            results_dir,
-        "runs":
-            runs,
-        "metadata_filters":
-            list(metadata_filters) if metadata_filters else None,
-        "state_variables":
-            list(state_variables) if state_variables else None,
-        "skip_traces":
-            skip_traces,
-        "user":
-            user,
+        "app_name": app_name,
+        "questions_file": questions_file,
+        "base_url": base_url,
+        "user_id": user_id,
+        "num_questions": num_questions,
+        "results_dir": results_dir,
+        "runs": runs,
+        "metadata_filters": list(metadata_filters) if metadata_filters else None,
+        "state_variables": list(state_variables) if state_variables else None,
+        "skip_traces": skip_traces,
+        "user": user,
     }
 
     # ── Step 1: Run interactions ───────────────────────────────────────────
 
     _step_header(
-        1, "Run interactions",
+        1,
+        "Run interactions",
         "Sending each question from the golden dataset to your agent.\n"
         "  The agent's responses and OpenTelemetry traces are captured\n"
-        "  for evaluation.")
+        "  for evaluation.",
+    )
 
     runner = InteractionRunner(config)
 
@@ -288,8 +300,7 @@ def interact(agent_dir, app_name, questions_file, base_url, user_id,
         raw_df = asyncio.run(runner.run())
     except Exception as e:
         console.print(f"    [red]Error during interaction run:[/] {e}")
-        console.print(
-            f"    [dim]Make sure your agent is running at {base_url}[/]")
+        console.print(f"    [dim]Make sure your agent is running at {base_url}[/]")
         sys.exit(1)
 
     if raw_df.empty:
@@ -306,9 +317,11 @@ def interact(agent_dir, app_name, questions_file, base_url, user_id,
     # ── Step 2: Process & enrich ───────────────────────────────────────────
 
     _step_header(
-        2, "Process & enrich logs",
+        2,
+        "Process & enrich logs",
         "Enriching raw interaction logs with trace data (tool calls,\n"
-        "  token counts, timing) and saving in evaluation format.")
+        "  token counts, timing) and saving in evaluation format.",
+    )
 
     processor = InteractionProcessor(config)
     try:
@@ -322,8 +335,7 @@ def interact(agent_dir, app_name, questions_file, base_url, user_id,
     raw_dir = os.path.join(run_dir, "raw")
     os.makedirs(raw_dir, exist_ok=True)
 
-    output_path = os.path.join(raw_dir,
-                               f"processed_interaction_{app_name}.jsonl")
+    output_path = os.path.join(raw_dir, f"processed_interaction_{app_name}.jsonl")
 
     records = enriched_df.to_dict(orient="records")
     for record in records:
@@ -358,22 +370,25 @@ def interact(agent_dir, app_name, questions_file, base_url, user_id,
     eval_metrics = None
     if eval_path:
         from agent_eval.core.config import find_eval_files
+
         _discovered = find_eval_files(eval_path)
         if _discovered["metrics"]:
             eval_metrics = _discovered["metrics"][0]
-    rel_metrics = os.path.relpath(
-        eval_metrics,
-        cwd) if eval_metrics else "<path/to/metric_definitions.json>"
+    rel_metrics = (
+        os.path.relpath(eval_metrics, cwd)
+        if eval_metrics
+        else "<path/to/metric_definitions.json>"
+    )
 
     console.print()
     console.print(
         Panel(
-            f"[bold green]Interactions complete![/]\n\n"
-            f"[bold]Results:[/]  {rel_run}/",
+            f"[bold green]Interactions complete![/]\n\n[bold]Results:[/]  {rel_run}/",
             title="[bold]Done[/]",
             border_style="green",
             padding=(1, 2),
-        ))
+        )
+    )
 
     console.print()
     console.print("[bold]Next steps — copy and paste:[/]")

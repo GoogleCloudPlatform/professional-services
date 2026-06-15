@@ -25,12 +25,12 @@ import sys
 sys.modules["google.genai"] = MagicMock()
 sys.modules["google.genai.types"] = MagicMock()
 
-from agent_eval.core.converters import AdkHistoryConverter
-
 
 class TestAdkHistoryConverterPerInvocation(unittest.TestCase):
-
     def setUp(self):
+        from agent_eval.core.converters import AdkHistoryConverter
+
+        self.AdkHistoryConverter = AdkHistoryConverter
         self.test_dir = tempfile.mkdtemp()
         self.agent_dir = Path(self.test_dir) / "agent"
         self.history_dir = self.agent_dir / ".adk" / "eval_history"
@@ -44,52 +44,48 @@ class TestAdkHistoryConverterPerInvocation(unittest.TestCase):
 
         # Mock data mimicking the structure found in the Retail agent logs
         history_data = {
-            "eval_set_result_id":
-                "test_run_1",
-            "eval_case_results": [{
-                "eval_id":
-                    "case_1",
-                "session_details":
-                    None,  # This is null in the new format
-                "eval_metric_result_per_invocation": [{
-                    "actual_invocation": {
-                        "invocation_id": "inv_1",
-                        "user_content": {
-                            "parts": [{
-                                "text": "Hello"
-                            }]
-                        },
-                        "final_response": {
-                            "parts": [{
-                                "text": "Hi there"
-                            }]
-                        },
-                        "intermediate_data": {
-                            "invocation_events": [{
-                                "author": "IntakeAgent",
-                                "content": {
-                                    "parts": [{
-                                        "functionCall": {
-                                            "name": "parse_request"
+            "eval_set_result_id": "test_run_1",
+            "eval_case_results": [
+                {
+                    "eval_id": "case_1",
+                    "session_details": None,  # This is null in the new format
+                    "eval_metric_result_per_invocation": [
+                        {
+                            "actual_invocation": {
+                                "invocation_id": "inv_1",
+                                "user_content": {"parts": [{"text": "Hello"}]},
+                                "final_response": {"parts": [{"text": "Hi there"}]},
+                                "intermediate_data": {
+                                    "invocation_events": [
+                                        {
+                                            "author": "IntakeAgent",
+                                            "content": {
+                                                "parts": [
+                                                    {
+                                                        "functionCall": {
+                                                            "name": "parse_request"
+                                                        }
+                                                    }
+                                                ]
+                                            },
                                         }
-                                    }]
-                                }
-                            }]
+                                    ]
+                                },
+                            }
                         }
-                    }
-                }],
-                "overall_eval_metric_results": [{
-                    "metric_name": "hallucinations_v1",
-                    "score": 0.8
-                }]
-            }]
+                    ],
+                    "overall_eval_metric_results": [
+                        {"metric_name": "hallucinations_v1", "score": 0.8}
+                    ],
+                }
+            ],
         }
 
         history_file = self.history_dir / "test_history.json"
         with open(history_file, "w") as f:
             json.dump(history_data, f)
 
-        converter = AdkHistoryConverter(str(self.agent_dir))
+        converter = self.AdkHistoryConverter(str(self.agent_dir))
         rows = converter.run()
 
         self.assertEqual(len(rows), 1)
@@ -98,8 +94,8 @@ class TestAdkHistoryConverterPerInvocation(unittest.TestCase):
         # 1. Verify Data Extraction
         self.assertEqual(row["question_id"], "case_1")
         self.assertEqual(
-            row["app_name"],
-            "IntakeAgent")  # Should discover app name from tool events
+            row["app_name"], "IntakeAgent"
+        )  # Should discover app name from tool events
         self.assertEqual(row["base_url"], "simulation")
 
         # 2. Verify Conversation Reconstruction
@@ -114,7 +110,8 @@ class TestAdkHistoryConverterPerInvocation(unittest.TestCase):
         self.assertIn("invocation", span_names)
         self.assertIn("invoke_agent IntakeAgent", span_names)
         self.assertTrue(
-            any("execute_tool parse_request" in name for name in span_names))
+            any("execute_tool parse_request" in name for name in span_names)
+        )
 
         # 4. Verify ADK Scores
         self.assertIn("adk_score.hallucinations_v1", row)
