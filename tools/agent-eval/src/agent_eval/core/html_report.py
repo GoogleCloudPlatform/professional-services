@@ -463,13 +463,41 @@ def _build_csv_lookup(results_csv: Optional[Path]) -> Dict[str, Dict[str, Any]]:
                                     "text": _truncate_for_payload(text, 4000),
                                 }
                             )
-                else:
+                if not conversation:
+                    fss = _safe_parse(row.get("final_session_state")) or {}
+                    history_turns = fss.get("state", {}).get("history") or []
+                    for h in history_turns:
+                        if isinstance(h, dict):
+                            author = h.get("author") or h.get("role") or "user"
+                            text = h.get("text") or ""
+                            if text:
+                                conversation.append(
+                                    {
+                                        "role": (
+                                            "model"
+                                            if author
+                                            in ("agents", "model", "assistant")
+                                            else "user"
+                                        ),
+                                        "text": _truncate_for_payload(text, 4000),
+                                    }
+                                )
+
+                if not conversation:
                     # Fall back to user_inputs + final_response.
                     for ui in user_inputs[:20]:
                         conversation.append(
                             {
                                 "role": "user",
                                 "text": _truncate_for_payload(str(ui), 4000),
+                            }
+                        )
+                    final_resp = row.get("final_response") or row.get("response") or ""
+                    if final_resp:
+                        conversation.append(
+                            {
+                                "role": "model",
+                                "text": _truncate_for_payload(str(final_resp), 4000),
                             }
                         )
 
