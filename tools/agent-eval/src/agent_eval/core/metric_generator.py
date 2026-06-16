@@ -45,6 +45,7 @@ VALID_SOURCE_COLUMNS = {
     "user_inputs",
     "final_response",
     "trace_summary",
+    "final_session_state",
     "extracted_data:tool_interactions",
     "extracted_data:tool_declarations",
     "extracted_data:state_variables",
@@ -1047,9 +1048,15 @@ def _validate_single_metric(name: str, defn: Dict) -> List[str]:
         errors.append(
             f"'{name}' (kind: {kind}): missing required field(s) {sorted(missing)}"
         )
-
     # custom_llm_judge — extra structural checks.
     if kind == KIND_CUSTOM_LLM_JUDGE:
+        if "prompt_template" not in defn and (
+            "criteria" not in defn or "rating_scores" not in defn
+        ):
+            errors.append(
+                f"'{name}' (kind: {kind}): must provide 'prompt_template' or "
+                f"both 'criteria' and 'rating_scores'"
+            )
         criteria = defn.get("criteria")
         if criteria is not None and not isinstance(criteria, dict):
             errors.append(f"'{name}': 'criteria' must be a dict of name → description")
@@ -1109,6 +1116,7 @@ def _validate_single_metric(name: str, defn: Dict) -> List[str]:
                         col not in VALID_SOURCE_COLUMNS
                         and not col.startswith("extracted_data:")
                         and not col.startswith("reference_data:")
+                        and not col.startswith("final_session_state:")
                     ):
                         errors.append(
                             f"'{name}.{placeholder}': invalid source_column '{col}'. "

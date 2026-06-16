@@ -365,12 +365,13 @@ def _required_reference_fields(custom_metrics: Dict[str, Any]) -> List[Tuple[str
         if not isinstance(defn, dict):
             continue
         # Custom LLM judge with requires_reference + reference_data:<field> mapping
-        ref_mapping = (defn.get("dataset_mapping") or {}).get("reference") or {}
-        col = ref_mapping.get("source_column", "")
-        if isinstance(col, str) and col.startswith("reference_data:"):
-            field = col.split(":", 1)[1]
-            if field:
-                pairs.append((name, field))
+        for placeholder, mapping in (defn.get("dataset_mapping") or {}).items():
+            if isinstance(mapping, dict):
+                col = mapping.get("source_column", "")
+                if isinstance(col, str) and col.startswith("reference_data:"):
+                    field = col.split(":", 1)[1]
+                    if field:
+                        pairs.append((name, field))
         # Managed metric with explicit reference_field declaration
         ref_field = defn.get("reference_field")
         if isinstance(ref_field, str) and ref_field:

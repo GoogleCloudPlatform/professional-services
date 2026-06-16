@@ -510,6 +510,8 @@ def run_single_metric_evaluation(
     for attempt in range(retries):
         try:
             logger.info(f"Starting evaluation: {metric_name} (Attempt {attempt + 1})")
+            logger.info(f"[{metric_name}] eval_dataset columns: {list(eval_dataset.columns)}")
+            logger.info(f"[{metric_name}] eval_dataset sample: {eval_dataset.head(1).to_dict(orient='records')}")
             result = client.evals.evaluate(
                 dataset=eval_dataset, metrics=[metric_obj], **eval_kwargs
             )

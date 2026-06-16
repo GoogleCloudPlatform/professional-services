@@ -105,12 +105,25 @@ def parametrized_managed(
 def custom_llm_judge(
     name: str,
     *,
-    criteria: Dict[str, str],
-    rating_scores: Dict[str, str],
+    criteria: Dict[str, str] | None = None,
+    rating_scores: Dict[str, str] | None = None,
     instruction: str | None = None,
+    prompt_template: str | None = None,
 ):
     """Build a fully-custom LLM judge as ``types.LLMMetric``."""
     vt = _vt()
+    if prompt_template:
+        return vt.LLMMetric(
+            name=name,
+            prompt_template=prompt_template,
+        )
+
+    if not criteria or not rating_scores:
+        raise ValueError(
+            f"Metric '{name}' (custom_llm_judge): 'prompt_template' or "
+            f"both 'criteria' and 'rating_scores' are required."
+        )
+
     builder_kwargs: Dict[str, Any] = {
         "criteria": criteria,
         "rating_scores": rating_scores,
@@ -212,16 +225,18 @@ def build_metric(name: str, spec: Dict[str, Any], *, base_dir: Path | None = Non
     if kind == KIND_CUSTOM_LLM_JUDGE:
         criteria = spec.get("criteria")
         rating_scores = spec.get("rating_scores")
-        if not criteria or not rating_scores:
+        prompt_template = spec.get("prompt_template")
+        if not prompt_template and (not criteria or not rating_scores):
             raise ValueError(
-                f"Metric '{name}' (custom_llm_judge): both 'criteria' and "
-                f"'rating_scores' are required."
+                f"Metric '{name}' (custom_llm_judge): 'prompt_template' or "
+                f"both 'criteria' and 'rating_scores' are required."
             )
         return custom_llm_judge(
             name=name,
             criteria=criteria,
             rating_scores=rating_scores,
             instruction=spec.get("instruction"),
+            prompt_template=prompt_template,
         )
 
     if kind == KIND_COMPUTATION:
