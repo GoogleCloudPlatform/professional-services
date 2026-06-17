@@ -99,6 +99,11 @@ METRIC_TEMPLATES = {
             },
         },
     },
+    "state_grounding": {
+        "kind": "managed",
+        "base": "GROUNDING",
+        "dataset_mapping": {"context": {"source_column": "final_session_state"}},
+    },
     "safety": {
         "kind": "managed",
         "base": "SAFETY",

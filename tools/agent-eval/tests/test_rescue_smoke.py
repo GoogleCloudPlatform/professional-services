@@ -157,6 +157,41 @@ class TestA15ManagedMetricColumnShape(unittest.TestCase):
         self.assertIsNone(err)
         self.assertEqual(ed["prompt"].iloc[0], "use-this-instead")
 
+    def test_state_grounded_metric_extraction(self):
+        """Verify that we can extract nested fields from final_session_state
+        using dataset_mapping."""
+        from agent_eval.core.evaluator import _build_managed_eval_dataset
+
+        row = {
+            "user_inputs": ["What's in the legal docs?"],
+            "final_response": "Which dataset?",
+            "final_session_state": {
+                "state": {
+                    "campaign_brief": "This is the campaign brief content.",
+                    "other_var": "unused",
+                }
+            },
+        }
+        df = pd.DataFrame([row])
+
+        metric_info = {
+            "kind": "managed",
+            "base": "GROUNDING",
+            "dataset_mapping": {
+                "context": {"source_column": "final_session_state:state.campaign_brief"}
+            },
+        }
+
+        ed, err = _build_managed_eval_dataset(
+            metric_info,
+            "plan_grounding",
+            "GROUNDING",
+            df,
+        )
+        self.assertIsNone(err)
+        self.assertEqual(set(ed.columns), {"prompt", "response", "context"})
+        self.assertEqual(ed["context"].iloc[0], "This is the campaign brief content.")
+
 
 # ---------------------------------------------------------------------------
 # A4 — GCS bucket location decoupled from Vertex eval location
@@ -464,6 +499,28 @@ class TestA2HonestFailureCopy(unittest.TestCase):
         self.assertIsNotNone(error_info)
         self.assertEqual(error_info["exception_type"], "ValueError")
         self.assertIn("contents", error_info["message"])
+
+
+class TestCustomLlmJudgeStateGrounded(unittest.TestCase):
+    def test_custom_placeholder_mapped_to_state(self):
+        from agent_eval.core.data_mapper import map_dataset_columns
+
+        row = {
+            "user_inputs": ["prompt"],
+            "final_response": "response",
+            "final_session_state": {"state": {"my_data": "value_from_state"}},
+        }
+        agent_df = pd.DataFrame([row])
+        original_df = agent_df.copy()
+
+        mapping = {"state_val": {"source_column": "final_session_state:state.my_data"}}
+
+        eval_dataset = map_dataset_columns(
+            agent_df, original_df, mapping, "my_metric", is_managed_metric=False
+        )
+
+        self.assertEqual(set(eval_dataset.columns), {"prompt", "response", "state_val"})
+        self.assertEqual(eval_dataset["state_val"].iloc[0], "value_from_state")
 
 
 if __name__ == "__main__":

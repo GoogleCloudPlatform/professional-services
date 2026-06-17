@@ -230,5 +230,36 @@ class TestInitAutoApprove(unittest.TestCase):
             assert "Path B" not in result.output
 
 
+class TestRequiredReferenceFields(unittest.TestCase):
+    def test_extracts_from_dataset_mapping(self):
+        from agent_eval.cli.commands.init import _required_reference_fields
+
+        custom_metrics = {
+            "m1": {
+                "kind": "custom_llm_judge",
+                "dataset_mapping": {
+                    "reference": {"source_column": "reference_data:expected_behavior"}
+                },
+            },
+            "m2": {
+                "kind": "custom_llm_judge",
+                "dataset_mapping": {
+                    "expected_audiences": {
+                        "source_column": "reference_data:expected_audiences"
+                    }
+                },
+            },
+            "m3": {"kind": "managed", "reference_field": "expected_route"},
+        }
+
+        fields = _required_reference_fields(custom_metrics)
+        expected = [
+            ("m1", "expected_behavior"),
+            ("m2", "expected_audiences"),
+            ("m3", "expected_route"),
+        ]
+        self.assertEqual(fields, expected)
+
+
 if __name__ == "__main__":
     unittest.main()

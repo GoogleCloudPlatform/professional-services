@@ -280,6 +280,26 @@ def map_dataset_columns(
     """
     eval_dataset = pd.DataFrame(index=agent_df.index)
 
+    SDK_LIST_FIELDS = {
+        "tool_declarations",
+        "conversation_history",
+        "intermediate_events",
+    }
+
+    def normalize_input(x):
+        if isinstance(x, list):
+            if not x:
+                return ""
+            # Structured data (dicts) → valid JSON array
+            # This handles tool_interactions, grounding context, etc.
+            if any(isinstance(item, dict) for item in x):
+                return json.dumps(x)
+            # Simple values → newline-joined for template readability
+            return "\n".join(str(item) for item in x)
+        elif isinstance(x, dict):
+            return json.dumps(x)
+        return str(x) if x is not None else ""
+
     # Add default prompt/response for ALL LLM metrics
     # The SDK expects these standard columns to be present
     # Add 'prompt' if not explicitly mapped
@@ -423,12 +443,6 @@ def map_dataset_columns(
                     # These are passed directly to the SDK without string conversion
                     # Note: "history" is NOT included here - it needs to be converted to string
                     # for MULTI_TURN_CHAT_QUALITY template substitution ({history} placeholder)
-                    SDK_LIST_FIELDS = {
-                        "tool_declarations",
-                        "conversation_history",
-                        "intermediate_events",
-                    }
-
                     if placeholder in SDK_LIST_FIELDS:
                         # Keep as list/object - SDK expects these as proper structures
                         def parse_if_needed(x):
@@ -440,20 +454,6 @@ def map_dataset_columns(
                         eval_dataset[placeholder] = val_series.apply(parse_if_needed)
                     else:
                         # Robust Flattening for custom placeholders (Templates need strings)
-                        def normalize_input(x):
-                            if isinstance(x, list):
-                                if not x:
-                                    return ""
-                                # Structured data (dicts) → valid JSON array
-                                # This handles tool_interactions, grounding context, etc.
-                                if any(isinstance(item, dict) for item in x):
-                                    return json.dumps(x)
-                                # Simple values → newline-joined for template readability
-                                return "\n".join(str(item) for item in x)
-                            elif isinstance(x, dict):
-                                return json.dumps(x)
-                            return str(x) if x is not None else ""
-
                         eval_dataset[placeholder] = val_series.apply(normalize_input)
             else:
                 # Column not found - check for special fallback cases
@@ -480,7 +480,7 @@ def map_dataset_columns(
                         )
 
                     if sub_agent_trace_series is not None:
-                        eval_dataset[placeholder] = pd.DataFrame(
+                        val_series = pd.DataFrame(
                             {
                                 "inputs": user_inputs_series,
                                 "trace": sub_agent_trace_series,
@@ -493,7 +493,12 @@ def map_dataset_columns(
                         )
                     else:
                         # No sub_agent_trace available, use empty history
-                        eval_dataset[placeholder] = [[] for _ in range(len(agent_df))]
+                        val_series = pd.Series([[]] * len(agent_df))
+
+                    if placeholder in SDK_LIST_FIELDS:
+                        eval_dataset[placeholder] = val_series
+                    else:
+                        eval_dataset[placeholder] = val_series.apply(normalize_input)
                 else:
                     # Use default value for other columns
                     logger.debug(

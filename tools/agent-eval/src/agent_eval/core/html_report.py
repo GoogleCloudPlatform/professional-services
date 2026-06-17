@@ -2584,18 +2584,27 @@ _HTML_TEMPLATE = r"""<!doctype html>
             if (!sub || typeof sub !== 'object') {
               return '<div class="verdict-item"><div class="verdict-reasoning">' + escapeHtml(safeStringify(sub)) + '</div></div>';
             }
-            const subScore = sub.score;
+            let subScore = sub.score;
+            if (typeof subScore !== 'number' && sub.label) {
+              subScore = sub.label === 'supported' ? 1.0 : (sub.label === 'unsupported' ? 0.0 : null);
+            }
+            const responseVal = sub.response || sub.sentence;
+            const explanationVal = sub.explanation || sub.rationale;
+            const excerptVal = sub.excerpt || sub.supporting_excerpt;
+
             const subPass = (typeof subScore === 'number') ? subScore >= 0.5 : null;
-            const sym = subPass === true ? '✓' : subPass === false ? '✗' : '—';
+            const sym = subPass === true ? '✓' : subPass === false ? '✗' : (sub.label === 'no_rad' ? '·' : '—');
             const cls = subPass === true ? 'verdict-pass' : subPass === false ? 'verdict-fail' : 'verdict-na';
-            const scoreStr = (typeof subScore === 'number') ? subScore.toFixed(2) : '';
+            const scoreStr = (typeof subScore === 'number') ? subScore.toFixed(2) : (sub.label ? sub.label.toUpperCase() : '');
+            
             return '<div class="verdict-item">' +
               '<div class="verdict-head">' +
                 '<span class="verdict-sym ' + cls + '">' + sym + '</span>' +
-                (scoreStr ? '<span class="verdict-imp">SCORE ' + escapeHtml(scoreStr) + '</span>' : '') +
+                (scoreStr ? '<span class="verdict-imp">' + escapeHtml(scoreStr) + '</span>' : '') +
               '</div>' +
-              (sub.response ? '<div class="verdict-rubric">' + escapeHtml(safeStringify(sub.response)) + '</div>' : '') +
-              (sub.explanation ? '<div class="verdict-reasoning">' + escapeHtml(safeStringify(sub.explanation)) + '</div>' : '') +
+              (responseVal ? '<div class="verdict-rubric">' + escapeHtml(safeStringify(responseVal)) + '</div>' : '') +
+              (explanationVal ? '<div class="verdict-reasoning">' + escapeHtml(safeStringify(explanationVal)) + '</div>' : '') +
+              (excerptVal ? '<div class="verdict-reasoning" style="font-size:10px;color:var(--g-gray-dark)"><b>Excerpt:</b> ' + escapeHtml(safeStringify(excerptVal)) + '</div>' : '') +
               '</div>';
           }).join('') +
           '</div>';
