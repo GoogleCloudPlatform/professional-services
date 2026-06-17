@@ -682,14 +682,6 @@ STARTER_METRICS = [
     ("safety", "Safety", "Safety compliance check (Vertex AI built-in)", False),
 ]
 
-# Descriptions for generated files, shown in the summary
-_FILE_DESCRIPTIONS = {
-    "metrics/metric_definitions.json": "LLM-as-judge scoring rubrics",
-    "scenarios/session_input.json": "Agent name + user ID for traces",
-    "scenarios/conversation_scenarios.json": "User Sim scenario scripts",
-    "eval_data/golden_dataset.json": "Test queries with expected behaviors",
-    "results/.gitkeep": "Evaluation output directory",
-}
 
 
 def _find_agents(search_dir: Path) -> list[tuple[str, Path]]:
