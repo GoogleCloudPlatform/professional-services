@@ -39,13 +39,13 @@ jobs:
     name: 'Build container CI/CD BigQuery ML'
     runs-on: 'ubuntu-latest'
     steps:
-    - uses: 'actions/checkout@v3'
+    - uses: 'actions/checkout@v4'
       with:
         token: $${{ github.token }}
          
     - id: 'auth'
       name: 'Authenticate to Google Cloud'
-      uses: 'google-github-actions/auth@v1'
+      uses: 'google-github-actions/auth@v2'
       with:
         create_credentials_file: 'true'
         workload_identity_provider: $${{ env.WORKLOAD_ID_PROVIDER }}
@@ -60,13 +60,13 @@ jobs:
     name: 'Build container CI/CD TFX'
     runs-on: 'ubuntu-latest'
     steps:
-    - uses: 'actions/checkout@v3'
+    - uses: 'actions/checkout@v4'
       with:
         token: $${{ github.token }}
          
     - id: 'auth'
       name: 'Authenticate to Google Cloud'
-      uses: 'google-github-actions/auth@v1'
+      uses: 'google-github-actions/auth@v2'
       with:
         create_credentials_file: 'true'
         workload_identity_provider: $${{ env.WORKLOAD_ID_PROVIDER }}
@@ -83,13 +83,13 @@ jobs:
     name: 'Build container CI/CD KFP'
     runs-on: 'ubuntu-latest'
     steps:
-    - uses: 'actions/checkout@v3'
+    - uses: 'actions/checkout@v4'
       with:
         token: $${{ github.token }}
          
     - id: 'auth'
       name: 'Authenticate to Google Cloud'
-      uses: 'google-github-actions/auth@v1'
+      uses: 'google-github-actions/auth@v2'
       with:
         create_credentials_file: 'true'
         workload_identity_provider: $${{ env.WORKLOAD_ID_PROVIDER }}
@@ -104,13 +104,13 @@ jobs:
     name: 'Build container for Model Card'
     runs-on: 'ubuntu-latest'
     steps:
-    - uses: 'actions/checkout@v3'
+    - uses: 'actions/checkout@v4'
       with:
         token: $${{ github.token }}
          
     - id: 'auth'
       name: 'Authenticate to Google Cloud'
-      uses: 'google-github-actions/auth@v1'
+      uses: 'google-github-actions/auth@v2'
       with:
         create_credentials_file: 'true'
         workload_identity_provider: $${{ env.WORKLOAD_ID_PROVIDER }}
@@ -126,13 +126,13 @@ jobs:
     name: 'Build container Vertex'
     runs-on: 'ubuntu-latest'
     steps:
-    - uses: 'actions/checkout@v3'
+    - uses: 'actions/checkout@v4'
       with:
         token: $${{ github.token }}
          
     - id: 'auth'
       name: 'Authenticate to Google Cloud'
-      uses: 'google-github-actions/auth@v1'
+      uses: 'google-github-actions/auth@v2'
       with:
         create_credentials_file: 'true'
         workload_identity_provider: $${{ env.WORKLOAD_ID_PROVIDER }}
@@ -148,13 +148,13 @@ jobs:
     name: 'Build container Dataflow'
     runs-on: 'ubuntu-latest'
     steps:
-    - uses: 'actions/checkout@v3'
+    - uses: 'actions/checkout@v4'
       with:
         token: $${{ github.token }}
          
     - id: 'auth'
       name: 'Authenticate to Google Cloud'
-      uses: 'google-github-actions/auth@v1'
+      uses: 'google-github-actions/auth@v2'
       with:
         create_credentials_file: 'true'
         workload_identity_provider: $${{ env.WORKLOAD_ID_PROVIDER }}
