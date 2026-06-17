@@ -12,7 +12,7 @@ dependencies = [
 
     "db-dtypes>=1.4.2,<2.0.0",
     "google-cloud-bigquery>=3.25.0",
-    "google-adk>=1.28.1",
+    "google-adk[eval]>=2.0.0,<3.0.0",
     "tqdm>=4.66.0",
     "questionary>=2.0.0",
     "pydantic-settings>=2.12.0",
