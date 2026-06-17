@@ -126,4 +126,12 @@ def find_eval_files(eval_dir: Path) -> Dict[str, List[Path]]:
     if eval_data_dir.is_dir():
         result["golden_data"] = sorted(eval_data_dir.glob("*.json"))
 
+    dataset_jsonl = eval_dir / "dataset.jsonl"
+    if dataset_jsonl.exists():
+        result["golden_data"].append(dataset_jsonl)
+    else:
+        dataset_json = eval_dir / "dataset.json"
+        if dataset_json.exists():
+            result["golden_data"].append(dataset_json)
+
     return result

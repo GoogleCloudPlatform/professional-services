@@ -20,7 +20,6 @@ import time
 from datetime import datetime
 from typing import Dict, Any, List, Optional
 
-# Import AgentClient for consistent trace analysis logic
 from agent_eval.core.agent_client import AgentClient
 
 logger = logging.getLogger("agent_eval.converters")
@@ -209,11 +208,11 @@ def synthesize_trace_from_events(
 class AdkHistoryConverter:
     def __init__(
         self,
-        agent_dir: str,
+        history_dir: str,
         questions_file: Optional[str] = None,
         prompt_to_reference: Optional[Dict[str, Dict[str, Any]]] = None,
     ):
-        self.agent_dir = agent_dir
+        self.history_dir = history_dir
         self.golden_map = (
             self._load_golden_map(questions_file) if questions_file else {}
         )
@@ -230,12 +229,22 @@ class AdkHistoryConverter:
         """Loads Golden Dataset to merge reference data based on ID."""
         mapping = {}
         try:
-            with open(filepath) as f:
-                data = json.load(f)
-                questions = data.get("questions") or data.get("golden_questions", [])
-                for q in questions:
-                    if "id" in q:
-                        mapping[q["id"]] = q
+            if str(filepath).endswith(".jsonl"):
+                from agent_eval.core.dataset_io import read_dataset
+
+                rows = read_dataset(filepath)
+                for r in rows:
+                    if "id" in r:
+                        mapping[r["id"]] = r
+            else:
+                with open(filepath) as f:
+                    data = json.load(f)
+                    questions = data.get("questions") or data.get(
+                        "golden_questions", []
+                    )
+                    for q in questions:
+                        if "id" in q:
+                            mapping[q["id"]] = q
         except Exception as e:
             logger.warning("Could not load golden dataset: %s", e)
         return mapping
@@ -263,6 +272,10 @@ class AdkHistoryConverter:
 
         for case in case_results:
             eval_id = case.get("eval_id")
+            is_st = False
+            if eval_id and eval_id.startswith("single_turn_"):
+                is_st = True
+                eval_id = eval_id[len("single_turn_") :]
             session_id = case.get("session_id")
 
             # Try two different data formats:
@@ -276,7 +289,7 @@ class AdkHistoryConverter:
                 per_invocation = case.get("eval_metric_result_per_invocation")
                 if per_invocation:
                     row = self._process_per_invocation_format(
-                        eval_id, session_id, per_invocation, case
+                        eval_id, session_id, per_invocation, case, is_st=is_st
                     )
                     if row:
                         extracted_rows.append(row)
@@ -478,8 +491,8 @@ class AdkHistoryConverter:
                 # Metadata fields
                 "question_id": eval_id,
                 "session_id": session_id,
-                "base_url": "simulation",
-                "source_type": "simulation",
+                "base_url": "in-process" if is_st else "simulation",
+                "source_type": "interaction" if is_st else "simulation",
                 "app_name": app_name,
                 "ADK_USER_ID": user_id,
                 "status": {"boolean": "success"},
@@ -518,7 +531,12 @@ class AdkHistoryConverter:
         return extracted_rows
 
     def _process_per_invocation_format(
-        self, eval_id: str, session_id: Optional[str], per_invocation: list, case: dict
+        self,
+        eval_id: str,
+        session_id: Optional[str],
+        per_invocation: list,
+        case: dict,
+        is_st: bool = False,
     ) -> Optional[Dict[str, Any]]:
         """Process Format 2: eval_metric_result_per_invocation (no session_details).
 
@@ -659,8 +677,8 @@ class AdkHistoryConverter:
             },
             "question_id": eval_id,
             "session_id": session_id or str(uuid.uuid4()),
-            "base_url": "simulation",
-            "source_type": "simulation",
+            "base_url": "in-process" if is_st else "simulation",
+            "source_type": "interaction" if is_st else "simulation",
             "app_name": app_name,
             "ADK_USER_ID": "eval_user",
             "status": {"boolean": "success"},
@@ -700,12 +718,11 @@ class AdkHistoryConverter:
             List of dictionaries, each representing one interaction.
             Use write_jsonl() to save to disk.
         """
-        history_dir = os.path.join(self.agent_dir, ".adk", "eval_history")
-        if not os.path.exists(history_dir):
-            raise FileNotFoundError(f"History directory not found: {history_dir}")
+        if not os.path.exists(self.history_dir):
+            raise FileNotFoundError(f"History directory not found: {self.history_dir}")
 
         all_rows = []
-        for file_path in glob.glob(os.path.join(history_dir, "*.json")):
+        for file_path in glob.glob(os.path.join(self.history_dir, "*.json")):
             all_rows.extend(self.process_file(file_path))
 
         return all_rows

@@ -26,9 +26,6 @@ _vertexai_mock = MagicMock()
 _google_cloud_mock = MagicMock()
 
 for mod in [
-    "google.genai",
-    "google.genai.types",
-    "google.genai._api_client",
     "google.cloud.aiplatform",
     "vertexai",
     "vertexai.types",
