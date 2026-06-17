@@ -295,6 +295,12 @@ def _start_storyteller():
     is_flag=True,
     help="Show detailed logs from all phases (ADK, Vertex AI SDK, etc.).",
 )
+@click.option(
+    "--in-process",
+    is_flag=True,
+    default=False,
+    help="Run simulation in-process using ADK Python APIs instead of CLI.",
+)
 def run(
     agent_dir,
     eval_dir,
@@ -314,6 +320,7 @@ def run(
     skip_gemini,
     run_dashboard,
     debug,
+    in_process,
 ):
     """Run the full evaluation pipeline: simulate, interact, evaluate, and analyze.
 
@@ -443,8 +450,12 @@ def run(
     n_multi_turn = sum(1 for r in _all_rows if is_multi_turn(r))
     n_single_turn = sum(1 for r in _all_rows if is_single_turn(r))
 
+    if in_process:
+        run_simulate = n_multi_turn > 0 or n_single_turn > 0
+        run_interact = False
+
     # Validate simulate prerequisites — needs multi-turn rows.
-    if run_simulate:
+    if run_simulate and not in_process:
         if n_multi_turn == 0:
             console.print(
                 f"\n  [yellow]Warning:[/] No multi-turn rows in {dataset_path.name}. "
@@ -478,7 +489,7 @@ def run(
         # If the user-supplied --base-url isn't responding, scan a short list
         # of common ADK / FastAPI / dev-server ports on localhost so users
         # who started the agent on a non-default port aren't punished.
-        if run_interact:
+        if run_interact and not in_process:
             from concurrent.futures import ThreadPoolExecutor
             from rich.prompt import Prompt
 
@@ -770,6 +781,7 @@ def run(
             raw_dir,
             debug=debug,
             max_parallel=sim_parallelism,
+            in_process=in_process,
         )
 
         if _simulate_ok:
@@ -1039,23 +1051,28 @@ def run(
 
         # Prompt for focus if not provided via CLI
         if not focus:
-            from rich.prompt import Prompt
+            from agent_eval.cli._pacing import _pauses_disabled
 
-            console.print(
-                Panel(
-                    "[bold]Do you want to highlight specific metrics?[/]\n\n"
-                    "Enter metric keywords to focus the analysis on (comma-separated).\n"
-                    "Matching metrics will be highlighted in the comparison table.\n\n"
-                    "Examples: [cyan]latency, cache[/] · [cyan]token, cost[/] · [cyan]tool, quality[/]\n\n"
-                    "[dim]Press Enter to skip — all metrics will be weighted equally.[/]",
-                    title="[bold]Analysis Focus[/]",
-                    border_style="blue",
-                    padding=(1, 2),
+            if _pauses_disabled():
+                focus = ""
+            else:
+                from rich.prompt import Prompt
+
+                console.print(
+                    Panel(
+                        "[bold]Do you want to highlight specific metrics?[/]\n\n"
+                        "Enter metric keywords to focus the analysis on (comma-separated).\n"
+                        "Matching metrics will be highlighted in the comparison table.\n\n"
+                        "Examples: [cyan]latency, cache[/] · [cyan]token, cost[/] · [cyan]tool, quality[/]\n\n"
+                        "[dim]Press Enter to skip — all metrics will be weighted equally.[/]",
+                        title="[bold]Analysis Focus[/]",
+                        border_style="blue",
+                        padding=(1, 2),
+                    )
                 )
-            )
-            focus_input = Prompt.ask("  Focus", default="").strip()
-            if focus_input:
-                focus = focus_input
+                focus_input = Prompt.ask("  Focus", default="").strip()
+                if focus_input:
+                    focus = focus_input
 
         analysis_result = _run_analyze_phase(
             run_dir,
@@ -1664,6 +1681,7 @@ def _run_simulate_phase(
     raw_dir: Path,
     debug: bool = False,
     max_parallel: int = _DEFAULT_SIM_PARALLELISM,
+    in_process: bool = False,
 ) -> bool:
     """Run the simulate workflow. Returns True on success.
 
@@ -1672,6 +1690,44 @@ def _run_simulate_phase(
     in parallel (capped by ``max_parallel`` to limit Vertex AI quota
     pressure). Eval_history files are timestamp-suffixed → no collisions.
     """
+    if in_process:
+        import asyncio
+        from agent_eval.core.simulation import run_simulation_in_process
+        from agent_eval.core.converters import write_jsonl
+
+        dataset_path = project_root / "tests" / "eval" / "dataset.jsonl"
+        if not dataset_path.exists():
+            console.print(f"     [red]Dataset not found at {dataset_path}[/]")
+            return False
+
+        console.print("  [bold]1.[/] Running simulation in-process...")
+        try:
+            records = asyncio.run(
+                run_simulation_in_process(
+                    agent_dir=agent_path,
+                    project_root=project_root,
+                    dataset_path=dataset_path,
+                    parallelism=max_parallel,
+                )
+            )
+            if not records:
+                console.print("     [yellow]![/] No simulation records generated.")
+                return False
+
+            sim_output = raw_dir / "processed_interaction_sim.jsonl"
+            write_jsonl(records, str(sim_output))
+            console.print(
+                f"     [green]+[/] Converted [cyan]{len(records)}[/] simulation interaction{'s' if len(records) != 1 else ''}"
+            )
+            return True
+        except Exception as e:
+            console.print(f"     [red]Error running simulation in-process:[/] {e}")
+            if debug:
+                import traceback
+
+                traceback.print_exc()
+            return False
+
     import shutil
     import time
     from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -1994,8 +2050,9 @@ def _run_simulate_phase(
                     prompt_to_ref[p] = ref
         except Exception:
             pass  # converter still works without it; metrics requiring ref will skip
+        history_dir = agent_path / ".adk" / "eval_history"
         converter = AdkHistoryConverter(
-            str(agent_path), None, prompt_to_reference=prompt_to_ref
+            str(history_dir), None, prompt_to_reference=prompt_to_ref
         )
         records = converter.run()
         if not records:

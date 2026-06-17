@@ -13,7 +13,6 @@
 # limitations under the License.
 """agent-eval interact — run interactions against a live agent."""
 
-import asyncio
 import json
 import os
 import sys
@@ -29,6 +28,7 @@ from agent_eval.cli._pacing import _continue
 from agent_eval.core.interactions import InteractionRunner
 from agent_eval.core.processor import InteractionProcessor
 from agent_eval.core.converters import write_jsonl
+from agent_eval.core.path_resolver import find_eval_dir
 
 console = Console()
 
@@ -43,17 +43,15 @@ def _step_header(n: int, title: str, description: str) -> None:
     console.print()
 
 
-def _find_eval_dir(agent_dir: Path) -> Path | None:
-    """Find the eval/ directory — check inside agent_dir first, then parent."""
-    if (agent_dir / "eval").is_dir():
-        return agent_dir / "eval"
-    if (agent_dir.parent / "eval").is_dir():
-        return agent_dir.parent / "eval"
-    return None
-
-
 def _prompt_for_config(
-    agent_dir, app_name, questions_file, base_url, results_dir, run_id
+    agent_dir,
+    app_name,
+    questions_file,
+    base_url,
+    results_dir,
+    run_id,
+    eval_dir=None,
+    in_process=False,
 ):
     """Interactively prompt for any missing configuration."""
     from rich.prompt import Prompt
@@ -84,8 +82,8 @@ def _prompt_for_config(
     if not app_name:
         app_name = agent_path.name
 
-    # Auto-detect eval dir
-    eval_path = _find_eval_dir(agent_path)
+    # Resolve eval dir
+    eval_path = Path(eval_dir).resolve() if eval_dir else find_eval_dir(agent_path)
 
     # ── Questions file ─────────────────────────────────────────────────────
     if not questions_file:
@@ -119,7 +117,7 @@ def _prompt_for_config(
         sys.exit(1)
 
     # ── Base URL ───────────────────────────────────────────────────────────
-    if not base_url:
+    if not in_process and not base_url:
         console.print()
         console.print(
             Panel(
@@ -206,6 +204,21 @@ def _prompt_for_config(
     is_flag=True,
     help="Show detailed logs from agent interactions and trace retrieval.",
 )
+@click.option(
+    "--eval-dir",
+    default=None,
+    help="Path to eval/ directory (auto-detected if omitted).",
+)
+@click.option(
+    "--in-process",
+    is_flag=True,
+    help="Run the agent in-process using ADK Python APIs (no external HTTP calls).",
+)
+@click.option(
+    "--case-id",
+    default=None,
+    help="Specify a case ID to run. If not specified, all cases in the dataset will be run.",
+)
 def interact(
     agent_dir,
     app_name,
@@ -221,6 +234,9 @@ def interact(
     state_variables,
     user,
     debug,
+    in_process,
+    eval_dir,
+    case_id,
 ):
     """Run interactions against a live agent and collect traces.
 
@@ -245,9 +261,102 @@ def interact(
 
     agent_path, app_name, questions_file, base_url, results_dir, run_id = (
         _prompt_for_config(
-            agent_dir, app_name, questions_file, base_url, results_dir, run_id
+            agent_dir,
+            app_name,
+            questions_file,
+            base_url,
+            results_dir,
+            run_id,
+            eval_dir=eval_dir,
+            in_process=in_process,
         )
     )
+
+    if in_process:
+        import asyncio
+        from agent_eval.core.simulation import run_simulation_in_process
+        from agent_eval.core.path_resolver import agent_project_root
+
+        project_root = agent_project_root(agent_path)
+        dataset_path = Path(questions_file)
+
+        console.print(f"\n  Running interactions in-process (Run ID: {run_id})...")
+        try:
+            records = asyncio.run(
+                run_simulation_in_process(
+                    agent_dir=agent_path,
+                    project_root=project_root,
+                    dataset_path=dataset_path,
+                    parallelism=4,
+                    run_mode="single_turn",
+                    case_id=case_id,
+                )
+            )
+            if not records:
+                console.print("  [yellow]No interaction records generated.[/]")
+                sys.exit(1)
+
+            run_dir = Path(results_dir) / run_id
+            raw_dir = run_dir / "raw"
+            raw_dir.mkdir(parents=True, exist_ok=True)
+            output_path = raw_dir / f"processed_interaction_{app_name}.jsonl"
+
+            write_jsonl(records, str(output_path))
+            console.print(
+                f"    [green]+[/] Converted [cyan]{len(records)}[/] interactions"
+            )
+
+            # Print next steps (relative paths)
+            cwd = Path.cwd()
+            rel_run = os.path.relpath(run_dir, cwd)
+            rel_output = os.path.relpath(output_path, cwd)
+            rel_agent = os.path.relpath(agent_path, cwd)
+
+            eval_path = find_eval_dir(agent_path)
+            eval_metrics = None
+            if eval_path:
+                from agent_eval.core.config import find_eval_files
+
+                _discovered = find_eval_files(eval_path)
+                if _discovered["metrics"]:
+                    eval_metrics = _discovered["metrics"][0]
+            rel_metrics = (
+                os.path.relpath(eval_metrics, cwd)
+                if eval_metrics
+                else "<path/to/metric_definitions.json>"
+            )
+
+            console.print()
+            console.print(
+                Panel(
+                    f"[bold green]Interactions complete![/]\n\n[bold]Results:[/]  {rel_run}/",
+                    title="[bold]Done[/]",
+                    border_style="green",
+                    padding=(1, 2),
+                )
+            )
+
+            console.print()
+            console.print("[bold]Next steps — copy and paste:[/]")
+            console.print()
+            console.print("[bold]1.[/] Run deterministic + LLM-as-judge metrics:")
+            console.print()
+            console.print("agent-eval evaluate \\")
+            console.print(f"  --interaction-file {rel_output} \\")
+            console.print(f"  --metrics-files {rel_metrics} \\")
+            console.print(f"  --results-dir {rel_run}")
+            console.print()
+            console.print("[bold]2.[/] Generate AI-powered analysis:")
+            console.print()
+            console.print("agent-eval analyze \\")
+            console.print(f"  --results-dir {rel_run} \\")
+            console.print(f"  --agent-dir {rel_agent}")
+            console.print()
+
+            sys.exit(0)
+        except Exception as e:
+            console.print(f"  [red]Error running interactions in-process:[/] {e}")
+            sys.exit(1)
 
     # ── Overview ───────────────────────────────────────────────────────────
 
@@ -365,7 +474,7 @@ def interact(
     rel_agent = os.path.relpath(agent_path, cwd)
 
     # Try to find metrics file
-    eval_path = _find_eval_dir(agent_path)
+    eval_path = find_eval_dir(agent_path)
     # Find metrics file for the "next steps" hint
     eval_metrics = None
     if eval_path:
