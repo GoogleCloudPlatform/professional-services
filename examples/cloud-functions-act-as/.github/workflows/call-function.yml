@@ -34,7 +34,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
       - name: Assign environment variables
         run: |
@@ -42,14 +42,14 @@ jobs:
 
       - id: 'auth'
         name: 'Authenticate to Google Cloud'
-        uses: 'google-github-actions/auth@v0.6.0'
+        uses: 'google-github-actions/auth@v2'
         with:
           token_format: 'access_token'
           workload_identity_provider: "projects/${{ env.project_number }}/locations/global/workloadIdentityPools/${{ env.wi_pool_name }}/providers/wip-github"
           service_account: 'wi-sample-account@${{ env.project_id }}.iam.gserviceaccount.com'
 
       - name: 'Set up Cloud SDK'
-        uses: 'google-github-actions/setup-gcloud@v0'
+        uses: 'google-github-actions/setup-gcloud@v2'
 
       - id: 'store-token'
         name: 'Store Access Token'
