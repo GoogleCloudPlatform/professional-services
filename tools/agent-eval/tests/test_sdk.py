@@ -40,6 +40,9 @@ async def test_sdk_run_evaluation_success(
         results_dir = Path(results_dir)
         summary_data = {
             "experiment_id": "test_run",
+            "run_type": "test",
+            "test_description": "test description",
+            "interaction_datetime": "2026-06-18T12:00:00",
             "overall_summary": {
                 "llm_based_metrics": {
                     "trajectory_accuracy": {
@@ -104,6 +107,9 @@ async def test_sdk_run_evaluation_error_metric(
         results_dir = Path(results_dir)
         summary_data = {
             "experiment_id": "test_run",
+            "run_type": "test",
+            "test_description": "test description",
+            "interaction_datetime": "2026-06-18T12:00:00",
             "overall_summary": {
                 "llm_based_metrics": {
                     "trajectory_accuracy": {
@@ -181,6 +187,9 @@ async def test_sdk_run_evaluation_threshold_success(
         results_dir = Path(results_dir)
         summary_data = {
             "experiment_id": "test_run",
+            "run_type": "test",
+            "test_description": "test description",
+            "interaction_datetime": "2026-06-18T12:00:00",
             "overall_summary": {
                 "llm_based_metrics": {
                     "trajectory_accuracy": {
@@ -241,6 +250,9 @@ async def test_sdk_run_evaluation_threshold_failure(
         results_dir = Path(results_dir)
         summary_data = {
             "experiment_id": "test_run",
+            "run_type": "test",
+            "test_description": "test description",
+            "interaction_datetime": "2026-06-18T12:00:00",
             "overall_summary": {
                 "llm_based_metrics": {
                     "trajectory_accuracy": {
