@@ -13,6 +13,7 @@
 # limitations under the License.
 """agent-eval evaluate — run metrics on processed interaction data."""
 
+import asyncio
 import json
 import os
 import sys
@@ -256,10 +257,12 @@ def evaluate(
     evaluator = Evaluator(config)
 
     try:
-        evaluator.evaluate(
-            interaction_files=[Path(f) for f in interaction_file],
-            metrics_files=list(metrics_files),
-            results_dir=Path(results_dir),
+        asyncio.run(
+            evaluator.evaluate(
+                interaction_files=[Path(f) for f in interaction_file],
+                metrics_files=list(metrics_files),
+                results_dir=Path(results_dir),
+            )
         )
 
         cwd = Path.cwd()

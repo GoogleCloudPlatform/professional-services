@@ -13,6 +13,7 @@
 # limitations under the License.
 """agent-eval analyze — generate reports and AI-powered root cause analysis."""
 
+import asyncio
 import os
 import sys
 from pathlib import Path
@@ -355,9 +356,9 @@ def analyze(
                 "[dim](compares to previous run, drafts diagnosis with code citations)[/][/]",
                 spinner="dots",
             ):
-                analysis_result = analyzer.run()
+                analysis_result = asyncio.run(analyzer.run())
         else:
-            analysis_result = analyzer.run()
+            analysis_result = asyncio.run(analyzer.run())
     except Exception as e:
         console.print(f"\n[bold red]Error during analysis:[/] {e}")
         import traceback

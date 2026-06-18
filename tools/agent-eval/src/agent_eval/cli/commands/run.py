@@ -2210,12 +2210,16 @@ def _run_evaluate_phase(
         "test_description": f"Combined evaluation run: {run_id}",
     }
 
+    import asyncio
+
     evaluator = Evaluator(eval_config)
     try:
-        evaluator.evaluate(
-            interaction_files=interaction_files,
-            metrics_files=[str(p) for p in metric_paths],
-            results_dir=run_dir,
+        asyncio.run(
+            evaluator.evaluate(
+                interaction_files=interaction_files,
+                metrics_files=[str(p) for p in metric_paths],
+                results_dir=run_dir,
+            )
         )
         _display_metrics_summary(str(run_dir))
 
@@ -2248,10 +2252,12 @@ def _run_analyze_phase(
         "model": "gemini-3.1-pro-preview",
     }
 
+    import asyncio
+
     analyzer = Analyzer(config)
 
     try:
-        analysis_result = analyzer.run()
+        analysis_result = asyncio.run(analyzer.run())
     except Exception as e:
         console.print(f"\n  [red]Analysis error:[/] {e}")
         console.print(

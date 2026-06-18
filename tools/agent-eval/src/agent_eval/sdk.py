@@ -132,8 +132,7 @@ async def run_evaluation(
     # 4. Evaluate
     logger.info("Evaluating interactions...")
     evaluator = Evaluator(location=location)
-    await asyncio.to_thread(
-        evaluator.evaluate,
+    await evaluator.evaluate(
         interaction_files=interaction_files,
         metrics_files=[metrics_path],
         results_dir=results_dir,
@@ -178,7 +177,7 @@ async def run_evaluation(
                 "location": location,
             }
             analyzer = Analyzer(config)
-            await asyncio.to_thread(analyzer.run)
+            await analyzer.run()
         except Exception:
             logger.exception("Analysis failed")
 

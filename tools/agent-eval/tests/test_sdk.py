@@ -35,7 +35,7 @@ async def test_sdk_run_evaluation_success(
     # Setup mocks
     mock_run_sim.return_value = [{"id": "case_0"}]
 
-    def fake_evaluate(interaction_files, metrics_files, results_dir):
+    async def fake_evaluate(interaction_files, metrics_files, results_dir):
         # Create dummy eval_summary.json without thresholds
         results_dir = Path(results_dir)
         summary_data = {
@@ -100,7 +100,7 @@ async def test_sdk_run_evaluation_error_metric(
 ):
     mock_run_sim.return_value = [{"id": "case_0"}]
 
-    def fake_evaluate(interaction_files, metrics_files, results_dir):
+    async def fake_evaluate(interaction_files, metrics_files, results_dir):
         results_dir = Path(results_dir)
         summary_data = {
             "experiment_id": "test_run",
