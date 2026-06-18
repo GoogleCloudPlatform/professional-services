@@ -26,7 +26,7 @@ from agent_eval import run_evaluation
 
 @mock.patch("agent_eval.sdk.generate_html_report")
 @mock.patch("agent_eval.sdk.Evaluator")
-@mock.patch("agent_eval.sdk.run_simulation_in_process")
+@mock.patch("agent_eval.sdk.run_simulation_in_process", autospec=True)
 def test_sdk_run_evaluation_success(
     mock_run_sim, mock_evaluator, mock_generate_html_report
 ):
@@ -91,7 +91,7 @@ def test_sdk_run_evaluation_success(
 
 @mock.patch("agent_eval.sdk.generate_html_report")
 @mock.patch("agent_eval.sdk.Evaluator")
-@mock.patch("agent_eval.sdk.run_simulation_in_process")
+@mock.patch("agent_eval.sdk.run_simulation_in_process", autospec=True)
 def test_sdk_run_evaluation_error_metric(
     mock_run_sim, mock_evaluator, mock_generate_html_report
 ):

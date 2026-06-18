@@ -22,8 +22,10 @@ from typing import Any, Dict, List, Optional
 import pandas as pd
 
 from agent_eval.core.evaluator import Evaluator
-from agent_eval.core.path_resolver import find_eval_dir
+from agent_eval.core.path_resolver import agent_project_root, find_eval_dir
 from agent_eval.core.simulation import run_simulation_in_process
+from agent_eval.core.converters import write_jsonl
+import asyncio
 from agent_eval.core.analyzer import Analyzer
 from agent_eval.core.html_report import generate_html_report
 
@@ -96,12 +98,21 @@ def run_evaluation(
 
     # 2. Run simulation in process
     logger.info("Starting simulation...")
-    interaction_files = run_simulation_in_process(
-        agent_dir=agent_dir,
-        eval_dir=eval_dir,
-        results_dir=results_dir,
-    )
-    if not interaction_files:
+    project_root = agent_project_root(agent_dir)
+    dataset_path = eval_dir / "dataset.jsonl"
+    try:
+        records = asyncio.run(
+            run_simulation_in_process(
+                agent_dir=agent_dir,
+                project_root=project_root,
+                dataset_path=dataset_path,
+            )
+        )
+    except Exception as e:
+        logger.error(f"Simulation failed: {e}")
+        raise
+
+    if not records:
         logger.warning("No interactions collected.")
         return EvaluationResult(
             passed=True,
@@ -110,6 +121,10 @@ def run_evaluation(
             summary={},
             raw_results=pd.DataFrame(),
         )
+
+    sim_output = raw_dir / "processed_interaction_sim.jsonl"
+    write_jsonl(records, str(sim_output))
+    interaction_files = [sim_output]
 
     # 3. Verify metric definitions exist
     metrics_path = eval_dir / "metrics" / "metric_definitions.json"
