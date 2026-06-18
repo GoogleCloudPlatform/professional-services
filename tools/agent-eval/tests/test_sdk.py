@@ -45,9 +45,9 @@ def test_sdk_run_evaluation_success(
                     },
                     "tool_use_quality": {
                         "average": 0.9,
-                    }
+                    },
                 }
-            }
+            },
         }
         with open(results_dir / "eval_summary.json", "w") as f:
             json.dump(summary_data, f)
@@ -65,11 +65,11 @@ def test_sdk_run_evaluation_success(
         agent_dir = tmp_path / "my_agent"
         agent_dir.mkdir()
         (agent_dir / "agent.py").touch()
-        
+
         eval_dir = tmp_path / "tests" / "eval"
         eval_dir.mkdir(parents=True)
         (eval_dir / "dataset.jsonl").touch()
-        
+
         metrics_dir = eval_dir / "metrics"
         metrics_dir.mkdir()
         (metrics_dir / "metric_definitions.json").write_text("{}")
@@ -107,8 +107,10 @@ def test_sdk_run_evaluation_error_metric(
                         "average": 0.9,
                     }
                 },
-                "failed_metrics": [{"metric": "broken_metric", "exception_type": "ValueError"}]
-            }
+                "failed_metrics": [
+                    {"metric": "broken_metric", "exception_type": "ValueError"}
+                ],
+            },
         }
         with open(results_dir / "eval_summary.json", "w") as f:
             json.dump(summary_data, f)

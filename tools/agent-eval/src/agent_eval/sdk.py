@@ -86,6 +86,7 @@ def run_evaluation(
 
     # 1. Resolve run_id and output dirs
     from datetime import datetime
+
     if not run_id:
         run_id = f"sdk_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
 
@@ -110,12 +111,10 @@ def run_evaluation(
             raw_results=pd.DataFrame(),
         )
 
-    # 3. Load metric definitions
+    # 3. Verify metric definitions exist
     metrics_path = eval_dir / "metrics" / "metric_definitions.json"
     if not metrics_path.exists():
         raise FileNotFoundError(f"Metric definitions not found at {metrics_path}")
-    with open(metrics_path, "r") as f:
-        metric_definitions = json.load(f)
 
     # 4. Evaluate
     logger.info("Evaluating interactions...")
@@ -133,7 +132,9 @@ def run_evaluation(
     with open(eval_summary_path, "r") as f:
         summary_data = json.load(f)
 
-    evaluator_failed_metrics = summary_data.get("overall_summary", {}).get("failed_metrics", [])
+    evaluator_failed_metrics = summary_data.get("overall_summary", {}).get(
+        "failed_metrics", []
+    )
     failed_metric_names = []
     for fm in evaluator_failed_metrics:
         if isinstance(fm, dict):
