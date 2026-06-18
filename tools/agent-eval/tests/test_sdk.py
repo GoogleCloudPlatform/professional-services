@@ -83,7 +83,7 @@ async def test_sdk_run_evaluation_success(
             run_id="test_run",
         )
 
-        assert result.passed is True
+        assert result.success is True
         assert result.failed_metrics == []
         assert result.metrics == {
             "trajectory_accuracy": 0.75,
@@ -142,5 +142,5 @@ async def test_sdk_run_evaluation_error_metric(
             run_id="test_run",
         )
 
-        assert result.passed is False
+        assert result.success is False
         assert "broken_metric" in result.failed_metrics

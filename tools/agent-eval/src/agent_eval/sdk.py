@@ -15,6 +15,7 @@
 
 from __future__ import annotations
 
+from datetime import datetime
 import json
 import logging
 from pathlib import Path
@@ -37,13 +38,13 @@ class EvaluationResult:
 
     def __init__(
         self,
-        passed: bool,
+        success: bool,
         failed_metrics: List[str],
         metrics: Dict[str, float],
         summary: Dict[str, Any],
         raw_results: pd.DataFrame,
     ):
-        self.passed = passed
+        self.success = success
         self.failed_metrics = failed_metrics
         self.metrics = metrics
         self.summary = summary
@@ -51,7 +52,7 @@ class EvaluationResult:
 
     def __repr__(self) -> str:
         return (
-            f"EvaluationResult(passed={self.passed}, "
+            f"EvaluationResult(success={self.success}, "
             f"failed_metrics={self.failed_metrics}, "
             f"metrics={self.metrics})"
         )
@@ -87,7 +88,6 @@ async def run_evaluation(
         eval_dir = find_eval_dir(agent_dir)
 
     # 1. Resolve run_id and output dirs
-    from datetime import datetime
 
     if not run_id:
         run_id = f"sdk_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
@@ -106,7 +106,7 @@ async def run_evaluation(
             project_root=project_root,
             dataset_path=dataset_path,
         )
-    except Exception as e:
+    except Exception:
         logger.exception("Simulation failed")
         raise
 
@@ -179,7 +179,7 @@ async def run_evaluation(
             }
             analyzer = Analyzer(config)
             await asyncio.to_thread(analyzer.run)
-        except Exception as e:
+        except Exception:
             logger.exception("Analysis failed")
 
     # 6. Optional HTML Report
@@ -187,7 +187,7 @@ async def run_evaluation(
         logger.info("Generating HTML report...")
         try:
             await asyncio.to_thread(generate_html_report, results_dir=results_dir)
-        except Exception as e:
+        except Exception:
             logger.exception("Report generation failed")
 
     # 7. Extract metrics
@@ -200,11 +200,11 @@ async def run_evaluation(
         if avg is not None:
             metrics_summary[metric_name] = avg
 
-    # passed means no evaluator crashes/errors
-    passed = len(failed_metric_names) == 0
+    # success means no evaluator crashes/errors
+    success = len(failed_metric_names) == 0
 
     return EvaluationResult(
-        passed=passed,
+        success=success,
         failed_metrics=failed_metric_names,
         metrics=metrics_summary,
         summary=summary_data,
