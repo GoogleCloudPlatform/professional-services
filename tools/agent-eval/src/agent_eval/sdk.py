@@ -107,7 +107,7 @@ async def run_evaluation(
             dataset_path=dataset_path,
         )
     except Exception as e:
-        logger.error(f"Simulation failed: {e}")
+        logger.exception("Simulation failed")
         raise
 
     if not records:
@@ -180,7 +180,7 @@ async def run_evaluation(
             analyzer = Analyzer(config)
             await asyncio.to_thread(analyzer.run)
         except Exception as e:
-            logger.error(f"Analysis failed: {e}")
+            logger.exception("Analysis failed")
 
     # 6. Optional HTML Report
     if generate_html:
@@ -188,7 +188,7 @@ async def run_evaluation(
         try:
             await asyncio.to_thread(generate_html_report, results_dir=results_dir)
         except Exception as e:
-            logger.error(f"Report generation failed: {e}")
+            logger.exception("Report generation failed")
 
     # 7. Extract metrics
     metrics_summary = {}
