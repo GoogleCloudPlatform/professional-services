@@ -21,7 +21,7 @@ import tempfile
 from unittest import mock
 import pandas as pd
 
-from agent_eval import run_evaluation
+from agent_eval import run_evaluation, run_evaluation_sync
 import pytest
 
 
@@ -144,3 +144,25 @@ async def test_sdk_run_evaluation_error_metric(
 
         assert result.success is False
         assert "broken_metric" in result.failed_metrics
+
+
+@mock.patch("agent_eval.sdk.run_evaluation", new_callable=mock.AsyncMock)
+def test_sdk_run_evaluation_sync(mock_run_eval):
+    mock_result = mock.MagicMock()
+    mock_run_eval.return_value = mock_result
+
+    result = run_evaluation_sync(
+        agent_dir="my_agent",
+        run_id="test_run",
+    )
+
+    mock_run_eval.assert_called_once_with(
+        agent_dir="my_agent",
+        eval_dir=None,
+        run_id="test_run",
+        location=None,
+        run_analysis=False,
+        generate_html=False,
+        model="gemini-3.1-pro-preview",
+    )
+    assert result == mock_result

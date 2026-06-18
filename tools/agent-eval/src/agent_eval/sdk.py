@@ -209,3 +209,39 @@ async def run_evaluation(
         summary=summary_data,
         raw_results=results_df,
     )
+
+
+def run_evaluation_sync(
+    agent_dir: Path | str,
+    eval_dir: Optional[Path | str] = None,
+    run_id: Optional[str] = None,
+    location: Optional[str] = None,
+    run_analysis: bool = False,
+    generate_html: bool = False,
+    model: str = "gemini-3.1-pro-preview",
+) -> EvaluationResult:
+    """Synchronous wrapper for run_evaluation.
+
+    Args:
+        agent_dir: Path to the agent project directory.
+        eval_dir: Optional path to the eval folder. If omitted, resolved from agent_dir.
+        run_id: Optional run identifier (timestamp-based if omitted).
+        location: Vertex AI location (e.g. us-central1).
+        run_analysis: Whether to run Gemini-based analysis on the results.
+        generate_html: Whether to generate the HTML report.
+        model: Model to use for analysis.
+
+    Returns:
+        EvaluationResult containing the metrics and pass/fail status.
+    """
+    return asyncio.run(
+        run_evaluation(
+            agent_dir=agent_dir,
+            eval_dir=eval_dir,
+            run_id=run_id,
+            location=location,
+            run_analysis=run_analysis,
+            generate_html=generate_html,
+            model=model,
+        )
+    )
