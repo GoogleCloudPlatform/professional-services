@@ -57,7 +57,7 @@ class EvaluationResult:
         )
 
 
-def run_evaluation(
+async def run_evaluation(
     agent_dir: Path | str,
     eval_dir: Optional[Path | str] = None,
     run_id: Optional[str] = None,
@@ -101,12 +101,10 @@ def run_evaluation(
     project_root = agent_project_root(agent_dir)
     dataset_path = eval_dir / "dataset.jsonl"
     try:
-        records = asyncio.run(
-            run_simulation_in_process(
-                agent_dir=agent_dir,
-                project_root=project_root,
-                dataset_path=dataset_path,
-            )
+        records = await run_simulation_in_process(
+            agent_dir=agent_dir,
+            project_root=project_root,
+            dataset_path=dataset_path,
         )
     except Exception as e:
         logger.error(f"Simulation failed: {e}")
@@ -134,7 +132,8 @@ def run_evaluation(
     # 4. Evaluate
     logger.info("Evaluating interactions...")
     evaluator = Evaluator(location=location)
-    evaluator.evaluate(
+    await asyncio.to_thread(
+        evaluator.evaluate,
         interaction_files=interaction_files,
         metrics_files=[metrics_path],
         results_dir=results_dir,
@@ -179,7 +178,7 @@ def run_evaluation(
                 "location": location,
             }
             analyzer = Analyzer(config)
-            analyzer.run()
+            await asyncio.to_thread(analyzer.run)
         except Exception as e:
             logger.error(f"Analysis failed: {e}")
 
@@ -187,7 +186,7 @@ def run_evaluation(
     if generate_html:
         logger.info("Generating HTML report...")
         try:
-            generate_html_report(results_dir=results_dir)
+            await asyncio.to_thread(generate_html_report, results_dir=results_dir)
         except Exception as e:
             logger.error(f"Report generation failed: {e}")
 

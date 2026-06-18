@@ -22,12 +22,14 @@ from unittest import mock
 import pandas as pd
 
 from agent_eval import run_evaluation
+import pytest
 
 
+@pytest.mark.anyio
 @mock.patch("agent_eval.sdk.generate_html_report")
 @mock.patch("agent_eval.sdk.Evaluator")
 @mock.patch("agent_eval.sdk.run_simulation_in_process", autospec=True)
-def test_sdk_run_evaluation_success(
+async def test_sdk_run_evaluation_success(
     mock_run_sim, mock_evaluator, mock_generate_html_report
 ):
     # Setup mocks
@@ -75,7 +77,7 @@ def test_sdk_run_evaluation_success(
         (metrics_dir / "metric_definitions.json").write_text("{}")
 
         # Run SDK evaluation
-        result = run_evaluation(
+        result = await run_evaluation(
             agent_dir=agent_dir,
             eval_dir=eval_dir,
             run_id="test_run",
@@ -89,10 +91,11 @@ def test_sdk_run_evaluation_success(
         }
 
 
+@pytest.mark.anyio
 @mock.patch("agent_eval.sdk.generate_html_report")
 @mock.patch("agent_eval.sdk.Evaluator")
 @mock.patch("agent_eval.sdk.run_simulation_in_process", autospec=True)
-def test_sdk_run_evaluation_error_metric(
+async def test_sdk_run_evaluation_error_metric(
     mock_run_sim, mock_evaluator, mock_generate_html_report
 ):
     mock_run_sim.return_value = [{"id": "case_0"}]
@@ -133,7 +136,7 @@ def test_sdk_run_evaluation_error_metric(
         metrics_dir.mkdir()
         (metrics_dir / "metric_definitions.json").write_text("{}")
 
-        result = run_evaluation(
+        result = await run_evaluation(
             agent_dir=agent_dir,
             eval_dir=eval_dir,
             run_id="test_run",
