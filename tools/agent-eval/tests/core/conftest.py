@@ -32,4 +32,4 @@ for mod in [
     "vertexai.preview",
     "vertexai.preview.evaluation",
 ]:
-    sys.modules.setdefault(mod, MagicMock())
+    sys.modules[mod] = MagicMock()
