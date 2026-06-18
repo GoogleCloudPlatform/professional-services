@@ -792,7 +792,7 @@ class Analyzer:
         analysis_content: str,
         raw_dir: Path,
         output_path: Path,
-        comparison_data: Optional[dict] = None,
+        comparison_data: dict | None = None,
     ) -> str:
         """Generates a detailed technical diagnosis using Gemini.
 
@@ -980,7 +980,7 @@ class Analyzer:
 
         return None
 
-    async def run(self) -> Optional[dict]:
+    async def run(self) -> dict | None:
         """Main entry point for analysis.
 
         Returns:
