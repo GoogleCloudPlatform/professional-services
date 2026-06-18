@@ -13,6 +13,7 @@
 # limitations under the License.
 """agent-eval run — orchestrate simulate, interact, and evaluate in one command."""
 
+import asyncio
 import json
 import os
 import subprocess
@@ -1691,7 +1692,6 @@ def _run_simulate_phase(
     pressure). Eval_history files are timestamp-suffixed → no collisions.
     """
     if in_process:
-        import asyncio
         from agent_eval.core.simulation import run_simulation_in_process
         from agent_eval.core.converters import write_jsonl
 
@@ -2083,7 +2083,6 @@ def _run_interact_phase(
     debug: bool = False,
 ) -> Path | None:
     """Run the interact workflow. Returns the output path on success, None on failure."""
-    import asyncio
     from agent_eval.core.interactions import InteractionRunner
     from agent_eval.core.processor import InteractionProcessor
     from agent_eval.core.converters import write_jsonl
@@ -2210,8 +2209,6 @@ def _run_evaluate_phase(
         "test_description": f"Combined evaluation run: {run_id}",
     }
 
-    import asyncio
-
     evaluator = Evaluator(eval_config)
     try:
         asyncio.run(
@@ -2251,8 +2248,6 @@ def _run_analyze_phase(
         "skip_gemini": skip_gemini,
         "model": "gemini-3.1-pro-preview",
     }
-
-    import asyncio
 
     analyzer = Analyzer(config)
 
