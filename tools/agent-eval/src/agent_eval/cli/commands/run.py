@@ -13,6 +13,7 @@
 # limitations under the License.
 """agent-eval run — orchestrate simulate, interact, and evaluate in one command."""
 
+import asyncio
 import json
 import os
 import subprocess
@@ -1691,7 +1692,6 @@ def _run_simulate_phase(
     pressure). Eval_history files are timestamp-suffixed → no collisions.
     """
     if in_process:
-        import asyncio
         from agent_eval.core.simulation import run_simulation_in_process
         from agent_eval.core.converters import write_jsonl
 
@@ -2083,7 +2083,6 @@ def _run_interact_phase(
     debug: bool = False,
 ) -> Path | None:
     """Run the interact workflow. Returns the output path on success, None on failure."""
-    import asyncio
     from agent_eval.core.interactions import InteractionRunner
     from agent_eval.core.processor import InteractionProcessor
     from agent_eval.core.converters import write_jsonl
@@ -2212,10 +2211,12 @@ def _run_evaluate_phase(
 
     evaluator = Evaluator(eval_config)
     try:
-        evaluator.evaluate(
-            interaction_files=interaction_files,
-            metrics_files=[str(p) for p in metric_paths],
-            results_dir=run_dir,
+        asyncio.run(
+            evaluator.evaluate(
+                interaction_files=interaction_files,
+                metrics_files=[str(p) for p in metric_paths],
+                results_dir=run_dir,
+            )
         )
         _display_metrics_summary(str(run_dir))
 
@@ -2251,7 +2252,7 @@ def _run_analyze_phase(
     analyzer = Analyzer(config)
 
     try:
-        analysis_result = analyzer.run()
+        analysis_result = asyncio.run(analyzer.run())
     except Exception as e:
         console.print(f"\n  [red]Analysis error:[/] {e}")
         console.print(

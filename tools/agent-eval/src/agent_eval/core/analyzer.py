@@ -786,7 +786,7 @@ class Analyzer:
 
         return log_path
 
-    def generate_gemini_analysis(
+    async def generate_gemini_analysis(
         self,
         summary_data: dict,
         analysis_content: str,
@@ -877,7 +877,9 @@ class Analyzer:
         logger.debug("Calling Vertex AI (%s) — Call 1: Current run diagnosis", model)
         analysis_text = ""
         try:
-            response = client.models.generate_content(model=model, contents=prompt)
+            response = await client.aio.models.generate_content(
+                model=model, contents=prompt
+            )
             analysis_text = response.text
             output_path.write_text(analysis_text, encoding="utf-8")
             logger.debug("Analysis report saved to %s", output_path)
@@ -902,7 +904,7 @@ class Analyzer:
 
             logger.debug("Calling Vertex AI (%s) — Call 2: Comparison analysis", model)
             try:
-                response = client.models.generate_content(
+                response = await client.aio.models.generate_content(
                     model=model, contents=comparison_prompt
                 )
                 comparison_text = response.text
@@ -978,7 +980,7 @@ class Analyzer:
 
         return None
 
-    def run(self) -> Optional[dict]:
+    async def run(self) -> Optional[dict]:
         """Main entry point for analysis.
 
         Returns:
@@ -1111,7 +1113,7 @@ class Analyzer:
             )
             if summary and analysis_content:
                 analysis_path = run_folder / "gemini_analysis.md"
-                gemini_comparison_text = self.generate_gemini_analysis(
+                gemini_comparison_text = await self.generate_gemini_analysis(
                     summary,
                     analysis_content,
                     raw_dir,

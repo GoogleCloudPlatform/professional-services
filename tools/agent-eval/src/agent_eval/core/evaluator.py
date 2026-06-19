@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import concurrent.futures
+import asyncio
 import json
 import logging
 import math
@@ -510,8 +510,12 @@ def run_single_metric_evaluation(
     for attempt in range(retries):
         try:
             logger.info(f"Starting evaluation: {metric_name} (Attempt {attempt + 1})")
-            logger.info(f"[{metric_name}] eval_dataset columns: {list(eval_dataset.columns)}")
-            logger.info(f"[{metric_name}] eval_dataset sample: {eval_dataset.head(1).to_dict(orient='records')}")
+            logger.info(
+                f"[{metric_name}] eval_dataset columns: {list(eval_dataset.columns)}"
+            )
+            logger.info(
+                f"[{metric_name}] eval_dataset sample: {eval_dataset.head(1).to_dict(orient='records')}"
+            )
             result = client.evals.evaluate(
                 dataset=eval_dataset, metrics=[metric_obj], **eval_kwargs
             )
@@ -862,7 +866,7 @@ class Evaluator:
             http_options=HttpOptions(api_version="v1beta1"),
         )
 
-    def evaluate(
+    async def evaluate(
         self,
         metrics_files: List[str],
         results_dir: Path,
@@ -1196,23 +1200,22 @@ class Evaluator:
         # can show the user the real exception class + message instead of
         # the long-standing misleading "API rate limits" warning.
         failed_metrics: List[Dict[str, str]] = []
-        with concurrent.futures.ThreadPoolExecutor(
-            max_workers=CONFIG.MAX_WORKERS
-        ) as executor:
-            future_to_metric = {
-                executor.submit(run_single_metric_evaluation, t): t[3]
-                for t in eval_tasks
-            }
-            for future in concurrent.futures.as_completed(future_to_metric):
-                res, m_name, input_df, error_info = future.result()
-                if res is not None:
-                    all_llm_results.append((res, m_name, input_df))
-                else:
-                    entry: Dict[str, str] = {"metric": m_name}
-                    if error_info:
-                        entry["exception_type"] = error_info["exception_type"]
-                        entry["message"] = error_info["message"]
-                    failed_metrics.append(entry)
+
+        async def run_task(task_arg):
+            return await asyncio.to_thread(run_single_metric_evaluation, task_arg)
+
+        tasks = [run_task(t) for t in eval_tasks]
+        results = await asyncio.gather(*tasks)
+
+        for res, m_name, input_df, error_info in results:
+            if res is not None:
+                all_llm_results.append((res, m_name, input_df))
+            else:
+                entry: Dict[str, str] = {"metric": m_name}
+                if error_info:
+                    entry["exception_type"] = error_info["exception_type"]
+                    entry["message"] = error_info["message"]
+                failed_metrics.append(entry)
 
         # --- Consolidate Results ---
         final_df = original_df.copy()
