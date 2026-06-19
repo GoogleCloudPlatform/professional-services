@@ -17,11 +17,12 @@ from __future__ import annotations
 
 from datetime import datetime
 from typing import Any
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_serializer, model_validator
 
 
 class ScoreRange(BaseModel):
     """Represents the range of scores for a metric."""
+
     min: float
     max: float
     type: str | None = None
@@ -29,18 +30,46 @@ class ScoreRange(BaseModel):
 
 class LLMMetricSummary(BaseModel):
     """Summary of a single LLM-based metric."""
+
     average: float
+    median: float | None = None
+    p90: float | None = None
+    p95: float | None = None
+    p99: float | None = None
     threshold: float | None = None
     score_range: ScoreRange | None = None
 
 
 class ADKEvalScore(BaseModel):
     """Summary of a single ADK-sourced metric."""
+
     average: float
+    median: float | None = None
+    p90: float | None = None
+    p95: float | None = None
+    p99: float | None = None
+
+
+class DeterministicMetricSummary(BaseModel):
+    """Summary of a single deterministic metric."""
+
+    average: float
+
+    @model_validator(mode="before")
+    @classmethod
+    def parse_float(cls, value: Any) -> Any:
+        if isinstance(value, (int, float)):
+            return {"average": float(value)}
+        return value
+
+    @model_serializer
+    def serialize_model(self) -> float:
+        return self.average
 
 
 class GitInfo(BaseModel):
     """Git repository metadata at the time of run."""
+
     branch: str | None = None
     commit: str | None = None
     dirty: bool | None = None
@@ -49,7 +78,10 @@ class GitInfo(BaseModel):
 
 class OverallSummary(BaseModel):
     """Aggregated metrics summary for the entire run."""
-    deterministic_metrics: dict[str, float] = Field(default_factory=dict)
+
+    deterministic_metrics: dict[str, DeterministicMetricSummary] = Field(
+        default_factory=dict
+    )
     llm_based_metrics: dict[str, LLMMetricSummary] = Field(default_factory=dict)
     adk_eval_scores: dict[str, ADKEvalScore] = Field(default_factory=dict)
     failed_metrics: list[dict[str, Any] | str] = Field(default_factory=list)
@@ -58,6 +90,7 @@ class OverallSummary(BaseModel):
 
 class EvaluationSummary(BaseModel):
     """Comprehensive evaluation summary (eval_summary.json structure)."""
+
     experiment_id: str | None = None
     run_type: str | None = None
     test_description: str | None = None

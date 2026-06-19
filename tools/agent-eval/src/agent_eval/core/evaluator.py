@@ -18,6 +18,7 @@ import math
 import subprocess
 import sys
 import time
+import statistics
 from collections import defaultdict
 from datetime import datetime
 from pathlib import Path
@@ -647,6 +648,21 @@ def _get_git_info() -> dict:
         return {}
 
 
+def _calculate_percentile(scores: list[float], p: float) -> float:
+    """Calculate the p-th percentile of a list of scores (p from 0.0 to 1.0) using linear interpolation."""
+    if not scores:
+        return 0.0
+    sorted_scores = sorted(scores)
+    idx = (len(sorted_scores) - 1) * p
+    idx_floor = int(math.floor(idx))
+    idx_ceil = int(math.ceil(idx))
+    if idx_floor == idx_ceil:
+        return sorted_scores[idx_floor]
+    return sorted_scores[idx_floor] * (idx_ceil - idx) + sorted_scores[idx_ceil] * (
+        idx - idx_floor
+    )
+
+
 def save_metrics_summary(
     df: pd.DataFrame,
     results_dir: Path,
@@ -782,6 +798,10 @@ def save_metrics_summary(
         if not scores:
             continue
         avg = sum(scores) / len(scores)
+        med = statistics.median(scores)
+        p90 = _calculate_percentile(scores, 0.9)
+        p95 = _calculate_percentile(scores, 0.95)
+        p99 = _calculate_percentile(scores, 0.99)
         if any(metric.startswith(f"{k}.") for k in DETERMINISTIC_METRICS):
             det_summary[metric] = avg
         elif metric in DETERMINISTIC_METRICS:
@@ -789,10 +809,22 @@ def save_metrics_summary(
         elif metric in adk_sourced_metrics:
             # ADK's built-in eval scores (hallucination, safety from eval_config.json)
             # are kept separate from agent-eval's LLM-as-judge metrics
-            adk_summary[metric] = {"average": avg}
+            adk_summary[metric] = {
+                "average": avg,
+                "median": med,
+                "p90": p90,
+                "p95": p95,
+                "p99": p99,
+            }
         else:
             # Include score_range and threshold if available
-            metric_data = {"average": avg}
+            metric_data = {
+                "average": avg,
+                "median": med,
+                "p90": p90,
+                "p95": p95,
+                "p99": p99,
+            }
             if metric in score_ranges:
                 metric_data["score_range"] = score_ranges[metric]
             if metric in thresholds:
