@@ -2596,7 +2596,7 @@ _HTML_TEMPLATE = r"""<!doctype html>
             const sym = subPass === true ? '✓' : subPass === false ? '✗' : (sub.label === 'no_rad' ? '·' : '—');
             const cls = subPass === true ? 'verdict-pass' : subPass === false ? 'verdict-fail' : 'verdict-na';
             const scoreStr = (typeof subScore === 'number') ? subScore.toFixed(2) : (sub.label ? sub.label.toUpperCase() : '');
-            
+
             return '<div class="verdict-item">' +
               '<div class="verdict-head">' +
                 '<span class="verdict-sym ' + cls + '">' + sym + '</span>' +
