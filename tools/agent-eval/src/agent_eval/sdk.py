@@ -19,7 +19,7 @@ from datetime import datetime
 import json
 import logging
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 import pandas as pd
 
 from agent_eval.core.evaluator import Evaluator
@@ -39,30 +39,33 @@ class EvaluationResult:
     def __init__(
         self,
         success: bool,
-        failed_metrics: List[str],
-        metrics: Dict[str, float],
-        summary: Dict[str, Any],
+        failed_metrics: list[str],
+        metrics: dict[str, float],
+        summary: dict[str, Any],
         raw_results: pd.DataFrame,
+        threshold_failures: list[dict[str, Any]] | None = None,
     ):
         self.success = success
         self.failed_metrics = failed_metrics
         self.metrics = metrics
         self.summary = summary
         self.raw_results = raw_results
+        self.threshold_failures = threshold_failures or []
 
     def __repr__(self) -> str:
         return (
             f"EvaluationResult(success={self.success}, "
             f"failed_metrics={self.failed_metrics}, "
-            f"metrics={self.metrics})"
+            f"metrics={self.metrics}, "
+            f"threshold_failures={self.threshold_failures})"
         )
 
 
 async def run_evaluation(
     agent_dir: Path | str,
-    eval_dir: Optional[Path | str] = None,
-    run_id: Optional[str] = None,
-    location: Optional[str] = None,
+    eval_dir: Path | str | None = None,
+    run_id: str | None = None,
+    location: str | None = None,
     run_analysis: bool = False,
     generate_html: bool = False,
     model: str = "gemini-3.1-pro-preview",
@@ -189,8 +192,9 @@ async def run_evaluation(
         except Exception:
             logger.exception("Report generation failed")
 
-    # 7. Extract metrics
+    # 7. Extract metrics and check thresholds
     metrics_summary = {}
+    threshold_failures = []
     overall_summary = summary_data.get("overall_summary", {})
     llm_based_metrics = overall_summary.get("llm_based_metrics", {})
 
@@ -199,8 +203,19 @@ async def run_evaluation(
         if avg is not None:
             metrics_summary[metric_name] = avg
 
-    # success means no evaluator crashes/errors
-    success = len(failed_metric_names) == 0
+        threshold = data.get("threshold")
+        if avg is not None and threshold is not None:
+            if avg < threshold:
+                threshold_failures.append(
+                    {
+                        "metric": metric_name,
+                        "average": avg,
+                        "threshold": threshold,
+                    }
+                )
+
+    # success means no evaluator crashes/errors AND no threshold failures
+    success = (len(failed_metric_names) == 0) and (len(threshold_failures) == 0)
 
     return EvaluationResult(
         success=success,
@@ -208,14 +223,15 @@ async def run_evaluation(
         metrics=metrics_summary,
         summary=summary_data,
         raw_results=results_df,
+        threshold_failures=threshold_failures,
     )
 
 
 def run_evaluation_sync(
     agent_dir: Path | str,
-    eval_dir: Optional[Path | str] = None,
-    run_id: Optional[str] = None,
-    location: Optional[str] = None,
+    eval_dir: Path | str | None = None,
+    run_id: str | None = None,
+    location: str | None = None,
     run_analysis: bool = False,
     generate_html: bool = False,
     model: str = "gemini-3.1-pro-preview",

@@ -39,10 +39,12 @@ METRIC_TEMPLATES = {
     "general_quality": {
         "kind": "managed",
         "base": "GENERAL_QUALITY",
+        "threshold": 4.0,
     },
     "trajectory_accuracy": {
         "kind": "custom_llm_judge",
         "requires_multi_turn": True,
+        "threshold": 0.8,
         "instruction": (
             "Evaluate whether the agent's execution trajectory used the available "
             "tools correctly to address the user's request. Score 1 only if EVERY "
@@ -70,6 +72,7 @@ METRIC_TEMPLATES = {
     },
     "tool_use_quality": {
         "kind": "custom_llm_judge",
+        "threshold": 0.8,
         "instruction": (
             "Evaluate the agent's tool calls for correctness. Score 1 only if EVERY "
             "criterion below is met; 0 if any criterion fails. The tool list and "
@@ -102,15 +105,15 @@ METRIC_TEMPLATES = {
     "state_grounding": {
         "kind": "managed",
         "base": "GROUNDING",
+        "threshold": 4.0,
         "dataset_mapping": {"context": {"source_column": "final_session_state"}},
     },
     "safety": {
         "kind": "managed",
         "base": "SAFETY",
+        "threshold": 4.0,
     },
 }
-
-
 
 
 def _backup_existing_files(eval_dir: Path, mode: str) -> Path | None:

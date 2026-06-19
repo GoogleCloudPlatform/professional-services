@@ -44,10 +44,15 @@ def _display_metrics_summary(results_dir: str) -> None:
     # ── LLM-as-Judge metrics table ─────────────────────────────────────
     llm_metrics = overall.get("llm_based_metrics", {})
     if llm_metrics:
+        # Only add threshold column if there are thresholds defined
+        has_thresholds = any("threshold" in info for info in llm_metrics.values())
+
         table = Table(title="LLM-as-Judge Metrics", border_style="blue", padding=(0, 2))
         table.add_column("Metric", style="bold")
         table.add_column("Score", justify="right")
         table.add_column("Range", justify="center", style="dim")
+        if has_thresholds:
+            table.add_column("Threshold", justify="right", style="dim")
         table.add_column("", justify="center")
 
         for name, info in llm_metrics.items():
@@ -56,25 +61,39 @@ def _display_metrics_summary(results_dir: str) -> None:
             max_val = sr.get("max", 5)
             min_val = sr.get("min", 0)
             range_str = f"{min_val}–{max_val}"
+            threshold = info.get("threshold")
+            threshold_str = f"{threshold:.1f}" if threshold is not None else "—"
 
-            # Color based on how good the score is relative to range. Indicators
-            # are intentionally neutral — a low score may mean the agent really
-            # is failing this rubric (the most useful signal), or the rubric
-            # itself is mis-targeted; the analyzer's AI report disambiguates.
-            ratio = (avg - min_val) / (max_val - min_val) if max_val > min_val else 0
-            if ratio >= 0.7:
-                color = "green"
-                indicator = "Pass"
-            elif ratio >= 0.4:
-                color = "yellow"
-                indicator = "Mixed"
+            if threshold is not None:
+                if avg >= threshold:
+                    color = "green"
+                    indicator = "Pass"
+                else:
+                    color = "red"
+                    indicator = "Fail"
             else:
-                color = "red"
-                indicator = "Low"
+                # Color based on how good the score is relative to range. Indicators
+                # are intentionally neutral — a low score may mean the agent really
+                # is failing this rubric (the most useful signal), or the rubric
+                # itself is mis-targeted; the analyzer's AI report disambiguates.
+                ratio = (
+                    (avg - min_val) / (max_val - min_val) if max_val > min_val else 0
+                )
+                if ratio >= 0.7:
+                    color = "green"
+                    indicator = "Pass"
+                elif ratio >= 0.4:
+                    color = "yellow"
+                    indicator = "Mixed"
+                else:
+                    color = "red"
+                    indicator = "Low"
 
-            table.add_row(
-                name, f"[{color}]{avg:.1f}[/]", range_str, f"[{color}]{indicator}[/]"
-            )
+            row_args = [name, f"[{color}]{avg:.1f}[/]", range_str]
+            if has_thresholds:
+                row_args.append(threshold_str)
+            row_args.append(f"[{color}]{indicator}[/]")
+            table.add_row(*row_args)
 
         # Show metrics that failed all retries. Tolerate both legacy
         # str entries and the dict shape carrying real exception info.
@@ -88,7 +107,11 @@ def _display_metrics_summary(results_dir: str) -> None:
         for entry in failed_dicts:
             m_name = entry.get("metric", "?")
             note = entry.get("exception_type") or "Failed"
-            table.add_row(m_name, "[red]FAILED[/]", "—", f"[red]{note}[/]")
+            row_args = [m_name, "[red]FAILED[/]", "—"]
+            if has_thresholds:
+                row_args.append("—")
+            row_args.append(f"[red]{note}[/]")
+            table.add_row(*row_args)
 
         # Show metrics that were skipped by design (dimmed)
         skipped = overall.get("skipped_metrics", [])
@@ -103,9 +126,11 @@ def _display_metrics_summary(results_dir: str) -> None:
                 if isinstance(entry, dict)
                 else str(entry)
             )
-            table.add_row(
-                f"[dim]{m_name}[/]", "[dim]SKIPPED[/]", "—", f"[dim]{reason}[/]"
-            )
+            row_args = [f"[dim]{m_name}[/]", "[dim]SKIPPED[/]", "—"]
+            if has_thresholds:
+                row_args.append("—")
+            row_args.append(f"[dim]{reason}[/]")
+            table.add_row(*row_args)
 
         console.print()
         console.print(table)
