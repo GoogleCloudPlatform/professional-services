@@ -15,6 +15,7 @@
 
 from __future__ import annotations
 
+from datetime import datetime
 from typing import Any
 from pydantic import BaseModel, Field
 
@@ -57,10 +58,10 @@ class OverallSummary(BaseModel):
 
 class EvaluationSummary(BaseModel):
     """Comprehensive evaluation summary (eval_summary.json structure)."""
-    experiment_id: str
-    run_type: str
-    test_description: str
-    interaction_datetime: str
+    experiment_id: str | None = None
+    run_type: str | None = None
+    test_description: str | None = None
+    interaction_datetime: datetime | None = None
     git_info: GitInfo | None = None
     overall_summary: OverallSummary
     per_question_summary: list[dict[str, Any]] = Field(default_factory=list)
