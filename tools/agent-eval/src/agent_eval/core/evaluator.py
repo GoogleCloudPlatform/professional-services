@@ -674,8 +674,13 @@ def save_metrics_summary(
             if "threshold" in info:
                 try:
                     thresholds[name] = float(info["threshold"])
-                except (ValueError, TypeError):
-                    pass
+                except (ValueError, TypeError) as e:
+                    logger.warning(
+                        "Invalid threshold '%s' for metric '%s': must be a float. Error: %s",
+                        info["threshold"],
+                        name,
+                        e,
+                    )
             if "score_range" in info:
                 score_ranges[name] = info["score_range"]
                 continue
@@ -724,8 +729,13 @@ def save_metrics_summary(
                                         v, bool
                                     ):
                                         per_metric_scores[f"{metric}.{k}"].append(v)
-                    except (ValueError, TypeError):
-                        pass
+                    except (ValueError, TypeError) as e:
+                        logger.warning(
+                            "Failed to parse score '%s' as float for metric '%s' in case evaluation. Error: %s",
+                            val.get("score"),
+                            metric,
+                            e,
+                        )
                 if is_det:
                     det_metrics[metric] = val.get("details") or val.get("score")
                 else:
@@ -838,8 +848,13 @@ def save_metrics_summary(
                                 s = float(val["score"])
                                 if not math.isnan(s):
                                     src_metric_scores[metric].append(s)
-                            except (ValueError, TypeError):
-                                pass
+                            except (ValueError, TypeError) as e:
+                                logger.warning(
+                                    "Failed to parse score '%s' as float for metric '%s' in source summary. Error: %s",
+                                    val.get("score"),
+                                    metric,
+                                    e,
+                                )
                 per_source_summary[src] = {
                     metric: {
                         "average": round(sum(scores) / len(scores), 4),
