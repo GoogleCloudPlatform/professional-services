@@ -166,3 +166,129 @@ def test_sdk_run_evaluation_sync(mock_run_eval):
         model="gemini-3.1-pro-preview",
     )
     assert result == mock_result
+
+
+@pytest.mark.anyio
+@mock.patch("agent_eval.sdk.generate_html_report")
+@mock.patch("agent_eval.sdk.Evaluator")
+@mock.patch("agent_eval.sdk.run_simulation_in_process", autospec=True)
+async def test_sdk_run_evaluation_threshold_success(
+    mock_run_sim, mock_evaluator, mock_generate_html_report
+):
+    mock_run_sim.return_value = [{"id": "case_0"}]
+
+    async def fake_evaluate(interaction_files, metrics_files, results_dir):
+        results_dir = Path(results_dir)
+        summary_data = {
+            "experiment_id": "test_run",
+            "overall_summary": {
+                "llm_based_metrics": {
+                    "trajectory_accuracy": {
+                        "average": 0.9,
+                        "threshold": 0.8,
+                    },
+                    "tool_use_quality": {
+                        "average": 0.8,
+                        "threshold": 0.8,
+                    },
+                }
+            },
+        }
+        with open(results_dir / "eval_summary.json", "w") as f:
+            json.dump(summary_data, f)
+        raw_dir = results_dir / "raw"
+        raw_dir.mkdir(parents=True, exist_ok=True)
+        df = pd.DataFrame([{"question_id": "case_0", "score": 1.0}])
+        df.to_csv(raw_dir / "evaluation_results_20260101_000000.csv", index=False)
+
+    mock_evaluator.return_value.evaluate.side_effect = fake_evaluate
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        tmp_path = Path(tmpdir)
+        agent_dir = tmp_path / "my_agent"
+        agent_dir.mkdir()
+        (agent_dir / "agent.py").touch()
+
+        eval_dir = tmp_path / "tests" / "eval"
+        eval_dir.mkdir(parents=True)
+        (eval_dir / "dataset.jsonl").touch()
+
+        metrics_dir = eval_dir / "metrics"
+        metrics_dir.mkdir()
+        (metrics_dir / "metric_definitions.json").write_text("{}")
+
+        result = await run_evaluation(
+            agent_dir=agent_dir,
+            eval_dir=eval_dir,
+            run_id="test_run",
+        )
+
+        assert result.success is True
+        assert result.failed_metrics == []
+        assert result.threshold_failures == []
+
+
+@pytest.mark.anyio
+@mock.patch("agent_eval.sdk.generate_html_report")
+@mock.patch("agent_eval.sdk.Evaluator")
+@mock.patch("agent_eval.sdk.run_simulation_in_process", autospec=True)
+async def test_sdk_run_evaluation_threshold_failure(
+    mock_run_sim, mock_evaluator, mock_generate_html_report
+):
+    mock_run_sim.return_value = [{"id": "case_0"}]
+
+    async def fake_evaluate(interaction_files, metrics_files, results_dir):
+        results_dir = Path(results_dir)
+        summary_data = {
+            "experiment_id": "test_run",
+            "overall_summary": {
+                "llm_based_metrics": {
+                    "trajectory_accuracy": {
+                        "average": 0.7,
+                        "threshold": 0.8,
+                    },
+                    "tool_use_quality": {
+                        "average": 0.9,
+                        "threshold": 0.8,
+                    },
+                }
+            },
+        }
+        with open(results_dir / "eval_summary.json", "w") as f:
+            json.dump(summary_data, f)
+        raw_dir = results_dir / "raw"
+        raw_dir.mkdir(parents=True, exist_ok=True)
+        df = pd.DataFrame([{"question_id": "case_0", "score": 1.0}])
+        df.to_csv(raw_dir / "evaluation_results_20260101_000000.csv", index=False)
+
+    mock_evaluator.return_value.evaluate.side_effect = fake_evaluate
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        tmp_path = Path(tmpdir)
+        agent_dir = tmp_path / "my_agent"
+        agent_dir.mkdir()
+        (agent_dir / "agent.py").touch()
+
+        eval_dir = tmp_path / "tests" / "eval"
+        eval_dir.mkdir(parents=True)
+        (eval_dir / "dataset.jsonl").touch()
+
+        metrics_dir = eval_dir / "metrics"
+        metrics_dir.mkdir()
+        (metrics_dir / "metric_definitions.json").write_text("{}")
+
+        result = await run_evaluation(
+            agent_dir=agent_dir,
+            eval_dir=eval_dir,
+            run_id="test_run",
+        )
+
+        assert result.success is False
+        assert result.failed_metrics == []
+        assert result.threshold_failures == [
+            {
+                "metric": "trajectory_accuracy",
+                "average": 0.7,
+                "threshold": 0.8,
+            }
+        ]

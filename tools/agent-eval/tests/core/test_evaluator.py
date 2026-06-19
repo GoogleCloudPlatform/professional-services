@@ -201,6 +201,22 @@ class TestSaveMetricsSummary(unittest.TestCase):
             == 5
         )
 
+    def test_threshold_preserved(self):
+        """threshold from metric_definitions is included in the summary."""
+        df = pd.DataFrame(
+            [
+                _make_eval_row("q1", "simulation", {"quality": 4.0}),
+            ]
+        )
+        metric_defs = {"quality": {"threshold": 3.5}}
+        save_metrics_summary(df, self.test_dir, "exp-1", "manual", "Test", metric_defs)
+        summary = self._read_summary()
+
+        assert (
+            summary["overall_summary"]["llm_based_metrics"]["quality"]["threshold"]
+            == 3.5
+        )
+
 
 # ── Tests for multi-file JSONL loading ───────────────────────────────
 

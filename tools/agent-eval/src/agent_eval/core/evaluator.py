@@ -21,7 +21,7 @@ import time
 from collections import defaultdict
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple
 
 import pandas as pd
 from google.cloud import aiplatform
@@ -666,10 +666,21 @@ def save_metrics_summary(
     # Without this, the eval table defaults to "0–5" which looks alarming
     # and inconsistent with our binary convention.
     score_ranges = {}
+    thresholds = {}
     if metric_definitions:
         for name, info in metric_definitions.items():
             if not isinstance(info, dict):
                 continue
+            if "threshold" in info:
+                try:
+                    thresholds[name] = float(info["threshold"])
+                except (ValueError, TypeError) as e:
+                    logger.warning(
+                        "Invalid threshold '%s' for metric '%s': must be a float. Error: %s",
+                        info["threshold"],
+                        name,
+                        e,
+                    )
             if "score_range" in info:
                 score_ranges[name] = info["score_range"]
                 continue
@@ -718,8 +729,13 @@ def save_metrics_summary(
                                         v, bool
                                     ):
                                         per_metric_scores[f"{metric}.{k}"].append(v)
-                    except (ValueError, TypeError):
-                        pass
+                    except (ValueError, TypeError) as e:
+                        logger.warning(
+                            "Failed to parse score '%s' as float for metric '%s' in case evaluation. Error: %s",
+                            val.get("score"),
+                            metric,
+                            e,
+                        )
                 if is_det:
                     det_metrics[metric] = val.get("details") or val.get("score")
                 else:
@@ -775,10 +791,12 @@ def save_metrics_summary(
             # are kept separate from agent-eval's LLM-as-judge metrics
             adk_summary[metric] = {"average": avg}
         else:
-            # Include score_range if available
+            # Include score_range and threshold if available
             metric_data = {"average": avg}
             if metric in score_ranges:
                 metric_data["score_range"] = score_ranges[metric]
+            if metric in thresholds:
+                metric_data["threshold"] = thresholds[metric]
             llm_summary[metric] = metric_data
 
     output = {
@@ -830,8 +848,13 @@ def save_metrics_summary(
                                 s = float(val["score"])
                                 if not math.isnan(s):
                                     src_metric_scores[metric].append(s)
-                            except (ValueError, TypeError):
-                                pass
+                            except (ValueError, TypeError) as e:
+                                logger.warning(
+                                    "Failed to parse score '%s' as float for metric '%s' in source summary. Error: %s",
+                                    val.get("score"),
+                                    metric,
+                                    e,
+                                )
                 per_source_summary[src] = {
                     metric: {
                         "average": round(sum(scores) / len(scores), 4),
@@ -868,10 +891,10 @@ class Evaluator:
 
     async def evaluate(
         self,
-        metrics_files: List[str],
+        metrics_files: list[str],
         results_dir: Path,
-        interaction_files: Union[List[Path], Path, None] = None,
-        interaction_file: Optional[Path] = None,
+        interaction_files: list[Path] | Path | None = None,
+        interaction_file: Path | None = None,
     ):
         # Backward compat: accept singular interaction_file
         if interaction_files is None and interaction_file is not None:
