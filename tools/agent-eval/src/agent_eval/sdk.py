@@ -16,11 +16,11 @@
 from __future__ import annotations
 
 from datetime import datetime
-import json
 import logging
 from pathlib import Path
 from typing import Any
 import pandas as pd
+from pydantic import BaseModel, ConfigDict, Field
 
 from agent_eval.core.evaluator import Evaluator
 from agent_eval.core.path_resolver import agent_project_root, find_eval_dir
@@ -29,36 +29,21 @@ from agent_eval.core.converters import write_jsonl
 import asyncio
 from agent_eval.core.analyzer import Analyzer
 from agent_eval.core.html_report import generate_html_report
+from agent_eval.core.schema import EvaluationSummary
 
 logger = logging.getLogger("agent_eval.sdk")
 
 
-class EvaluationResult:
+class EvaluationResult(BaseModel):
     """The result of an evaluation run."""
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
-    def __init__(
-        self,
-        success: bool,
-        failed_metrics: list[str],
-        metrics: dict[str, float],
-        summary: dict[str, Any],
-        raw_results: pd.DataFrame,
-        threshold_failures: list[dict[str, Any]] | None = None,
-    ):
-        self.success = success
-        self.failed_metrics = failed_metrics
-        self.metrics = metrics
-        self.summary = summary
-        self.raw_results = raw_results
-        self.threshold_failures = threshold_failures or []
-
-    def __repr__(self) -> str:
-        return (
-            f"EvaluationResult(success={self.success}, "
-            f"failed_metrics={self.failed_metrics}, "
-            f"metrics={self.metrics}, "
-            f"threshold_failures={self.threshold_failures})"
-        )
+    success: bool
+    failed_metrics: list[str]
+    metrics: dict[str, float]
+    summary: EvaluationSummary
+    raw_results: pd.DataFrame
+    threshold_failures: list[dict[str, Any]] = Field(default_factory=list)
 
 
 async def run_evaluation(
@@ -145,12 +130,11 @@ async def run_evaluation(
     eval_summary_path = results_dir / "eval_summary.json"
     if not eval_summary_path.exists():
         raise FileNotFoundError(f"Evaluation summary not found at {eval_summary_path}")
-    with open(eval_summary_path, "r") as f:
-        summary_data = json.load(f)
-
-    evaluator_failed_metrics = summary_data.get("overall_summary", {}).get(
-        "failed_metrics", []
+    summary = EvaluationSummary.model_validate_json(
+        eval_summary_path.read_text(encoding="utf-8")
     )
+
+    evaluator_failed_metrics = summary.overall_summary.failed_metrics
     failed_metric_names = []
     for fm in evaluator_failed_metrics:
         if isinstance(fm, dict):
@@ -195,16 +179,14 @@ async def run_evaluation(
     # 7. Extract metrics and check thresholds
     metrics_summary = {}
     threshold_failures = []
-    overall_summary = summary_data.get("overall_summary", {})
-    llm_based_metrics = overall_summary.get("llm_based_metrics", {})
+    llm_based_metrics = summary.overall_summary.llm_based_metrics
 
     for metric_name, data in llm_based_metrics.items():
-        avg = data.get("average")
-        if avg is not None:
-            metrics_summary[metric_name] = avg
+        avg = data.average
+        metrics_summary[metric_name] = avg
 
-        threshold = data.get("threshold")
-        if avg is not None and threshold is not None:
+        threshold = data.threshold
+        if threshold is not None:
             if avg < threshold:
                 threshold_failures.append(
                     {
@@ -221,7 +203,7 @@ async def run_evaluation(
         success=success,
         failed_metrics=failed_metric_names,
         metrics=metrics_summary,
-        summary=summary_data,
+        summary=summary,
         raw_results=results_df,
         threshold_failures=threshold_failures,
     )
