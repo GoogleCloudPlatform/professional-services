@@ -21,7 +21,7 @@ from typing import Any
 
 import pandas as pd
 
-from agent_eval.core.agent_client import AgentClient
+from agent_eval.core.agent_client import AgentClient, LocalAgentClient
 
 logger = logging.getLogger("agent_eval.interactions")
 
@@ -256,8 +256,6 @@ class InteractionRunner:
         self.config = config
         self.user_ldap = config.get("user") or os.environ.get("USER") or "unknown"
         if agent_instance is not None:
-            from agent_eval.core.agent_client import LocalAgentClient
-
             self.agent_client = LocalAgentClient(
                 agent_instance=agent_instance,
                 app_name=config["app_name"],

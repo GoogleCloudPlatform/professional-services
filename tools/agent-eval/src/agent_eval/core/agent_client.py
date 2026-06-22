@@ -19,13 +19,14 @@ import subprocess
 import time
 import uuid
 from abc import ABC, abstractmethod
-from datetime import datetime
 from typing import Any
 
 import requests
 from google.adk.agents.invocation_context import InvocationContext
+from google.adk.events.event import Event as AdkEvent
 from google.adk.sessions.in_memory_session_service import InMemorySessionService
-from google.adk.sessions.session import Session as AdkSession
+from google.genai.types import Content as AdkContent
+from google.genai.types import Part as AdkPart
 
 logger = logging.getLogger("agent_eval.agent_client")
 
@@ -647,15 +648,18 @@ class LocalAgentClient(BaseAgentClient):
         if not session:
             raise ValueError(f"Session {session_id} not found.")
 
-        # 1. Rebuild ADK session and context
-        adk_session = AdkSession(
-            id=session_id,
-            user_id=self.user_id,
+        # 1. Rebuild ADK session using the session service
+        session_service = InMemorySessionService()
+        adk_session = await session_service.create_session(
             app_name=self.app_name,
+            user_id=self.user_id,
+            session_id=session_id,
             state=session["state"],
         )
 
-        session_service = InMemorySessionService()
+        # Seed the session events history
+        adk_session.events = [AdkEvent.model_validate(e) for e in session["events"]]
+
         inv_context = InvocationContext(
             session_service=session_service,
             invocation_id=f"inv_{uuid.uuid4()}",
@@ -679,19 +683,44 @@ class LocalAgentClient(BaseAgentClient):
             res = self.agent_instance(inv_context)
             response_text = res.output or "" if hasattr(res, "output") else str(res)
 
-        # 3. Update session state and mock events
-        user_event = {
-            "author": "user",
-            "content": {"parts": [{"text": question}]},
-            "timestamp": datetime.now().isoformat(),
-        }
-        model_event = {
-            "author": self.app_name,
-            "content": {"parts": [{"text": response_text}]},
-            "timestamp": datetime.now().isoformat(),
-        }
+        # 3. Update session state and events, ensuring no duplicates
+        user_msg_appended = any(
+            getattr(event, "author", None) == "user"
+            and any(
+                getattr(part, "text", "") == question
+                for part in getattr(getattr(event, "content", None), "parts", [])
+                if hasattr(part, "text")
+            )
+            for event in adk_session.events
+        )
+        if not user_msg_appended:
+            user_event = AdkEvent(
+                author="user",
+                content=AdkContent(parts=[AdkPart(text=question)]),
+                timestamp=time.time(),
+            )
+            adk_session.events.append(user_event)
 
-        session["events"].extend([user_event, model_event])
+        model_res_appended = any(
+            getattr(event, "author", None) == self.app_name
+            and any(
+                getattr(part, "text", "") == response_text
+                for part in getattr(getattr(event, "content", None), "parts", [])
+                if hasattr(part, "text")
+            )
+            for event in adk_session.events
+        )
+        if not model_res_appended:
+            model_event = AdkEvent(
+                author=self.app_name,
+                content=AdkContent(parts=[AdkPart(text=response_text)]),
+                timestamp=time.time(),
+            )
+            adk_session.events.append(model_event)
+
+        session["events"] = [
+            event.model_dump(mode="json") for event in adk_session.events
+        ]
         session["state"] = adk_session.state
 
         return {
