@@ -18,6 +18,8 @@ import re
 import subprocess
 import time
 import uuid
+from abc import ABC, abstractmethod
+from datetime import datetime
 from typing import Any
 
 import requests
@@ -25,7 +27,50 @@ import requests
 logger = logging.getLogger("agent_eval.agent_client")
 
 
-class AgentClient:
+class BaseAgentClient(ABC):
+    """Abstract Base Class defining the contract for Agent Clients."""
+
+    def __init__(self, app_name: str, user_id: str = "eval_user"):
+        self.app_name = app_name
+        self.user_id = user_id
+
+    @abstractmethod
+    def create_session(self, **session_data) -> str:
+        """Creates a new session for the agent."""
+
+    @abstractmethod
+    def run_interaction(self, session_id: str, question: str) -> dict[str, Any]:
+        """Sends a prompt turn to the agent and returns the response payload."""
+
+    @abstractmethod
+    def get_session_state(self, session_id: str) -> dict[str, Any]:
+        """Retrieves the final state of the session."""
+
+    @abstractmethod
+    def get_session_trace(self, session_id: str) -> dict[str, Any]:
+        """Retrieves the execution trace/telemetry of the session."""
+
+    @staticmethod
+    def get_final_payload_field(session_data: dict, field_name: str) -> Any:
+        """Extracts a field from the final JSON payload event."""
+        events = session_data.get("events", [])
+        for event in reversed(events):
+            content = event.get("content")
+            if not content or not isinstance(content, dict):
+                continue
+            parts = content.get("parts", [])
+            for part in parts:
+                text = part.get("text", "")
+                if text and "natural_language_response" in text:
+                    try:
+                        payload = json.loads(text)
+                        return payload.get(field_name)
+                    except (json.JSONDecodeError, TypeError):
+                        continue
+        return None
+
+
+class AgentClient(BaseAgentClient):
     """
     A client for interacting with the Agent service.
     Encapsulates session creation, message sending, state retrieval, and trace analysis.
@@ -47,9 +92,8 @@ class AgentClient:
             user_id: The user ID to associate with sessions.
             token: Optional gcloud identity token. If not provided, it will be fetched using gcloud.
         """
+        super().__init__(app_name, user_id)
         self.base_url = base_url.rstrip("/")
-        self.app_name = app_name
-        self.user_id = user_id
         self._token = token
 
     @property
@@ -572,21 +616,116 @@ class AgentClient:
 
         return trace
 
-    @staticmethod
-    def get_final_payload_field(session_data: dict, field_name: str) -> Any:
-        """Extracts a field from the final JSON payload event."""
-        events = session_data.get("events", [])
-        for event in reversed(events):
-            content = event.get("content")
-            if not content or not isinstance(content, dict):
-                continue
-            parts = content.get("parts", [])
-            for part in parts:
-                text = part.get("text", "")
-                if text and "natural_language_response" in text:
-                    try:
-                        payload = json.loads(text)
-                        return payload.get(field_name)
-                    except (json.JSONDecodeError, TypeError):
-                        continue
-        return None
+
+class LocalAgentClient(BaseAgentClient):
+    """An in-process, local client for interacting with an ADK agent/workflow instance.
+
+    Shares the same interface as AgentClient but executes calls in-process.
+    """
+
+    def __init__(self, agent_instance: Any, app_name: str, user_id: str = "eval_user"):
+        super().__init__(app_name, user_id)
+        self.agent_instance = agent_instance
+        self.base_url = "local://in-process"
+        self.sessions = {}
+
+    def create_session(self, **session_data) -> str:
+        session_id = f"local_session_{uuid.uuid4()}"
+        self.sessions[session_id] = {
+            "state": session_data.get("state") or {},
+            "events": [],
+        }
+        return session_id
+
+    async def _run_interaction_async(
+        self, session_id: str, question: str
+    ) -> dict[str, Any]:
+        session = self.sessions.get(session_id)
+        if not session:
+            raise ValueError(f"Session {session_id} not found.")
+
+        from google.adk.agents.invocation_context import InvocationContext
+        from google.adk.sessions.session import Session as AdkSession
+
+        # 1. Rebuild ADK session and context
+        adk_session = AdkSession(
+            id=session_id,
+            user_id=self.user_id,
+            app_name=self.app_name,
+            state=session["state"],
+        )
+
+        from unittest.mock import MagicMock
+
+        from google.adk.sessions.base_session_service import BaseSessionService
+
+        mock_session_service = MagicMock(spec=BaseSessionService)
+        inv_context = InvocationContext(
+            session_service=mock_session_service,
+            invocation_id=f"inv_{uuid.uuid4()}",
+            session=adk_session,
+        )
+
+        # 2. Run the agent in-process!
+        response_text = ""
+
+        if hasattr(self.agent_instance, "run_async"):
+            async for event in self.agent_instance.run_async(inv_context):
+                if hasattr(event, "is_final_response") and event.is_final_response():
+                    response_text = event.output or ""
+                    if not response_text and event.content:
+                        response_text = "".join(
+                            part.text
+                            for part in event.content.parts
+                            if hasattr(part, "text")
+                        )
+        else:
+            res = self.agent_instance(inv_context)
+            response_text = res.output or "" if hasattr(res, "output") else str(res)
+
+        # 3. Update session state and mock events
+        user_event = {
+            "author": "user",
+            "content": {"parts": [{"text": question}]},
+            "timestamp": datetime.now().isoformat(),
+        }
+        model_event = {
+            "author": self.app_name,
+            "content": {"parts": [{"text": response_text}]},
+            "timestamp": datetime.now().isoformat(),
+        }
+
+        session["events"].extend([user_event, model_event])
+        session["state"] = adk_session.state
+
+        return {
+            "response": response_text,
+            "session_id": session_id,
+            "state": adk_session.state,
+        }
+
+    def run_interaction(self, session_id: str, question: str) -> dict[str, Any]:
+        """Synchronous wrapper around async interaction execution."""
+        import asyncio
+
+        try:
+            loop = asyncio.get_running_loop()
+        except RuntimeError:
+            loop = None
+
+        if loop and loop.is_running():
+            future = asyncio.run_coroutine_threadsafe(
+                self._run_interaction_async(session_id, question), loop
+            )
+            return future.result()
+        else:
+            return asyncio.run(self._run_interaction_async(session_id, question))
+
+    def get_session_state(self, session_id: str) -> dict[str, Any]:
+        session = self.sessions.get(session_id)
+        if not session:
+            raise ValueError(f"Session {session_id} not found.")
+        return {"events": session["events"], "state": session["state"]}
+
+    def get_session_trace(self, session_id: str) -> dict[str, Any]:
+        return {"spans": []}

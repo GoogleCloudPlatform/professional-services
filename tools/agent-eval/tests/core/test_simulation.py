@@ -344,6 +344,7 @@ class TestSimulationFlow(unittest.IsolatedAsyncioTestCase):
         ]
 
         mock_service = MagicMock()
+
         async def mock_perform_inference(*args, **kwargs):
             yield InferenceResult(
                 app_name="my_agent",
@@ -351,8 +352,10 @@ class TestSimulationFlow(unittest.IsolatedAsyncioTestCase):
                 eval_case_id="single_turn_case_1",
                 session_id="dummy_session",
             )
+
         async def mock_evaluate(*args, **kwargs):
             yield MagicMock()
+
         mock_service.perform_inference.side_effect = mock_perform_inference
         mock_service.evaluate.side_effect = mock_evaluate
         mock_service_cls.return_value = mock_service

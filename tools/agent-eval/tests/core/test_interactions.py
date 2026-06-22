@@ -33,6 +33,7 @@ from agent_eval.core.interactions import (
 
 # ── 1. Helper Parsing Tests ──────────────────────────────────────────────────
 
+
 def test_parse_metadata_filters():
     assert parse_metadata_filters(None) == {}
     assert parse_metadata_filters([]) == {}
@@ -71,6 +72,7 @@ def test_parse_state_variables():
 
 
 # ── 2. Row Adapter Tests ─────────────────────────────────────────────────────
+
 
 def test_unified_row_to_question():
     # Case A: Nested reference data (canonical)
@@ -121,6 +123,7 @@ def test_unified_row_to_question():
 
 
 # ── 3. Golden Questions Loading Tests ────────────────────────────────────────
+
 
 def test_get_golden_questions_jsonl():
     # Seed a temp dataset.jsonl containing both single-turn and multi-turn rows
@@ -174,6 +177,7 @@ def test_get_golden_questions_file_not_found():
 
 # ── 4. Metadata Filtering Tests ──────────────────────────────────────────────
 
+
 def test_filter_questions_by_metadata():
     questions = [
         {"id": "q1", "metadata": {"category": "travel", "difficulty": "easy"}},
@@ -203,6 +207,7 @@ def test_filter_questions_by_metadata():
 
 
 # ── 5. Single Question Execution Tests ───────────────────────────────────────
+
 
 @pytest.mark.anyio
 async def test_process_single_question_success():
@@ -247,10 +252,12 @@ async def test_process_single_question_success():
     # Verify mock interactions were called
     mock_client.create_session.assert_called_once_with(debug="true")
     assert mock_client.run_interaction.call_count == 2
-    mock_client.run_interaction.assert_has_calls([
-        mock.call("session_abc", "hello turn 1"),
-        mock.call("session_abc", "hello turn 2"),
-    ])
+    mock_client.run_interaction.assert_has_calls(
+        [
+            mock.call("session_abc", "hello turn 1"),
+            mock.call("session_abc", "hello turn 2"),
+        ]
+    )
 
 
 @pytest.mark.anyio
@@ -284,6 +291,7 @@ async def test_process_single_question_failure():
 
 
 # ── 6. InteractionRunner Orchestrator Tests ──────────────────────────────────
+
 
 @pytest.mark.anyio
 @mock.patch("agent_eval.core.interactions.AgentClient")
@@ -327,13 +335,87 @@ async def test_interaction_runner_full_orchestration(mock_agent_client_class):
         assert list(df["session_id"]) == ["session_1", "session_1"]
 
         # Verify state variables were parsed and passed to session creation
-        mock_client.create_session.assert_has_calls([
-            mock.call(debug="true"),
-            mock.call(debug="true"),
-        ])
+        mock_client.create_session.assert_has_calls(
+            [
+                mock.call(debug="true"),
+                mock.call(debug="true"),
+            ]
+        )
 
         # Verify run_interaction was called for prompt 1 in both runs
-        mock_client.run_interaction.assert_has_calls([
-            mock.call("session_1", "prompt 1"),
-            mock.call("session_1", "prompt 1"),
-        ])
+        mock_client.run_interaction.assert_has_calls(
+            [
+                mock.call("session_1", "prompt 1"),
+                mock.call("session_1", "prompt 1"),
+            ]
+        )
+
+
+@pytest.mark.anyio
+async def test_interaction_runner_local_with_agent_instance():
+    # 1. Setup mock agent_instance with async run_async generator
+    mock_agent_instance = mock.MagicMock()
+
+    async def mock_run_async(inv_context):
+        # Yield a telemetry event and a final response event
+        mock_event_1 = mock.MagicMock()
+        mock_event_1.is_final_response.return_value = False
+        yield mock_event_1
+
+        mock_event_2 = mock.MagicMock()
+        mock_event_2.is_final_response.return_value = True
+        mock_event_2.output = "Hello, local user!"
+        yield mock_event_2
+
+    mock_agent_instance.run_async.side_effect = mock_run_async
+
+    # 2. Seed a temporary dataset file
+    dataset_row = {
+        "id": "q1",
+        "prompt": "prompt 1",
+        "kind": "single_turn",
+        "reference_data": {"expected_response": "Hello, local user!"},
+    }
+    with tempfile.TemporaryDirectory() as td:
+        dataset_path = Path(td) / "dataset.jsonl"
+        with dataset_path.open("w") as f:
+            f.write(json.dumps(dataset_row) + "\n")
+
+        config = {
+            "app_name": "my-agent",
+            "questions_file": str(dataset_path),
+            "base_url": "local://in-process",
+            "runs": 1,
+            "user": "sergiovidiella",
+        }
+
+        # 3. Instantiate InteractionRunner passing the agent_instance!
+        runner = InteractionRunner(config, agent_instance=mock_agent_instance)
+
+        # Verify it instantiated LocalAgentClient!
+        from agent_eval.core.agent_client import LocalAgentClient
+
+        assert isinstance(runner.agent_client, LocalAgentClient)
+
+        # 4. Run!
+        df = await runner.run()
+
+        # 5. Assertions
+        assert isinstance(df, pd.DataFrame)
+        assert len(df) == 1
+        assert df.iloc[0]["question_id"] == "q1"
+        assert df.iloc[0]["app_name"] == "my-agent"
+
+        session_id = df.iloc[0]["session_id"]
+        assert "local_session_" in session_id
+
+        # Verify response was stored in the session state events!
+        session_state = runner.agent_client.get_session_state(session_id)
+        assert len(session_state["events"]) == 2
+        assert (
+            session_state["events"][1]["content"]["parts"][0]["text"]
+            == "Hello, local user!"
+        )
+
+        # Verify run_async was called on our mock_agent_instance
+        mock_agent_instance.run_async.assert_called_once()
