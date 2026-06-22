@@ -64,6 +64,7 @@ select = [
     "B",    # flake8-bugbear (common bugs and design flaws)
     "RUF",  # Ruff-specific rules
     "PTH",  # flake8-use-pathlib (use pathlib instead of os.path)
+    "T20",  # flake8-print (disallow print statements)
 ]
 ignore = [
     "E501",    # line too long
