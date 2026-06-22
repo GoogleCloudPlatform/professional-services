@@ -18,6 +18,8 @@ from __future__ import annotations
 import asyncio
 import contextlib
 import logging
+import os
+import tempfile
 from datetime import datetime
 from pathlib import Path
 from typing import Any
@@ -97,8 +99,6 @@ async def run_evaluation(
     raw_dir.mkdir(parents=True, exist_ok=True)
 
     if pipeline:
-        import os
-
         if not gcs_dest:
             raise ValueError(
                 "gcs_dest must be provided when running on Vertex AI Pipelines (pipeline=True)."
@@ -146,8 +146,6 @@ async def run_evaluation(
         logger.info(f"Uploaded metrics to {metrics_gcs_path}")
 
         # B. Compile Pipeline locally
-        import tempfile
-
         temp_dir = Path(tempfile.mkdtemp())
         pipeline_yaml_path = temp_dir / "pipeline.yaml"
         compile_pipeline(output_path=pipeline_yaml_path, runner_image=runner_image)
