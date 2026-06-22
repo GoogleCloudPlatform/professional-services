@@ -16,6 +16,7 @@ dependencies = [
     "tqdm>=4.66.0",
     "questionary>=2.0.0",
     "pydantic-settings>=2.12.0",
+    "kfp>=2.7.0",
 ]
 
 [project.optional-dependencies]

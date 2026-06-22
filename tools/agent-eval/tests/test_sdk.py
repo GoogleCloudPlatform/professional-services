@@ -174,6 +174,10 @@ def test_sdk_run_evaluation_sync(mock_run_eval):
         generate_html=False,
         model="gemini-3.1-pro-preview",
         gcs_dest=None,
+        pipeline=False,
+        runner_image=None,
+        agent_url=None,
+        agent_name=None,
     )
     assert result == mock_result
 
@@ -310,3 +314,98 @@ async def test_sdk_run_evaluation_threshold_failure(
                 "threshold": 0.8,
             }
         ]
+
+
+@pytest.mark.anyio
+@mock.patch("agent_eval.sdk.generate_html_report")
+@mock.patch("agent_eval.sdk.get_project_id")
+@mock.patch("agent_eval.sdk.submit_pipeline_job")
+@mock.patch("agent_eval.sdk.compile_pipeline")
+@mock.patch("agent_eval.sdk.storage.Client")
+async def test_sdk_run_evaluation_pipeline_success(
+    mock_storage_client,
+    mock_compile,
+    mock_submit,
+    mock_get_project_id,
+    mock_generate_html_report,
+):
+    # Setup mocks
+    mock_get_project_id.return_value = "test-project"
+
+    # Mock storage client structure
+    mock_client_inst = mock.MagicMock()
+    mock_storage_client.return_value = mock_client_inst
+    mock_bucket = mock.MagicMock()
+    mock_client_inst.bucket.return_value = mock_bucket
+    mock_blob = mock.MagicMock()
+    mock_bucket.blob.return_value = mock_blob
+
+    # Sinks a fake summary JSON on GCS download
+    def fake_download_to_filename(dest_path):
+        Path(dest_path).write_text(
+            json.dumps(
+                {
+                    "experiment_id": "test_run",
+                    "overall_summary": {
+                        "failed_metrics": [],
+                        "llm_based_metrics": {
+                            "trajectory_accuracy": {
+                                "average": 0.85,
+                                "threshold": 0.7,
+                            }
+                        },
+                    },
+                }
+            )
+        )
+
+    mock_blob.download_to_filename.side_effect = fake_download_to_filename
+
+    # Mock list_blobs to return no raw CSVs (empty details)
+    mock_client_inst.list_blobs.return_value = []
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        tmp_path = Path(tmpdir)
+        agent_dir = tmp_path / "my_agent"
+        agent_dir.mkdir()
+        (agent_dir / "agent.py").touch()
+
+        eval_dir = tmp_path / "tests" / "eval"
+        eval_dir.mkdir(parents=True)
+        (eval_dir / "dataset.jsonl").write_text("{}")
+
+        metrics_dir = eval_dir / "metrics"
+        metrics_dir.mkdir()
+        (metrics_dir / "metric_definitions.json").write_text("{}")
+
+        # Run SDK evaluation on pipeline
+        result = await run_evaluation(
+            agent_dir=agent_dir,
+            eval_dir=eval_dir,
+            run_id="test_run",
+            gcs_dest="gs://my-bucket/runs/run_01",
+            pipeline=True,
+            runner_image="gcr.io/my-project/agent-eval:latest",
+            agent_url="http://my-agent/run",
+            agent_name="my_agent_app",
+        )
+
+        # Assertions
+        assert result.success is True
+        assert result.failed_metrics == []
+        assert result.metrics == {"trajectory_accuracy": 0.85}
+        assert result.threshold_failures == []
+
+        # Verify pipeline helpers were called correctly
+        mock_compile.assert_called_once()
+        mock_submit.assert_called_once_with(
+            project_id="test-project",
+            location="us-central1",
+            pipeline_yaml_path=mock.ANY,
+            gcs_dest="gs://my-bucket/runs/run_01",
+            dataset_gcs_path="gs://my-bucket/runs/run_01/staging/dataset.jsonl",
+            metrics_gcs_path="gs://my-bucket/runs/run_01/staging/metric_definitions.json",
+            agent_url="http://my-agent/run",
+            agent_name="my_agent_app",
+            wait=True,
+        )
