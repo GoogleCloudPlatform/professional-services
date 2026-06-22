@@ -23,12 +23,14 @@ from pathlib import Path
 from typing import Any
 
 import pandas as pd
+from google.cloud import storage
 from pydantic import BaseModel, ConfigDict, Field
 
 from agent_eval.core.analyzer import Analyzer
 from agent_eval.core.converters import write_jsonl
-from agent_eval.core.evaluator import Evaluator
+from agent_eval.core.evaluator import Evaluator, get_project_id
 from agent_eval.core.html_report import generate_html_report
+from agent_eval.core.kfp_pipeline import compile_pipeline, submit_pipeline_job
 from agent_eval.core.path_resolver import agent_project_root, find_eval_dir
 from agent_eval.core.schema import EvaluationSummary
 from agent_eval.core.simulation import run_simulation_in_process
@@ -58,8 +60,12 @@ async def run_evaluation(
     generate_html: bool = False,
     model: str = "gemini-3.1-pro-preview",
     gcs_dest: str | None = None,
+    pipeline: bool = False,
+    runner_image: str | None = None,
+    agent_url: str | None = None,
+    agent_name: str | None = None,
 ) -> EvaluationResult:
-    """Run an evaluation in-process.
+    """Run an evaluation (either locally in-process or on Vertex AI Pipelines).
 
     Args:
         agent_dir: Path to the agent project directory.
@@ -69,6 +75,11 @@ async def run_evaluation(
         run_analysis: Whether to run Gemini-based analysis on the results.
         generate_html: Whether to generate the HTML report.
         model: Model to use for analysis.
+        gcs_dest: Optional GCS destination URI for managed Vertex AI pipelines.
+        pipeline: Whether to orchestrate the entire flow on Vertex AI Pipelines.
+        runner_image: Docker image containing agent-eval for the KFP steps.
+        agent_url: The remote agent endpoint URL (required if pipeline=True).
+        agent_name: The name of the agent application (required if pipeline=True).
 
     Returns:
         EvaluationResult containing the metrics and pass/fail status.
@@ -85,51 +96,151 @@ async def run_evaluation(
     raw_dir = results_dir / "raw"
     raw_dir.mkdir(parents=True, exist_ok=True)
 
-    # 2. Run simulation in process
-    logger.info("Starting simulation...")
-    project_root = agent_project_root(agent_dir)
-    dataset_path = eval_dir / "dataset.jsonl"
-    try:
-        records = await run_simulation_in_process(
-            agent_dir=agent_dir,
-            project_root=project_root,
-            dataset_path=dataset_path,
+    if pipeline:
+        import os
+
+        if not gcs_dest:
+            raise ValueError(
+                "gcs_dest must be provided when running on Vertex AI Pipelines (pipeline=True)."
+            )
+        if not agent_url:
+            raise ValueError(
+                "agent_url must be provided when running on Vertex AI Pipelines (pipeline=True)."
+            )
+        if not agent_name:
+            raise ValueError(
+                "agent_name must be provided when running on Vertex AI Pipelines (pipeline=True)."
+            )
+        if not runner_image:
+            raise ValueError(
+                "runner_image must be provided when running on Vertex AI Pipelines (pipeline=True)."
+            )
+
+        # A. Staging local files to GCS
+        logger.info(
+            f"Staging evaluation dataset and metrics to GCS bucket: {gcs_dest}..."
         )
-    except Exception:
-        logger.exception("Simulation failed")
-        raise
+        storage_client = storage.Client()
 
-    if not records:
-        logger.warning("No interactions collected.")
-        return EvaluationResult(
-            passed=True,
-            failed_metrics=[],
-            metrics={},
-            summary={},
-            raw_results=pd.DataFrame(),
+        # Parse GCS destination
+        gcs_dest_clean = gcs_dest.rstrip("/")
+        bucket_name, blob_prefix = gcs_dest_clean.replace("gs://", "").split("/", 1)
+        bucket = storage_client.bucket(bucket_name)
+
+        # Upload dataset.jsonl
+        dataset_path = eval_dir / "dataset.jsonl"
+        if not dataset_path.exists():
+            raise FileNotFoundError(f"Evaluation dataset not found at {dataset_path}")
+        dataset_gcs_blob = f"{blob_prefix}/staging/dataset.jsonl"
+        dataset_gcs_path = f"gs://{bucket_name}/{dataset_gcs_blob}"
+        bucket.blob(dataset_gcs_blob).upload_from_filename(str(dataset_path))
+        logger.info(f"Uploaded dataset to {dataset_gcs_path}")
+
+        # Upload metric_definitions.json
+        metrics_path = eval_dir / "metrics" / "metric_definitions.json"
+        if not metrics_path.exists():
+            raise FileNotFoundError(f"Metric definitions not found at {metrics_path}")
+        metrics_gcs_blob = f"{blob_prefix}/staging/metric_definitions.json"
+        metrics_gcs_path = f"gs://{bucket_name}/{metrics_gcs_blob}"
+        bucket.blob(metrics_gcs_blob).upload_from_filename(str(metrics_path))
+        logger.info(f"Uploaded metrics to {metrics_gcs_path}")
+
+        # B. Compile Pipeline locally
+        import tempfile
+
+        temp_dir = Path(tempfile.mkdtemp())
+        pipeline_yaml_path = temp_dir / "pipeline.yaml"
+        compile_pipeline(output_path=pipeline_yaml_path, runner_image=runner_image)
+
+        # C. Submit and execute pipeline job on Vertex AI
+        project_id = get_project_id()
+        if not project_id:
+            raise ValueError("GOOGLE_CLOUD_PROJECT environment variable is not set.")
+
+        loc = location or "us-central1"
+
+        logger.info("Submitting pipeline run to Vertex AI...")
+        await asyncio.to_thread(
+            submit_pipeline_job,
+            project_id=project_id,
+            location=loc,
+            pipeline_yaml_path=pipeline_yaml_path,
+            gcs_dest=gcs_dest_clean,
+            dataset_gcs_path=dataset_gcs_path,
+            metrics_gcs_path=metrics_gcs_path,
+            agent_url=agent_url,
+            agent_name=agent_name,
+            wait=True,
         )
 
-    sim_output = raw_dir / "processed_interaction_sim.jsonl"
-    write_jsonl(records, str(sim_output))
-    interaction_files = [sim_output]
+        # Cleanup temp pipeline file
+        pipeline_yaml_path.unlink(missing_ok=True)
+        temp_dir.rmdir()
 
-    # 3. Verify metric definitions exist
-    metrics_path = eval_dir / "metrics" / "metric_definitions.json"
-    if not metrics_path.exists():
-        raise FileNotFoundError(f"Metric definitions not found at {metrics_path}")
+        # D. Download final results from GCS to local results_dir
+        logger.info("Pipeline run finished. Downloading evaluation summary...")
+        eval_summary_path = results_dir / "eval_summary.json"
 
-    # 4. Evaluate
-    logger.info("Evaluating interactions...")
-    eval_config = {
-        "location": location,
-        "gcs_dest": gcs_dest,
-    }
-    evaluator = Evaluator(eval_config)
-    await evaluator.evaluate(
-        interaction_files=interaction_files,
-        metrics_files=[metrics_path],
-        results_dir=results_dir,
-    )
+        summary_gcs_blob = f"{blob_prefix}/eval_summary.json"
+        bucket.blob(summary_gcs_blob).download_to_filename(str(eval_summary_path))
+        logger.info(f"Downloaded evaluation summary to {eval_summary_path}")
+
+        # Download raw CSV to local raw_dir so downstream code can load it
+        logger.info("Downloading raw evaluation CSV records...")
+        blobs = storage_client.list_blobs(bucket_name, prefix=f"{blob_prefix}/details/")
+        for blob in blobs:
+            if blob.name.endswith(".csv"):
+                local_csv_name = os.path.basename(blob.name)
+                local_csv_path = raw_dir / local_csv_name
+                blob.download_to_filename(str(local_csv_path))
+                logger.info(f"Downloaded raw CSV to {local_csv_path}")
+
+    else:
+        # 2. Run simulation in process
+        logger.info("Starting simulation...")
+        project_root = agent_project_root(agent_dir)
+        dataset_path = eval_dir / "dataset.jsonl"
+        try:
+            records = await run_simulation_in_process(
+                agent_dir=agent_dir,
+                project_root=project_root,
+                dataset_path=dataset_path,
+            )
+        except Exception:
+            logger.exception("Simulation failed")
+            raise
+
+        if not records:
+            logger.warning("No interactions collected.")
+            return EvaluationResult(
+                success=True,
+                failed_metrics=[],
+                metrics={},
+                summary={},
+                raw_results=pd.DataFrame(),
+            )
+
+        sim_output = raw_dir / "processed_interaction_sim.jsonl"
+        write_jsonl(records, str(sim_output))
+        interaction_files = [sim_output]
+
+        # 3. Verify metric definitions exist
+        metrics_path = eval_dir / "metrics" / "metric_definitions.json"
+        if not metrics_path.exists():
+            raise FileNotFoundError(f"Metric definitions not found at {metrics_path}")
+
+        # 4. Evaluate
+        logger.info("Evaluating interactions...")
+        eval_config = {
+            "location": location,
+            "gcs_dest": gcs_dest,
+        }
+        evaluator = Evaluator(eval_config)
+        await evaluator.evaluate(
+            interaction_files=interaction_files,
+            metrics_files=[metrics_path],
+            results_dir=results_dir,
+        )
 
     # Read the summary to get failed metrics from evaluator runtime
     eval_summary_path = results_dir / "eval_summary.json"
@@ -220,6 +331,10 @@ def run_evaluation_sync(
     generate_html: bool = False,
     model: str = "gemini-3.1-pro-preview",
     gcs_dest: str | None = None,
+    pipeline: bool = False,
+    runner_image: str | None = None,
+    agent_url: str | None = None,
+    agent_name: str | None = None,
 ) -> EvaluationResult:
     """Synchronous wrapper for run_evaluation.
 
@@ -232,6 +347,10 @@ def run_evaluation_sync(
         generate_html: Whether to generate the HTML report.
         model: Model to use for analysis.
         gcs_dest: Optional GCS destination URI for managed Vertex AI pipelines.
+        pipeline: Whether to orchestrate the entire flow on Vertex AI Pipelines.
+        runner_image: Docker image containing agent-eval for the KFP steps.
+        agent_url: The remote agent endpoint URL (required if pipeline=True).
+        agent_name: The name of the agent application (required if pipeline=True).
 
     Returns:
         EvaluationResult containing the metrics and pass/fail status.
@@ -246,5 +365,9 @@ def run_evaluation_sync(
             generate_html=generate_html,
             model=model,
             gcs_dest=gcs_dest,
+            pipeline=pipeline,
+            runner_image=runner_image,
+            agent_url=agent_url,
+            agent_name=agent_name,
         )
     )
