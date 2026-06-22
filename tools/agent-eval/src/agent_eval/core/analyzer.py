@@ -958,7 +958,7 @@ class Analyzer:
         subdirs = [
             d
             for d in results_dir.iterdir()
-            if d.is_dir() and d.name.isdigit() or "_" in d.name
+            if (d.is_dir() and d.name.isdigit()) or "_" in d.name
         ]
         subdirs.sort(key=lambda x: x.stat().st_mtime, reverse=True)
 

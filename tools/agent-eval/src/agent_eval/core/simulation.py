@@ -126,8 +126,8 @@ EVAL_SESSION_ID_PREFIX = "___eval___session___"
 def custom_session_id_supplier() -> str:
     case_id = current_case_id_var.get(None)
     if case_id:
-        return f"{EVAL_SESSION_ID_PREFIX}{case_id}___{str(uuid.uuid4())}"
-    return f"{EVAL_SESSION_ID_PREFIX}{str(uuid.uuid4())}"
+        return f"{EVAL_SESSION_ID_PREFIX}{case_id}___{uuid.uuid4()!s}"
+    return f"{EVAL_SESSION_ID_PREFIX}{uuid.uuid4()!s}"
 
 
 class PrePopulatingSessionService(InMemorySessionService):

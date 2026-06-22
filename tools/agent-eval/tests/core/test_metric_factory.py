@@ -89,7 +89,7 @@ def test_build_custom_llm_judge_missing_required():
         "instruction": "Test instruction",
     }
 
-    with pytest.raises(ValueError, match="prompt_template.*or.*criteria.*required"):
+    with pytest.raises(ValueError, match=r"prompt_template.*or.*criteria.*required"):
         metric_factory.build_metric("test_metric_fail", spec)
 
 
@@ -159,7 +159,7 @@ def test_build_python_function_metric():
         }
         metric_factory.build_metric("my_fn", spec)
         vt.Metric.assert_called_once()
-        args, kwargs = vt.Metric.call_args
+        _args, kwargs = vt.Metric.call_args
         assert kwargs["name"] == "my_fn"
         assert callable(kwargs["custom_function"])
         assert kwargs["custom_function"]({"row": "dummy"}) == {"score": 1.0}
@@ -285,7 +285,7 @@ def test_to_evaluation_run_metric_llm(monkeypatch):
 
     assert res == vt.EvaluationRunMetric.return_value
     vt.EvaluationRunMetric.assert_called_once()
-    args, kwargs = vt.EvaluationRunMetric.call_args
+    _args, kwargs = vt.EvaluationRunMetric.call_args
     assert kwargs["metric"] == "custom_metric"
     assert kwargs["metric_config"] == vt.UnifiedMetric.return_value
 
@@ -309,7 +309,7 @@ def test_to_evaluation_run_metric_remote_code(monkeypatch):
 
     assert res == vt.EvaluationRunMetric.return_value
     vt.EvaluationRunMetric.assert_called_once()
-    args, kwargs = vt.EvaluationRunMetric.call_args
+    _args, kwargs = vt.EvaluationRunMetric.call_args
     assert kwargs["metric"] == "custom_remote"
     assert kwargs["metric_config"] == vt.UnifiedMetric.return_value
 

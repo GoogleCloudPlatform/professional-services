@@ -131,7 +131,8 @@ def calculate_token_usage(
 
 
 def calculate_latency_metrics(
-    session_trace: list[dict[str, Any]], latency_data: list[dict[str, Any]] = None
+    session_trace: list[dict[str, Any]],
+    latency_data: list[dict[str, Any]] | None = None,
 ) -> tuple[float, str, dict[str, Any]]:
     """
     Calculate latency metrics from the session trace.
@@ -752,10 +753,10 @@ def evaluate_deterministic_metrics(
     session_trace: list[dict[str, Any]],
     agents_evaluated: list[str],
     question_metadata: dict[str, Any],
-    metrics_to_run: list[str] = None,
-    reference_data: dict[str, Any] = None,
-    metric_definitions: dict[str, Any] = None,
-    latency_data: list[dict[str, Any]] = None,
+    metrics_to_run: list[str] | None = None,
+    reference_data: dict[str, Any] | None = None,
+    metric_definitions: dict[str, Any] | None = None,
+    latency_data: list[dict[str, Any]] | None = None,
 ) -> dict[str, dict[str, Any]]:
     """
     Evaluate all specified deterministic metrics.
@@ -786,7 +787,7 @@ def evaluate_deterministic_metrics(
         except Exception as e:
             results[metric_name] = {
                 "score": 0.0,
-                "explanation": f"Error evaluating metric {metric_name}: {str(e)}",
+                "explanation": f"Error evaluating metric {metric_name}: {e!s}",
             }
 
     return results

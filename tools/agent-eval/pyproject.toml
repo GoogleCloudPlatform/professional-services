@@ -62,7 +62,11 @@ select = [
     "SIM",  # flake8-simplify (code simplification)
     "C4",   # flake8-comprehensions (better comprehensions)
     "B",    # flake8-bugbear (common bugs and design flaws)
+    "RUF",  # Ruff-specific rules
 ]
 ignore = [
-    "E501",  # line too long
+    "E501",    # line too long
+    "RUF001",  # String contains ambiguous unicode character (intentional for UI/HTML)
+    "RUF002",  # Docstring contains ambiguous unicode character
+    "RUF003",  # Comment contains ambiguous unicode character
 ]
