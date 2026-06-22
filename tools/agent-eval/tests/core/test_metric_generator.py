@@ -17,12 +17,13 @@ import json
 import tempfile
 from pathlib import Path
 from unittest.mock import patch
+
 import pytest
 
 from agent_eval.core.metric_generator import (
-    generate_metric_definitions,
-    generate_eval_data,
     MetricGenerationError,
+    generate_eval_data,
+    generate_metric_definitions,
 )
 
 

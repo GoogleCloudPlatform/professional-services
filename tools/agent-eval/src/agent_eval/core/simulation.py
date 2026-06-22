@@ -13,40 +13,39 @@
 # limitations under the License.
 """In-process simulation runner using ADK Python APIs."""
 
+import contextvars
 import logging
 import os
 import tempfile
+import uuid
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+from google.adk.agents.base_agent import BaseAgent
 from google.adk.cli.utils.agent_loader import AgentLoader
-from google.adk.evaluation.eval_case import EvalCase, SessionInput
+from google.adk.evaluation.base_eval_service import (
+    EvaluateConfig,
+    EvaluateRequest,
+    InferenceConfig,
+    InferenceRequest,
+    InferenceResult,
+)
 from google.adk.evaluation.conversation_scenarios import ConversationScenario
+from google.adk.evaluation.eval_case import EvalCase, SessionInput
 from google.adk.evaluation.in_memory_eval_sets_manager import InMemoryEvalSetsManager
 from google.adk.evaluation.local_eval_service import LocalEvalService
 from google.adk.evaluation.local_eval_set_results_manager import (
     LocalEvalSetResultsManager,
 )
-from google.adk.evaluation.base_eval_service import (
-    InferenceRequest,
-    InferenceConfig,
-    EvaluateRequest,
-    EvaluateConfig,
-)
-
+from google.adk.evaluation.simulation.user_simulator import UserSimulator
 from google.adk.evaluation.simulation.user_simulator_provider import (
     UserSimulatorProvider,
 )
-from google.adk.evaluation.simulation.user_simulator import UserSimulator
-import contextvars
-import uuid
-from google.adk.agents.base_agent import BaseAgent
-from google.adk.evaluation.base_eval_service import InferenceResult
 from google.adk.events.event import Event
 from google.adk.sessions.in_memory_session_service import InMemorySessionService
 
-from agent_eval.core.dataset_io import read_dataset, is_multi_turn, is_single_turn
 from agent_eval.core.converters import AdkHistoryConverter
+from agent_eval.core.dataset_io import is_multi_turn, is_single_turn, read_dataset
 
 
 class SingleTurnLimitingUserSimulatorProvider(UserSimulatorProvider):
@@ -55,8 +54,8 @@ class SingleTurnLimitingUserSimulatorProvider(UserSimulatorProvider):
     def provide(self, eval_case: EvalCase) -> UserSimulator:
         if eval_case.eval_id.startswith("single_turn_"):
             from google.adk.evaluation.simulation.llm_backed_user_simulator import (
-                LlmBackedUserSimulatorConfig,
                 LlmBackedUserSimulator,
+                LlmBackedUserSimulatorConfig,
             )
 
             model = "gemini-2.5-flash"

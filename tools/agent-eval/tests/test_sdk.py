@@ -16,13 +16,14 @@
 from __future__ import annotations
 
 import json
-from pathlib import Path
 import tempfile
+from pathlib import Path
 from unittest import mock
+
 import pandas as pd
+import pytest
 
 from agent_eval import run_evaluation, run_evaluation_sync
-import pytest
 
 
 @pytest.mark.anyio

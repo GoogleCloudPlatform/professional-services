@@ -15,9 +15,9 @@ import json
 import shutil
 import tempfile
 import unittest
-from unittest import IsolatedAsyncioTestCase
 from pathlib import Path
-from unittest.mock import patch, AsyncMock
+from unittest import IsolatedAsyncioTestCase
+from unittest.mock import AsyncMock, patch
 
 import pandas as pd
 

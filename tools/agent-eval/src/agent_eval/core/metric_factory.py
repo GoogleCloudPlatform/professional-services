@@ -52,6 +52,18 @@ import logging
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Tuple
 
+from agent_eval.core.metric_schema import (
+    ALL_KINDS as _KNOWN_KINDS,
+)
+from agent_eval.core.metric_schema import (
+    KIND_COMPUTATION,
+    KIND_CUSTOM_LLM_JUDGE,
+    KIND_MANAGED,
+    KIND_PARAMETRIZED_MANAGED,
+    KIND_PYTHON_FUNCTION,
+    KIND_REMOTE_CODE,
+)
+
 logger = logging.getLogger("agent_eval")
 
 
@@ -168,15 +180,6 @@ def computation(name: str, metric_name: str):
 # ---------------------------------------------------------------------------
 
 # Single source of truth — see ``core/metric_schema.py``.
-from agent_eval.core.metric_schema import (  # noqa: E402
-    ALL_KINDS as _KNOWN_KINDS,
-    KIND_MANAGED,
-    KIND_PARAMETRIZED_MANAGED,
-    KIND_CUSTOM_LLM_JUDGE,
-    KIND_COMPUTATION,
-    KIND_PYTHON_FUNCTION,
-    KIND_REMOTE_CODE,
-)
 
 
 def _load_python_callable(module_path: str | Path, function: str) -> Callable:

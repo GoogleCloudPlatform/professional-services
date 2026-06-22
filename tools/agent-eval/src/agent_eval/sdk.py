@@ -15,27 +15,29 @@
 
 from __future__ import annotations
 
-from datetime import datetime
+import asyncio
 import logging
+from datetime import datetime
 from pathlib import Path
 from typing import Any
+
 import pandas as pd
 from pydantic import BaseModel, ConfigDict, Field
 
-from agent_eval.core.evaluator import Evaluator
-from agent_eval.core.path_resolver import agent_project_root, find_eval_dir
-from agent_eval.core.simulation import run_simulation_in_process
-from agent_eval.core.converters import write_jsonl
-import asyncio
 from agent_eval.core.analyzer import Analyzer
+from agent_eval.core.converters import write_jsonl
+from agent_eval.core.evaluator import Evaluator
 from agent_eval.core.html_report import generate_html_report
+from agent_eval.core.path_resolver import agent_project_root, find_eval_dir
 from agent_eval.core.schema import EvaluationSummary
+from agent_eval.core.simulation import run_simulation_in_process
 
 logger = logging.getLogger("agent_eval.sdk")
 
 
 class EvaluationResult(BaseModel):
     """The result of an evaluation run."""
+
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
     success: bool

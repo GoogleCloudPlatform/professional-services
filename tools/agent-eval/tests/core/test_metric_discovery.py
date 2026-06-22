@@ -194,8 +194,8 @@ class TestDiscoverManagedMetrics:
 
     def test_multi_turn_metrics_have_requires_multi_turn_flag(self):
         from agent_eval.core.metric_discovery import (
-            discover_managed_metrics,
             _MULTI_TURN_METRICS,
+            discover_managed_metrics,
         )
 
         metrics = discover_managed_metrics()
@@ -208,8 +208,8 @@ class TestDiscoverManagedMetrics:
 
     def test_single_turn_metrics_do_not_require_multi_turn(self):
         from agent_eval.core.metric_discovery import (
-            discover_managed_metrics,
             _MULTI_TURN_METRICS,
+            discover_managed_metrics,
         )
 
         metrics = discover_managed_metrics()

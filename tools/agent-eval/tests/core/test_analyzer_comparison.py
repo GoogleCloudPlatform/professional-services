@@ -14,12 +14,12 @@
 """Tests for analyzer comparison logic: deltas, direction, optimization log, prompts."""
 
 from agent_eval.core.analyzer import (
-    compute_comparison,
-    format_comparison_table,
-    _is_lower_better,
+    Analyzer,
     _classify_direction,
     _compute_pct_change,
-    Analyzer,
+    _is_lower_better,
+    compute_comparison,
+    format_comparison_table,
 )
 from agent_eval.core.gemini_prompt_builder import GeminiAnalysisPrompter
 

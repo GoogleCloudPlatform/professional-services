@@ -32,7 +32,7 @@ import click
 from rich.console import Console
 from rich.rule import Rule
 
-from agent_eval.cli._stories import STORIES, render_story_panel, random_story
+from agent_eval.cli._stories import STORIES, random_story, render_story_panel
 
 console = Console()
 

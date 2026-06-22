@@ -11,13 +11,14 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import asyncio
 import json
 import logging
 import os
-import asyncio
-import pandas as pd
 from datetime import datetime
-from typing import List, Dict, Any, Optional
+from typing import Any, Dict, List, Optional
+
+import pandas as pd
 
 from agent_eval.core.agent_client import AgentClient
 
@@ -36,7 +37,7 @@ def get_golden_questions(filepath: str) -> List[Dict[str, Any]]:
     """
     p = filepath if isinstance(filepath, str) else str(filepath)
     if p.endswith(".jsonl"):
-        from agent_eval.core.dataset_io import read_dataset, is_single_turn
+        from agent_eval.core.dataset_io import is_single_turn, read_dataset
 
         try:
             rows = read_dataset(p)

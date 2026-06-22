@@ -922,7 +922,7 @@ class Analyzer:
 
     def _get_gemini_client(self):
         """Initialize and return (model_name, genai.Client) for Gemini calls."""
-        from agent_eval.core.config import get_project_id, get_location
+        from agent_eval.core.config import get_location, get_project_id
 
         model = self.config.get("model", "gemini-3.1-pro-preview")
 

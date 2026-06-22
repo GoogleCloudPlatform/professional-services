@@ -24,7 +24,6 @@ from rich.console import Console
 from rich.markdown import Markdown
 from rich.panel import Panel
 from rich.rule import Rule
-
 from rich.table import Table
 
 from agent_eval.cli._pacing import _pauses_disabled
@@ -429,8 +428,9 @@ def analyze(
     # already declined via --no-open at run time. webbrowser.open returns
     # False on remote/headless systems — we surface --serve in that case.
     if rel_html and not _pauses_disabled() and sys.stdin.isatty():
-        from rich.prompt import Confirm
         import webbrowser
+
+        from rich.prompt import Confirm
 
         if Confirm.ask(
             "\n  Open the report in your default browser now?", default=True
