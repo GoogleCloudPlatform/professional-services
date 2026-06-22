@@ -54,7 +54,13 @@ def simulate_component(
     blob.download_to_filename(local_dataset)
 
     # 2. Run Simulation
-    # For simulation, we need a dummy agent_dir to satisfy resolvers
+    # The 'agent-eval simulate' CLI command performs validation checks (see
+    # agent_eval/cli/commands/simulate.py) and strictly requires 'agent.py'
+    # to exist in the agent directory to verify a valid ADK agent context.
+    # Since we are running in an isolated container and only using the CLI
+    # to project/convert the dataset (not running the actual agent code yet),
+    # we create a temporary folder and touch a dummy 'agent.py' to satisfy
+    # this CLI validation check.
     temp_agent_dir = Path(tempfile.mkdtemp())
     (temp_agent_dir / "agent.py").touch()
 
