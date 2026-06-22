@@ -55,7 +55,7 @@ async def test_sdk_run_evaluation_success(
                 }
             },
         }
-        with open(results_dir / "eval_summary.json", "w") as f:
+        with (results_dir / "eval_summary.json").open("w") as f:
             json.dump(summary_data, f)
         raw_dir = results_dir / "raw"
         raw_dir.mkdir(parents=True, exist_ok=True)
@@ -122,7 +122,7 @@ async def test_sdk_run_evaluation_error_metric(
                 ],
             },
         }
-        with open(results_dir / "eval_summary.json", "w") as f:
+        with (results_dir / "eval_summary.json").open("w") as f:
             json.dump(summary_data, f)
         raw_dir = results_dir / "raw"
         raw_dir.mkdir(parents=True, exist_ok=True)
@@ -204,7 +204,7 @@ async def test_sdk_run_evaluation_threshold_success(
                 }
             },
         }
-        with open(results_dir / "eval_summary.json", "w") as f:
+        with (results_dir / "eval_summary.json").open("w") as f:
             json.dump(summary_data, f)
         raw_dir = results_dir / "raw"
         raw_dir.mkdir(parents=True, exist_ok=True)
@@ -267,7 +267,7 @@ async def test_sdk_run_evaluation_threshold_failure(
                 }
             },
         }
-        with open(results_dir / "eval_summary.json", "w") as f:
+        with (results_dir / "eval_summary.json").open("w") as f:
             json.dump(summary_data, f)
         raw_dir = results_dir / "raw"
         raw_dir.mkdir(parents=True, exist_ok=True)

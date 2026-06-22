@@ -12,13 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import contextlib
-import glob
 import json
 import logging
 import os
 import time
 import uuid
 from datetime import datetime
+from pathlib import Path
 from typing import Any
 
 from agent_eval.core.agent_client import AgentClient
@@ -28,7 +28,7 @@ logger = logging.getLogger("agent_eval.converters")
 
 def robust_json_load(file_path: str) -> dict[str, Any] | None:
     try:
-        with open(file_path, encoding="utf-8") as f:
+        with Path(file_path).open(encoding="utf-8") as f:
             content = f.read().strip()
         data = json.loads(content)
         if isinstance(data, str):
@@ -236,7 +236,7 @@ class AdkHistoryConverter:
                     if "id" in r:
                         mapping[r["id"]] = r
             else:
-                with open(filepath) as f:
+                with Path(filepath).open() as f:
                     data = json.load(f)
                     questions = data.get("questions") or data.get(
                         "golden_questions", []
@@ -717,11 +717,12 @@ class AdkHistoryConverter:
             List of dictionaries, each representing one interaction.
             Use write_jsonl() to save to disk.
         """
-        if not os.path.exists(self.history_dir):
-            raise FileNotFoundError(f"History directory not found: {self.history_dir}")
+        history_path = Path(self.history_dir)
+        if not history_path.exists():
+            raise FileNotFoundError(f"History directory not found: {history_path}")
 
         all_rows = []
-        for file_path in glob.glob(os.path.join(self.history_dir, "*.json")):
+        for file_path in history_path.glob("*.json"):
             all_rows.extend(self.process_file(file_path))
 
         return all_rows
@@ -734,7 +735,7 @@ def write_jsonl(records: list[dict[str, Any]], output_path: str) -> None:
         records: List of dictionaries to write.
         output_path: Path to output .jsonl file.
     """
-    with open(output_path, "w", encoding="utf-8") as f:
+    with Path(output_path).open("w", encoding="utf-8") as f:
         for record in records:
             f.write(json.dumps(record, ensure_ascii=False, default=str) + "\n")
 
@@ -749,7 +750,7 @@ def read_jsonl(input_path: str) -> list[dict[str, Any]]:
         List of dictionaries.
     """
     records = []
-    with open(input_path, encoding="utf-8") as f:
+    with Path(input_path).open(encoding="utf-8") as f:
         for line in f:
             line = line.strip()
             if line:
@@ -784,7 +785,7 @@ class TestToGoldenConverter:
         metadata_pairs: list[str] | None = None,
         id_prefix: str = "q",
     ):
-        with open(input_path) as f:
+        with Path(input_path).open() as f:
             data = json.load(f)
 
         if not isinstance(data, list):
@@ -807,7 +808,7 @@ class TestToGoldenConverter:
 
         # Prepare metadata
         metadata = self._parse_kv_pairs(metadata_pairs)
-        metadata["source_file"] = os.path.basename(input_path)
+        metadata["source_file"] = Path(input_path).name
 
         golden_question = {
             "id": f"{id_prefix}_{uuid.uuid4().hex[:8]}",
@@ -823,9 +824,10 @@ class TestToGoldenConverter:
 
         output_data = {"golden_questions": [golden_question]}
 
-        if os.path.exists(output_path):
+        out_path = Path(output_path)
+        if out_path.exists():
             try:
-                with open(output_path) as f:
+                with out_path.open() as f:
                     existing_data = json.load(f)
                     if (
                         isinstance(existing_data, dict)
@@ -836,7 +838,7 @@ class TestToGoldenConverter:
             except Exception:
                 pass
 
-        with open(output_path, "w") as f:
+        with out_path.open("w") as f:
             json.dump(output_data, f, indent=4)
 
         return output_data
