@@ -655,13 +655,11 @@ class LocalAgentClient(BaseAgentClient):
             state=session["state"],
         )
 
-        from unittest.mock import MagicMock
+        from google.adk.sessions.in_memory_session_service import InMemorySessionService
 
-        from google.adk.sessions.base_session_service import BaseSessionService
-
-        mock_session_service = MagicMock(spec=BaseSessionService)
+        session_service = InMemorySessionService()
         inv_context = InvocationContext(
-            session_service=mock_session_service,
+            session_service=session_service,
             invocation_id=f"inv_{uuid.uuid4()}",
             session=adk_session,
         )
