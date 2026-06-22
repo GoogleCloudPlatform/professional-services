@@ -974,7 +974,7 @@ def run(
         failed_now: list[dict] = []
         if eval_summary_path.exists():
             try:
-                with open(eval_summary_path) as _f:
+                with eval_summary_path.open() as _f:
                     _es = json.load(_f)
                 for entry in _es.get("overall_summary", {}).get("failed_metrics") or []:
                     if isinstance(entry, dict):
@@ -1095,7 +1095,7 @@ def run(
     failed_metrics_summary: list[dict] = []
     if eval_summary_path.exists():
         try:
-            with open(eval_summary_path) as _f:
+            with eval_summary_path.open() as _f:
                 _es = json.load(_f)
             raw_failed = _es.get("overall_summary", {}).get("failed_metrics", []) or []
             for entry in raw_failed:
@@ -1452,7 +1452,7 @@ def _run_one_adk_eval(
         log_path.parent.mkdir(parents=True, exist_ok=True)
         # Open the file ONCE and stream both stdout+stderr into it. Line-
         # buffered so `tail -f` shows progress in real time.
-        with open(log_path, "w", buffering=1) as fp:
+        with log_path.open("w", buffering=1) as fp:
             fp.write(f"$ {' '.join(cmd)}\n\n")
             fp.flush()
             proc = subprocess.run(
@@ -1554,7 +1554,7 @@ def _start_adk_api_server(
 
     log = project_root / ".agent_eval_tmp" / f"adk_web_{port}.log"
     log.parent.mkdir(parents=True, exist_ok=True)
-    fp = open(log, "w", buffering=1)  # noqa: SIM115
+    fp = log.open("w", buffering=1)
     fp.write(f"$ adk web {project_root} --port {port}\n\n")
     fp.flush()
     # start_new_session=True puts the subprocess in its own process group.
@@ -2105,7 +2105,7 @@ def _run_interact_phase(
 
             _q_count = sum(1 for r in read_dataset(qf) if is_single_turn(r))
         else:
-            with open(qf) as _f:
+            with qf.open() as _f:
                 _data = json.load(_f)
             _q_count = len(
                 _data.get("questions") or _data.get("golden_questions") or []

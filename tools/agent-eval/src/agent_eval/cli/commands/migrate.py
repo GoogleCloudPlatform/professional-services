@@ -53,7 +53,7 @@ console = Console()
     "--agent-dir",
     "agent_dir",
     type=click.Path(exists=True, file_okay=False, path_type=Path),
-    default=Path("."),
+    default=Path(),
     show_default=True,
     help="Project root containing the legacy eval/ folder.",
 )

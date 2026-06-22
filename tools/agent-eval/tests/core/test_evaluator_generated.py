@@ -88,7 +88,7 @@ class TestEvaluator(IsolatedAsyncioTestCase):
         input_file = Path(self.test_dir) / "input.jsonl"
 
         # Write as JSONL
-        with open(input_file, "w") as f:
+        with input_file.open("w") as f:
             for record in input_data:
                 f.write(json.dumps(record) + "\n")
 
@@ -140,7 +140,7 @@ class TestEvaluator(IsolatedAsyncioTestCase):
                 "response": "res",
             }
         ]
-        with open(input_file, "w") as f:
+        with input_file.open("w") as f:
             for record in input_data:
                 f.write(json.dumps(record) + "\n")
 

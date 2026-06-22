@@ -13,9 +13,9 @@
 # limitations under the License.
 """agent-eval convert — convert ADK simulation history to evaluation format."""
 
-import os
 import sys
 from datetime import datetime
+from pathlib import Path
 
 import click
 from rich.console import Console
@@ -42,8 +42,8 @@ def convert(agent_dir, questions_file, output_dir, output_file):
     """Convert ADK simulation history to evaluation JSONL format."""
     console.print("\n[bold blue]Converting ADK History[/]")
     try:
-        history_dir = os.path.join(agent_dir, ".adk", "eval_history")
-        converter = AdkHistoryConverter(history_dir, questions_file)
+        history_path = Path(agent_dir) / ".adk" / "eval_history"
+        converter = AdkHistoryConverter(str(history_path), questions_file)
         records = converter.run()
 
         if not records:
@@ -52,28 +52,28 @@ def convert(agent_dir, questions_file, output_dir, output_file):
 
         # Create datetime-stamped folder structure
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        run_dir = os.path.join(output_dir, timestamp)
-        raw_dir = os.path.join(run_dir, "raw")
-        os.makedirs(raw_dir, exist_ok=True)
+        run_path = Path(output_dir) / timestamp
+        raw_path = run_path / "raw"
+        raw_path.mkdir(parents=True, exist_ok=True)
 
         if not output_file:
-            output_path = os.path.join(raw_dir, "processed_interaction_sim.jsonl")
+            output_path = raw_path / "processed_interaction_sim.jsonl"
         else:
             fname = output_file
             if not fname.endswith(".jsonl"):
                 fname = fname.replace(".csv", ".jsonl")
                 if not fname.endswith(".jsonl"):
                     fname += ".jsonl"
-            output_path = os.path.join(raw_dir, fname)
+            output_path = raw_path / fname
 
-        write_jsonl(records, output_path)
+        write_jsonl(records, str(output_path))
         console.print(
             f"\n[bold green]SUCCESS:[/] Converted {len(records)} interactions to: {output_path}"
         )
-        console.print(f"Run folder: {run_dir}")
+        console.print(f"Run folder: {run_path}")
         console.print("\nTo evaluate, run:")
         console.print(
-            f"  agent-eval evaluate --interaction-file {output_path} --metrics-files <metrics.json> --results-dir {run_dir}"
+            f"  agent-eval evaluate --interaction-file {output_path} --metrics-files <metrics.json> --results-dir {run_path}"
         )
 
     except Exception as e:

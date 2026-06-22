@@ -3319,7 +3319,7 @@ def init(target_dir, agent_name, mode, auto_approve, ai_metrics):
             agent_dir = Path(target_dir)
             agent_name = agent_name or agent_dir.name
         else:
-            agents = _find_agents(Path("."))
+            agents = _find_agents(Path())
             if agents:
                 agent_name_found, agent_dir = agents[0]
                 agent_name = agent_name or agent_name_found
@@ -3337,7 +3337,7 @@ def init(target_dir, agent_name, mode, auto_approve, ai_metrics):
         # scaffold Agent Engine bits, and vice versa.
         from agent_eval.core.path_detector import detect_execution_path
 
-        detect_root = agent_dir if agent_dir.exists() else Path(".")
+        detect_root = agent_dir if agent_dir.exists() else Path()
         chosen_paths = _derive_chosen_paths(detect_execution_path(detect_root))
         if not chosen_paths:
             # No agent.py and no deployment found — default to local-only
@@ -3405,7 +3405,7 @@ def init(target_dir, agent_name, mode, auto_approve, ai_metrics):
         else:
             metrics = [key for key, _, _, default in STARTER_METRICS if default]
     else:
-        search_dir = Path(target_dir) if target_dir else Path(".")
+        search_dir = Path(target_dir) if target_dir else Path()
 
         # Step 2 — Pick the agent FIRST so detection can be scoped to its
         # subtree. Otherwise, in a multi-agent project, detection would

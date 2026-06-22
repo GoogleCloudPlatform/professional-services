@@ -16,6 +16,7 @@ import json
 import logging
 import os
 from datetime import datetime
+from pathlib import Path
 from typing import Any
 
 import pandas as pd
@@ -59,7 +60,7 @@ def get_golden_questions(filepath: str) -> list[dict[str, Any]]:
         return questions
 
     try:
-        with open(p) as f:
+        with Path(p).open() as f:
             data = json.load(f)
             # Legacy: support both 'questions' (consolidated) and 'golden_questions' (source)
             return data.get("questions") or data.get("golden_questions", [])

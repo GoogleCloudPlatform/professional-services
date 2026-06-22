@@ -78,7 +78,7 @@ class TestSaveMetricsSummary(unittest.TestCase):
         shutil.rmtree(self.test_dir)
 
     def _read_summary(self):
-        with open(self.test_dir / "eval_summary.json") as f:
+        with (self.test_dir / "eval_summary.json").open() as f:
             return json.load(f)
 
     def test_basic_summary_without_source_type(self):

@@ -15,7 +15,6 @@
 
 import contextvars
 import logging
-import os
 import tempfile
 import uuid
 from pathlib import Path
@@ -341,7 +340,7 @@ async def run_simulation_in_process(
             pass
 
         # 9. Convert results
-        history_dir = os.path.join(temp_dir, app_name, ".adk", "eval_history")
+        history_dir = Path(temp_dir) / app_name / ".adk" / "eval_history"
         logger.info("Converting simulation results from %s", history_dir)
 
         # Build prompt_to_reference map for converter using all rows

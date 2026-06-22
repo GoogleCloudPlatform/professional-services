@@ -295,7 +295,7 @@ def _build_csv_lookup(results_csv: Path | None) -> dict[str, dict[str, Any]]:
             csv.field_size_limit(2**31 - 1)
         except OverflowError:
             csv.field_size_limit(2**24)
-        with open(results_csv, encoding="utf-8") as f:
+        with Path(results_csv).open(encoding="utf-8") as f:
             reader = csv.DictReader(f)
             for row in reader:
                 qid = row.get("question_id") or row.get("eval_id")

@@ -441,11 +441,11 @@ def interact(
         sys.exit(1)
 
     # Save output as JSONL
-    run_dir = os.path.join(results_dir, run_id)
-    raw_dir = os.path.join(run_dir, "raw")
-    os.makedirs(raw_dir, exist_ok=True)
+    run_dir = Path(results_dir) / run_id
+    raw_dir = run_dir / "raw"
+    raw_dir.mkdir(parents=True, exist_ok=True)
 
-    output_path = os.path.join(raw_dir, f"processed_interaction_{app_name}.jsonl")
+    output_path = raw_dir / f"processed_interaction_{app_name}.jsonl"
 
     records = enriched_df.to_dict(orient="records")
     for record in records:

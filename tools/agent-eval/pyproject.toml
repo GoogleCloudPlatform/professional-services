@@ -63,6 +63,7 @@ select = [
     "C4",   # flake8-comprehensions (better comprehensions)
     "B",    # flake8-bugbear (common bugs and design flaws)
     "RUF",  # Ruff-specific rules
+    "PTH",  # flake8-use-pathlib (use pathlib instead of os.path)
 ]
 ignore = [
     "E501",    # line too long

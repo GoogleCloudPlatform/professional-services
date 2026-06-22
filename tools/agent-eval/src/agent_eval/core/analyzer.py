@@ -782,7 +782,7 @@ class Analyzer:
             header += "Generated automatically by `agent-eval analyze`.\n"
             log_path.write_text(header + entry, encoding="utf-8")
         else:
-            with open(log_path, "a", encoding="utf-8") as f:
+            with log_path.open("a", encoding="utf-8") as f:
                 f.write(entry)
 
         return log_path

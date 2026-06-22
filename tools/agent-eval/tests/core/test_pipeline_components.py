@@ -98,7 +98,7 @@ class TestConverters(unittest.TestCase):
         }
 
         history_file = self.history_dir / "test_history.json"
-        with open(history_file, "w") as f:
+        with history_file.open("w") as f:
             json.dump(history_data, f)
 
         converter = self.AdkHistoryConverter(str(self.history_dir))

@@ -570,7 +570,7 @@ def load_and_consolidate_metrics(metric_files: list[str]) -> dict[str, Any]:
     logger.info("--- Consolidating Metric Definitions ---")
     for file_path in metric_files:
         try:
-            with open(file_path) as f:
+            with Path(file_path).open() as f:
                 data = json.load(f)
                 prefix = data.get("metric_prefix", "").lstrip("_")
                 metrics = data.get("metrics", {})
@@ -897,7 +897,7 @@ def save_metrics_summary(
                 }
             output["per_source_summary"] = per_source_summary
 
-    with open(results_dir / "eval_summary.json", "w") as f:
+    with (results_dir / "eval_summary.json").open("w") as f:
         json.dump(output, f, indent=4, default=str)
     logger.info(f"Metrics summary saved to {results_dir / 'eval_summary.json'}")
 
