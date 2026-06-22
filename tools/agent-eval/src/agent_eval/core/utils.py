@@ -89,12 +89,7 @@ def discover_agent_context(
             section_count = 0
 
             for line in lines:
-                if (
-                    line.startswith("## 1.")
-                    or line.startswith("## 2.")
-                    or line.startswith("## 7.")
-                    or line.startswith("## 8.")
-                ):
+                if line.startswith(("## 1.", "## 2.", "## 7.", "## 8.")):
                     in_relevant_section = True
                     section_count += 1
                 elif line.startswith("## ") and section_count > 0:

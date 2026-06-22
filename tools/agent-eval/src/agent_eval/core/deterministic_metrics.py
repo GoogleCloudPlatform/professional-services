@@ -578,7 +578,7 @@ def calculate_agent_handoffs(
         name = span.get("name", "")
 
         # Check for direct agent invocations
-        if name.startswith("invoke_agent ") or name.startswith("agent_run "):
+        if name.startswith(("invoke_agent ", "agent_run ")):
             agent_name = (
                 name.replace("invoke_agent ", "").replace("agent_run ", "").strip()
             )
