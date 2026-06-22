@@ -901,7 +901,7 @@ def _call_gemini(prompt: str, model: str) -> str:
         raise MetricGenerationError(
             "google-genai package not installed. "
             "Install it with: pip install google-genai"
-        )
+        ) from None
 
     from agent_eval.core.config import get_location, get_project_id
 

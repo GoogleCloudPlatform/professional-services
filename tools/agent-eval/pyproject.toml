@@ -61,6 +61,7 @@ select = [
     "UP",   # pyupgrade (syntax modernization)
     "SIM",  # flake8-simplify (code simplification)
     "C4",   # flake8-comprehensions (better comprehensions)
+    "B",    # flake8-bugbear (common bugs and design flaws)
 ]
 ignore = [
     "E501",  # line too long

@@ -42,7 +42,7 @@ def get_golden_questions(filepath: str) -> list[dict[str, Any]]:
         try:
             rows = read_dataset(p)
         except FileNotFoundError:
-            raise FileNotFoundError(f"Dataset file not found at '{p}'")
+            raise FileNotFoundError(f"Dataset file not found at '{p}'") from None
         questions: list[dict[str, Any]] = []
         skipped_multi_turn = 0
         for i, row in enumerate(rows):
@@ -64,7 +64,7 @@ def get_golden_questions(filepath: str) -> list[dict[str, Any]]:
             # Legacy: support both 'questions' (consolidated) and 'golden_questions' (source)
             return data.get("questions") or data.get("golden_questions", [])
     except FileNotFoundError:
-        raise FileNotFoundError(f"Questions file not found at '{p}'")
+        raise FileNotFoundError(f"Questions file not found at '{p}'") from None
 
 
 def _unified_row_to_question(row: dict[str, Any], *, default_id: str) -> dict[str, Any]:

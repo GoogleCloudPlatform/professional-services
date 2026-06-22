@@ -864,7 +864,7 @@ def save_metrics_summary(
                 src_df = df[df["source_type"] == src]
                 src_metric_scores = defaultdict(list)
                 src_grouped = src_df.groupby("question_id")
-                for qid, group in src_grouped:
+                for _qid, group in src_grouped:
                     eval_results = group["eval_results"].apply(robust_json_loads)
                     for result_dict in eval_results.dropna():
                         if not isinstance(result_dict, dict):
@@ -1042,7 +1042,7 @@ class Evaluator:
         for agent, metrics in metrics_by_agent.items():
             # Filter rows relevant to this agent
             mask = expanded_df["agents_evaluated"].apply(
-                lambda x: agent in (x if isinstance(x, list) else [x]) if x else False
+                lambda x, agent=agent: agent in (x if isinstance(x, list) else [x]) if x else False
             )
             # If default agent, include all if not specified
             if agent == "data_explorer_agent" and not any(mask):
@@ -1074,7 +1074,7 @@ class Evaluator:
 
                 if required_caps:
                     capability_mask = agent_df.apply(
-                        lambda r: required_caps.issubset(
+                        lambda r, required_caps=required_caps: required_caps.issubset(
                             _interaction_row_capabilities(r)
                         ),
                         axis=1,

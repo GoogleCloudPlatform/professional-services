@@ -75,7 +75,7 @@ def _parse_artifact(path: Path) -> Any:
                     f"line {lineno}: {exc.msg}",
                     line,
                     exc.pos,
-                )
+                ) from exc
         return rows
     return text
 
@@ -176,7 +176,7 @@ def _review_artifact(
             f"  [dim]Fix the file and re-run `agent-eval init`, or restore the AI version "
             f"from a backup under tests/eval/.backup/.[/]"
         )
-        raise click.Abort()
+        raise click.Abort() from None
 
     # Diff against the generated version, then clean up the snapshot so it
     # doesn't litter the user's tests/eval/ directory.
@@ -363,7 +363,7 @@ def _required_reference_fields(custom_metrics: dict[str, Any]) -> list[tuple[str
         if not isinstance(defn, dict):
             continue
         # Custom LLM judge with requires_reference + reference_data:<field> mapping
-        for placeholder, mapping in (defn.get("dataset_mapping") or {}).items():
+        for _placeholder, mapping in (defn.get("dataset_mapping") or {}).items():
             if isinstance(mapping, dict):
                 col = mapping.get("source_column", "")
                 if isinstance(col, str) and col.startswith("reference_data:"):
@@ -439,7 +439,7 @@ def _review_with_validation_loop(
         try:
             choice = IntPrompt.ask("  Select", default=1)
         except (KeyboardInterrupt, EOFError):
-            raise click.Abort()
+            raise click.Abort() from None
         while choice not in (1, 2, 3):
             choice = IntPrompt.ask("  Select", default=1)
 
@@ -1790,7 +1790,7 @@ def _prompt_managed_metrics_selection(
             ),
             questionary.Separator(" "),
         ]
-        for idx, family in enumerate(family_order):
+        for _idx, family in enumerate(family_order):
             members = grouped[family]
             if not members:
                 continue
@@ -1882,7 +1882,7 @@ def _prompt_managed_metrics_selection(
                 qmark="?",
             ).ask()
         except (KeyboardInterrupt, EOFError):
-            raise KeyboardInterrupt
+            raise KeyboardInterrupt from None
 
         if confirm_choice is None:
             raise KeyboardInterrupt

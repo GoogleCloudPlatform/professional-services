@@ -242,7 +242,7 @@ def _build_comparison_chart(
         raw_values = [row.get(m, 0) or 0 for m in selected_metrics]
         if normalize:
             y_values = [
-                v / max_vals.get(m, 1.0) for v, m in zip(raw_values, selected_metrics)
+                v / max_vals.get(m, 1.0) for v, m in zip(raw_values, selected_metrics, strict=False)
             ]
         else:
             y_values = raw_values
