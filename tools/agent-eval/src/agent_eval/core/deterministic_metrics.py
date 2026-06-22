@@ -149,7 +149,8 @@ def calculate_latency_metrics(
 
     # Sort spans by start time to find the true beginning
     sorted_spans = sorted(
-        [s for s in session_trace if s.get("start_time") is not None], key=lambda x: x["start_time"]
+        [s for s in session_trace if s.get("start_time") is not None],
+        key=lambda x: x["start_time"],
     )
 
     if not sorted_spans:
