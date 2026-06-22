@@ -65,6 +65,7 @@ select = [
     "RUF",  # Ruff-specific rules
     "PTH",  # flake8-use-pathlib (use pathlib instead of os.path)
     "T20",  # flake8-print (disallow print statements)
+    "PIE",  # flake8-pie (miscellaneous lints)
 ]
 ignore = [
     "E501",    # line too long

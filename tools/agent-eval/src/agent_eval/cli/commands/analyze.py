@@ -126,8 +126,7 @@ def _display_metrics_table(
                 metric_name.rsplit(".", 1)[-1] if "." in metric_name else metric_name
             )
             if (
-                field_name.endswith("_rate")
-                or field_name.endswith("_ratio")
+                field_name.endswith(("_rate", "_ratio"))
                 or field_name == "reasoning_ratio"
             ):
                 return f"{val:.0%}"

@@ -566,7 +566,7 @@ def run(
                         console.print("    [dim]0. Skip interact[/]")
                         choice = Prompt.ask(
                             "  Pick",
-                            choices=[str(i) for i in range(0, len(live) + 1)],
+                            choices=[str(i) for i in range(len(live) + 1)],
                             default="1",
                         ).strip()
                         if choice == "0":

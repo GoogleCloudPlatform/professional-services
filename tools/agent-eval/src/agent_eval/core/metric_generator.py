@@ -38,8 +38,6 @@ from agent_eval.core.utils import discover_agent_context
 class MetricGenerationError(Exception):
     """Raised when metric generation fails."""
 
-    pass
-
 
 # All valid source_column values that dataset_mapping can reference.
 VALID_SOURCE_COLUMNS = {

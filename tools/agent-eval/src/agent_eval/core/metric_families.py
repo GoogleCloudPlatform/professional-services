@@ -51,7 +51,7 @@ def _normalize(name: str) -> str:
     """
     n = name.lower()
     # Already has a version suffix
-    if n.endswith("_v1") or n.endswith("_v2"):
+    if n.endswith(("_v1", "_v2")):
         return n
     return n
 
