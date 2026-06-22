@@ -14,7 +14,7 @@
 import ast
 import json
 import logging
-from typing import Any, Dict, List, Optional, Union
+from typing import Any
 
 import pandas as pd
 from google.genai import types as genai_types
@@ -23,7 +23,7 @@ from vertexai import types
 logger = logging.getLogger("agent_eval")
 
 
-def robust_json_loads(x: Any) -> Optional[Union[Dict, List, str]]:
+def robust_json_loads(x: Any) -> dict | list | str | None:
     """Safely parse a JSON string, returning None for invalid or empty inputs.
 
     Falls back on ``ast.literal_eval`` for Python-repr forms that survive a
@@ -56,7 +56,7 @@ def robust_json_loads(x: Any) -> Optional[Union[Dict, List, str]]:
 # Conventional field names for the "expected" output, ordered by how
 # strongly each one signals the canonical reference. Add domain-specific
 # names here as new agent patterns appear.
-_REFERENCE_FIELD_PRIORITY: List[str] = [
+_REFERENCE_FIELD_PRIORITY: list[str] = [
     "expected_response",
     "expected_behavior",
     "expected_output",
@@ -80,7 +80,7 @@ def _stringify_reference_value(val: Any) -> str:
 
 def extract_reference_text(
     reference_data: Any,
-    preferred_field: Optional[str] = None,
+    preferred_field: str | None = None,
 ) -> str:
     """Resolve a reference string from a reference_data dict.
 
@@ -110,7 +110,7 @@ def extract_reference_text(
         if text.strip():
             return text
 
-    parts: List[str] = []
+    parts: list[str] = []
     for k, v in reference_data.items():
         text = _stringify_reference_value(v)
         if text.strip():
@@ -118,12 +118,12 @@ def extract_reference_text(
     return "\n".join(parts)
 
 
-def reference_field_candidates() -> List[str]:
+def reference_field_candidates() -> list[str]:
     """Return the conventional reference field names (read-only copy)."""
     return list(_REFERENCE_FIELD_PRIORITY)
 
 
-def convert_interactions_to_events(val: Any, sub_agent_trace: Any = None) -> List[Dict]:
+def convert_interactions_to_events(val: Any, sub_agent_trace: Any = None) -> list[dict]:
     """
     Converts tool interactions and agent text responses into Vertex AI SDK Event dictionaries.
 
@@ -199,7 +199,7 @@ def convert_interactions_to_events(val: Any, sub_agent_trace: Any = None) -> Lis
     return events
 
 
-def build_conversation_history(user_inputs: Any, sub_agent_trace: Any) -> List[Dict]:
+def build_conversation_history(user_inputs: Any, sub_agent_trace: Any) -> list[dict]:
     """
     Builds conversation_history for multi-turn metrics from user_inputs and sub_agent_trace.
 
@@ -267,7 +267,7 @@ def get_nested_value(row_val: Any, path: str) -> Any:
 def map_dataset_columns(
     agent_df: pd.DataFrame,
     original_df: pd.DataFrame,
-    mapping: Dict[str, Any],
+    mapping: dict[str, Any],
     metric_name: str,
     metric_tool_use_name: str = "TOOL_USE_QUALITY",
     is_managed_metric: bool = False,

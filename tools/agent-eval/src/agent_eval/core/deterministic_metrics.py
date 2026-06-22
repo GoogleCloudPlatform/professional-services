@@ -19,7 +19,7 @@ and session state, without requiring LLM-as-judge evaluation.
 """
 
 import json
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
 # Pricing per 1K tokens (standard tier, prompts <= 200k tokens)
 # Format: {model_substring: (input_price_per_1k, output_price_per_1k)}
@@ -41,8 +41,8 @@ MODEL_PRICING = {
 
 
 def calculate_token_usage(
-    session_trace: List[Dict[str, Any]],
-) -> Tuple[float, str, Dict[str, Any]]:
+    session_trace: list[dict[str, Any]],
+) -> tuple[float, str, dict[str, Any]]:
     """
     Informational metric: Track token usage and estimated cost based on the specific model used.
     """
@@ -131,8 +131,8 @@ def calculate_token_usage(
 
 
 def calculate_latency_metrics(
-    session_trace: List[Dict[str, Any]], latency_data: List[Dict[str, Any]] = None
-) -> Tuple[float, str, Dict[str, Any]]:
+    session_trace: list[dict[str, Any]], latency_data: list[dict[str, Any]] = None
+) -> tuple[float, str, dict[str, Any]]:
     """
     Calculate latency metrics from the session trace.
     Returns the total latency score (seconds), but details contains granular breakdown.
@@ -209,8 +209,8 @@ def calculate_latency_metrics(
 
 
 def calculate_cache_efficiency(
-    session_trace: List[Dict[str, Any]],
-) -> Tuple[float, str, Dict[str, Any]]:
+    session_trace: list[dict[str, Any]],
+) -> tuple[float, str, dict[str, Any]]:
     """
     Calculate the efficiency of context caching.
     Returns the cache hit rate (percentage of potential prompt tokens that were cached).
@@ -265,8 +265,8 @@ def calculate_cache_efficiency(
 
 
 def calculate_thinking_metrics(
-    session_trace: List[Dict[str, Any]],
-) -> Tuple[float, str, Dict[str, Any]]:
+    session_trace: list[dict[str, Any]],
+) -> tuple[float, str, dict[str, Any]]:
     """
     Calculate metrics related to the model's 'thinking' or reasoning process.
     Returns the reasoning ratio (thinking tokens / total output tokens).
@@ -329,8 +329,8 @@ def calculate_thinking_metrics(
 
 
 def calculate_tool_utilization(
-    session_trace: List[Dict[str, Any]],
-) -> Tuple[float, str, Dict[str, Any]]:
+    session_trace: list[dict[str, Any]],
+) -> tuple[float, str, dict[str, Any]]:
     """
     Calculate statistics on tool usage frequency and diversity.
     Returns the total number of tool calls.
@@ -377,8 +377,8 @@ def calculate_tool_utilization(
 
 
 def calculate_tool_success_rate(
-    session_trace: List[Dict[str, Any]],
-) -> Tuple[float, str, Dict[str, Any]]:
+    session_trace: list[dict[str, Any]],
+) -> tuple[float, str, dict[str, Any]]:
     """
     Calculate the success rate of tool executions by inspecting tool responses.
     Returns success rate (successful / total) as score.
@@ -449,8 +449,8 @@ def calculate_tool_success_rate(
 
 
 def calculate_grounding_utilization(
-    session_trace: List[Dict[str, Any]],
-) -> Tuple[float, str, Dict[str, Any]]:
+    session_trace: list[dict[str, Any]],
+) -> tuple[float, str, dict[str, Any]]:
     """
     Calculate the extent of grounding usage by inspecting LLM responses for groundingMetadata.
     Returns total grounding chunks (citations) as the score.
@@ -515,8 +515,8 @@ def calculate_grounding_utilization(
 
 
 def calculate_context_saturation(
-    session_trace: List[Dict[str, Any]],
-) -> Tuple[float, str, Dict[str, Any]]:
+    session_trace: list[dict[str, Any]],
+) -> tuple[float, str, dict[str, Any]]:
     """
     Calculate the maximum context saturation (max total tokens used in a single turn).
     Returns max_tokens as the score.
@@ -556,8 +556,8 @@ def calculate_context_saturation(
 
 
 def calculate_agent_handoffs(
-    session_trace: List[Dict[str, Any]],
-) -> Tuple[float, str, Dict[str, Any]]:
+    session_trace: list[dict[str, Any]],
+) -> tuple[float, str, dict[str, Any]]:
     """
     Count the number of agent handoffs/invocations in the session.
     Returns total handoff events as the score.
@@ -607,8 +607,8 @@ def calculate_agent_handoffs(
 
 
 def calculate_output_density(
-    session_trace: List[Dict[str, Any]],
-) -> Tuple[float, str, Dict[str, Any]]:
+    session_trace: list[dict[str, Any]],
+) -> tuple[float, str, dict[str, Any]]:
     """
     Calculate the average number of output tokens per LLM call.
     Returns average output tokens as the score.
@@ -674,8 +674,8 @@ def calculate_output_density(
 
 
 def calculate_sandbox_usage(
-    session_trace: List[Dict[str, Any]],
-) -> Tuple[float, str, Dict[str, Any]]:
+    session_trace: list[dict[str, Any]],
+) -> tuple[float, str, dict[str, Any]]:
     """
     Count the number of tool calls related to sandbox/file system operations.
     Returns the total count as the score.
@@ -750,15 +750,15 @@ DETERMINISTIC_METRICS = {
 
 
 def evaluate_deterministic_metrics(
-    session_state: Dict[str, Any],
-    session_trace: List[Dict[str, Any]],
-    agents_evaluated: List[str],
-    question_metadata: Dict[str, Any],
-    metrics_to_run: List[str] = None,
-    reference_data: Dict[str, Any] = None,
-    metric_definitions: Dict[str, Any] = None,
-    latency_data: List[Dict[str, Any]] = None,
-) -> Dict[str, Dict[str, Any]]:
+    session_state: dict[str, Any],
+    session_trace: list[dict[str, Any]],
+    agents_evaluated: list[str],
+    question_metadata: dict[str, Any],
+    metrics_to_run: list[str] = None,
+    reference_data: dict[str, Any] = None,
+    metric_definitions: dict[str, Any] = None,
+    latency_data: list[dict[str, Any]] = None,
+) -> dict[str, dict[str, Any]]:
     """
     Evaluate all specified deterministic metrics.
     """

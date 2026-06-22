@@ -20,7 +20,6 @@ import subprocess
 import sys
 from datetime import datetime
 from pathlib import Path
-from typing import Dict
 
 import click
 from rich.console import Console
@@ -763,7 +762,7 @@ def run(
     # Track per-phase outcomes for the end-of-run banner. The lying
     # "Pipeline complete!" green banner from the 2026-04-23 customer demo
     # is replaced with reality: phase_outcomes drives title/border/body.
-    phase_outcomes: Dict[str, str] = {}  # name → "completed" | "failed" | "skipped"
+    phase_outcomes: dict[str, str] = {}  # name → "completed" | "failed" | "skipped"
 
     # ── Phase: Simulate ────────────────────────────────────────────────────
 

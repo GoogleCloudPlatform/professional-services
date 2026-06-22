@@ -49,8 +49,9 @@ from __future__ import annotations
 
 import importlib.util
 import logging
+from collections.abc import Callable
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Tuple
+from typing import Any
 
 from agent_eval.core.metric_schema import (
     ALL_KINDS as _KNOWN_KINDS,
@@ -100,10 +101,10 @@ def parametrized_managed(
             f"Must be a RubricMetric attribute name."
         )
 
-    kwargs: Dict[str, Any] = {}
+    kwargs: dict[str, Any] = {}
     if version:
         kwargs["version"] = version
-    spec_params: Dict[str, Any] = {}
+    spec_params: dict[str, Any] = {}
     if guidelines:
         spec_params["guidelines"] = guidelines
     if rubric_groups:
@@ -117,8 +118,8 @@ def parametrized_managed(
 def custom_llm_judge(
     name: str,
     *,
-    criteria: Dict[str, str] | None = None,
-    rating_scores: Dict[str, str] | None = None,
+    criteria: dict[str, str] | None = None,
+    rating_scores: dict[str, str] | None = None,
     instruction: str | None = None,
     prompt_template: str | None = None,
 ):
@@ -136,7 +137,7 @@ def custom_llm_judge(
             f"both 'criteria' and 'rating_scores' are required."
         )
 
-    builder_kwargs: Dict[str, Any] = {
+    builder_kwargs: dict[str, Any] = {
         "criteria": criteria,
         "rating_scores": rating_scores,
     }
@@ -148,7 +149,7 @@ def custom_llm_judge(
     )
 
 
-def python_function(name: str, fn: Callable[[Dict[str, Any]], Dict[str, Any]]):
+def python_function(name: str, fn: Callable[[dict[str, Any]], dict[str, Any]]):
     """Wrap a deterministic Python function as ``types.Metric``."""
     vt = _vt()
     return vt.Metric(name=name, custom_function=fn)
@@ -198,7 +199,7 @@ def _load_python_callable(module_path: str | Path, function: str) -> Callable:
     return fn
 
 
-def build_metric(name: str, spec: Dict[str, Any], *, base_dir: Path | None = None):
+def build_metric(name: str, spec: dict[str, Any], *, base_dir: Path | None = None):
     """Build a single SDK metric object from a canonical-schema entry.
 
     Six supported ``kind`` values, mirroring the docs at
@@ -276,16 +277,16 @@ def build_metric(name: str, spec: Dict[str, Any], *, base_dir: Path | None = Non
 
 
 def build_all(
-    definitions: Dict[str, Dict[str, Any]],
+    definitions: dict[str, dict[str, Any]],
     *,
     base_dir: Path | None = None,
-) -> List[Tuple[str, Any]]:
+) -> list[tuple[str, Any]]:
     """Build all metrics from a unified definitions dict.
 
     Returns ``[(name, sdk_object), ...]``. Skips entries whose ``kind`` is
     missing from the known set with a logged warning.
     """
-    built: List[Tuple[str, Any]] = []
+    built: list[tuple[str, Any]] = []
     for name, spec in definitions.items():
         try:
             metric = build_metric(name, spec, base_dir=base_dir)

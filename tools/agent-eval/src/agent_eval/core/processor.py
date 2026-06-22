@@ -14,7 +14,7 @@
 import asyncio
 import json
 import logging
-from typing import Any, Dict, Optional
+from typing import Any
 
 import pandas as pd
 
@@ -24,7 +24,7 @@ logger = logging.getLogger("agent_eval.processor")
 
 
 async def enrich_single_interaction(
-    row: pd.Series, results_dir: Optional[str] = None, skip_traces: bool = False
+    row: pd.Series, results_dir: str | None = None, skip_traces: bool = False
 ) -> pd.Series:
     """
     Enriches a single interaction row with session state and trace data.
@@ -209,7 +209,7 @@ class InteractionProcessor:
     Orchestrates the enrichment of interaction logs with traces and state.
     """
 
-    def __init__(self, config: Dict[str, Any]):
+    def __init__(self, config: dict[str, Any]):
         self.config = config
         self.results_dir = config.get("results_dir")
         self.skip_traces = config.get("skip_traces", False)

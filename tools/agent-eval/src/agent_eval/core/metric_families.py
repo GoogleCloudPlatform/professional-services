@@ -28,7 +28,6 @@ Families mirror ``_evals_metric_handlers._METRIC_HANDLER_MAPPING``:
 from __future__ import annotations
 
 import logging
-from typing import Optional
 
 logger = logging.getLogger("agent_eval")
 
@@ -87,7 +86,7 @@ def _supported_translation() -> frozenset:
         return frozenset()
 
 
-def _matches_predefined(n: str, supported: frozenset) -> Optional[str]:
+def _matches_predefined(n: str, supported: frozenset) -> str | None:
     """Return the canonical SDK name (e.g. ``general_quality_v1``) if ``n``
     matches a predefined metric; otherwise None.
     """

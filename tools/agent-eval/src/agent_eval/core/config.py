@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from pathlib import Path
-from typing import Dict, List, Optional
 
 from pydantic import AliasChoices, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -39,7 +38,7 @@ class EvalConfig(BaseSettings):
     COL_TOOL_USAGE: str = "tool_usage"
 
     # Execution Settings
-    GOOGLE_CLOUD_PROJECT: Optional[str] = Field(
+    GOOGLE_CLOUD_PROJECT: str | None = Field(
         default=None,
         validation_alias=AliasChoices(
             "EVAL_GOOGLE_CLOUD_PROJECT", "GOOGLE_CLOUD_PROJECT", "PROJECT_ID"
@@ -66,7 +65,7 @@ class EvalConfig(BaseSettings):
 CONFIG = EvalConfig()
 
 
-def get_project_id() -> Optional[str]:
+def get_project_id() -> str | None:
     """Get the GCP project ID from any supported source.
 
     Checks (in order): GOOGLE_CLOUD_PROJECT env var, PROJECT_ID env var.
@@ -74,7 +73,7 @@ def get_project_id() -> Optional[str]:
     return EvalConfig().GOOGLE_CLOUD_PROJECT
 
 
-def get_location(model: Optional[str] = None) -> str:
+def get_location(model: str | None = None) -> str:
     """Get the GCP location, with smart defaults for Gemini 3+ models.
 
     Args:
@@ -88,7 +87,7 @@ def get_location(model: Optional[str] = None) -> str:
     return EvalConfig().GOOGLE_CLOUD_LOCATION
 
 
-def find_eval_files(eval_dir: Path) -> Dict[str, List[Path]]:
+def find_eval_files(eval_dir: Path) -> dict[str, list[Path]]:
     """Discover all eval files in the eval directory.
 
     Scans each subdirectory for .json files instead of relying on
@@ -102,7 +101,7 @@ def find_eval_files(eval_dir: Path) -> Dict[str, List[Path]]:
         Dict with keys: 'metrics', 'scenarios', 'golden_data', 'session_input'
         Each value is a list of matching files (sorted by name).
     """
-    result: Dict[str, List[Path]] = {
+    result: dict[str, list[Path]] = {
         "metrics": [],
         "scenarios": [],
         "golden_data": [],

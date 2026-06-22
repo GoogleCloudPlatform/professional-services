@@ -17,7 +17,7 @@ import re
 import subprocess
 import time
 import uuid
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import requests
 
@@ -35,7 +35,7 @@ class AgentClient:
         base_url: str,
         app_name: str,
         user_id: str = "eval_user",
-        token: Optional[str] = None,
+        token: str | None = None,
     ):
         """
         Initialize the AgentClient.
@@ -52,7 +52,7 @@ class AgentClient:
         self._token = token
 
     @property
-    def token(self) -> Optional[str]:
+    def token(self) -> str | None:
         """Returns the current token, fetching it if necessary. Returns None for localhost."""
         if self._is_localhost():
             return None
@@ -77,7 +77,7 @@ class AgentClient:
                 "Ensure you are logged in with 'gcloud auth login'."
             ) from e
 
-    def _get_headers(self) -> Dict[str, str]:
+    def _get_headers(self) -> dict[str, str]:
         """Returns the headers for API requests. Skips auth for localhost."""
         headers = {
             "accept": "application/json",
@@ -108,7 +108,7 @@ class AgentClient:
 
     def run_interaction(
         self, session_id: str, question: str, streaming: bool = False
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Sends a question to the agent.
 
@@ -131,7 +131,7 @@ class AgentClient:
         logger.debug("Sending question to agent...")
         return self._make_request("POST", url, json=payload)
 
-    def get_session_state(self, session_id: str) -> Dict[str, Any]:
+    def get_session_state(self, session_id: str) -> dict[str, Any]:
         """
         Retrieves the final state of a session.
 
@@ -145,7 +145,7 @@ class AgentClient:
         logger.debug("Retrieving final session state...")
         return self._make_request("GET", url)
 
-    def get_session_trace(self, session_id: str) -> Dict[str, Any]:
+    def get_session_trace(self, session_id: str) -> dict[str, Any]:
         """
         Get the session trace. Tries multiple endpoints.
 
@@ -237,7 +237,7 @@ class AgentClient:
     # --- Static Utility Methods for Analysis ---
 
     @staticmethod
-    def analyze_trace_and_extract_spans(trace_data: List[Dict]) -> List[Dict]:
+    def analyze_trace_and_extract_spans(trace_data: list[dict]) -> list[dict]:
         """Analyzes raw trace data to build a tree and extract classified information."""
 
         class _SpanNode:
@@ -383,7 +383,7 @@ class AgentClient:
         return [traverse_and_extract(root) for root in root_nodes]
 
     @staticmethod
-    def get_latency_from_spans(analyzed_trace: List[Dict]) -> List[Dict]:
+    def get_latency_from_spans(analyzed_trace: list[dict]) -> list[dict]:
         """Extracts latency information from the analyzed trace."""
 
         def process_span(span):
@@ -409,7 +409,7 @@ class AgentClient:
         return [process_span(root) for root in analyzed_trace]
 
     @staticmethod
-    def get_agent_trajectory(analyzed_trace: List[Dict]) -> List[str]:
+    def get_agent_trajectory(analyzed_trace: list[dict]) -> list[str]:
         """
         Extracts the sequence of agents and tools invoked.
 
@@ -465,13 +465,13 @@ class AgentClient:
         return trajectory
 
     @staticmethod
-    def get_state_variable(session_data: Dict, variable: str) -> Any:
+    def get_state_variable(session_data: dict, variable: str) -> Any:
         """Extracts a state variable from the session data."""
         state = session_data.get("state", {})
         return state.get(variable, None)
 
     @staticmethod
-    def get_tool_interactions(session_data: Dict) -> List[Dict[str, Any]]:
+    def get_tool_interactions(session_data: dict) -> list[dict[str, Any]]:
         """
         Extracts a chronological list of tool interactions (call and response pairs) from the session events.
 
@@ -533,7 +533,7 @@ class AgentClient:
         return interactions
 
     @staticmethod
-    def get_sub_agent_trace(session_data: Dict) -> List[Dict[str, Any]]:
+    def get_sub_agent_trace(session_data: dict) -> list[dict[str, Any]]:
         """
         Extracts the sequence of agent turns and their text responses.
 
@@ -576,7 +576,7 @@ class AgentClient:
         return trace
 
     @staticmethod
-    def get_final_payload_field(session_data: Dict, field_name: str) -> Any:
+    def get_final_payload_field(session_data: dict, field_name: str) -> Any:
         """Extracts a field from the final JSON payload event."""
         events = session_data.get("events", [])
         for event in reversed(events):

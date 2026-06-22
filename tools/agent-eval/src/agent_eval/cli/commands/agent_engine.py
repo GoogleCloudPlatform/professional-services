@@ -37,7 +37,7 @@ import json
 import os
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import click
 import pandas as pd
@@ -50,7 +50,7 @@ console = Console()
 # ---------------------------------------------------------------------------
 
 
-def _resolve_resource_name(explicit: Optional[str], cwd: Path) -> Optional[str]:
+def _resolve_resource_name(explicit: str | None, cwd: Path) -> str | None:
     """Resolve the Agent Engine resource name from CLI arg, env, or metadata file."""
     if explicit:
         return explicit
@@ -83,7 +83,7 @@ def _resolve_metrics_path(metrics_path: Path) -> Path:
     return metrics_path
 
 
-def _load_metric_definitions(metrics_path: Path) -> Dict[str, Dict[str, Any]]:
+def _load_metric_definitions(metrics_path: Path) -> dict[str, dict[str, Any]]:
     """Read metric definitions JSON, returning {} if file is missing."""
     resolved = _resolve_metrics_path(metrics_path)
     if not resolved.exists():
@@ -107,8 +107,8 @@ def _load_metric_definitions(metrics_path: Path) -> Dict[str, Dict[str, Any]]:
 
 
 def _build_evaluation_run_metrics(
-    metric_definitions: Dict[str, Dict[str, Any]],
-) -> List[Any]:
+    metric_definitions: dict[str, dict[str, Any]],
+) -> list[Any]:
     """Convert the canonical-schema metric definitions into EvaluationRunMetric objects.
 
     Routes EVERY entry through ``metric_factory.build_metric``, which dispatches
@@ -126,7 +126,7 @@ def _build_evaluation_run_metrics(
     """
     from agent_eval.core import metric_factory
 
-    run_metrics: List[Any] = []
+    run_metrics: list[Any] = []
     for name, spec in metric_definitions.items():
         if not isinstance(spec, dict):
             continue
@@ -410,7 +410,7 @@ def _default_destination(project: str) -> str:
     return f"gs://{bucket}/agent-eval/{timestamp}"
 
 
-def _bucket_name_from_uri(uri: str) -> Optional[str]:
+def _bucket_name_from_uri(uri: str) -> str | None:
     """Extract the bucket name from a ``gs://bucket/path`` URI."""
     if not uri.startswith("gs://"):
         return None
@@ -418,7 +418,7 @@ def _bucket_name_from_uri(uri: str) -> Optional[str]:
     return rest.split("/", 1)[0] or None
 
 
-def _load_local_agent(agent_module: Optional[str], cwd: Path) -> Optional[Any]:
+def _load_local_agent(agent_module: str | None, cwd: Path) -> Any | None:
     """Import the local ADK agent so we can build ``AgentInfo`` for the run.
 
     The Vertex SDK's ``create_evaluation_run`` doesn't *require* an
@@ -439,7 +439,7 @@ def _load_local_agent(agent_module: Optional[str], cwd: Path) -> Optional[Any]:
     import sys
 
     spec = agent_module
-    extra_sys_path: Optional[Path] = None
+    extra_sys_path: Path | None = None
 
     if spec is None:
         from agent_eval.core.path_detector import detect_execution_path
@@ -521,8 +521,8 @@ def _load_local_agent(agent_module: Optional[str], cwd: Path) -> Optional[Any]:
 
 
 def _build_agent_info(
-    vt_evals: Any, agent: Optional[Any], resource_name: str
-) -> Optional[Any]:
+    vt_evals: Any, agent: Any | None, resource_name: str
+) -> Any | None:
     """Build an ``AgentInfo`` for ``create_evaluation_run``.
 
     Three layers of fidelity:
@@ -546,7 +546,7 @@ def _build_agent_info(
     # Layer 1: Full SDK helper (only when we have a real agent)
     if agent is not None:
 
-        def _try_load() -> Optional[Any]:
+        def _try_load() -> Any | None:
             try:
                 return AgentInfo.load_from_agent(
                     agent, agent_resource_name=resource_name
@@ -570,7 +570,7 @@ def _build_agent_info(
         if agent is not None
         else "root_agent"
     )
-    common: Dict[str, Any] = {"name": name}
+    common: dict[str, Any] = {"name": name}
     if "agent_resource_name" in fields:
         common["agent_resource_name"] = resource_name
     if "instruction" in fields:
@@ -622,7 +622,7 @@ _VERTEX_LOCATIONS_NOT_VALID_FOR_GCS = {"global"}
 _DEFAULT_BUCKET_REGION = "us-central1"
 
 
-def _resolve_bucket_location(vertex_location: str, override: Optional[str]) -> str:
+def _resolve_bucket_location(vertex_location: str, override: str | None) -> str:
     """Pick a GCS-valid location for bucket creation.
 
     Order: explicit ``--bucket-location`` override → Vertex location if it's
@@ -639,7 +639,7 @@ def _ensure_bucket_exists(
     uri: str,
     project: str,
     vertex_location: str,
-    bucket_location_override: Optional[str] = None,
+    bucket_location_override: str | None = None,
 ) -> None:
     """Create the destination bucket if it doesn't already exist.
 
@@ -801,14 +801,14 @@ def _ensure_bucket_exists(
 def agent_engine(
     dataset_path: Path,
     metrics_path: Path,
-    resource_name: Optional[str],
-    dest: Optional[str],
-    project: Optional[str],
-    location: Optional[str],
-    bucket_location: Optional[str],
+    resource_name: str | None,
+    dest: str | None,
+    project: str | None,
+    location: str | None,
+    bucket_location: str | None,
     timeout: int,
     no_wait: bool,
-    agent_module: Optional[str],
+    agent_module: str | None,
     no_abort_on_broken_inference: bool,
     debug: bool,
 ) -> None:
@@ -1040,7 +1040,7 @@ def agent_engine(
     console.print()
     console.rule("[dim]Submission[/]", style="grey50", align="left")
 
-    create_kwargs: Dict[str, Any] = {
+    create_kwargs: dict[str, Any] = {
         "dataset": inference_df,
         "metrics": run_metrics,
         "dest": destination,
@@ -1157,7 +1157,7 @@ def _summarize_run_errors(error: Any) -> None:
     from collections import Counter
 
     by_code: Counter = Counter(code for code, _ in items)
-    sample_by_code: Dict[str, str] = {}
+    sample_by_code: dict[str, str] = {}
     for code, detail in items:
         if code not in sample_by_code:
             sample_by_code[code] = detail.strip()

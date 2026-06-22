@@ -17,7 +17,6 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
-from typing import Dict, Optional
 
 logger = logging.getLogger("agent_eval.utils")
 
@@ -33,8 +32,8 @@ _EXCLUDE_PATTERNS = [
 
 
 def discover_agent_context(
-    agent_dir: Optional[Path], quiet: bool = False
-) -> Dict[str, str]:
+    agent_dir: Path | None, quiet: bool = False
+) -> dict[str, str]:
     """Discover and load agent source code and ADK context from an agent directory.
 
     Scans for agent.py, tools.py, and GEMINI.md files while skipping
@@ -47,7 +46,7 @@ def discover_agent_context(
     Returns:
         Dict mapping file paths (or labels) to their contents.
     """
-    context: Dict[str, str] = {}
+    context: dict[str, str] = {}
     if not agent_dir or not agent_dir.exists():
         return context
 

@@ -34,7 +34,6 @@ import os
 import sys
 import webbrowser
 from pathlib import Path
-from typing import Optional
 
 import click
 from rich.console import Console
@@ -43,7 +42,7 @@ from rich.panel import Panel
 console = Console()
 
 
-def _find_latest_report(results_dir: Path) -> Optional[Path]:
+def _find_latest_report(results_dir: Path) -> Path | None:
     """Walk results_dir/*/report.html, return the most recently modified."""
     if not results_dir.is_dir():
         return None
@@ -54,7 +53,7 @@ def _find_latest_report(results_dir: Path) -> Optional[Path]:
     return candidates[0]
 
 
-def _resolve_results_dir(explicit: Optional[str]) -> Optional[Path]:
+def _resolve_results_dir(explicit: str | None) -> Path | None:
     """Default: <project_root>/tests/eval/results/. Override with --results-dir."""
     if explicit:
         p = Path(explicit).resolve()

@@ -22,7 +22,7 @@ during the canonical-schema sweep — runtime discovery has fully replaced it.)
 import inspect
 import logging
 import re
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 logger = logging.getLogger("agent_eval")
 
@@ -31,7 +31,7 @@ logger = logging.getLogger("agent_eval")
 # Derived from GCS YAML templates and SDK documentation.
 # ---------------------------------------------------------------------------
 
-_METRIC_DESCRIPTIONS: Dict[str, str] = {
+_METRIC_DESCRIPTIONS: dict[str, str] = {
     # API Predefined (server-side evaluation)
     "GENERAL_QUALITY": "Overall response quality across multiple rubric criteria.",
     "SAFETY": "Whether the response is safe and free of harmful content.",
@@ -58,7 +58,7 @@ _METRIC_DESCRIPTIONS: Dict[str, str] = {
     "SUMMARIZATION_QUALITY": "Summarization coverage, accuracy, and conciseness.",
 }
 
-_SCORE_RANGES: Dict[str, Dict[str, Any]] = {
+_SCORE_RANGES: dict[str, dict[str, Any]] = {
     # API Predefined — rubric-based (0-1 pass rate)
     "GENERAL_QUALITY": {"min": 0, "max": 1, "type": "rubric"},
     "SAFETY": {"min": 0, "max": 1, "type": "rubric"},
@@ -90,7 +90,7 @@ _SCORE_RANGES: Dict[str, Dict[str, Any]] = {
 }
 
 # Template placeholders required by GCS YAML metrics
-_GCS_PLACEHOLDERS: Dict[str, List[str]] = {
+_GCS_PLACEHOLDERS: dict[str, list[str]] = {
     "COHERENCE": ["prompt", "response"],
     "FLUENCY": ["prompt", "response"],
     "GROUNDEDNESS": ["prompt", "response"],
@@ -131,7 +131,7 @@ def requires_reference(managed_metric_name: str) -> bool:
     )
 
 
-def default_response_field(managed_metric_name: str) -> Optional[str]:
+def default_response_field(managed_metric_name: str) -> str | None:
     """Preferred response-side column for a managed metric, if not the default.
 
     Returns ``"final_response"`` for text-comparison metrics (need plain text on
@@ -192,7 +192,7 @@ def is_api_predefined(managed_metric_name: str) -> bool:
 
 def discover_managed_metrics(
     exclude_embedding: bool = True,
-) -> Dict[str, Dict[str, Any]]:
+) -> dict[str, dict[str, Any]]:
     """Discover all available managed metrics from the installed SDK.
 
     Reads types.RubricMetric attributes and classifies each as either
@@ -210,7 +210,7 @@ def discover_managed_metrics(
         logger.warning("vertexai not installed, returning empty metrics catalog")
         return {}
 
-    metrics: Dict[str, Dict[str, Any]] = {}
+    metrics: dict[str, dict[str, Any]] = {}
 
     for attr_name in dir(vtx_types.RubricMetric):
         if attr_name.startswith("_"):
@@ -235,7 +235,7 @@ def discover_managed_metrics(
         # default_response_field) are agent-eval discovery metadata used by the
         # picker UI and the per-row routing — NOT part of the SDK metric
         # construction. They live alongside `kind`/`base` as agent-eval extras.
-        entry: Dict[str, Any] = {
+        entry: dict[str, Any] = {
             "kind": "managed",
             "base": name_upper,
             "resolution": resolution,
@@ -270,13 +270,13 @@ def discover_managed_metrics(
 # ---------------------------------------------------------------------------
 
 
-def extract_adk_eval_knowledge() -> Dict[str, Any]:
+def extract_adk_eval_knowledge() -> dict[str, Any]:
     """Extract evaluation knowledge from the installed ADK package.
 
     Returns a dict with ADK metric descriptions, rubric patterns, and field
     names — suitable for injection into Gemini prompts for metric generation.
     """
-    knowledge: Dict[str, Any] = {
+    knowledge: dict[str, Any] = {
         "prebuilt_metrics": [],
         "rubric_patterns": [],
         "eval_field_names": {},
@@ -393,7 +393,7 @@ def extract_adk_eval_knowledge() -> Dict[str, Any]:
 # ---------------------------------------------------------------------------
 
 
-def format_metrics_for_prompt(metrics: Optional[Dict[str, Dict]] = None) -> str:
+def format_metrics_for_prompt(metrics: dict[str, dict] | None = None) -> str:
     """Format discovered metrics as text for inclusion in Gemini prompts.
 
     Groups by resolution type, includes descriptions and score ranges.
@@ -456,7 +456,7 @@ def format_metrics_for_prompt(metrics: Optional[Dict[str, Dict]] = None) -> str:
 
 
 def format_adk_knowledge_for_prompt(
-    knowledge: Optional[Dict[str, Any]] = None,
+    knowledge: dict[str, Any] | None = None,
 ) -> str:
     """Format ADK evaluation knowledge as text for inclusion in Gemini prompts.
 
@@ -498,8 +498,8 @@ def format_adk_knowledge_for_prompt(
 
 
 def get_metric_definition_entry(
-    metric_key: str, metrics: Optional[Dict] = None
-) -> Optional[Dict]:
+    metric_key: str, metrics: dict | None = None
+) -> dict | None:
     """Get a ready-to-use metric_definitions.json entry for a managed metric.
 
     Returns a dict suitable for direct inclusion in the metrics JSON file,

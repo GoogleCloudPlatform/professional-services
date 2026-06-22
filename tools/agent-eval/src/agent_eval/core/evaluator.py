@@ -22,7 +22,7 @@ import time
 from collections import defaultdict
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 import pandas as pd
 from google.cloud import aiplatform
@@ -151,7 +151,7 @@ def _decode_maybe_json(v: Any) -> Any:
     return v
 
 
-def _resolve_source_column(source: Optional[str], row: Any) -> Any:
+def _resolve_source_column(source: str | None, row: Any) -> Any:
     """Resolve a source spec against a single interaction row.
 
     Supported syntaxes:
@@ -180,7 +180,7 @@ def _resolve_source_column(source: Optional[str], row: Any) -> Any:
     return row.get(source) if hasattr(row, "get") else None
 
 
-def _normalize_intermediate_events(raw_events: Any) -> List[Dict[str, Any]]:
+def _normalize_intermediate_events(raw_events: Any) -> list[dict[str, Any]]:
     """ADK event dicts → Vertex evals.Event-compatible dicts.
 
     ADK shape: ``{content, id, author, timestamp (float), invocationId, actions, ...}``
@@ -194,14 +194,14 @@ def _normalize_intermediate_events(raw_events: Any) -> List[Dict[str, Any]]:
 
     if not isinstance(raw_events, list):
         return []
-    out: List[Dict[str, Any]] = []
+    out: list[dict[str, Any]] = []
     for ev in raw_events:
         if not isinstance(ev, dict):
             continue
         content = ev.get("content")
         if content is None:
             continue
-        norm: Dict[str, Any] = {"content": content}
+        norm: dict[str, Any] = {"content": content}
         if "id" in ev and ev["id"]:
             norm["event_id"] = str(ev["id"])
         if "author" in ev and ev["author"]:
@@ -219,7 +219,7 @@ def _normalize_intermediate_events(raw_events: Any) -> List[Dict[str, Any]]:
 
 def _build_managed_eval_column(
     sdk_col: str, source: str, df: pd.DataFrame
-) -> List[Any]:
+) -> list[Any]:
     """Build a single SDK column from a source spec, applying any needed transform."""
 
     def _build_one(row: Any) -> Any:
@@ -246,7 +246,7 @@ def _build_managed_eval_column(
     return [_build_one(row) for _, row in df.iterrows()]
 
 
-def _resolve_column_source(metric_info: Dict[str, Any], sdk_col: str) -> Optional[str]:
+def _resolve_column_source(metric_info: dict[str, Any], sdk_col: str) -> str | None:
     """Find the source spec for an SDK column.
 
     Lookup order:
@@ -267,18 +267,18 @@ def _resolve_column_source(metric_info: Dict[str, Any], sdk_col: str) -> Optiona
 
 
 def _build_managed_eval_dataset(
-    metric_info: Dict[str, Any],
+    metric_info: dict[str, Any],
     metric_name: str,
     managed_metric_name: str,
     original_df: pd.DataFrame,
-) -> Tuple[pd.DataFrame, Optional[str]]:
+) -> tuple[pd.DataFrame, str | None]:
     """Build the eval_dataset DataFrame for a managed metric per the FLATTEN
     schema. Returns ``(df, error_reason)`` — when error_reason is set, the
     caller should add the metric to skipped_metrics and continue."""
     required = _MANAGED_METRIC_REQUIRED_COLUMNS.get(
         managed_metric_name, ("prompt", "response")
     )
-    cols: Dict[str, List[Any]] = {}
+    cols: dict[str, list[Any]] = {}
     for sdk_col in required:
         source = _resolve_column_source(metric_info, sdk_col)
         if source is None:
@@ -323,7 +323,7 @@ def _interaction_row_capabilities(row: pd.Series) -> set:
     return caps
 
 
-def _required_capabilities(metric_info: Dict[str, Any]) -> set:
+def _required_capabilities(metric_info: dict[str, Any]) -> set:
     """Translate a metric definition's `requires_*` flags into capability tags."""
     required: set = set()
     if metric_info.get("requires_reference"):
@@ -385,7 +385,7 @@ def configure_logging(debug: bool = False) -> None:
         _install_clean_handler()
 
 
-def serialize_rubric_verdicts(rubric_verdicts: Any) -> Optional[List[Dict]]:
+def serialize_rubric_verdicts(rubric_verdicts: Any) -> list[dict] | None:
     """Serialize rubric verdicts to JSON-compatible format."""
     if not rubric_verdicts:
         return None
@@ -480,10 +480,8 @@ def parse_eval_result(
 
 
 def run_single_metric_evaluation(
-    task_args: Tuple,
-) -> Tuple[
-    Optional[pd.DataFrame], str, Optional[pd.DataFrame], Optional[Dict[str, str]]
-]:
+    task_args: tuple,
+) -> tuple[pd.DataFrame | None, str, pd.DataFrame | None, dict[str, str] | None]:
     """Worker function for parallel evaluation.
 
     Returns:
@@ -504,11 +502,11 @@ def run_single_metric_evaluation(
         gcs_dest,
     ) = task_args
 
-    eval_kwargs: Dict[str, Any] = {}
+    eval_kwargs: dict[str, Any] = {}
     if gcs_dest:
         eval_kwargs["config"] = types.EvaluateMethodConfig(dest=gcs_dest)
 
-    last_exc: Optional[Exception] = None
+    last_exc: Exception | None = None
     for attempt in range(retries):
         try:
             logger.info(f"Starting evaluation: {metric_name} (Attempt {attempt + 1})")
@@ -550,7 +548,7 @@ def run_single_metric_evaluation(
             last_exc = e
             logger.error(f"'{metric_name}' fallback also failed: {e}")
 
-    error_info: Optional[Dict[str, str]] = None
+    error_info: dict[str, str] | None = None
     if last_exc is not None:
         msg = str(last_exc).strip()
         # Trim to the first line of error text so the table column stays
@@ -565,13 +563,13 @@ def run_single_metric_evaluation(
     return None, metric_name, None, error_info
 
 
-def load_and_consolidate_metrics(metric_files: List[str]) -> Dict[str, Any]:
+def load_and_consolidate_metrics(metric_files: list[str]) -> dict[str, Any]:
     """Load and consolidate metric definitions from multiple JSON files."""
     consolidated = {}
     logger.info("--- Consolidating Metric Definitions ---")
     for file_path in metric_files:
         try:
-            with open(file_path, "r") as f:
+            with open(file_path) as f:
                 data = json.load(f)
                 prefix = data.get("metric_prefix", "").lstrip("_")
                 metrics = data.get("metrics", {})
@@ -589,8 +587,8 @@ def load_and_consolidate_metrics(metric_files: List[str]) -> Dict[str, Any]:
 
 
 def filter_metrics_by_criteria(
-    metric_definitions: Dict[str, Any], filters: Dict[str, List[str]]
-) -> Dict[str, Any]:
+    metric_definitions: dict[str, Any], filters: dict[str, list[str]]
+) -> dict[str, Any]:
     """Filter metric definitions based on specified criteria.
 
     The ``metric_type`` filter distinguishes deterministic metrics (latency,
@@ -670,7 +668,7 @@ def save_metrics_summary(
     experiment_id: str,
     run_type: str,
     test_description: str,
-    metric_definitions: Dict[str, Any] = None,
+    metric_definitions: dict[str, Any] = None,
     failed_metrics: list[dict] | list[str] | None = None,
     skipped_metrics: list[dict] | None = None,
 ) -> None:
@@ -904,7 +902,7 @@ def save_metrics_summary(
 
 
 class Evaluator:
-    def __init__(self, config: Dict[str, Any]):
+    def __init__(self, config: dict[str, Any]):
         self.config = config
         self.project_id = get_project_id()
         self.location = CONFIG.GOOGLE_CLOUD_LOCATION
@@ -1255,7 +1253,7 @@ class Evaluator:
         # Run Parallel Execution. failed_metrics is a list of dicts so we
         # can show the user the real exception class + message instead of
         # the long-standing misleading "API rate limits" warning.
-        failed_metrics: List[Dict[str, str]] = []
+        failed_metrics: list[dict[str, str]] = []
 
         async def run_task(task_arg):
             return await asyncio.to_thread(run_single_metric_evaluation, task_arg)
@@ -1267,7 +1265,7 @@ class Evaluator:
             if res is not None:
                 all_llm_results.append((res, m_name, input_df))
             else:
-                entry: Dict[str, str] = {"metric": m_name}
+                entry: dict[str, str] = {"metric": m_name}
                 if error_info:
                     entry["exception_type"] = error_info["exception_type"]
                     entry["message"] = error_info["message"]

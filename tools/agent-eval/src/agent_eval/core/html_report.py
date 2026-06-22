@@ -38,7 +38,7 @@ import json
 import logging
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 logger = logging.getLogger("agent_eval")
 
@@ -84,9 +84,7 @@ def _format_value(val: Any, metric: str) -> str:
     return str(val)
 
 
-def _normalize_score(
-    val: Any, score_range: Optional[Dict[str, Any]]
-) -> Optional[float]:
+def _normalize_score(val: Any, score_range: dict[str, Any] | None) -> float | None:
     if not isinstance(val, (int, float)):
         return None
     if not score_range:
@@ -97,7 +95,7 @@ def _normalize_score(
     return float(max(0.0, min(1.0, (val - lo) / (hi - lo))))
 
 
-def _build_overview_tiles(summary: Dict[str, Any]) -> List[Dict[str, Any]]:
+def _build_overview_tiles(summary: dict[str, Any]) -> list[dict[str, Any]]:
     det = (summary.get("overall_summary") or {}).get("deterministic_metrics") or {}
     tiles = []
     cost = det.get("token_usage.estimated_cost_usd")
@@ -144,9 +142,9 @@ def _build_overview_tiles(summary: Dict[str, Any]) -> List[Dict[str, Any]]:
 
 
 def _build_llm_metric_rows(
-    summary: Dict[str, Any],
-    comparison: Optional[Dict[str, Any]] = None,
-) -> List[Dict[str, Any]]:
+    summary: dict[str, Any],
+    comparison: dict[str, Any] | None = None,
+) -> list[dict[str, Any]]:
     llm = (summary.get("overall_summary") or {}).get("llm_based_metrics") or {}
     skipped = (summary.get("overall_summary") or {}).get("skipped_metrics") or []
     delta_lookup = {}
@@ -189,9 +187,9 @@ def _build_llm_metric_rows(
 
 
 def _build_deterministic_rows(
-    summary: Dict[str, Any],
-    comparison: Optional[Dict[str, Any]] = None,
-) -> List[Dict[str, Any]]:
+    summary: dict[str, Any],
+    comparison: dict[str, Any] | None = None,
+) -> list[dict[str, Any]]:
     det = (summary.get("overall_summary") or {}).get("deterministic_metrics") or {}
     delta_lookup = {}
     if comparison:
@@ -214,8 +212,8 @@ def _build_deterministic_rows(
     return rows
 
 
-def _flatten_det_metrics(det: Dict[str, Any], prefix: str = "") -> Dict[str, Any]:
-    flat: Dict[str, Any] = {}
+def _flatten_det_metrics(det: dict[str, Any], prefix: str = "") -> dict[str, Any]:
+    flat: dict[str, Any] = {}
     for k, v in (det or {}).items():
         if isinstance(v, dict):
             flat.update(_flatten_det_metrics(v, f"{prefix}{k}."))
@@ -224,7 +222,7 @@ def _flatten_det_metrics(det: Dict[str, Any], prefix: str = "") -> Dict[str, Any
     return flat
 
 
-def _extract_prompt_response(llm_scores: Dict[str, Any]) -> tuple[str, str]:
+def _extract_prompt_response(llm_scores: dict[str, Any]) -> tuple[str, str]:
     for val in (llm_scores or {}).values():
         if not isinstance(val, dict):
             continue
@@ -276,7 +274,7 @@ def _safe_parse(s: Any) -> Any:
             return None
 
 
-def _build_csv_lookup(results_csv: Optional[Path]) -> Dict[str, Dict[str, Any]]:
+def _build_csv_lookup(results_csv: Path | None) -> dict[str, dict[str, Any]]:
     """Pre-parse the per-question CSV into a {question_id: {...}} map.
 
     Each value contains the rich data the eval_summary doesn't carry:
@@ -284,7 +282,7 @@ def _build_csv_lookup(results_csv: Optional[Path]) -> Dict[str, Dict[str, Any]]:
     per-turn latency. All caps applied so the embedded payload doesn't
     balloon (CSV rows are 200-500 KB each in practice).
     """
-    lookup: Dict[str, Dict[str, Any]] = {}
+    lookup: dict[str, dict[str, Any]] = {}
     if not results_csv or not results_csv.exists():
         return lookup
     try:
@@ -393,7 +391,7 @@ def _build_csv_lookup(results_csv: Optional[Path]) -> Dict[str, Dict[str, Any]]:
                 # Flatten to a flat list of dicts so the JS render doesn't
                 # bottom-out on `td.name` (undefined) and dump raw JSON.
                 raw_tds = ed.get("tool_declarations") or []
-                tool_declarations: List[Dict[str, Any]] = []
+                tool_declarations: list[dict[str, Any]] = []
                 if isinstance(raw_tds, list):
                     for td in raw_tds:
                         if isinstance(td, dict) and isinstance(
@@ -565,10 +563,10 @@ def _build_csv_lookup(results_csv: Optional[Path]) -> Dict[str, Dict[str, Any]]:
 
 
 def _build_per_question_data(
-    results_csv: Optional[Path],
-    summary: Dict[str, Any],
-    csv_lookup: Optional[Dict[str, Dict[str, Any]]] = None,
-) -> Dict[str, Any]:
+    results_csv: Path | None,
+    summary: dict[str, Any],
+    csv_lookup: dict[str, dict[str, Any]] | None = None,
+) -> dict[str, Any]:
     """Build heatmap matrix + per-question rubric verdict trees.
 
     Conversation + tool-call detail comes from question_answer_log.md
@@ -586,7 +584,7 @@ def _build_per_question_data(
 
     csv_lookup = csv_lookup or {}
 
-    metric_names: List[str] = []
+    metric_names: list[str] = []
     for qa in qa_list:
         for m in (qa.get("llm_metrics") or qa.get("llm_based_metrics") or {}).keys():
             if m not in metric_names:
@@ -616,7 +614,7 @@ def _build_per_question_data(
         # Rubric verdicts per metric — keep the structure but cap reasoning
         # length so the payload stays sane. This is the rich autorater
         # output the user wants in the report.
-        per_metric_verdicts: Dict[str, Any] = {}
+        per_metric_verdicts: dict[str, Any] = {}
         for mname, mval in llm_scores.items():
             if not isinstance(mval, dict):
                 continue
@@ -756,7 +754,7 @@ def _build_per_question_data(
 
 def _build_iterations_data(
     results_parent: Path, current_run_id: str
-) -> List[Dict[str, Any]]:
+) -> list[dict[str, Any]]:
     """Walk every run folder under ``results_parent`` and build a sorted
     list of iteration entries from each run's ``eval_summary.json``.
 
@@ -828,7 +826,7 @@ def _build_iterations_data(
             it["deltas"] = {}
             continue
         prev = iterations[i - 1]
-        deltas: Dict[str, float] = {}
+        deltas: dict[str, float] = {}
         for src in ("llm_metrics", "det_metrics"):
             for k, v in (it[src] or {}).items():
                 pv = (prev[src] or {}).get(k)
@@ -841,7 +839,7 @@ def _build_iterations_data(
     return iterations
 
 
-def _build_per_source_data(summary: Dict[str, Any]) -> Dict[str, Any]:
+def _build_per_source_data(summary: dict[str, Any]) -> dict[str, Any]:
     """Project ``per_source_summary`` into a shape the JS can render as a
     side-by-side strip (simulation vs interaction). Each source has its own
     averaged metrics — the unified pipeline runs UserSim AND interact, and
@@ -855,7 +853,7 @@ def _build_per_source_data(summary: Dict[str, Any]) -> Dict[str, Any]:
     for src_name, metrics in raw.items():
         if not isinstance(metrics, dict):
             continue
-        flat: Dict[str, Any] = {}
+        flat: dict[str, Any] = {}
         for k, v in metrics.items():
             # Each entry is `{average: float, count: int}`.
             if isinstance(v, dict) and "average" in v:
@@ -868,14 +866,14 @@ def _build_payload(
     *,
     run_id: str,
     agent_name: str,
-    summary: Dict[str, Any],
-    comparison: Optional[Dict[str, Any]],
-    gemini_analysis_md: Optional[str],
-    optimization_log_md: Optional[str],
-    qa_log_md: Optional[str],
-    results_csv: Optional[Path],
-    iterations: Optional[List[Dict[str, Any]]] = None,
-) -> Dict[str, Any]:
+    summary: dict[str, Any],
+    comparison: dict[str, Any] | None,
+    gemini_analysis_md: str | None,
+    optimization_log_md: str | None,
+    qa_log_md: str | None,
+    results_csv: Path | None,
+    iterations: list[dict[str, Any]] | None = None,
+) -> dict[str, Any]:
     git = summary.get("git_info") or {}
     return {
         "meta": {
@@ -2716,14 +2714,14 @@ _HTML_TEMPLATE = r"""<!doctype html>
 def generate_html_report(
     *,
     run_dir: Path,
-    summary: Dict[str, Any],
-    comparison: Optional[Dict[str, Any]] = None,
-    gemini_analysis_md: Optional[str] = None,
-    optimization_log_md: Optional[str] = None,
-    qa_log_md: Optional[str] = None,
-    results_csv: Optional[Path] = None,
-    agent_name: Optional[str] = None,
-    output_path: Optional[Path] = None,
+    summary: dict[str, Any],
+    comparison: dict[str, Any] | None = None,
+    gemini_analysis_md: str | None = None,
+    optimization_log_md: str | None = None,
+    qa_log_md: str | None = None,
+    results_csv: Path | None = None,
+    agent_name: str | None = None,
+    output_path: Path | None = None,
 ) -> Path:
     """Write a self-contained HTML report and return its path."""
     output_path = output_path or (run_dir / "report.html")
@@ -2738,7 +2736,7 @@ def generate_html_report(
     # if the caller didn't pass them. Symmetric: any one missing gets
     # silently empty before this fix, which is how the AI analysis tab
     # disappeared on report regeneration.
-    def _autoload(name: str, current: Optional[str]) -> Optional[str]:
+    def _autoload(name: str, current: str | None) -> str | None:
         if current is not None:
             return current
         p = run_dir / name

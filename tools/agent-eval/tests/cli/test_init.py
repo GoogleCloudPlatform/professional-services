@@ -134,7 +134,7 @@ class TestInitAutoApprove(unittest.TestCase):
     correct surfaces are scaffolded based on what we seeded into the tmp dir.
     """
 
-    def _invoke(self, target_dir: Path) -> "object":
+    def _invoke(self, target_dir: Path) -> object:
         """Invoke init -y with env stubbed and the gcloud check no-oped."""
         runner = CliRunner()
         with mock.patch(
