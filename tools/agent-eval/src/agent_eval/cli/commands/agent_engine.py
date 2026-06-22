@@ -698,10 +698,10 @@ def _ensure_bucket_exists(
             f"  [dim]Grant your account [cyan]roles/storage.admin[/] on project "
             f"[cyan]{project}[/], or pass [cyan]--dest gs://<existing-bucket>/path[/].[/]"
         )
-        raise click.Abort()
+        raise click.Abort() from None
     except GoogleAPICallError as exc:
         console.print(f"  [red]create_bucket failed:[/] {exc}")
-        raise click.Abort()
+        raise click.Abort() from None
     console.print(f"  [green]>[/] Created bucket [cyan]gs://{bucket_name}[/]")
 
 
@@ -905,7 +905,7 @@ def agent_engine(
         from vertexai._genai.types import evals as vt_evals
     except ImportError as exc:
         console.print(f"  [red]Missing dependency:[/] {exc}")
-        raise click.Abort()
+        raise click.Abort() from None
 
     dataset = pd.read_json(dataset_path, lines=True)
     if "prompt" not in dataset.columns:
@@ -1020,7 +1020,7 @@ def agent_engine(
         inference_df = client.evals.run_inference(agent=resolved, src=inference_input)
     except Exception as exc:  # noqa: BLE001
         console.print(f"  [red]run_inference failed:[/] {exc}")
-        raise click.Abort()
+        raise click.Abort() from None
 
     # The SDK's CandidateResponse pydantic model rejects rows whose response
     # text isn't a string (None / non-text content like raw tool calls).
@@ -1094,7 +1094,7 @@ def agent_engine(
         run = client.evals.create_evaluation_run(**create_kwargs)
     except Exception as exc:  # noqa: BLE001 — surface SDK errors with context
         console.print(f"  [red]create_evaluation_run failed:[/] {exc}")
-        raise click.Abort()
+        raise click.Abort() from None
 
     console.print("  [green]✓[/] Evaluation run submitted.")
     run_name = getattr(run, "name", None)

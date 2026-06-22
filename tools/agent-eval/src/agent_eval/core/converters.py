@@ -84,7 +84,7 @@ def synthesize_trace_from_events(
     current_invocation_span = None
     current_agent_span = None
 
-    for i, event in enumerate(events):
+    for _i, event in enumerate(events):
         timestamp = event.get("timestamp", time.time())
         role = event.get("author")
 

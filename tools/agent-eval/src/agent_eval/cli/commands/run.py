@@ -523,7 +523,7 @@ def run(
                 ]
                 with ThreadPoolExecutor(max_workers=8) as ex:
                     results = list(ex.map(_check_url, candidates))
-                live_raw = [u for u, ok in zip(candidates, results) if ok]
+                live_raw = [u for u, ok in zip(candidates, results, strict=False) if ok]
                 # Dedupe by port — localhost:PORT and 127.0.0.1:PORT almost
                 # always point at the same service on a single dev box.
                 # Prefer the localhost form (more readable). If somehow only

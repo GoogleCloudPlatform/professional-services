@@ -256,7 +256,7 @@ class AgentClient:
             for span in trace_data:
                 span_nodes[span["span_id"]] = _SpanNode(span)
             root_nodes = []
-            for span_id, node in span_nodes.items():
+            for _span_id, node in span_nodes.items():
                 if node.parent_id and node.parent_id in span_nodes:
                     span_nodes[node.parent_id].add_child(node)
                 else:
@@ -523,7 +523,7 @@ class AgentClient:
                         interactions.append(interaction)
 
         # Add any calls that didn't get a response (e.g. failed or interrupted)
-        for call_id, interaction in pending_calls.items():
+        for _, interaction in pending_calls.items():
             interaction["status"] = "no_response"
             interactions.append(interaction)
 

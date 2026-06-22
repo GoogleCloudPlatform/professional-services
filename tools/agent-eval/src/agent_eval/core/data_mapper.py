@@ -363,14 +363,14 @@ def map_dataset_columns(
                 # First check agent_df for the root key (supports dict columns)
                 if root_key and root_key in agent_df.columns:
                     val_series = agent_df[root_key].apply(
-                        lambda x: get_nested_value(
+                        lambda x, col_path=col_path: get_nested_value(
                             x if isinstance(x, dict) else robust_json_loads(x), col_path
                         )
                     )
                 # Then fall back to original_df
                 elif root_key and root_key in original_df.columns:
                     val_series = original_df[root_key].apply(
-                        lambda x: get_nested_value(robust_json_loads(x), col_path)
+                        lambda x, col_path=col_path: get_nested_value(robust_json_loads(x), col_path)
                     )
 
             if val_series is not None and transform == "last_item":
@@ -507,7 +507,7 @@ def map_dataset_columns(
 
         elif "template" in details:
 
-            def format_template(row):
+            def format_template(row, details=details):
                 template_vars = {}
                 source_cols = details.get("source_columns", [])
                 for sc in source_cols:
