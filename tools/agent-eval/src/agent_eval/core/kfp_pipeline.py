@@ -34,10 +34,14 @@ def simulate_component(
     prompts_gcs_output: dsl.OutputPath(str),
 ) -> None:
     """KFP component to run the User Simulator and generate prompts."""
+    import logging
     import tempfile
     from pathlib import Path
 
     from google.cloud import storage
+
+    logging.basicConfig(level=logging.INFO)
+    logger = logging.getLogger("simulate_component")
 
     # 1. Download dataset from GCS
     storage_client = storage.Client()
@@ -72,7 +76,7 @@ def simulate_component(
         str(local_output),
     ]
 
-    print(f"Running command: {' '.join(cmd)}")
+    logger.info(f"Running command: {' '.join(cmd)}")
     subprocess.run(cmd, check=True)
 
     # 3. Upload prompts to the KFP-managed output GCS path
@@ -99,11 +103,15 @@ def interact_component(
     interactions_gcs_output: dsl.OutputPath(str),
 ) -> None:
     """KFP component to drive the remote agent and record interactions."""
+    import logging
     import subprocess
     import tempfile
     from pathlib import Path
 
     from google.cloud import storage
+
+    logging.basicConfig(level=logging.INFO)
+    logger = logging.getLogger("interact_component")
 
     storage_client = storage.Client()
 
@@ -130,7 +138,7 @@ def interact_component(
         agent_name,
     ]
 
-    print(f"Running command: {' '.join(cmd)}")
+    logger.info(f"Running command: {' '.join(cmd)}")
     subprocess.run(cmd, check=True)
 
     # 3. Upload interactions to GCS
@@ -158,6 +166,7 @@ def evaluate_component(
     location: str = "us-central1",
 ) -> None:
     """KFP component to run evaluation metrics on the interactions."""
+    import logging
     import os
     import shutil
     import subprocess
@@ -165,6 +174,9 @@ def evaluate_component(
     from pathlib import Path
 
     from google.cloud import storage
+
+    logging.basicConfig(level=logging.INFO)
+    logger = logging.getLogger("evaluate_component")
 
     storage_client = storage.Client()
 
@@ -199,7 +211,7 @@ def evaluate_component(
         location,
     ]
 
-    print(f"Running command: {' '.join(cmd)}")
+    logger.info(f"Running command: {' '.join(cmd)}")
     subprocess.run(cmd, check=True)
 
     # 3. Upload summary and details to GCS
