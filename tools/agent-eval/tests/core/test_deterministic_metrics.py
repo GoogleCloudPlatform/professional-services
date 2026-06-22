@@ -131,7 +131,7 @@ def test_calculate_latency_metrics():
         {"name": "invocation", "duration_seconds": 2.5},
     ]
 
-    score, explanation, details = calculate_latency_metrics(
+    score, _explanation, details = calculate_latency_metrics(
         mock_trace, mock_latency_data
     )
 
@@ -266,7 +266,7 @@ def test_calculate_tool_success_rate():
         },
     ]
 
-    score, explanation, details = calculate_tool_success_rate(mock_trace)
+    score, _explanation, details = calculate_tool_success_rate(mock_trace)
 
     # 3 total tool calls, 2 errors (save_artifact and run_command) -> Success rate = 1/3 = 33.33%
     assert score == pytest.approx(1 / 3)
@@ -305,7 +305,7 @@ def test_calculate_grounding_utilization():
         }
     ]
 
-    score, explanation, details = calculate_grounding_utilization(mock_trace)
+    score, _explanation, details = calculate_grounding_utilization(mock_trace)
 
     assert score == 2.0
     assert details["total_grounding_chunks"] == 2
@@ -341,7 +341,7 @@ def test_calculate_context_saturation():
         },
     ]
 
-    score, explanation, details = calculate_context_saturation(mock_trace)
+    score, _explanation, details = calculate_context_saturation(mock_trace)
 
     assert score == 2500.0
     assert details["max_total_tokens"] == 2500
@@ -356,7 +356,7 @@ def test_calculate_agent_handoffs():
         {"name": "execute_tool search_web"},  # Not an agent
     ]
 
-    score, explanation, details = calculate_agent_handoffs(mock_trace)
+    score, _explanation, details = calculate_agent_handoffs(mock_trace)
 
     assert score == 2.0
     assert details["total_handoffs"] == 2
@@ -383,7 +383,7 @@ def test_calculate_output_density():
         },
     ]
 
-    score, explanation, details = calculate_output_density(mock_trace)
+    score, _explanation, details = calculate_output_density(mock_trace)
 
     # Average density = (150 + 250) / 2 = 200.0
     assert score == 200.0
@@ -399,7 +399,7 @@ def test_calculate_sandbox_usage():
         {"name": "execute_tool search_web"},  # Non-sandbox
     ]
 
-    score, explanation, details = calculate_sandbox_usage(mock_trace)
+    score, _explanation, details = calculate_sandbox_usage(mock_trace)
 
     assert score == 2.0
     assert details["total_sandbox_ops"] == 2

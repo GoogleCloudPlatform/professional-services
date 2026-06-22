@@ -241,7 +241,7 @@ def evaluate_component(
         exp_blob.upload_from_filename(local_summary)
 
         # Also upload everything else to the sibling directory for archiving
-        parent_blob_dir = os.path.dirname(out_blob_name)
+        parent_blob_dir = Path(out_blob_name).parent
         for root, _, files in os.walk(local_results_dir):
             for file in files:
                 local_file_path = Path(root) / file

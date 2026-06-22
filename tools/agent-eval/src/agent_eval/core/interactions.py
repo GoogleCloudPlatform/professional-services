@@ -40,10 +40,9 @@ def get_golden_questions(filepath: str) -> list[dict[str, Any]]:
     if p.endswith(".jsonl"):
         from agent_eval.core.dataset_io import is_single_turn, read_dataset
 
-        try:
-            rows = read_dataset(p)
-        except FileNotFoundError:
+        if not Path(p).exists():
             raise FileNotFoundError(f"Dataset file not found at '{p}'") from None
+        rows = read_dataset(p)
         questions: list[dict[str, Any]] = []
         skipped_multi_turn = 0
         for i, row in enumerate(rows):
