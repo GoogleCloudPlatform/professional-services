@@ -24,7 +24,7 @@ import json
 import re
 import time
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 from agent_eval.core.metric_discovery import (
     format_adk_knowledge_for_prompt,
@@ -476,7 +476,7 @@ def analyze_agent_data(
     agent_dir: Path,
     agent_name: str,
     model: str = "gemini-3.1-pro-preview",
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Gemini Call 1: Analyze agent source code to identify evaluation data.
 
     This is a factual extraction task — low hallucination risk. The model
@@ -519,13 +519,13 @@ def analyze_agent_data(
 def generate_metric_definitions(
     agent_dir: Path,
     agent_name: str,
-    agent_analysis: Dict[str, Any],
-    selected_managed: Dict[str, Dict],
+    agent_analysis: dict[str, Any],
+    selected_managed: dict[str, dict],
     user_priorities: str = "",
-    existing_metrics: Optional[Dict[str, Any]] = None,
+    existing_metrics: dict[str, Any] | None = None,
     model: str = "gemini-3.1-pro-preview",
     n_custom_metrics: int = 3,
-) -> Tuple[Dict[str, Any], str]:
+) -> tuple[dict[str, Any], str]:
     """Gemini Call 2: Generate metric_definitions.json content.
 
     Takes the agent analysis from Call 1, user-selected managed metrics,
@@ -617,16 +617,16 @@ def generate_metric_definitions(
 def generate_eval_data(
     agent_dir: Path,
     agent_name: str,
-    agent_analysis: Dict[str, Any],
-    metric_definitions: Dict[str, Any],
-    existing_scenarios: Optional[List] = None,
-    existing_golden: Optional[List] = None,
+    agent_analysis: dict[str, Any],
+    metric_definitions: dict[str, Any],
+    existing_scenarios: list | None = None,
+    existing_golden: list | None = None,
     user_priorities: str = "",
     model: str = "gemini-3.1-pro-preview",
     metric_rationale: str = "",
-    required_reference_fields: Optional[List[Tuple[str, str]]] = None,
+    required_reference_fields: list[tuple[str, str]] | None = None,
     rows_per_kind: int = 5,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Gemini Call 3: Generate scenarios and golden data.
 
     Uses the agent analysis, final metric definitions, and the rationale +
@@ -774,7 +774,7 @@ def generate_eval_data(
     }
 
 
-def _format_source_code(agent_context: Dict[str, str]) -> str:
+def _format_source_code(agent_context: dict[str, str]) -> str:
     """Format agent source code files for inclusion in prompts."""
     source_parts = []
     for filepath, content in agent_context.items():
@@ -785,13 +785,13 @@ def _format_source_code(agent_context: Dict[str, str]) -> str:
     return "\n\n".join(source_parts) if source_parts else "No source code available."
 
 
-def _discover_existing_eval_files(agent_dir: Path) -> Dict[str, str]:
+def _discover_existing_eval_files(agent_dir: Path) -> dict[str, str]:
     """Read existing eval files (metrics, scenarios, golden data) if present.
 
     Returns a dict with keys like 'metrics', 'scenarios', 'golden_data'
     mapped to their file contents (truncated for prompt efficiency).
     """
-    existing: Dict[str, str] = {}
+    existing: dict[str, str] = {}
     eval_dir = agent_dir / "eval"
 
     if not eval_dir.exists():
@@ -922,7 +922,7 @@ def _call_gemini(prompt: str, model: str) -> str:
         http_options=HttpOptions(api_version="v1"),
     )
 
-    last_exc: Optional[BaseException] = None
+    last_exc: BaseException | None = None
     for attempt in range(len(_RETRY_BACKOFF_SECONDS) + 1):
         try:
             response = client.models.generate_content(
@@ -943,7 +943,7 @@ def _call_gemini(prompt: str, model: str) -> str:
     raise MetricGenerationError(f"Gemini API call failed: {last_exc}")
 
 
-def _extract_json(text: str) -> Optional[Dict]:
+def _extract_json(text: str) -> dict | None:
     """Extract JSON from Gemini's response, handling markdown fences."""
     # Try to find JSON in code fences first
     fence_match = re.search(r"```(?:json)?\s*\n(.*?)\n```", text, re.DOTALL)
@@ -973,13 +973,13 @@ def _extract_json(text: str) -> Optional[Dict]:
 def _parse_and_validate_metrics(
     raw_response: str,
     agent_name: str,
-) -> Tuple[Dict[str, Any], List[str]]:
+) -> tuple[dict[str, Any], list[str]]:
     """Parse Gemini's response and validate each metric definition.
 
     Returns:
         Tuple of (valid_metrics_dict, warning_messages).
     """
-    warnings: List[str] = []
+    warnings: list[str] = []
 
     parsed = _extract_json(raw_response)
     if not parsed:
@@ -989,7 +989,7 @@ def _parse_and_validate_metrics(
     if not raw_metrics:
         return {}, ["No 'metrics' key found in response."]
 
-    valid_metrics: Dict[str, Any] = {}
+    valid_metrics: dict[str, Any] = {}
 
     for name, defn in raw_metrics.items():
         metric_warnings = _validate_single_metric(name, defn)
@@ -1009,7 +1009,7 @@ def _parse_and_validate_metrics(
 ALLOWED_PLACEHOLDER_NAMES = {"prompt", "response", "reference"}
 
 
-def _validate_single_metric(name: str, defn: Dict) -> List[str]:
+def _validate_single_metric(name: str, defn: dict) -> list[str]:
     """Validate a single metric definition against the canonical schema.
 
     Per ``core/metric_schema.py``: every entry MUST declare a ``kind`` from
@@ -1024,7 +1024,7 @@ def _validate_single_metric(name: str, defn: Dict) -> List[str]:
         REQUIRED_FIELDS,
     )
 
-    errors: List[str] = []
+    errors: list[str] = []
 
     if not isinstance(defn, dict):
         return [f"'{name}': not a dict"]

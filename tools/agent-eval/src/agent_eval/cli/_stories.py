@@ -30,10 +30,9 @@ Add new stories freely — append to STORIES below. Each entry is a
 from __future__ import annotations
 
 import random
-from typing import Optional, Tuple
 
 # (title, body) — bodies should read in 60-120 seconds (250-400 words).
-STORIES: list[Tuple[str, str]] = [
+STORIES: list[tuple[str, str]] = [
     (
         "Why parallel sim hits Amdahl's law",
         "ADK's `adk eval` runs scenarios sequentially within a single eval_set. "
@@ -724,7 +723,7 @@ STORIES: list[Tuple[str, str]] = [
 ]
 
 
-def random_story() -> Optional[Tuple[str, str]]:
+def random_story() -> tuple[str, str] | None:
     """Return a random ``(title, body)`` story. None if the pool is empty
     (defensive — shouldn't happen)."""
     if not STORIES:
@@ -732,7 +731,7 @@ def random_story() -> Optional[Tuple[str, str]]:
     return random.choice(STORIES)
 
 
-def random_stories(n: int) -> list[Tuple[str, str]]:
+def random_stories(n: int) -> list[tuple[str, str]]:
     """Return up to ``n`` UNIQUE random stories (no repeats in one wait).
 
     If n exceeds the pool size, returns the entire shuffled pool. Used by
@@ -747,7 +746,7 @@ def random_stories(n: int) -> list[Tuple[str, str]]:
 
 
 def render_story_panel(
-    title: str, body: str, *, index: Optional[int] = None, total: Optional[int] = None
+    title: str, body: str, *, index: int | None = None, total: int | None = None
 ):
     """Render one story as a Rich Panel for display. Index/total optional
     for the browser context (e.g. \"Story 7 of 15\"); omitted in the
@@ -815,7 +814,7 @@ class StoryStreamer:
 
         self._console = console
         self._stop_event = threading.Event()
-        self._thread: Optional[threading.Thread] = None
+        self._thread: threading.Thread | None = None
 
     def start(self) -> None:
         import threading

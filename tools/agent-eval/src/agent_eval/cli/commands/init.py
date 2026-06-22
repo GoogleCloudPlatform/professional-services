@@ -19,8 +19,9 @@ import hashlib
 import json
 import os
 import re
+from collections.abc import Callable
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any
 
 import click
 import questionary
@@ -78,11 +79,11 @@ def _parse_artifact(path: Path) -> Any:
     return text
 
 
-def _summarize_diff(before: Any, after: Any) -> List[str]:
+def _summarize_diff(before: Any, after: Any) -> list[str]:
     """Render a short human-readable diff for the artifact. Limited to
     common shapes (dict-of-metrics for metric_definitions; list-of-rows
     for dataset.jsonl). Returns a list of bullet lines."""
-    lines: List[str] = []
+    lines: list[str] = []
 
     if isinstance(before, dict) and isinstance(after, dict):
         b_metrics = (before.get("metrics") or {}) if "metrics" in before else before
@@ -125,7 +126,7 @@ def _review_artifact(
     explanation: Callable[[], None],
     title: str,
     auto_approve: bool,
-) -> Tuple[bool, Optional[Any]]:
+) -> tuple[bool, Any | None]:
     """Show ``path``, run ``explanation()``, wait, detect edits, parse + diff.
 
     Returns ``(was_edited, parsed_content)``. When ``was_edited`` is True
@@ -223,7 +224,7 @@ def _save_generated_snapshot(path: Path) -> None:
 
 
 def _render_metric_review_guide(
-    custom_metrics: Dict[str, Any],
+    custom_metrics: dict[str, Any],
     rationale: str,
     metrics_path: Path,
 ) -> None:
@@ -315,7 +316,7 @@ def _render_metric_review_guide(
     )
 
 
-def _validate_user_edited_metrics(parsed: Any) -> List[str]:
+def _validate_user_edited_metrics(parsed: Any) -> list[str]:
     """Re-validate a user-edited metric_definitions.json against the canonical schema.
 
     Returns a list of plain-English error messages (empty when clean). Each
@@ -324,7 +325,7 @@ def _validate_user_edited_metrics(parsed: Any) -> List[str]:
     """
     from agent_eval.core.metric_generator import _validate_single_metric
 
-    errors: List[str] = []
+    errors: list[str] = []
     if not isinstance(parsed, dict):
         return ["The file's top-level shape is wrong — expected a JSON object."]
     metrics = parsed.get("metrics")
@@ -347,7 +348,7 @@ def _validate_user_edited_metrics(parsed: Any) -> List[str]:
     return errors
 
 
-def _required_reference_fields(custom_metrics: Dict[str, Any]) -> List[Tuple[str, str]]:
+def _required_reference_fields(custom_metrics: dict[str, Any]) -> list[tuple[str, str]]:
     """Extract (metric_name, reference_data_field) pairs from the metrics dict.
 
     The data-generation step needs this to know which ``reference_data:<field>``
@@ -360,7 +361,7 @@ def _required_reference_fields(custom_metrics: Dict[str, Any]) -> List[Tuple[str
     ("subagent_routing_accuracy", "expected_route")]``. Empty when no metric
     needs reference data.
     """
-    pairs: List[Tuple[str, str]] = []
+    pairs: list[tuple[str, str]] = []
     for name, defn in custom_metrics.items():
         if not isinstance(defn, dict):
             continue
@@ -378,7 +379,7 @@ def _required_reference_fields(custom_metrics: Dict[str, Any]) -> List[Tuple[str
             pairs.append((name, ref_field))
     # Dedupe while preserving order.
     seen: set = set()
-    unique: List[Tuple[str, str]] = []
+    unique: list[tuple[str, str]] = []
     for pair in pairs:
         if pair not in seen:
             seen.add(pair)
@@ -389,10 +390,10 @@ def _required_reference_fields(custom_metrics: Dict[str, Any]) -> List[Tuple[str
 def _review_with_validation_loop(
     metrics_path: Path,
     *,
-    custom_metrics: Dict[str, Any],
+    custom_metrics: dict[str, Any],
     rationale: str,
     auto_approve: bool,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Wrap ``_review_artifact`` with a validation gate that loops on errors.
 
     After the user edits the file, re-validate against the canonical schema.
@@ -461,8 +462,8 @@ def _review_with_validation_loop(
 
 def _validate_dataset_against_metrics(
     dataset_path: Path,
-    custom_metrics: Dict[str, Any],
-) -> List[str]:
+    custom_metrics: dict[str, Any],
+) -> list[str]:
     """Check that ``dataset.jsonl`` actually feeds every metric the user picked.
 
     The dangerous case is a metric with ``requires_reference: true`` that needs
@@ -473,8 +474,8 @@ def _validate_dataset_against_metrics(
 
     Returns plain-English warning strings (empty when clean).
     """
-    warnings: List[str] = []
-    rows: List[dict] = []
+    warnings: list[str] = []
+    rows: list[dict] = []
     try:
         with dataset_path.open() as f:
             for line in f:
@@ -572,7 +573,7 @@ def _validate_dataset_against_metrics(
 def _review_dataset_with_validation(
     dataset_path: Path,
     *,
-    custom_metrics: Dict[str, Any],
+    custom_metrics: dict[str, Any],
     auto_approve: bool,
 ) -> None:
     """Wrap the dataset review pause with the coverage validation gate.
@@ -880,7 +881,7 @@ def _verify_environment(auto_approve: bool = False) -> None:
 # ── Path detection (Vertex AI GenAI Eval execution path) ──────────────────
 
 
-def _display_path_detection(search_dir: Path) -> "PathDetection":  # noqa: F821
+def _display_path_detection(search_dir: Path) -> PathDetection:  # noqa: F821
     """Detect and explain how we'll reach the user's agent.
 
     The narrative leads with the *local* pipeline (always available, the
@@ -1332,7 +1333,7 @@ def _prompt_starter_metrics() -> list[str]:
     return selected
 
 
-def _display_metrics_education(managed_metrics: Dict[str, Dict]) -> None:
+def _display_metrics_education(managed_metrics: dict[str, dict]) -> None:
     """Walk the user through the relevant Vertex AI eval docs before the picker.
 
     Three short backgrounders, in the order the docs sidebar uses:
@@ -1350,7 +1351,7 @@ def _display_metrics_education(managed_metrics: Dict[str, Dict]) -> None:
 
     # Mirror the picker's grouping (anything classified as "custom" — i.e. GCS YAML
     # metrics like COHERENCE / FLUENCY — gets bucketed as adaptive in the picker).
-    family_counts: Dict[str, int] = {}
+    family_counts: dict[str, int] = {}
     for key, info in managed_metrics.items():
         family = metric_families.classify(managed_base_name(info) or key)
         if family == "custom":
@@ -1560,9 +1561,9 @@ def _display_metrics_education(managed_metrics: Dict[str, Dict]) -> None:
 
 
 def _prompt_managed_metrics_selection(
-    managed_metrics: Dict[str, Dict],
-    preselected: Optional[set] = None,
-) -> Dict[str, Dict]:
+    managed_metrics: dict[str, dict],
+    preselected: set | None = None,
+) -> dict[str, dict]:
     """Arrow-key checkbox selection for managed metrics.
 
     Uses questionary.checkbox() with grouped separators for a clean UX.
@@ -1598,7 +1599,7 @@ def _prompt_managed_metrics_selection(
         "computation",
         "translation",
     ]
-    grouped: Dict[str, Dict[str, Dict]] = {f: {} for f in KNOWN_FAMILY_ORDER}
+    grouped: dict[str, dict[str, dict]] = {f: {} for f in KNOWN_FAMILY_ORDER}
 
     for key, info in managed_metrics.items():
         family = metric_families.classify(managed_base_name(info) or key)
@@ -1613,7 +1614,7 @@ def _prompt_managed_metrics_selection(
         f for f in grouped if f not in KNOWN_FAMILY_ORDER
     ]
 
-    def _tag_for(info: Dict) -> str:
+    def _tag_for(info: dict) -> str:
         """Short capability gate that decides whether a metric can run on the user's data."""
         if info.get("requires_multi_turn"):
             return "multi-turn"
@@ -1842,7 +1843,7 @@ def _prompt_managed_metrics_selection(
         if selected_keys:
             from collections import defaultdict as _defaultdict
 
-            review_by_family: Dict[str, list] = _defaultdict(list)
+            review_by_family: dict[str, list] = _defaultdict(list)
             for key in selected_keys:
                 entry = managed_metrics.get(key, {})
                 fam = metric_families.classify(managed_base_name(entry) or key)
@@ -1905,7 +1906,7 @@ def _prompt_managed_metrics_selection(
     # Build selected metrics dict (final — review confirmed above)
     from agent_eval.core.metric_discovery import get_metric_definition_entry
 
-    selected: Dict[str, Dict] = {}
+    selected: dict[str, dict] = {}
     for key in selected_keys:
         entry = get_metric_definition_entry(key, managed_metrics)
         if entry:
@@ -1926,7 +1927,7 @@ def _prompt_managed_metrics_selection(
     return selected
 
 
-def _display_agent_analysis(analysis: Dict[str, Any]) -> None:
+def _display_agent_analysis(analysis: dict[str, Any]) -> None:
     """Display the agent analysis results in a Rich table."""
     console.print("  [bold]Your agent's evaluation data[/]")
     console.print(
@@ -2047,7 +2048,7 @@ def _prompt_ai_metrics_multistep(
 
     # Split existing metrics into managed and custom
     existing_managed_keys: set = set()
-    existing_custom: Dict[str, Any] = {}
+    existing_custom: dict[str, Any] = {}
     if existing_metrics:
         for k, v in existing_metrics.items():
             if isinstance(v, dict) and is_managed_entry(v):
@@ -2171,7 +2172,7 @@ def _prompt_ai_metrics_multistep(
         "  [dim]Reading agent.py, tools, and prompts to understand available evaluation data.[/]"
     )
     console.print()
-    agent_analysis: Dict[str, Any] = {}
+    agent_analysis: dict[str, Any] = {}
     with console.status(
         "[bold blue]  Analyzing agent source code...[/]",
         spinner="dots",
@@ -2291,7 +2292,7 @@ def _prompt_ai_metrics_multistep(
             )
 
     # ── Gemini Call 2 — Generate custom metrics (if opted in) ─────────────
-    custom_metrics: Dict[str, Any] = {}
+    custom_metrics: dict[str, Any] = {}
     rationale = ""
 
     if generate_custom:
@@ -2508,7 +2509,7 @@ def _prompt_ai_metrics_multistep(
     required_ref_fields = _required_reference_fields(custom_metrics)
 
     # ── Gemini Call 3 — Generate test data ────────────────────────────────
-    recommendations: Dict[str, Any] = {}
+    recommendations: dict[str, Any] = {}
     with console.status("[bold blue]  Generating test data...[/]", spinner="dots"):
         try:
             from agent_eval.core.metric_generator import generate_eval_data
@@ -2611,7 +2612,7 @@ def _prompt_ai_metrics_multistep(
     return starter_keys, custom_metrics, recommendations, agent_analysis
 
 
-def _load_existing_metrics(agent_dir: Path) -> Optional[Dict[str, Any]]:
+def _load_existing_metrics(agent_dir: Path) -> dict[str, Any] | None:
     """Load existing metric definitions if present."""
     eval_dir = agent_dir / "eval"
     if not eval_dir.exists():
@@ -2631,7 +2632,7 @@ def _load_existing_metrics(agent_dir: Path) -> Optional[Dict[str, Any]]:
 
 def _load_existing_eval_data(
     agent_dir: Path,
-) -> tuple[Optional[list], Optional[list]]:
+) -> tuple[list | None, list | None]:
     """Load existing scenarios and golden data if present."""
     eval_dir = agent_dir / "eval"
     if not eval_dir.exists():
@@ -3552,7 +3553,7 @@ def init(target_dir, agent_name, mode, auto_approve, ai_metrics):
     _display_next_steps(agent_name, agent_dir, mode, custom_metrics, chosen_paths)
 
 
-def _explain_metrics_file(path: Path, custom_metrics: Optional[Dict[str, Any]]) -> None:
+def _explain_metrics_file(path: Path, custom_metrics: dict[str, Any] | None) -> None:
     """Render the per-metric breakdown of metric_definitions.json so the
     user knows what each entry does + which internal flags drive routing."""
     try:

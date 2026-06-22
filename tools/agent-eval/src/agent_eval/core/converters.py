@@ -18,16 +18,16 @@ import os
 import time
 import uuid
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from agent_eval.core.agent_client import AgentClient
 
 logger = logging.getLogger("agent_eval.converters")
 
 
-def robust_json_load(file_path: str) -> Optional[Dict[str, Any]]:
+def robust_json_load(file_path: str) -> dict[str, Any] | None:
     try:
-        with open(file_path, "r", encoding="utf-8") as f:
+        with open(file_path, encoding="utf-8") as f:
             content = f.read().strip()
         data = json.loads(content)
         if isinstance(data, str):
@@ -63,8 +63,8 @@ def convert_keys_to_camel_case(data: Any) -> Any:
 
 
 def synthesize_trace_from_events(
-    events: List[Dict[str, Any]], session_id: str, agent_name: str
-) -> List[Dict[str, Any]]:
+    events: list[dict[str, Any]], session_id: str, agent_name: str
+) -> list[dict[str, Any]]:
     """
     Constructs a synthetic OpenTelemetry-style span trace from a flat list of ADK events.
     Compatible with AgentClient analysis methods.
@@ -209,8 +209,8 @@ class AdkHistoryConverter:
     def __init__(
         self,
         history_dir: str,
-        questions_file: Optional[str] = None,
-        prompt_to_reference: Optional[Dict[str, Dict[str, Any]]] = None,
+        questions_file: str | None = None,
+        prompt_to_reference: dict[str, dict[str, Any]] | None = None,
     ):
         self.history_dir = history_dir
         self.golden_map = (
@@ -223,9 +223,9 @@ class AdkHistoryConverter:
         # first user message in the trace), so multi-turn rows with
         # reference_data flow through. Built by run.py from dataset.jsonl
         # before invoking the converter.
-        self.prompt_to_reference: Dict[str, Dict[str, Any]] = prompt_to_reference or {}
+        self.prompt_to_reference: dict[str, dict[str, Any]] = prompt_to_reference or {}
 
-    def _load_golden_map(self, filepath: str) -> Dict[str, Dict[str, Any]]:
+    def _load_golden_map(self, filepath: str) -> dict[str, dict[str, Any]]:
         """Loads Golden Dataset to merge reference data based on ID."""
         mapping = {}
         try:
@@ -250,8 +250,8 @@ class AdkHistoryConverter:
         return mapping
 
     def _resolve_reference_data(
-        self, eval_id: str, user_inputs: List[str]
-    ) -> Dict[str, Any]:
+        self, eval_id: str, user_inputs: list[str]
+    ) -> dict[str, Any]:
         """Try the golden_map (keyed by row id) first; fall back to
         prompt_to_reference (keyed by the scenario's starting_prompt) so
         sim traces inherit reference_data from the source dataset row."""
@@ -262,7 +262,7 @@ class AdkHistoryConverter:
             return self.prompt_to_reference[user_inputs[0]]
         return {}
 
-    def process_file(self, file_path: str) -> List[Dict[str, Any]]:
+    def process_file(self, file_path: str) -> list[dict[str, Any]]:
         data = robust_json_load(file_path)
         if not data:
             return []
@@ -533,11 +533,11 @@ class AdkHistoryConverter:
     def _process_per_invocation_format(
         self,
         eval_id: str,
-        session_id: Optional[str],
+        session_id: str | None,
         per_invocation: list,
         case: dict,
         is_st: bool = False,
-    ) -> Optional[Dict[str, Any]]:
+    ) -> dict[str, Any] | None:
         """Process Format 2: eval_metric_result_per_invocation (no session_details).
 
         This format appears when ADK eval runs without capturing full session details.
@@ -711,7 +711,7 @@ class AdkHistoryConverter:
 
         return row
 
-    def run(self) -> List[Dict[str, Any]]:
+    def run(self) -> list[dict[str, Any]]:
         """Processes ADK eval history files and returns a list of interaction records.
 
         Returns:
@@ -728,7 +728,7 @@ class AdkHistoryConverter:
         return all_rows
 
 
-def write_jsonl(records: List[Dict[str, Any]], output_path: str) -> None:
+def write_jsonl(records: list[dict[str, Any]], output_path: str) -> None:
     """Writes a list of records to a JSONL file (one JSON object per line).
 
     Args:
@@ -740,7 +740,7 @@ def write_jsonl(records: List[Dict[str, Any]], output_path: str) -> None:
             f.write(json.dumps(record, ensure_ascii=False, default=str) + "\n")
 
 
-def read_jsonl(input_path: str) -> List[Dict[str, Any]]:
+def read_jsonl(input_path: str) -> list[dict[str, Any]]:
     """Reads a JSONL file and returns a list of records.
 
     Args:
@@ -750,7 +750,7 @@ def read_jsonl(input_path: str) -> List[Dict[str, Any]]:
         List of dictionaries.
     """
     records = []
-    with open(input_path, "r", encoding="utf-8") as f:
+    with open(input_path, encoding="utf-8") as f:
         for line in f:
             line = line.strip()
             if line:
@@ -764,7 +764,7 @@ class TestToGoldenConverter:
     def __init__(self):
         pass
 
-    def _parse_kv_pairs(self, pairs: Optional[List[str]]) -> Dict[str, str]:
+    def _parse_kv_pairs(self, pairs: list[str] | None) -> dict[str, str]:
         """Parses a list of 'key:value' strings into a dictionary."""
         result = {}
         if not pairs:
@@ -782,10 +782,10 @@ class TestToGoldenConverter:
         input_path: str,
         output_path: str,
         agent_name: str,
-        metadata_pairs: Optional[List[str]] = None,
+        metadata_pairs: list[str] | None = None,
         id_prefix: str = "q",
     ):
-        with open(input_path, "r") as f:
+        with open(input_path) as f:
             data = json.load(f)
 
         if not isinstance(data, list):
@@ -826,7 +826,7 @@ class TestToGoldenConverter:
 
         if os.path.exists(output_path):
             try:
-                with open(output_path, "r") as f:
+                with open(output_path) as f:
                     existing_data = json.load(f)
                     if (
                         isinstance(existing_data, dict)

@@ -20,7 +20,6 @@ import subprocess
 import sys
 from datetime import datetime
 from pathlib import Path
-from typing import List, Optional
 
 import click
 from rich.console import Console
@@ -249,9 +248,9 @@ def _project_dataset_to_adk_files(
     # then point the user at metric_definitions.json as the single rubric
     # surface. Idempotent: after the first call, criteria is {} so we no-op.
     project_eval_config = project_root / "tests" / "eval" / "eval_config.json"
-    backup_path: Optional[Path] = None
+    backup_path: Path | None = None
     backed_up_count = 0
-    backed_up_names: List[str] = []
+    backed_up_names: list[str] = []
 
     if project_eval_config.exists():
         try:

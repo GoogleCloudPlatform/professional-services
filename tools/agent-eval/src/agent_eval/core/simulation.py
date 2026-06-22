@@ -19,7 +19,7 @@ import os
 import tempfile
 import uuid
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from google.adk.agents.base_agent import BaseAgent
 from google.adk.cli.utils.agent_loader import AgentLoader
@@ -203,8 +203,8 @@ async def run_simulation_in_process(
     dataset_path: Path,
     parallelism: int = 4,
     run_mode: str = "all",
-    case_id: Optional[str] = None,
-) -> List[Dict[str, Any]]:
+    case_id: str | None = None,
+) -> list[dict[str, Any]]:
     """Runs the simulation in-process using ADK Python APIs and returns converted records."""
 
     # Ensure project root is in sys.path so the agent can import shared modules

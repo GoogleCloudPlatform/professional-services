@@ -16,7 +16,7 @@
 from __future__ import annotations
 
 import json
-from typing import Any, Dict, Optional
+from typing import Any
 
 
 class GeminiAnalysisPrompter:
@@ -138,17 +138,17 @@ Format your entire response as a single Markdown document.
 
     def __init__(
         self,
-        summary_data: Dict[str, Any],
+        summary_data: dict[str, Any],
         analysis_content: str,
-        context_files: Dict[str, str],
+        context_files: dict[str, str],
         question_file_path: str,
         consolidated_metrics_path: str,
         # Customizable parameters
-        audience: Optional[str] = None,
-        tone: Optional[str] = None,
-        length: Optional[str] = None,
-        custom_strategy_content: Optional[str] = None,
-        focus_directive: Optional[str] = None,
+        audience: str | None = None,
+        tone: str | None = None,
+        length: str | None = None,
+        custom_strategy_content: str | None = None,
+        focus_directive: str | None = None,
     ):
         self.summary_data = summary_data
         self.analysis_content = analysis_content

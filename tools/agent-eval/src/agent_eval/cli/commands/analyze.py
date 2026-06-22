@@ -17,7 +17,6 @@ import asyncio
 import os
 import sys
 from pathlib import Path
-from typing import Optional
 
 import click
 from rich.console import Console
@@ -52,11 +51,11 @@ def _display_analysis(results_dir: str) -> None:
 
 def _display_metrics_table(
     current_summary: dict,
-    comparison_data: Optional[dict] = None,
-    focus: Optional[str] = None,
+    comparison_data: dict | None = None,
+    focus: str | None = None,
     *,
-    results_dir: Optional[str] = None,
-    run_name_override: Optional[str] = None,
+    results_dir: str | None = None,
+    run_name_override: str | None = None,
 ) -> None:
     """Display a Rich table of metrics with optional delta columns.
 

@@ -16,7 +16,7 @@ import json
 import logging
 import os
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import pandas as pd
 
@@ -25,7 +25,7 @@ from agent_eval.core.agent_client import AgentClient
 logger = logging.getLogger("agent_eval.interactions")
 
 
-def get_golden_questions(filepath: str) -> List[Dict[str, Any]]:
+def get_golden_questions(filepath: str) -> list[dict[str, Any]]:
     """Loads single-turn questions from either the unified ``dataset.jsonl``
     or a legacy ``golden_dataset.json``.
 
@@ -43,7 +43,7 @@ def get_golden_questions(filepath: str) -> List[Dict[str, Any]]:
             rows = read_dataset(p)
         except FileNotFoundError:
             raise FileNotFoundError(f"Dataset file not found at '{p}'")
-        questions: List[Dict[str, Any]] = []
+        questions: list[dict[str, Any]] = []
         skipped_multi_turn = 0
         for i, row in enumerate(rows):
             if not is_single_turn(row):
@@ -67,7 +67,7 @@ def get_golden_questions(filepath: str) -> List[Dict[str, Any]]:
         raise FileNotFoundError(f"Questions file not found at '{p}'")
 
 
-def _unified_row_to_question(row: Dict[str, Any], *, default_id: str) -> Dict[str, Any]:
+def _unified_row_to_question(row: dict[str, Any], *, default_id: str) -> dict[str, Any]:
     """Adapt a unified ``dataset.jsonl`` row to the legacy ``question_data``
     shape ``process_single_question`` consumes (``user_inputs``, ``id``,
     ``metadata``, ``reference_data``, ``agents_evaluated``).
@@ -90,7 +90,7 @@ def _unified_row_to_question(row: Dict[str, Any], *, default_id: str) -> Dict[st
     # reference fields (e.g. dataset_mapping.reference.source_column =
     # "reference_data:expected_facts") silently get every row skipped at
     # evaluate time.
-    reference_data: Dict[str, Any] = {}
+    reference_data: dict[str, Any] = {}
     nested_ref = row.get("reference_data")
     if isinstance(nested_ref, dict):
         reference_data.update(
@@ -115,8 +115,8 @@ def _unified_row_to_question(row: Dict[str, Any], *, default_id: str) -> Dict[st
 
 
 def filter_questions_by_metadata(
-    questions: List[Dict[str, Any]], filters: Dict[str, List[str]]
-) -> List[Dict[str, Any]]:
+    questions: list[dict[str, Any]], filters: dict[str, list[str]]
+) -> list[dict[str, Any]]:
     """Filters questions based on metadata key-value pairs."""
     if not filters:
         return questions
@@ -139,7 +139,7 @@ def filter_questions_by_metadata(
     return filtered_questions
 
 
-def parse_metadata_filters(filter_strings: Optional[List[str]]) -> Dict[str, List[str]]:
+def parse_metadata_filters(filter_strings: list[str] | None) -> dict[str, list[str]]:
     """Parses filter strings like 'key:val1,val2' into a dictionary."""
     filters = {}
     if not filter_strings:
@@ -160,7 +160,7 @@ def parse_metadata_filters(filter_strings: Optional[List[str]]) -> Dict[str, Lis
     return filters
 
 
-def parse_state_variables(state_var_strings: Optional[List[str]]) -> Dict[str, Any]:
+def parse_state_variables(state_var_strings: list[str] | None) -> dict[str, Any]:
     """Parses state variable strings like 'key:value' into a dictionary."""
     state_vars = {}
     if not state_var_strings:
@@ -177,12 +177,12 @@ def parse_state_variables(state_var_strings: Optional[List[str]]) -> Dict[str, A
 
 
 async def process_single_question(
-    question_data: Dict[str, Any],
+    question_data: dict[str, Any],
     agent_client: AgentClient,
     run_id: int,
     user_ldap: str,
-    state_vars: Dict[str, Any],
-) -> Dict[str, Any]:
+    state_vars: dict[str, Any],
+) -> dict[str, Any]:
     """
     Runs a single question against the agent.
     """
@@ -252,7 +252,7 @@ class InteractionRunner:
     Orchestrates the running of interactions for a set of questions.
     """
 
-    def __init__(self, config: Dict[str, Any]):
+    def __init__(self, config: dict[str, Any]):
         self.config = config
         self.user_ldap = config.get("user") or os.environ.get("USER") or "unknown"
         self.agent_client = AgentClient(

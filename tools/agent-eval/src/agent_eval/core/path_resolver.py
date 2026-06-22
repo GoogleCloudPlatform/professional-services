@@ -32,7 +32,6 @@ without forcing migration.
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Optional
 
 _CANONICAL_EVAL = Path("tests") / "eval"
 _LEGACY_EVAL_FLAT = Path("eval")
@@ -98,7 +97,7 @@ def find_eval_dir(agent_dir: Path | str) -> Path:
     return project_root / _CANONICAL_EVAL
 
 
-def find_metrics_path(agent_dir: Path | str) -> Optional[Path]:
+def find_metrics_path(agent_dir: Path | str) -> Path | None:
     """Return the active ``metric_definitions.json`` path or ``None`` if missing.
 
     Searches in canonical-first, then legacy-fallback order. Includes the
@@ -119,7 +118,7 @@ def find_metrics_path(agent_dir: Path | str) -> Optional[Path]:
     return None
 
 
-def find_dataset_path(agent_dir: Path | str) -> Optional[Path]:
+def find_dataset_path(agent_dir: Path | str) -> Path | None:
     """Return the active ``dataset.jsonl`` path or ``None`` if missing.
 
     Searches canonical (project-root ``tests/eval/``), then the F3 legacy
@@ -147,7 +146,7 @@ def find_dataset_path(agent_dir: Path | str) -> Optional[Path]:
 _PROJECT_ROOT_MARKERS = ("pyproject.toml", "setup.py", "setup.cfg")
 
 
-def find_project_root(start: Path | None = None, max_depth: int = 6) -> Optional[Path]:
+def find_project_root(start: Path | None = None, max_depth: int = 6) -> Path | None:
     """Walk up from ``start`` (default cwd) looking for a project-root marker.
 
     Returns the directory containing the marker, or None if nothing matches
@@ -166,10 +165,10 @@ def find_project_root(start: Path | None = None, max_depth: int = 6) -> Optional
 
 def resolve_relative_to_project(
     relpath: Path | str,
-    explicit: Optional[Path | str] = None,
+    explicit: Path | str | None = None,
     *,
     start: Path | None = None,
-) -> Optional[Path]:
+) -> Path | None:
     """Resolve ``relpath`` (e.g. ``tests/eval/dataset.jsonl``) against the
     nearest project root walking up from ``start`` (default cwd).
 

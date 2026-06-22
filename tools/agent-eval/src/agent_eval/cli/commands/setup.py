@@ -33,7 +33,6 @@ import json
 import os
 import subprocess
 from pathlib import Path
-from typing import List, Optional, Tuple
 
 import click
 import questionary
@@ -46,7 +45,7 @@ console = Console()
 
 # ── Step definitions ────────────────────────────────────────────────────────
 
-_FOUNDATION_APIS: List[Tuple[str, str]] = [
+_FOUNDATION_APIS: list[tuple[str, str]] = [
     (
         "serviceusage.googleapis.com",
         "Required to enable any other API on the project — must come first.",
@@ -65,7 +64,7 @@ _FOUNDATION_APIS: List[Tuple[str, str]] = [
     ),
 ]
 
-_ASP_APIS: List[Tuple[str, str]] = [
+_ASP_APIS: list[tuple[str, str]] = [
     (
         "cloudbuild.googleapis.com",
         "ASP CI/CD pipelines (the `google_cloud_build` runner choice).",
@@ -151,7 +150,7 @@ def _adc_file_path() -> Path:
     return Path.home() / ".config" / "gcloud" / "application_default_credentials.json"
 
 
-def _adc_account(path: Path) -> Optional[str]:
+def _adc_account(path: Path) -> str | None:
     """Identifier for the ADC file, or None if unreadable / unknown structure.
 
     Modern user ADC files (`type: "authorized_user"`) are just a refresh token —
@@ -327,7 +326,7 @@ def _check_api_enabled(project: str, api: str):
     return _GcloudFailure(_classify_stderr(err), err)
 
 
-def _enable_api(project: str, api: str) -> Tuple[bool, str]:
+def _enable_api(project: str, api: str) -> tuple[bool, str]:
     """Enable an API. Returns (success, error_message)."""
     try:
         with console.status(f"  [bold blue]Enabling {api}…[/]", spinner="dots"):
@@ -565,7 +564,7 @@ def _step_3_adc(
         return False  # skip
 
 
-def _step_2_project(auto_approve: bool) -> Tuple[Optional[str], Optional[str]]:
+def _step_2_project(auto_approve: bool) -> tuple[str | None, str | None]:
     """Resolve project + location, save to .env, point gcloud config at it.
 
     Runs BEFORE Step 3 (ADC) so the ADC login can pass `--billing-project=<project>`
@@ -796,7 +795,7 @@ def _step_5_autorater_iam(project: str, auto_approve: bool) -> None:
         return  # skip
 
 
-def _step_6_asp_apis(project: str, *, asp: Optional[bool], auto_approve: bool) -> None:
+def _step_6_asp_apis(project: str, *, asp: bool | None, auto_approve: bool) -> None:
     """Enable Cloud Build / Cloud Run / Artifact Registry for ASP deployments."""
     if asp is None and not auto_approve:
         asp = questionary.confirm(
@@ -817,7 +816,7 @@ def _step_6_asp_apis(project: str, *, asp: Optional[bool], auto_approve: bool) -
 
 def _enable_apis(
     project: str,
-    apis: List[Tuple[str, str]],
+    apis: list[tuple[str, str]],
     *,
     auto_approve: bool,
 ) -> None:

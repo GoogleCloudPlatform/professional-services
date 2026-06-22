@@ -20,7 +20,7 @@ import re
 import subprocess
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional, TypedDict
+from typing import Any, TypedDict
 
 import pandas as pd
 from google import genai
@@ -36,19 +36,19 @@ class LogEntry(TypedDict):
     """A structured representation of a single question's evaluation results."""
 
     question_id: str
-    metadata: Dict[str, Any]
-    user_inputs: List[str]
+    metadata: dict[str, Any]
+    user_inputs: list[str]
     final_response: str
-    trace_summary: List[str]
-    sub_agent_trace: List[Dict[str, Any]]
-    tool_interactions: List[Dict[str, Any]]
-    eval_results: Dict[str, Dict[str, Any]]
-    latency_summary: Dict[str, Any]
-    adk_scores: Dict[str, float]
-    agents_evaluated: List[str]
+    trace_summary: list[str]
+    sub_agent_trace: list[dict[str, Any]]
+    tool_interactions: list[dict[str, Any]]
+    eval_results: dict[str, dict[str, Any]]
+    latency_summary: dict[str, Any]
+    adk_scores: dict[str, float]
+    agents_evaluated: list[str]
 
 
-def robust_json_loads(x: Any) -> Optional[Dict[str, Any]]:
+def robust_json_loads(x: Any) -> dict[str, Any] | None:
     """Safely load JSON strings, handling various input types.
 
     Tries json.loads first, then ast.literal_eval for Python dict syntax.
@@ -323,10 +323,10 @@ def format_comparison_table(comparison: dict) -> str:
 
 
 class Analyzer:
-    def __init__(self, config: Dict[str, Any]):
+    def __init__(self, config: dict[str, Any]):
         self.config = config
 
-    def _process_log_row(self, row: pd.Series, index: int) -> Optional[LogEntry]:
+    def _process_log_row(self, row: pd.Series, index: int) -> LogEntry | None:
         """Processes a single DataFrame row to extract structured log data for Markdown reporting."""
         try:
             question_id = row.get("question_id", f"row_{index}")
@@ -566,7 +566,7 @@ class Analyzer:
         self,
         summary_path: Path,
         results_path: Path,
-    ) -> tuple[Optional[dict], Optional[str]]:
+    ) -> tuple[dict | None, str | None]:
         """Analyzes evaluation results and returns the content for the Gemini prompt."""
         try:
             summary_data = json.loads(summary_path.read_text())
@@ -633,13 +633,13 @@ class Analyzer:
 
         return summary_data, "".join(output_lines)
 
-    def _discover_agent_context(self, agent_dir: Optional[Path]) -> Dict[str, str]:
+    def _discover_agent_context(self, agent_dir: Path | None) -> dict[str, str]:
         """Discovers and loads agent source code and ADK context from agent directory."""
         return discover_agent_context(agent_dir)
 
     def _auto_find_previous_run(
         self, results_dir: Path, current_run_folder: Path
-    ) -> Optional[Path]:
+    ) -> Path | None:
         """Find the most recent previous run folder in results_dir.
 
         Scans for subdirectories containing eval_summary.json, sorted by
@@ -659,7 +659,7 @@ class Analyzer:
         candidates.sort(key=lambda x: x.stat().st_mtime, reverse=True)
         return candidates[0]
 
-    def _load_baseline_summary(self, compare_to_path: Path) -> Optional[dict]:
+    def _load_baseline_summary(self, compare_to_path: Path) -> dict | None:
         """Load eval_summary.json from a baseline run directory."""
         run_folder = self._find_run_folder(compare_to_path)
         if not run_folder:
@@ -682,10 +682,10 @@ class Analyzer:
     def generate_optimization_log(
         self,
         comparison: dict,
-        focus: Optional[str],
+        focus: str | None,
         run_folder: Path,
-        gemini_comparison_text: Optional[str] = None,
-        current_summary: Optional[dict] = None,
+        gemini_comparison_text: str | None = None,
+        current_summary: dict | None = None,
     ) -> Path:
         """Generate or append to OPTIMIZATION_LOG.md in the results directory.
 
@@ -944,7 +944,7 @@ class Analyzer:
         )
         return model, client
 
-    def _find_run_folder(self, results_dir: Path) -> Optional[Path]:
+    def _find_run_folder(self, results_dir: Path) -> Path | None:
         """
         Find the run folder to analyze. Supports two structures:
         1. Direct run folder: results_dir/raw/evaluation_results_*.csv
