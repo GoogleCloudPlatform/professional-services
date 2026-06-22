@@ -373,21 +373,19 @@ def map_dataset_columns(
                         lambda x: get_nested_value(robust_json_loads(x), col_path)
                     )
 
-            # Apply transform if specified
-            if val_series is not None and transform:
-                if transform == "last_item":
-                    # Extract last item from list (for multi-turn prompt extraction)
-                    def get_last_item(x):
-                        if isinstance(x, list) and len(x) > 0:
-                            return x[-1]
-                        elif isinstance(x, str):
-                            # Try parsing as JSON list
-                            parsed = robust_json_loads(x)
-                            if isinstance(parsed, list) and len(parsed) > 0:
-                                return parsed[-1]
-                        return x if x is not None else ""
+            if val_series is not None and transform == "last_item":
+                # Extract last item from list (for multi-turn prompt extraction)
+                def get_last_item(x):
+                    if isinstance(x, list) and len(x) > 0:
+                        return x[-1]
+                    elif isinstance(x, str):
+                        # Try parsing as JSON list
+                        parsed = robust_json_loads(x)
+                        if isinstance(parsed, list) and len(parsed) > 0:
+                            return parsed[-1]
+                    return x if x is not None else ""
 
-                    val_series = val_series.apply(get_last_item)
+                val_series = val_series.apply(get_last_item)
 
             # Get default value if column not found
             default_value = details.get("default", "")

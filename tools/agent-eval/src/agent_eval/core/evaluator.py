@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import asyncio
+import contextlib
 import json
 import logging
 import math
@@ -702,7 +703,7 @@ def save_metrics_summary(
             rating_scores = info.get("rating_scores")
             if isinstance(rating_scores, dict) and rating_scores:
                 try:
-                    keys = sorted(int(k) for k in rating_scores.keys())
+                    keys = sorted(int(k) for k in rating_scores)
                     score_ranges[name] = {
                         "min": keys[0],
                         "max": keys[-1],
@@ -1326,10 +1327,8 @@ class Evaluator:
                     if explanation and explanation != "":
                         # Try to parse JSON explanations (HALLUCINATION, GROUNDING return JSON strings)
                         if isinstance(explanation, str) and explanation.startswith("["):
-                            try:
+                            with contextlib.suppress(json.JSONDecodeError, TypeError):
                                 explanation = json.loads(explanation)
-                            except (json.JSONDecodeError, TypeError):
-                                pass
                         metric_result["explanation"] = explanation
 
                     # Include rubric_verdicts if present (managed rubric metrics)

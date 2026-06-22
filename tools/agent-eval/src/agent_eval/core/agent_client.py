@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import contextlib
 import json
 import logging
 import re
@@ -348,19 +349,15 @@ class AgentClient:
                         "gen_ai.request.model"
                     ]
                 if "gcp.vertex.agent.llm_request" in attributes:
-                    try:
+                    with contextlib.suppress(json.JSONDecodeError, TypeError):
                         extracted_info["details"]["request"] = json.loads(
                             attributes["gcp.vertex.agent.llm_request"]
                         )
-                    except (json.JSONDecodeError, TypeError):
-                        pass
                 if "gcp.vertex.agent.llm_response" in attributes:
-                    try:
+                    with contextlib.suppress(json.JSONDecodeError, TypeError):
                         extracted_info["details"]["response"] = json.loads(
                             attributes["gcp.vertex.agent.llm_response"]
                         )
-                    except (json.JSONDecodeError, TypeError):
-                        pass
 
             if "http.method" in attributes:
                 extracted_info["type"] = "HTTP_REQUEST"

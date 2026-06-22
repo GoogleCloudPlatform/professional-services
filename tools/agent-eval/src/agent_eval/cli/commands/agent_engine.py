@@ -191,7 +191,7 @@ def _project_for_inference(dataset: Any, vt_evals: Any) -> Any:
     for _, row in dataset.iterrows():
         si_raw = row.get("session_inputs")
         if isinstance(si_raw, dict):
-            for k in si_raw.keys():
+            for k in si_raw:
                 if k not in ("user_id", "state"):
                     dropped_si_keys.add(k)
             si = SessionInput(

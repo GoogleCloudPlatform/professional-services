@@ -16,6 +16,7 @@
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import logging
 from datetime import datetime
 from pathlib import Path
@@ -72,10 +73,7 @@ async def run_evaluation(
         EvaluationResult containing the metrics and pass/fail status.
     """
     agent_dir = Path(agent_dir).resolve()
-    if eval_dir:
-        eval_dir = Path(eval_dir).resolve()
-    else:
-        eval_dir = find_eval_dir(agent_dir)
+    eval_dir = Path(eval_dir).resolve() if eval_dir else find_eval_dir(agent_dir)
 
     # 1. Resolve run_id and output dirs
 
@@ -150,10 +148,8 @@ async def run_evaluation(
     results_df = pd.DataFrame()
     if csv_files:
         latest_csv = max(csv_files, key=lambda p: p.stat().st_mtime)
-        try:
+        with contextlib.suppress(pd.errors.EmptyDataError):
             results_df = pd.read_csv(latest_csv)
-        except pd.errors.EmptyDataError:
-            pass
 
     # 5. Optional Analysis (Gemini)
     if run_analysis:
@@ -188,15 +184,14 @@ async def run_evaluation(
         metrics_summary[metric_name] = avg
 
         threshold = data.threshold
-        if threshold is not None:
-            if avg < threshold:
-                threshold_failures.append(
-                    {
-                        "metric": metric_name,
-                        "average": avg,
-                        "threshold": threshold,
-                    }
-                )
+        if threshold is not None and avg < threshold:
+            threshold_failures.append(
+                {
+                    "metric": metric_name,
+                    "average": avg,
+                    "threshold": threshold,
+                }
+            )
 
     # success means no evaluator crashes/errors AND no threshold failures
     success = (len(failed_metric_names) == 0) and (len(threshold_failures) == 0)

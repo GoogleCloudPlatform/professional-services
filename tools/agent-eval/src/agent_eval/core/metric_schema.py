@@ -327,7 +327,7 @@ def metric_display_score_range(info: dict) -> dict:
     rating_scores = info.get("rating_scores") or {}
     if rating_scores:
         try:
-            keys = sorted(int(k) for k in rating_scores.keys())
+            keys = sorted(int(k) for k in rating_scores)
             return {"min": keys[0], "max": keys[-1], "type": "rubric"}
         except (TypeError, ValueError):
             pass

@@ -20,6 +20,7 @@ scenarios, golden datasets, and evaluation strategy.
 
 from __future__ import annotations
 
+import contextlib
 import json
 import re
 import time
@@ -843,10 +844,8 @@ def _discover_existing_eval_files(agent_dir: Path) -> dict[str, str]:
     # Session input (for agent name context)
     session_file = eval_dir / "scenarios" / "session_input.json"
     if session_file.exists():
-        try:
+        with contextlib.suppress(Exception):
             existing["session_input"] = session_file.read_text()
-        except Exception:
-            pass
 
     # Previous evaluation results — find the most recent run with a Gemini analysis
     results_dir = eval_dir / "results"

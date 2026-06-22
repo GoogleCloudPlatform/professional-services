@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import contextlib
 import glob
 import json
 import logging
@@ -31,10 +32,8 @@ def robust_json_load(file_path: str) -> dict[str, Any] | None:
             content = f.read().strip()
         data = json.loads(content)
         if isinstance(data, str):
-            try:
+            with contextlib.suppress(json.JSONDecodeError):
                 data = json.loads(data)
-            except json.JSONDecodeError:
-                pass
         if not isinstance(data, dict):
             logger.warning("Skipping %s: Root content is not a dictionary.", file_path)
             return None
@@ -635,7 +634,7 @@ class AdkHistoryConverter:
             )
 
         # Build tool declarations from discovered tool names
-        tool_names = sorted(set(tc["tool_name"] for tc in tool_calls))
+        tool_names = sorted({tc["tool_name"] for tc in tool_calls})
         tool_declarations = [
             {"function_declarations": [{"name": tn, "description": f"Tool: {tn}"}]}
             for tn in tool_names
