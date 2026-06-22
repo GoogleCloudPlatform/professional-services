@@ -18,7 +18,6 @@ from __future__ import annotations
 import asyncio
 import contextlib
 import logging
-import os
 import tempfile
 from datetime import datetime
 from pathlib import Path
@@ -124,7 +123,9 @@ async def run_evaluation(
 
         # Parse GCS destination
         gcs_dest_clean = gcs_dest.rstrip("/")
-        bucket_name, blob_prefix = gcs_dest_clean.replace("gs://", "").split("/", 1)
+        gcs_parts = gcs_dest_clean.replace("gs://", "").split("/", 1)
+        bucket_name = gcs_parts[0]
+        blob_prefix = gcs_parts[1] if len(gcs_parts) > 1 else ""
         bucket = storage_client.bucket(bucket_name)
 
         # Upload dataset.jsonl
@@ -188,7 +189,7 @@ async def run_evaluation(
         blobs = storage_client.list_blobs(bucket_name, prefix=f"{blob_prefix}/details/")
         for blob in blobs:
             if blob.name.endswith(".csv"):
-                local_csv_name = os.path.basename(blob.name)
+                local_csv_name = Path(blob.name).name
                 local_csv_path = raw_dir / local_csv_name
                 blob.download_to_filename(str(local_csv_path))
                 logger.info(f"Downloaded raw CSV to {local_csv_path}")

@@ -51,7 +51,7 @@ def test_compile_pipeline_success():
         # Verify that our runner_image was correctly baked into the container specs
         # Executors in KFP v2 have container configurations
         found_images = []
-        for exec_name, exec_val in executors.items():
+        for _exec_name, exec_val in executors.items():
             container = exec_val.get("container", {})
             if container:
                 found_images.append(container.get("image"))
