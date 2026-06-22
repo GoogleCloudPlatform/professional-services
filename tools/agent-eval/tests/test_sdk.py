@@ -409,3 +409,220 @@ async def test_sdk_run_evaluation_pipeline_success(
             agent_name="my_agent_app",
             wait=True,
         )
+
+
+@pytest.mark.anyio
+async def test_sdk_run_evaluation_pipeline_missing_args():
+    """Verify that missing required arguments in pipeline mode raises ValueError."""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        tmp_path = Path(tmpdir)
+        agent_dir = tmp_path / "my_agent"
+        agent_dir.mkdir()
+        (agent_dir / "agent.py").touch()
+
+        # 1. Missing gcs_dest
+        with pytest.raises(ValueError, match="gcs_dest must be provided"):
+            await run_evaluation(
+                agent_dir=agent_dir,
+                pipeline=True,
+                runner_image="img",
+                agent_url="url",
+                agent_name="name",
+            )
+
+        # 2. Missing agent_url
+        with pytest.raises(ValueError, match="agent_url must be provided"):
+            await run_evaluation(
+                agent_dir=agent_dir,
+                pipeline=True,
+                gcs_dest="gs://bucket",
+                runner_image="img",
+                agent_name="name",
+            )
+
+        # 3. Missing agent_name
+        with pytest.raises(ValueError, match="agent_name must be provided"):
+            await run_evaluation(
+                agent_dir=agent_dir,
+                pipeline=True,
+                gcs_dest="gs://bucket",
+                runner_image="img",
+                agent_url="url",
+            )
+
+        # 4. Missing runner_image
+        with pytest.raises(ValueError, match="runner_image must be provided"):
+            await run_evaluation(
+                agent_dir=agent_dir,
+                pipeline=True,
+                gcs_dest="gs://bucket",
+                agent_url="url",
+                agent_name="name",
+            )
+
+
+@pytest.mark.anyio
+@mock.patch("agent_eval.sdk.storage.Client")
+async def test_sdk_run_evaluation_pipeline_missing_files(mock_storage_client):
+    """Verify that missing local evaluation files raises FileNotFoundError."""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        tmp_path = Path(tmpdir)
+        agent_dir = tmp_path / "my_agent"
+        agent_dir.mkdir()
+        (agent_dir / "agent.py").touch()
+
+        # A. Missing dataset.jsonl
+        eval_dir_a = tmp_path / "eval_a"
+        eval_dir_a.mkdir()
+        metrics_dir = eval_dir_a / "metrics"
+        metrics_dir.mkdir()
+        (metrics_dir / "metric_definitions.json").touch()
+
+        with pytest.raises(FileNotFoundError, match="Evaluation dataset not found"):
+            await run_evaluation(
+                agent_dir=agent_dir,
+                eval_dir=eval_dir_a,
+                pipeline=True,
+                gcs_dest="gs://bucket",
+                runner_image="img",
+                agent_url="url",
+                agent_name="name",
+            )
+
+        # B. Missing metric_definitions.json
+        eval_dir_b = tmp_path / "eval_b"
+        eval_dir_b.mkdir()
+        (eval_dir_b / "dataset.jsonl").touch()
+        (eval_dir_b / "metrics").mkdir()
+
+        with pytest.raises(FileNotFoundError, match="Metric definitions not found"):
+            await run_evaluation(
+                agent_dir=agent_dir,
+                eval_dir=eval_dir_b,
+                pipeline=True,
+                gcs_dest="gs://bucket",
+                runner_image="img",
+                agent_url="url",
+                agent_name="name",
+            )
+
+
+@pytest.mark.anyio
+@mock.patch("agent_eval.sdk.storage.Client")
+@mock.patch("agent_eval.sdk.get_project_id")
+async def test_sdk_run_evaluation_pipeline_missing_project_id(
+    mock_get_project_id, mock_storage_client
+):
+    """Verify that missing GOOGLE_CLOUD_PROJECT raises ValueError."""
+    mock_get_project_id.return_value = None
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        tmp_path = Path(tmpdir)
+        agent_dir = tmp_path / "my_agent"
+        agent_dir.mkdir()
+        (agent_dir / "agent.py").touch()
+
+        eval_dir = tmp_path / "eval"
+        eval_dir.mkdir()
+        (eval_dir / "dataset.jsonl").touch()
+        metrics_dir = eval_dir / "metrics"
+        metrics_dir.mkdir()
+        (metrics_dir / "metric_definitions.json").touch()
+
+        with pytest.raises(
+            ValueError, match="GOOGLE_CLOUD_PROJECT environment variable is not set"
+        ):
+            await run_evaluation(
+                agent_dir=agent_dir,
+                eval_dir=eval_dir,
+                pipeline=True,
+                gcs_dest="gs://bucket",
+                runner_image="img",
+                agent_url="url",
+                agent_name="name",
+            )
+
+
+@pytest.mark.anyio
+@mock.patch("agent_eval.sdk.generate_html_report")
+@mock.patch("agent_eval.sdk.get_project_id")
+@mock.patch("agent_eval.sdk.submit_pipeline_job")
+@mock.patch("agent_eval.sdk.compile_pipeline")
+@mock.patch("agent_eval.sdk.storage.Client")
+async def test_sdk_run_evaluation_pipeline_downloads_csv_files(
+    mock_storage_client,
+    mock_compile,
+    mock_submit,
+    mock_get_project_id,
+    mock_generate_html_report,
+):
+    """Verify that raw CSV files are correctly downloaded from GCS details/ path."""
+    mock_get_project_id.return_value = "test-project"
+
+    # Mock storage client structure
+    mock_client_inst = mock.MagicMock()
+    mock_storage_client.return_value = mock_client_inst
+    mock_bucket = mock.MagicMock()
+    mock_client_inst.bucket.return_value = mock_bucket
+    mock_blob = mock.MagicMock()
+    mock_bucket.blob.return_value = mock_blob
+
+    # Fake download for summary
+    def fake_download_to_filename(dest_path):
+        Path(dest_path).write_text(
+            json.dumps(
+                {
+                    "experiment_id": "test_run",
+                    "overall_summary": {"failed_metrics": [], "llm_based_metrics": {}},
+                }
+            )
+        )
+
+    mock_blob.download_to_filename.side_effect = fake_download_to_filename
+
+    # Mock list_blobs to return 2 fake CSV blobs under details/
+    mock_csv_blob_1 = mock.MagicMock()
+    mock_csv_blob_1.name = "runs/run_01/details/evaluation_results_1.csv"
+    mock_csv_blob_2 = mock.MagicMock()
+    mock_csv_blob_2.name = "runs/run_01/details/evaluation_results_2.csv"
+    mock_client_inst.list_blobs.return_value = [mock_csv_blob_1, mock_csv_blob_2]
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        tmp_path = Path(tmpdir)
+        agent_dir = tmp_path / "my_agent"
+        agent_dir.mkdir()
+        (agent_dir / "agent.py").touch()
+
+        eval_dir = tmp_path / "tests" / "eval"
+        eval_dir.mkdir(parents=True)
+        (eval_dir / "dataset.jsonl").write_text("{}")
+        metrics_dir = eval_dir / "metrics"
+        metrics_dir.mkdir()
+        (metrics_dir / "metric_definitions.json").write_text("{}")
+
+        # Run SDK evaluation on pipeline
+        await run_evaluation(
+            agent_dir=agent_dir,
+            eval_dir=eval_dir,
+            run_id="test_run",
+            gcs_dest="gs://my-bucket/runs/run_01",
+            pipeline=True,
+            runner_image="img",
+            agent_url="url",
+            agent_name="name",
+        )
+
+        # Assertions: Verify both CSV blobs were downloaded
+        expected_local_csv_1 = (
+            eval_dir / "results" / "test_run" / "raw" / "evaluation_results_1.csv"
+        )
+        expected_local_csv_2 = (
+            eval_dir / "results" / "test_run" / "raw" / "evaluation_results_2.csv"
+        )
+
+        mock_csv_blob_1.download_to_filename.assert_called_once_with(
+            str(expected_local_csv_1)
+        )
+        mock_csv_blob_2.download_to_filename.assert_called_once_with(
+            str(expected_local_csv_2)
+        )

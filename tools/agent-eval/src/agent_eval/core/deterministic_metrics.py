@@ -149,7 +149,7 @@ def calculate_latency_metrics(
 
     # Sort spans by start time to find the true beginning
     sorted_spans = sorted(
-        [s for s in session_trace if s.get("start_time")], key=lambda x: x["start_time"]
+        [s for s in session_trace if s.get("start_time") is not None], key=lambda x: x["start_time"]
     )
 
     if not sorted_spans:
@@ -351,8 +351,10 @@ def calculate_tool_utilization(
             tool_name = "unknown"
             if name.startswith("execute_tool "):
                 tool_name = name.replace("execute_tool ", "").strip()
-            elif "tool.name" in span.get("attributes", {}):
+            elif "gen_ai.tool.name" in span.get("attributes", {}):
                 tool_name = span["attributes"]["gen_ai.tool.name"]
+            elif "tool.name" in span.get("attributes", {}):
+                tool_name = span["attributes"]["tool.name"]
 
             total_tool_calls += 1
             tool_counts[tool_name] = tool_counts.get(tool_name, 0) + 1
@@ -705,8 +707,10 @@ def calculate_sandbox_usage(
             tool_name = "unknown"
             if name.startswith("execute_tool "):
                 tool_name = name.replace("execute_tool ", "").strip()
-            elif "tool.name" in span.get("attributes", {}):
+            elif "gen_ai.tool.name" in span.get("attributes", {}):
                 tool_name = span["attributes"]["gen_ai.tool.name"]
+            elif "tool.name" in span.get("attributes", {}):
+                tool_name = span["attributes"]["tool.name"]
 
             # Check if tool matches sandbox keywords
             if any(keyword in tool_name.lower() for keyword in sandbox_keywords):

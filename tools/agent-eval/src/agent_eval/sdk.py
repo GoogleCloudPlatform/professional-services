@@ -124,7 +124,9 @@ async def run_evaluation(
 
         # Parse GCS destination
         gcs_dest_clean = gcs_dest.rstrip("/")
-        bucket_name, blob_prefix = gcs_dest_clean.replace("gs://", "").split("/", 1)
+        gcs_parts = gcs_dest_clean.replace("gs://", "").split("/", 1)
+        bucket_name = gcs_parts[0]
+        blob_prefix = gcs_parts[1] if len(gcs_parts) > 1 else ""
         bucket = storage_client.bucket(bucket_name)
 
         # Upload dataset.jsonl
