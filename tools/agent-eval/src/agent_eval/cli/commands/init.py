@@ -684,7 +684,6 @@ STARTER_METRICS = [
 ]
 
 
-
 def _find_agents(search_dir: Path) -> list[tuple[str, Path]]:
     """Find ADK agents by looking for agent.py files.
 
@@ -809,6 +808,8 @@ def _verify_environment(auto_approve: bool = False) -> None:
     # import the other way would create a cycle at module load time.
     from agent_eval.cli.commands.setup import (
         _adc_file_path,
+    )
+    from agent_eval.cli.commands.setup import (
         _check_api_enabled as _setup_check_api,
     )
 
@@ -1344,6 +1345,7 @@ def _display_metrics_education(managed_metrics: Dict[str, Dict]) -> None:
     Then a callout that the picker is SDK-introspected — resilient to upstream changes.
     """
     from rich.syntax import Syntax
+
     from agent_eval.core import metric_families
 
     # Mirror the picker's grouping (anything classified as "custom" — i.e. GCS YAML
@@ -3357,8 +3359,8 @@ def init(target_dir, agent_name, mode, auto_approve, ai_metrics):
                     )
                     from agent_eval.core.metric_generator import (
                         analyze_agent_data,
-                        generate_metric_definitions,
                         generate_eval_data,
+                        generate_metric_definitions,
                     )
 
                     # Per Vertex AI docs: start with GENERAL_QUALITY as the default.
@@ -3606,7 +3608,7 @@ def _explain_metrics_file(path: Path, custom_metrics: Optional[Dict[str, Any]]) 
 def _explain_dataset_file(path: Path) -> None:
     """Render a row breakdown of the unified dataset.jsonl so the user
     sees the kinds of rows we generated and which paths each one feeds."""
-    from agent_eval.core.dataset_io import read_dataset, is_multi_turn, is_single_turn
+    from agent_eval.core.dataset_io import is_multi_turn, is_single_turn, read_dataset
 
     try:
         rows = read_dataset(path)

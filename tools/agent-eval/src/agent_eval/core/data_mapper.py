@@ -15,6 +15,7 @@ import ast
 import json
 import logging
 from typing import Any, Dict, List, Optional, Union
+
 import pandas as pd
 from google.genai import types as genai_types
 from vertexai import types

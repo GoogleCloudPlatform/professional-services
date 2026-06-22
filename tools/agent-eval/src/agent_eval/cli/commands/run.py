@@ -441,7 +441,7 @@ def run(
         sys.exit(1)
 
     # Count rows by capability — single source of truth for what phases can run.
-    from agent_eval.core.dataset_io import read_dataset, is_multi_turn, is_single_turn
+    from agent_eval.core.dataset_io import is_multi_turn, is_single_turn, read_dataset
 
     try:
         _all_rows = read_dataset(dataset_path)
@@ -492,6 +492,7 @@ def run(
         # who started the agent on a non-default port aren't punished.
         if run_interact and not in_process:
             from concurrent.futures import ThreadPoolExecutor
+
             from rich.prompt import Prompt
 
             def _check_url(url: str, timeout: float = 1.5) -> bool:
@@ -1692,8 +1693,8 @@ def _run_simulate_phase(
     pressure). Eval_history files are timestamp-suffixed → no collisions.
     """
     if in_process:
-        from agent_eval.core.simulation import run_simulation_in_process
         from agent_eval.core.converters import write_jsonl
+        from agent_eval.core.simulation import run_simulation_in_process
 
         dataset_path = project_root / "tests" / "eval" / "dataset.jsonl"
         if not dataset_path.exists():
@@ -2083,9 +2084,9 @@ def _run_interact_phase(
     debug: bool = False,
 ) -> Path | None:
     """Run the interact workflow. Returns the output path on success, None on failure."""
+    from agent_eval.core.converters import write_jsonl
     from agent_eval.core.interactions import InteractionRunner
     from agent_eval.core.processor import InteractionProcessor
-    from agent_eval.core.converters import write_jsonl
 
     config = {
         "app_name": app_name,
@@ -2110,7 +2111,7 @@ def _run_interact_phase(
     try:
         qf = Path(questions_file)
         if qf.suffix.lower() == ".jsonl":
-            from agent_eval.core.dataset_io import read_dataset, is_single_turn
+            from agent_eval.core.dataset_io import is_single_turn, read_dataset
 
             _q_count = sum(1 for r in read_dataset(qf) if is_single_turn(r))
         else:
@@ -2200,8 +2201,8 @@ def _run_evaluate_phase(
     debug: bool = False,
 ) -> None:
     """Run the evaluate workflow."""
-    from agent_eval.core.evaluator import Evaluator
     from agent_eval.cli.commands.evaluate import _display_metrics_summary
+    from agent_eval.core.evaluator import Evaluator
 
     eval_config = {
         "metric_filters": None,
@@ -2238,8 +2239,8 @@ def _run_analyze_phase(
     debug: bool = False,
 ) -> dict:
     """Run the analyze workflow. Returns the analysis result dict or None."""
-    from agent_eval.core.analyzer import Analyzer
     from agent_eval.cli.commands.analyze import _display_metrics_table
+    from agent_eval.core.analyzer import Analyzer
 
     config = {
         "results_dir": str(run_dir),

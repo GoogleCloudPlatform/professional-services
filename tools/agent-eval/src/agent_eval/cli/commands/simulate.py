@@ -203,7 +203,7 @@ def _project_dataset_to_adk_files(
 
     Returns ``(scenario_count, source_label)`` for logging.
     """
-    from agent_eval.core.dataset_io import read_dataset, is_multi_turn
+    from agent_eval.core.dataset_io import is_multi_turn, read_dataset
 
     dataset_path = project_root / "tests" / "eval" / "dataset.jsonl"
     if not dataset_path.exists():
@@ -768,9 +768,10 @@ def simulate(agent_dir, eval_dir, run_id, debug, in_process):
 
     if in_process:
         import asyncio
-        from agent_eval.core.simulation import run_simulation_in_process
+
         from agent_eval.core.converters import write_jsonl
         from agent_eval.core.path_resolver import agent_project_root, find_dataset_path
+        from agent_eval.core.simulation import run_simulation_in_process
 
         project_root = agent_project_root(agent_path)
         dataset_path = find_dataset_path(agent_path)

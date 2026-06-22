@@ -11,14 +11,15 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import unittest
-from unittest.mock import MagicMock, patch
-from pathlib import Path
-import tempfile
 import shutil
+import tempfile
+import unittest
+from pathlib import Path
+from unittest.mock import MagicMock, patch
 
 # No mocks needed if google-genai is installed in the venv
 from google.adk.evaluation.base_eval_service import InferenceResult
+
 from agent_eval.core.simulation import _row_to_adk_scenario, run_simulation_in_process
 
 
@@ -344,8 +345,8 @@ class TestPrePopulatingSessionService(unittest.IsolatedAsyncioTestCase):
             }
         ]
         from agent_eval.core.simulation import (
-            PrePopulatingSessionService,
             EVAL_SESSION_ID_PREFIX,
+            PrePopulatingSessionService,
         )
 
         service = PrePopulatingSessionService(rows)
@@ -368,8 +369,8 @@ class TestPrePopulatingSessionService(unittest.IsolatedAsyncioTestCase):
             }
         ]
         from agent_eval.core.simulation import (
-            PrePopulatingSessionService,
             EVAL_SESSION_ID_PREFIX,
+            PrePopulatingSessionService,
         )
 
         service = PrePopulatingSessionService(rows)

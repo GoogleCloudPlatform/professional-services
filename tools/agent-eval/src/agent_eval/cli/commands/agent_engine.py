@@ -657,8 +657,8 @@ def _ensure_bucket_exists(
         return
 
     try:
-        from google.cloud import storage
         from google.api_core.exceptions import Forbidden, GoogleAPICallError
+        from google.cloud import storage
     except ImportError:
         return  # storage not installed — let the SDK error speak for itself.
 
@@ -1219,6 +1219,7 @@ def _print_dashboard_url(run: Any, project: str, location: str) -> None:
 def _wait_for_run(client: Any, run: Any, *, timeout: int) -> Any:
     """Poll get_evaluation_run until terminal state or timeout."""
     import time
+
     from vertexai._genai.types import EvaluationRunState
 
     terminal = {

@@ -758,8 +758,8 @@ def render_story_panel(
     ``StoryStreamer`` instead — Panels feel like UI; prose feels like
     reading.
     """
-    from rich.panel import Panel
     from rich.padding import Padding
+    from rich.panel import Panel
 
     title_str = f"[bold]{title}[/]"
     if index is not None and total is not None:
@@ -882,9 +882,9 @@ class StoryStreamer:
         # Windows / no termios → fall back to a one-shot welcome and exit
         # rather than crashing.
         try:
+            import select
             import termios
             import tty
-            import select
         except ImportError:
             self._console.print()
             self._console.print(

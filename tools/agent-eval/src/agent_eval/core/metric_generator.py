@@ -904,7 +904,7 @@ def _call_gemini(prompt: str, model: str) -> str:
             "Install it with: pip install google-genai"
         )
 
-    from agent_eval.core.config import get_project_id, get_location
+    from agent_eval.core.config import get_location, get_project_id
 
     project = get_project_id()
     location = get_location(model)
@@ -1018,10 +1018,10 @@ def _validate_single_metric(name: str, defn: Dict) -> List[str]:
     """
     from agent_eval.core.metric_schema import (
         ALL_KINDS,
-        REQUIRED_FIELDS,
         KIND_CUSTOM_LLM_JUDGE,
         KIND_MANAGED,
         KIND_PARAMETRIZED_MANAGED,
+        REQUIRED_FIELDS,
     )
 
     errors: List[str] = []

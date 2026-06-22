@@ -344,10 +344,10 @@ def extract_adk_eval_knowledge() -> Dict[str, Any]:
 
     # 3. Rubric evaluation prompt patterns
     try:
-        from google.adk.evaluation import rubric_based_tool_use_quality_v1 as tool_mod
         from google.adk.evaluation import (
             rubric_based_final_response_quality_v1 as resp_mod,
         )
+        from google.adk.evaluation import rubric_based_tool_use_quality_v1 as tool_mod
 
         for module, pattern_name in [
             (tool_mod, "tool_use_quality"),

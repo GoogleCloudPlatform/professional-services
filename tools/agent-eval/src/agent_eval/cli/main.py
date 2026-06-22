@@ -80,20 +80,20 @@ def cli() -> None:
 
 # --- Register commands ---
 
-from agent_eval.cli.commands.interact import interact  # noqa: E402
-from agent_eval.cli.commands.evaluate import evaluate  # noqa: E402
 from agent_eval.cli.commands.analyze import analyze  # noqa: E402
 from agent_eval.cli.commands.convert import convert  # noqa: E402
 from agent_eval.cli.commands.create_dataset import create_dataset  # noqa: E402
+from agent_eval.cli.commands.dashboard import dashboard  # noqa: E402
+from agent_eval.cli.commands.evaluate import evaluate  # noqa: E402
+from agent_eval.cli.commands.import_adk import import_adk  # noqa: E402
 from agent_eval.cli.commands.init import init  # noqa: E402
+from agent_eval.cli.commands.interact import interact  # noqa: E402
+from agent_eval.cli.commands.migrate import migrate  # noqa: E402
+from agent_eval.cli.commands.report import report  # noqa: E402
+from agent_eval.cli.commands.run import run  # noqa: E402
 from agent_eval.cli.commands.setup import setup  # noqa: E402
 from agent_eval.cli.commands.simulate import simulate  # noqa: E402
-from agent_eval.cli.commands.run import run  # noqa: E402
-from agent_eval.cli.commands.dashboard import dashboard  # noqa: E402
-from agent_eval.cli.commands.import_adk import import_adk  # noqa: E402
-from agent_eval.cli.commands.migrate import migrate  # noqa: E402
 from agent_eval.cli.commands.stories import stories  # noqa: E402
-from agent_eval.cli.commands.report import report  # noqa: E402
 
 # Order matches the Vertex AI eval docs sidebar workflow so `agent-eval --help`
 # reads top-down as: set up → bring in data → generate traces → score →

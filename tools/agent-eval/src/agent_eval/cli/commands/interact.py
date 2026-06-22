@@ -25,10 +25,10 @@ from rich.panel import Panel
 from rich.rule import Rule
 
 from agent_eval.cli._pacing import _continue
-from agent_eval.core.interactions import InteractionRunner
-from agent_eval.core.processor import InteractionProcessor
 from agent_eval.core.converters import write_jsonl
+from agent_eval.core.interactions import InteractionRunner
 from agent_eval.core.path_resolver import find_eval_dir
+from agent_eval.core.processor import InteractionProcessor
 
 console = Console()
 
@@ -274,8 +274,9 @@ def interact(
 
     if in_process:
         import asyncio
-        from agent_eval.core.simulation import run_simulation_in_process
+
         from agent_eval.core.path_resolver import agent_project_root
+        from agent_eval.core.simulation import run_simulation_in_process
 
         project_root = agent_project_root(agent_path)
         dataset_path = Path(questions_file)

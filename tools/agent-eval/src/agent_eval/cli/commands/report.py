@@ -75,8 +75,8 @@ def _serve(report: Path, port_hint: int = 0) -> None:
     port_hint=0 → OS picks a free port. Otherwise we try the hint first.
     """
     import http.server
-    import socketserver
     import socket
+    import socketserver
 
     serve_dir = report.parent
     rel_to_serve_root = report.name  # always 'report.html'
