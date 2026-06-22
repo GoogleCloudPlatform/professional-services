@@ -23,6 +23,9 @@ from datetime import datetime
 from typing import Any
 
 import requests
+from google.adk.agents.invocation_context import InvocationContext
+from google.adk.sessions.in_memory_session_service import InMemorySessionService
+from google.adk.sessions.session import Session as AdkSession
 
 logger = logging.getLogger("agent_eval.agent_client")
 
@@ -644,9 +647,6 @@ class LocalAgentClient(BaseAgentClient):
         if not session:
             raise ValueError(f"Session {session_id} not found.")
 
-        from google.adk.agents.invocation_context import InvocationContext
-        from google.adk.sessions.session import Session as AdkSession
-
         # 1. Rebuild ADK session and context
         adk_session = AdkSession(
             id=session_id,
@@ -654,8 +654,6 @@ class LocalAgentClient(BaseAgentClient):
             app_name=self.app_name,
             state=session["state"],
         )
-
-        from google.adk.sessions.in_memory_session_service import InMemorySessionService
 
         session_service = InMemorySessionService()
         inv_context = InvocationContext(
