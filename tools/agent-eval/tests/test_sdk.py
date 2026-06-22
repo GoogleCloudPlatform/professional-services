@@ -87,6 +87,7 @@ async def test_sdk_run_evaluation_success(
             run_id="test_run",
         )
 
+        mock_evaluator.assert_called_once_with({"location": None, "gcs_dest": None})
         assert result.success is True
         assert result.failed_metrics == []
         assert result.metrics == {
@@ -149,6 +150,7 @@ async def test_sdk_run_evaluation_error_metric(
             run_id="test_run",
         )
 
+        mock_evaluator.assert_called_once_with({"location": None, "gcs_dest": None})
         assert result.success is False
         assert "broken_metric" in result.failed_metrics
 
@@ -171,6 +173,7 @@ def test_sdk_run_evaluation_sync(mock_run_eval):
         run_analysis=False,
         generate_html=False,
         model="gemini-3.1-pro-preview",
+        gcs_dest=None,
     )
     assert result == mock_result
 
@@ -233,6 +236,7 @@ async def test_sdk_run_evaluation_threshold_success(
             run_id="test_run",
         )
 
+        mock_evaluator.assert_called_once_with({"location": None, "gcs_dest": None})
         assert result.success is True
         assert result.failed_metrics == []
         assert result.threshold_failures == []
@@ -296,6 +300,7 @@ async def test_sdk_run_evaluation_threshold_failure(
             run_id="test_run",
         )
 
+        mock_evaluator.assert_called_once_with({"location": None, "gcs_dest": None})
         assert result.success is False
         assert result.failed_metrics == []
         assert result.threshold_failures == [

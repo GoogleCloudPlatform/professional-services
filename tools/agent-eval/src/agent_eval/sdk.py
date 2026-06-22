@@ -57,6 +57,7 @@ async def run_evaluation(
     run_analysis: bool = False,
     generate_html: bool = False,
     model: str = "gemini-3.1-pro-preview",
+    gcs_dest: str | None = None,
 ) -> EvaluationResult:
     """Run an evaluation in-process.
 
@@ -119,7 +120,11 @@ async def run_evaluation(
 
     # 4. Evaluate
     logger.info("Evaluating interactions...")
-    evaluator = Evaluator(location=location)
+    eval_config = {
+        "location": location,
+        "gcs_dest": gcs_dest,
+    }
+    evaluator = Evaluator(eval_config)
     await evaluator.evaluate(
         interaction_files=interaction_files,
         metrics_files=[metrics_path],
@@ -214,6 +219,7 @@ def run_evaluation_sync(
     run_analysis: bool = False,
     generate_html: bool = False,
     model: str = "gemini-3.1-pro-preview",
+    gcs_dest: str | None = None,
 ) -> EvaluationResult:
     """Synchronous wrapper for run_evaluation.
 
@@ -225,6 +231,7 @@ def run_evaluation_sync(
         run_analysis: Whether to run Gemini-based analysis on the results.
         generate_html: Whether to generate the HTML report.
         model: Model to use for analysis.
+        gcs_dest: Optional GCS destination URI for managed Vertex AI pipelines.
 
     Returns:
         EvaluationResult containing the metrics and pass/fail status.
@@ -238,5 +245,6 @@ def run_evaluation_sync(
             run_analysis=run_analysis,
             generate_html=generate_html,
             model=model,
+            gcs_dest=gcs_dest,
         )
     )
