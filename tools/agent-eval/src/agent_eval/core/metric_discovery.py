@@ -184,10 +184,7 @@ def is_api_predefined(managed_metric_name: str) -> bool:
     """
     supported = _get_supported_predefined_metrics()
     lower = managed_metric_name.lower()
-    for suffix in ("_v1", "_v2"):
-        if (lower + suffix) in supported:
-            return True
-    return False
+    return any(lower + suffix in supported for suffix in ("_v1", "_v2"))
 
 
 def discover_managed_metrics(

@@ -15,6 +15,7 @@
 
 from __future__ import annotations
 
+import contextlib
 import hashlib
 import json
 import os
@@ -162,10 +163,8 @@ def _review_artifact(
         console.print("  [dim]No edits — continuing with the generated version.[/]")
         snap = path.with_suffix(path.suffix + ".gen")
         if snap.exists():
-            try:
+            with contextlib.suppress(OSError):
                 snap.unlink()
-            except OSError:
-                pass
         return False, None
 
     # Try to re-parse the user's edits.
@@ -195,10 +194,8 @@ def _review_artifact(
         console.print(f"  [green]✓ Picked up your edits to {path.name}.[/]")
 
     if snapshot_path.exists():
-        try:
+        with contextlib.suppress(OSError):
             snapshot_path.unlink()
-        except OSError:
-            pass
 
     return True, parsed
 

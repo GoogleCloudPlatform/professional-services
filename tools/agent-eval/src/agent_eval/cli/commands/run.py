@@ -14,6 +14,7 @@
 """agent-eval run — orchestrate simulate, interact, and evaluate in one command."""
 
 import asyncio
+import contextlib
 import json
 import os
 import subprocess
@@ -65,9 +66,7 @@ def _looks_headless() -> bool:
         return True
     if os.environ.get("CODESPACES"):
         return True
-    if not os.environ.get("DISPLAY") and not os.environ.get("WAYLAND_DISPLAY"):
-        return True
-    return False
+    return bool(not os.environ.get("DISPLAY") and not os.environ.get("WAYLAND_DISPLAY"))
 
 
 def _open_report_in_run(html_path: Path, run_dir: Path, cwd: Path) -> None:
@@ -455,17 +454,16 @@ def run(
         run_interact = False
 
     # Validate simulate prerequisites — needs multi-turn rows.
-    if run_simulate and not in_process:
-        if n_multi_turn == 0:
-            console.print(
-                f"\n  [yellow]Warning:[/] No multi-turn rows in {dataset_path.name}. "
-                f"Skipping simulate phase."
-            )
-            console.print(
-                "  [dim]Multi-turn rows have a `history` or `conversation_plan` field. "
-                "Add some, or stick with --no-simulate.[/]"
-            )
-            run_simulate = False
+    if run_simulate and not in_process and n_multi_turn == 0:
+        console.print(
+            f"\n  [yellow]Warning:[/] No multi-turn rows in {dataset_path.name}. "
+            f"Skipping simulate phase."
+        )
+        console.print(
+            "  [dim]Multi-turn rows have a `history` or `conversation_plan` field. "
+            "Add some, or stick with --no-simulate.[/]"
+        )
+        run_simulate = False
 
     # Validate interact prerequisites — point at unified dataset.jsonl.
     # `get_golden_questions` filters single-turn rows automatically.
@@ -939,10 +937,8 @@ def run(
                 except (ProcessLookupError, PermissionError, OSError):
                     auto_started_proc.kill()
                 auto_started_proc.wait(timeout=2)
-            try:
+            with contextlib.suppress(Exception):
                 auto_started_proc._agent_eval_log_fp.close()  # type: ignore
-            except Exception:
-                pass
             console.print("  [dim]Stopped auto-started ADK web server.[/]")
         except Exception:
             pass
@@ -1523,10 +1519,8 @@ def _cleanup_sim_aux_files(
     # If .agent_eval_tmp/ is now empty, clean it up too.
     tmp_dir = project_root / ".agent_eval_tmp"
     if tmp_dir.is_dir() and not any(tmp_dir.iterdir()):
-        try:
+        with contextlib.suppress(OSError):
             tmp_dir.rmdir()
-        except OSError:
-            pass
     return cleaned
 
 
@@ -1560,7 +1554,7 @@ def _start_adk_api_server(
 
     log = project_root / ".agent_eval_tmp" / f"adk_web_{port}.log"
     log.parent.mkdir(parents=True, exist_ok=True)
-    fp = open(log, "w", buffering=1)
+    fp = open(log, "w", buffering=1)  # noqa: SIM115
     fp.write(f"$ adk web {project_root} --port {port}\n\n")
     fp.flush()
     # start_new_session=True puts the subprocess in its own process group.
@@ -1598,10 +1592,8 @@ def _start_adk_api_server(
                 os.killpg(os.getpgid(proc.pid), signal.SIGKILL)
         except (ProcessLookupError, PermissionError, OSError):
             pass
-        try:
+        with contextlib.suppress(Exception):
             fp.close()
-        except Exception:
-            pass
 
     atexit.register(_atexit_kill)
     proc._agent_eval_atexit = _atexit_kill  # type: ignore
@@ -1897,25 +1889,24 @@ def _run_simulate_phase(
         storyteller = _start_storyteller() if not debug else None
         ctx = _nullctx()
         try:
-            with ctx:
-                with ThreadPoolExecutor(max_workers=actual_parallel) as pool:
-                    futures = {
-                        pool.submit(
-                            _run_one_adk_eval,
-                            agent_name,
-                            agent_path,
-                            project_root,
-                            name,
-                            eval_config,
-                            sim_logs_dir / f"{name}.log",
-                        ): name
-                        for name, _ in evalsets
-                    }
-                    for fut in as_completed(futures):
-                        name, rc, tail, elapsed = fut.result()
-                        per_scenario_elapsed[name] = elapsed
-                        if rc != 0:
-                            failures.append((name, rc, tail))
+            with ctx, ThreadPoolExecutor(max_workers=actual_parallel) as pool:
+                futures = {
+                    pool.submit(
+                        _run_one_adk_eval,
+                        agent_name,
+                        agent_path,
+                        project_root,
+                        name,
+                        eval_config,
+                        sim_logs_dir / f"{name}.log",
+                    ): name
+                    for name, _ in evalsets
+                }
+                for fut in as_completed(futures):
+                    name, rc, tail, elapsed = fut.result()
+                    per_scenario_elapsed[name] = elapsed
+                    if rc != 0:
+                        failures.append((name, rc, tail))
         finally:
             # Stop the storyteller cleanly so it doesn't keep printing
             # after sim completes (or after Ctrl+C unwinds). Idempotent

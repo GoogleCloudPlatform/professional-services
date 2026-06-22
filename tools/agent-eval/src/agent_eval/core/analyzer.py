@@ -14,6 +14,7 @@
 from __future__ import annotations
 
 import ast
+import contextlib
 import json
 import logging
 import re
@@ -815,20 +816,16 @@ class Analyzer:
         # Load standard context files
         for file_path in [consolidated_metrics_file, question_file]:
             if file_path.exists():
-                try:
+                with contextlib.suppress(Exception):
                     context_content[str(file_path)] = file_path.read_text()
-                except Exception:
-                    pass
 
         # Load deterministic metrics logic
         det_metrics_path = Path("src/evaluation/core/deterministic_metrics.py")
         if det_metrics_path.exists():
-            try:
+            with contextlib.suppress(Exception):
                 context_content["evaluation/core/deterministic_metrics.py"] = (
                     det_metrics_path.read_text()
                 )
-            except Exception:
-                pass
 
         # Discover agent context from --agent-dir if provided
         agent_dir = self.config.get("agent_dir")

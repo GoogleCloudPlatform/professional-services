@@ -29,6 +29,7 @@ Add new stories freely — append to STORIES below. Each entry is a
 
 from __future__ import annotations
 
+import contextlib
 import random
 
 # (title, body) — bodies should read in 60-120 seconds (250-400 words).
@@ -844,15 +845,18 @@ class StoryStreamer:
                 state["deck"] = list(STORIES)
                 random.shuffle(state["deck"])
                 # Don't show the last story first in the new deck.
-                if state["last_title"] and state["deck"]:
-                    if (
+                if (
+                    state["last_title"]
+                    and state["deck"]
+                    and (
                         state["deck"][-1][0] == state["last_title"]
                         and len(state["deck"]) > 1
-                    ):
-                        state["deck"][-1], state["deck"][0] = (
-                            state["deck"][0],
-                            state["deck"][-1],
-                        )
+                    )
+                ):
+                    state["deck"][-1], state["deck"][0] = (
+                        state["deck"][0],
+                        state["deck"][-1],
+                    )
             title, body = state["deck"].pop()
             state["last_title"] = title
             state["paragraphs"] = [p.strip() for p in body.split("\n\n") if p.strip()]
@@ -966,7 +970,5 @@ class StoryStreamer:
                     self._print_paragraph(state)
                 # All other keys silently ignored.
         finally:
-            try:
+            with contextlib.suppress(Exception):
                 termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
-            except Exception:
-                pass

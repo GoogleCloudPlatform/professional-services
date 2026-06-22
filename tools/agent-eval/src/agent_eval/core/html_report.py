@@ -586,7 +586,7 @@ def _build_per_question_data(
 
     metric_names: list[str] = []
     for qa in qa_list:
-        for m in (qa.get("llm_metrics") or qa.get("llm_based_metrics") or {}).keys():
+        for m in qa.get("llm_metrics") or qa.get("llm_based_metrics") or {}:
             if m not in metric_names:
                 metric_names.append(m)
 

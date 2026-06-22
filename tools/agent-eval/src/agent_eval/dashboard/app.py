@@ -268,7 +268,7 @@ def _build_comparison_chart(
         xaxis_title="Metrics",
         yaxis_title="Normalized (0-1)" if normalize else "Value",
         template="plotly_white",
-        margin=dict(l=50, r=50, t=80, b=120),
+        margin={"l": 50, "r": 50, "t": 80, "b": 120},
         height=500,
     )
     return fig

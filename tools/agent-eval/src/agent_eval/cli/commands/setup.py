@@ -742,13 +742,15 @@ def _step_5_autorater_iam(project: str, auto_approve: bool) -> None:
     _hint(f"Member: {member}")
     _hint(f"Role:   {role}")
 
-    if not auto_approve:
-        if not questionary.confirm(
+    if (
+        not auto_approve
+        and not questionary.confirm(
             f"  Apply this binding to {project} now?",
             default=True,
-        ).ask():
-            _hint("Skipped — eval runs will fail until this binding exists.")
-            return
+        ).ask()
+    ):
+        _hint("Skipped — eval runs will fail until this binding exists.")
+        return
 
     while True:
         try:

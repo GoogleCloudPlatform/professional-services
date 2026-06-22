@@ -59,6 +59,8 @@ select = [
     "F",    # Pyflakes
     "I",    # isort (import sorting)
     "UP",   # pyupgrade (syntax modernization)
+    "SIM",  # flake8-simplify (code simplification)
+    "C4",   # flake8-comprehensions (better comprehensions)
 ]
 ignore = [
     "E501",  # line too long

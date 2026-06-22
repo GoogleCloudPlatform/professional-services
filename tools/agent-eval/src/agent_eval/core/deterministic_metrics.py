@@ -407,11 +407,12 @@ def calculate_tool_success_rate(
 
                     # Common error patterns in ADK/JSON tools
                     is_error = False
-                    if isinstance(response, dict):
-                        if response.get("status") == "error":
-                            is_error = True
-                        elif "error" in response or "error_message" in response:
-                            is_error = True
+                    if isinstance(response, dict) and (
+                        response.get("status") == "error"
+                        or "error" in response
+                        or "error_message" in response
+                    ):
+                        is_error = True
 
                     if is_error:
                         failed_calls += 1
@@ -653,10 +654,7 @@ def calculate_output_density(
             except (json.JSONDecodeError, TypeError, AttributeError):
                 continue
 
-    if llm_calls > 0:
-        average_output_tokens = total_output_tokens / llm_calls
-    else:
-        average_output_tokens = 0.0
+    average_output_tokens = total_output_tokens / llm_calls if llm_calls > 0 else 0.0
 
     explanation = (
         f"Avg Output Tokens: {average_output_tokens:.2f}. "
