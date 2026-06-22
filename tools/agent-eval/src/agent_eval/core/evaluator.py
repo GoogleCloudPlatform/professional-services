@@ -906,7 +906,7 @@ class Evaluator:
     def __init__(self, config: dict[str, Any]):
         self.config = config
         self.project_id = get_project_id()
-        self.location = config.get("location") or CONFIG.GOOGLE_CLOUD_LOCATION
+        self.location = config.get("location", CONFIG.GOOGLE_CLOUD_LOCATION)
 
         if not self.project_id:
             raise ValueError("GOOGLE_CLOUD_PROJECT environment variable is not set.")
