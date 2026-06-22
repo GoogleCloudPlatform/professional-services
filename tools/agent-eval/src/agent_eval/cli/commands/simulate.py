@@ -390,7 +390,7 @@ def _step_symlinks(agent_dir: Path, eval_dir: Path) -> None:
     )
 
     project_root = agent_project_root(agent_dir)
-    n_scenarios, source = _project_dataset_to_adk_files(agent_dir, project_root)
+    _n_scenarios, source = _project_dataset_to_adk_files(agent_dir, project_root)
 
     if source == "dataset.jsonl":
         return

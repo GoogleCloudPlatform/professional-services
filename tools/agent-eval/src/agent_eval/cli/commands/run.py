@@ -2224,7 +2224,7 @@ def _run_evaluate_phase(
 def _run_analyze_phase(
     run_dir: Path,
     agent_path: Path,
-    focus: str = None,
+    focus: str | None = None,
     skip_gemini: bool = False,
     debug: bool = False,
 ) -> dict:

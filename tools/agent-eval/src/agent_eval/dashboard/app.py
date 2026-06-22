@@ -242,7 +242,8 @@ def _build_comparison_chart(
         raw_values = [row.get(m, 0) or 0 for m in selected_metrics]
         if normalize:
             y_values = [
-                v / max_vals.get(m, 1.0) for v, m in zip(raw_values, selected_metrics, strict=False)
+                v / max_vals.get(m, 1.0)
+                for v, m in zip(raw_values, selected_metrics, strict=False)
             ]
         else:
             y_values = raw_values
@@ -420,7 +421,7 @@ def create_app(results_dir: str) -> gr.Blocks:
         # ── Tab 3: Per-Question Drilldown ─────────────────────────────────
         with gr.Tab("Per-Question Drilldown"):
             pq_metric_dd = gr.Dropdown(
-                choices=all_llm_metrics + ["tool_success_rate.tool_success_rate"],
+                choices=[*all_llm_metrics, "tool_success_rate.tool_success_rate"],
                 label="Metric",
                 value=all_llm_metrics[0] if all_llm_metrics else None,
             )

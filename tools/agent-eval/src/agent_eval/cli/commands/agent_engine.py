@@ -133,7 +133,7 @@ def _build_evaluation_run_metrics(
         try:
             sdk_metric = metric_factory.build_metric(name, spec)
             run_metrics.append(metric_factory.to_evaluation_run_metric(sdk_metric))
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             console.print(
                 f"  [yellow]![/] Skipping [cyan]{name}[/]: failed to build SDK "
                 f"metric ({type(exc).__name__}: {exc})."
@@ -507,7 +507,7 @@ def _load_local_agent(agent_module: str | None, cwd: Path) -> Any | None:
             "    [dim]Continuing with a minimal AgentInfo (resource_name only).[/]"
         )
         return None
-    except (AttributeError, Exception) as exc:  # noqa: BLE001
+    except (AttributeError, Exception) as exc:
         console.print(f"  [yellow]![/] Could not load [cyan]{spec}[/]: {exc}")
         console.print(
             "    [dim]Wrong path? Override with[/] "
@@ -607,7 +607,7 @@ def _build_agent_info(
                 "the agent's deps locally to fix.[/]"
             )
         return info
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         console.print(
             f"  [yellow]![/] Could not construct AgentInfo: {exc}. "
             f"Submitting without agent_info."
@@ -1018,7 +1018,7 @@ def agent_engine(
 
     try:
         inference_df = client.evals.run_inference(agent=resolved, src=inference_input)
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         console.print(f"  [red]run_inference failed:[/] {exc}")
         raise click.Abort() from None
 
@@ -1092,7 +1092,7 @@ def agent_engine(
     console.print("  [bold]Submitting evaluation run...[/]")
     try:
         run = client.evals.create_evaluation_run(**create_kwargs)
-    except Exception as exc:  # noqa: BLE001 — surface SDK errors with context
+    except Exception as exc:
         console.print(f"  [red]create_evaluation_run failed:[/] {exc}")
         raise click.Abort() from None
 
@@ -1239,7 +1239,7 @@ def _wait_for_run(client: Any, run: Any, *, timeout: int) -> Any:
     while time.time() < deadline:
         try:
             run = client.evals.get_evaluation_run(name=name)
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             console.print(
                 f"  [yellow]![/] get_evaluation_run failed (will retry): {exc}"
             )

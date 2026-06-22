@@ -558,7 +558,7 @@ class AgentClient:
             text_content = []
 
             for part in parts:
-                if "text" in part and part["text"]:
+                if part.get("text"):
                     text_content.append(part["text"])
 
             if text_content:

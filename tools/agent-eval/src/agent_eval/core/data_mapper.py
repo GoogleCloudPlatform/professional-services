@@ -370,7 +370,9 @@ def map_dataset_columns(
                 # Then fall back to original_df
                 elif root_key and root_key in original_df.columns:
                     val_series = original_df[root_key].apply(
-                        lambda x, col_path=col_path: get_nested_value(robust_json_loads(x), col_path)
+                        lambda x, col_path=col_path: get_nested_value(
+                            robust_json_loads(x), col_path
+                        )
                     )
 
             if val_series is not None and transform == "last_item":

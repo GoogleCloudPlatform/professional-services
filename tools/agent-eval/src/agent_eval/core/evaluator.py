@@ -203,9 +203,9 @@ def _normalize_intermediate_events(raw_events: Any) -> list[dict[str, Any]]:
         if content is None:
             continue
         norm: dict[str, Any] = {"content": content}
-        if "id" in ev and ev["id"]:
+        if ev.get("id"):
             norm["event_id"] = str(ev["id"])
-        if "author" in ev and ev["author"]:
+        if ev.get("author"):
             norm["author"] = str(ev["author"])
         ts = ev.get("timestamp")
         if isinstance(ts, (int, float)):
@@ -441,7 +441,7 @@ def parse_eval_result(
                     break
             else:
                 if available_metrics:
-                    found_key = list(available_metrics.keys())[0]
+                    found_key = next(iter(available_metrics.keys()))
 
         for idx, case_result in enumerate(result.eval_case_results):
             original_idx = metric_df.index[idx]
@@ -654,8 +654,8 @@ def _calculate_percentile(scores: list[float], p: float) -> float:
         return 0.0
     sorted_scores = sorted(scores)
     idx = (len(sorted_scores) - 1) * p
-    idx_floor = int(math.floor(idx))
-    idx_ceil = int(math.ceil(idx))
+    idx_floor = math.floor(idx)
+    idx_ceil = math.ceil(idx)
     if idx_floor == idx_ceil:
         return sorted_scores[idx_floor]
     return sorted_scores[idx_floor] * (idx_ceil - idx) + sorted_scores[idx_ceil] * (
@@ -669,7 +669,7 @@ def save_metrics_summary(
     experiment_id: str,
     run_type: str,
     test_description: str,
-    metric_definitions: dict[str, Any] = None,
+    metric_definitions: dict[str, Any] | None = None,
     failed_metrics: list[dict] | list[str] | None = None,
     skipped_metrics: list[dict] | None = None,
 ) -> None:
@@ -1042,7 +1042,9 @@ class Evaluator:
         for agent, metrics in metrics_by_agent.items():
             # Filter rows relevant to this agent
             mask = expanded_df["agents_evaluated"].apply(
-                lambda x, agent=agent: agent in (x if isinstance(x, list) else [x]) if x else False
+                lambda x, agent=agent: agent in (x if isinstance(x, list) else [x])
+                if x
+                else False
             )
             # If default agent, include all if not specified
             if agent == "data_explorer_agent" and not any(mask):
@@ -1224,7 +1226,7 @@ class Evaluator:
 
                 try:
                     metric_obj = metric_factory.build_metric(metric_name, info)
-                except Exception as build_err:  # noqa: BLE001
+                except Exception as build_err:
                     skipped_metrics.append(
                         {
                             "metric": metric_name,

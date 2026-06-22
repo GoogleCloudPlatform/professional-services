@@ -1066,7 +1066,7 @@ def _display_path_detection(search_dir: Path) -> PathDetection:  # noqa: F821
     return detection
 
 
-def _derive_chosen_paths(detection) -> set[str]:  # noqa: ANN001
+def _derive_chosen_paths(detection) -> set[str]:
     """Derive which evaluation surfaces to scaffold from what was detected.
 
     Local source and a deployed Agent Engine *compose* — UserSim imports
@@ -1094,7 +1094,7 @@ def _derive_chosen_paths(detection) -> set[str]:  # noqa: ANN001
     return chosen
 
 
-def _prompt_path_choice(detection) -> set[str]:  # noqa: ANN001
+def _prompt_path_choice(detection) -> set[str]:
     """Announce what we'll scaffold based on detection — no chooser.
 
     The local pipeline (``simulate`` + ``interact`` + ``evaluate`` + ``analyze``)
@@ -3081,7 +3081,7 @@ def _metric_reference_fields(defn: dict) -> set[str]:
     for config in mapping.values():
         if not isinstance(config, dict):
             continue
-        cols = [config.get("source_column", "")] + config.get("source_columns", [])
+        cols = [config.get("source_column", ""), *config.get("source_columns", [])]
         for col in cols:
             if not col or "reference_data" not in col:
                 continue
@@ -3176,9 +3176,10 @@ def _display_connection_map(
                 mapping = defn.get("dataset_mapping", {})
                 for config in mapping.values():
                     if isinstance(config, dict):
-                        for col in [config.get("source_column", "")] + config.get(
-                            "source_columns", []
-                        ):
+                        for col in [
+                            config.get("source_column", ""),
+                            *config.get("source_columns", []),
+                        ]:
                             if "state_variables" in col or col.startswith(
                                 "extracted_data:"
                             ):
@@ -3377,7 +3378,7 @@ def init(target_dir, agent_name, mode, auto_approve, ai_metrics):
 
                     # Run the 3-step pipeline
                     agent_analysis = analyze_agent_data(agent_dir, agent_name)
-                    custom_metrics, rationale = generate_metric_definitions(
+                    custom_metrics, _rationale = generate_metric_definitions(
                         agent_dir=agent_dir,
                         agent_name=agent_name,
                         agent_analysis=agent_analysis,

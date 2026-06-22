@@ -20,15 +20,15 @@ from pathlib import Path
 
 from agent_eval.core.scaffold import _rows_from_recommendations, scaffold_dataset_jsonl
 
+_DEFAULT_SESSION = {"app_name": "app", "user_id": "eval_user", "state": {}}
+
 
 class TestRowsFromRecommendations(unittest.TestCase):
     """`_rows_from_recommendations` converts Gemini's recs into JSONL rows."""
 
-    SESSION = {"app_name": "app", "user_id": "eval_user", "state": {}}
-
     def test_empty_recommendations_returns_empty(self):
-        assert _rows_from_recommendations(None, self.SESSION) == []
-        assert _rows_from_recommendations({}, self.SESSION) == []
+        assert _rows_from_recommendations(None, _DEFAULT_SESSION) == []
+        assert _rows_from_recommendations({}, _DEFAULT_SESSION) == []
 
     def test_scenario_becomes_prompt_row(self):
         # Scenarios produce kind="multi_turn" rows. conversation_plan is
@@ -40,12 +40,12 @@ class TestRowsFromRecommendations(unittest.TestCase):
                 {"starting_prompt": "Plan a trip", "conversation_plan": "Then refine"},
             ],
         }
-        rows = _rows_from_recommendations(recs, self.SESSION)
+        rows = _rows_from_recommendations(recs, _DEFAULT_SESSION)
         assert len(rows) == 1
         assert rows[0]["kind"] == "multi_turn"
         assert rows[0]["prompt"] == "Plan a trip"
         assert rows[0]["conversation_plan"] == ["Then refine"]
-        assert rows[0]["session_inputs"] == self.SESSION
+        assert rows[0]["session_inputs"] == _DEFAULT_SESSION
 
     def test_scenario_with_list_conversation_plan_kept_as_list(self):
         recs = {
@@ -56,7 +56,7 @@ class TestRowsFromRecommendations(unittest.TestCase):
                 },
             ],
         }
-        rows = _rows_from_recommendations(recs, self.SESSION)
+        rows = _rows_from_recommendations(recs, _DEFAULT_SESSION)
         assert rows[0]["conversation_plan"] == ["First follow-up", "Second", "Third"]
 
     def test_scenario_with_numbered_string_plan_split_to_list(self):
@@ -70,7 +70,7 @@ class TestRowsFromRecommendations(unittest.TestCase):
                 },
             ],
         }
-        rows = _rows_from_recommendations(recs, self.SESSION)
+        rows = _rows_from_recommendations(recs, _DEFAULT_SESSION)
         assert rows[0]["conversation_plan"] == [
             "Wait for the agent to reply.",
             "Ask a follow-up.",
@@ -89,7 +89,7 @@ class TestRowsFromRecommendations(unittest.TestCase):
                 },
             ],
         }
-        rows = _rows_from_recommendations(recs, self.SESSION)
+        rows = _rows_from_recommendations(recs, _DEFAULT_SESSION)
         assert len(rows) == 1
         assert rows[0]["kind"] == "single_turn"
         assert rows[0]["prompt"] == "What's the weather in SF?"
@@ -98,7 +98,7 @@ class TestRowsFromRecommendations(unittest.TestCase):
         # forced users to edit two places to stay in sync).
         assert rows[0]["reference_data"] == {"expected_behavior": "60 and foggy"}
         assert "reference" not in rows[0]
-        assert rows[0]["session_inputs"] == self.SESSION
+        assert rows[0]["session_inputs"] == _DEFAULT_SESSION
         # IDs are now per-kind: scenarios → multi_turn_NNN, golden_data → single_turn_NNN.
         # (Pre-2026-05-01 used a generic ai_generated_NNN.)
         assert rows[0]["id"] == "single_turn_001"
@@ -109,7 +109,7 @@ class TestRowsFromRecommendations(unittest.TestCase):
                 {"user_inputs": ["First", "Second", "Third"]},
             ],
         }
-        rows = _rows_from_recommendations(recs, self.SESSION)
+        rows = _rows_from_recommendations(recs, _DEFAULT_SESSION)
         assert rows[0]["prompt"] == "Third"
         # SDK FLATTEN canonical column name is 'history'; older code used
         # 'conversation_history' but new scaffolds emit 'history' so it
@@ -136,7 +136,7 @@ class TestRowsFromRecommendations(unittest.TestCase):
                 },
             ],
         }
-        rows = _rows_from_recommendations(recs, self.SESSION)
+        rows = _rows_from_recommendations(recs, _DEFAULT_SESSION)
         assert rows[0]["reference_data"] == {
             "expected_behavior": "Returns docs",
             "expected_docs": ["a", "b"],
