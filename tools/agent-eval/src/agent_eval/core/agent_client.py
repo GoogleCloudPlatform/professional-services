@@ -43,7 +43,7 @@ class BaseAgentClient(ABC):
         """Creates a new session for the agent."""
 
     @abstractmethod
-    def run_interaction(self, session_id: str, question: str) -> dict[str, Any]:
+    async def run_interaction(self, session_id: str, question: str) -> dict[str, Any]:
         """Sends a prompt turn to the agent and returns the response payload."""
 
     @abstractmethod
@@ -155,7 +155,7 @@ class AgentClient(BaseAgentClient):
         logger.debug("Session created successfully.")
         return session_id
 
-    def run_interaction(
+    async def run_interaction(
         self, session_id: str, question: str, streaming: bool = False
     ) -> dict[str, Any]:
         """
@@ -641,7 +641,7 @@ class LocalAgentClient(BaseAgentClient):
         }
         return session_id
 
-    async def _run_interaction_async(
+    async def run_interaction(
         self, session_id: str, question: str
     ) -> dict[str, Any]:
         session = self.sessions.get(session_id)
@@ -728,23 +728,6 @@ class LocalAgentClient(BaseAgentClient):
             "session_id": session_id,
             "state": adk_session.state,
         }
-
-    def run_interaction(self, session_id: str, question: str) -> dict[str, Any]:
-        """Synchronous wrapper around async interaction execution."""
-        import asyncio
-
-        try:
-            loop = asyncio.get_running_loop()
-        except RuntimeError:
-            loop = None
-
-        if loop and loop.is_running():
-            future = asyncio.run_coroutine_threadsafe(
-                self._run_interaction_async(session_id, question), loop
-            )
-            return future.result()
-        else:
-            return asyncio.run(self._run_interaction_async(session_id, question))
 
     def get_session_state(self, session_id: str) -> dict[str, Any]:
         session = self.sessions.get(session_id)

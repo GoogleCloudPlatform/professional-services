@@ -207,7 +207,7 @@ async def process_single_question(
 
         # Send all turns
         for turn in user_inputs:
-            await asyncio.to_thread(agent_client.run_interaction, session_id, turn)
+            await agent_client.run_interaction(session_id, turn)
 
         return {
             "status": json.dumps({"boolean": "success"}),

@@ -224,6 +224,7 @@ async def test_process_single_question_success():
     mock_client.app_name = "my-agent"
     mock_client.user_id = "eval_user"
     mock_client.create_session.return_value = "session_abc"
+    mock_client.run_interaction = mock.AsyncMock()
 
     state_vars = {"debug": "true"}
 
@@ -299,6 +300,7 @@ async def test_interaction_runner_full_orchestration(mock_agent_client_class):
     mock_client = mock.MagicMock()
     mock_client.app_name = "my-agent"
     mock_client.create_session.return_value = "session_1"
+    mock_client.run_interaction = mock.AsyncMock()
     mock_agent_client_class.return_value = mock_client
 
     # Seed questions dataset
