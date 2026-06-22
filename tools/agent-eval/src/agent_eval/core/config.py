@@ -11,16 +11,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import os
 from pathlib import Path
 from typing import Dict, List, Optional
 
-from dotenv import load_dotenv
-from pydantic import Field
+from pydantic import AliasChoices, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
-
-# Automatically load environment variables from .env file
-load_dotenv(override=True)
 
 
 class EvalConfig(BaseSettings):
@@ -45,9 +40,19 @@ class EvalConfig(BaseSettings):
 
     # Execution Settings
     GOOGLE_CLOUD_PROJECT: Optional[str] = Field(
-        default=None, description="GCP Project ID"
+        default=None,
+        validation_alias=AliasChoices(
+            "EVAL_GOOGLE_CLOUD_PROJECT", "GOOGLE_CLOUD_PROJECT", "PROJECT_ID"
+        ),
+        description="GCP Project ID",
     )
-    GOOGLE_CLOUD_LOCATION: str = Field(default="us-central1", description="GCP Region")
+    GOOGLE_CLOUD_LOCATION: str = Field(
+        default="us-central1",
+        validation_alias=AliasChoices(
+            "EVAL_GOOGLE_CLOUD_LOCATION", "GOOGLE_CLOUD_LOCATION", "LOCATION"
+        ),
+        description="GCP Region",
+    )
     MAX_RETRIES: int = Field(default=3, description="Max retries for LLM calls")
     RETRY_DELAY_SECONDS: int = Field(default=5, description="Base delay for retries")
     MAX_WORKERS: int = Field(default=4, description="Threads for parallel evaluation")
@@ -65,11 +70,8 @@ def get_project_id() -> Optional[str]:
     """Get the GCP project ID from any supported source.
 
     Checks (in order): GOOGLE_CLOUD_PROJECT env var, PROJECT_ID env var.
-    Calls load_dotenv() first to ensure .env is loaded even when config.py
-    wasn't imported earlier in the call chain.
     """
-    load_dotenv(override=True)
-    return os.environ.get("GOOGLE_CLOUD_PROJECT") or os.environ.get("PROJECT_ID")
+    return EvalConfig().GOOGLE_CLOUD_PROJECT
 
 
 def get_location(model: Optional[str] = None) -> str:
@@ -81,10 +83,9 @@ def get_location(model: Optional[str] = None) -> str:
     Returns:
         Location string (e.g. 'us-central1', 'global').
     """
-    load_dotenv(override=True)
     if model and model.startswith("gemini-3"):
         return "global"
-    return os.environ.get("GOOGLE_CLOUD_LOCATION", "us-central1")
+    return EvalConfig().GOOGLE_CLOUD_LOCATION
 
 
 def find_eval_files(eval_dir: Path) -> Dict[str, List[Path]]:
