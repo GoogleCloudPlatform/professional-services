@@ -65,6 +65,7 @@ async def run_evaluation(
     runner_image: str | None = None,
     agent_url: str | None = None,
     agent_name: str | None = None,
+    agent_instance: Any = None,
 ) -> EvaluationResult:
     """Run an evaluation (either locally in-process or on Vertex AI Pipelines).
 
@@ -81,9 +82,7 @@ async def run_evaluation(
         runner_image: Docker image containing agent-eval for the KFP steps.
         agent_url: The remote agent endpoint URL (required if pipeline=True).
         agent_name: The name of the agent application (required if pipeline=True).
-
-    Returns:
-        EvaluationResult containing the metrics and pass/fail status.
+        agent_instance: Optional pre-instantiated, mocked agent instance to use in simulation.
     """
     agent_dir = Path(agent_dir).resolve()
     eval_dir = Path(eval_dir).resolve() if eval_dir else find_eval_dir(agent_dir)
@@ -204,6 +203,7 @@ async def run_evaluation(
                 agent_dir=agent_dir,
                 project_root=project_root,
                 dataset_path=dataset_path,
+                agent_instance=agent_instance,
             )
         except Exception:
             logger.exception("Simulation failed")

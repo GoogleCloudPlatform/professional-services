@@ -626,3 +626,57 @@ async def test_sdk_run_evaluation_pipeline_downloads_csv_files(
         mock_csv_blob_2.download_to_filename.assert_called_once_with(
             str(expected_local_csv_2)
         )
+
+
+@pytest.mark.anyio
+@mock.patch("agent_eval.sdk.Evaluator")
+@mock.patch("agent_eval.sdk.run_simulation_in_process")
+async def test_sdk_run_evaluation_local_with_agent_instance(
+    mock_run_sim, mock_evaluator_class
+):
+    # Setup mocks
+    mock_run_sim.return_value = [{"converted": "record"}]
+
+    mock_evaluator = mock.MagicMock()
+    mock_evaluator.evaluate = mock.AsyncMock()
+    mock_evaluator_class.return_value = mock_evaluator
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        tmp_path = Path(tmpdir)
+        agent_dir = tmp_path / "my_agent"
+        agent_dir.mkdir()
+        (agent_dir / "agent.py").touch()
+
+        eval_dir = tmp_path / "tests" / "eval"
+        eval_dir.mkdir(parents=True)
+        (eval_dir / "dataset.jsonl").write_text("{}")
+        metrics_dir = eval_dir / "metrics"
+        metrics_dir.mkdir()
+        (metrics_dir / "metric_definitions.json").write_text("{}")
+
+        # Seed a dummy eval_summary.json to satisfy SDK loading
+        results_dir = eval_dir / "results" / "test_run"
+        results_dir.mkdir(parents=True)
+        (results_dir / "eval_summary.json").write_text(
+            '{"overall_summary": {"llm_based_metrics": {}, "failed_metrics": []}}'
+        )
+
+        mock_agent_instance = mock.MagicMock()
+
+        # Run SDK evaluation in local mode, passing the agent_instance
+        await run_evaluation(
+            agent_dir=agent_dir,
+            eval_dir=eval_dir,
+            run_id="test_run",
+            pipeline=False,
+            agent_instance=mock_agent_instance,  # 👈 Pass the agent_instance!
+        )
+
+        # Verify that run_simulation_in_process was called with the agent_instance!
+        mock_run_sim.assert_called_once_with(
+            agent_dir=mock.ANY,
+            project_root=mock.ANY,
+            dataset_path=mock.ANY,
+            agent_instance=mock_agent_instance,  # 👈 Assert passed down!
+        )
+
