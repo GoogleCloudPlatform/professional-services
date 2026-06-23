@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import asyncio
 import contextlib
 import json
 import logging
@@ -22,9 +23,12 @@ from abc import ABC, abstractmethod
 from typing import Any
 
 import requests
+from google.adk.agents.context import Context as AdkContext
 from google.adk.agents.invocation_context import InvocationContext
 from google.adk.events.event import Event as AdkEvent
 from google.adk.sessions.in_memory_session_service import InMemorySessionService
+from google.adk.workflow import BaseNode
+from google.adk.workflow._node_runner import NodeRunner
 from google.genai.types import Content as AdkContent
 from google.genai.types import Part as AdkPart
 
@@ -665,11 +669,19 @@ class LocalAgentClient(BaseAgentClient):
             invocation_id=f"inv_{uuid.uuid4()}",
             session=adk_session,
         )
+        inv_context._event_queue = asyncio.Queue()
 
         # 2. Run the agent in-process!
         response_text = ""
 
-        if hasattr(self.agent_instance, "run_async"):
+        if isinstance(self.agent_instance, BaseNode):
+            root_ctx = AdkContext(inv_context)
+            node_runner = NodeRunner(node=self.agent_instance, parent_ctx=root_ctx)
+            result_ctx = await node_runner.run(node_input=question)
+            if result_ctx.error:
+                raise result_ctx.error
+            response_text = result_ctx.output or ""
+        elif hasattr(self.agent_instance, "run_async"):
             async for event in self.agent_instance.run_async(inv_context):
                 if hasattr(event, "is_final_response") and event.is_final_response():
                     response_text = event.output or ""

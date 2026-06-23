@@ -67,6 +67,7 @@ async def run_evaluation(
     agent_name: str | None = None,
     agent_instance: Any = None,
     mode: str = "simulate",
+    case_id: str | None = None,
 ) -> EvaluationResult:
     """Run an evaluation (either locally in-process or on Vertex AI Pipelines).
 
@@ -234,6 +235,7 @@ async def run_evaluation(
                     project_root=project_root,
                     dataset_path=dataset_path,
                     agent_instance=agent_instance,
+                    case_id=case_id,
                 )
             except Exception:
                 logger.exception("Simulation failed")
