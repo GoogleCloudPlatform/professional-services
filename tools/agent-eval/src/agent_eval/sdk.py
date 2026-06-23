@@ -65,6 +65,8 @@ async def run_evaluation(
     runner_image: str | None = None,
     agent_url: str | None = None,
     agent_name: str | None = None,
+    agent_instance: Any = None,
+    mode: str = "simulate",
 ) -> EvaluationResult:
     """Run an evaluation (either locally in-process or on Vertex AI Pipelines).
 
@@ -81,9 +83,8 @@ async def run_evaluation(
         runner_image: Docker image containing agent-eval for the KFP steps.
         agent_url: The remote agent endpoint URL (required if pipeline=True).
         agent_name: The name of the agent application (required if pipeline=True).
-
-    Returns:
-        EvaluationResult containing the metrics and pass/fail status.
+        agent_instance: Optional pre-instantiated, mocked agent instance to use in simulation.
+        mode: The evaluation mode, either 'simulate' (default) or 'interact' (direct inference).
     """
     agent_dir = Path(agent_dir).resolve()
     eval_dir = Path(eval_dir).resolve() if eval_dir else find_eval_dir(agent_dir)
@@ -195,33 +196,62 @@ async def run_evaluation(
                 logger.info(f"Downloaded raw CSV to {local_csv_path}")
 
     else:
-        # 2. Run simulation in process
-        logger.info("Starting simulation...")
-        project_root = agent_project_root(agent_dir)
-        dataset_path = eval_dir / "dataset.jsonl"
-        try:
-            records = await run_simulation_in_process(
-                agent_dir=agent_dir,
-                project_root=project_root,
-                dataset_path=dataset_path,
-            )
-        except Exception:
-            logger.exception("Simulation failed")
-            raise
+        # 2. Run simulation or interaction in process
+        if mode == "interact":
+            logger.info("Starting interaction (direct inference)...")
+            from agent_eval.core.interactions import InteractionRunner
 
-        if not records:
-            logger.warning("No interactions collected.")
-            return EvaluationResult(
-                success=True,
-                failed_metrics=[],
-                metrics={},
-                summary={},
-                raw_results=pd.DataFrame(),
-            )
+            runner_config = {
+                "questions_file": str(eval_dir / "dataset.jsonl"),
+                "app_name": agent_name or agent_dir.name,
+                "user_id": "eval_user",
+                "runs": 1,
+                "base_url": "local://in-process",
+            }
+            runner = InteractionRunner(runner_config, agent_instance=agent_instance)
+            results_df = await runner.run()
 
-        sim_output = raw_dir / "processed_interaction_sim.jsonl"
-        write_jsonl(records, str(sim_output))
-        interaction_files = [sim_output]
+            if results_df.empty:
+                logger.warning("No interactions collected.")
+                return EvaluationResult(
+                    success=True,
+                    failed_metrics=[],
+                    metrics={},
+                    summary={},
+                    raw_results=pd.DataFrame(),
+                )
+
+            interaction_output = raw_dir / f"evaluation_results_{run_id}.csv"
+            results_df.to_csv(interaction_output, index=False)
+            interaction_files = [interaction_output]
+        else:
+            logger.info("Starting simulation...")
+            project_root = agent_project_root(agent_dir)
+            dataset_path = eval_dir / "dataset.jsonl"
+            try:
+                records = await run_simulation_in_process(
+                    agent_dir=agent_dir,
+                    project_root=project_root,
+                    dataset_path=dataset_path,
+                    agent_instance=agent_instance,
+                )
+            except Exception:
+                logger.exception("Simulation failed")
+                raise
+
+            if not records:
+                logger.warning("No interactions collected.")
+                return EvaluationResult(
+                    success=True,
+                    failed_metrics=[],
+                    metrics={},
+                    summary={},
+                    raw_results=pd.DataFrame(),
+                )
+
+            sim_output = raw_dir / "processed_interaction_sim.jsonl"
+            write_jsonl(records, str(sim_output))
+            interaction_files = [sim_output]
 
         # 3. Verify metric definitions exist
         metrics_path = eval_dir / "metrics" / "metric_definitions.json"

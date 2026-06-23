@@ -234,7 +234,7 @@ def test_run_pipeline_success(
             ],
             "final_session_state": {"events": []},
         }
-        with open(sim_output, "w") as f:
+        with sim_output.open("w") as f:
             f.write(json.dumps(mock_record) + "\n")
         return True
 
@@ -276,7 +276,7 @@ def test_run_pipeline_success(
                 "expected_concise": "hi",
             },
         }
-        with open(dataset_path, "w") as f:
+        with dataset_path.open("w") as f:
             f.write(json.dumps(dataset_row) + "\n")
 
         # Seed metric_definitions.json
@@ -305,7 +305,7 @@ def test_run_pipeline_success(
                 },
             }
         }
-        with open(metrics_path, "w") as f:
+        with metrics_path.open("w") as f:
             f.write(json.dumps(metrics_content, indent=2))
 
         # Mock env check to skip gcloud checks

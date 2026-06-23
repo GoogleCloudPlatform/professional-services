@@ -21,7 +21,7 @@ from typing import Any
 
 import pandas as pd
 
-from agent_eval.core.agent_client import AgentClient
+from agent_eval.core.agent_client import AgentClient, LocalAgentClient
 
 logger = logging.getLogger("agent_eval.interactions")
 
@@ -207,7 +207,7 @@ async def process_single_question(
 
         # Send all turns
         for turn in user_inputs:
-            await asyncio.to_thread(agent_client.run_interaction, session_id, turn)
+            await agent_client.run_interaction(session_id, turn)
 
         return {
             "status": json.dumps({"boolean": "success"}),
@@ -252,14 +252,21 @@ class InteractionRunner:
     Orchestrates the running of interactions for a set of questions.
     """
 
-    def __init__(self, config: dict[str, Any]):
+    def __init__(self, config: dict[str, Any], agent_instance: Any = None):
         self.config = config
         self.user_ldap = config.get("user") or os.environ.get("USER") or "unknown"
-        self.agent_client = AgentClient(
-            base_url=config["base_url"],
-            app_name=config["app_name"],
-            user_id=config.get("user_id", "eval_user"),
-        )
+        if agent_instance is not None:
+            self.agent_client = LocalAgentClient(
+                agent_instance=agent_instance,
+                app_name=config["app_name"],
+                user_id=config.get("user_id", "eval_user"),
+            )
+        else:
+            self.agent_client = AgentClient(
+                base_url=config["base_url"],
+                app_name=config["app_name"],
+                user_id=config.get("user_id", "eval_user"),
+            )
 
     async def run(self) -> pd.DataFrame:
         questions_file = self.config["questions_file"]

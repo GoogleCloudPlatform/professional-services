@@ -203,6 +203,7 @@ async def run_simulation_in_process(
     parallelism: int = 4,
     run_mode: str = "all",
     case_id: str | None = None,
+    agent_instance: Any = None,
 ) -> list[dict[str, Any]]:
     """Runs the simulation in-process using ADK Python APIs and returns converted records."""
 
@@ -218,9 +219,12 @@ async def run_simulation_in_process(
     agents_dir = str(agent_dir.parent)
     agent_name = agent_dir.name
 
-    logger.info("Loading agent %s from %s", agent_name, agents_dir)
-    loader = AgentLoader(agents_dir=agents_dir)
-    agent_or_app = loader.load_agent(agent_name)
+    if agent_instance is not None:
+        agent_or_app = agent_instance
+    else:
+        logger.info("Loading agent %s from %s", agent_name, agents_dir)
+        loader = AgentLoader(agents_dir=agents_dir)
+        agent_or_app = loader.load_agent(agent_name)
 
     # Extract root agent
     from google.adk.apps.app import App
@@ -230,7 +234,7 @@ async def run_simulation_in_process(
         app_name = agent_or_app.name
     else:
         root_agent = agent_or_app
-        app_name = agent_name
+        app_name = agent_name or agent_or_app.__class__.__name__
 
     # 2. Load dataset
     rows = read_dataset(dataset_path)

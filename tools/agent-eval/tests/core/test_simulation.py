@@ -331,6 +331,62 @@ class TestSimulationFlow(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(len(eval_cases), 1)
         self.assertEqual(eval_cases[0].eval_id, "case_1")
 
+    @patch("agent_eval.core.simulation.read_dataset")
+    @patch("agent_eval.core.simulation.AgentLoader")
+    @patch("agent_eval.core.simulation.PrePopulatingEvalService")
+    @patch("agent_eval.core.simulation.AdkHistoryConverter")
+    async def test_run_simulation_in_process_with_agent_instance(
+        self, mock_converter_cls, mock_service_cls, mock_loader_cls, mock_read_dataset
+    ):
+        # 1. Setup mocks
+        mock_read_dataset.return_value = [
+            {"id": "case_1", "prompt": "Hello", "kind": "single_turn"}
+        ]
+
+        mock_service = MagicMock()
+
+        async def mock_perform_inference(*args, **kwargs):
+            yield InferenceResult(
+                app_name="my_agent",
+                eval_set_id="eval_set",
+                eval_case_id="single_turn_case_1",
+                session_id="dummy_session",
+            )
+
+        async def mock_evaluate(*args, **kwargs):
+            yield MagicMock()
+
+        mock_service.perform_inference.side_effect = mock_perform_inference
+        mock_service.evaluate.side_effect = mock_evaluate
+        mock_service_cls.return_value = mock_service
+
+        mock_converter = MagicMock()
+        mock_converter.run.return_value = [{"converted": "record"}]
+        mock_converter_cls.return_value = mock_converter
+
+        # 2. Instantiate a mock agent instance
+        mock_agent_instance = MagicMock()
+
+        # 3. Run passing the agent_instance
+        records = await run_simulation_in_process(
+            agent_dir=self.agent_dir,
+            project_root=self.project_root,
+            dataset_path=self.dataset_path,
+            parallelism=2,
+            agent_instance=mock_agent_instance,
+        )
+
+        # 4. Assertions
+        # Verify AgentLoader was NEVER instantiated/called because agent_instance was passed!
+        mock_loader_cls.assert_not_called()
+
+        # Verify PrePopulatingEvalService was called with our mock_agent_instance directly as root_agent!
+        mock_service_cls.assert_called_once()
+        called_root_agent = mock_service_cls.call_args[1]["root_agent"]
+        self.assertEqual(called_root_agent, mock_agent_instance)
+
+        self.assertEqual(records, [{"converted": "record"}])
+
 
 class TestPrePopulatingSessionService(unittest.IsolatedAsyncioTestCase):
     async def test_pre_population(self):
