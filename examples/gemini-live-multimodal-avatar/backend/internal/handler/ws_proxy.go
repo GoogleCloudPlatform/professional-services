@@ -142,6 +142,7 @@ func (r *Router) handleLiveAvatarProxy(w http.ResponseWriter, req *http.Request)
 			if useVertex && !isSetupDone && messageType == websocket.TextMessage {
 				var msg map[string]interface{}
 				if err := json.Unmarshal(payload, &msg); err == nil {
+					slog.Info("Intercepted WebSocket Setup Message", "payload", fmt.Sprintf("%+v", msg))
 					if setup, ok := msg["setup"].(map[string]interface{}); ok {
 						if model, ok := setup["model"].(string); ok {
 							// If the frontend didn't fully qualify the model, do it now

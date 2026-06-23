@@ -15,7 +15,17 @@
 steps:
   # Build the container image
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['build', '-t', '$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPOSITORY/$_IMAGE_NAME:latest', '.']
+    args: [
+      'build', 
+      '-t', '$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPOSITORY/$_IMAGE_NAME:latest',
+      '--build-arg', 'VITE_FIREBASE_API_KEY=$_VITE_FIREBASE_API_KEY',
+      '--build-arg', 'VITE_FIREBASE_AUTH_DOMAIN=$_VITE_FIREBASE_AUTH_DOMAIN',
+      '--build-arg', 'VITE_FIREBASE_PROJECT_ID=$_VITE_FIREBASE_PROJECT_ID',
+      '--build-arg', 'VITE_FIREBASE_STORAGE_BUCKET=$_VITE_FIREBASE_STORAGE_BUCKET',
+      '--build-arg', 'VITE_FIREBASE_MESSAGING_SENDER_ID=$_VITE_FIREBASE_MESSAGING_SENDER_ID',
+      '--build-arg', 'VITE_FIREBASE_APP_ID=$_VITE_FIREBASE_APP_ID',
+      '.'
+    ]
 
 # Automatically push the image upon completion
 images:
@@ -25,3 +35,9 @@ substitutions:
   _REGION: 'us-central1'
   _REPOSITORY: 'live-api-rewrite'
   _IMAGE_NAME: 'live-api-rewrite'
+  _VITE_FIREBASE_API_KEY: ''
+  _VITE_FIREBASE_AUTH_DOMAIN: ''
+  _VITE_FIREBASE_PROJECT_ID: ''
+  _VITE_FIREBASE_STORAGE_BUCKET: ''
+  _VITE_FIREBASE_MESSAGING_SENDER_ID: ''
+  _VITE_FIREBASE_APP_ID: ''

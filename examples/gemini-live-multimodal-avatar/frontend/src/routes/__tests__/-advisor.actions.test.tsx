@@ -244,7 +244,7 @@ describe('Heygen Advisor Route Actions', () => {
     expect(mockInterrupt).toHaveBeenCalled();
   });
 
-  it('should reset session and go to lobby when settings change after initial mount', () => {
+  it('should reset session and go to lobby when settings change after initial mount', async () => {
     const mockDisconnect = vi.fn();
     
     // @ts-expect-error - Mocking useGeminiLive
@@ -264,7 +264,10 @@ describe('Heygen Advisor Route Actions', () => {
       setSelectedPersona: vi.fn(),
       setInteractionMode: vi.fn(), sessionId: "test-session", resetSessionId: vi.fn(),
       languages: ['English'], setLanguages: vi.fn(),
-      resumptionHandle: null, setResumptionHandle: vi.fn()
+      resumptionHandle: null, setResumptionHandle: vi.fn(),
+      customAvatar: null, setCustomAvatar: vi.fn(),
+      customVoice: null, setCustomVoice: vi.fn(),
+      customLanguageCode: null, setCustomLanguageCode: vi.fn()
     }));
 
     // Start in 'main' view to test the reset
@@ -277,6 +280,9 @@ describe('Heygen Advisor Route Actions', () => {
     // Trigger a setting change (persona changes)
     selectedPersona = 'cashflow-advisor';
     rerender(<HeygenAdvisor />);
+
+    // Wait for the deferred state updates in setTimeout to execute
+    await new Promise((resolve) => setTimeout(resolve, 0));
 
     // Now it should have disconnected and gone back to lobby
     expect(mockDisconnect).toHaveBeenCalled();

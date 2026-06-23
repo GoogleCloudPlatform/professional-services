@@ -93,3 +93,21 @@ variable "avatar_mode" {
   type        = string
   default     = "none"
 }
+
+variable "company_name" {
+  description = "The name of the company/bank to customize prompt templates"
+  type        = string
+  default     = "Cymbal Bank"
+}
+
+variable "vertex_ai_avatar_model" {
+  description = "The Gemini model to use for the whitelisted 1P Video Avatar"
+  type        = string
+  default     = "publishers/google/models/gemini-3.1-flash-live-preview-04-2026"
+}
+
+variable "scenario_cache_ttl_minutes" {
+  description = "Scenario storage in-memory cache TTL in minutes"
+  type        = number
+  default     = 5
+}

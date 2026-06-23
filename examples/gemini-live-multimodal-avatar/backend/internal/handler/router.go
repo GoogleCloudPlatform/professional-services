@@ -25,6 +25,7 @@ import (
 	"strings"
 	"text/template"
 
+	"firebase.google.com/go/v4/auth"
 	"live-api-rewrite-backend/internal/domain"
 	"live-api-rewrite-backend/internal/service"
 )
@@ -33,12 +34,14 @@ type Router struct {
 	mux                  *http.ServeMux
 	liveAPIKey           string
 	systemPrompt         *template.Template
+	defaultCompanyName   string
 	heygenAvatarID       string
 	heygenVoiceID        string
 	heygenSvc            service.HeygenService
 	mcpServer            *MCPServer
 	scenarioSvc          service.ScenarioService
 	authSvc              service.AuthService
+	firebaseAuth         *auth.Client
 	useVertexAI          bool
 	vertexProject        string
 	vertexLocation       string
@@ -54,6 +57,7 @@ type Router struct {
 type RouterConfig struct {
 	LiveAPIKey           string
 	SystemPrompt         *template.Template
+	DefaultCompanyName   string
 	HeygenAvatarID       string
 	HeygenVoiceID        string
 	HeygenSvc            service.HeygenService
@@ -61,6 +65,7 @@ type RouterConfig struct {
 	MCPServer            *MCPServer
 	ScenarioSvc          service.ScenarioService
 	AuthSvc              service.AuthService
+	FirebaseAuth         *auth.Client
 	UseVertexAI          bool
 	VertexProject        string
 	VertexLocation       string
@@ -78,12 +83,14 @@ func NewRouter(cfg RouterConfig) http.Handler {
 		mux:                 http.NewServeMux(),
 		liveAPIKey:          cfg.LiveAPIKey,
 		systemPrompt:        cfg.SystemPrompt,
+		defaultCompanyName:  cfg.DefaultCompanyName,
 		heygenAvatarID:      cfg.HeygenAvatarID,
 		heygenVoiceID:       cfg.HeygenVoiceID,
 		heygenSvc:           cfg.HeygenSvc,
 		mcpServer:           cfg.MCPServer,
 		scenarioSvc:         cfg.ScenarioSvc,
 		authSvc:             cfg.AuthSvc,
+		firebaseAuth:        cfg.FirebaseAuth,
 		useVertexAI:         cfg.UseVertexAI,
 		vertexProject:       cfg.VertexProject,
 		vertexLocation:      cfg.VertexLocation,
@@ -93,14 +100,14 @@ func NewRouter(cfg RouterConfig) http.Handler {
 		telemetrySvc:        cfg.TelemetrySvc,
 		google1PAvatarName:  cfg.Google1PAvatarName, vadSilenceDurationMs: cfg.VadSilenceDurationMs,
 	}
-	r.mux.HandleFunc("/api/config", r.handleConfig)
-	r.mux.HandleFunc("/api/heygen-token", r.handleHeygenToken)
-	r.mux.HandleFunc("/api/live-avatar/", r.handleLiveAvatarProxy)
-	r.mux.HandleFunc("/api/tools/execute", r.mcpServer.HandleExecuteTool)
-	r.mux.HandleFunc("/api/telemetry", r.handleTelemetry)
-	r.mux.HandleFunc("/api/mcp", r.mcpServer.HandleMCP)
-	r.mux.HandleFunc("/api/v1/scenarios", r.handleScenarios)
-	r.mux.HandleFunc("/api/ws-proxy", r.handleWSProxy)
+	r.mux.Handle("/api/config", AuthMiddleware(cfg.FirebaseAuth, http.HandlerFunc(r.handleConfig)))
+	r.mux.Handle("/api/heygen-token", AuthMiddleware(cfg.FirebaseAuth, http.HandlerFunc(r.handleHeygenToken)))
+	r.mux.Handle("/api/live-avatar/", AuthMiddleware(cfg.FirebaseAuth, http.HandlerFunc(r.handleLiveAvatarProxy)))
+	r.mux.Handle("/api/tools/execute", AuthMiddleware(cfg.FirebaseAuth, http.HandlerFunc(r.mcpServer.HandleExecuteTool)))
+	r.mux.Handle("/api/telemetry", AuthMiddleware(cfg.FirebaseAuth, http.HandlerFunc(r.handleTelemetry)))
+	r.mux.Handle("/api/mcp", AuthMiddleware(cfg.FirebaseAuth, http.HandlerFunc(r.mcpServer.HandleMCP)))
+	r.mux.Handle("/api/v1/scenarios", AuthMiddleware(cfg.FirebaseAuth, http.HandlerFunc(r.handleScenarios)))
+	r.mux.Handle("/api/ws-proxy", AuthMiddleware(cfg.FirebaseAuth, http.HandlerFunc(r.handleWSProxy)))
 
 	fs := http.FileServer(http.Dir(cfg.StaticDir))
 	r.mux.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {
@@ -254,6 +261,10 @@ func (r *Router) handleConfig(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	if scenario.Persona.CompanyName == "" {
+		scenario.Persona.CompanyName = r.defaultCompanyName
+	}
+
 	// Dynamic Language Override
 	if languageParam != "" {
 		langs := strings.Split(languageParam, ",")
@@ -311,35 +322,36 @@ func (r *Router) handleConfig(w http.ResponseWriter, req *http.Request) {
 	}
 
 	avatarNameToReturn := r.google1PAvatarName
-	voiceNameToReturn := "Aoede" // Default
-	if scenario.Google1PAvatarName != "" {
-		avatarNameToReturn = scenario.Google1PAvatarName
+	if avatarNameToReturn == "" {
+		avatarNameToReturn = "Jay" // Default
 	} else {
-		// Fallback mapping in case Firestore base_scenarios are stale
-		switch scenario.ID {
-		case "cashflow-advisor":
-			avatarNameToReturn = "Kai"
-		case "treasury-advisor":
-			avatarNameToReturn = "Vera"
-		case "cre-advisor":
-			avatarNameToReturn = "Piper"
-		case "csb-imperial-advisor":
-			avatarNameToReturn = "Vera"
-		}
+		avatarNameToReturn = strings.Title(strings.ToLower(avatarNameToReturn))
 	}
 
-	if scenario.Google1PVoiceName != "" {
-		voiceNameToReturn = scenario.Google1PVoiceName
-	} else {
-		switch avatarNameToReturn {
-		case "Paul":
-			voiceNameToReturn = "Charon"
-		case "Vera":
-			voiceNameToReturn = "Aoede"
-		case "Kai":
-			voiceNameToReturn = "Puck"
-		case "Piper":
-			voiceNameToReturn = "Aoede"
+	voiceNameToReturn := "aoede" // Default
+	switch strings.ToLower(avatarNameToReturn) {
+	case "paul":
+		voiceNameToReturn = "charon"
+	case "vera":
+		voiceNameToReturn = "aoede"
+	case "kai":
+		voiceNameToReturn = "puck"
+	case "piper":
+		voiceNameToReturn = "aoede"
+	case "jay":
+		voiceNameToReturn = "rasalgethi"
+	}
+
+	voiceLanguageCodeToReturn := "en-GB"
+	if languageParam != "" {
+		langs := strings.Split(languageParam, ",")
+		if len(langs) > 0 {
+			switch langs[0] {
+			case "French":
+				voiceLanguageCodeToReturn = "fr-FR"
+			case "Spanish":
+				voiceLanguageCodeToReturn = "es-ES"
+			}
 		}
 	}
 
@@ -350,21 +362,26 @@ func (r *Router) handleConfig(w http.ResponseWriter, req *http.Request) {
 		slog.Bool("vertex", useVertexAIToReturn),
 		slog.String("model", modelNameToReturn),
 		slog.String("avatar", avatarNameToReturn),
-		slog.String("voice", voiceNameToReturn))
+		slog.String("voice", voiceNameToReturn),
+		slog.String("voice_language_code", voiceLanguageCodeToReturn))
 
 	resp := domain.ConfigResponse{
-		LiveAPIKey:            apiKeyToReturn,
-		ModelName:             modelNameToReturn,
-		SystemPrompt:          parsedPrompt.String(),
-		ClientName:            scenario.Persona.ClientProfile.Name,
-		AvailableAppointments: scenario.AvailableAppointments,
-		UseVertexAI:           useVertexAIToReturn,
-		VertexProjectID:       r.vertexProject,
-		VertexLocation:        r.vertexLocation,
-		AvatarMode:            avatarModeToReturn,
-		Google1PAvatarName:    avatarNameToReturn,
-		Google1PVoiceName:     voiceNameToReturn,
-		VadSilenceDurationMs:  r.vadSilenceDurationMs,
+		LiveAPIKey:             apiKeyToReturn,
+		ModelName:              modelNameToReturn,
+		SystemPrompt:           parsedPrompt.String(),
+		ClientName:             scenario.Persona.ClientProfile.Name,
+		AvailableAppointments:  scenario.AvailableAppointments,
+		UseVertexAI:            useVertexAIToReturn,
+		VertexProjectID:        r.vertexProject,
+		VertexLocation:         r.vertexLocation,
+		AvatarMode:             avatarModeToReturn,
+		Google1PAvatarName:     avatarNameToReturn,
+		Google1PVoiceName:      voiceNameToReturn,
+		VoiceLanguageCode:      voiceLanguageCodeToReturn,
+		VadSilenceDurationMs:   r.vadSilenceDurationMs,
+		SupportedVoices:        supportedVoices,
+		SupportedAvatars:       supportedAvatars,
+		SupportedLanguageCodes: supportedLanguageCodes,
 	}
 
 	respondWithJSON(w, http.StatusOK, resp)
@@ -401,3 +418,63 @@ func respondWithError(w http.ResponseWriter, code int, message string) {
 	slog.Error("HTTP ERROR", slog.Int("code", code), slog.String("message", message))
 	respondWithJSON(w, code, domain.ToolResponse{Error: message})
 }
+
+var (
+	supportedVoices = []domain.ConfigOption{
+		{Value: "puck", Label: "Puck"},
+		{Value: "zephyr", Label: "Zephyr"},
+		{Value: "kore", Label: "Kore"},
+		{Value: "orus", Label: "Orus"},
+		{Value: "autonoe", Label: "Autonoe"},
+		{Value: "umbriel", Label: "Umbriel"},
+		{Value: "erinome", Label: "Erinome"},
+		{Value: "laomedeia", Label: "Laomedeia"},
+		{Value: "schedar", Label: "Schedar"},
+		{Value: "achird", Label: "Achird"},
+		{Value: "sadachbia", Label: "Sadachbia"},
+		{Value: "fenrir", Label: "Fenrir"},
+		{Value: "aoede", Label: "Aoede"},
+		{Value: "enceladus", Label: "Enceladus"},
+		{Value: "algieba", Label: "Algieba"},
+		{Value: "algenib", Label: "Algenib"},
+		{Value: "achernar", Label: "Achernar"},
+		{Value: "gacrux", Label: "Gacrux"},
+		{Value: "zubenelgenubi", Label: "Zubenelgenubi"},
+		{Value: "sadaltager", Label: "Sadaltager"},
+		{Value: "charon", Label: "Charon"},
+		{Value: "leda", Label: "Leda"},
+		{Value: "callirrhoe", Label: "Callirrhoe"},
+		{Value: "iapetus", Label: "Iapetus"},
+		{Value: "despina", Label: "Despina"},
+		{Value: "rasalgethi", Label: "Rasalgethi"},
+		{Value: "alnilam", Label: "Alnilam"},
+		{Value: "pulcherrima", Label: "Pulcherrima"},
+		{Value: "vindemiatrix", Label: "Vindemiatrix"},
+		{Value: "sulafat", Label: "Sulafat"},
+	}
+
+	supportedAvatars = []domain.ConfigOption{
+		{Value: "Ben", Label: "Ben (Male)"},
+		{Value: "Carmen", Label: "Carmen (Female)"},
+		{Value: "Ingrid", Label: "Ingrid (Female)"},
+		{Value: "Jay", Label: "Jay (Male)"},
+		{Value: "Kai", Label: "Kai (Male)"},
+		{Value: "Kira", Label: "Kira (Female)"},
+		{Value: "Leo", Label: "Leo (Male)"},
+		{Value: "Paul", Label: "Paul (Male)"},
+		{Value: "Piper", Label: "Piper (Female)"},
+		{Value: "Sam", Label: "Sam (Male)"},
+		{Value: "Vera", Label: "Vera (Female)"},
+	}
+
+	supportedLanguageCodes = []domain.ConfigOption{
+		{Value: "en-GB", Label: "English (UK) - en-GB"},
+		{Value: "en-US", Label: "English (US) - en-US"},
+		{Value: "fr-FR", Label: "French (France) - fr-FR"},
+		{Value: "fr-CA", Label: "French (Canada) - fr-CA"},
+		{Value: "es-ES", Label: "Spanish (Spain) - es-ES"},
+		{Value: "es-US", Label: "Spanish (US) - es-US"},
+		{Value: "de-DE", Label: "German (Germany) - de-DE"},
+		{Value: "ja-JP", Label: "Japanese (Japan) - ja-JP"},
+	}
+)

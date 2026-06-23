@@ -38,6 +38,7 @@ export interface MCPTool {
 
 export interface GeminiLiveApiOptions {
   apiKey?: string;
+  authToken?: string;
   modelName: string;
   systemPrompt: string;
   mcpTools: MCPTool[];
@@ -47,6 +48,7 @@ export interface GeminiLiveApiOptions {
   avatarMode?: 'none' | 'heygen' | 'google_1p';
   google1PAvatarName?: string;
   google1PVoiceName?: string;
+  voiceLanguageCode?: string;
   vadSilenceDurationMs?: number;
   onAudioReceived: (payload: { base64: string; buffer: ArrayBuffer }) => void;
   onVideoReceived?: (base64: string) => void;

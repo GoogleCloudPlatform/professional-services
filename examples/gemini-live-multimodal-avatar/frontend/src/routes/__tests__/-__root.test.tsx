@@ -24,6 +24,8 @@ import { cymbalTheme } from '../../theme/cymbalTheme';
 vi.mock('@tanstack/react-router', () => ({
   createRootRoute: vi.fn((options) => options),
   Outlet: () => null,
+  useLocation: vi.fn(() => ({ pathname: '/' })),
+  useNavigate: vi.fn(() => vi.fn()),
 }));
 
 vi.mock('../../context/ErrorProvider', () => ({
@@ -36,6 +38,15 @@ vi.mock('../../context/ErrorContext', () => ({
 
 vi.mock('../../context/ModalContext', () => ({
   ModalProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+}));
+
+vi.mock('../../context/AuthContext', () => ({
+  AuthProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  useAuth: vi.fn(() => ({
+    user: { email: 'test@example.com' },
+    loading: false,
+    logout: vi.fn(),
+  })),
 }));
 
 vi.mock('../../components/GlobalModals', () => ({

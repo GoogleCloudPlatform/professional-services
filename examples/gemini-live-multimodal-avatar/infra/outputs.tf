@@ -56,3 +56,23 @@ output "data_bucket_url" {
   description = "The GCS bucket URL for uploading data"
   value       = google_storage_bucket.data_bucket.url
 }
+
+output "firebase_api_key" {
+  description = "Firebase API Key"
+  value       = nonsensitive(data.google_firebase_web_app_config.default.api_key)
+}
+
+output "firebase_auth_domain" {
+  description = "Firebase Auth Domain"
+  value       = data.google_firebase_web_app_config.default.auth_domain
+}
+
+output "firebase_project_id" {
+  description = "Firebase Project ID"
+  value       = var.project_id
+}
+
+output "firebase_app_id" {
+  description = "Firebase App ID"
+  value       = google_firebase_web_app.default.app_id
+}

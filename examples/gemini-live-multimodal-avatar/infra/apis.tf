@@ -17,7 +17,9 @@ locals {
     "cloudbuild.googleapis.com",
     "discoveryengine.googleapis.com",
     "firestore.googleapis.com",
-    "artifactregistry.googleapis.com"
+    "artifactregistry.googleapis.com",
+    "firebase.googleapis.com",
+    "identitytoolkit.googleapis.com"
   ]
 }
 

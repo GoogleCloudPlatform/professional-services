@@ -26,6 +26,7 @@ import (
 	"strings"
 	"text/template"
 
+	firebase "firebase.google.com/go/v4"
 	"golang.org/x/oauth2/google"
 )
 
@@ -55,7 +56,7 @@ func main() {
 
 	companyName := os.Getenv("COMPANY_NAME")
 	if companyName == "" {
-		companyName = "CSB Commercial Banking"
+		companyName = "Cymbal Bank"
 	}
 
 	promptBytes, err := os.ReadFile("internal/domain/prompt.md")
@@ -63,9 +64,8 @@ func main() {
 		slog.Error("Failed to read system prompt template", slog.String("error", err.Error()))
 		os.Exit(1)
 	}
-	systemPromptStr := strings.ReplaceAll(string(promptBytes), "{{COMPANY_NAME}}", companyName)
 
-	systemPrompt, err := template.New("prompt").Parse(systemPromptStr)
+	systemPrompt, err := template.New("prompt").Parse(string(promptBytes))
 	if err != nil {
 		slog.Error("Failed to compile system prompt template", slog.String("error", err.Error()))
 		os.Exit(1)
@@ -165,7 +165,7 @@ func main() {
 
 	google1PAvatarName := os.Getenv("GOOGLE_1P_AVATAR_NAME")
 	if google1PAvatarName == "" {
-		google1PAvatarName = "Vera" // Default to whitelisted high-quality preset
+		google1PAvatarName = "Jay" // Default to whitelisted high-quality preset
 	}
 
 	vadSilenceDurationMsStr := os.Getenv("VAD_SILENCE_DURATION_MS")
@@ -190,9 +190,23 @@ func main() {
 	authSvc := service.NewAuthService()
 	telemetrySvc := service.NewTelemetryService(ctx, ".", vertexProjectID)
 
+	// Initialize Firebase App & Auth Client
+	firebaseConf := &firebase.Config{ProjectID: vertexProjectID}
+	firebaseApp, err := firebase.NewApp(ctx, firebaseConf)
+	if err != nil {
+		slog.Error("Failed to initialize Firebase App", slog.String("error", err.Error()))
+		os.Exit(1)
+	}
+	firebaseAuth, err := firebaseApp.Auth(ctx)
+	if err != nil {
+		slog.Error("Failed to initialize Firebase Auth", slog.String("error", err.Error()))
+		os.Exit(1)
+	}
+
 	mcpServer := handler.NewMCPServer(bankService, scenarioSvc, searchSvc)
 	router := handler.NewRouter(handler.RouterConfig{LiveAPIKey: apiKey,
 		SystemPrompt:         systemPrompt,
+		DefaultCompanyName:   companyName,
 		HeygenAvatarID:       heygenAvatarID,
 		HeygenVoiceID:        heygenVoiceID,
 		HeygenSvc:            heygenSvc,
@@ -200,6 +214,7 @@ func main() {
 		MCPServer:            mcpServer,
 		ScenarioSvc:          scenarioSvc,
 		AuthSvc:              authSvc,
+		FirebaseAuth:         firebaseAuth,
 		UseVertexAI:          useVertexAI,
 		VertexProject:        vertexProjectID,
 		VertexLocation:       vertexLocation,

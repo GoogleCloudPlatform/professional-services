@@ -78,7 +78,7 @@ Provide the required local configuration parameters inside `.env`:
 *   `GEMINI_LIVE_API_KEY`: Generatable within Google AI Studio.
 *   `HEYGEN_API_KEY`: Generatable within your HeyGen administrative dashboard.
 *   `VITE_API_BASE_URL`: For purely local development, configure this to `http://localhost:8080/api`.
-*   `COMPANY_NAME`: Controls global prompt compilation. Set this to `"Cymbal Bank"` or `"Commercial Bank of Cymbal"` to ensure proper branding. If empty, the system falls back to `"CSB Commercial Banking"`.
+*   `COMPANY_NAME`: Controls global prompt compilation. Set this to override the default branding. If empty, the system falls back to `"Cymbal Bank"`. Individual scenarios can also override this by setting `company_name` in their persona definition.
 *   `SCENARIO_CACHE_TTL_MINUTES`: Optional. Controls scenario memory cache lifetime (defaults to `5` minutes).
 *   `VERTEX_SEARCH_LOCATION`: Optional. Regional location scope for Vertex AI Search (defaults to standard `global`).
 

@@ -21,36 +21,11 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 
 // Import the generated route tree
 import { routeTree } from './routeTree.gen'
-import { fetchConfig, fetchHeygenToken } from './api/config'
 
 // Create a new query client
 const queryClient = new QueryClient()
 
-// Eagerly prefetch config, and only prefetch HeyGen token if avatar is enabled and configured
-queryClient.prefetchQuery({
-  queryKey: ['config'],
-  queryFn: async () => {
-    const config = await fetchConfig();
-    
-    // Default persona prefetch
-    const defaultPersona = 'cre-advisor';
-    queryClient.prefetchQuery({
-      queryKey: ['heygenToken', defaultPersona],
-      queryFn: async () => {
-          try {
-            const token = await fetchHeygenToken('LITE');
-            return token || null;
-          } catch {
-            console.warn('[Prefetch] HeyGen service offline or disabled.');
-            return null; // Stop background retry
-          }
-        },
-        staleTime: 1000 * 60 * 5 // Cache for 5 minutes
-      });
-    return config;
-  },
-  staleTime: 1000 * 60 * 5 // Cache for 5 minutes
-});
+
 
 // Create a new router instance
 const router = createRouter({
@@ -58,7 +33,10 @@ const router = createRouter({
   context: {
     queryClient,
   },
-  defaultNotFoundComponent: () => <Navigate to="/dashboard" replace />,
+  defaultNotFoundComponent: () => {
+    console.log('[Router] Route not found! Redirecting to /dashboard');
+    return <Navigate to="/dashboard" replace />;
+  },
 })
 
 // Register the router instance for type safety
