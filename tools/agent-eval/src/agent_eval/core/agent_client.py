@@ -23,12 +23,10 @@ from abc import ABC, abstractmethod
 from typing import Any
 
 import requests
-from google.adk.agents.context import Context as AdkContext
 from google.adk.agents.invocation_context import InvocationContext
 from google.adk.events.event import Event as AdkEvent
 from google.adk.sessions.in_memory_session_service import InMemorySessionService
 from google.adk.workflow import BaseNode
-from google.adk.workflow._node_runner import NodeRunner
 from google.genai.types import Content as AdkContent
 from google.genai.types import Part as AdkPart
 
@@ -652,7 +650,54 @@ class LocalAgentClient(BaseAgentClient):
         if not session:
             raise ValueError(f"Session {session_id} not found.")
 
-        # 1. Rebuild ADK session using the session service
+        response_text = ""
+
+        # 1. Run via InMemoryRunner if it is an ADK 2.0 Workflow/Node
+        if isinstance(self.agent_instance, BaseNode):
+            from google.adk.apps import App
+            from google.adk.runners import InMemoryRunner
+
+            # Wrap the workflow/node in an App
+            app = App(name=self.app_name, root_agent=self.agent_instance)
+
+            # Use InMemoryRunner to execute it (handles contexts and event queues natively)
+            runner = InMemoryRunner(app=app)
+            adk_session = await runner.session_service.create_session(
+                app_name=self.app_name,
+                user_id=self.user_id,
+                session_id=session_id,
+            )
+
+            # Restore state and events history
+            if session.get("state"):
+                adk_session.state = session["state"]
+            adk_session.events = [AdkEvent.model_validate(e) for e in session["events"]]
+
+            # Execute the workflow properly, passing the question!
+            new_message = AdkContent(role="user", parts=[AdkPart(text=question)])
+
+            async for event in runner.run_async(
+                user_id=self.user_id,
+                session_id=session_id,
+                new_message=new_message,
+            ):
+                if event.output is not None:
+                    response_text = event.output
+
+            # Save the updated session state and events back
+            session["events"] = [
+                event.model_dump(mode="json") for event in adk_session.events
+            ]
+            session["state"] = adk_session.state
+
+            return {
+                "response": response_text,
+                "session_id": session_id,
+                "state": adk_session.state,
+            }
+
+        # 2. Run via ADK 1.x legacy execution paths (BaseAgent / LlmAgent in-process)
+        # Rebuild ADK session using the session service
         session_service = InMemorySessionService()
         adk_session = await session_service.create_session(
             app_name=self.app_name,
@@ -671,17 +716,7 @@ class LocalAgentClient(BaseAgentClient):
         )
         inv_context._event_queue = asyncio.Queue()
 
-        # 2. Run the agent in-process!
-        response_text = ""
-
-        if isinstance(self.agent_instance, BaseNode):
-            root_ctx = AdkContext(inv_context)
-            node_runner = NodeRunner(node=self.agent_instance, parent_ctx=root_ctx)
-            result_ctx = await node_runner.run(node_input=question)
-            if result_ctx.error:
-                raise result_ctx.error
-            response_text = result_ctx.output or ""
-        elif hasattr(self.agent_instance, "run_async"):
+        if hasattr(self.agent_instance, "run_async"):
             async for event in self.agent_instance.run_async(inv_context):
                 if hasattr(event, "is_final_response") and event.is_final_response():
                     response_text = event.output or ""
@@ -695,7 +730,7 @@ class LocalAgentClient(BaseAgentClient):
             res = self.agent_instance(inv_context)
             response_text = res.output or "" if hasattr(res, "output") else str(res)
 
-        # 3. Update session state and events, ensuring no duplicates
+        # 3. Update session state and events, ensuring no duplicates (ADK 1.x only)
         user_msg_appended = any(
             getattr(event, "author", None) == "user"
             and any(
