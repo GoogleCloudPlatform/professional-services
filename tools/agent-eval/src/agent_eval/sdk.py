@@ -68,6 +68,7 @@ async def run_evaluation(
     agent_instance: Any = None,
     mode: str = "simulate",
     case_id: str | None = None,
+    replications: int = 1,
 ) -> EvaluationResult:
     """Run an evaluation (either locally in-process or on Vertex AI Pipelines).
 
@@ -236,6 +237,7 @@ async def run_evaluation(
                     dataset_path=dataset_path,
                     agent_instance=agent_instance,
                     case_id=case_id,
+                    replications=replications,
                 )
             except Exception:
                 logger.exception("Simulation failed")
@@ -317,7 +319,12 @@ async def run_evaluation(
     if generate_html:
         logger.info("Generating HTML report...")
         try:
-            await asyncio.to_thread(generate_html_report, results_dir=results_dir)
+            await asyncio.to_thread(
+                generate_html_report,
+                run_dir=results_dir,
+                summary=summary.model_dump(),
+                results_csv=latest_csv,
+            )
         except Exception:
             logger.exception("Report generation failed")
 
