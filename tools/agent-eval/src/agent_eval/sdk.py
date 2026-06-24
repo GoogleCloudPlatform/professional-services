@@ -87,6 +87,7 @@ async def run_evaluation(
         agent_name: The name of the agent application (required if pipeline=True).
         agent_instance: Optional pre-instantiated, mocked agent instance to use in simulation.
         mode: The evaluation mode, either 'simulate' (default) or 'interact' (direct inference).
+        replications: The number of times to repeat the evaluation simulations (Monte Carlo runs) to calculate averaged metrics, smoothing out temperature-based LLM variance.
     """
     agent_dir = Path(agent_dir).resolve()
     eval_dir = Path(eval_dir).resolve() if eval_dir else find_eval_dir(agent_dir)
