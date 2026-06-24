@@ -21,6 +21,8 @@ import { type ConfigResponse } from '../api/config';
 import type { NumericTelemetryMetric } from '../types/telemetry';
 import { type LiveServerMessage } from '@google/genai';
 import { liveServiceConfiguration } from '../resources/live_service_configuration';
+// TO RE-ENABLE OAUTH: Uncomment the firebase import below
+// import { auth } from '../config/firebase';
 
 export interface UseGeminiSocketOptions {
   apiRef: React.MutableRefObject<IGeminiLiveClient | null>;
@@ -111,11 +113,18 @@ export function useGeminiSocket({
       return null;
     }
 
+    // TO RE-ENABLE OAUTH: Uncomment the block below to fetch the token, and remove the dummy token definition.
+    /*
+    const currentUser = auth.currentUser;
+    const token = currentUser ? await currentUser.getIdToken() : '';
+    */
+    const token = '';
+
     // 1. DIRECT WEBSOCKET PROXY BYPASS FOR GOOGLE 1P AVATAR MODE
     if (config.avatar_mode === 'google_1p') {
       try {
         const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-        const wsUrl = `${protocol}//${window.location.host}/api/ws-proxy`;
+        const wsUrl = `${protocol}//${window.location.host}/api/ws-proxy` + (token ? `?token=${encodeURIComponent(token)}` : '');
 
         callbacksRef.current.onStateChange('connecting');
         console.log('[useGeminiSocket] Connecting to proxy:', wsUrl);
@@ -136,27 +145,50 @@ export function useGeminiSocket({
           // Send setup message
           let voiceName: string | undefined;
           if (config?.avatar_mode === 'heygen') {
-            voiceName = 'Aoede';
+            voiceName = 'aoede';
           } else if (config?.google_1p_voice_name) {
-            voiceName = config.google_1p_voice_name;
+            voiceName = config.google_1p_voice_name.toLowerCase();
           }
+
+          let avatarName = config.google_1p_avatar_name || liveServiceConfiguration.avatarConfig?.avatarName || 'Jay';
+          // Capitalize first letter, lowercase the rest (TitleCase)
+          avatarName = avatarName.charAt(0).toUpperCase() + avatarName.slice(1).toLowerCase();
+
+          const rawVoiceName = voiceName || liveServiceConfiguration.generationConfig?.speechConfig?.voiceConfig?.prebuiltVoiceConfig?.voiceName || "aoede";
+          const resolvedVoiceName = rawVoiceName.charAt(0).toUpperCase() + rawVoiceName.slice(1).toLowerCase();
+          const resolvedLanguageCode = config?.voice_language_code || liveServiceConfiguration.generationConfig?.speechConfig?.languageCode || "en-GB";
 
           const setupMessage = {
             setup: {
               model: liveServiceConfiguration.model || 'publishers/google/models/gemini-live-2.5-flash-native-audio',
               generationConfig: {
-                speechConfig: voiceName ? {
+                speechConfig: {
+                  languageCode: resolvedLanguageCode,
                   voiceConfig: {
                     prebuiltVoiceConfig: {
-                      voiceName: voiceName
+                      voiceName: resolvedVoiceName
                     }
                   }
-                } : liveServiceConfiguration.generationConfig?.speechConfig,
+                },
                 responseModalities: ["VIDEO"],
+              },
+              generation_config: {
+                speech_config: {
+                  language_code: resolvedLanguageCode,
+                  voice_config: {
+                    prebuilt_voice_config: {
+                      voice_name: resolvedVoiceName
+                    }
+                  }
+                },
+                response_modalities: ["VIDEO"],
               },
               outputAudioTranscription: {},
               inputAudioTranscription: {},
+              output_audio_transcription: {},
+              input_audio_transcription: {},
               systemInstruction: { parts: [{ text: config.system_prompt || "You are a helpful assistant." }] },
+              system_instruction: { parts: [{ text: config.system_prompt || "You are a helpful assistant." }] },
               tools: mcpTools.length > 0 ? [{ 
                 functionDeclarations: mcpTools.map(t => ({ 
                   name: t.name, 
@@ -167,10 +199,14 @@ export function useGeminiSocket({
               }] : [],
               avatarConfig: {
                 ...liveServiceConfiguration.avatarConfig,
-                avatarName: config.google_1p_avatar_name || liveServiceConfiguration.avatarConfig?.avatarName || 'Piper',
+                avatarName: avatarName,
+              },
+              avatar_config: {
+                avatar_name: avatarName,
               },
               // Enable session resumption
-              sessionResumption: resumptionHandleRef.current ? { handle: resumptionHandleRef.current } : {}
+              sessionResumption: resumptionHandleRef.current ? { handle: resumptionHandleRef.current } : {},
+              session_resumption: resumptionHandleRef.current ? { handle: resumptionHandleRef.current } : {}
             }
           };
           
@@ -423,6 +459,7 @@ export function useGeminiSocket({
     // 2. STANDARD WORKER-BASED API FOR ALL OTHER MODES
     const api = new GeminiLiveApi({
       apiKey: config.live_api_key,
+      authToken: token,
       modelName: config.model_name,
       systemPrompt: config.system_prompt || "You are a helpful assistant.",
       mcpTools,
@@ -432,6 +469,7 @@ export function useGeminiSocket({
       avatarMode: config.avatar_mode,
       google1PAvatarName: config.google_1p_avatar_name,
       google1PVoiceName: config.google_1p_voice_name,
+      voiceLanguageCode: config.voice_language_code,
       vadSilenceDurationMs: config.vad_silence_duration_ms,
       onAudioReceived: (p) => { if (isCurrent()) callbacksRef.current.onAudioReceived(p); },
       onVideoReceived: (v) => { 

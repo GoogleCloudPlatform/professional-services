@@ -86,6 +86,7 @@ export class GeminiLiveApi implements IGeminiLiveClient {
             type: 'INITIALIZE',
             payload: {
                 apiKey: this.options.apiKey,
+                authToken: this.options.authToken,
                 modelName: this.options.modelName,
                 systemPrompt: this.options.systemPrompt,
                 mcpTools: this.options.mcpTools,
@@ -95,6 +96,7 @@ export class GeminiLiveApi implements IGeminiLiveClient {
                 avatarMode: this.options.avatarMode,
                 google1PAvatarName: this.options.google1PAvatarName,
                 google1PVoiceName: this.options.google1PVoiceName,
+                voiceLanguageCode: this.options.voiceLanguageCode,
                 vadSilenceDurationMs: this.options.vadSilenceDurationMs,
                 tools
             }

@@ -153,7 +153,7 @@ Create `backend/data/scenarios/wealth-advisor.json`:
 ```json
 {
   "id": "wealth-advisor",
-  "name": "Wealth Management Specialist",
+  "name": "Wealth Advisor",
   "allowed_tools": ["get_customer_profile", "execute_investment_buy"],
   "persona": {
     "role": "Private Wealth Advisor specializing in active equity portfolios",
@@ -205,4 +205,4 @@ case "execute_investment_buy":
     cd frontend && npm run test
     cd ../backend && go test ./...
     ```
-3.  Launch `make dev` and select **Wealth Management Specialist** from the dropdown menu to test your new persona and tool.
+3.  Launch `make dev` and select **Wealth Advisor** from the dropdown menu to test your new persona and tool.

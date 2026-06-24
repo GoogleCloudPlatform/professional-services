@@ -16,6 +16,10 @@
 
 import axios from 'axios'
 
+// TO RE-ENABLE OAUTH / FIREBASE TOKEN INJECTION:
+// 1. Uncomment the Firebase auth import below:
+// import { auth } from '../config/firebase'
+
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api'
 
 export const apiClient = axios.create({
@@ -23,4 +27,25 @@ export const apiClient = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+})
+
+// Inject Firebase ID Token into every outgoing API request
+apiClient.interceptors.request.use(async (config) => {
+  // TO RE-ENABLE OAUTH / FIREBASE TOKEN INJECTION:
+  // Uncomment the block below to fetch and inject the ID token.
+  /*
+  const currentUser = auth.currentUser;
+  if (currentUser) {
+    try {
+      // Automatically fetches token from memory, or refreshes it from Firebase if expired
+      const token = await currentUser.getIdToken();
+      config.headers.Authorization = `Bearer ${token}`;
+    } catch (error) {
+      console.error('[apiClient] Failed to acquire ID token:', error);
+    }
+  }
+  */
+  return config;
+}, (error) => {
+  return Promise.reject(error);
 })

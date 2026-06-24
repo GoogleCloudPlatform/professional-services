@@ -39,7 +39,7 @@ func (r *Router) handleWSProxy(w http.ResponseWriter, req *http.Request) {
 	if location == "global" || location == "" {
 		location = "us-central1" // Fallback or default for live API
 	}
-	targetURL := fmt.Sprintf("wss://%s-aiplatform.googleapis.com//ws/google.cloud.aiplatform.v1beta1.LlmBidiService/BidiGenerateContent", location)
+	targetURL := fmt.Sprintf("wss://%s-aiplatform.googleapis.com/ws/google.cloud.aiplatform.v1beta1.LlmBidiService/BidiGenerateContent", location)
 
 	slog.Info("Initiating upstream connection", slog.String("url", targetURL))
 
@@ -116,6 +116,41 @@ func (r *Router) handleWSProxy(w http.ResponseWriter, req *http.Request) {
 							setup["model"] = fmt.Sprintf("projects/%s/locations/%s/%s", r.vertexProject, r.vertexLocation, model)
 							slog.Info("Rewrote setup model", slog.String("old", oldModel), slog.String("new", setup["model"].(string)))
 							isSetupDone = true
+
+							// Extract configuration properties safely for clean logging
+							var avatarName, voiceName, languageCode string
+							if avatarConfig, ok := setup["avatarConfig"].(map[string]interface{}); ok {
+								avatarName, _ = avatarConfig["avatarName"].(string)
+							} else if avatarConfig, ok := setup["avatar_config"].(map[string]interface{}); ok {
+								avatarName, _ = avatarConfig["avatar_name"].(string)
+							}
+
+							if generationConfig, ok := setup["generationConfig"].(map[string]interface{}); ok {
+								if speechConfig, ok := generationConfig["speechConfig"].(map[string]interface{}); ok {
+									languageCode, _ = speechConfig["languageCode"].(string)
+									if voiceConfig, ok := speechConfig["voiceConfig"].(map[string]interface{}); ok {
+										if prebuiltVoiceConfig, ok := voiceConfig["prebuiltVoiceConfig"].(map[string]interface{}); ok {
+											voiceName, _ = prebuiltVoiceConfig["voiceName"].(string)
+										}
+									}
+								}
+							} else if generationConfig, ok := setup["generation_config"].(map[string]interface{}); ok {
+								if speechConfig, ok := generationConfig["speech_config"].(map[string]interface{}); ok {
+									languageCode, _ = speechConfig["language_code"].(string)
+									if voiceConfig, ok := speechConfig["voice_config"].(map[string]interface{}); ok {
+										if prebuiltVoiceConfig, ok := voiceConfig["prebuilt_voice_config"].(map[string]interface{}); ok {
+											voiceName, _ = prebuiltVoiceConfig["voice_name"].(string)
+										}
+									}
+								}
+							}
+
+							slog.Info("Intercepted WebSocket Setup Message",
+								slog.String("model", oldModel),
+								slog.String("avatar", avatarName),
+								slog.String("voice", voiceName),
+								slog.String("language", languageCode),
+							)
 
 							// Re-encode message
 							message, err = json.Marshal(dataJson)

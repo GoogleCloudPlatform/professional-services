@@ -67,7 +67,13 @@ describe('TelemetrySidebar Component', () => {
     languages: ['English'] as ('English' | 'Spanish')[],
     setLanguages: vi.fn(),
     resumptionHandle: null,
-    setResumptionHandle: vi.fn()
+    setResumptionHandle: vi.fn(),
+    customAvatar: null,
+    setCustomAvatar: vi.fn(),
+    customVoice: null,
+    setCustomVoice: vi.fn(),
+    customLanguageCode: null,
+    setCustomLanguageCode: vi.fn()
   };
 
   it('renders without P99 charts or P99 terminology', () => {

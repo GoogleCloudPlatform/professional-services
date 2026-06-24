@@ -32,7 +32,20 @@ export const ConfigResponseSchema = z.object({
   avatar_mode: z.enum(['none', 'heygen', 'google_1p']).optional().default('none'),
   google_1p_avatar_name: z.string().optional(),
   google_1p_voice_name: z.string().optional(),
+  voice_language_code: z.string().optional(),
   vad_silence_duration_ms: z.number().optional().default(400),
+  supported_voices: z.array(z.object({
+    value: z.string(),
+    label: z.string()
+  })).optional(),
+  supported_avatars: z.array(z.object({
+    value: z.string(),
+    label: z.string()
+  })).optional(),
+  supported_language_codes: z.array(z.object({
+    value: z.string(),
+    label: z.string()
+  })).optional(),
 })
 
 export type ConfigResponse = z.infer<typeof ConfigResponseSchema>

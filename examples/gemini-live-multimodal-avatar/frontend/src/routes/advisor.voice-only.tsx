@@ -40,7 +40,7 @@ export function VoiceOnlyAdvisor() {
   const navigate = useNavigate();
   const { activeModal, modalData, closeModal } = useModalContext();
   const { setModelName } = useTelemetry();
-  const { selectedPersona, setInteractionMode, languages, sessionId, resetSessionId } = useDemoConfig();
+  const { selectedPersona, setInteractionMode, languages, sessionId, resetSessionId, customVoice, customLanguageCode } = useDemoConfig();
   const { hideOverlay } = useOverlay();
   const [view, setView] = useState<ViewState>('lobby');
   const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined)
@@ -64,8 +64,10 @@ export function VoiceOnlyAdvisor() {
 
   const augmentedConfig = useMemo(() => config ? {
     ...config,
+    google_1p_voice_name: customVoice || config.google_1p_voice_name,
+    voice_language_code: customLanguageCode || config.voice_language_code,
     system_prompt: `${config.system_prompt}\n\nIMPORTANT INSTRUCTION:\nYour session_id is "${sessionId}". You MUST include this exact session_id string as an argument in EVERY tool call you make. Do not forget.`
-  } : undefined, [config, sessionId]);
+  } : undefined, [config, sessionId, customVoice, customLanguageCode]);
 
   const {
     connectionState,
@@ -137,7 +139,7 @@ export function VoiceOnlyAdvisor() {
     };
   }, [sendTextMessage]);
 
-  // Reset session and go to lobby when persona or language changes
+  // Reset session and go to lobby when persona, language, or custom settings change
   useEffect(() => {
     if (isInitialMount.current) {
       isInitialMount.current = false;
@@ -145,9 +147,10 @@ export function VoiceOnlyAdvisor() {
     }
     disconnect();
     resetSessionId();
-    setView('lobby');
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedPersona, languages]);
+    setTimeout(() => {
+      setView('lobby');
+    }, 0);
+  }, [selectedPersona, languages, customVoice, customLanguageCode, disconnect, resetSessionId]);
 
   // Auto-activate microphone when seamlessly transitioning to Voice-Only mode
   useEffect(() => {

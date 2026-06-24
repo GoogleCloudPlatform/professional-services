@@ -1,4 +1,4 @@
-# 🎙️ Cymbal Bank: Real-Time Multimodal Avatars with Gemini Live
+# 🎙️ Cymbal Conversational AI: Low-Latency Multimodal Avatars & Stateful Ingress Pipelines
 
 ### *The Enterprise Blueprint for Digital Humans and Real-Time Transactional Tool Calling*
 
@@ -151,17 +151,6 @@ For a detailed systems-level deep-dive into each sub-module of the codebase, ref
 *   🎭 **[Multimodal Avatars & Playback Blueprints](docs/avatar_configuration.md)** – Playback rendering, fMP4 segment demuxing via `mpegts.js`, and HeyGen repeatAudio integrations.
 *   🗣️ **[Persona & Conversational Guidelines](docs/persona_guidelines.md)** – Detailed capabilities, query types, and conversational paths for the specialized AI advisors (e.g., Treasury, CRE, Cashflow).
 *   📊 **[Telemetry, Metrics & Observability](docs/telemetry-audit.md)** – Comprehensive performance auditing, timing event schemas, and token usage profiling.
+*   🔥 **[Firebase & OAuth Manual Setup Guide](docs/firebase_setup.md)** – Step-by-step instructions to configure Firebase Auth, OAuth Consent Screen, and redirect URIs manually.
 *   🧪 **[Testing & Development Workflows](docs/testing_tooling.md)** – Running the frontend and backend testing frameworks and verifying compilation correctness.
 *   🔄 **[Project Structure Sheet](docs/project_structure.md)** – Workspace hierarchy map and folder-level ownership guidelines.
-
----
-
-## Contributors
-
-- John DeMartino (Google)
-- Drew Afromsky (Google)
-- Chris Schmidt (Google)
-- Leonardo Hoet (Google)
-- Hector Alvarado (Google)
-- Vishnu Vardhan Reddy Kanamata Reddy (Google)
-- [Vanga Ranadeep Reddy](https://www.linkedin.com/in/vanga-ranadeep-reddy/)

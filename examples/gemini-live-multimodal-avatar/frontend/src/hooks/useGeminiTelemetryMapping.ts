@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { useCallback, useRef } from 'react';
+import { useCallback, useRef, useMemo } from 'react';
 import { useTelemetry } from '../context/TelemetryContext';
 import { useTelemetryEmit } from './useTelemetryEmit';
 import { telemetry, VAD_OVERHEAD } from '../utils/telemetry';
@@ -138,7 +138,7 @@ export function useGeminiTelemetryMapping() {
     telemetry.clearTimer('totalTurnLatency');
   }, []);
 
-  return {
+  return useMemo(() => ({
     handleTurnStart,
     handleTurnEnd,
     handleFirstResponse,
@@ -152,5 +152,16 @@ export function useGeminiTelemetryMapping() {
     getHasModelResponded: () => hasModelRespondedRef.current,
     getHasActiveTurn: () => hasActiveTurnRef.current,
     getVadStartTimestamp: () => vadStartTimestampRef.current
-  };
+  }), [
+    handleTurnStart,
+    handleTurnEnd,
+    handleFirstResponse,
+    handlePlaybackStart,
+    handleIntentFinished,
+    handleVADSpeechDetected,
+    handleVADSilenceDetected,
+    handleSocketTelemetry,
+    resetMapping,
+    resetAll
+  ]);
 }

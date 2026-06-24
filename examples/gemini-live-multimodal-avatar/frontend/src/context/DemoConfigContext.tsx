@@ -36,6 +36,12 @@ interface DemoConfigContextType {
   resetSessionId: () => void;
   resumptionHandle: string | null;
   setResumptionHandle: (handle: string | null) => void;
+  customAvatar: string | null;
+  setCustomAvatar: (avatar: string | null) => void;
+  customVoice: string | null;
+  setCustomVoice: (voice: string | null) => void;
+  customLanguageCode: string | null;
+  setCustomLanguageCode: (langCode: string | null) => void;
 }
 
 const DemoConfigContext = createContext<DemoConfigContextType | undefined>(undefined);
@@ -58,6 +64,18 @@ export const DemoConfigProvider: React.FC<{ children: ReactNode }> = ({ children
   const [languages, setLanguages] = useState<SupportedLanguage[]>(['English', 'French']);
   const [sessionId, setSessionId] = useState<string>(() => crypto.randomUUID());
   const [resumptionHandle, setResumptionHandle] = useState<string | null>(null);
+  const [customAvatar, setCustomAvatar] = useState<string | null>(() => {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('avatar');
+  });
+  const [customVoice, setCustomVoice] = useState<string | null>(() => {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('voice');
+  });
+  const [customLanguageCode, setCustomLanguageCode] = useState<string | null>(() => {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('voice_lang');
+  });
 
   const resetSessionId = useCallback(() => {
     setSessionId(crypto.randomUUID());
@@ -77,6 +95,12 @@ export const DemoConfigProvider: React.FC<{ children: ReactNode }> = ({ children
         resetSessionId,
         resumptionHandle,
         setResumptionHandle,
+        customAvatar,
+        setCustomAvatar,
+        customVoice,
+        setCustomVoice,
+        customLanguageCode,
+        setCustomLanguageCode,
       }}
     >
       {children}

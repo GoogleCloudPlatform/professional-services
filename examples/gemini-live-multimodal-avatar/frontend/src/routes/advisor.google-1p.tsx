@@ -41,7 +41,7 @@ export function Google1PAdvisor() {
   const navigate = useNavigate();
   const { activeModal, modalData, closeModal } = useModalContext();
   const { setModelName } = useTelemetry();
-  const { selectedPersona, setInteractionMode, languages, sessionId, resetSessionId } = useDemoConfig();
+  const { selectedPersona, setInteractionMode, languages, sessionId, resetSessionId, customAvatar, customVoice, customLanguageCode } = useDemoConfig();
   const { hideOverlay } = useOverlay();
   const [view, setView] = useState<ViewState>('lobby');
   const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined)
@@ -67,8 +67,11 @@ export function Google1PAdvisor() {
 
   const augmentedConfig = useMemo(() => config ? {
     ...config,
+    google_1p_avatar_name: customAvatar || config.google_1p_avatar_name,
+    google_1p_voice_name: customVoice || config.google_1p_voice_name,
+    voice_language_code: customLanguageCode || config.voice_language_code,
     system_prompt: `${config.system_prompt}\n\nIMPORTANT INSTRUCTION:\nYour session_id is "${sessionId}". You MUST include this exact session_id string as an argument in EVERY tool call you make. Do not forget.`
-  } : undefined, [config, sessionId]);
+  } : undefined, [config, sessionId, customAvatar, customVoice, customLanguageCode]);
 
   const handleVideoStart = useCallback(() => {
     setView('main');
@@ -140,7 +143,7 @@ export function Google1PAdvisor() {
     };
   }, [sendTextMessage]);
 
-  // Reset session and go to lobby when persona or language changes
+  // Reset session and go to lobby when persona, language, or custom settings change
   useEffect(() => {
     if (isInitialMount.current) {
       isInitialMount.current = false;
@@ -148,9 +151,10 @@ export function Google1PAdvisor() {
     }
     disconnect();
     resetSessionId();
-    setView('lobby');
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedPersona, languages]);
+    setTimeout(() => {
+      setView('lobby');
+    }, 0);
+  }, [selectedPersona, languages, customAvatar, customVoice, customLanguageCode, disconnect, resetSessionId]);
 
   if (configError) return <Box display="flex" justifyContent="center" alignItems="center" height="100%"><Typography color="error">Error loading configuration</Typography></Box>;
 

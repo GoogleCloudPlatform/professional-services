@@ -16,9 +16,13 @@ package service_test
 
 import (
 	"context"
+	"encoding/json"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
+	"live-api-rewrite-backend/internal/domain"
 	"live-api-rewrite-backend/internal/service"
 )
 
@@ -154,6 +158,46 @@ func TestUpdateScenario_ValidationError(t *testing.T) {
 	} else {
 		if !strings.Contains(err.Error(), "allowed_tools") {
 			t.Errorf("expected error message to pinpoint 'allowed_tools', got: %v", err)
+		}
+	}
+}
+
+func TestLocalScenarioFilesAreValid(t *testing.T) {
+	dir := "../../data/scenarios"
+	files, err := os.ReadDir(dir)
+	if err != nil {
+		t.Fatalf("failed to read scenarios directory: %v", err)
+	}
+
+	if len(files) == 0 {
+		t.Fatal("no scenario files found in directory")
+	}
+
+	for _, file := range files {
+		if filepath.Ext(file.Name()) == ".json" {
+			t.Run(file.Name(), func(t *testing.T) {
+				path := filepath.Join(dir, file.Name())
+				data, err := os.ReadFile(path)
+				if err != nil {
+					t.Fatalf("failed to read file: %v", err)
+				}
+
+				var scenario domain.Scenario
+				if err := json.Unmarshal(data, &scenario); err != nil {
+					t.Errorf("failed to parse JSON into domain.Scenario: %v", err)
+				}
+
+				// Basic validation
+				if scenario.ID == "" {
+					t.Error("scenario ID is empty")
+				}
+				if scenario.Name == "" {
+					t.Error("scenario Name is empty")
+				}
+				if scenario.Persona.Role == "" {
+					t.Error("scenario Persona Role is empty")
+				}
+			})
 		}
 	}
 }

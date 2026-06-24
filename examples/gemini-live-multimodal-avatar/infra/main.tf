@@ -18,6 +18,10 @@ terraform {
       source  = "hashicorp/google"
       version = "~> 5.0"
     }
+    google-beta = {
+      source  = "hashicorp/google-beta"
+      version = "~> 5.0"
+    }
     null = {
       source  = "hashicorp/null"
       version = "~> 3.2"
@@ -34,6 +38,13 @@ terraform {
 }
 
 provider "google" {
+  project               = var.project_id
+  region                = var.region
+  user_project_override = true
+  billing_project       = var.project_id
+}
+
+provider "google-beta" {
   project               = var.project_id
   region                = var.region
   user_project_override = true
@@ -100,7 +111,7 @@ resource "null_resource" "build_image" {
   provisioner "local-exec" {
     # Run from the project root directory
     working_dir = "${path.module}/.."
-    command     = "gcloud builds submit --project=${var.project_id} --config cloudbuild.yaml --substitutions _REGION=${var.region},_REPOSITORY=${google_artifact_registry_repository.repo.repository_id},_IMAGE_NAME=${local.full_service_name} ."
+    command     = "set -a; [ -f .env ] && . ./.env; gcloud builds submit --project=${var.project_id} --config cloudbuild.yaml --substitutions _REGION=${var.region},_REPOSITORY=${google_artifact_registry_repository.repo.repository_id},_IMAGE_NAME=${local.full_service_name},_VITE_FIREBASE_API_KEY=$${VITE_FIREBASE_API_KEY},_VITE_FIREBASE_AUTH_DOMAIN=$${VITE_FIREBASE_AUTH_DOMAIN},_VITE_FIREBASE_PROJECT_ID=$${VITE_FIREBASE_PROJECT_ID},_VITE_FIREBASE_STORAGE_BUCKET=$${VITE_FIREBASE_STORAGE_BUCKET},_VITE_FIREBASE_MESSAGING_SENDER_ID=$${VITE_FIREBASE_MESSAGING_SENDER_ID},_VITE_FIREBASE_APP_ID=$${VITE_FIREBASE_APP_ID} ."
   }
 
   depends_on = [
@@ -198,6 +209,21 @@ resource "google_cloud_run_v2_service" "service" {
       env {
         name  = "AVATAR_MODE"
         value = var.avatar_mode
+      }
+
+      env {
+        name  = "COMPANY_NAME"
+        value = var.company_name
+      }
+
+      env {
+        name  = "VERTEX_AI_AVATAR_MODEL"
+        value = var.vertex_ai_avatar_model
+      }
+
+      env {
+        name  = "SCENARIO_CACHE_TTL_MINUTES"
+        value = tostring(var.scenario_cache_ttl_minutes)
       }
     }
 

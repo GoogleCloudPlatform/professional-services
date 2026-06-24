@@ -170,9 +170,10 @@ export function HeygenAdvisor() {
     }
     disconnect();
     resetSessionId();
-    setView('lobby');
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedPersona, languages]);
+    setTimeout(() => {
+      setView('lobby');
+    }, 0);
+  }, [selectedPersona, languages, disconnect, resetSessionId]);
 
   if (configError) return <Box display="flex" justifyContent="center" alignItems="center" height="100%"><Typography color="error">Error loading configuration</Typography></Box>;
 

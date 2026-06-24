@@ -155,7 +155,7 @@ describe('NetworkWorker Initialization & Vertex AI Routing', () => {
             const connectArgs = mockConnect.mock.calls[0][0] as { model: string; config: { responseModalities: string[]; avatarConfig: { avatarName: string } }; }; 
 
             expect(connectArgs.config.responseModalities).toContain('VIDEO');
-            expect(connectArgs.config.avatarConfig).toEqual({ avatarName: 'Piper' });
+            expect(connectArgs.config.avatarConfig).toEqual({ avatarName: 'Jay' });
         });
 
         it('should use modern AUDIO configuration for 2.5 models on Developer API', async () => {
@@ -192,6 +192,28 @@ describe('NetworkWorker Initialization & Vertex AI Routing', () => {
 
             expect(connectArgs.config!.realtimeInputConfig).toBeUndefined();
             expect(connectArgs.config!.contextWindowCompression).toBeUndefined();
+        });
+
+        it('should map google1PAvatarName to correct voice in Voice-Only mode (avatarMode = none)', async () => {
+            await triggerInitialize({
+                avatarMode: 'none',
+                google1PAvatarName: 'Paul'
+            });
+
+            const connectArgs = mockConnect.mock.calls[0][0] as { model: string; config: { speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: string } } } } };
+            
+            expect(connectArgs.config.speechConfig.voiceConfig.prebuiltVoiceConfig.voiceName).toBe('charon');
+        });
+
+        it('should map Jay to Alnilam in Voice-Only mode', async () => {
+            await triggerInitialize({
+                avatarMode: 'none',
+                google1PAvatarName: 'Jay'
+            });
+
+            const connectArgs = mockConnect.mock.calls[0][0] as { model: string; config: { speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: string } } } } };
+            
+            expect(connectArgs.config.speechConfig.voiceConfig.prebuiltVoiceConfig.voiceName).toBe('alnilam');
         });
     });
 

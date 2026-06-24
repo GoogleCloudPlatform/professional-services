@@ -207,7 +207,12 @@ export const GeminiAvatarDisplay = memo(forwardRef<GeminiAvatarDisplayHandle, Ge
 
     const handleError = (e: Event) => {
         const target = e.target as HTMLVideoElement;
-        console.error('[GeminiAvatarDisplay][RED-HANDED] Video Error:', target.error, e);
+        const error = target.error;
+        if (error && error.code === 4 && (!target.src || target.src === window.location.href)) {
+            // Ignore transient "Empty src attribute" errors that happen during cleanup or initial load
+            return;
+        }
+        console.error('[GeminiAvatarDisplay][RED-HANDED] Video Error:', error, e);
     };
 
     video.addEventListener('playing', handlePlaying);
@@ -258,7 +263,12 @@ export const GeminiAvatarDisplay = memo(forwardRef<GeminiAvatarDisplayHandle, Ge
 
     // Detect fatal video decoder crashes (e.g. from background suspension)
     if (video && video.error) {
-      console.error('[GeminiAvatarDisplay] Video element hit a fatal error, forcing pipeline rebuild. Error:', video.error);
+      const error = video.error;
+      if (error.code === 4 && (!video.src || video.src === window.location.href)) {
+        // Not a fatal decoder error, just an empty/cleared source
+        return;
+      }
+      console.error('[GeminiAvatarDisplay] Video element hit a fatal error, forcing pipeline rebuild. Error:', error);
       triggerReset();
       return;
     }

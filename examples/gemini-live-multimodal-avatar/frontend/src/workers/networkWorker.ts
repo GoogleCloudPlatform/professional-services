@@ -85,6 +85,7 @@ const buildLiveConnectConfig = (payload: {
     google1PAvatarName?: string;
     google1PVoiceName?: string;
     vadSilenceDurationMs?: number;
+    voiceLanguageCode?: string;
 }): LiveConnectConfig => {
     const baseConfig: LiveConnectConfig = {
         systemInstruction: { parts: [{ text: payload.systemPrompt }] } as Content,
@@ -104,33 +105,39 @@ const buildLiveConnectConfig = (payload: {
         return { ...baseConfig, responseModalities: [Modality.AUDIO] };
     }
 
-    let voiceName = "Aoede";
+    let voiceName = "aoede";
     if (payload.avatarMode === 'heygen') {
-        voiceName = "Aoede";
+        voiceName = "aoede";
     } else if (payload.google1PVoiceName) {
-        voiceName = payload.google1PVoiceName;
-    } else if (payload.avatarMode === 'google_1p' && payload.google1PAvatarName) {
+        voiceName = payload.google1PVoiceName.toLowerCase();
+    } else if (payload.google1PAvatarName) {
         switch (payload.google1PAvatarName.toLowerCase()) {
             case 'paul':
-                voiceName = 'Charon';
+                voiceName = 'charon';
                 break;
             case 'vera':
-                voiceName = 'Aoede';
+                voiceName = 'aoede';
                 break;
             case 'kai':
-                voiceName = 'Puck';
+                voiceName = 'puck';
+                break;
+            case 'jay':
+                voiceName = 'alnilam';
                 break;
             default:
-                voiceName = 'Aoede';
+                voiceName = 'aoede';
         }
     }
 
     const speechConfig = { 
+        languageCode: payload.voiceLanguageCode || "en-GB",
         voiceConfig: { prebuiltVoiceConfig: { voiceName } } 
     };
 
     // MODALITY: GOOGLE 1P AVATAR
     if (payload.avatarMode === 'google_1p') {
+        let avatarName = payload.google1PAvatarName || "Jay";
+        avatarName = avatarName.charAt(0).toUpperCase() + avatarName.slice(1).toLowerCase();
         return {
             ...baseConfig,
             speechConfig,
@@ -138,7 +145,7 @@ const buildLiveConnectConfig = (payload: {
             outputAudioTranscription: {},
             inputAudioTranscription: {},
             avatarConfig: {
-                avatarName: payload.google1PAvatarName || "Piper" // Use configured whitelisted preset
+                avatarName: avatarName
             }
         };
     }
@@ -201,6 +208,22 @@ self.onmessage = async (event) => {
                         }
                     })
                 };
+
+                // Monkey-patch WebSocket to inject the token cleanly after the SDK constructs the full URL
+                if (payload.useVertexAI && payload.authToken) {
+                    const OriginalWebSocket = globalThis.WebSocket;
+                    globalThis.WebSocket = class extends OriginalWebSocket {
+                        constructor(url: string | URL, protocols?: string | string[]) {
+                            let wsUrl = url.toString();
+                            // Append the token properly to the final URL
+                            if (wsUrl.includes('/api/live-avatar') && !wsUrl.includes('token=')) {
+                                const separator = wsUrl.includes('?') ? '&' : '?';
+                                wsUrl = wsUrl + separator + 'token=' + encodeURIComponent(payload.authToken!);
+                            }
+                            super(wsUrl, protocols);
+                        }
+                    };
+                }
 
                 const ai = new GoogleGenAI(aiConfig);
                 
@@ -282,16 +305,7 @@ self.onmessage = async (event) => {
                     }] 
                 });
 
-                // Gemini 3.x Inference Kickstart Workaround:
-                // Wait 200ms for the server to process the tool response, then send a tiny text kick
-                // to trigger inference.
-                setTimeout(() => {
-                    if (session) {
-                        session.sendRealtimeInput({ 
-                            text: " "
-                        });
-                    }
-                }, 200);
+
             }
             break;
 

@@ -18,6 +18,7 @@ package domain
 type Persona struct {
 	ID                   string            `json:"id"`
 	Role                 string            `json:"role"`
+	CompanyName          string            `json:"company_name,omitempty"`
 	TargetAudience       string            `json:"target_audience"`
 	DomainKnowledge      string            `json:"domain_knowledge"`
 	CoreSolutions        string            `json:"core_solutions"`
@@ -49,8 +50,6 @@ type Scenario struct {
 	ID                     string            `json:"id"`
 	Name                   string            `json:"name"`
 	AllowedTools           []string          `json:"allowed_tools"`
-	Google1PAvatarName     string            `json:"google_1p_avatar_name,omitempty"`
-	Google1PVoiceName      string            `json:"google_1p_voice_name,omitempty"`
 	Persona                Persona           `json:"persona"`
 	CurrentDate            string            `json:"current_date"`
 	AvailableAppointments  []AppointmentSlot `json:"available_appointments"`

@@ -89,6 +89,37 @@ describe('GeminiLiveApi (Worker Proxy)', () => {
         }));
     });
 
+    it('should pass custom settings (voice language code, avatar, voice name) to worker in INITIALIZE payload', async () => {
+        const api = new GeminiLiveApi({
+            modelName: 'gemini-3.1-flash',
+            systemPrompt: 'test',
+            mcpTools: [],
+            useVertexAI: false,
+            google1PAvatarName: 'Paul',
+            google1PVoiceName: 'Charon',
+            voiceLanguageCode: 'en-GB',
+            onAudioReceived,
+            onTranscription,
+            onToolCall,
+            onInterrupted,
+            onStateChange,
+            onTurnComplete,
+            onTelemetry,
+        });
+        await api.connect();
+
+        const worker = (global as unknown as { lastMockWorker: MockWorker }).lastMockWorker;
+        expect(worker).toBeDefined();
+        expect(worker.postMessage).toHaveBeenCalledWith(expect.objectContaining({
+            type: 'INITIALIZE',
+            payload: expect.objectContaining({
+                google1PAvatarName: 'Paul',
+                google1PVoiceName: 'Charon',
+                voiceLanguageCode: 'en-GB'
+            })
+        }));
+    });
+
     it('should proxy sendAudioChunk to worker', async () => {
         const api = createApi();
         await api.connect();

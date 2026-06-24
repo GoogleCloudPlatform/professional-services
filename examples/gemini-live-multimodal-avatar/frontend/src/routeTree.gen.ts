@@ -9,13 +9,20 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as LoginRouteImport } from './routes/login'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as AdvisorRouteImport } from './routes/advisor'
+import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdvisorIndexRouteImport } from './routes/advisor.index'
 import { Route as AdvisorVoiceOnlyRouteImport } from './routes/advisor.voice-only'
 import { Route as AdvisorHeygenRouteImport } from './routes/advisor.heygen'
 import { Route as AdvisorGoogle1pRouteImport } from './routes/advisor.google-1p'
 
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DashboardRoute = DashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -24,6 +31,11 @@ const DashboardRoute = DashboardRouteImport.update({
 const AdvisorRoute = AdvisorRouteImport.update({
   id: '/advisor',
   path: '/advisor',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdvisorIndexRoute = AdvisorIndexRouteImport.update({
@@ -48,15 +60,19 @@ const AdvisorGoogle1pRoute = AdvisorGoogle1pRouteImport.update({
 } as any)
 
 export interface FileRoutesByFullPath {
+  '/': typeof IndexRoute
   '/advisor': typeof AdvisorRouteWithChildren
   '/dashboard': typeof DashboardRoute
+  '/login': typeof LoginRoute
   '/advisor/google-1p': typeof AdvisorGoogle1pRoute
   '/advisor/heygen': typeof AdvisorHeygenRoute
   '/advisor/voice-only': typeof AdvisorVoiceOnlyRoute
   '/advisor/': typeof AdvisorIndexRoute
 }
 export interface FileRoutesByTo {
+  '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
+  '/login': typeof LoginRoute
   '/advisor/google-1p': typeof AdvisorGoogle1pRoute
   '/advisor/heygen': typeof AdvisorHeygenRoute
   '/advisor/voice-only': typeof AdvisorVoiceOnlyRoute
@@ -64,8 +80,10 @@ export interface FileRoutesByTo {
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
+  '/': typeof IndexRoute
   '/advisor': typeof AdvisorRouteWithChildren
   '/dashboard': typeof DashboardRoute
+  '/login': typeof LoginRoute
   '/advisor/google-1p': typeof AdvisorGoogle1pRoute
   '/advisor/heygen': typeof AdvisorHeygenRoute
   '/advisor/voice-only': typeof AdvisorVoiceOnlyRoute
@@ -74,23 +92,29 @@ export interface FileRoutesById {
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
+    | '/'
     | '/advisor'
     | '/dashboard'
+    | '/login'
     | '/advisor/google-1p'
     | '/advisor/heygen'
     | '/advisor/voice-only'
     | '/advisor/'
   fileRoutesByTo: FileRoutesByTo
   to:
+    | '/'
     | '/dashboard'
+    | '/login'
     | '/advisor/google-1p'
     | '/advisor/heygen'
     | '/advisor/voice-only'
     | '/advisor'
   id:
     | '__root__'
+    | '/'
     | '/advisor'
     | '/dashboard'
+    | '/login'
     | '/advisor/google-1p'
     | '/advisor/heygen'
     | '/advisor/voice-only'
@@ -98,12 +122,21 @@ export interface FileRouteTypes {
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
+  IndexRoute: typeof IndexRoute
   AdvisorRoute: typeof AdvisorRouteWithChildren
   DashboardRoute: typeof DashboardRoute
+  LoginRoute: typeof LoginRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/dashboard': {
       id: '/dashboard'
       path: '/dashboard'
@@ -116,6 +149,13 @@ declare module '@tanstack/react-router' {
       path: '/advisor'
       fullPath: '/advisor'
       preLoaderRoute: typeof AdvisorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/advisor/': {
@@ -167,8 +207,10 @@ const AdvisorRouteWithChildren =
   AdvisorRoute._addFileChildren(AdvisorRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
+  IndexRoute: IndexRoute,
   AdvisorRoute: AdvisorRouteWithChildren,
   DashboardRoute: DashboardRoute,
+  LoginRoute: LoginRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
