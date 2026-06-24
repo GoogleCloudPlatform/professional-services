@@ -68,6 +68,7 @@ async def run_evaluation(
     agent_instance: Any = None,
     mode: str = "simulate",
     case_id: str | None = None,
+    replications: int = 1,
 ) -> EvaluationResult:
     """Run an evaluation (either locally in-process or on Vertex AI Pipelines).
 
@@ -86,6 +87,7 @@ async def run_evaluation(
         agent_name: The name of the agent application (required if pipeline=True).
         agent_instance: Optional pre-instantiated, mocked agent instance to use in simulation.
         mode: The evaluation mode, either 'simulate' (default) or 'interact' (direct inference).
+        replications: The number of times to repeat the evaluation simulations (Monte Carlo runs) to calculate averaged metrics, smoothing out temperature-based LLM variance.
     """
     agent_dir = Path(agent_dir).resolve()
     eval_dir = Path(eval_dir).resolve() if eval_dir else find_eval_dir(agent_dir)
@@ -236,6 +238,7 @@ async def run_evaluation(
                     dataset_path=dataset_path,
                     agent_instance=agent_instance,
                     case_id=case_id,
+                    replications=replications,
                 )
             except Exception:
                 logger.exception("Simulation failed")
@@ -317,7 +320,12 @@ async def run_evaluation(
     if generate_html:
         logger.info("Generating HTML report...")
         try:
-            await asyncio.to_thread(generate_html_report, results_dir=results_dir)
+            await asyncio.to_thread(
+                generate_html_report,
+                run_dir=results_dir,
+                summary=summary.model_dump(),
+                results_csv=latest_csv,
+            )
         except Exception:
             logger.exception("Report generation failed")
 
