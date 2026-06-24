@@ -144,6 +144,8 @@ class PrePopulatingSessionService(InMemorySessionService):
             parts = session_id[len(EVAL_SESSION_ID_PREFIX) :].split("___")
             if len(parts) > 0:
                 case_id = parts[0]
+                if "_rep_" in case_id:
+                    case_id = case_id.split("_rep_")[0]
 
         session = await super().create_session(
             app_name=app_name, user_id=user_id, state=state, session_id=session_id
@@ -204,6 +206,7 @@ async def run_simulation_in_process(
     run_mode: str = "all",
     case_id: str | None = None,
     agent_instance: Any = None,
+    replications: int = 1,
 ) -> list[dict[str, Any]]:
     """Runs the simulation in-process using ADK Python APIs and returns converted records."""
 
@@ -250,42 +253,45 @@ async def run_simulation_in_process(
         if not adk_scenario_dict.get("starting_prompt"):
             continue
 
-        scenario = ConversationScenario(
-            starting_prompt=adk_scenario_dict["starting_prompt"],
-            conversation_plan=adk_scenario_dict["conversation_plan"],
-        )
+        for rep in range(replications):
+            rep_suffix = f"_rep_{rep}" if replications > 1 else ""
 
-        session_inputs_dict = r.get("session_inputs") or {}
-        state = session_inputs_dict.get("state") or r.get("state") or {}
-        session_input = SessionInput(
-            app_name=app_name,
-            user_id=session_inputs_dict.get("user_id", "eval_user"),
-            state=state,
-        )
+            scenario = ConversationScenario(
+                starting_prompt=adk_scenario_dict["starting_prompt"],
+                conversation_plan=adk_scenario_dict["conversation_plan"],
+            )
 
-        if run_mode in ("all", "multi_turn") and is_multi_turn(r):
-            eval_case = EvalCase(
-                eval_id=orig_id,
-                conversation_scenario=scenario,
-                session_input=session_input,
+            session_inputs_dict = r.get("session_inputs") or {}
+            state = session_inputs_dict.get("state") or r.get("state") or {}
+            session_input = SessionInput(
+                app_name=app_name,
+                user_id=session_inputs_dict.get("user_id", "eval_user"),
+                state=state,
             )
-            eval_cases.append(eval_case)
 
-        prompt = r.get("prompt") or ""
-        if run_mode in ("all", "single_turn") and is_single_turn(r):
-            # For single-turn, force conversation plan to be the starting prompt
-            # to avoid simulator trying to continue the conversation.
-            # We use the final prompt here because history (if any) is pre-populated.
-            st_scenario = ConversationScenario(
-                starting_prompt=prompt,
-                conversation_plan=prompt,
-            )
-            eval_case = EvalCase(
-                eval_id=f"single_turn_{orig_id}",
-                conversation_scenario=st_scenario,
-                session_input=session_input,
-            )
-            eval_cases.append(eval_case)
+            if run_mode in ("all", "multi_turn") and is_multi_turn(r):
+                eval_case = EvalCase(
+                    eval_id=f"{orig_id}{rep_suffix}",
+                    conversation_scenario=scenario,
+                    session_input=session_input,
+                )
+                eval_cases.append(eval_case)
+
+            prompt = r.get("prompt") or ""
+            if run_mode in ("all", "single_turn") and is_single_turn(r):
+                # For single-turn, force conversation plan to be the starting prompt
+                # to avoid simulator trying to continue the conversation.
+                # We use the final prompt here because history (if any) is pre-populated.
+                st_scenario = ConversationScenario(
+                    starting_prompt=prompt,
+                    conversation_plan=prompt,
+                )
+                eval_case = EvalCase(
+                    eval_id=f"single_turn_{orig_id}{rep_suffix}",
+                    conversation_scenario=st_scenario,
+                    session_input=session_input,
+                )
+                eval_cases.append(eval_case)
 
     if not eval_cases:
         logger.warning("No valid eval cases created.")
