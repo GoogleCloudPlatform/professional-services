@@ -811,7 +811,7 @@ def _verify_environment(auto_approve: bool = False) -> None:
         _check_api_enabled as _setup_check_api,
     )
 
-    load_dotenv(override=True)
+    load_dotenv(dotenv_path=".env", override=True)
 
     console.print()
     console.print(
