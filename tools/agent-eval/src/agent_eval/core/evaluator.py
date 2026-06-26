@@ -902,6 +902,54 @@ def save_metrics_summary(
     logger.info(f"Metrics summary saved to {results_dir / 'eval_summary.json'}")
 
 
+def _get_row_metrics(row: Any) -> list[str] | None:
+    """Extract and normalize the list of targeted metrics for a row, if specified."""
+    row_metrics = row.get("metrics") if hasattr(row, "get") else None
+
+    if row_metrics is None:
+        return None
+
+    if isinstance(row_metrics, float) and math.isnan(row_metrics):
+        return None
+
+    if isinstance(row_metrics, str):
+        row_metrics = row_metrics.strip()
+        if not row_metrics:
+            return None
+        try:
+            decoded = json.loads(row_metrics)
+            if isinstance(decoded, list):
+                return [str(m) for m in decoded]
+            return [str(decoded)]
+        except (json.JSONDecodeError, ValueError):
+            if "," in row_metrics:
+                return [m.strip() for m in row_metrics.split(",")]
+            return [row_metrics]
+
+    if isinstance(row_metrics, list):
+        if not row_metrics:
+            return None
+        return [str(m) for m in row_metrics]
+
+    return None
+
+
+def _should_run_metric(row_metrics: list[str] | None, metric_name: str) -> bool:
+    """Decide if a metric should run based on the row's targeted metrics."""
+    if row_metrics is None:
+        return True
+
+    if metric_name in row_metrics:
+        return True
+
+    # Also support suffix match (e.g. "myagent_accuracy" matches "accuracy")
+    for target in row_metrics:
+        if metric_name.endswith(f"_{target}") or metric_name == target:
+            return True
+
+    return False
+
+
 class Evaluator:
     def __init__(self, config: dict[str, Any]):
         self.config = config
@@ -982,6 +1030,7 @@ class Evaluator:
                 "user_inputs",
                 "session_trace",
                 "final_session_state",
+                "metrics",
             ]
             for col in json_cols:
                 if col in interaction_results.columns:
@@ -1010,6 +1059,16 @@ class Evaluator:
                 if not row.get("final_session_state"):
                     continue
 
+                row_metrics = _get_row_metrics(row)
+                det_metrics_to_run = [
+                    m
+                    for m in DETERMINISTIC_METRICS
+                    if _should_run_metric(row_metrics, m)
+                ]
+
+                if not det_metrics_to_run:
+                    continue
+
                 res = evaluate_deterministic_metrics(
                     session_state=row.get("final_session_state") or {},
                     session_trace=row.get("session_trace") or [],
@@ -1017,7 +1076,7 @@ class Evaluator:
                     reference_data=row.get("reference_data") or {},
                     question_metadata=row.get("question_metadata")
                     or {},  # Assuming this is dict from load
-                    metrics_to_run=list(DETERMINISTIC_METRICS.keys()),
+                    metrics_to_run=det_metrics_to_run,
                     latency_data=row.get("latency_data") or [],
                 )
                 det_results_map[index].update(res)
@@ -1098,6 +1157,23 @@ class Evaluator:
                         continue
                 else:
                     agent_df_filtered = agent_df
+
+                # Row-level metric filtering
+                if "metrics" in agent_df_filtered.columns:
+                    metric_mask = agent_df_filtered.apply(
+                        lambda r, m_name=metric_name: _should_run_metric(
+                            _get_row_metrics(r), m_name
+                        ),
+                        axis=1,
+                    )
+                    agent_df_filtered = agent_df_filtered[metric_mask].copy()
+
+                if agent_df_filtered.empty:
+                    logger.info(
+                        "Skipping '%s' — not targeted by any active rows",
+                        metric_name,
+                    )
+                    continue
 
                 is_managed = is_managed_entry(info)
 
@@ -1244,7 +1320,7 @@ class Evaluator:
                     (
                         eval_dataset,
                         metric_obj,
-                        agent_df,
+                        agent_df_filtered,
                         metric_name,
                         self.client,
                         CONFIG.MAX_RETRIES,

@@ -111,6 +111,7 @@ def _unified_row_to_question(row: dict[str, Any], *, default_id: str) -> dict[st
         "metadata": metadata,
         "reference_data": reference_data,
         "agents_evaluated": agents_evaluated,
+        "metrics": row.get("metrics"),
     }
 
 
