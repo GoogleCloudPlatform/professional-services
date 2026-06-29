@@ -573,7 +573,7 @@ def _step_2_project(auto_approve: bool) -> tuple[str | None, str | None]:
     """
     from dotenv import load_dotenv
 
-    load_dotenv(override=True)
+    load_dotenv(dotenv_path=".env", override=True)
 
     _step(
         2,
