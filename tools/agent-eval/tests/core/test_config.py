@@ -16,7 +16,16 @@
 import os
 from unittest import mock
 
+import pytest
+
 from agent_eval.core.config import EvalConfig, get_location, get_project_id
+
+
+@pytest.fixture(autouse=True)
+def isolate_from_env_file():
+    """Prevent tests from loading local .env file."""
+    with mock.patch.dict(EvalConfig.model_config, {"env_file": None}):
+        yield
 
 
 def test_eval_config_defaults():
