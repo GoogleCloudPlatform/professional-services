@@ -1,0 +1,12 @@
+# ── Core ADK2 framework (ADK 2.0 Alpha) ─────────────────────────────────────
+google-adk>=2.0.0a1
+ 
+# ── Vertex AI / Agent Engine SDK ─────────────────────────────────────────────
+google-cloud-aiplatform[agent_engines]>=1.93.0
+ 
+# ── Google Generative AI (used by ADK internals) ──────────────────────────────
+google-generativeai>=0.8.0
+ 
+# ── Utilities ─────────────────────────────────────────────────────────────────
+PyYAML>=6.0
+python-dotenv>=1.0.0
