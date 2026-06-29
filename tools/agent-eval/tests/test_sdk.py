@@ -678,6 +678,8 @@ async def test_sdk_run_evaluation_local_with_agent_instance(
             project_root=mock.ANY,
             dataset_path=mock.ANY,
             agent_instance=mock_agent_instance,  # 👈 Assert passed down!
+            case_id=None,
+            replications=1,
         )
 
 

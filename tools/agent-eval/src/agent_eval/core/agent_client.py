@@ -643,9 +643,7 @@ class LocalAgentClient(BaseAgentClient):
         }
         return session_id
 
-    async def run_interaction(
-        self, session_id: str, question: str
-    ) -> dict[str, Any]:
+    async def run_interaction(self, session_id: str, question: str) -> dict[str, Any]:
         session = self.sessions.get(session_id)
         if not session:
             raise ValueError(f"Session {session_id} not found.")
