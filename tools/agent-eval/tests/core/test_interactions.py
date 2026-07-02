@@ -99,12 +99,33 @@ def test_unified_row_to_question():
     }
     assert _unified_row_to_question(row_nested, default_id="def_id") == expected_nested
 
+    # Case D: Row with metrics
+    row_metrics = {
+        "id": "q2",
+        "prompt": "hello",
+        "metrics": ["accuracy", "latency"],
+    }
+    expected_metrics = {
+        "id": "q2",
+        "user_inputs": ["hello"],
+        "metadata": {},
+        "reference_data": {},
+        "agents_evaluated": [],
+        "metrics": ["accuracy", "latency"],
+    }
+    assert (
+        _unified_row_to_question(row_metrics, default_id="def_id") == expected_metrics
+    )
+
     # Test with custom metrics targeted
     row_with_metrics = row_nested.copy()
     row_with_metrics["metrics"] = ["metric1", "metric2"]
     expected_with_metrics = expected_nested.copy()
     expected_with_metrics["metrics"] = ["metric1", "metric2"]
-    assert _unified_row_to_question(row_with_metrics, default_id="def_id") == expected_with_metrics
+    assert (
+        _unified_row_to_question(row_with_metrics, default_id="def_id")
+        == expected_with_metrics
+    )
 
     # Case B: Top-level expected_* keys (legacy merge)
     row_legacy_top = {
