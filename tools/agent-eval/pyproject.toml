@@ -21,7 +21,7 @@ dependencies = [
 
 [project.optional-dependencies]
 dashboard = [
-    "gradio>=6.3.0",
+    "gradio>=6.15.0",
     "plotly>=6.5.2",
 ]
 
