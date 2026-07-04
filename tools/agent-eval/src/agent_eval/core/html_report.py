@@ -36,11 +36,34 @@ from __future__ import annotations
 import html
 import json
 import logging
+import math
 from datetime import datetime
 from pathlib import Path
 from typing import Any
 
 logger = logging.getLogger("agent_eval")
+
+
+def _json_safe(obj: Any) -> Any:
+    """Recursively replace non-finite floats (NaN / ±Infinity) with ``None``.
+
+    ``json.dumps`` emits bare ``NaN`` / ``Infinity`` tokens by default, which
+    are NOT valid JSON. The browser's ``JSON.parse`` on the embedded
+    ``<script type="application/json">`` payload then throws, and the whole
+    report fails to render (blank / "weird" page). A single non-finite metric
+    value — e.g. an average over zero successful runs, or a delta vs a missing
+    baseline — is enough to break the page, so we sanitize at the serialization
+    boundary and always emit valid JSON (``null``). The front-end already
+    treats ``null`` gracefully (renders "—").
+    """
+    if isinstance(obj, float):
+        return obj if math.isfinite(obj) else None
+    if isinstance(obj, dict):
+        return {k: _json_safe(v) for k, v in obj.items()}
+    if isinstance(obj, (list, tuple)):
+        return [_json_safe(v) for v in obj]
+    return obj
+
 
 # ---------------------------------------------------------------------------
 # Data extraction (turn analyzer outputs into JSON for the template)
@@ -830,7 +853,13 @@ def _build_iterations_data(
         for src in ("llm_metrics", "det_metrics"):
             for k, v in (it[src] or {}).items():
                 pv = (prev[src] or {}).get(k)
-                if isinstance(v, (int, float)) and isinstance(pv, (int, float)) and pv:
+                if (
+                    isinstance(v, (int, float))
+                    and isinstance(pv, (int, float))
+                    and pv
+                    and math.isfinite(v)
+                    and math.isfinite(pv)
+                ):
                     deltas[k] = round((v - pv) / abs(pv) * 100, 1)
         it["deltas"] = deltas
     # Strip the internal sort key.
@@ -2786,7 +2815,9 @@ def generate_html_report(
     #   - Replace `</` with `<\/` so any literal `</script>` substring in
     #     the data (agent responses sometimes scrape full HTML pages with
     #     analytics tags) doesn't prematurely close our <script> tag
-    data_json = json.dumps(payload, default=str, ensure_ascii=True).replace(
+    #   - _json_safe() strips non-finite floats (NaN/Infinity) that json.dumps
+    #     would otherwise emit as bare tokens, breaking the browser's JSON.parse
+    data_json = json.dumps(_json_safe(payload), default=str, ensure_ascii=True).replace(
         "</", "<\\/"
     )
 
