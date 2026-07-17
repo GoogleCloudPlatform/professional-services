@@ -17,5 +17,5 @@ pytz==2019.3
 requests==2.22.0
 rsa==4.0
 six==1.12.0
-urllib3==1.25.6
+urllib3==2.7.0
 zope.interface==4.6.0
