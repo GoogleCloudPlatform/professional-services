@@ -466,7 +466,7 @@ class BQTableView:
     # Create a view from tags
     def create_view(self, table_name: str, view_name: str, tags: list) -> str:
         """
-        Create a new View with columns having specfied tags.
+        Create a new View with columns having specified tags.
         :param table_name: Name of the source table
         :param view_name: Name of the View to create
         :param tags: List of tags to include in view
