@@ -1,5 +1,5 @@
 cachetools==3.1.1
-certifi==2019.9.11
+certifi==2024.7.4
 chardet==3.0.4
 DateTime==4.3
 google-api-core==1.14.3
