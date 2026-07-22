@@ -2,5 +2,5 @@ apache-airflow[gcp_api]==3.2.2
 google-cloud-bigquery==1.20.0
 google-cloud-storage==1.19.0
 pytest==9.0.3
-werkzeug==0.15.4
+werkzeug==3.1.6
 configparser==5.0.0
