@@ -80,9 +80,9 @@ def import_adk(source_path: Path, output_path: Path, overwrite: bool) -> None:
 
     try:
         rows = import_adk_evalset(source_path)
-    except Exception as exc:  # noqa: BLE001 — surface parse errors with context
+    except Exception as exc:
         console.print(f"  [red]Failed to parse evalset:[/] {exc}")
-        raise click.Abort()
+        raise click.Abort() from None
 
     if not rows:
         console.print(

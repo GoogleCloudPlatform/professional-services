@@ -249,6 +249,7 @@ Built for creators, marketers, and developers, this application provides a hands
     Creation and update of entities for Dialogflow in Python.
 *   [DLP API Examples](examples/dlp) - Examples of the DLP API usage.
 *   [Ephemeral Projects](examples/ephemeral-projects) - Creating short lived gcp projects for sandbox purposes.
+*   [FinOps Agent](examples/FinOps-agent) - A multi-agent FinOps agent that translates natural language to BigQuery SQL to analyze cloud billing data and enforce corporate governance.
 *   [GCE Access to Google AdminSDK](examples/gce-to-adminsdk) - Example to help
     manage access to Google's AdminSDK using GCE's service account identity
 *   [GCS Client Side Encryption via Sidecar](examples/gcs-client-encrypt/) - Example to show how to implement GCS client side encyrption via a sidecar
@@ -290,6 +291,8 @@ Built for creators, marketers, and developers, this application provides a hands
     An example that uses a set of Bash scripts to set up a pre-commit hook that
     validates Kubernetes resources with Gatekeeper constraints and constraint
     templates from your choice of sources.
+*   [Gemini Live Multimodal Avatar](examples/gemini-live-multimodal-avatar) -
+    An enterprise blueprint for low-latency, real-time digital human advisors. Built with the Gemini Live API (Multimodal Live), it features synchronized video avatars, real-time audio streaming, and extensible tool integration using the Model Context Protocol (MCP).
 *   [LookerStudio Cost Optimization Dashboard](examples/cost-optimization-dashboard) -
     SQL scripts to help build Cost Optimization LookerStudio Dashboard.
 *   [Migrate Kafka to GMK using MM2](examples/mm2-gmk-migration) -  Terraform code to deploy resources to migrate data between two Google Managed Kafka clustes using MirrorMaker2

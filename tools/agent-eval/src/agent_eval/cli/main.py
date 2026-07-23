@@ -19,6 +19,21 @@ import click
 from rich.console import Console
 from rich.panel import Panel
 
+from agent_eval.cli.commands.analyze import analyze
+from agent_eval.cli.commands.convert import convert
+from agent_eval.cli.commands.create_dataset import create_dataset
+from agent_eval.cli.commands.dashboard import dashboard
+from agent_eval.cli.commands.evaluate import evaluate
+from agent_eval.cli.commands.import_adk import import_adk
+from agent_eval.cli.commands.init import init
+from agent_eval.cli.commands.interact import interact
+from agent_eval.cli.commands.migrate import migrate
+from agent_eval.cli.commands.report import report
+from agent_eval.cli.commands.run import run
+from agent_eval.cli.commands.setup import setup
+from agent_eval.cli.commands.simulate import simulate
+from agent_eval.cli.commands.stories import stories
+
 console = Console()
 
 
@@ -45,8 +60,7 @@ def _display_banner() -> None:
     console.print(panel)
 
 
-def print_version(ctx: click.Context, param: click.Parameter,
-                  value: bool) -> None:
+def print_version(ctx: click.Context, param: click.Parameter, value: bool) -> None:
     if not value or ctx.resilient_parsing:
         return
     console.print(f"agent-eval v{_get_version()}")
@@ -81,29 +95,15 @@ def cli() -> None:
 
 # --- Register commands ---
 
-from agent_eval.cli.commands.interact import interact  # noqa: E402
-from agent_eval.cli.commands.evaluate import evaluate  # noqa: E402
-from agent_eval.cli.commands.analyze import analyze  # noqa: E402
-from agent_eval.cli.commands.convert import convert  # noqa: E402
-from agent_eval.cli.commands.create_dataset import create_dataset  # noqa: E402
-from agent_eval.cli.commands.init import init  # noqa: E402
-from agent_eval.cli.commands.setup import setup  # noqa: E402
-from agent_eval.cli.commands.simulate import simulate  # noqa: E402
-from agent_eval.cli.commands.run import run  # noqa: E402
-from agent_eval.cli.commands.dashboard import dashboard  # noqa: E402
-from agent_eval.cli.commands.import_adk import import_adk  # noqa: E402
-from agent_eval.cli.commands.migrate import migrate  # noqa: E402
-from agent_eval.cli.commands.stories import stories  # noqa: E402
-from agent_eval.cli.commands.report import report  # noqa: E402
-
 # Order matches the Vertex AI eval docs sidebar workflow so `agent-eval --help`
 # reads top-down as: set up → bring in data → generate traces → score →
 # (Agent Engine streamlined shortcut) → view → orchestrate → utilities.
 cli.add_command(setup)  # One-time GCP env preparation
 cli.add_command(init)  # Tutorial / first-run scaffold
 cli.add_command(migrate)  # Convert legacy eval/ → tests/eval/
-cli.add_command(import_adk,
-                name="import")  # Prepare dataset (from existing ADK evalsets)
+cli.add_command(
+    import_adk, name="import"
+)  # Prepare dataset (from existing ADK evalsets)
 cli.add_command(simulate)  # Generate traces (multi-turn)
 cli.add_command(interact)  # Generate traces (single-turn)
 cli.add_command(evaluate)  # Run evaluation
@@ -119,8 +119,9 @@ cli.add_command(report)  # Open the HTML report in a browser
 cli.add_command(dashboard)  # View / interpret results (interactive)
 cli.add_command(run)  # Full pipeline shortcut
 cli.add_command(convert)  # Utility: ADK traces → JSONL
-cli.add_command(create_dataset,
-                name="create-dataset")  # Utility: legacy dataset converter
+cli.add_command(
+    create_dataset, name="create-dataset"
+)  # Utility: legacy dataset converter
 cli.add_command(stories)  # Utility: browse the wait-time story library
 
 

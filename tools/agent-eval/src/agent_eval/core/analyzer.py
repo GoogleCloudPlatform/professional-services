@@ -14,13 +14,14 @@
 from __future__ import annotations
 
 import ast
+import contextlib
 import json
 import logging
 import re
 import subprocess
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional, TypedDict
+from typing import Any, TypedDict
 
 import pandas as pd
 from google import genai
@@ -36,19 +37,19 @@ class LogEntry(TypedDict):
     """A structured representation of a single question's evaluation results."""
 
     question_id: str
-    metadata: Dict[str, Any]
-    user_inputs: List[str]
+    metadata: dict[str, Any]
+    user_inputs: list[str]
     final_response: str
-    trace_summary: List[str]
-    sub_agent_trace: List[Dict[str, Any]]
-    tool_interactions: List[Dict[str, Any]]
-    eval_results: Dict[str, Dict[str, Any]]
-    latency_summary: Dict[str, Any]
-    adk_scores: Dict[str, float]
-    agents_evaluated: List[str]
+    trace_summary: list[str]
+    sub_agent_trace: list[dict[str, Any]]
+    tool_interactions: list[dict[str, Any]]
+    eval_results: dict[str, dict[str, Any]]
+    latency_summary: dict[str, Any]
+    adk_scores: dict[str, float]
+    agents_evaluated: list[str]
 
 
-def robust_json_loads(x: Any) -> Optional[Dict[str, Any]]:
+def robust_json_loads(x: Any) -> dict[str, Any] | None:
     """Safely load JSON strings, handling various input types.
 
     Tries json.loads first, then ast.literal_eval for Python dict syntax.
@@ -90,8 +91,11 @@ NEUTRAL_THRESHOLD_PCT = 1.0
 def _is_lower_better(metric_name: str) -> bool:
     """Check if a metric improves when its value decreases."""
     return any(
-        metric_name.startswith(prefix) if prefix.
-        endswith(".") else metric_name == prefix for prefix in LOWER_IS_BETTER)
+        metric_name.startswith(prefix)
+        if prefix.endswith(".")
+        else metric_name == prefix
+        for prefix in LOWER_IS_BETTER
+    )
 
 
 def _compute_pct_change(baseline: float, current: float) -> float:
@@ -155,18 +159,14 @@ def compute_comparison(
         c_val = c_det.get(key)
 
         if b_val is None:
-            new_metrics.append({
-                "metric": key,
-                "type": "deterministic",
-                "current": c_val
-            })
+            new_metrics.append(
+                {"metric": key, "type": "deterministic", "current": c_val}
+            )
             continue
         if c_val is None:
-            removed_metrics.append({
-                "metric": key,
-                "type": "deterministic",
-                "baseline": b_val
-            })
+            removed_metrics.append(
+                {"metric": key, "type": "deterministic", "baseline": b_val}
+            )
             continue
 
         try:
@@ -176,16 +176,18 @@ def compute_comparison(
 
         pct = _compute_pct_change(b_num, c_num)
         direction, emoji = _classify_direction(key, pct)
-        deltas.append({
-            "metric": key,
-            "type": "deterministic",
-            "baseline": b_num,
-            "current": c_num,
-            "delta": round(c_num - b_num, 4),
-            "pct_change": round(pct, 2),
-            "direction": direction,
-            "emoji": emoji,
-        })
+        deltas.append(
+            {
+                "metric": key,
+                "type": "deterministic",
+                "baseline": b_num,
+                "current": c_num,
+                "delta": round(c_num - b_num, 4),
+                "pct_change": round(pct, 2),
+                "direction": direction,
+                "emoji": emoji,
+            }
+        )
 
     # --- LLM metrics ---
     all_llm_keys = set(b_llm.keys()) | set(c_llm.keys())
@@ -194,24 +196,20 @@ def compute_comparison(
         c_info = c_llm.get(key)
 
         if b_info is None:
-            c_avg = c_info.get("average", c_info) if isinstance(
-                c_info, dict) else c_info
+            c_avg = (
+                c_info.get("average", c_info) if isinstance(c_info, dict) else c_info
+            )
             new_metrics.append({"metric": key, "type": "llm", "current": c_avg})
             continue
         if c_info is None:
-            b_avg = b_info.get("average", b_info) if isinstance(
-                b_info, dict) else b_info
-            removed_metrics.append({
-                "metric": key,
-                "type": "llm",
-                "baseline": b_avg
-            })
+            b_avg = (
+                b_info.get("average", b_info) if isinstance(b_info, dict) else b_info
+            )
+            removed_metrics.append({"metric": key, "type": "llm", "baseline": b_avg})
             continue
 
-        b_avg = b_info.get("average", b_info) if isinstance(b_info,
-                                                            dict) else b_info
-        c_avg = c_info.get("average", c_info) if isinstance(c_info,
-                                                            dict) else c_info
+        b_avg = b_info.get("average", b_info) if isinstance(b_info, dict) else b_info
+        c_avg = c_info.get("average", c_info) if isinstance(c_info, dict) else c_info
 
         try:
             b_num, c_num = float(b_avg), float(c_avg)
@@ -220,33 +218,42 @@ def compute_comparison(
 
         # For LLM metrics, compute % relative to score range if available
         score_range = (c_info if isinstance(c_info, dict) else {}).get(
-            "score_range", {})
-        range_width = score_range.get("max", 5) - score_range.get(
-            "min", 0) if score_range else None
+            "score_range", {}
+        )
+        range_width = (
+            score_range.get("max", 5) - score_range.get("min", 0)
+            if score_range
+            else None
+        )
         if range_width and range_width > 0:
             pct = ((c_num - b_num) / range_width) * 100
         else:
             pct = _compute_pct_change(b_num, c_num)
 
         direction, emoji = _classify_direction(key, pct)
-        deltas.append({
-            "metric": key,
-            "type": "llm",
-            "baseline": b_num,
-            "current": c_num,
-            "delta": round(c_num - b_num, 4),
-            "pct_change": round(pct, 2),
-            "direction": direction,
-            "emoji": emoji,
-            "score_range": score_range or None,
-        })
+        deltas.append(
+            {
+                "metric": key,
+                "type": "llm",
+                "baseline": b_num,
+                "current": c_num,
+                "delta": round(c_num - b_num, 4),
+                "pct_change": round(pct, 2),
+                "direction": direction,
+                "emoji": emoji,
+                "score_range": score_range or None,
+            }
+        )
 
     # --- Git diff (scoped to agent directory if provided) ---
     b_git = baseline_summary.get("git_info", {})
     c_git = current_summary.get("git_info", {})
     git_diff = ""
-    if b_git.get("commit") and c_git.get(
-            "commit") and b_git["commit"] != c_git["commit"]:
+    if (
+        b_git.get("commit")
+        and c_git.get("commit")
+        and b_git["commit"] != c_git["commit"]
+    ):
         try:
             cmd = ["git", "diff", b_git["commit"], c_git["commit"]]
             if agent_dir:
@@ -266,27 +273,18 @@ def compute_comparison(
             pass
 
     return {
-        "baseline_id":
-            baseline_summary.get("experiment_id", "unknown"),
-        "current_id":
-            current_summary.get("experiment_id", "unknown"),
-        "baseline_run_name":
-            baseline_run_name
-            or baseline_summary.get("experiment_id", "unknown"),
-        "current_run_name":
-            current_run_name or current_summary.get("experiment_id", "unknown"),
-        "baseline_git":
-            b_git,
-        "current_git":
-            c_git,
-        "deltas":
-            deltas,
-        "new_metrics":
-            new_metrics,
-        "removed_metrics":
-            removed_metrics,
-        "git_diff":
-            git_diff,
+        "baseline_id": baseline_summary.get("experiment_id", "unknown"),
+        "current_id": current_summary.get("experiment_id", "unknown"),
+        "baseline_run_name": baseline_run_name
+        or baseline_summary.get("experiment_id", "unknown"),
+        "current_run_name": current_run_name
+        or current_summary.get("experiment_id", "unknown"),
+        "baseline_git": b_git,
+        "current_git": c_git,
+        "deltas": deltas,
+        "new_metrics": new_metrics,
+        "removed_metrics": removed_metrics,
+        "git_diff": git_diff,
     }
 
 
@@ -296,15 +294,22 @@ def format_comparison_table(comparison: dict) -> str:
     current_label = comparison.get("current_run_name", "Current")
     lines = [
         f"| Metric | {baseline_label} | {current_label} | Delta | % Change | Status |",
-        "|--------|----------|---------|-------|----------|--------|"
+        "|--------|----------|---------|-------|----------|--------|",
     ]
     for d in comparison["deltas"]:
-        b_str = f"{d['baseline']:.2f}" if isinstance(
-            d["baseline"], float) else str(d["baseline"])
-        c_str = f"{d['current']:.2f}" if isinstance(
-            d["current"], float) else str(d["current"])
-        d_str = f"{d['delta']:+.2f}" if isinstance(d["delta"], float) else str(
-            d["delta"])
+        b_str = (
+            f"{d['baseline']:.2f}"
+            if isinstance(d["baseline"], float)
+            else str(d["baseline"])
+        )
+        c_str = (
+            f"{d['current']:.2f}"
+            if isinstance(d["current"], float)
+            else str(d["current"])
+        )
+        d_str = (
+            f"{d['delta']:+.2f}" if isinstance(d["delta"], float) else str(d["delta"])
+        )
         pct_str = f"{d['pct_change']:+.1f}%"
         lines.append(
             f"| {d['metric']} | {b_str} | {c_str} | {d_str} | {pct_str} | {d['emoji']} {d['direction']} |"
@@ -313,19 +318,16 @@ def format_comparison_table(comparison: dict) -> str:
     for m in comparison.get("new_metrics", []):
         lines.append(f"| {m['metric']} | — | {m['current']} | — | NEW | 🆕 |")
     for m in comparison.get("removed_metrics", []):
-        lines.append(
-            f"| {m['metric']} | {m['baseline']} | — | — | REMOVED | ➖ |")
+        lines.append(f"| {m['metric']} | {m['baseline']} | — | — | REMOVED | ➖ |")
 
     return "\n".join(lines)
 
 
 class Analyzer:
-
-    def __init__(self, config: Dict[str, Any]):
+    def __init__(self, config: dict[str, Any]):
         self.config = config
 
-    def _process_log_row(self, row: pd.Series,
-                         index: int) -> Optional[LogEntry]:
+    def _process_log_row(self, row: pd.Series, index: int) -> LogEntry | None:
         """Processes a single DataFrame row to extract structured log data for Markdown reporting."""
         try:
             question_id = row.get("question_id", f"row_{index}")
@@ -341,8 +343,9 @@ class Analyzer:
             # _format_log_entry_markdown. Coerce to str at the source so
             # the markdown renderer can trust the type.
             final_response_raw = row.get("final_response", "")
-            if final_response_raw is None or (isinstance(
-                    final_response_raw, float) and pd.isna(final_response_raw)):
+            if final_response_raw is None or (
+                isinstance(final_response_raw, float) and pd.isna(final_response_raw)
+            ):
                 final_response = ""
             else:
                 final_response = str(final_response_raw)
@@ -353,8 +356,7 @@ class Analyzer:
                 trace_summary = []
 
             # Tool interactions and sub-agent trace (from extracted_data)
-            extracted_data = robust_json_loads(row.get("extracted_data",
-                                                       {})) or {}
+            extracted_data = robust_json_loads(row.get("extracted_data", {})) or {}
             tool_interactions = extracted_data.get("tool_interactions", [])
             if not isinstance(tool_interactions, list):
                 tool_interactions = []
@@ -364,8 +366,7 @@ class Analyzer:
                 sub_agent_trace = []
 
             # Evaluation results with scores and explanations
-            eval_results = robust_json_loads(row.get("eval_results",
-                                                     "{}")) or {}
+            eval_results = robust_json_loads(row.get("eval_results", "{}")) or {}
 
             # Latency summary (extract key metrics)
             latency_data = robust_json_loads(row.get("latency_data", []))
@@ -375,7 +376,8 @@ class Analyzer:
                 for span in latency_data:
                     if span.get("name") == "invocation":
                         latency_summary["total_seconds"] = span.get(
-                            "duration_seconds", 0)
+                            "duration_seconds", 0
+                        )
                         break
 
             # ADK scores (hallucinations, safety)
@@ -386,11 +388,9 @@ class Analyzer:
                     adk_scores[metric_name] = row[col]
 
             # Agents evaluated
-            agents_evaluated = robust_json_loads(row.get(
-                "agents_evaluated", []))
+            agents_evaluated = robust_json_loads(row.get("agents_evaluated", []))
             if not isinstance(agents_evaluated, list):
-                agents_evaluated = [agents_evaluated
-                                   ] if agents_evaluated else []
+                agents_evaluated = [agents_evaluated] if agents_evaluated else []
 
             return LogEntry(
                 question_id=question_id,
@@ -409,18 +409,19 @@ class Analyzer:
             logger.warning("Error processing row %d: %s", index, e)
             return None
 
-    def _format_log_entry_markdown(self, entry: LogEntry,
-                                   entry_num: int) -> str:
+    def _format_log_entry_markdown(self, entry: LogEntry, entry_num: int) -> str:
         """Formats a single log entry into a comprehensive markdown string."""
         agents = ", ".join(entry["agents_evaluated"])
-        metadata_str = ", ".join(
-            [f"{k}: {v}" for k, v in entry["metadata"].items()]) or "None"
+        metadata_str = (
+            ", ".join([f"{k}: {v}" for k, v in entry["metadata"].items()]) or "None"
+        )
         latency = entry["latency_summary"].get("total_seconds", "N/A")
-        latency_str = f"{latency:.2f}s" if isinstance(latency,
-                                                      (int, float)) else latency
+        latency_str = (
+            f"{latency:.2f}s" if isinstance(latency, (int, float)) else latency
+        )
 
         # Header with key info
-        header = f"""## {entry_num}. Question: `{entry['question_id']}`
+        header = f"""## {entry_num}. Question: `{entry["question_id"]}`
 
 | Property | Value |
 |----------|-------|
@@ -439,24 +440,27 @@ class Analyzer:
         ]
 
         for i, user_input in enumerate(entry["user_inputs"]):
-            conversation_md += f"**User Turn {i+1}:**\n> {user_input}\n\n"
+            conversation_md += f"**User Turn {i + 1}:**\n> {user_input}\n\n"
             if i < len(text_responses):
                 # Indent agent response for clarity
                 agent_resp = text_responses[i].replace("\n", "\n  ")
-                conversation_md += f"**Agent Turn {i+1}:**\n  {agent_resp}\n\n"
+                conversation_md += f"**Agent Turn {i + 1}:**\n  {agent_resp}\n\n"
 
         # Final agent response (summary block). Belt-and-suspenders: even
         # though _process_log_row coerces to str, defend here too in case a
         # caller bypasses that path.
-        fr = entry["final_response"] if isinstance(
-            entry["final_response"], str) else str(entry["final_response"] or
-                                                   "")
+        fr = (
+            entry["final_response"]
+            if isinstance(entry["final_response"], str)
+            else str(entry["final_response"] or "")
+        )
         final_response = fr[:500] + "..." if len(fr) > 500 else fr
         response_md = f"### Final Response Summary\n\n{final_response}\n"
 
         # Agent trajectory
-        trajectory = " → ".join(
-            entry["trace_summary"]) if entry["trace_summary"] else "N/A"
+        trajectory = (
+            " → ".join(entry["trace_summary"]) if entry["trace_summary"] else "N/A"
+        )
         trajectory_md = f"### Agent Trajectory\n\n`{trajectory}`\n"
 
         # Tool interactions (concise)
@@ -466,8 +470,9 @@ class Analyzer:
             for tool in entry["tool_interactions"][:10]:  # Limit to 10 tools
                 tool_name = tool.get("tool_name", "unknown")
                 args = tool.get("input_arguments", {})
-                args_summary = ", ".join(
-                    f"{k}" for k in list(args.keys())[:3]) if args else "none"
+                args_summary = (
+                    ", ".join(f"{k}" for k in list(args.keys())[:3]) if args else "none"
+                )
                 result = tool.get("output_result")
                 result_summary = "success" if result else "no result"
                 if isinstance(result, dict) and "error" in str(result).lower():
@@ -481,8 +486,9 @@ class Analyzer:
         if entry["adk_scores"]:
             adk_md = "### ADK Evaluation Scores\n\n"
             for metric, score in entry["adk_scores"].items():
-                score_str = f"{score:.2f}" if isinstance(
-                    score, (int, float)) else str(score)
+                score_str = (
+                    f"{score:.2f}" if isinstance(score, (int, float)) else str(score)
+                )
                 adk_md += f"- **{metric}:** {score_str}\n"
 
         # Evaluation metrics with explanations. The `explanation` field
@@ -494,8 +500,9 @@ class Analyzer:
         for m_name, m_val in entry["eval_results"].items():
             if isinstance(m_val, dict):
                 score = m_val.get("score", "N/A")
-                score_str = f"{score:.2f}" if isinstance(
-                    score, (int, float)) else str(score)
+                score_str = (
+                    f"{score:.2f}" if isinstance(score, (int, float)) else str(score)
+                )
                 expl_raw = m_val.get("explanation", "")
                 if isinstance(expl_raw, str):
                     expl = expl_raw
@@ -523,8 +530,9 @@ class Analyzer:
 {metrics_md}
 """
 
-    def generate_question_answer_log(self, results_file: Path,
-                                     output_path: Path) -> bool:
+    def generate_question_answer_log(
+        self, results_file: Path, output_path: Path
+    ) -> bool:
         """Generates a detailed log comparing questions, reference data, and agent output."""
         logger.debug("Generating Question-Answer Log from %s", results_file)
         try:
@@ -544,10 +552,10 @@ class Analyzer:
             markdown_content = [header]
             markdown_content.extend(
                 self._format_log_entry_markdown(entry, i)
-                for i, entry in enumerate(log_entries, 1))
+                for i, entry in enumerate(log_entries, 1)
+            )
 
-            output_path.write_text("---".join(markdown_content),
-                                   encoding="utf-8")
+            output_path.write_text("---".join(markdown_content), encoding="utf-8")
             logger.debug("Question-answer log saved to %s", output_path)
             return True
 
@@ -559,7 +567,7 @@ class Analyzer:
         self,
         summary_path: Path,
         results_path: Path,
-    ) -> tuple[Optional[dict], Optional[str]]:
+    ) -> tuple[dict | None, str | None]:
         """Analyzes evaluation results and returns the content for the Gemini prompt."""
         try:
             summary_data = json.loads(summary_path.read_text())
@@ -569,8 +577,9 @@ class Analyzer:
             return None, None
 
         # Use 'average_metrics' from summary_data (includes flattened sub-metrics)
-        average_metrics = summary_data.get("overall_summary",
-                                           {}).get("average_metrics", {})
+        average_metrics = summary_data.get("overall_summary", {}).get(
+            "average_metrics", {}
+        )
         # Fallback if average_metrics missing (might need calculation if not in summary yet)
         if not average_metrics:
             # Try to reconstruct from deterministic/llm summaries
@@ -587,21 +596,29 @@ class Analyzer:
                     continue
 
                 for metric, details in eval_results.items():
-                    if (metric in all_explanations and
-                            isinstance(details, dict) and
-                            "explanation" in details and "score" in details):
-                        all_explanations[metric].append({
-                            "score": details["score"],
-                            "explanation": details["explanation"],
-                        })
+                    if (
+                        metric in all_explanations
+                        and isinstance(details, dict)
+                        and "explanation" in details
+                        and "score" in details
+                    ):
+                        all_explanations[metric].append(
+                            {
+                                "score": details["score"],
+                                "explanation": details["explanation"],
+                            }
+                        )
             except (json.JSONDecodeError, TypeError, KeyError):
                 continue
 
         output_lines = ["--- Evaluation Analysis ---\n"]
         for metric, mean_score in average_metrics.items():
             output_lines.append(f"\n## Metric: `{metric}`\n")
-            score_str = (f"{mean_score:.4f}" if isinstance(
-                mean_score, (int, float)) else str(mean_score))
+            score_str = (
+                f"{mean_score:.4f}"
+                if isinstance(mean_score, (int, float))
+                else str(mean_score)
+            )
             output_lines.append(f"**Average Score:** {score_str}\n")
 
             explanations = all_explanations.get(metric)
@@ -609,19 +626,21 @@ class Analyzer:
                 # Show first 10 explanations as a sample
                 explanation_summary = "\n".join(
                     f"- [Score: {exp['score']}] {exp['explanation']}"
-                    for exp in explanations[:10])
+                    for exp in explanations[:10]
+                )
                 output_lines.append(
-                    f"**Sample Explanations:**\n{explanation_summary}\n")
+                    f"**Sample Explanations:**\n{explanation_summary}\n"
+                )
 
         return summary_data, "".join(output_lines)
 
-    def _discover_agent_context(self,
-                                agent_dir: Optional[Path]) -> Dict[str, str]:
+    def _discover_agent_context(self, agent_dir: Path | None) -> dict[str, str]:
         """Discovers and loads agent source code and ADK context from agent directory."""
         return discover_agent_context(agent_dir)
 
-    def _auto_find_previous_run(self, results_dir: Path,
-                                current_run_folder: Path) -> Optional[Path]:
+    def _auto_find_previous_run(
+        self, results_dir: Path, current_run_folder: Path
+    ) -> Path | None:
         """Find the most recent previous run folder in results_dir.
 
         Scans for subdirectories containing eval_summary.json, sorted by
@@ -641,7 +660,7 @@ class Analyzer:
         candidates.sort(key=lambda x: x.stat().st_mtime, reverse=True)
         return candidates[0]
 
-    def _load_baseline_summary(self, compare_to_path: Path) -> Optional[dict]:
+    def _load_baseline_summary(self, compare_to_path: Path) -> dict | None:
         """Load eval_summary.json from a baseline run directory."""
         run_folder = self._find_run_folder(compare_to_path)
         if not run_folder:
@@ -664,10 +683,10 @@ class Analyzer:
     def generate_optimization_log(
         self,
         comparison: dict,
-        focus: Optional[str],
+        focus: str | None,
         run_folder: Path,
-        gemini_comparison_text: Optional[str] = None,
-        current_summary: Optional[dict] = None,
+        gemini_comparison_text: str | None = None,
+        current_summary: dict | None = None,
     ) -> Path:
         """Generate or append to OPTIMIZATION_LOG.md in the results directory.
 
@@ -711,10 +730,13 @@ class Analyzer:
                 entry += f"**Focus:** {focus}\n"
             entry += "\n*Baseline run — no comparison available yet.*\n"
         else:
-            baseline_name = comparison.get("baseline_run_name",
-                                           comparison["baseline_id"])
+            baseline_name = comparison.get(
+                "baseline_run_name", comparison["baseline_id"]
+            )
             current_name = comparison.get("current_run_name", run_folder.name)
-            entry = f"\n\n## Iteration {iteration} — {current_name} vs {baseline_name}\n\n"
+            entry = (
+                f"\n\n## Iteration {iteration} — {current_name} vs {baseline_name}\n\n"
+            )
             entry += f"**Date:** {timestamp}\n"
             entry += f"**Current Run:** {current_name}\n"
             entry += f"**Baseline Run:** {baseline_name}\n"
@@ -731,12 +753,15 @@ class Analyzer:
                 entry += f"**Focus:** {focus}\n"
 
             # Summary counts
-            improvements = sum(1 for d in comparison["deltas"]
-                               if d["direction"] == "improvement")
-            regressions = sum(1 for d in comparison["deltas"]
-                              if d["direction"] == "regression")
+            improvements = sum(
+                1 for d in comparison["deltas"] if d["direction"] == "improvement"
+            )
+            regressions = sum(
+                1 for d in comparison["deltas"] if d["direction"] == "regression"
+            )
             neutral = sum(
-                1 for d in comparison["deltas"] if d["direction"] == "neutral")
+                1 for d in comparison["deltas"] if d["direction"] == "neutral"
+            )
             entry += f"\n**Summary:** {improvements} 🟢 improvements, {regressions} 🔴 regressions, {neutral} ⚪ neutral\n\n"
 
             # Comparison table
@@ -757,18 +782,18 @@ class Analyzer:
             header += "Generated automatically by `agent-eval analyze`.\n"
             log_path.write_text(header + entry, encoding="utf-8")
         else:
-            with open(log_path, "a", encoding="utf-8") as f:
+            with log_path.open("a", encoding="utf-8") as f:
                 f.write(entry)
 
         return log_path
 
-    def generate_gemini_analysis(
+    async def generate_gemini_analysis(
         self,
         summary_data: dict,
         analysis_content: str,
         raw_dir: Path,
         output_path: Path,
-        comparison_data: Optional[dict] = None,
+        comparison_data: dict | None = None,
     ) -> str:
         """Generates a detailed technical diagnosis using Gemini.
 
@@ -791,20 +816,16 @@ class Analyzer:
         # Load standard context files
         for file_path in [consolidated_metrics_file, question_file]:
             if file_path.exists():
-                try:
+                with contextlib.suppress(Exception):
                     context_content[str(file_path)] = file_path.read_text()
-                except Exception:
-                    pass
 
         # Load deterministic metrics logic
         det_metrics_path = Path("src/evaluation/core/deterministic_metrics.py")
         if det_metrics_path.exists():
-            try:
-                context_content[
-                    "evaluation/core/deterministic_metrics.py"] = det_metrics_path.read_text(
-                    )
-            except Exception:
-                pass
+            with contextlib.suppress(Exception):
+                context_content["evaluation/core/deterministic_metrics.py"] = (
+                    det_metrics_path.read_text()
+                )
 
         # Discover agent context from --agent-dir if provided
         agent_dir = self.config.get("agent_dir")
@@ -822,8 +843,7 @@ class Analyzer:
             if strategy_file.exists():
                 try:
                     custom_strategy_content = strategy_file.read_text()
-                    logger.debug("Found optimization strategy: %s",
-                                 strategy_file)
+                    logger.debug("Found optimization strategy: %s", strategy_file)
                 except Exception as e:
                     logger.warning("Could not read strategy file: %s", e)
             else:
@@ -851,12 +871,12 @@ class Analyzer:
 
         model, client = self._get_gemini_client()
 
-        logger.debug("Calling Vertex AI (%s) — Call 1: Current run diagnosis",
-                     model)
+        logger.debug("Calling Vertex AI (%s) — Call 1: Current run diagnosis", model)
         analysis_text = ""
         try:
-            response = client.models.generate_content(model=model,
-                                                      contents=prompt)
+            response = await client.aio.models.generate_content(
+                model=model, contents=prompt
+            )
             analysis_text = response.text
             output_path.write_text(analysis_text, encoding="utf-8")
             logger.debug("Analysis report saved to %s", output_path)
@@ -876,17 +896,20 @@ class Analyzer:
             )
             # Save comparison prompt for debugging
             (raw_dir / "gemini_comparison_prompt.txt").write_text(
-                comparison_prompt, encoding="utf-8")
+                comparison_prompt, encoding="utf-8"
+            )
 
-            logger.debug("Calling Vertex AI (%s) — Call 2: Comparison analysis",
-                         model)
+            logger.debug("Calling Vertex AI (%s) — Call 2: Comparison analysis", model)
             try:
-                response = client.models.generate_content(
-                    model=model, contents=comparison_prompt)
+                response = await client.aio.models.generate_content(
+                    model=model, contents=comparison_prompt
+                )
                 comparison_text = response.text
 
                 # Append comparison to the analysis file
-                combined = analysis_text + "\n\n---\n\n# Run Comparison\n\n" + comparison_text
+                combined = (
+                    analysis_text + "\n\n---\n\n# Run Comparison\n\n" + comparison_text
+                )
                 output_path.write_text(combined, encoding="utf-8")
                 logger.debug("Comparison analysis appended to %s", output_path)
             except Exception as e:
@@ -896,7 +919,7 @@ class Analyzer:
 
     def _get_gemini_client(self):
         """Initialize and return (model_name, genai.Client) for Gemini calls."""
-        from agent_eval.core.config import get_project_id, get_location
+        from agent_eval.core.config import get_location, get_project_id
 
         model = self.config.get("model", "gemini-3.1-pro-preview")
 
@@ -907,15 +930,18 @@ class Analyzer:
 
         if not project:
             logger.warning(
-                "GOOGLE_CLOUD_PROJECT not set. Trying default credentials...")
+                "GOOGLE_CLOUD_PROJECT not set. Trying default credentials..."
+            )
 
-        client = genai.Client(vertexai=True,
-                              project=project,
-                              location=location,
-                              http_options=HttpOptions(api_version="v1"))
+        client = genai.Client(
+            vertexai=True,
+            project=project,
+            location=location,
+            http_options=HttpOptions(api_version="v1"),
+        )
         return model, client
 
-    def _find_run_folder(self, results_dir: Path) -> Optional[Path]:
+    def _find_run_folder(self, results_dir: Path) -> Path | None:
         """
         Find the run folder to analyze. Supports two structures:
         1. Direct run folder: results_dir/raw/evaluation_results_*.csv
@@ -930,8 +956,9 @@ class Analyzer:
 
         # Check if this is a parent folder with timestamp subfolders
         subdirs = [
-            d for d in results_dir.iterdir()
-            if d.is_dir() and d.name.isdigit() or "_" in d.name
+            d
+            for d in results_dir.iterdir()
+            if (d.is_dir() and d.name.isdigit()) or "_" in d.name
         ]
         subdirs.sort(key=lambda x: x.stat().st_mtime, reverse=True)
 
@@ -950,7 +977,7 @@ class Analyzer:
 
         return None
 
-    def run(self) -> Optional[dict]:
+    async def run(self) -> dict | None:
         """Main entry point for analysis.
 
         Returns:
@@ -1016,8 +1043,10 @@ class Analyzer:
                     current_run_name=run_folder.name,
                     agent_dir=agent_dir,
                 )
-                logger.debug("Comparison computed: %d metrics compared",
-                             len(comparison_data['deltas']))
+                logger.debug(
+                    "Comparison computed: %d metrics compared",
+                    len(comparison_data["deltas"]),
+                )
             else:
                 logger.warning("Could not load baseline from %s", compare_to)
         else:
@@ -1026,11 +1055,9 @@ class Analyzer:
             results_parent = run_folder.parent
             if results_parent == run_folder:
                 results_parent = results_dir
-            previous_run = self._auto_find_previous_run(results_parent,
-                                                        run_folder)
+            previous_run = self._auto_find_previous_run(results_parent, run_folder)
             if previous_run:
-                logger.debug("Auto-detected previous run: %s",
-                             previous_run.name)
+                logger.debug("Auto-detected previous run: %s", previous_run.name)
                 baseline_summary = self._load_baseline_summary(previous_run)
                 if baseline_summary:
                     comparison_data = compute_comparison(
@@ -1040,8 +1067,10 @@ class Analyzer:
                         current_run_name=run_folder.name,
                         agent_dir=agent_dir,
                     )
-                    logger.debug("Comparison computed: %d metrics compared",
-                                 len(comparison_data['deltas']))
+                    logger.debug(
+                        "Comparison computed: %d metrics compared",
+                        len(comparison_data["deltas"]),
+                    )
             else:
                 logger.debug("No previous run found (this is the baseline)")
 
@@ -1050,8 +1079,11 @@ class Analyzer:
         if comparison_data:
             b_git = comparison_data.get("baseline_git", {})
             c_git = comparison_data.get("current_git", {})
-            same_commit = (b_git.get("commit") and c_git.get("commit") and
-                           b_git["commit"] == c_git["commit"])
+            same_commit = (
+                b_git.get("commit")
+                and c_git.get("commit")
+                and b_git["commit"] == c_git["commit"]
+            )
             no_diff = not comparison_data.get("git_diff")
             if same_commit or no_diff:
                 skip_comparison_call = True
@@ -1059,31 +1091,33 @@ class Analyzer:
                     logger.debug(
                         "Same commit (%s). Skipping comparison analysis — "
                         "metric changes are due to LLM non-determinism.",
-                        c_git['commit'][:8],
+                        c_git["commit"][:8],
                     )
                 else:
                     logger.debug(
                         "No agent code changes between commits %s..%s. "
                         "Skipping comparison analysis — metric changes are "
                         "due to LLM non-determinism, not code changes.",
-                        b_git.get('commit', '?')[:8],
-                        c_git.get('commit', '?')[:8],
+                        b_git.get("commit", "?")[:8],
+                        c_git.get("commit", "?")[:8],
                     )
 
         # 3. Generate Gemini Analysis (Call 1 + optional Call 2)
         gemini_comparison_text = ""
         if not skip_gemini:
             summary, analysis_content = self.analyze_evaluation_results(
-                summary_file, results_file)
+                summary_file, results_file
+            )
             if summary and analysis_content:
                 analysis_path = run_folder / "gemini_analysis.md"
-                gemini_comparison_text = self.generate_gemini_analysis(
+                gemini_comparison_text = await self.generate_gemini_analysis(
                     summary,
                     analysis_content,
                     raw_dir,
                     analysis_path,
                     comparison_data=comparison_data
-                    if not skip_comparison_call else None,
+                    if not skip_comparison_call
+                    else None,
                 )
 
         # 4. Generate / append OPTIMIZATION_LOG.md
@@ -1104,10 +1138,15 @@ class Analyzer:
         html_report_path = None
         try:
             from agent_eval.core.html_report import generate_html_report
-            gemini_md = (run_folder / "gemini_analysis.md").read_text() \
-                if (run_folder / "gemini_analysis.md").exists() else None
-            opt_log_md = log_path.read_text(
-            ) if log_path and log_path.exists() else None
+
+            gemini_md = (
+                (run_folder / "gemini_analysis.md").read_text()
+                if (run_folder / "gemini_analysis.md").exists()
+                else None
+            )
+            opt_log_md = (
+                log_path.read_text() if log_path and log_path.exists() else None
+            )
             agent_dir_path = Path(self.config.get("agent_dir") or "")
             agent_name = agent_dir_path.name if agent_dir_path.name else None
             html_report_path = generate_html_report(
@@ -1125,8 +1164,7 @@ class Analyzer:
 
         # 6. GCS Upload (Placeholder)
         if gcs_bucket:
-            logger.debug("[PLACEHOLDER] Uploading Results to GCS: gs://%s",
-                         gcs_bucket)
+            logger.debug("[PLACEHOLDER] Uploading Results to GCS: gs://%s", gcs_bucket)
 
         return {
             "current_summary": current_summary,

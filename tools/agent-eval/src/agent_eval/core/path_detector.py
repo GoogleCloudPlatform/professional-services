@@ -30,7 +30,6 @@ from __future__ import annotations
 import os
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import List, Optional
 
 # Mirror init.py's skip set so detection stays consistent with discovery.
 _SKIP_DIRS = {
@@ -67,13 +66,12 @@ class PathDetection:
 
     path: str  # "A" (deployed Agent Engine) | "B" (local source) | "unknown"
     evidence: str = ""
-    agent_engine_resource: Optional[str] = None
-    local_agents: List[Path] = field(default_factory=list)
+    agent_engine_resource: str | None = None
+    local_agents: list[Path] = field(default_factory=list)
 
     def has_both(self) -> bool:
         """True when both a deployed Agent Engine AND a local agent are available."""
-        return self.agent_engine_resource is not None and bool(
-            self.local_agents)
+        return self.agent_engine_resource is not None and bool(self.local_agents)
 
 
 # ---------------------------------------------------------------------------
@@ -81,7 +79,7 @@ class PathDetection:
 # ---------------------------------------------------------------------------
 
 
-def _resource_from_metadata_file(path: Path) -> Optional[str]:
+def _resource_from_metadata_file(path: Path) -> str | None:
     """Extract a real Agent Engine resource name from a deployment-metadata file.
 
     Returns None if the file is missing, malformed, or holds a placeholder.
@@ -90,11 +88,15 @@ def _resource_from_metadata_file(path: Path) -> Optional[str]:
         return None
     try:
         import json
+
         data = json.loads(path.read_text(encoding="utf-8"))
     except (OSError, ValueError):
         return None
-    for key in ("remote_agent_engine_id", "agent_engine_resource_name",
-                "resource_name"):
+    for key in (
+        "remote_agent_engine_id",
+        "agent_engine_resource_name",
+        "resource_name",
+    ):
         value = data.get(key)
         if value and value not in _PLACEHOLDER_RESOURCE_VALUES:
             return value
@@ -111,7 +113,7 @@ _AGENT_ENGINE_METADATA_FILENAMES = (
 )
 
 
-def _find_metadata_candidates(cwd: Path) -> List[Path]:
+def _find_metadata_candidates(cwd: Path) -> list[Path]:
     """rglob for Agent Engine metadata files, shallowest path first.
 
     Mirrors ``_find_local_agents`` so ``init`` finds an Agent Engine deployment
@@ -119,7 +121,7 @@ def _find_metadata_candidates(cwd: Path) -> List[Path]:
     directory. If multiple metadata files exist (rare — multi-project parent),
     the shallowest one wins, which is usually what the user means.
     """
-    candidates: List[Path] = []
+    candidates: list[Path] = []
     for filename in _AGENT_ENGINE_METADATA_FILENAMES:
         for found in cwd.rglob(filename):
             if any(part in _SKIP_DIRS for part in found.parts):
@@ -129,7 +131,7 @@ def _find_metadata_candidates(cwd: Path) -> List[Path]:
     return candidates
 
 
-def _detect_agent_engine(cwd: Path) -> Optional[PathDetection]:
+def _detect_agent_engine(cwd: Path) -> PathDetection | None:
     """Probe for an Agent Engine deployment. Returns None if not found."""
     env_resource = os.getenv("AGENT_ENGINE_RESOURCE_NAME")
     if env_resource and env_resource not in _PLACEHOLDER_RESOURCE_VALUES:
@@ -142,8 +144,11 @@ def _detect_agent_engine(cwd: Path) -> Optional[PathDetection]:
     for candidate in _find_metadata_candidates(cwd):
         resource = _resource_from_metadata_file(candidate)
         if resource:
-            rel = candidate.relative_to(cwd) if candidate.is_relative_to(
-                cwd) else candidate
+            rel = (
+                candidate.relative_to(cwd)
+                if candidate.is_relative_to(cwd)
+                else candidate
+            )
             return PathDetection(
                 path="A",
                 evidence=f"{rel} (remote_agent_engine_id set)",
@@ -158,9 +163,9 @@ def _detect_agent_engine(cwd: Path) -> Optional[PathDetection]:
 # ---------------------------------------------------------------------------
 
 
-def _find_local_agents(cwd: Path) -> List[Path]:
+def _find_local_agents(cwd: Path) -> list[Path]:
     """rglob for ``agent.py`` skipping standard noise directories."""
-    agents: List[Path] = []
+    agents: list[Path] = []
     for agent_py in sorted(cwd.rglob("agent.py")):
         if any(part in _SKIP_DIRS for part in agent_py.parts):
             continue
@@ -168,12 +173,11 @@ def _find_local_agents(cwd: Path) -> List[Path]:
     return agents
 
 
-def _detect_local_adk(cwd: Path) -> Optional[PathDetection]:
+def _detect_local_adk(cwd: Path) -> PathDetection | None:
     agents = _find_local_agents(cwd)
     if not agents:
         return None
-    rel = agents[0].relative_to(cwd) if agents[0].is_relative_to(
-        cwd) else agents[0]
+    rel = agents[0].relative_to(cwd) if agents[0].is_relative_to(cwd) else agents[0]
     extra = f" (+{len(agents) - 1} more)" if len(agents) > 1 else ""
     return PathDetection(
         path="B",
@@ -211,5 +215,6 @@ def detect_execution_path(cwd: Path | str | None = None) -> PathDetection:
     if local_detection is not None:
         return local_detection
 
-    return PathDetection(path="unknown",
-                         evidence="no agent.py or deployment metadata found")
+    return PathDetection(
+        path="unknown", evidence="no agent.py or deployment metadata found"
+    )

@@ -28,18 +28,19 @@ Families mirror ``_evals_metric_handlers._METRIC_HANDLER_MAPPING``:
 from __future__ import annotations
 
 import logging
-from typing import Optional
 
 logger = logging.getLogger("agent_eval")
 
 # Static rubrics use fixed criteria (no LLM-generated rubric step). Per docs:
 # https://docs.cloud.google.com/vertex-ai/generative-ai/docs/models/rubric-metric-details
-_STATIC_RUBRIC: frozenset = frozenset({
-    "grounding_v1",
-    "safety_v1",
-    "final_response_match_v2",
-    "hallucination_v1",
-})
+_STATIC_RUBRIC: frozenset = frozenset(
+    {
+        "grounding_v1",
+        "safety_v1",
+        "final_response_match_v2",
+        "hallucination_v1",
+    }
+)
 
 
 def _normalize(name: str) -> str:
@@ -50,7 +51,7 @@ def _normalize(name: str) -> str:
     """
     n = name.lower()
     # Already has a version suffix
-    if n.endswith("_v1") or n.endswith("_v2"):
+    if n.endswith(("_v1", "_v2")):
         return n
     return n
 
@@ -58,6 +59,7 @@ def _normalize(name: str) -> str:
 def _supported_predefined() -> frozenset:
     try:
         from vertexai._genai import _evals_constant
+
         return _evals_constant.SUPPORTED_PREDEFINED_METRICS
     except ImportError:
         logger.debug("vertexai._genai._evals_constant not importable")
@@ -67,6 +69,7 @@ def _supported_predefined() -> frozenset:
 def _supported_computation() -> frozenset:
     try:
         from vertexai._genai._evals_metric_handlers import ComputationMetricHandler
+
         return ComputationMetricHandler.SUPPORTED_COMPUTATION_METRICS
     except ImportError:
         logger.debug("ComputationMetricHandler not importable")
@@ -76,13 +79,14 @@ def _supported_computation() -> frozenset:
 def _supported_translation() -> frozenset:
     try:
         from vertexai._genai._evals_metric_handlers import TranslationMetricHandler
+
         return TranslationMetricHandler.SUPPORTED_TRANSLATION_METRICS
     except ImportError:
         logger.debug("TranslationMetricHandler not importable")
         return frozenset()
 
 
-def _matches_predefined(n: str, supported: frozenset) -> Optional[str]:
+def _matches_predefined(n: str, supported: frozenset) -> str | None:
     """Return the canonical SDK name (e.g. ``general_quality_v1``) if ``n``
     matches a predefined metric; otherwise None.
     """

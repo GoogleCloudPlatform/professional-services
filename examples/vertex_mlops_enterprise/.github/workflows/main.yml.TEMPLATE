@@ -34,13 +34,13 @@ jobs:
     name: 'Compile Vertex AI pipeline'
     runs-on: 'ubuntu-latest'
     steps:
-    - uses: 'actions/checkout@v3'
+    - uses: 'actions/checkout@v4'
       with:
         token: $${{ github.token }}
          
     - id: 'auth'
       name: 'Authenticate to Google Cloud'
-      uses: 'google-github-actions/auth@v1'
+      uses: 'google-github-actions/auth@v2'
       with:
         create_credentials_file: 'true'
         workload_identity_provider: $${{ env.WORKLOAD_ID_PROVIDER }}

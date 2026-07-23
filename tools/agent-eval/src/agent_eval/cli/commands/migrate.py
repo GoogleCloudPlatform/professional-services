@@ -53,7 +53,7 @@ console = Console()
     "--agent-dir",
     "agent_dir",
     type=click.Path(exists=True, file_okay=False, path_type=Path),
-    default=Path("."),
+    default=Path(),
     show_default=True,
     help="Project root containing the legacy eval/ folder.",
 )
@@ -62,8 +62,7 @@ console = Console()
     "output_path",
     type=click.Path(dir_okay=False, path_type=Path),
     default=None,
-    help=
-    "Destination dataset JSONL. Defaults to <agent-dir>/tests/eval/dataset.jsonl.",
+    help="Destination dataset JSONL. Defaults to <agent-dir>/tests/eval/dataset.jsonl.",
 )
 @click.option(
     "--dry-run",
@@ -144,12 +143,13 @@ def migrate(
     console.print()
     console.print("  [green]>[/] Migration complete.")
     console.print(f"  [dim]Output:    [/] [cyan]{summary['output_path']}[/]")
-    console.print(f"  [dim]Rows:      [/] [bold]{summary['total_rows']}[/]"
-                  f" [dim]({summary['scenario_rows']} from scenarios,"
-                  f" {summary['golden_rows']} from golden_dataset)[/]")
+    console.print(
+        f"  [dim]Rows:      [/] [bold]{summary['total_rows']}[/]"
+        f" [dim]({summary['scenario_rows']} from scenarios,"
+        f" {summary['golden_rows']} from golden_dataset)[/]"
+    )
     if summary["metrics_copied"]:
-        console.print(
-            f"  [dim]Metrics:   [/] [cyan]{summary['metrics_copied']}[/]")
+        console.print(f"  [dim]Metrics:   [/] [cyan]{summary['metrics_copied']}[/]")
     if summary["backup_dir"]:
         console.print(f"  [dim]Backup:    [/] [cyan]{summary['backup_dir']}[/]")
     else:
@@ -158,4 +158,5 @@ def migrate(
     console.print()
     console.print(
         "  [dim]Next:[/] verify [cyan]tests/eval/dataset.jsonl[/], then run "
-        "[bold]agent-eval evaluate[/] or [bold]agent-eval agent-engine[/].")
+        "[bold]agent-eval evaluate[/] or [bold]agent-eval agent-engine[/]."
+    )
