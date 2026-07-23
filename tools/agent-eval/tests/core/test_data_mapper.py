@@ -48,16 +48,17 @@ class TestNormalizeInput(unittest.TestCase):
     the data type we want to test.
     """
 
-    def _map_single_column(self,
-                           column_data,
-                           placeholder="custom_field",
-                           source_column="test_col"):
+    def _map_single_column(
+        self, column_data, placeholder="custom_field", source_column="test_col"
+    ):
         """Helper: create a 1-row DataFrame with column_data and map it."""
-        df = pd.DataFrame({
-            "user_inputs": [["What is X?"]],
-            "final_response": ["Response about X"],
-            source_column: [column_data],
-        })
+        df = pd.DataFrame(
+            {
+                "user_inputs": [["What is X?"]],
+                "final_response": ["Response about X"],
+                source_column: [column_data],
+            }
+        )
         mapping = {placeholder: {"source_column": source_column}}
         result = map_dataset_columns(df, df, mapping, "TEST_METRIC")
         return result[placeholder].iloc[0]
@@ -69,17 +70,13 @@ class TestNormalizeInput(unittest.TestCase):
         tool_interactions = [
             {
                 "tool_name": "search",
-                "input_arguments": {
-                    "q": "test"
-                },
-                "output_result": "found 3"
+                "input_arguments": {"q": "test"},
+                "output_result": "found 3",
             },
             {
                 "tool_name": "fetch",
-                "input_arguments": {
-                    "url": "/doc/1"
-                },
-                "output_result": "content"
+                "input_arguments": {"url": "/doc/1"},
+                "output_result": "content",
             },
         ]
         result = self._map_single_column(tool_interactions)
@@ -101,11 +98,7 @@ class TestNormalizeInput(unittest.TestCase):
 
     def test_grounding_context_produces_json_array(self):
         """Grounding context (list of dicts) uses json.dumps — same as tool_interactions."""
-        context = [{
-            "text": "Document 1 content"
-        }, {
-            "text": "Document 2 content"
-        }]
+        context = [{"text": "Document 1 content"}, {"text": "Document 2 content"}]
         result = self._map_single_column(context, placeholder="context")
         parsed = json.loads(result)
 
@@ -203,29 +196,17 @@ class TestMapDatasetColumnsExtractedData(unittest.TestCase):
     def test_extracted_data_tool_interactions_via_flattened_column(self):
         """Simulate how json_normalize creates 'extracted_data.tool_interactions' column."""
         tool_interactions = [
-            {
-                "tool_name": "agent_a",
-                "input_arguments": {
-                    "request": "find docs"
-                }
-            },
-            {
-                "tool_name": "search_tool",
-                "input_arguments": {
-                    "query": "test"
-                }
-            },
+            {"tool_name": "agent_a", "input_arguments": {"request": "find docs"}},
+            {"tool_name": "search_tool", "input_arguments": {"query": "test"}},
         ]
-        df = pd.DataFrame({
-            "user_inputs": [["Find documents about X"]],
-            "final_response": ["Here are the results..."],
-            "extracted_data.tool_interactions": [tool_interactions],
-        })
-        mapping = {
-            "response": {
-                "source_column": "extracted_data:tool_interactions"
+        df = pd.DataFrame(
+            {
+                "user_inputs": [["Find documents about X"]],
+                "final_response": ["Here are the results..."],
+                "extracted_data.tool_interactions": [tool_interactions],
             }
-        }
+        )
+        mapping = {"response": {"source_column": "extracted_data:tool_interactions"}}
         result = map_dataset_columns(df, df, mapping, "tool_trajectory")
 
         parsed = json.loads(result["response"].iloc[0])
@@ -236,25 +217,19 @@ class TestMapDatasetColumnsExtractedData(unittest.TestCase):
     def test_extracted_data_nested_lookup_fallback(self):
         """When flattened column doesn't exist, falls back to nested dict lookup."""
         extracted_data = {
-            "tool_interactions": [{
-                "tool_name": "search",
-                "output_result": "3 results"
-            }],
-            "sub_agent_trace": [{
-                "agent_name": "root_agent",
-                "text_response": "done"
-            }],
+            "tool_interactions": [
+                {"tool_name": "search", "output_result": "3 results"}
+            ],
+            "sub_agent_trace": [{"agent_name": "root_agent", "text_response": "done"}],
         }
-        df = pd.DataFrame({
-            "user_inputs": [["Query"]],
-            "final_response": ["Response"],
-            "extracted_data": [extracted_data],
-        })
-        mapping = {
-            "tools": {
-                "source_column": "extracted_data:tool_interactions"
+        df = pd.DataFrame(
+            {
+                "user_inputs": [["Query"]],
+                "final_response": ["Response"],
+                "extracted_data": [extracted_data],
             }
-        }
+        )
+        mapping = {"tools": {"source_column": "extracted_data:tool_interactions"}}
         result = map_dataset_columns(df, df, mapping, "TEST_METRIC")
 
         parsed = json.loads(result["tools"].iloc[0])
@@ -272,31 +247,23 @@ class TestCustomPlaceholders(unittest.TestCase):
 
     def test_custom_placeholder_names(self):
         """Placeholders beyond prompt/response/reference work."""
-        df = pd.DataFrame({
-            "user_inputs": [["What tools are available?"]],
-            "final_response": ["Here's what I found"],
-            "extracted_data.tool_interactions": [[{
-                "tool_name": "search",
-                "output_result": "ok"
-            }]],
-            "extracted_data.tool_declarations": [[{
-                "name": "search",
-                "description": "Search docs"
-            }]],
-        })
+        df = pd.DataFrame(
+            {
+                "user_inputs": [["What tools are available?"]],
+                "final_response": ["Here's what I found"],
+                "extracted_data.tool_interactions": [
+                    [{"tool_name": "search", "output_result": "ok"}]
+                ],
+                "extracted_data.tool_declarations": [
+                    [{"name": "search", "description": "Search docs"}]
+                ],
+            }
+        )
         mapping = {
-            "prompt": {
-                "source_column": "user_inputs"
-            },
-            "response": {
-                "source_column": "final_response"
-            },
-            "tool_calls": {
-                "source_column": "extracted_data:tool_interactions"
-            },
-            "available_tools": {
-                "source_column": "extracted_data:tool_declarations"
-            },
+            "prompt": {"source_column": "user_inputs"},
+            "response": {"source_column": "final_response"},
+            "tool_calls": {"source_column": "extracted_data:tool_interactions"},
+            "available_tools": {"source_column": "extracted_data:tool_declarations"},
         }
         result = map_dataset_columns(df, df, mapping, "tool_use_quality")
 
@@ -328,39 +295,38 @@ class TestTemplateCombinedColumns(unittest.TestCase):
 
     def test_combine_two_columns_into_one(self):
         """Two source columns merged via template into a single placeholder."""
-        df = pd.DataFrame({
-            "user_inputs": [["What is the weather?"]],
-            "final_response": ["It's sunny today"],
-            "agent_reasoning": ["I checked the weather API"],
-        })
+        df = pd.DataFrame(
+            {
+                "user_inputs": [["What is the weather?"]],
+                "final_response": ["It's sunny today"],
+                "agent_reasoning": ["I checked the weather API"],
+            }
+        )
         mapping = {
             "response": {
-                "template":
-                    "Answer: {final_response}\nReasoning: {agent_reasoning}",
+                "template": "Answer: {final_response}\nReasoning: {agent_reasoning}",
                 "source_columns": ["final_response", "agent_reasoning"],
             }
         }
         result = map_dataset_columns(df, df, mapping, "TEST_METRIC")
 
         assert "Answer: It's sunny today" in result["response"].iloc[0]
-        assert "Reasoning: I checked the weather API" in result[
-            "response"].iloc[0]
+        assert "Reasoning: I checked the weather API" in result["response"].iloc[0]
 
     def test_combine_with_extracted_data_column(self):
         """source_columns with colon notation are resolved and underscored in template."""
-        df = pd.DataFrame({
-            "user_inputs": [["Analyze this"]],
-            "final_response": ["Analysis complete"],
-            "extracted_data.search_results": ["3 documents found"],
-        })
+        df = pd.DataFrame(
+            {
+                "user_inputs": [["Analyze this"]],
+                "final_response": ["Analysis complete"],
+                "extracted_data.search_results": ["3 documents found"],
+            }
+        )
         # Colons in source_columns → underscores in template vars
         mapping = {
             "context": {
-                "template":
-                    "Query: {user_inputs}\nSearch output: {extracted_data_search_results}",
-                "source_columns": [
-                    "user_inputs", "extracted_data:search_results"
-                ],
+                "template": "Query: {user_inputs}\nSearch output: {extracted_data_search_results}",
+                "source_columns": ["user_inputs", "extracted_data:search_results"],
             }
         }
         result = map_dataset_columns(df, df, mapping, "TEST_METRIC")
@@ -371,24 +337,20 @@ class TestTemplateCombinedColumns(unittest.TestCase):
     def test_structured_data_serialized_as_json(self):
         """Lists and dicts in template source_columns are JSON-serialized, not Python repr."""
         tool_interactions = [
-            {
-                "tool_name": "search",
-                "output_result": "found it"
-            },
+            {"tool_name": "search", "output_result": "found it"},
         ]
-        df = pd.DataFrame({
-            "user_inputs": [["Query"]],
-            "final_response": ["Response"],
-            "extracted_data.tool_interactions": [tool_interactions],
-            "trace_summary": [["agent:root_agent", "tool:search"]],
-        })
+        df = pd.DataFrame(
+            {
+                "user_inputs": [["Query"]],
+                "final_response": ["Response"],
+                "extracted_data.tool_interactions": [tool_interactions],
+                "trace_summary": [["agent:root_agent", "tool:search"]],
+            }
+        )
         mapping = {
             "combined": {
-                "template":
-                    "Tools: {extracted_data_tool_interactions}\nTrajectory: {trace_summary}",
-                "source_columns": [
-                    "extracted_data:tool_interactions", "trace_summary"
-                ],
+                "template": "Tools: {extracted_data_tool_interactions}\nTrajectory: {trace_summary}",
+                "source_columns": ["extracted_data:tool_interactions", "trace_summary"],
             }
         }
         result = map_dataset_columns(df, df, mapping, "TEST_METRIC")
@@ -424,37 +386,29 @@ class TestToolTrajectoryEndToEnd(unittest.TestCase):
                 "expected_tool_trajectory": ["search_agent", "vector_search"],
             },
             "extracted_data": {
-                "tool_interactions": [{
-                    "tool_name": "search_agent",
-                    "input_arguments": {
-                        "request": "Find server maintenance docs"
-                    },
-                    "call_id": "call-abc-123",
-                    "output_result": "No results were returned.",
-                }],
-                "sub_agent_trace": [{
-                    "agent_name": "root_agent",
-                    "text_response": "No results found."
-                }],
+                "tool_interactions": [
+                    {
+                        "tool_name": "search_agent",
+                        "input_arguments": {"request": "Find server maintenance docs"},
+                        "call_id": "call-abc-123",
+                        "output_result": "No results were returned.",
+                    }
+                ],
+                "sub_agent_trace": [
+                    {"agent_name": "root_agent", "text_response": "No results found."}
+                ],
             },
         }
 
         # Simulate evaluator flow: DataFrame + json_normalize
         df = pd.DataFrame([record])
-        expanded = pd.json_normalize(
-            df["extracted_data"]).add_prefix("extracted_data.")
+        expanded = pd.json_normalize(df["extracted_data"]).add_prefix("extracted_data.")
         agent_df = pd.concat([df, expanded], axis=1)
 
         mapping = {
-            "prompt": {
-                "source_column": "user_inputs"
-            },
-            "response": {
-                "source_column": "extracted_data:tool_interactions"
-            },
-            "reference": {
-                "source_column": "reference_data"
-            },
+            "prompt": {"source_column": "user_inputs"},
+            "response": {"source_column": "extracted_data:tool_interactions"},
+            "reference": {"source_column": "reference_data"},
         }
 
         result = map_dataset_columns(agent_df, df, mapping, "tool_trajectory")
@@ -469,7 +423,8 @@ class TestToolTrajectoryEndToEnd(unittest.TestCase):
         # The reference column must be a valid JSON object
         ref_parsed = json.loads(result["reference"].iloc[0])
         assert ref_parsed["expected_tool_trajectory"] == [
-            "search_agent", "vector_search"
+            "search_agent",
+            "vector_search",
         ]
 
     def test_multi_tool_trajectory_preserves_order(self):
@@ -490,41 +445,30 @@ class TestToolTrajectoryEndToEnd(unittest.TestCase):
                 "tool_interactions": [
                     {
                         "tool_name": "search_agent",
-                        "input_arguments": {
-                            "request": "search"
-                        }
+                        "input_arguments": {"request": "search"},
                     },
                     {
                         "tool_name": "vector_search",
-                        "input_arguments": {
-                            "query": "docs"
-                        }
+                        "input_arguments": {"query": "docs"},
                     },
                     {
                         "tool_name": "summary_agent",
-                        "input_arguments": {
-                            "type": "brief"
-                        }
+                        "input_arguments": {"type": "brief"},
                     },
                     {
                         "tool_name": "generate_report",
-                        "input_arguments": {
-                            "format": "md"
-                        }
+                        "input_arguments": {"format": "md"},
                     },
                 ],
             },
         }
 
         df = pd.DataFrame([record])
-        expanded = pd.json_normalize(
-            df["extracted_data"]).add_prefix("extracted_data.")
+        expanded = pd.json_normalize(df["extracted_data"]).add_prefix("extracted_data.")
         agent_df = pd.concat([df, expanded], axis=1)
 
         mapping = {
-            "response": {
-                "source_column": "extracted_data:tool_interactions"
-            },
+            "response": {"source_column": "extracted_data:tool_interactions"},
         }
         result = map_dataset_columns(agent_df, df, mapping, "tool_trajectory")
 
@@ -543,21 +487,17 @@ class TestMapDatasetColumnsMultiRow(unittest.TestCase):
 
     def test_mixed_row_types(self):
         """Each row is normalized independently."""
-        df = pd.DataFrame({
-            "user_inputs": [["Q1"], ["Q2"], ["Q3"]],
-            "final_response": ["R1", "R2", "R3"],
-            "tools": [
-                [{
-                    "tool_name": "search"
-                }, {
-                    "tool_name": "fetch"
-                }],  # 2 dicts
-                [{
-                    "tool_name": "analyze"
-                }],  # 1 dict
-                [],  # empty
-            ],
-        })
+        df = pd.DataFrame(
+            {
+                "user_inputs": [["Q1"], ["Q2"], ["Q3"]],
+                "final_response": ["R1", "R2", "R3"],
+                "tools": [
+                    [{"tool_name": "search"}, {"tool_name": "fetch"}],  # 2 dicts
+                    [{"tool_name": "analyze"}],  # 1 dict
+                    [],  # empty
+                ],
+            }
+        )
         mapping = {"tool_data": {"source_column": "tools"}}
         result = map_dataset_columns(df, df, mapping, "TEST_METRIC")
 

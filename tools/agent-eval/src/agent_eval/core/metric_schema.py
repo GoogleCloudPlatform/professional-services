@@ -162,21 +162,23 @@ KIND_COMPUTATION: Final[str] = "computation"
 KIND_PYTHON_FUNCTION: Final[str] = "python_function"
 KIND_REMOTE_CODE: Final[str] = "remote_code"
 
-ALL_KINDS: Final[frozenset[str]] = frozenset({
-    KIND_MANAGED,
-    KIND_PARAMETRIZED_MANAGED,
-    KIND_CUSTOM_LLM_JUDGE,
-    KIND_COMPUTATION,
-    KIND_PYTHON_FUNCTION,
-    KIND_REMOTE_CODE,
-})
+ALL_KINDS: Final[frozenset[str]] = frozenset(
+    {
+        KIND_MANAGED,
+        KIND_PARAMETRIZED_MANAGED,
+        KIND_CUSTOM_LLM_JUDGE,
+        KIND_COMPUTATION,
+        KIND_PYTHON_FUNCTION,
+        KIND_REMOTE_CODE,
+    }
+)
 
 # Required fields per kind. Used by the validator. The SDK doesn't expose
 # this — it's our schema's invariant.
 REQUIRED_FIELDS: Final[dict[str, frozenset[str]]] = {
     KIND_MANAGED: frozenset({"base"}),
     KIND_PARAMETRIZED_MANAGED: frozenset({"base"}),
-    KIND_CUSTOM_LLM_JUDGE: frozenset({"criteria", "rating_scores"}),
+    KIND_CUSTOM_LLM_JUDGE: frozenset(),  # Checked customly in validator
     KIND_COMPUTATION: frozenset({"metric_name"}),
     KIND_PYTHON_FUNCTION: frozenset({"module", "function"}),
     KIND_REMOTE_CODE: frozenset({"code_snippet"}),
@@ -325,7 +327,7 @@ def metric_display_score_range(info: dict) -> dict:
     rating_scores = info.get("rating_scores") or {}
     if rating_scores:
         try:
-            keys = sorted(int(k) for k in rating_scores.keys())
+            keys = sorted(int(k) for k in rating_scores)
             return {"min": keys[0], "max": keys[-1], "type": "rubric"}
         except (TypeError, ValueError):
             pass

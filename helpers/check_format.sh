@@ -23,6 +23,9 @@
 # - typescript (using npm)
 # - java (using google-java-format 1.7)
 
+# global list of folders to exclude
+EXCLUDE_FOLDERS=$(cat helpers/exclusion_list.txt)
+
 # need_formatting - helper function to error out when
 # a folder contains files that need formatting
 # @args $1 - Folder local path
@@ -158,6 +161,21 @@ validate_typescript(){
         for tsconfig_path in $FILES_TO_CHECK
         do
             tsconfig_dir=$(dirname "$tsconfig_path")
+            
+            # Check if the directory is part of an excluded folder
+            is_excluded=false
+            for excluded in $EXCLUDE_FOLDERS; do
+                if [[ "$tsconfig_dir" == "$excluded"* ]]; then
+                    is_excluded=true
+                    break
+                fi
+            done
+
+            if [[ "$is_excluded" == true ]]; then
+                echo "$tsconfig_dir in exclusion list - SKIP"
+                continue
+            fi
+
             echo "Validating $tsconfig_dir - Checking typescript files"
             cd "$tsconfig_dir" || exit 1
 
@@ -217,8 +235,6 @@ validate_java(){
     fi
 }
 
-# temporary list of folders to exclude
-EXCLUDE_FOLDERS=$(cat helpers/exclusion_list.txt)
 while IFS= read -r -d '' FOLDER
 do
     if  [[ ! ${EXCLUDE_FOLDERS[*]} =~ $FOLDER ]]

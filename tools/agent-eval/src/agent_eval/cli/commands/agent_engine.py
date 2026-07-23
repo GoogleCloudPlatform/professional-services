@@ -37,7 +37,7 @@ import json
 import os
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import click
 import pandas as pd
@@ -50,7 +50,7 @@ console = Console()
 # ---------------------------------------------------------------------------
 
 
-def _resolve_resource_name(explicit: Optional[str], cwd: Path) -> Optional[str]:
+def _resolve_resource_name(explicit: str | None, cwd: Path) -> str | None:
     """Resolve the Agent Engine resource name from CLI arg, env, or metadata file."""
     if explicit:
         return explicit
@@ -83,7 +83,7 @@ def _resolve_metrics_path(metrics_path: Path) -> Path:
     return metrics_path
 
 
-def _load_metric_definitions(metrics_path: Path) -> Dict[str, Dict[str, Any]]:
+def _load_metric_definitions(metrics_path: Path) -> dict[str, dict[str, Any]]:
     """Read metric definitions JSON, returning {} if file is missing."""
     resolved = _resolve_metrics_path(metrics_path)
     if not resolved.exists():
@@ -97,14 +97,18 @@ def _load_metric_definitions(metrics_path: Path) -> Dict[str, Dict[str, Any]]:
     except (OSError, ValueError) as exc:
         console.print(f"  [yellow]![/] Could not read {resolved}: {exc}")
         return {}
-    if isinstance(data, dict) and "metrics" in data and isinstance(
-            data["metrics"], dict):
+    if (
+        isinstance(data, dict)
+        and "metrics" in data
+        and isinstance(data["metrics"], dict)
+    ):
         return data["metrics"]
     return data
 
 
 def _build_evaluation_run_metrics(
-    metric_definitions: Dict[str, Dict[str, Any]],) -> List[Any]:
+    metric_definitions: dict[str, dict[str, Any]],
+) -> list[Any]:
     """Convert the canonical-schema metric definitions into EvaluationRunMetric objects.
 
     Routes EVERY entry through ``metric_factory.build_metric``, which dispatches
@@ -122,18 +126,18 @@ def _build_evaluation_run_metrics(
     """
     from agent_eval.core import metric_factory
 
-    run_metrics: List[Any] = []
+    run_metrics: list[Any] = []
     for name, spec in metric_definitions.items():
         if not isinstance(spec, dict):
             continue
         try:
             sdk_metric = metric_factory.build_metric(name, spec)
-            run_metrics.append(
-                metric_factory.to_evaluation_run_metric(sdk_metric))
-        except Exception as exc:  # noqa: BLE001
+            run_metrics.append(metric_factory.to_evaluation_run_metric(sdk_metric))
+        except Exception as exc:
             console.print(
                 f"  [yellow]![/] Skipping [cyan]{name}[/]: failed to build SDK "
-                f"metric ({type(exc).__name__}: {exc}).")
+                f"metric ({type(exc).__name__}: {exc})."
+            )
     return run_metrics
 
 
@@ -187,46 +191,48 @@ def _project_for_inference(dataset: Any, vt_evals: Any) -> Any:
     for _, row in dataset.iterrows():
         si_raw = row.get("session_inputs")
         if isinstance(si_raw, dict):
-            for k in si_raw.keys():
+            for k in si_raw:
                 if k not in ("user_id", "state"):
                     dropped_si_keys.add(k)
             si = SessionInput(
                 user_id=si_raw.get("user_id", "eval_user"),
                 state=si_raw.get("state") or {},
             )
-        elif si_raw is None or (hasattr(si_raw, "__class__") and
-                                si_raw.__class__.__name__ == "float"):
+        elif si_raw is None or (
+            hasattr(si_raw, "__class__") and si_raw.__class__.__name__ == "float"
+        ):
             # NaN from pandas — synthesize a minimal SessionInput
             si = SessionInput(user_id="eval_user", state={})
         else:
             si = si_raw  # already a SessionInput instance
         rows.append({"prompt": row["prompt"], "session_inputs": si})
 
-    held_back = [
-        c for c in dataset.columns if c not in ("prompt", "session_inputs")
-    ]
+    held_back = [c for c in dataset.columns if c not in ("prompt", "session_inputs")]
     console.print(
         "  [dim]>[/] [bold]What we're sending to[/] [cyan]run_inference[/] "
-        "[dim](per docs/evaluation-agents-client):[/]")
+        "[dim](per docs/evaluation-agents-client):[/]"
+    )
     console.print(
         f"      [cyan]•[/] [bold]{len(rows)} row(s)[/] × 2 columns: "
         "[cyan]prompt[/] + [cyan]session_inputs[/] (typed [cyan]SessionInput(user_id, state)[/])"
     )
     if dropped_si_keys:
         keys = ", ".join(f"[cyan]{k}[/]" for k in sorted(dropped_si_keys))
-        console.print(f"      [cyan]•[/] Dropped from session_inputs: {keys}  "
-                      "[dim](not in docs' SessionInput schema)[/]")
+        console.print(
+            f"      [cyan]•[/] Dropped from session_inputs: {keys}  "
+            "[dim](not in docs' SessionInput schema)[/]"
+        )
     if held_back:
         cols = ", ".join(f"[cyan]{c}[/]" for c in held_back)
         console.print(
             f"      [cyan]•[/] Held back, merged after inference: {cols}  "
-            "[dim](needed for scoring, not for invocation)[/]")
+            "[dim](needed for scoring, not for invocation)[/]"
+        )
 
     return pd.DataFrame(rows)
 
 
-def _merge_inference_with_extras(inference_dataset: Any,
-                                 original_df: Any) -> Any:
+def _merge_inference_with_extras(inference_dataset: Any, original_df: Any) -> Any:
     """Add the extras (``reference_data``, ``id``, etc.) back onto the inference df.
 
     ``run_inference`` returns an ``EvaluationDataset`` (pydantic) wrapping the
@@ -240,9 +246,9 @@ def _merge_inference_with_extras(inference_dataset: Any,
     if inference_df is None:
         return inference_dataset
     extras_cols = [
-        c for c in original_df.columns
-        if c not in inference_df.columns and c not in ("prompt",
-                                                       "session_inputs")
+        c
+        for c in original_df.columns
+        if c not in inference_df.columns and c not in ("prompt", "session_inputs")
     ]
     if not extras_cols:
         return inference_dataset
@@ -294,7 +300,8 @@ def _check_inference_response_health(
         console.print(
             f"  [yellow]![/] {n_bad}/{n_total} row(s) came back from the deployed "
             "agent with empty events — Vertex stuffed an error in their response "
-            "text. Those rows will score 0 / fail at the autorater stage.")
+            "text. Those rows will score 0 / fail at the autorater stage."
+        )
         return
 
     # Every row failed — abort. Continuing wastes a Vertex eval run + GCS
@@ -302,12 +309,14 @@ def _check_inference_response_health(
     # (it'll blame the autorater when the real failure was upstream).
     console.print(
         f"  [red]✗[/] [bold]All {n_total} rows came back with empty events from the "
-        "deployed agent.[/] [dim](Vertex captured \"Failed to parse agent run response []\" "
-        "as the response text for every row.)[/]")
+        'deployed agent.[/] [dim](Vertex captured "Failed to parse agent run response []" '
+        "as the response text for every row.)[/]"
+    )
     console.print()
     console.print(
         "  [bold yellow]Aborting before submission[/] — no point asking the autorater to "
-        "score error strings. Fix the deployed agent first, then re-run.")
+        "score error strings. Fix the deployed agent first, then re-run."
+    )
     console.print()
     console.print("  [bold]Most likely causes, in order:[/]")
     console.print(
@@ -315,17 +324,18 @@ def _check_inference_response_health(
     )
     console.print(
         "        [cyan]Reasoning Engine[/] [dim]logs around the eval timestamp. "
-        "Look for[/] [cyan]\"Task ... got Future attached to a different loop\"[/]"
+        'Look for[/] [cyan]"Task ... got Future attached to a different loop"[/]'
     )
     console.print(
-        "        [dim]or[/] [cyan]\"Event loop is closed\"[/][dim] — known ADK threading "
+        '        [dim]or[/] [cyan]"Event loop is closed"[/][dim] — known ADK threading '
         "issue when tools/clients init across threads. Often fixed by re-deploying[/]"
     )
     console.print(
         "        [dim]with the latest google-adk + reinitializing clients inside async scopes.[/]"
     )
     console.print(
-        "    [cyan]2.[/] [bold]Deployed agent is broken[/] — test it directly:")
+        "    [cyan]2.[/] [bold]Deployed agent is broken[/] — test it directly:"
+    )
     console.print("        [dim]$[/] cd <agent_dir> && make playground")
     console.print(
         "    [cyan]3.[/] [bold]SDK version mismatch[/] between your deployment and agent-eval's venv —"
@@ -388,7 +398,7 @@ def _sanitize_inference_responses(inference_dataset: Any) -> Any:
     inference_dataset.eval_dataset_df = df
     if fixed:
         console.print(
-            f"  [dim]Coerced {fixed} NaN/None cell(s) → \"\" so the SDK validator accepts them.[/]"
+            f'  [dim]Coerced {fixed} NaN/None cell(s) → "" so the SDK validator accepts them.[/]'
         )
     return inference_dataset
 
@@ -400,15 +410,15 @@ def _default_destination(project: str) -> str:
     return f"gs://{bucket}/agent-eval/{timestamp}"
 
 
-def _bucket_name_from_uri(uri: str) -> Optional[str]:
+def _bucket_name_from_uri(uri: str) -> str | None:
     """Extract the bucket name from a ``gs://bucket/path`` URI."""
     if not uri.startswith("gs://"):
         return None
-    rest = uri[len("gs://"):]
+    rest = uri[len("gs://") :]
     return rest.split("/", 1)[0] or None
 
 
-def _load_local_agent(agent_module: Optional[str], cwd: Path) -> Optional[Any]:
+def _load_local_agent(agent_module: str | None, cwd: Path) -> Any | None:
     """Import the local ADK agent so we can build ``AgentInfo`` for the run.
 
     The Vertex SDK's ``create_evaluation_run`` doesn't *require* an
@@ -429,16 +439,18 @@ def _load_local_agent(agent_module: Optional[str], cwd: Path) -> Optional[Any]:
     import sys
 
     spec = agent_module
-    extra_sys_path: Optional[Path] = None
+    extra_sys_path: Path | None = None
 
     if spec is None:
         from agent_eval.core.path_detector import detect_execution_path
+
         detection = detect_execution_path(cwd)
         if not detection.local_agents:
             console.print(
                 "  [yellow]![/] No local agent.py found — submitting without "
                 "agent_info. Use [cyan]--agent-module pkg.module:root_agent[/] "
-                "if your agent lives outside auto-detection.")
+                "if your agent lives outside auto-detection."
+            )
             return None
         agent_py = detection.local_agents[0]
         package_dir = agent_py.parent  # e.g. .../my-agent/app
@@ -464,15 +476,22 @@ def _load_local_agent(agent_module: Optional[str], cwd: Path) -> Optional[Any]:
         missing = exc.name or str(exc)
         console.print(
             f"  [yellow]![/] Couldn't import [cyan]{spec}[/] locally: "
-            f"missing dependency [bold]{missing}[/]")
+            f"missing dependency [bold]{missing}[/]"
+        )
         console.print("    [dim]Two ways to fix in your agent-eval venv:[/]")
-        console.print(f"    [dim]  a) install just the missing dep:[/]  "
-                      f"[cyan]uv pip install {missing}[/]")
+        console.print(
+            f"    [dim]  a) install just the missing dep:[/]  "
+            f"[cyan]uv pip install {missing}[/]"
+        )
         if extra_sys_path is not None:
-            console.print(f"    [dim]  b) install the agent's full deps:[/]  "
-                          f"[cyan]uv pip install -e {extra_sys_path}[/]")
-        console.print("    [dim]Continuing with a minimal AgentInfo "
-                      "(resource_name only — see below).[/]")
+            console.print(
+                f"    [dim]  b) install the agent's full deps:[/]  "
+                f"[cyan]uv pip install -e {extra_sys_path}[/]"
+            )
+        console.print(
+            "    [dim]Continuing with a minimal AgentInfo "
+            "(resource_name only — see below).[/]"
+        )
         return None
     except ImportError as exc:
         # Top-level import worked but pulled in a sub-import that failed.
@@ -480,26 +499,30 @@ def _load_local_agent(agent_module: Optional[str], cwd: Path) -> Optional[Any]:
         console.print(f"  [yellow]![/] Couldn't import [cyan]{spec}[/]: {exc}")
         console.print(
             "    [dim]Looks like a transitive import error. Try installing the "
-            "agent's deps in agent-eval's venv:[/]")
+            "agent's deps in agent-eval's venv:[/]"
+        )
         if extra_sys_path is not None:
             console.print(f"    [cyan]uv pip install -e {extra_sys_path}[/]")
         console.print(
             "    [dim]Continuing with a minimal AgentInfo (resource_name only).[/]"
         )
         return None
-    except (AttributeError, Exception) as exc:  # noqa: BLE001
+    except (AttributeError, Exception) as exc:
         console.print(f"  [yellow]![/] Could not load [cyan]{spec}[/]: {exc}")
-        console.print("    [dim]Wrong path? Override with[/] "
-                      "[cyan]--agent-module pkg.module:attr[/][dim]. "
-                      "Continuing with a minimal AgentInfo.[/]")
+        console.print(
+            "    [dim]Wrong path? Override with[/] "
+            "[cyan]--agent-module pkg.module:attr[/][dim]. "
+            "Continuing with a minimal AgentInfo.[/]"
+        )
         return None
 
     console.print(f"  [dim]Local agent:[/] [cyan]{spec}[/]")
     return agent
 
 
-def _build_agent_info(vt_evals: Any, agent: Optional[Any],
-                      resource_name: str) -> Optional[Any]:
+def _build_agent_info(
+    vt_evals: Any, agent: Any | None, resource_name: str
+) -> Any | None:
     """Build an ``AgentInfo`` for ``create_evaluation_run``.
 
     Three layers of fidelity:
@@ -523,10 +546,11 @@ def _build_agent_info(vt_evals: Any, agent: Optional[Any],
     # Layer 1: Full SDK helper (only when we have a real agent)
     if agent is not None:
 
-        def _try_load() -> Optional[Any]:
+        def _try_load() -> Any | None:
             try:
                 return AgentInfo.load_from_agent(
-                    agent, agent_resource_name=resource_name)
+                    agent, agent_resource_name=resource_name
+                )
             except TypeError:
                 try:
                     return AgentInfo.load_from_agent(agent)
@@ -541,17 +565,22 @@ def _build_agent_info(vt_evals: Any, agent: Optional[Any],
 
     # Layer 2 / 3: Manual construction
     fields = set(AgentInfo.model_fields.keys())
-    name = getattr(agent, "name",
-                   None) or "root_agent" if agent is not None else "root_agent"
-    common: Dict[str, Any] = {"name": name}
+    name = (
+        getattr(agent, "name", None) or "root_agent"
+        if agent is not None
+        else "root_agent"
+    )
+    common: dict[str, Any] = {"name": name}
     if "agent_resource_name" in fields:
         common["agent_resource_name"] = resource_name
     if "instruction" in fields:
-        common["instruction"] = (getattr(agent, "instruction", None) or
-                                 "") if agent is not None else ""
+        common["instruction"] = (
+            (getattr(agent, "instruction", None) or "") if agent is not None else ""
+        )
     if "description" in fields:
-        common["description"] = (getattr(agent, "description", None) or
-                                 "") if agent is not None else ""
+        common["description"] = (
+            (getattr(agent, "description", None) or "") if agent is not None else ""
+        )
     if "tool_declarations" in fields:
         common["tool_declarations"] = []
     if "root_agent_id" in fields:
@@ -562,22 +591,27 @@ def _build_agent_info(vt_evals: Any, agent: Optional[Any],
         if agent is not None:
             console.print(
                 "  [dim]Built AgentInfo manually (skipped tool schema — "
-                "ADK ToolContext isn't JSON-schema-serializable).[/]")
+                "ADK ToolContext isn't JSON-schema-serializable).[/]"
+            )
         else:
             console.print(
                 "  [dim]> Built minimal AgentInfo from resource_name only "
-                "(no local introspection).[/]")
+                "(no local introspection).[/]"
+            )
             console.print(
                 "  [dim]  Vertex will call the deployed agent and parse events "
                 "server-side. Custom metrics that read tool traces or sub-agent[/]"
             )
             console.print(
                 "  [dim]  routing may score against incomplete data — install "
-                "the agent's deps locally to fix.[/]")
+                "the agent's deps locally to fix.[/]"
+            )
         return info
-    except Exception as exc:  # noqa: BLE001
-        console.print(f"  [yellow]![/] Could not construct AgentInfo: {exc}. "
-                      f"Submitting without agent_info.")
+    except Exception as exc:
+        console.print(
+            f"  [yellow]![/] Could not construct AgentInfo: {exc}. "
+            f"Submitting without agent_info."
+        )
         return None
 
 
@@ -588,8 +622,7 @@ _VERTEX_LOCATIONS_NOT_VALID_FOR_GCS = {"global"}
 _DEFAULT_BUCKET_REGION = "us-central1"
 
 
-def _resolve_bucket_location(vertex_location: str,
-                             override: Optional[str]) -> str:
+def _resolve_bucket_location(vertex_location: str, override: str | None) -> str:
     """Pick a GCS-valid location for bucket creation.
 
     Order: explicit ``--bucket-location`` override → Vertex location if it's
@@ -606,7 +639,7 @@ def _ensure_bucket_exists(
     uri: str,
     project: str,
     vertex_location: str,
-    bucket_location_override: Optional[str] = None,
+    bucket_location_override: str | None = None,
 ) -> None:
     """Create the destination bucket if it doesn't already exist.
 
@@ -624,8 +657,8 @@ def _ensure_bucket_exists(
         return
 
     try:
-        from google.cloud import storage
         from google.api_core.exceptions import Forbidden, GoogleAPICallError
+        from google.cloud import storage
     except ImportError:
         return  # storage not installed — let the SDK error speak for itself.
 
@@ -644,13 +677,15 @@ def _ensure_bucket_exists(
         console.print(f"  [green]>[/] Using bucket [cyan]gs://{bucket_name}[/]")
         return
 
-    bucket_location = _resolve_bucket_location(vertex_location,
-                                               bucket_location_override)
+    bucket_location = _resolve_bucket_location(
+        vertex_location, bucket_location_override
+    )
     if bucket_location != vertex_location:
         console.print(
             f"  [dim]Bucket [cyan]gs://{bucket_name}[/] not found — creating in "
             f"[cyan]{bucket_location}[/] (Vertex eval location is [cyan]{vertex_location}[/], "
-            f"but GCS doesn't accept that for STANDARD buckets)...[/]")
+            f"but GCS doesn't accept that for STANDARD buckets)...[/]"
+        )
     else:
         console.print(
             f"  [dim]Bucket [cyan]gs://{bucket_name}[/] not found — creating in {bucket_location}...[/]"
@@ -663,10 +698,10 @@ def _ensure_bucket_exists(
             f"  [dim]Grant your account [cyan]roles/storage.admin[/] on project "
             f"[cyan]{project}[/], or pass [cyan]--dest gs://<existing-bucket>/path[/].[/]"
         )
-        raise click.Abort()
+        raise click.Abort() from None
     except GoogleAPICallError as exc:
         console.print(f"  [red]create_bucket failed:[/] {exc}")
-        raise click.Abort()
+        raise click.Abort() from None
     console.print(f"  [green]>[/] Created bucket [cyan]gs://{bucket_name}[/]")
 
 
@@ -681,29 +716,31 @@ def _ensure_bucket_exists(
     "dataset_path",
     type=click.Path(exists=False, dir_okay=False, path_type=Path),
     default=None,
-    help=("Unified dataset JSONL. Default resolves relative to the nearest "
-          "project root: <project>/tests/eval/dataset.jsonl. Pass explicitly "
-          "to use a different file."),
+    help=(
+        "Unified dataset JSONL. Default resolves relative to the nearest "
+        "project root: <project>/tests/eval/dataset.jsonl. Pass explicitly "
+        "to use a different file."
+    ),
 )
 @click.option(
     "--metrics",
     "metrics_path",
     type=click.Path(exists=False, dir_okay=False, path_type=Path),
     default=None,
-    help=("Metric definitions file. Default resolves to "
-          "<project>/tests/eval/metrics/metric_definitions.json."),
+    help=(
+        "Metric definitions file. Default resolves to "
+        "<project>/tests/eval/metrics/metric_definitions.json."
+    ),
 )
 @click.option(
     "--resource-name",
     default=None,
-    help=
-    "Agent Engine resource name. Defaults to AGENT_ENGINE_RESOURCE_NAME or auto-detection.",
+    help="Agent Engine resource name. Defaults to AGENT_ENGINE_RESOURCE_NAME or auto-detection.",
 )
 @click.option(
     "--dest",
     default=None,
-    help=
-    "GCS destination URI for results. Defaults to gs://<project>-agent-eval/<timestamp>/",
+    help="GCS destination URI for results. Defaults to gs://<project>-agent-eval/<timestamp>/",
 )
 @click.option(
     "--project",
@@ -713,45 +750,48 @@ def _ensure_bucket_exists(
 @click.option(
     "--location",
     default=None,
-    help=
-    "Vertex AI eval location. Defaults to GOOGLE_CLOUD_LOCATION or us-central1.",
+    help="Vertex AI eval location. Defaults to GOOGLE_CLOUD_LOCATION or us-central1.",
 )
 @click.option(
     "--bucket-location",
     default=None,
-    help=("GCS region for the destination bucket if it needs to be created. "
-          "Defaults to --location, or us-central1 if --location is 'global' "
-          "(GCS doesn't accept 'global' for STANDARD-class buckets)."),
+    help=(
+        "GCS region for the destination bucket if it needs to be created. "
+        "Defaults to --location, or us-central1 if --location is 'global' "
+        "(GCS doesn't accept 'global' for STANDARD-class buckets)."
+    ),
 )
 @click.option(
     "--timeout",
     type=int,
     default=900,
     show_default=True,
-    help=
-    "Seconds to wait for the run to finish before giving up (use --no-wait to skip).",
+    help="Seconds to wait for the run to finish before giving up (use --no-wait to skip).",
 )
 @click.option(
     "--no-wait",
     is_flag=True,
-    help=
-    "Submit the run and exit immediately. Print the resource name + dashboard URL.",
+    help="Submit the run and exit immediately. Print the resource name + dashboard URL.",
 )
 @click.option(
     "--agent-module",
     default=None,
-    help=("Local agent import path in 'package.module:attribute' form "
-          "(default: auto-detect via agent.py, attribute 'root_agent'). "
-          "Required by the SDK's v1beta1 inference path to build AgentInfo."),
+    help=(
+        "Local agent import path in 'package.module:attribute' form "
+        "(default: auto-detect via agent.py, attribute 'root_agent'). "
+        "Required by the SDK's v1beta1 inference path to build AgentInfo."
+    ),
 )
 @click.option(
     "--no-abort-on-broken-inference",
     is_flag=True,
-    help=("Don't abort when EVERY row's inference comes back with the "
-          "'Failed to parse agent run response []' error (which usually means "
-          "the deployed agent is broken). Default behavior is to stop before "
-          "wasting a Vertex eval run on error strings — pass this to override "
-          "and let the autorater score them anyway."),
+    help=(
+        "Don't abort when EVERY row's inference comes back with the "
+        "'Failed to parse agent run response []' error (which usually means "
+        "the deployed agent is broken). Default behavior is to stop before "
+        "wasting a Vertex eval run on error strings — pass this to override "
+        "and let the autorater score them anyway."
+    ),
 )
 @click.option(
     "--debug",
@@ -761,14 +801,14 @@ def _ensure_bucket_exists(
 def agent_engine(
     dataset_path: Path,
     metrics_path: Path,
-    resource_name: Optional[str],
-    dest: Optional[str],
-    project: Optional[str],
-    location: Optional[str],
-    bucket_location: Optional[str],
+    resource_name: str | None,
+    dest: str | None,
+    project: str | None,
+    location: str | None,
+    bucket_location: str | None,
     timeout: int,
     no_wait: bool,
-    agent_module: Optional[str],
+    agent_module: str | None,
     no_abort_on_broken_inference: bool,
     debug: bool,
 ) -> None:
@@ -779,10 +819,12 @@ def agent_engine(
     when complete.
     """
     from agent_eval.cli.main import _display_banner
+
     _display_banner()
 
     if not debug:
         import logging
+
         for noisy in ("google", "vertexai", "google.auth", "urllib3"):
             logging.getLogger(noisy).setLevel(logging.WARNING)
 
@@ -811,7 +853,8 @@ def agent_engine(
                 f"  [red]Dataset not found:[/] {shown}\n"
                 f"  [dim]Looked in cwd and walked up to the nearest pyproject.toml. "
                 f"Pass --dataset <path> or run from a project that has "
-                f"tests/eval/dataset.jsonl.[/]")
+                f"tests/eval/dataset.jsonl.[/]"
+            )
             raise click.Abort()
         dataset_path = resolved_dataset
 
@@ -821,8 +864,7 @@ def agent_engine(
             explicit=metrics_path,
         )
         if resolved_metrics is None:
-            shown = metrics_path or Path(
-                "tests/eval/metrics/metric_definitions.json")
+            shown = metrics_path or Path("tests/eval/metrics/metric_definitions.json")
             console.print(
                 f"  [red]Metrics file not found:[/] {shown}\n"
                 f"  [dim]Pass --metrics <path> or scaffold via `agent-eval init`.[/]"
@@ -841,7 +883,8 @@ def agent_engine(
 
     console.print()
     console.print(
-        "  [bold]Agent Engine — streamlined eval against the deployed agent[/]")
+        "  [bold]Agent Engine — streamlined eval against the deployed agent[/]"
+    )
     console.print(f"  [dim]Resource:[/] [cyan]{resolved}[/]")
     console.print(f"  [dim]Dataset: [/] [cyan]{dataset_path}[/]")
     console.print(
@@ -850,7 +893,8 @@ def agent_engine(
     console.print(
         "  [yellow]⚠[/] [dim]This eval hits the[/] [bold]deployed[/] [dim]agent above — "
         "if you've changed[/] [cyan]agent.py[/] [dim]since the last[/] [cyan]make backend[/][dim], "
-        "re-deploy first or you'll evaluate the stale version.[/]")
+        "re-deploy first or you'll evaluate the stale version.[/]"
+    )
 
     # Lazy imports — keep CLI startup snappy.
     try:
@@ -861,7 +905,7 @@ def agent_engine(
         from vertexai._genai.types import evals as vt_evals
     except ImportError as exc:
         console.print(f"  [red]Missing dependency:[/] {exc}")
-        raise click.Abort()
+        raise click.Abort() from None
 
     dataset = pd.read_json(dataset_path, lines=True)
     if "prompt" not in dataset.columns:
@@ -883,9 +927,9 @@ def agent_engine(
     # explicit `kind`, but the canonical detector also handles legacy
     # rows without kind correctly via field-presence inference.
     from agent_eval.core.dataset_io import is_multi_turn as _is_mt
+
     row_dicts = dataset.to_dict(orient="records")
-    multi_turn_mask = pd.Series([_is_mt(r) for r in row_dicts],
-                                index=dataset.index)
+    multi_turn_mask = pd.Series([_is_mt(r) for r in row_dicts], index=dataset.index)
     n_multi = int(multi_turn_mask.sum())
     if n_multi:
         console.print(
@@ -897,7 +941,8 @@ def agent_engine(
         if dataset.empty:
             console.print(
                 "  [red]No single-turn rows to evaluate.[/] All rows in this "
-                "dataset are multi-turn. Use `agent-eval simulate` instead.")
+                "dataset are multi-turn. Use `agent-eval simulate` instead."
+            )
             raise click.Abort()
 
     metric_defs = _load_metric_definitions(metrics_path)
@@ -932,6 +977,7 @@ def agent_engine(
     # (their agent_config_loader / graph_tools / retrievers all log freely).
     # The user wants a clean signal — they're not debugging the agent here.
     import logging as _logging
+
     _prev_disable = _logging.root.manager.disable
     _logging.disable(_logging.WARNING)
     try:
@@ -950,6 +996,7 @@ def agent_engine(
     # / create_evaluation_item / create_evaluation_set call emits one and they
     # bury actual eval output. The SDK is preview-tier; we know.
     import warnings as _warnings
+
     _warnings.filterwarnings(
         "ignore",
         category=Warning,
@@ -970,11 +1017,10 @@ def agent_engine(
     inference_input = _project_for_inference(dataset, vt_evals)
 
     try:
-        inference_df = client.evals.run_inference(agent=resolved,
-                                                  src=inference_input)
-    except Exception as exc:  # noqa: BLE001
+        inference_df = client.evals.run_inference(agent=resolved, src=inference_input)
+    except Exception as exc:
         console.print(f"  [red]run_inference failed:[/] {exc}")
-        raise click.Abort()
+        raise click.Abort() from None
 
     # The SDK's CandidateResponse pydantic model rejects rows whose response
     # text isn't a string (None / non-text content like raw tool calls).
@@ -994,7 +1040,7 @@ def agent_engine(
     console.print()
     console.rule("[dim]Submission[/]", style="grey50", align="left")
 
-    create_kwargs: Dict[str, Any] = {
+    create_kwargs: dict[str, Any] = {
         "dataset": inference_df,
         "metrics": run_metrics,
         "dest": destination,
@@ -1006,6 +1052,7 @@ def agent_engine(
         # carry that on ``agent_info.agent_resource_name`` instead — pass
         # ``agent`` only if the SDK accepts it.
         import inspect as _inspect
+
         run_sig = _inspect.signature(client.evals.create_evaluation_run)
         if "agent" in run_sig.parameters:
             create_kwargs["agent"] = resolved
@@ -1014,11 +1061,18 @@ def agent_engine(
     # so developer-users can confirm metrics + agent_info fidelity + dest
     # without inferring it from kwargs.
     n_managed = sum(
-        1 for m in run_metrics if type(m).__name__ == "EvaluationRunMetric" and
-        getattr(m, "metric", None) and not getattr(m, "metric_config", None))
+        1
+        for m in run_metrics
+        if type(m).__name__ == "EvaluationRunMetric"
+        and getattr(m, "metric", None)
+        and not getattr(m, "metric_config", None)
+    )
     n_custom = len(run_metrics) - n_managed
-    agent_info_layer = "none — submitting without agent_info" if agent_info is None else _agent_info_fidelity_label(
-        agent_info, local_agent)
+    agent_info_layer = (
+        "none — submitting without agent_info"
+        if agent_info is None
+        else _agent_info_fidelity_label(agent_info, local_agent)
+    )
     console.print(
         "  [dim]>[/] [bold]What we're submitting to[/] [cyan]create_evaluation_run[/]:"
     )
@@ -1038,9 +1092,9 @@ def agent_engine(
     console.print("  [bold]Submitting evaluation run...[/]")
     try:
         run = client.evals.create_evaluation_run(**create_kwargs)
-    except Exception as exc:  # noqa: BLE001 — surface SDK errors with context
+    except Exception as exc:
         console.print(f"  [red]create_evaluation_run failed:[/] {exc}")
-        raise click.Abort()
+        raise click.Abort() from None
 
     console.print("  [green]✓[/] Evaluation run submitted.")
     run_name = getattr(run, "name", None)
@@ -1063,15 +1117,15 @@ def agent_engine(
     if str(state_value).upper() == "SUCCEEDED":
         console.print("  [green]✓[/] Run [bold]SUCCEEDED[/].")
     elif str(state_value).upper() in {"FAILED", "CANCELLED"}:
-        console.print(
-            f"  [red]✗[/] Run finished with state [bold]{state_value}[/].")
+        console.print(f"  [red]✗[/] Run finished with state [bold]{state_value}[/].")
         error = getattr(final_run, "error", None)
         if error:
             _summarize_run_errors(error)
     else:
         console.print(
             f"  [yellow]![/] Timed out after {timeout}s — last state: [bold]{state_value}[/]. "
-            f"Re-run with [cyan]--timeout <seconds>[/] or check the dashboard.")
+            f"Re-run with [cyan]--timeout <seconds>[/] or check the dashboard."
+        )
 
     console.print()
     _print_dashboard_url(final_run, project, location)
@@ -1093,16 +1147,17 @@ def _summarize_run_errors(error: Any) -> None:
     # the leading "Item <digits>:" boundary to get one record per row.
     items = re.findall(
         r"Item\s+\d+:\s+([A-Z_]+):\s*(.*?)(?=,\s*\\?n?Item\s+\d+:|,?\s*cause=null$|$)",
-        msg)
+        msg,
+    )
     if not items:
         # Couldn't parse — fall back to the raw message
-        console.print(
-            f"  [dim]Error:[/] {msg[:600]}{'…' if len(msg) > 600 else ''}")
+        console.print(f"  [dim]Error:[/] {msg[:600]}{'…' if len(msg) > 600 else ''}")
         return
 
     from collections import Counter
+
     by_code: Counter = Counter(code for code, _ in items)
-    sample_by_code: Dict[str, str] = {}
+    sample_by_code: dict[str, str] = {}
     for code, detail in items:
         if code not in sample_by_code:
             sample_by_code[code] = detail.strip()
@@ -1122,7 +1177,8 @@ def _summarize_run_errors(error: Any) -> None:
         elif code == "INVALID_ARGUMENT" and "Error parsing JSON" in sample:
             console.print(
                 f"{bar}  [bold]INVALID_ARGUMENT[/] — autorater wrote Markdown instead of JSON, "
-                "[dim]Vertex's score-extractor failed.[/]")
+                "[dim]Vertex's score-extractor failed.[/]"
+            )
             console.print(
                 "        [dim]Known SDK quirk: custom_llm_judge prompts don't always force JSON. "
                 "If persistent, decompose the metric or switch to a managed rubric.[/]"
@@ -1163,6 +1219,7 @@ def _print_dashboard_url(run: Any, project: str, location: str) -> None:
 def _wait_for_run(client: Any, run: Any, *, timeout: int) -> Any:
     """Poll get_evaluation_run until terminal state or timeout."""
     import time
+
     from vertexai._genai.types import EvaluationRunState
 
     terminal = {
@@ -1182,9 +1239,10 @@ def _wait_for_run(client: Any, run: Any, *, timeout: int) -> Any:
     while time.time() < deadline:
         try:
             run = client.evals.get_evaluation_run(name=name)
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             console.print(
-                f"  [yellow]![/] get_evaluation_run failed (will retry): {exc}")
+                f"  [yellow]![/] get_evaluation_run failed (will retry): {exc}"
+            )
             time.sleep(10)
             continue
 

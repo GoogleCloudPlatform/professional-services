@@ -11,20 +11,21 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import asyncio
 import json
 import logging
-import asyncio
+from typing import Any
+
 import pandas as pd
-from typing import Dict, Any, Optional
 
 from agent_eval.core.agent_client import AgentClient
 
 logger = logging.getLogger("agent_eval.processor")
 
 
-async def enrich_single_interaction(row: pd.Series,
-                                    results_dir: Optional[str] = None,
-                                    skip_traces: bool = False) -> pd.Series:
+async def enrich_single_interaction(
+    row: pd.Series, results_dir: str | None = None, skip_traces: bool = False
+) -> pd.Series:
     """
     Enriches a single interaction row with session state and trace data.
     """
@@ -35,10 +36,9 @@ async def enrich_single_interaction(row: pd.Series,
 
     # Skip processing if session_id is missing (failed interaction)
     if pd.isna(session_id) or not session_id:
-        row["missing_information"] = json.dumps({
-            "boolean": True,
-            "details": "No session ID"
-        })
+        row["missing_information"] = json.dumps(
+            {"boolean": True, "details": "No session ID"}
+        )
         return row
 
     base_url = row["base_url"]
@@ -56,19 +56,19 @@ async def enrich_single_interaction(row: pd.Series,
         status = json.loads(status_str)
 
         if status.get("boolean") == "failed":
-            row["missing_information"] = json.dumps({
-                "boolean": True,
-                "details": "Interaction marked as failed"
-            })
+            row["missing_information"] = json.dumps(
+                {"boolean": True, "details": "Interaction marked as failed"}
+            )
             return row
 
-        agent_client = AgentClient(base_url=base_url,
-                                   app_name=app_name,
-                                   user_id=user_id)
+        agent_client = AgentClient(
+            base_url=base_url, app_name=app_name, user_id=user_id
+        )
 
         # 1. Get Final Session State
         final_session_state = await asyncio.to_thread(
-            agent_client.get_session_state, session_id)
+            agent_client.get_session_state, session_id
+        )
         row["final_session_state"] = json.dumps(final_session_state)
 
         # 2. Get Session Trace (optional)
@@ -76,35 +76,35 @@ async def enrich_single_interaction(row: pd.Series,
         if not skip_traces:
             try:
                 session_trace = await asyncio.to_thread(
-                    agent_client.get_session_trace, session_id)
+                    agent_client.get_session_trace, session_id
+                )
             except RuntimeError as e:
-                logger.warning("Could not retrieve trace for %s: %s",
-                               session_id, e)
+                logger.warning("Could not retrieve trace for %s: %s", session_id, e)
 
         # 3. Process Trace Data
         if not session_trace:
             if not skip_traces:
-                row["missing_information"] = json.dumps({
-                    "boolean": True,
-                    "details": "Trace missing"
-                })
+                row["missing_information"] = json.dumps(
+                    {"boolean": True, "details": "Trace missing"}
+                )
             row["latency_data"] = None
             row["trace_summary"] = None
             row["session_trace"] = None
         else:
-            analyzed_trace = AgentClient.analyze_trace_and_extract_spans(
-                session_trace)
+            analyzed_trace = AgentClient.analyze_trace_and_extract_spans(session_trace)
             row["latency_data"] = json.dumps(
-                AgentClient.get_latency_from_spans(analyzed_trace))
+                AgentClient.get_latency_from_spans(analyzed_trace)
+            )
             row["trace_summary"] = json.dumps(
-                AgentClient.get_agent_trajectory(analyzed_trace))
+                AgentClient.get_agent_trajectory(analyzed_trace)
+            )
             row["session_trace"] = json.dumps(session_trace)
 
         # 4. Extract Derived Data
         extracted_data = {
             "state_variables": {},
             "tool_interactions": [],
-            "sub_agent_trace": []
+            "sub_agent_trace": [],
         }
 
         # State Variables
@@ -116,7 +116,8 @@ async def enrich_single_interaction(row: pd.Series,
 
         # Tool Interactions
         extracted_data["tool_interactions"] = AgentClient.get_tool_interactions(
-            final_session_state)
+            final_session_state
+        )
 
         # Sub-agent Trace (Text)
         sub_agent_trace = AgentClient.get_sub_agent_trace(final_session_state)
@@ -142,23 +143,18 @@ async def enrich_single_interaction(row: pd.Series,
 
         # Build conversation pairs (user input -> model response)
         # The last user input is the "prompt", so exclude it from history
-        for i, user_input in enumerate(user_inputs[:-1] if len(user_inputs) >
-                                       1 else []):
+        for i, user_input in enumerate(
+            user_inputs[:-1] if len(user_inputs) > 1 else []
+        ):
             # Add user turn
-            conversation_history.append({
-                "role": "user",
-                "parts": [{
-                    "text": user_input
-                }]
-            })
+            conversation_history.append(
+                {"role": "user", "parts": [{"text": user_input}]}
+            )
             # Add corresponding model response if available
             if i < len(text_responses):
-                conversation_history.append({
-                    "role": "model",
-                    "parts": [{
-                        "text": text_responses[i]
-                    }]
-                })
+                conversation_history.append(
+                    {"role": "model", "parts": [{"text": text_responses[i]}]}
+                )
 
         extracted_data["conversation_history"] = conversation_history
 
@@ -179,35 +175,28 @@ async def enrich_single_interaction(row: pd.Series,
         for i, user_input in enumerate(user_inputs):
             contents.append({"role": "user", "parts": [{"text": user_input}]})
             if i < len(text_responses):
-                contents.append({
-                    "role": "model",
-                    "parts": [{
-                        "text": text_responses[i]
-                    }]
-                })
+                contents.append(
+                    {"role": "model", "parts": [{"text": text_responses[i]}]}
+                )
 
         row["request"] = json.dumps({"contents": contents})
-        row["response"] = json.dumps({
-            "candidates": [{
-                "content": {
-                    "role": "model",
-                    "parts": [{
-                        "text": final_response
-                    }]
-                }
-            }]
-        })
+        row["response"] = json.dumps(
+            {
+                "candidates": [
+                    {"content": {"role": "model", "parts": [{"text": final_response}]}}
+                ]
+            }
+        )
 
     except Exception as e:
         logger.error("Error enriching session %s: %s", session_id, e)
-        row["missing_information"] = json.dumps({
-            "boolean": True,
-            "details": str(e)
-        })
+        row["missing_information"] = json.dumps({"boolean": True, "details": str(e)})
         # Ensure columns exist even on error
         for col in [
-                "final_session_state", "session_trace", "latency_data",
-                "extracted_data"
+            "final_session_state",
+            "session_trace",
+            "latency_data",
+            "extracted_data",
         ]:
             if col not in row:
                 row[col] = None
@@ -220,7 +209,7 @@ class InteractionProcessor:
     Orchestrates the enrichment of interaction logs with traces and state.
     """
 
-    def __init__(self, config: Dict[str, Any]):
+    def __init__(self, config: dict[str, Any]):
         self.config = config
         self.results_dir = config.get("results_dir")
         self.skip_traces = config.get("skip_traces", False)

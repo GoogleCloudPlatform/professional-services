@@ -22,7 +22,7 @@ during the canonical-schema sweep — runtime discovery has fully replaced it.)
 import inspect
 import logging
 import re
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 logger = logging.getLogger("agent_eval")
 
@@ -31,176 +31,66 @@ logger = logging.getLogger("agent_eval")
 # Derived from GCS YAML templates and SDK documentation.
 # ---------------------------------------------------------------------------
 
-_METRIC_DESCRIPTIONS: Dict[str, str] = {
+_METRIC_DESCRIPTIONS: dict[str, str] = {
     # API Predefined (server-side evaluation)
-    "GENERAL_QUALITY":
-        "Overall response quality across multiple rubric criteria.",
-    "SAFETY":
-        "Whether the response is safe and free of harmful content.",
-    "HALLUCINATION":
-        "Whether claims are false, contradictory, or unsupported by evidence.",
-    "TOOL_USE_QUALITY":
-        "Quality of tool selection, arguments, sequencing, and usage.",
-    "FINAL_RESPONSE_MATCH":
-        "Whether the final response matches a golden/expected response.",
-    "FINAL_RESPONSE_QUALITY":
-        "Quality of the agent's final response against rubric criteria.",
-    "FINAL_RESPONSE_REFERENCE_FREE":
-        "Response quality evaluation without requiring a reference answer.",
-    "GROUNDING":
-        "Whether claims are supported by the provided source/context.",
-    "INSTRUCTION_FOLLOWING":
-        "How well the response adheres to the user's instructions.",
-    "TEXT_QUALITY":
-        "Writing quality: grammar, clarity, structure, and readability.",
-    "MULTI_TURN_GENERAL_QUALITY":
-        "Overall quality across multi-turn conversations.",
-    "MULTI_TURN_TEXT_QUALITY":
-        "Writing quality across multi-turn conversations.",
-    "GECKO_TEXT2IMAGE":
-        "Text-to-image alignment quality.",
-    "GECKO_TEXT2VIDEO":
-        "Text-to-video alignment quality.",
+    "GENERAL_QUALITY": "Overall response quality across multiple rubric criteria.",
+    "SAFETY": "Whether the response is safe and free of harmful content.",
+    "HALLUCINATION": "Whether claims are false, contradictory, or unsupported by evidence.",
+    "TOOL_USE_QUALITY": "Quality of tool selection, arguments, sequencing, and usage.",
+    "FINAL_RESPONSE_MATCH": "Whether the final response matches a golden/expected response.",
+    "FINAL_RESPONSE_QUALITY": "Quality of the agent's final response against rubric criteria.",
+    "FINAL_RESPONSE_REFERENCE_FREE": "Response quality evaluation without requiring a reference answer.",
+    "GROUNDING": "Whether claims are supported by the provided source/context.",
+    "INSTRUCTION_FOLLOWING": "How well the response adheres to the user's instructions.",
+    "TEXT_QUALITY": "Writing quality: grammar, clarity, structure, and readability.",
+    "MULTI_TURN_GENERAL_QUALITY": "Overall quality across multi-turn conversations.",
+    "MULTI_TURN_TEXT_QUALITY": "Writing quality across multi-turn conversations.",
+    "GECKO_TEXT2IMAGE": "Text-to-image alignment quality.",
+    "GECKO_TEXT2VIDEO": "Text-to-video alignment quality.",
     # GCS YAML (client-side LLM-as-judge)
-    "COHERENCE":
-        "Logical flow and consistency of the response.",
-    "FLUENCY":
-        "Language fluency and naturalness.",
-    "GROUNDEDNESS":
-        "Whether claims are supported by the provided context.",
-    "VERBOSITY":
-        "Response length appropriateness.",
-    "MULTI_TURN_CHAT_QUALITY":
-        "Multi-turn conversation quality including context retention and coherence.",
-    "MULTI_TURN_SAFETY":
-        "Safety across multi-turn conversations, including adversarial patterns.",
-    "QUESTION_ANSWERING_QUALITY":
-        "QA accuracy and completeness for factual questions.",
-    "SUMMARIZATION_QUALITY":
-        "Summarization coverage, accuracy, and conciseness.",
+    "COHERENCE": "Logical flow and consistency of the response.",
+    "FLUENCY": "Language fluency and naturalness.",
+    "GROUNDEDNESS": "Whether claims are supported by the provided context.",
+    "VERBOSITY": "Response length appropriateness.",
+    "MULTI_TURN_CHAT_QUALITY": "Multi-turn conversation quality including context retention and coherence.",
+    "MULTI_TURN_SAFETY": "Safety across multi-turn conversations, including adversarial patterns.",
+    "QUESTION_ANSWERING_QUALITY": "QA accuracy and completeness for factual questions.",
+    "SUMMARIZATION_QUALITY": "Summarization coverage, accuracy, and conciseness.",
 }
 
-_SCORE_RANGES: Dict[str, Dict[str, Any]] = {
+_SCORE_RANGES: dict[str, dict[str, Any]] = {
     # API Predefined — rubric-based (0-1 pass rate)
-    "GENERAL_QUALITY": {
-        "min": 0,
-        "max": 1,
-        "type": "rubric"
-    },
-    "SAFETY": {
-        "min": 0,
-        "max": 1,
-        "type": "rubric"
-    },
-    "HALLUCINATION": {
-        "min": 0,
-        "max": 1,
-        "type": "rubric"
-    },
-    "TOOL_USE_QUALITY": {
-        "min": 0,
-        "max": 1,
-        "type": "rubric"
-    },
-    "FINAL_RESPONSE_MATCH": {
-        "min": 0,
-        "max": 1,
-        "type": "rubric"
-    },
-    "FINAL_RESPONSE_QUALITY": {
-        "min": 0,
-        "max": 1,
-        "type": "rubric"
-    },
-    "FINAL_RESPONSE_REFERENCE_FREE": {
-        "min": 0,
-        "max": 1,
-        "type": "rubric"
-    },
-    "GROUNDING": {
-        "min": 0,
-        "max": 1,
-        "type": "rubric"
-    },
-    "MULTI_TURN_GENERAL_QUALITY": {
-        "min": 0,
-        "max": 1,
-        "type": "rubric"
-    },
+    "GENERAL_QUALITY": {"min": 0, "max": 1, "type": "rubric"},
+    "SAFETY": {"min": 0, "max": 1, "type": "rubric"},
+    "HALLUCINATION": {"min": 0, "max": 1, "type": "rubric"},
+    "TOOL_USE_QUALITY": {"min": 0, "max": 1, "type": "rubric"},
+    "FINAL_RESPONSE_MATCH": {"min": 0, "max": 1, "type": "rubric"},
+    "FINAL_RESPONSE_QUALITY": {"min": 0, "max": 1, "type": "rubric"},
+    "FINAL_RESPONSE_REFERENCE_FREE": {"min": 0, "max": 1, "type": "rubric"},
+    "GROUNDING": {"min": 0, "max": 1, "type": "rubric"},
+    "MULTI_TURN_GENERAL_QUALITY": {"min": 0, "max": 1, "type": "rubric"},
     # API Predefined — pointwise (1-5)
-    "INSTRUCTION_FOLLOWING": {
-        "min": 1,
-        "max": 5,
-        "type": "pointwise"
-    },
-    "TEXT_QUALITY": {
-        "min": 1,
-        "max": 5,
-        "type": "pointwise"
-    },
-    "MULTI_TURN_TEXT_QUALITY": {
-        "min": 1,
-        "max": 5,
-        "type": "pointwise"
-    },
+    "INSTRUCTION_FOLLOWING": {"min": 1, "max": 5, "type": "pointwise"},
+    "TEXT_QUALITY": {"min": 1, "max": 5, "type": "pointwise"},
+    "MULTI_TURN_TEXT_QUALITY": {"min": 1, "max": 5, "type": "pointwise"},
     # GCS YAML — pointwise (1-5)
-    "COHERENCE": {
-        "min": 1,
-        "max": 5,
-        "type": "pointwise"
-    },
-    "FLUENCY": {
-        "min": 1,
-        "max": 5,
-        "type": "pointwise"
-    },
-    "GROUNDEDNESS": {
-        "min": 1,
-        "max": 5,
-        "type": "pointwise"
-    },
-    "QUESTION_ANSWERING_QUALITY": {
-        "min": 1,
-        "max": 5,
-        "type": "pointwise"
-    },
-    "SUMMARIZATION_QUALITY": {
-        "min": 1,
-        "max": 5,
-        "type": "pointwise"
-    },
+    "COHERENCE": {"min": 1, "max": 5, "type": "pointwise"},
+    "FLUENCY": {"min": 1, "max": 5, "type": "pointwise"},
+    "GROUNDEDNESS": {"min": 1, "max": 5, "type": "pointwise"},
+    "QUESTION_ANSWERING_QUALITY": {"min": 1, "max": 5, "type": "pointwise"},
+    "SUMMARIZATION_QUALITY": {"min": 1, "max": 5, "type": "pointwise"},
     # GCS YAML — rubric-based
-    "MULTI_TURN_CHAT_QUALITY": {
-        "min": 0,
-        "max": 1,
-        "type": "rubric"
-    },
-    "MULTI_TURN_SAFETY": {
-        "min": 0,
-        "max": 1,
-        "type": "rubric"
-    },
+    "MULTI_TURN_CHAT_QUALITY": {"min": 0, "max": 1, "type": "rubric"},
+    "MULTI_TURN_SAFETY": {"min": 0, "max": 1, "type": "rubric"},
     # Special
-    "VERBOSITY": {
-        "min": -2,
-        "max": 2,
-        "type": "special"
-    },
+    "VERBOSITY": {"min": -2, "max": 2, "type": "special"},
     # Embedding
-    "GECKO_TEXT2IMAGE": {
-        "min": 0,
-        "max": 1,
-        "type": "similarity"
-    },
-    "GECKO_TEXT2VIDEO": {
-        "min": 0,
-        "max": 1,
-        "type": "similarity"
-    },
+    "GECKO_TEXT2IMAGE": {"min": 0, "max": 1, "type": "similarity"},
+    "GECKO_TEXT2VIDEO": {"min": 0, "max": 1, "type": "similarity"},
 }
 
 # Template placeholders required by GCS YAML metrics
-_GCS_PLACEHOLDERS: Dict[str, List[str]] = {
+_GCS_PLACEHOLDERS: dict[str, list[str]] = {
     "COHERENCE": ["prompt", "response"],
     "FLUENCY": ["prompt", "response"],
     "GROUNDEDNESS": ["prompt", "response"],
@@ -234,17 +124,21 @@ def requires_reference(managed_metric_name: str) -> bool:
     ``expected`` (text-comparison rubrics) as needing reference.
     """
     from agent_eval.core import metric_families
+
     return metric_families.reference_requirement(managed_metric_name) in (
-        "required", "expected")
+        "required",
+        "expected",
+    )
 
 
-def default_response_field(managed_metric_name: str) -> Optional[str]:
+def default_response_field(managed_metric_name: str) -> str | None:
     """Preferred response-side column for a managed metric, if not the default.
 
     Returns ``"final_response"`` for text-comparison metrics (need plain text on
     both sides), else ``None`` (use the wrapped API ``response`` column).
     """
     from agent_eval.core import metric_families
+
     if metric_families.reference_requirement(managed_metric_name) == "expected":
         return "final_response"
     return None
@@ -259,6 +153,7 @@ def _get_supported_predefined_metrics() -> set:
     """Get the set of API predefined metric spec names from the SDK."""
     try:
         from vertexai._genai._evals_constant import SUPPORTED_PREDEFINED_METRICS
+
         return SUPPORTED_PREDEFINED_METRICS
     except ImportError:
         # Hardcoded fallback
@@ -289,14 +184,12 @@ def is_api_predefined(managed_metric_name: str) -> bool:
     """
     supported = _get_supported_predefined_metrics()
     lower = managed_metric_name.lower()
-    for suffix in ("_v1", "_v2"):
-        if (lower + suffix) in supported:
-            return True
-    return False
+    return any(lower + suffix in supported for suffix in ("_v1", "_v2"))
 
 
 def discover_managed_metrics(
-        exclude_embedding: bool = True) -> Dict[str, Dict[str, Any]]:
+    exclude_embedding: bool = True,
+) -> dict[str, dict[str, Any]]:
     """Discover all available managed metrics from the installed SDK.
 
     Reads types.RubricMetric attributes and classifies each as either
@@ -311,11 +204,10 @@ def discover_managed_metrics(
     try:
         from vertexai import types as vtx_types
     except ImportError:
-        logger.warning(
-            "vertexai not installed, returning empty metrics catalog")
+        logger.warning("vertexai not installed, returning empty metrics catalog")
         return {}
 
-    metrics: Dict[str, Dict[str, Any]] = {}
+    metrics: dict[str, dict[str, Any]] = {}
 
     for attr_name in dir(vtx_types.RubricMetric):
         if attr_name.startswith("_"):
@@ -340,27 +232,17 @@ def discover_managed_metrics(
         # default_response_field) are agent-eval discovery metadata used by the
         # picker UI and the per-row routing — NOT part of the SDK metric
         # construction. They live alongside `kind`/`base` as agent-eval extras.
-        entry: Dict[str, Any] = {
-            "kind":
-                "managed",
-            "base":
-                name_upper,
-            "resolution":
-                resolution,
-            "description":
-                _METRIC_DESCRIPTIONS.get(name_upper, ""),
-            "score_range":
-                _SCORE_RANGES.get(name_upper, {
-                    "min": 0,
-                    "max": 1,
-                    "type": "unknown"
-                }),
-            "requires_reference":
-                requires_reference(name_upper),
-            "requires_multi_turn":
-                is_multi_turn,
-            "default_response_field":
-                default_response_field(name_upper),
+        entry: dict[str, Any] = {
+            "kind": "managed",
+            "base": name_upper,
+            "resolution": resolution,
+            "description": _METRIC_DESCRIPTIONS.get(name_upper, ""),
+            "score_range": _SCORE_RANGES.get(
+                name_upper, {"min": 0, "max": 1, "type": "unknown"}
+            ),
+            "requires_reference": requires_reference(name_upper),
+            "requires_multi_turn": is_multi_turn,
+            "default_response_field": default_response_field(name_upper),
         }
 
         if not api_pred and name_upper in _GCS_PLACEHOLDERS:
@@ -368,10 +250,8 @@ def discover_managed_metrics(
 
         metrics[name_lower] = entry
 
-    api_count = sum(
-        1 for m in metrics.values() if m["resolution"] == "api_predefined")
-    gcs_count = sum(
-        1 for m in metrics.values() if m["resolution"] == "gcs_yaml")
+    api_count = sum(1 for m in metrics.values() if m["resolution"] == "api_predefined")
+    gcs_count = sum(1 for m in metrics.values() if m["resolution"] == "gcs_yaml")
     logger.debug(
         "Discovered %d managed metrics (%d API predefined, %d GCS YAML)",
         len(metrics),
@@ -387,13 +267,13 @@ def discover_managed_metrics(
 # ---------------------------------------------------------------------------
 
 
-def extract_adk_eval_knowledge() -> Dict[str, Any]:
+def extract_adk_eval_knowledge() -> dict[str, Any]:
     """Extract evaluation knowledge from the installed ADK package.
 
     Returns a dict with ADK metric descriptions, rubric patterns, and field
     names — suitable for injection into Gemini prompts for metric generation.
     """
-    knowledge: Dict[str, Any] = {
+    knowledge: dict[str, Any] = {
         "prebuilt_metrics": [],
         "rubric_patterns": [],
         "eval_field_names": {},
@@ -402,11 +282,14 @@ def extract_adk_eval_knowledge() -> Dict[str, Any]:
     # 1. PrebuiltMetrics enum values and names
     try:
         from google.adk.evaluation.eval_metrics import PrebuiltMetrics
+
         for metric in PrebuiltMetrics:
-            knowledge["prebuilt_metrics"].append({
-                "name": metric.name,
-                "value": metric.value,
-            })
+            knowledge["prebuilt_metrics"].append(
+                {
+                    "name": metric.name,
+                    "value": metric.value,
+                }
+            )
     except ImportError:
         logger.debug("ADK PrebuiltMetrics not available")
 
@@ -417,16 +300,23 @@ def extract_adk_eval_knowledge() -> Dict[str, Any]:
         no_arg_providers = [
             ("trajectory", mip.TrajectoryEvaluatorMetricInfoProvider),
             ("safety_v1", mip.SafetyEvaluatorV1MetricInfoProvider),
-            ("final_response_match_v2",
-             mip.FinalResponseMatchV2EvaluatorMetricInfoProvider),
-            ("rubric_final_response_quality_v1",
-             mip.RubricBasedFinalResponseQualityV1EvaluatorMetricInfoProvider),
-            ("hallucinations_v1",
-             mip.HallucinationsV1EvaluatorMetricInfoProvider),
-            ("rubric_tool_use_quality_v1",
-             mip.RubricBasedToolUseV1EvaluatorMetricInfoProvider),
-            ("per_turn_sim_quality_v1",
-             mip.PerTurnUserSimulatorQualityV1MetricInfoProvider),
+            (
+                "final_response_match_v2",
+                mip.FinalResponseMatchV2EvaluatorMetricInfoProvider,
+            ),
+            (
+                "rubric_final_response_quality_v1",
+                mip.RubricBasedFinalResponseQualityV1EvaluatorMetricInfoProvider,
+            ),
+            ("hallucinations_v1", mip.HallucinationsV1EvaluatorMetricInfoProvider),
+            (
+                "rubric_tool_use_quality_v1",
+                mip.RubricBasedToolUseV1EvaluatorMetricInfoProvider,
+            ),
+            (
+                "per_turn_sim_quality_v1",
+                mip.PerTurnUserSimulatorQualityV1MetricInfoProvider,
+            ),
         ]
 
         for metric_key, cls in no_arg_providers:
@@ -436,9 +326,12 @@ def extract_adk_eval_knowledge() -> Dict[str, Any]:
                 if info and info.description:
                     # Enrich the matching PrebuiltMetric entry with description
                     for entry in knowledge["prebuilt_metrics"]:
-                        if metric_key.replace("rubric_", "").replace(
-                                "per_turn_sim",
-                                "per_turn_user_simulator") in entry["value"]:
+                        if (
+                            metric_key.replace("rubric_", "").replace(
+                                "per_turn_sim", "per_turn_user_simulator"
+                            )
+                            in entry["value"]
+                        ):
                             entry["description"] = info.description[:300]
                             break
             except Exception:
@@ -448,8 +341,10 @@ def extract_adk_eval_knowledge() -> Dict[str, Any]:
 
     # 3. Rubric evaluation prompt patterns
     try:
+        from google.adk.evaluation import (
+            rubric_based_final_response_quality_v1 as resp_mod,
+        )
         from google.adk.evaluation import rubric_based_tool_use_quality_v1 as tool_mod
-        from google.adk.evaluation import rubric_based_final_response_quality_v1 as resp_mod
 
         for module, pattern_name in [
             (tool_mod, "tool_use_quality"),
@@ -463,10 +358,12 @@ def extract_adk_eval_knowledge() -> Dict[str, Any]:
                     re.DOTALL,
                 )
                 if match:
-                    knowledge["rubric_patterns"].append({
-                        "name": pattern_name,
-                        "template_excerpt": match.group(1)[:600],
-                    })
+                    knowledge["rubric_patterns"].append(
+                        {
+                            "name": pattern_name,
+                            "template_excerpt": match.group(1)[:600],
+                        }
+                    )
             except Exception:
                 continue
     except ImportError:
@@ -475,11 +372,12 @@ def extract_adk_eval_knowledge() -> Dict[str, Any]:
     # 4. Standard evaluation field names
     try:
         from google.adk.evaluation.evaluation_constants import EvalConstants
+
         knowledge["eval_field_names"] = {
             attr: getattr(EvalConstants, attr)
             for attr in dir(EvalConstants)
-            if not attr.startswith("_") and
-            isinstance(getattr(EvalConstants, attr), str)
+            if not attr.startswith("_")
+            and isinstance(getattr(EvalConstants, attr), str)
         }
     except ImportError:
         logger.debug("ADK evaluation_constants not available")
@@ -492,7 +390,7 @@ def extract_adk_eval_knowledge() -> Dict[str, Any]:
 # ---------------------------------------------------------------------------
 
 
-def format_metrics_for_prompt(metrics: Optional[Dict[str, Dict]] = None) -> str:
+def format_metrics_for_prompt(metrics: dict[str, dict] | None = None) -> str:
     """Format discovered metrics as text for inclusion in Gemini prompts.
 
     Groups by resolution type, includes descriptions and score ranges.
@@ -502,13 +400,9 @@ def format_metrics_for_prompt(metrics: Optional[Dict[str, Dict]] = None) -> str:
         metrics = discover_managed_metrics()
 
     api_predefined = {
-        k: v
-        for k, v in metrics.items()
-        if v.get("resolution") == "api_predefined"
+        k: v for k, v in metrics.items() if v.get("resolution") == "api_predefined"
     }
-    gcs_yaml = {
-        k: v for k, v in metrics.items() if v.get("resolution") == "gcs_yaml"
-    }
+    gcs_yaml = {k: v for k, v in metrics.items() if v.get("resolution") == "gcs_yaml"}
 
     lines = [
         "## Available Managed (Predefined) Metrics",
@@ -528,8 +422,10 @@ def format_metrics_for_prompt(metrics: Optional[Dict[str, Dict]] = None) -> str:
         sr = info.get("score_range", {})
         score_str = f"{sr.get('min', '?')}-{sr.get('max', '?')} ({sr.get('type', '?')})"
         runs_on = "multi-turn" if info.get("requires_multi_turn") else "any row"
-        lines.append(f"{info['base']:<35} {score_str:<15} "
-                     f"{runs_on:<14} {info['description'][:50]}")
+        lines.append(
+            f"{info['base']:<35} {score_str:<15} "
+            f"{runs_on:<14} {info['description'][:50]}"
+        )
 
     lines += [
         "",
@@ -548,14 +444,17 @@ def format_metrics_for_prompt(metrics: Optional[Dict[str, Dict]] = None) -> str:
         placeholders = info.get("template_placeholders", [])
         ph_str = f" [needs: {', '.join(placeholders)}]" if placeholders else ""
         runs_on = "multi-turn" if info.get("requires_multi_turn") else "any row"
-        lines.append(f"{info['base']:<35} {score_str:<15} "
-                     f"{runs_on:<14} {info['description'][:40]}{ph_str}")
+        lines.append(
+            f"{info['base']:<35} {score_str:<15} "
+            f"{runs_on:<14} {info['description'][:40]}{ph_str}"
+        )
 
     return "\n".join(lines)
 
 
 def format_adk_knowledge_for_prompt(
-    knowledge: Optional[Dict[str, Any]] = None,) -> str:
+    knowledge: dict[str, Any] | None = None,
+) -> str:
     """Format ADK evaluation knowledge as text for inclusion in Gemini prompts.
 
     If *knowledge* is None, extracts it first.
@@ -566,8 +465,7 @@ def format_adk_knowledge_for_prompt(
     lines = ["## ADK Evaluation Knowledge", ""]
 
     if knowledge.get("prebuilt_metrics"):
-        lines.append(
-            "### ADK PrebuiltMetrics (used by ADK's built-in evaluation)")
+        lines.append("### ADK PrebuiltMetrics (used by ADK's built-in evaluation)")
         for m in knowledge["prebuilt_metrics"]:
             desc = m.get("description", "")
             desc_str = f" — {desc[:120]}" if desc else ""
@@ -596,9 +494,9 @@ def format_adk_knowledge_for_prompt(
     return "\n".join(lines)
 
 
-def get_metric_definition_entry(metric_key: str,
-                                metrics: Optional[Dict] = None
-                               ) -> Optional[Dict]:
+def get_metric_definition_entry(
+    metric_key: str, metrics: dict | None = None
+) -> dict | None:
     """Get a ready-to-use metric_definitions.json entry for a managed metric.
 
     Returns a dict suitable for direct inclusion in the metrics JSON file,

@@ -11,17 +11,19 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import concurrent.futures
+import asyncio
+import contextlib
 import json
 import logging
 import math
+import statistics
 import subprocess
 import sys
 import time
 from collections import defaultdict
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any
 
 import pandas as pd
 from google.cloud import aiplatform
@@ -29,13 +31,24 @@ from google.genai.types import HttpOptions
 from vertexai import Client, types
 
 from agent_eval.core.config import CONFIG, get_project_id
-from agent_eval.core.deterministic_metrics import DETERMINISTIC_METRICS, evaluate_deterministic_metrics
 from agent_eval.core.data_mapper import (
     map_dataset_columns,
     robust_json_loads,
 )
-from agent_eval.core.metric_discovery import is_api_predefined as _is_api_predefined_discovery
+from agent_eval.core.deterministic_metrics import (
+    DETERMINISTIC_METRICS,
+    evaluate_deterministic_metrics,
+)
 from agent_eval.core.metric_discovery import _GCS_PLACEHOLDERS
+from agent_eval.core.metric_discovery import (
+    is_api_predefined as _is_api_predefined_discovery,
+)
+from agent_eval.core.metric_schema import (
+    MANAGED_METRIC_REQUIRED_COLUMNS as _MANAGED_METRIC_REQUIRED_COLUMNS,
+)
+from agent_eval.core.metric_schema import (
+    SDK_COLUMN_DEFAULTS as _SDK_COLUMN_DEFAULTS,
+)
 from agent_eval.core.metric_schema import is_managed_entry, managed_base_name
 
 # Setup Logger — root logger at CRITICAL silences all third-party noise by default.
@@ -111,15 +124,6 @@ def _last_user_text(df: pd.DataFrame) -> pd.Series:
     return df.apply(_extract, axis=1)
 
 
-# Per-row column defaults + per-managed-metric required columns now live in
-# ``core/metric_schema`` so generator + factory + evaluator share one source
-# of truth. Aliased here so existing call sites in this file keep working.
-from agent_eval.core.metric_schema import (
-    SDK_COLUMN_DEFAULTS as _SDK_COLUMN_DEFAULTS,
-    MANAGED_METRIC_REQUIRED_COLUMNS as _MANAGED_METRIC_REQUIRED_COLUMNS,
-)
-
-
 def _decode_maybe_json(v: Any) -> Any:
     """Decode JSON or Python-repr string fields; pass lists/dicts through.
 
@@ -139,6 +143,7 @@ def _decode_maybe_json(v: Any) -> Any:
         pass
     try:
         import ast
+
         parsed = ast.literal_eval(v)
         if isinstance(parsed, (list, dict)):
             return parsed
@@ -147,7 +152,7 @@ def _decode_maybe_json(v: Any) -> Any:
     return v
 
 
-def _resolve_source_column(source: Optional[str], row: Any) -> Any:
+def _resolve_source_column(source: str | None, row: Any) -> Any:
     """Resolve a source spec against a single interaction row.
 
     Supported syntaxes:
@@ -166,8 +171,7 @@ def _resolve_source_column(source: Optional[str], row: Any) -> Any:
         return val if isinstance(val, str) else ""
     if ":" in source:
         head, _, tail = source.partition(":")
-        container = _decode_maybe_json(
-            row.get(head) if hasattr(row, "get") else None)
+        container = _decode_maybe_json(row.get(head) if hasattr(row, "get") else None)
         for key in tail.split("."):
             if isinstance(container, dict):
                 container = container.get(key)
@@ -177,7 +181,7 @@ def _resolve_source_column(source: Optional[str], row: Any) -> Any:
     return row.get(source) if hasattr(row, "get") else None
 
 
-def _normalize_intermediate_events(raw_events: Any) -> List[Dict[str, Any]]:
+def _normalize_intermediate_events(raw_events: Any) -> list[dict[str, Any]]:
     """ADK event dicts → Vertex evals.Event-compatible dicts.
 
     ADK shape: ``{content, id, author, timestamp (float), invocationId, actions, ...}``
@@ -188,32 +192,35 @@ def _normalize_intermediate_events(raw_events: Any) -> List[Dict[str, Any]]:
     only the four canonical keys.
     """
     from datetime import datetime, timezone
+
     if not isinstance(raw_events, list):
         return []
-    out: List[Dict[str, Any]] = []
+    out: list[dict[str, Any]] = []
     for ev in raw_events:
         if not isinstance(ev, dict):
             continue
         content = ev.get("content")
         if content is None:
             continue
-        norm: Dict[str, Any] = {"content": content}
-        if "id" in ev and ev["id"]:
+        norm: dict[str, Any] = {"content": content}
+        if ev.get("id"):
             norm["event_id"] = str(ev["id"])
-        if "author" in ev and ev["author"]:
+        if ev.get("author"):
             norm["author"] = str(ev["author"])
         ts = ev.get("timestamp")
         if isinstance(ts, (int, float)):
             norm["creation_timestamp"] = datetime.fromtimestamp(
-                ts, tz=timezone.utc).isoformat()
+                ts, tz=timezone.utc
+            ).isoformat()
         elif isinstance(ts, str) and ts:
             norm["creation_timestamp"] = ts
         out.append(norm)
     return out
 
 
-def _build_managed_eval_column(sdk_col: str, source: str,
-                               df: pd.DataFrame) -> List[Any]:
+def _build_managed_eval_column(
+    sdk_col: str, source: str, df: pd.DataFrame
+) -> list[Any]:
     """Build a single SDK column from a source spec, applying any needed transform."""
 
     def _build_one(row: Any) -> Any:
@@ -222,8 +229,7 @@ def _build_managed_eval_column(sdk_col: str, source: str,
         if sdk_col == "intermediate_events":
             if source == "events":
                 fss = _decode_maybe_json(row.get("final_session_state"))
-                events = (fss or {}).get("events", []) if isinstance(
-                    fss, dict) else []
+                events = (fss or {}).get("events", []) if isinstance(fss, dict) else []
             else:
                 events = _decode_maybe_json(_resolve_source_column(source, row))
             return _normalize_intermediate_events(events or [])
@@ -241,8 +247,7 @@ def _build_managed_eval_column(sdk_col: str, source: str,
     return [_build_one(row) for _, row in df.iterrows()]
 
 
-def _resolve_column_source(metric_info: Dict[str, Any],
-                           sdk_col: str) -> Optional[str]:
+def _resolve_column_source(metric_info: dict[str, Any], sdk_col: str) -> str | None:
     """Find the source spec for an SDK column.
 
     Lookup order:
@@ -263,24 +268,26 @@ def _resolve_column_source(metric_info: Dict[str, Any],
 
 
 def _build_managed_eval_dataset(
-    metric_info: Dict[str, Any],
+    metric_info: dict[str, Any],
     metric_name: str,
     managed_metric_name: str,
     original_df: pd.DataFrame,
-) -> Tuple[pd.DataFrame, Optional[str]]:
+) -> tuple[pd.DataFrame, str | None]:
     """Build the eval_dataset DataFrame for a managed metric per the FLATTEN
     schema. Returns ``(df, error_reason)`` — when error_reason is set, the
     caller should add the metric to skipped_metrics and continue."""
-    required = _MANAGED_METRIC_REQUIRED_COLUMNS.get(managed_metric_name,
-                                                    ("prompt", "response"))
-    cols: Dict[str, List[Any]] = {}
+    required = _MANAGED_METRIC_REQUIRED_COLUMNS.get(
+        managed_metric_name, ("prompt", "response")
+    )
+    cols: dict[str, list[Any]] = {}
     for sdk_col in required:
         source = _resolve_column_source(metric_info, sdk_col)
         if source is None:
             return pd.DataFrame(), (
                 f"required SDK column '{sdk_col}' has no source — declare it "
                 f"in dataset_mapping.{sdk_col}.source_column or rely on a "
-                f"default (none registered for '{sdk_col}')")
+                f"default (none registered for '{sdk_col}')"
+            )
         cols[sdk_col] = _build_managed_eval_column(sdk_col, source, original_df)
     return pd.DataFrame(cols, index=original_df.index), None
 
@@ -296,7 +303,8 @@ def _interaction_row_capabilities(row: pd.Series) -> set:
 
     ref = row.get("reference_data") if hasattr(row, "get") else None
     if isinstance(ref, dict) and any(
-            v for v in ref.values() if v not in (None, "", [])):
+        v for v in ref.values() if v not in (None, "", [])
+    ):
         caps.add(_CAP_REFERENCE)
 
     user_inputs = row.get("user_inputs") if hasattr(row, "get") else None
@@ -316,7 +324,7 @@ def _interaction_row_capabilities(row: pd.Series) -> set:
     return caps
 
 
-def _required_capabilities(metric_info: Dict[str, Any]) -> set:
+def _required_capabilities(metric_info: dict[str, Any]) -> set:
     """Translate a metric definition's `requires_*` flags into capability tags."""
     required: set = set()
     if metric_info.get("requires_reference"):
@@ -378,7 +386,7 @@ def configure_logging(debug: bool = False) -> None:
         _install_clean_handler()
 
 
-def serialize_rubric_verdicts(rubric_verdicts: Any) -> Optional[List[Dict]]:
+def serialize_rubric_verdicts(rubric_verdicts: Any) -> list[dict] | None:
     """Serialize rubric verdicts to JSON-compatible format."""
     if not rubric_verdicts:
         return None
@@ -386,8 +394,7 @@ def serialize_rubric_verdicts(rubric_verdicts: Any) -> Optional[List[Dict]]:
         verdicts = []
         for verdict in rubric_verdicts:
             if hasattr(verdict, "model_dump"):
-                verdicts.append(
-                    verdict.model_dump(mode="json", exclude_none=True))
+                verdicts.append(verdict.model_dump(mode="json", exclude_none=True))
             elif isinstance(verdict, dict):
                 verdicts.append(verdict)
             else:
@@ -397,8 +404,9 @@ def serialize_rubric_verdicts(rubric_verdicts: Any) -> Optional[List[Dict]]:
         return None
 
 
-def parse_eval_result(result: Any, metric_name: str,
-                      metric_df: pd.DataFrame) -> pd.DataFrame:
+def parse_eval_result(
+    result: Any, metric_name: str, metric_df: pd.DataFrame
+) -> pd.DataFrame:
     """
     Standardizes result parsing across different Vertex AI SDK versions.
     Now captures rubric_verdicts for managed rubric-based metrics.
@@ -419,11 +427,13 @@ def parse_eval_result(result: Any, metric_name: str,
             available_metrics = {}
             if hasattr(first_case, "metrics") and first_case.metrics:
                 available_metrics = first_case.metrics
-            elif (hasattr(first_case, "response_candidate_results") and
-                  first_case.response_candidate_results):
+            elif (
+                hasattr(first_case, "response_candidate_results")
+                and first_case.response_candidate_results
+            ):
                 available_metrics = getattr(
-                    first_case.response_candidate_results[0], "metric_results",
-                    {})
+                    first_case.response_candidate_results[0], "metric_results", {}
+                )
 
             for k in [metric_name, metric_name.lower(), metric_name.upper()]:
                 if k in available_metrics:
@@ -431,33 +441,35 @@ def parse_eval_result(result: Any, metric_name: str,
                     break
             else:
                 if available_metrics:
-                    found_key = list(available_metrics.keys())[0]
+                    found_key = next(iter(available_metrics.keys()))
 
         for idx, case_result in enumerate(result.eval_case_results):
             original_idx = metric_df.index[idx]
             val = None
 
-            if (hasattr(case_result, "response_candidate_results") and
-                    case_result.response_candidate_results):
-                val = getattr(case_result.response_candidate_results[0],
-                              "metric_results", {}).get(found_key)
+            if (
+                hasattr(case_result, "response_candidate_results")
+                and case_result.response_candidate_results
+            ):
+                val = getattr(
+                    case_result.response_candidate_results[0], "metric_results", {}
+                ).get(found_key)
             if val is None:
                 val = getattr(case_result, "metrics", {}).get(found_key)
 
             row_data = {
-                "original_index":
-                    original_idx,
-                f"{metric_name}/score":
-                    getattr(val, "score", None) if val else None,
-                f"{metric_name}/explanation":
-                    getattr(val, "explanation", None) if val else None,
+                "original_index": original_idx,
+                f"{metric_name}/score": getattr(val, "score", None) if val else None,
+                f"{metric_name}/explanation": getattr(val, "explanation", None)
+                if val
+                else None,
             }
 
             # Capture rubric_verdicts for managed rubric-based metrics
             if val and hasattr(val, "rubric_verdicts") and val.rubric_verdicts:
-                row_data[
-                    f"{metric_name}/rubric_verdicts"] = serialize_rubric_verdicts(
-                        val.rubric_verdicts)
+                row_data[f"{metric_name}/rubric_verdicts"] = serialize_rubric_verdicts(
+                    val.rubric_verdicts
+                )
 
             # Capture error_message if present
             if val and hasattr(val, "error_message") and val.error_message:
@@ -469,9 +481,8 @@ def parse_eval_result(result: Any, metric_name: str,
 
 
 def run_single_metric_evaluation(
-    task_args: Tuple,
-) -> Tuple[Optional[pd.DataFrame], str, Optional[pd.DataFrame], Optional[Dict[
-        str, str]]]:
+    task_args: tuple,
+) -> tuple[pd.DataFrame | None, str, pd.DataFrame | None, dict[str, str] | None]:
     """Worker function for parallel evaluation.
 
     Returns:
@@ -481,20 +492,34 @@ def run_single_metric_evaluation(
         surface ``error_info`` to the user instead of the long-standing
         misleading "API rate limits" copy.
     """
-    eval_dataset, metric_obj, metric_df, metric_name, client, retries, delay, gcs_dest = task_args
+    (
+        eval_dataset,
+        metric_obj,
+        metric_df,
+        metric_name,
+        client,
+        retries,
+        delay,
+        gcs_dest,
+    ) = task_args
 
-    eval_kwargs: Dict[str, Any] = {}
+    eval_kwargs: dict[str, Any] = {}
     if gcs_dest:
         eval_kwargs["config"] = types.EvaluateMethodConfig(dest=gcs_dest)
 
-    last_exc: Optional[Exception] = None
+    last_exc: Exception | None = None
     for attempt in range(retries):
         try:
+            logger.info(f"Starting evaluation: {metric_name} (Attempt {attempt + 1})")
             logger.info(
-                f"Starting evaluation: {metric_name} (Attempt {attempt + 1})")
-            result = client.evals.evaluate(dataset=eval_dataset,
-                                           metrics=[metric_obj],
-                                           **eval_kwargs)
+                f"[{metric_name}] eval_dataset columns: {list(eval_dataset.columns)}"
+            )
+            logger.info(
+                f"[{metric_name}] eval_dataset sample: {eval_dataset.head(1).to_dict(orient='records')}"
+            )
+            result = client.evals.evaluate(
+                dataset=eval_dataset, metrics=[metric_obj], **eval_kwargs
+            )
             parsed_df = parse_eval_result(result, metric_name, metric_df)
             logger.info(f"Finished evaluation: {metric_name}")
             return parsed_df, metric_name, eval_dataset, None
@@ -515,16 +540,16 @@ def run_single_metric_evaluation(
                 metric_name,
             )
             fallback_dataset = eval_dataset.drop(columns=["reference"])
-            result = client.evals.evaluate(dataset=fallback_dataset,
-                                           metrics=[metric_obj],
-                                           **eval_kwargs)
+            result = client.evals.evaluate(
+                dataset=fallback_dataset, metrics=[metric_obj], **eval_kwargs
+            )
             parsed_df = parse_eval_result(result, metric_name, metric_df)
             return parsed_df, metric_name, fallback_dataset, None
         except Exception as e:
             last_exc = e
             logger.error(f"'{metric_name}' fallback also failed: {e}")
 
-    error_info: Optional[Dict[str, str]] = None
+    error_info: dict[str, str] | None = None
     if last_exc is not None:
         msg = str(last_exc).strip()
         # Trim to the first line of error text so the table column stays
@@ -539,20 +564,19 @@ def run_single_metric_evaluation(
     return None, metric_name, None, error_info
 
 
-def load_and_consolidate_metrics(metric_files: List[str]) -> Dict[str, Any]:
+def load_and_consolidate_metrics(metric_files: list[str]) -> dict[str, Any]:
     """Load and consolidate metric definitions from multiple JSON files."""
     consolidated = {}
     logger.info("--- Consolidating Metric Definitions ---")
     for file_path in metric_files:
         try:
-            with open(file_path, "r") as f:
+            with Path(file_path).open() as f:
                 data = json.load(f)
                 prefix = data.get("metric_prefix", "").lstrip("_")
                 metrics = data.get("metrics", {})
                 for name, definition in metrics.items():
                     # Skip comment entries (strings starting with _comment)
-                    if name.startswith("_comment") or not isinstance(
-                            definition, dict):
+                    if name.startswith("_comment") or not isinstance(definition, dict):
                         continue
                     full_name = f"{prefix}_{name}".lstrip("_")
                     consolidated[full_name] = definition
@@ -563,8 +587,9 @@ def load_and_consolidate_metrics(metric_files: List[str]) -> Dict[str, Any]:
     return consolidated
 
 
-def filter_metrics_by_criteria(metric_definitions: Dict[str, Any],
-                               filters: Dict[str, List[str]]) -> Dict[str, Any]:
+def filter_metrics_by_criteria(
+    metric_definitions: dict[str, Any], filters: dict[str, list[str]]
+) -> dict[str, Any]:
     """Filter metric definitions based on specified criteria.
 
     The ``metric_type`` filter distinguishes deterministic metrics (latency,
@@ -584,14 +609,20 @@ def filter_metrics_by_criteria(metric_definitions: Dict[str, Any],
             val_to_check = (
                 # See docstring: deterministic metrics flag themselves
                 # explicitly; canonical LLM-judge entries don't.
-                info.get("metric_type", "llm") if key == "metric_type" else
-                info.get("agents", ["data_explorer_agent"]) if key == "agents"
-                else name if key == "metrics" else info.get(key))
+                info.get("metric_type", "llm")
+                if key == "metric_type"
+                else info.get("agents", ["data_explorer_agent"])
+                if key == "agents"
+                else name
+                if key == "metrics"
+                else info.get(key)
+            )
             if val_to_check is None:
                 match = False
                 break
-            check_list = (val_to_check if isinstance(val_to_check, list) else
-                          [str(val_to_check)])
+            check_list = (
+                val_to_check if isinstance(val_to_check, list) else [str(val_to_check)]
+            )
             if not any(str(v) in vals for v in check_list):
                 match = False
                 break
@@ -603,18 +634,33 @@ def filter_metrics_by_criteria(metric_definitions: Dict[str, Any],
 def _get_git_info() -> dict:
     """Capture current git state for comparison across runs."""
     try:
-        commit = subprocess.run(["git", "rev-parse", "HEAD"],
-                                capture_output=True,
-                                text=True).stdout.strip()
-        dirty = subprocess.run(["git", "status", "--porcelain"],
-                               capture_output=True,
-                               text=True).stdout.strip()
-        branch = subprocess.run(["git", "rev-parse", "--abbrev-ref", "HEAD"],
-                                capture_output=True,
-                                text=True).stdout.strip()
+        commit = subprocess.run(
+            ["git", "rev-parse", "HEAD"], capture_output=True, text=True
+        ).stdout.strip()
+        dirty = subprocess.run(
+            ["git", "status", "--porcelain"], capture_output=True, text=True
+        ).stdout.strip()
+        branch = subprocess.run(
+            ["git", "rev-parse", "--abbrev-ref", "HEAD"], capture_output=True, text=True
+        ).stdout.strip()
         return {"commit": commit, "branch": branch, "dirty": bool(dirty)}
     except Exception:
         return {}
+
+
+def _calculate_percentile(scores: list[float], p: float) -> float:
+    """Calculate the p-th percentile of a list of scores (p from 0.0 to 1.0) using linear interpolation."""
+    if not scores:
+        return 0.0
+    sorted_scores = sorted(scores)
+    idx = (len(sorted_scores) - 1) * p
+    idx_floor = math.floor(idx)
+    idx_ceil = math.ceil(idx)
+    if idx_floor == idx_ceil:
+        return sorted_scores[idx_floor]
+    return sorted_scores[idx_floor] * (idx_ceil - idx) + sorted_scores[idx_ceil] * (
+        idx - idx_floor
+    )
 
 
 def save_metrics_summary(
@@ -623,7 +669,7 @@ def save_metrics_summary(
     experiment_id: str,
     run_type: str,
     test_description: str,
-    metric_definitions: Dict[str, Any] = None,
+    metric_definitions: dict[str, Any] | None = None,
     failed_metrics: list[dict] | list[str] | None = None,
     skipped_metrics: list[dict] | None = None,
 ) -> None:
@@ -636,17 +682,28 @@ def save_metrics_summary(
     # Without this, the eval table defaults to "0–5" which looks alarming
     # and inconsistent with our binary convention.
     score_ranges = {}
+    thresholds = {}
     if metric_definitions:
         for name, info in metric_definitions.items():
             if not isinstance(info, dict):
                 continue
+            if "threshold" in info:
+                try:
+                    thresholds[name] = float(info["threshold"])
+                except (ValueError, TypeError) as e:
+                    logger.warning(
+                        "Invalid threshold '%s' for metric '%s': must be a float. Error: %s",
+                        info["threshold"],
+                        name,
+                        e,
+                    )
             if "score_range" in info:
                 score_ranges[name] = info["score_range"]
                 continue
             rating_scores = info.get("rating_scores")
             if isinstance(rating_scores, dict) and rating_scores:
                 try:
-                    keys = sorted(int(k) for k in rating_scores.keys())
+                    keys = sorted(int(k) for k in rating_scores)
                     score_ranges[name] = {
                         "min": keys[0],
                         "max": keys[-1],
@@ -675,23 +732,26 @@ def save_metrics_summary(
                     adk_sourced_metrics.add(metric)
 
                 is_det = metric in DETERMINISTIC_METRICS or any(
-                    metric.endswith(f"_{k}") for k in DETERMINISTIC_METRICS)
+                    metric.endswith(f"_{k}") for k in DETERMINISTIC_METRICS
+                )
                 if "score" in val and val["score"] is not None:
                     try:
                         s = float(val["score"])
                         if not math.isnan(s):
                             per_metric_scores[metric].append(s)
-                            if "details" in val and isinstance(
-                                    val["details"], dict):
+                            if "details" in val and isinstance(val["details"], dict):
                                 for k, v in val["details"].items():
-                                    if isinstance(
-                                            v,
-                                        (int,
-                                         float)) and not isinstance(v, bool):
-                                        per_metric_scores[
-                                            f"{metric}.{k}"].append(v)
-                    except (ValueError, TypeError):
-                        pass
+                                    if isinstance(v, (int, float)) and not isinstance(
+                                        v, bool
+                                    ):
+                                        per_metric_scores[f"{metric}.{k}"].append(v)
+                    except (ValueError, TypeError) as e:
+                        logger.warning(
+                            "Failed to parse score '%s' as float for metric '%s' in case evaluation. Error: %s",
+                            val.get("score"),
+                            metric,
+                            e,
+                        )
                 if is_det:
                     det_metrics[metric] = val.get("details") or val.get("score")
                 else:
@@ -706,8 +766,7 @@ def save_metrics_summary(
 
                     # Rubric verdicts for managed rubric-based metrics
                     if "rubric_verdicts" in val:
-                        llm_metric_data["rubric_verdicts"] = val[
-                            "rubric_verdicts"]
+                        llm_metric_data["rubric_verdicts"] = val["rubric_verdicts"]
 
                     # Error if present
                     if "error" in val:
@@ -719,8 +778,7 @@ def save_metrics_summary(
 
                     llm_metrics[metric] = llm_metric_data
 
-        metadata = robust_json_loads(group.iloc[0].get("question_metadata",
-                                                       "{}")) or {}
+        metadata = robust_json_loads(group.iloc[0].get("question_metadata", "{}")) or {}
         summary = {
             "question_id": question_id,
             "runs": len(group),
@@ -740,6 +798,10 @@ def save_metrics_summary(
         if not scores:
             continue
         avg = sum(scores) / len(scores)
+        med = statistics.median(scores)
+        p90 = _calculate_percentile(scores, 0.9)
+        p95 = _calculate_percentile(scores, 0.95)
+        p99 = _calculate_percentile(scores, 0.99)
         if any(metric.startswith(f"{k}.") for k in DETERMINISTIC_METRICS):
             det_summary[metric] = avg
         elif metric in DETERMINISTIC_METRICS:
@@ -747,12 +809,26 @@ def save_metrics_summary(
         elif metric in adk_sourced_metrics:
             # ADK's built-in eval scores (hallucination, safety from eval_config.json)
             # are kept separate from agent-eval's LLM-as-judge metrics
-            adk_summary[metric] = {"average": avg}
+            adk_summary[metric] = {
+                "average": avg,
+                "median": med,
+                "p90": p90,
+                "p95": p95,
+                "p99": p99,
+            }
         else:
-            # Include score_range if available
-            metric_data = {"average": avg}
+            # Include score_range and threshold if available
+            metric_data = {
+                "average": avg,
+                "median": med,
+                "p90": p90,
+                "p95": p95,
+                "p99": p99,
+            }
             if metric in score_ranges:
                 metric_data["score_range"] = score_ranges[metric]
+            if metric in thresholds:
+                metric_data["threshold"] = thresholds[metric]
             llm_summary[metric] = metric_data
 
     output = {
@@ -788,46 +864,100 @@ def save_metrics_summary(
                 src_df = df[df["source_type"] == src]
                 src_metric_scores = defaultdict(list)
                 src_grouped = src_df.groupby("question_id")
-                for qid, group in src_grouped:
-                    eval_results = group["eval_results"].apply(
-                        robust_json_loads)
+                for _qid, group in src_grouped:
+                    eval_results = group["eval_results"].apply(robust_json_loads)
                     for result_dict in eval_results.dropna():
                         if not isinstance(result_dict, dict):
                             continue
                         for metric, val in result_dict.items():
-                            if not isinstance(
-                                    val, dict
-                            ) or "score" not in val or val["score"] is None:
+                            if (
+                                not isinstance(val, dict)
+                                or "score" not in val
+                                or val["score"] is None
+                            ):
                                 continue
                             try:
                                 s = float(val["score"])
                                 if not math.isnan(s):
                                     src_metric_scores[metric].append(s)
-                            except (ValueError, TypeError):
-                                pass
+                            except (ValueError, TypeError) as e:
+                                logger.warning(
+                                    "Failed to parse score '%s' as float for metric '%s' in source summary. Error: %s",
+                                    val.get("score"),
+                                    metric,
+                                    e,
+                                )
                 per_source_summary[src] = {
                     metric: {
                         "average": round(sum(scores) / len(scores), 4),
-                        "count": len(scores)
-                    } for metric, scores in src_metric_scores.items() if scores
+                        "count": len(scores),
+                    }
+                    for metric, scores in src_metric_scores.items()
+                    if scores
                 }
             output["per_source_summary"] = per_source_summary
 
-    with open(results_dir / "eval_summary.json", "w") as f:
+    with (results_dir / "eval_summary.json").open("w") as f:
         json.dump(output, f, indent=4, default=str)
     logger.info(f"Metrics summary saved to {results_dir / 'eval_summary.json'}")
 
 
-class Evaluator:
+def _get_row_metrics(row: Any) -> list[str] | None:
+    """Extract and normalize the list of targeted metrics for a row, if specified."""
+    row_metrics = row.get("metrics") if hasattr(row, "get") else None
 
-    def __init__(self, config: Dict[str, Any]):
+    if row_metrics is None:
+        return None
+
+    if isinstance(row_metrics, float) and math.isnan(row_metrics):
+        return None
+
+    if isinstance(row_metrics, str):
+        row_metrics = row_metrics.strip()
+        if not row_metrics:
+            return None
+        try:
+            decoded = json.loads(row_metrics)
+            if isinstance(decoded, list):
+                return [str(m) for m in decoded]
+            return [str(decoded)]
+        except (json.JSONDecodeError, ValueError):
+            if "," in row_metrics:
+                return [m.strip() for m in row_metrics.split(",")]
+            return [row_metrics]
+
+    if isinstance(row_metrics, list):
+        if not row_metrics:
+            return None
+        return [str(m) for m in row_metrics]
+
+    return None
+
+
+def _should_run_metric(row_metrics: list[str] | None, metric_name: str) -> bool:
+    """Decide if a metric should run based on the row's targeted metrics."""
+    if row_metrics is None:
+        return True
+
+    if metric_name in row_metrics:
+        return True
+
+    # Also support suffix match (e.g. "myagent_accuracy" matches "accuracy")
+    for target in row_metrics:
+        if metric_name.endswith(f"_{target}") or metric_name == target:
+            return True
+
+    return False
+
+
+class Evaluator:
+    def __init__(self, config: dict[str, Any]):
         self.config = config
         self.project_id = get_project_id()
-        self.location = CONFIG.GOOGLE_CLOUD_LOCATION
+        self.location = config.get("location", CONFIG.GOOGLE_CLOUD_LOCATION)
 
         if not self.project_id:
-            raise ValueError(
-                "GOOGLE_CLOUD_PROJECT environment variable is not set.")
+            raise ValueError("GOOGLE_CLOUD_PROJECT environment variable is not set.")
 
         aiplatform.init(project=self.project_id, location=self.location)
         # Per docs/evaluation-agents-client: HttpOptions(api_version="v1beta1")
@@ -839,11 +969,13 @@ class Evaluator:
             http_options=HttpOptions(api_version="v1beta1"),
         )
 
-    def evaluate(self,
-                 metrics_files: List[str],
-                 results_dir: Path,
-                 interaction_files: Union[List[Path], Path, None] = None,
-                 interaction_file: Optional[Path] = None):
+    async def evaluate(
+        self,
+        metrics_files: list[str],
+        results_dir: Path,
+        interaction_files: list[Path] | Path | None = None,
+        interaction_file: Path | None = None,
+    ):
         # Backward compat: accept singular interaction_file
         if interaction_files is None and interaction_file is not None:
             interaction_files = [interaction_file]
@@ -860,19 +992,21 @@ class Evaluator:
         for ifile in interaction_files:
             logger.info(f"Loading interaction data from {Path(ifile).name}")
             file_ext = ifile.suffix.lower()
-            if file_ext == '.jsonl':
+            if file_ext == ".jsonl":
                 from agent_eval.core.converters import read_jsonl
+
                 records = read_jsonl(str(ifile))
                 df = pd.DataFrame(records)
-                if 'question_id' in df.columns:
-                    df['question_id'] = df['question_id'].astype(str)
+                if "question_id" in df.columns:
+                    df["question_id"] = df["question_id"].astype(str)
                 is_jsonl = True
             else:
                 df = pd.read_csv(ifile, dtype={"question_id": str})
             all_dfs.append(df)
 
-        interaction_results = pd.concat(
-            all_dfs, ignore_index=True) if len(all_dfs) > 1 else all_dfs[0]
+        interaction_results = (
+            pd.concat(all_dfs, ignore_index=True) if len(all_dfs) > 1 else all_dfs[0]
+        )
 
         results_dir.mkdir(parents=True, exist_ok=True)
 
@@ -882,30 +1016,37 @@ class Evaluator:
         # Apply Filters
         if self.config.get("metric_filters"):
             metric_definitions = filter_metrics_by_criteria(
-                metric_definitions, self.config["metric_filters"])
+                metric_definitions, self.config["metric_filters"]
+            )
 
         # Preprocess JSON columns (only needed for CSV format)
         original_df = interaction_results.copy()
         if not is_jsonl:
             json_cols = [
-                "extracted_data", "reference_data", "latency_data",
-                "agents_evaluated", "user_inputs", "session_trace",
-                "final_session_state"
+                "extracted_data",
+                "reference_data",
+                "latency_data",
+                "agents_evaluated",
+                "user_inputs",
+                "session_trace",
+                "final_session_state",
+                "metrics",
             ]
             for col in json_cols:
                 if col in interaction_results.columns:
                     interaction_results[col] = interaction_results[col].apply(
-                        robust_json_loads)
+                        robust_json_loads
+                    )
 
         # Expand data for easy mapping
         dfs = [interaction_results]
-        for prefix in [
-                CONFIG.EXTRACTED_DATA_PREFIX, CONFIG.REFERENCE_DATA_PREFIX
-        ]:
+        for prefix in [CONFIG.EXTRACTED_DATA_PREFIX, CONFIG.REFERENCE_DATA_PREFIX]:
             if prefix in interaction_results.columns:
                 dfs.append(
-                    pd.json_normalize(
-                        interaction_results[prefix]).add_prefix(f"{prefix}."))
+                    pd.json_normalize(interaction_results[prefix]).add_prefix(
+                        f"{prefix}."
+                    )
+                )
 
         expanded_df = pd.concat(dfs, axis=1)
 
@@ -918,15 +1059,26 @@ class Evaluator:
                 if not row.get("final_session_state"):
                     continue
 
+                row_metrics = _get_row_metrics(row)
+                det_metrics_to_run = [
+                    m
+                    for m in DETERMINISTIC_METRICS
+                    if _should_run_metric(row_metrics, m)
+                ]
+
+                if not det_metrics_to_run:
+                    continue
+
                 res = evaluate_deterministic_metrics(
                     session_state=row.get("final_session_state") or {},
                     session_trace=row.get("session_trace") or [],
                     agents_evaluated=row.get("agents_evaluated") or [],
                     reference_data=row.get("reference_data") or {},
-                    question_metadata=row.get("question_metadata") or
-                    {},  # Assuming this is dict from load
-                    metrics_to_run=list(DETERMINISTIC_METRICS.keys()),
-                    latency_data=row.get("latency_data") or [])
+                    question_metadata=row.get("question_metadata")
+                    or {},  # Assuming this is dict from load
+                    metrics_to_run=det_metrics_to_run,
+                    latency_data=row.get("latency_data") or [],
+                )
                 det_results_map[index].update(res)
             except Exception as e:
                 logger.error(f"Row {index} deterministic error: {e}")
@@ -944,13 +1096,15 @@ class Evaluator:
                 metrics_by_agent[agent].append((name, info))
 
         eval_tasks = []
-        skipped_metrics = [
-        ]  # Metrics skipped by design (no matching data, applies_to filter)
+        skipped_metrics = []  # Metrics skipped by design (no matching data, applies_to filter)
 
         for agent, metrics in metrics_by_agent.items():
             # Filter rows relevant to this agent
-            mask = expanded_df["agents_evaluated"].apply(lambda x: agent in (
-                x if isinstance(x, list) else [x]) if x else False)
+            mask = expanded_df["agents_evaluated"].apply(
+                lambda x, agent=agent: agent in (x if isinstance(x, list) else [x])
+                if x
+                else False
+            )
             # If default agent, include all if not specified
             if agent == "data_explorer_agent" and not any(mask):
                 mask = [True] * len(expanded_df)
@@ -959,12 +1113,15 @@ class Evaluator:
             if agent_df.empty:
                 for metric_name, info in metrics:
                     if info.get("metric_type") != "deterministic":
-                        skipped_metrics.append({
-                            "metric": metric_name,
-                            "reason": f"no data for agent '{agent}'"
-                        })
-                        logger.info("Skipping '%s' — no data for agent '%s'",
-                                    metric_name, agent)
+                        skipped_metrics.append(
+                            {
+                                "metric": metric_name,
+                                "reason": f"no data for agent '{agent}'",
+                            }
+                        )
+                        logger.info(
+                            "Skipping '%s' — no data for agent '%s'", metric_name, agent
+                        )
                 continue
 
             for metric_name, info in metrics:
@@ -978,19 +1135,20 @@ class Evaluator:
 
                 if required_caps:
                     capability_mask = agent_df.apply(
-                        lambda r: required_caps.issubset(
-                            _interaction_row_capabilities(r)),
+                        lambda r, required_caps=required_caps: required_caps.issubset(
+                            _interaction_row_capabilities(r)
+                        ),
                         axis=1,
                     )
                     agent_df_filtered = agent_df[capability_mask].copy()
                     if agent_df_filtered.empty:
                         missing = ", ".join(sorted(required_caps))
-                        skipped_metrics.append({
-                            "metric":
-                                metric_name,
-                            "reason":
-                                f"no rows have required capabilities: {missing}",
-                        })
+                        skipped_metrics.append(
+                            {
+                                "metric": metric_name,
+                                "reason": f"no rows have required capabilities: {missing}",
+                            }
+                        )
                         logger.info(
                             "Skipping '%s' — no rows have required capabilities: %s",
                             metric_name,
@@ -999,6 +1157,23 @@ class Evaluator:
                         continue
                 else:
                     agent_df_filtered = agent_df
+
+                # Row-level metric filtering
+                if "metrics" in agent_df_filtered.columns:
+                    metric_mask = agent_df_filtered.apply(
+                        lambda r, m_name=metric_name: _should_run_metric(
+                            _get_row_metrics(r), m_name
+                        ),
+                        axis=1,
+                    )
+                    agent_df_filtered = agent_df_filtered[metric_mask].copy()
+
+                if agent_df_filtered.empty:
+                    logger.info(
+                        "Skipping '%s' — not targeted by any active rows",
+                        metric_name,
+                    )
+                    continue
 
                 is_managed = is_managed_entry(info)
 
@@ -1021,34 +1196,40 @@ class Evaluator:
                         # rubric-style; plus intermediate_events for tool
                         # metrics; plus history for multi-turn; etc.).
                         eval_dataset, error_reason = _build_managed_eval_dataset(
-                            info, metric_name, m_name, original_df_filtered)
+                            info, metric_name, m_name, original_df_filtered
+                        )
                         if error_reason:
-                            skipped_metrics.append({
-                                "metric": metric_name,
-                                "reason": error_reason,
-                            })
-                            logger.warning("Skipping '%s' — %s", metric_name,
-                                           error_reason)
+                            skipped_metrics.append(
+                                {
+                                    "metric": metric_name,
+                                    "reason": error_reason,
+                                }
+                            )
+                            logger.warning(
+                                "Skipping '%s' — %s", metric_name, error_reason
+                            )
                             continue
 
                         # Reference columns may be empty per row even when
                         # present in the schema. Drop empty-reference rows so
                         # the metric scores only on populated examples.
                         if "reference" in eval_dataset.columns:
-                            non_empty = (eval_dataset["reference"].astype(
-                                str).str.strip() != "")
+                            non_empty = (
+                                eval_dataset["reference"].astype(str).str.strip() != ""
+                            )
                             dropped = int((~non_empty).sum())
                             eval_dataset = eval_dataset[non_empty].copy()
                             if eval_dataset.empty:
-                                skipped_metrics.append({
-                                    "metric":
-                                        metric_name,
-                                    "reason": (
-                                        "all rows have empty 'reference' — populate "
-                                        "reference_data in your golden dataset, or "
-                                        "override dataset_mapping.reference.source_column"
-                                    ),
-                                })
+                                skipped_metrics.append(
+                                    {
+                                        "metric": metric_name,
+                                        "reason": (
+                                            "all rows have empty 'reference' — populate "
+                                            "reference_data in your golden dataset, or "
+                                            "override dataset_mapping.reference.source_column"
+                                        ),
+                                    }
+                                )
                                 logger.warning(
                                     "Skipping '%s' — reference column empty in all rows",
                                     metric_name,
@@ -1076,8 +1257,7 @@ class Evaluator:
                         placeholders = _GCS_PLACEHOLDERS.get(m_name, [])
                         if "history" in placeholders and "history" not in mapping:
                             mapping["history"] = {
-                                "source_column":
-                                    "extracted_data:conversation_history",
+                                "source_column": "extracted_data:conversation_history",
                             }
                         eval_dataset = map_dataset_columns(
                             agent_df_filtered,
@@ -1101,13 +1281,16 @@ class Evaluator:
                     )
 
                 if eval_dataset.empty or len(eval_dataset.columns) == 0:
-                    skipped_metrics.append({
-                        "metric": metric_name,
-                        "reason": "empty dataset after column mapping"
-                    })
+                    skipped_metrics.append(
+                        {
+                            "metric": metric_name,
+                            "reason": "empty dataset after column mapping",
+                        }
+                    )
                     logger.warning(
                         "Skipping '%s' — empty dataset after column mapping",
-                        metric_name)
+                        metric_name,
+                    )
                     continue
 
                 # Build the SDK metric object via the canonical-schema factory.
@@ -1116,13 +1299,16 @@ class Evaluator:
                 # the docs' MetricPromptBuilder(criteria, rating_scores) pattern
                 # for custom_llm_judge entries.
                 from agent_eval.core import metric_factory
+
                 try:
                     metric_obj = metric_factory.build_metric(metric_name, info)
-                except Exception as build_err:  # noqa: BLE001
-                    skipped_metrics.append({
-                        "metric": metric_name,
-                        "reason": f"failed to build metric: {build_err}",
-                    })
+                except Exception as build_err:
+                    skipped_metrics.append(
+                        {
+                            "metric": metric_name,
+                            "reason": f"failed to build metric: {build_err}",
+                        }
+                    )
                     logger.warning(
                         "Skipping '%s' — failed to build SDK metric: %s",
                         metric_name,
@@ -1130,37 +1316,39 @@ class Evaluator:
                     )
                     continue
 
-                eval_tasks.append((
-                    eval_dataset,
-                    metric_obj,
-                    agent_df,
-                    metric_name,
-                    self.client,
-                    CONFIG.MAX_RETRIES,
-                    CONFIG.RETRY_DELAY_SECONDS,
-                    self.config.get("gcs_dest"),
-                ))
+                eval_tasks.append(
+                    (
+                        eval_dataset,
+                        metric_obj,
+                        agent_df_filtered,
+                        metric_name,
+                        self.client,
+                        CONFIG.MAX_RETRIES,
+                        CONFIG.RETRY_DELAY_SECONDS,
+                        self.config.get("gcs_dest"),
+                    )
+                )
 
         # Run Parallel Execution. failed_metrics is a list of dicts so we
         # can show the user the real exception class + message instead of
         # the long-standing misleading "API rate limits" warning.
-        failed_metrics: List[Dict[str, str]] = []
-        with concurrent.futures.ThreadPoolExecutor(
-                max_workers=CONFIG.MAX_WORKERS) as executor:
-            future_to_metric = {
-                executor.submit(run_single_metric_evaluation, t): t[3]
-                for t in eval_tasks
-            }
-            for future in concurrent.futures.as_completed(future_to_metric):
-                res, m_name, input_df, error_info = future.result()
-                if res is not None:
-                    all_llm_results.append((res, m_name, input_df))
-                else:
-                    entry: Dict[str, str] = {"metric": m_name}
-                    if error_info:
-                        entry["exception_type"] = error_info["exception_type"]
-                        entry["message"] = error_info["message"]
-                    failed_metrics.append(entry)
+        failed_metrics: list[dict[str, str]] = []
+
+        async def run_task(task_arg):
+            return await asyncio.to_thread(run_single_metric_evaluation, task_arg)
+
+        tasks = [run_task(t) for t in eval_tasks]
+        results = await asyncio.gather(*tasks)
+
+        for res, m_name, input_df, error_info in results:
+            if res is not None:
+                all_llm_results.append((res, m_name, input_df))
+            else:
+                entry: dict[str, str] = {"metric": m_name}
+                if error_info:
+                    entry["exception_type"] = error_info["exception_type"]
+                    entry["message"] = error_info["message"]
+                failed_metrics.append(entry)
 
         # --- Consolidate Results ---
         final_df = original_df.copy()
@@ -1169,9 +1357,7 @@ class Evaluator:
         # Add Pre-calculated ADK scores from simulation (if present).
         # These are tagged with _adk_source so save_metrics_summary can
         # separate them from agent-eval's own LLM-as-judge metrics.
-        adk_score_cols = [
-            c for c in original_df.columns if c.startswith("adk_score.")
-        ]
+        adk_score_cols = [c for c in original_df.columns if c.startswith("adk_score.")]
         for col in adk_score_cols:
             metric_name = col.replace("adk_score.", "")
             for idx, val in original_df[col].items():
@@ -1179,12 +1365,9 @@ class Evaluator:
                     try:
                         if pd.notna(val):
                             eval_results_list[idx][metric_name] = {
-                                "score":
-                                    float(val),
-                                "explanation":
-                                    "Extracted from ADK simulation history.",
-                                "_adk_source":
-                                    True,
+                                "score": float(val),
+                                "explanation": "Extracted from ADK simulation history.",
+                                "_adk_source": True,
                             }
                     except (ValueError, TypeError):
                         continue
@@ -1221,20 +1404,18 @@ class Evaluator:
                     # Skip empty string explanations (some metrics don't return explanations)
                     if explanation and explanation != "":
                         # Try to parse JSON explanations (HALLUCINATION, GROUNDING return JSON strings)
-                        if isinstance(explanation,
-                                      str) and explanation.startswith("["):
-                            try:
+                        if isinstance(explanation, str) and explanation.startswith("["):
+                            with contextlib.suppress(json.JSONDecodeError, TypeError):
                                 explanation = json.loads(explanation)
-                            except (json.JSONDecodeError, TypeError):
-                                pass
                         metric_result["explanation"] = explanation
 
                     # Include rubric_verdicts if present (managed rubric metrics)
                     rubric_verdicts_key = f"{metric_name}/rubric_verdicts"
-                    if rubric_verdicts_key in row and row[
-                            rubric_verdicts_key] is not None:
-                        metric_result["rubric_verdicts"] = row[
-                            rubric_verdicts_key]
+                    if (
+                        rubric_verdicts_key in row
+                        and row[rubric_verdicts_key] is not None
+                    ):
+                        metric_result["rubric_verdicts"] = row[rubric_verdicts_key]
 
                     # Include error if present (check for NaN)
                     error_key = f"{metric_name}/error"
@@ -1248,8 +1429,9 @@ class Evaluator:
                                 metric_result["error"] = str(error_val)
 
                     # Include input data for full traceability
-                    if isinstance(input_df,
-                                  pd.DataFrame) and result_idx < len(input_df):
+                    if isinstance(input_df, pd.DataFrame) and result_idx < len(
+                        input_df
+                    ):
                         input_row = input_df.iloc[result_idx]
                         input_data = {}
                         for col in input_df.columns:
@@ -1276,9 +1458,9 @@ class Evaluator:
             """Custom serializer that handles NaN, numpy types, and other edge cases."""
             if isinstance(obj, float) and (math.isnan(obj) or math.isinf(obj)):
                 return None
-            if hasattr(obj, 'tolist'):  # numpy arrays
+            if hasattr(obj, "tolist"):  # numpy arrays
                 return obj.tolist()
-            if hasattr(obj, 'item'):  # numpy scalars
+            if hasattr(obj, "item"):  # numpy scalars
                 return obj.item()
             return str(obj)
 
@@ -1287,7 +1469,7 @@ class Evaluator:
         ]
 
         # Use the provided results_dir directly (folder was created by run/convert)
-        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         raw_dir = results_dir / "raw"
         raw_dir.mkdir(parents=True, exist_ok=True)
 

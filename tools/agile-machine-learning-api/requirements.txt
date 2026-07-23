@@ -1,7 +1,7 @@
 Flask==3.1.3
 Flask-json-schema==0.0.5
 google-api-python-client==1.7.8
-PyYAML==3.13
+PyYAML==5.4
 uuid==1.30
 google-cloud-storage==1.14.0
 mock==2.0.0

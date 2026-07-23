@@ -39,67 +39,62 @@ METRIC_TEMPLATES = {
     "general_quality": {
         "kind": "managed",
         "base": "GENERAL_QUALITY",
+        "threshold": 4.0,
     },
     "trajectory_accuracy": {
         "kind": "custom_llm_judge",
         "requires_multi_turn": True,
+        "threshold": 0.8,
         "instruction": (
             "Evaluate whether the agent's execution trajectory used the available "
             "tools correctly to address the user's request. Score 1 only if EVERY "
-            "criterion below is met; 0 if any criterion fails."),
+            "criterion below is met; 0 if any criterion fails."
+        ),
         "criteria": {
             "tool_existence": (
                 "Every tool the agent called appears in the **Available Tools** list. "
-                "Hallucinated tool names → 0."),
+                "Hallucinated tool names → 0."
+            ),
             "no_obvious_detour": (
                 "The agent did not take an obvious detour or call an irrelevant tool "
-                "before reaching the answer."),
+                "before reaching the answer."
+            ),
         },
         "rating_scores": {
             "1": "Pass: both criteria met",
             "0": "Fail: at least one criterion not met",
         },
         "dataset_mapping": {
-            "prompt": {
-                "source_column": "user_inputs"
-            },
-            "response": {
-                "source_column": "trace_summary"
-            },
-            "reference": {
-                "source_column": "extracted_data:tool_declarations"
-            },
+            "prompt": {"source_column": "user_inputs"},
+            "response": {"source_column": "trace_summary"},
+            "reference": {"source_column": "extracted_data:tool_declarations"},
         },
     },
     "tool_use_quality": {
         "kind": "custom_llm_judge",
+        "threshold": 0.8,
         "instruction": (
             "Evaluate the agent's tool calls for correctness. Score 1 only if EVERY "
             "criterion below is met; 0 if any criterion fails. The tool list and "
-            "actual call trace are in the **Reference** section."),
+            "actual call trace are in the **Reference** section."
+        ),
         "criteria": {
-            "selection":
-                "Each tool the agent chose is appropriate for the request.",
-            "arguments":
-                "Tool arguments are populated correctly (right keys, right types, no obvious typos).",
-            "no_redundancy":
-                "No duplicate / unnecessary tool calls.",
+            "selection": "Each tool the agent chose is appropriate for the request.",
+            "arguments": "Tool arguments are populated correctly (right keys, right types, no obvious typos).",
+            "no_redundancy": "No duplicate / unnecessary tool calls.",
         },
         "rating_scores": {
             "1": "Pass: all three criteria met",
             "0": "Fail: at least one criterion not met",
         },
         "dataset_mapping": {
-            "prompt": {
-                "source_column": "user_inputs"
-            },
-            "response": {
-                "source_column": "final_response"
-            },
+            "prompt": {"source_column": "user_inputs"},
+            "response": {"source_column": "final_response"},
             "reference": {
-                "template":
-                    ("Available Tools: {extracted_data_tool_declarations}\n\n"
-                     "Tool Calls: {extracted_data_tool_interactions}"),
+                "template": (
+                    "Available Tools: {extracted_data_tool_declarations}\n\n"
+                    "Tool Calls: {extracted_data_tool_interactions}"
+                ),
                 "source_columns": [
                     "extracted_data:tool_declarations",
                     "extracted_data:tool_interactions",
@@ -107,257 +102,18 @@ METRIC_TEMPLATES = {
             },
         },
     },
+    "state_grounding": {
+        "kind": "managed",
+        "base": "GROUNDING",
+        "threshold": 4.0,
+        "dataset_mapping": {"context": {"source_column": "final_session_state"}},
+    },
     "safety": {
         "kind": "managed",
         "base": "SAFETY",
+        "threshold": 4.0,
     },
 }
-
-
-def scaffold_eval_structure(
-    target_dir: Path,
-    agent_name: str = "app",
-    mode: str = "both",
-    metrics: list[str] | None = None,
-    custom_metric_definitions: dict | None = None,
-    ai_recommendations: dict | None = None,
-) -> None:
-    """Creates the eval/ folder structure with starter templates.
-
-    Args:
-        target_dir: Root directory of the agent project (eval/ is created here).
-        agent_name: Agent module name (folder containing agent.py).
-        mode: 'user-sim', 'diy', or 'both'.
-        metrics: List of metric keys to include from METRIC_TEMPLATES.
-        custom_metric_definitions: AI-generated metric definitions to merge in.
-        ai_recommendations: Gemini's recommendations dict with scenarios/golden_data.
-    """
-    eval_dir = target_dir / "eval"
-    has_ai = custom_metric_definitions is not None
-
-    # Resolve which metrics to include
-    metric_defs = {"metrics": {}}
-
-    if custom_metric_definitions:
-        # AI metrics provided — use ONLY what the AI generated (no forced defaults)
-        for key, defn in custom_metric_definitions.items():
-            if "agents" not in defn:
-                defn["agents"] = [agent_name]
-            metric_defs["metrics"][key] = defn
-    else:
-        # No AI metrics — use standard defaults
-        if metrics is None:
-            if mode == "diy":
-                metrics = ["general_quality", "tool_use_quality", "safety"]
-            else:
-                metrics = [
-                    "general_quality", "trajectory_accuracy",
-                    "tool_use_quality", "safety"
-                ]
-
-        for key in metrics:
-            if key in METRIC_TEMPLATES:
-                defn = dict(METRIC_TEMPLATES[key])
-                if "agents" not in defn:
-                    defn["agents"] = [agent_name]
-                metric_defs["metrics"][key] = defn
-
-    # Create directories
-    for d in [
-            eval_dir, eval_dir / "metrics", eval_dir / "scenarios",
-            eval_dir / "results"
-    ]:
-        d.mkdir(parents=True, exist_ok=True)
-
-    # If AI content is provided and existing files exist, back them up
-    backup_dir = None
-    if has_ai:
-        backed_up = _backup_existing_files(eval_dir, mode)
-        if backed_up:
-            backup_dir = backed_up
-            console.print("  [dim]Previous files backed up to eval/.backup/[/]")
-
-    display_prefix = str(eval_dir)
-
-    _write_if_missing(eval_dir / "__init__.py", "")
-    _write_if_missing(eval_dir / "results" / ".gitkeep", "")
-
-    # ── Metrics ───────────────────────────────────────────────────────────
-    metrics_path = eval_dir / "metrics" / "metric_definitions.json"
-    if has_ai:
-        # AI mode: always write (backup already taken if file existed)
-        metrics_path.write_text(json.dumps(metric_defs, indent=2) + "\n")
-        console.print(
-            f"  [green]created[/]  {display_prefix}/metrics/metric_definitions.json"
-        )
-    else:
-        existed = metrics_path.exists()
-        _write_json_if_missing(metrics_path, metric_defs)
-        status = "[yellow]kept[/]" if existed else "[green]created[/]"
-        console.print(
-            f"  {status}     {display_prefix}/metrics/metric_definitions.json")
-
-    # ── Session input ─────────────────────────────────────────────────────
-    session_path = eval_dir / "scenarios" / "session_input.json"
-    session_input = {"app_name": agent_name, "user_id": "eval_user"}
-    if session_path.exists():
-        console.print(
-            f"  [yellow]kept[/]     {display_prefix}/scenarios/session_input.json"
-        )
-    else:
-        _write_json_if_missing(session_path, session_input)
-        console.print(
-            f"  [green]created[/]  {display_prefix}/scenarios/session_input.json"
-        )
-
-    # ── Scenarios ─────────────────────────────────────────────────────────
-    if mode in ("user-sim", "both"):
-        scenarios_path = eval_dir / "scenarios" / "conversation_scenarios.json"
-        if has_ai and ai_recommendations and ai_recommendations.get(
-                "scenarios"):
-            # AI mode: write AI scenarios (backup already taken)
-            ai_scenarios = _build_ai_scenarios(ai_recommendations["scenarios"])
-            # If file didn't exist, start fresh; if it did, merge AI scenarios
-            if scenarios_path.exists() and backup_dir:
-                # Existing file was backed up — read old scenarios, append AI ones
-                try:
-                    old = json.loads(scenarios_path.read_text())
-                    old_scenarios = old.get("scenarios", [])
-                    merged = {
-                        "scenarios": old_scenarios + ai_scenarios["scenarios"]
-                    }
-                    scenarios_path.write_text(
-                        json.dumps(merged, indent=2) + "\n")
-                except Exception:
-                    scenarios_path.write_text(
-                        json.dumps(ai_scenarios, indent=2) + "\n")
-            else:
-                scenarios_path.write_text(
-                    json.dumps(ai_scenarios, indent=2) + "\n")
-            console.print(
-                f"  [green]created[/]  {display_prefix}/scenarios/conversation_scenarios.json"
-            )
-        elif not scenarios_path.exists():
-            default_scenarios = {
-                "scenarios": [{
-                    "starting_prompt":
-                        "Hello, I need help with something.",
-                    "conversation_plan":
-                        "Ask the agent about its capabilities. Follow up with a specific request.",
-                }]
-            }
-            _write_json_if_missing(scenarios_path, default_scenarios)
-            console.print(
-                f"  [green]created[/]  {display_prefix}/scenarios/conversation_scenarios.json"
-            )
-        else:
-            console.print(
-                f"  [yellow]kept[/]     {display_prefix}/scenarios/conversation_scenarios.json"
-            )
-
-    # ── Golden dataset ────────────────────────────────────────────────────
-    if mode in ("diy", "both"):
-        (eval_dir / "eval_data").mkdir(parents=True, exist_ok=True)
-        golden_path = eval_dir / "eval_data" / "golden_dataset.json"
-        if has_ai and ai_recommendations and ai_recommendations.get(
-                "golden_data"):
-            # AI mode: write AI golden data (backup already taken)
-            ai_golden = _build_ai_golden_data(ai_recommendations["golden_data"],
-                                              agent_name)
-            if golden_path.exists() and backup_dir:
-                # Existing file was backed up — read old entries, append AI ones
-                try:
-                    old = json.loads(golden_path.read_text())
-                    old_questions = old.get("golden_questions", [])
-                    merged = {
-                        "golden_questions":
-                            old_questions + ai_golden["golden_questions"]
-                    }
-                    golden_path.write_text(json.dumps(merged, indent=2) + "\n")
-                except Exception:
-                    golden_path.write_text(
-                        json.dumps(ai_golden, indent=2) + "\n")
-            else:
-                golden_path.write_text(json.dumps(ai_golden, indent=2) + "\n")
-            console.print(
-                f"  [green]created[/]  {display_prefix}/eval_data/golden_dataset.json"
-            )
-        elif not golden_path.exists():
-            default_golden = {
-                "golden_questions": [{
-                    "id": "test_001",
-                    "user_inputs": ["Hello, what can you help me with?"],
-                    "agents_evaluated": [agent_name],
-                    "metadata": {
-                        "description": "Basic capability check"
-                    },
-                    "reference_data": {
-                        "expected_behavior":
-                            "Agent should describe its capabilities"
-                    },
-                }]
-            }
-            _write_json_if_missing(golden_path, default_golden)
-            console.print(
-                f"  [green]created[/]  {display_prefix}/eval_data/golden_dataset.json"
-            )
-        else:
-            console.print(
-                f"  [yellow]kept[/]     {display_prefix}/eval_data/golden_dataset.json"
-            )
-
-    console.print(f"  [green]created[/]  {display_prefix}/results/.gitkeep")
-
-    if backup_dir:
-        console.print()
-        console.print(
-            f"  [dim]Your previous files are in:[/]  [cyan]{backup_dir}[/]")
-        console.print(
-            f"  [dim]Delete when satisfied:[/]       rm -rf {backup_dir}")
-
-
-def _build_ai_scenarios(scenario_recs: list) -> dict:
-    """Convert Gemini's scenario recommendations to conversation_scenarios.json format."""
-    scenarios = []
-    for s in scenario_recs:
-        scenario = {}
-        if s.get("starting_prompt"):
-            scenario["starting_prompt"] = s["starting_prompt"]
-        else:
-            scenario["starting_prompt"] = s.get("description", "Hello")
-        if s.get("conversation_plan"):
-            scenario["conversation_plan"] = s["conversation_plan"]
-        else:
-            scenario["conversation_plan"] = s.get("description",
-                                                  "Follow the agent's lead.")
-        scenarios.append(scenario)
-    return {"scenarios": scenarios}
-
-
-def _build_ai_golden_data(golden_recs: list, agent_name: str) -> dict:
-    """Convert Gemini's golden data recommendations to golden_dataset.json format."""
-    questions = []
-    for i, g in enumerate(golden_recs, 1):
-        user_inputs = g.get("user_inputs", [])
-        if not user_inputs and g.get("description"):
-            user_inputs = [g["description"]]
-        ref = g.get("reference_data", {})
-        expected = ref.get("expected_behavior", "") if isinstance(ref,
-                                                                  dict) else ""
-        if not expected:
-            expected = g.get("expected_behavior", g.get("description", ""))
-        questions.append({
-            "id": f"ai_generated_{i:03d}",
-            "user_inputs": user_inputs,
-            "agents_evaluated": [agent_name],
-            "metadata": {
-                "description": g.get("description", "")
-            },
-            "reference_data": {
-                "expected_behavior": expected
-            },
-        })
-    return {"golden_questions": questions}
 
 
 def _backup_existing_files(eval_dir: Path, mode: str) -> Path | None:
@@ -367,8 +123,7 @@ def _backup_existing_files(eval_dir: Path, mode: str) -> Path | None:
     """
     files_to_backup = [eval_dir / "metrics" / "metric_definitions.json"]
     if mode in ("user-sim", "both"):
-        files_to_backup.append(eval_dir / "scenarios" /
-                               "conversation_scenarios.json")
+        files_to_backup.append(eval_dir / "scenarios" / "conversation_scenarios.json")
     if mode in ("diy", "both"):
         files_to_backup.append(eval_dir / "eval_data" / "golden_dataset.json")
 
@@ -413,6 +168,7 @@ def scaffold_metrics_only(
       - ``"overwrite"`` — overwrite without backup
     """
     from agent_eval.core.path_resolver import agent_project_root
+
     project_root = agent_project_root(target_dir)
     eval_dir = project_root / "tests" / "eval"
     metric_defs: dict = {"metrics": {}}
@@ -441,7 +197,8 @@ def scaffold_metrics_only(
         if if_exists == "skip":
             console.print(
                 f"  [yellow]kept[/]     {eval_dir}/metrics/metric_definitions.json  "
-                f"[dim](already on disk; not overwriting)[/]")
+                f"[dim](already on disk; not overwriting)[/]"
+            )
             return
         if if_exists == "backup_and_overwrite" and custom_metric_definitions:
             backup = _backup_existing_files(eval_dir, mode="dataset-only")
@@ -455,8 +212,7 @@ def scaffold_metrics_only(
             )
             return
     metrics_path.write_text(json.dumps(metric_defs, indent=2) + "\n")
-    console.print(
-        f"  [green]created[/]  {eval_dir}/metrics/metric_definitions.json")
+    console.print(f"  [green]created[/]  {eval_dir}/metrics/metric_definitions.json")
     console.print(f"  [green]created[/]  {eval_dir}/results/.gitkeep")
 
 
@@ -541,12 +297,9 @@ def _rows_from_recommendations(
             # SDK FLATTEN canonical column name. Older code used
             # 'conversation_history'; both still parse but 'history' is
             # the wire form so writing it directly avoids a translation.
-            row["history"] = [{
-                "role": "user",
-                "parts": [{
-                    "text": t
-                }]
-            } for t in user_inputs[:-1]]
+            row["history"] = [
+                {"role": "user", "parts": [{"text": t}]} for t in user_inputs[:-1]
+            ]
         # Keep reference_data NESTED — single source of truth for
         # golden-comparison metrics. The evaluator's per-metric
         # `reference_data:<field>` source columns + the
@@ -577,6 +330,7 @@ def _coerce_conversation_plan_to_list(plan: Any) -> list[str]:
     string and the simulation breaks.
     """
     import re as _re
+
     if isinstance(plan, list):
         return [str(t).strip() for t in plan if str(t).strip()]
     if isinstance(plan, str):
@@ -615,14 +369,11 @@ def scaffold_dataset_jsonl(
     get the 2-row starter.
     """
     from agent_eval.core.path_resolver import agent_project_root
+
     project_root = agent_project_root(target_dir)
     dataset_path = project_root / "tests" / "eval" / "dataset.jsonl"
 
-    session_inputs = {
-        "app_name": agent_name,
-        "user_id": "eval_user",
-        "state": {}
-    }
+    session_inputs = {"app_name": agent_name, "user_id": "eval_user", "state": {}}
     ai_rows = _rows_from_recommendations(recommendations, session_inputs)
 
     if dataset_path.exists() and not ai_rows:
@@ -630,8 +381,13 @@ def scaffold_dataset_jsonl(
         return
 
     if dataset_path.exists() and ai_rows:
-        backup_root = project_root / "tests" / "eval" / ".backup" / datetime.now(
-        ).strftime("%Y%m%d_%H%M%S")
+        backup_root = (
+            project_root
+            / "tests"
+            / "eval"
+            / ".backup"
+            / datetime.now().strftime("%Y%m%d_%H%M%S")
+        )
         backup_root.mkdir(parents=True, exist_ok=True)
         shutil.copy2(dataset_path, backup_root / "dataset.jsonl")
         console.print(f"  [dim]Previous dataset backed up to {backup_root}[/]")
@@ -639,11 +395,11 @@ def scaffold_dataset_jsonl(
     rows = ai_rows or [
         {
             "prompt": "Hello, what can you help me with?",
-            "session_inputs": session_inputs
+            "session_inputs": session_inputs,
         },
         {
             "prompt": "Walk me through one of your most common tasks.",
-            "session_inputs": session_inputs
+            "session_inputs": session_inputs,
         },
     ]
 
@@ -651,8 +407,7 @@ def scaffold_dataset_jsonl(
     with dataset_path.open("w", encoding="utf-8") as fh:
         for row in rows:
             fh.write(json.dumps(row, ensure_ascii=False) + "\n")
-    console.print(
-        f"  [green]created[/]  {dataset_path} [dim]({len(rows)} rows)[/]")
+    console.print(f"  [green]created[/]  {dataset_path} [dim]({len(rows)} rows)[/]")
 
 
 def _write_if_missing(path: Path, content: str) -> None:

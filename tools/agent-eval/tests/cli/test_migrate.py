@@ -32,38 +32,49 @@ def _seed_legacy_layout(root: Path, *, nest_under_app: bool = False) -> Path:
     (base / "metrics").mkdir(parents=True)
 
     (base / "scenarios" / "conversation_scenarios.json").write_text(
-        json.dumps({
-            "scenarios": [{
-                "starting_prompt": "Plan a trip",
-                "conversation_plan": "Then refine"
-            },],
-        }))
+        json.dumps(
+            {
+                "scenarios": [
+                    {
+                        "starting_prompt": "Plan a trip",
+                        "conversation_plan": "Then refine",
+                    },
+                ],
+            }
+        )
+    )
     (base / "scenarios" / "session_input.json").write_text(
-        json.dumps({
-            "app_name": "my_app",
-            "user_id": "eval_user",
-            "state": {},
-        }))
+        json.dumps(
+            {
+                "app_name": "my_app",
+                "user_id": "eval_user",
+                "state": {},
+            }
+        )
+    )
     (base / "eval_data" / "golden_dataset.json").write_text(
-        json.dumps({
-            "golden_questions": [{
-                "user_inputs": ["What's the weather?"],
-                "reference_data": {
-                    "expected_behavior": "Foggy"
-                },
-            },],
-        }))
+        json.dumps(
+            {
+                "golden_questions": [
+                    {
+                        "user_inputs": ["What's the weather?"],
+                        "reference_data": {"expected_behavior": "Foggy"},
+                    },
+                ],
+            }
+        )
+    )
     (base / "metrics" / "metric_definitions.json").write_text(
-        json.dumps({
-            "general_quality": {
-                "type": "managed"
-            },
-        }))
+        json.dumps(
+            {
+                "general_quality": {"type": "managed"},
+            }
+        )
+    )
     return base
 
 
 class TestFindLegacyEvalDir(unittest.TestCase):
-
     def test_detects_flat_layout(self):
         with tempfile.TemporaryDirectory() as td:
             root = Path(td)
@@ -82,7 +93,6 @@ class TestFindLegacyEvalDir(unittest.TestCase):
 
 
 class TestMigrateLegacy(unittest.TestCase):
-
     def test_writes_unified_dataset_with_rows_from_both_sources(self):
         with tempfile.TemporaryDirectory() as td:
             root = Path(td)
@@ -90,7 +100,7 @@ class TestMigrateLegacy(unittest.TestCase):
             summary = migrate_legacy(root)
 
             out = Path(summary["output_path"])
-            rows = [json.loads(l) for l in out.read_text().splitlines() if l]
+            rows = [json.loads(line) for line in out.read_text().splitlines() if line]
             assert summary["scenario_rows"] == 1
             assert summary["golden_rows"] == 1
             assert summary["total_rows"] == 2
@@ -106,11 +116,11 @@ class TestMigrateLegacy(unittest.TestCase):
             summary = migrate_legacy(root)
 
             dst = Path(summary["metrics_copied"])
-            assert dst == root / "tests" / "eval" / "metrics" / "metric_definitions.json"
+            assert (
+                dst == root / "tests" / "eval" / "metrics" / "metric_definitions.json"
+            )
             assert json.loads(dst.read_text()) == {
-                "general_quality": {
-                    "type": "managed"
-                }
+                "general_quality": {"type": "managed"}
             }
 
     def test_creates_backup_by_default(self):
@@ -121,8 +131,7 @@ class TestMigrateLegacy(unittest.TestCase):
 
             backup = Path(summary["backup_dir"])
             assert backup.exists()
-            assert (backup / "scenarios" /
-                    "conversation_scenarios.json").exists()
+            assert (backup / "scenarios" / "conversation_scenarios.json").exists()
             assert (backup / "eval_data" / "golden_dataset.json").exists()
             assert (backup / "metrics" / "metric_definitions.json").exists()
 
@@ -143,7 +152,6 @@ class TestMigrateLegacy(unittest.TestCase):
 
 
 class TestMigrateCommand(unittest.TestCase):
-
     def test_command_writes_files_and_prints_summary(self):
         with tempfile.TemporaryDirectory() as td:
             root = Path(td)
@@ -162,8 +170,7 @@ class TestMigrateCommand(unittest.TestCase):
             root = Path(td)
             _seed_legacy_layout(root)
             runner = CliRunner()
-            result = runner.invoke(
-                migrate, ["--agent-dir", str(root), "--dry-run"])
+            result = runner.invoke(migrate, ["--agent-dir", str(root), "--dry-run"])
 
             assert result.exit_code == 0, result.output
             assert "Dry run" in result.output

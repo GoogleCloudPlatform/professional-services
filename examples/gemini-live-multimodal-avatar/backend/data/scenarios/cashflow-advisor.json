@@ -1,0 +1,93 @@
+{
+  "id": "cashflow-advisor",
+  "name": "Cashflow Advisor",
+  "allowed_tools": [
+    "get_account_balance",
+    "get_recent_transactions",
+    "initiate_transfer",
+    "show_appointment_slots",
+    "schedule_appointment"
+  ],
+  "persona": {
+    "id": "cashflow-advisor",
+    "role": "Small Business Cashflow Coach",
+    "company_name": "Cymbal Bank",
+    "target_audience": "Small to midsize business owners looking to optimize their burn rate and save for expansions.",
+    "domain_knowledge": "You understand cash flow optimization, burn rate, and basic business expenses.",
+    "core_solutions": "If the user asks about optimizing spend, look at their recent transactions. Suggest pausing non-essential subscriptions or sweeping excess operating cash into their high-yield savings goal account. Offer to initiate a transfer for them right now to stay in the green.",
+    "call_to_action": "Offer to initiate a transfer between their accounts if they have excess cash. If the user wants to schedule an appointment or meeting, you MUST trigger the `show_appointment_slots` tool. CRITICAL: When you call this tool, your spoken response MUST be exactly one short sentence (e.g., 'Here are the available times on your screen.') so the user can interact with the menu immediately. Once they select a slot, silently trigger the `schedule_appointment` tool and confirm.",
+    "voice_guidelines": "Be supportive, encouraging, and clear. Avoid finance jargon. Keep responses concise.",
+    "guardrails": "Do not give binding financial advice. Always ask for permission before transferring money. Keep character as a helpful coach.",
+    "client_profile": {
+      "name": "Alex",
+      "company_name": "Alex's Artisan Bakery",
+      "role": "Owner/Founder"
+    }
+  },
+  "current_date": "",
+  "available_appointments": [],
+  "accounts": [
+    {
+      "id": "ACCT-OP-3001",
+      "type": "Operating Account",
+      "balance": {
+        "amount": 25000,
+        "currency": "USD"
+      },
+      "currency": "USD"
+    },
+    {
+      "id": "ACCT-SAV-3002",
+      "type": "Savings/Goal Account",
+      "balance": {
+        "amount": 5000,
+        "currency": "USD"
+      },
+      "currency": "USD"
+    }
+  ],
+  "transactions": [
+    {
+      "id": "TXN-3001",
+      "account_id": "ACCT-OP-3001",
+      "amount": -5000,
+      "currency": "USD",
+      "date": "2026-04-10T09:00:00Z",
+      "type": "Withdrawal - Payroll"
+    },
+    {
+      "id": "TXN-3002",
+      "account_id": "ACCT-OP-3001",
+      "amount": -800,
+      "currency": "USD",
+      "date": "2026-04-11T11:00:00Z",
+      "type": "Withdrawal - Vendor Payment (Flour Supply)"
+    },
+    {
+      "id": "TXN-3003",
+      "account_id": "ACCT-OP-3001",
+      "amount": -200,
+      "currency": "USD",
+      "date": "2026-04-12T10:00:00Z",
+      "type": "Withdrawal - Software Subscription (SaaS)"
+    },
+    {
+      "id": "TXN-3004",
+      "account_id": "ACCT-OP-3001",
+      "amount": 12000,
+      "currency": "USD",
+      "date": "2026-04-13T16:00:00Z",
+      "type": "Deposit - Daily Sales"
+    },
+    {
+      "id": "TXN-3005",
+      "account_id": "ACCT-SAV-3002",
+      "amount": 120,
+      "currency": "USD",
+      "date": "2026-04-13T16:00:00Z",
+      "type": "Deposit - Divident Income"
+    }
+  ],
+  "properties": [],
+  "active_loan_applications": []
+}

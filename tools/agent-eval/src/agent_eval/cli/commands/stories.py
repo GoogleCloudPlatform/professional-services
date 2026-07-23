@@ -23,6 +23,7 @@ Three modes:
 - ``agent-eval stories <index>``   show a single story by 1-based index
 - ``agent-eval stories --random``  print one random story (for sampling)
 """
+
 from __future__ import annotations
 
 import sys
@@ -31,21 +32,24 @@ import click
 from rich.console import Console
 from rich.rule import Rule
 
-from agent_eval.cli._stories import STORIES, render_story_panel, random_story
+from agent_eval.cli._stories import STORIES, random_story, render_story_panel
 
 console = Console()
 
 
 @click.command(name="stories")
 @click.argument("index", type=int, required=False)
-@click.option("--random",
-              "show_random",
-              is_flag=True,
-              help="Print one random story and exit (no pager).")
+@click.option(
+    "--random",
+    "show_random",
+    is_flag=True,
+    help="Print one random story and exit (no pager).",
+)
 @click.option(
     "--no-pager",
     is_flag=True,
-    help="Print all stories straight to stdout instead of opening a pager.")
+    help="Print all stories straight to stdout instead of opening a pager.",
+)
 def stories(index: int | None, show_random: bool, no_pager: bool):
     """Browse the wait-time story library.
 
@@ -76,12 +80,12 @@ def stories(index: int | None, show_random: bool, no_pager: bool):
         if not (1 <= index <= len(STORIES)):
             console.print(
                 f"[red]Index out of range:[/] {index} "
-                f"(library has {len(STORIES)} stories — use 1..{len(STORIES)})")
+                f"(library has {len(STORIES)} stories — use 1..{len(STORIES)})"
+            )
             sys.exit(1)
         title, body = STORIES[index - 1]
         console.print()
-        console.print(
-            render_story_panel(title, body, index=index, total=len(STORIES)))
+        console.print(render_story_panel(title, body, index=index, total=len(STORIES)))
         console.print()
         return
 
@@ -91,14 +95,12 @@ def stories(index: int | None, show_random: bool, no_pager: bool):
     def _emit_all() -> None:
         console.print()
         console.print(
-            Rule(f"  agent-eval stories — {len(STORIES)} essays  ",
-                 style="bold cyan"))
-        console.print(
-            "  [dim]Down/Up: scroll · /: search · n: next match · q: quit[/]")
+            Rule(f"  agent-eval stories — {len(STORIES)} essays  ", style="bold cyan")
+        )
+        console.print("  [dim]Down/Up: scroll · /: search · n: next match · q: quit[/]")
         console.print()
         for i, (title, body) in enumerate(STORIES, 1):
-            console.print(
-                render_story_panel(title, body, index=i, total=len(STORIES)))
+            console.print(render_story_panel(title, body, index=i, total=len(STORIES)))
             console.print()
 
     if no_pager:

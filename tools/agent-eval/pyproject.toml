@@ -7,19 +7,21 @@ dependencies = [
     "click>=8.1.0",
     "rich>=13.0.0",
     "pandas>=2.0.0",
-    "requests>=2.31.0",
-    "google-cloud-aiplatform[evaluation,agent-engines]>=1.132.0,<1.140.0",
+    "requests>=2.33.0",
+    "google-cloud-aiplatform[evaluation,agent-engines]>=1.132.0,<2.0.0",
+
     "db-dtypes>=1.4.2,<2.0.0",
     "google-cloud-bigquery>=3.25.0",
-    "google-adk>=1.28.1",
+    "google-adk[eval]>=2.0.0,<3.0.0",
     "tqdm>=4.66.0",
     "questionary>=2.0.0",
     "pydantic-settings>=2.12.0",
+    "kfp>=2.7.0",
 ]
 
 [project.optional-dependencies]
 dashboard = [
-    "gradio>=6.3.0",
+    "gradio>=6.15.1",
     "plotly>=6.5.2",
 ]
 
@@ -46,3 +48,29 @@ dev = [
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 norecursedirs = ["my-agent", "agents", ".venv", ".backup", "build", "dist"]
+
+[tool.ruff]
+target-version = "py310"
+line-length = 88
+
+[tool.ruff.lint]
+select = [
+    "E",    # pycodestyle errors
+    "W",    # pycodestyle warnings
+    "F",    # Pyflakes
+    "I",    # isort (import sorting)
+    "UP",   # pyupgrade (syntax modernization)
+    "SIM",  # flake8-simplify (code simplification)
+    "C4",   # flake8-comprehensions (better comprehensions)
+    "B",    # flake8-bugbear (common bugs and design flaws)
+    "RUF",  # Ruff-specific rules
+    "PTH",  # flake8-use-pathlib (use pathlib instead of os.path)
+    "T20",  # flake8-print (disallow print statements)
+    "PIE",  # flake8-pie (miscellaneous lints)
+]
+ignore = [
+    "E501",    # line too long
+    "RUF001",  # String contains ambiguous unicode character (intentional for UI/HTML)
+    "RUF002",  # Docstring contains ambiguous unicode character
+    "RUF003",  # Comment contains ambiguous unicode character
+]

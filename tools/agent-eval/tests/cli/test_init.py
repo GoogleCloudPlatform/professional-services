@@ -55,8 +55,7 @@ class TestDeriveChosenPaths(unittest.TestCase):
         detection = PathDetection(
             path="A",
             evidence="env",
-            agent_engine_resource=
-            "projects/p/locations/us-central1/reasoningEngines/123",
+            agent_engine_resource="projects/p/locations/us-central1/reasoningEngines/123",
         )
         assert _derive_chosen_paths(detection) == {"A"}
 
@@ -64,8 +63,7 @@ class TestDeriveChosenPaths(unittest.TestCase):
         detection = PathDetection(
             path="A",  # primary, but B is also available
             evidence="both",
-            agent_engine_resource=
-            "projects/p/locations/us-central1/reasoningEngines/123",
+            agent_engine_resource="projects/p/locations/us-central1/reasoningEngines/123",
             local_agents=[Path("app/agent.py")],
         )
         assert _derive_chosen_paths(detection) == {"A", "B"}
@@ -87,9 +85,9 @@ def _seed_local_agent(root: Path, *, module_name: str = "app") -> Path:
     pkg = root / module_name
     pkg.mkdir(parents=True)
     (pkg / "__init__.py").write_text("from .agent import root_agent\n")
-    (pkg / "agent.py").write_text("class _Stub:\n"
-                                  "    name = 'stub'\n"
-                                  "root_agent = _Stub()\n")
+    (pkg / "agent.py").write_text(
+        "class _Stub:\n    name = 'stub'\nroot_agent = _Stub()\n"
+    )
     return pkg
 
 
@@ -97,10 +95,12 @@ def _seed_deployment_metadata(root: Path) -> Path:
     """Drop a deployment_metadata.json with a real resource name."""
     md = root / "deployment_metadata.json"
     md.write_text(
-        json.dumps({
-            "remote_agent_engine_id":
-                "projects/p/locations/us-central1/reasoningEngines/123",
-        }))
+        json.dumps(
+            {
+                "remote_agent_engine_id": "projects/p/locations/us-central1/reasoningEngines/123",
+            }
+        )
+    )
     return md
 
 
@@ -134,12 +134,12 @@ class TestInitAutoApprove(unittest.TestCase):
     correct surfaces are scaffolded based on what we seeded into the tmp dir.
     """
 
-    def _invoke(self, target_dir: Path) -> "object":
+    def _invoke(self, target_dir: Path) -> object:
         """Invoke init -y with env stubbed and the gcloud check no-oped."""
         runner = CliRunner()
         with mock.patch(
-                "agent_eval.cli.commands.init._verify_environment",
-                return_value=None,
+            "agent_eval.cli.commands.init._verify_environment",
+            return_value=None,
         ):
             return runner.invoke(
                 init,
@@ -160,15 +160,17 @@ class TestInitAutoApprove(unittest.TestCase):
             # root. No more eval/scenarios/ or eval/eval_data/ files —
             # multi-turn rows go in dataset.jsonl and simulate.py projects
             # them to ADK's expected files at runtime.
-            assert (root / "tests" / "eval" / "metrics" /
-                    "metric_definitions.json").exists()
+            assert (
+                root / "tests" / "eval" / "metrics" / "metric_definitions.json"
+            ).exists()
             assert (root / "tests" / "eval" / "dataset.jsonl").exists()
-            assert not (root / "eval" / "scenarios" /
-                        "conversation_scenarios.json").exists()
-            assert not (root / "eval" / "eval_data" /
-                        "golden_dataset.json").exists()
-            assert not (root / "app" / "tests").exists(), \
+            assert not (
+                root / "eval" / "scenarios" / "conversation_scenarios.json"
+            ).exists()
+            assert not (root / "eval" / "eval_data" / "golden_dataset.json").exists()
+            assert not (root / "app" / "tests").exists(), (
                 "F3 regression: app/tests/ must not exist; tests/eval/ lives at the project root"
+            )
             # Next-steps leads with the local iteration loop
             assert "agent-eval run" in result.output
             # No chooser, no Path A/B leak
@@ -186,11 +188,13 @@ class TestInitAutoApprove(unittest.TestCase):
 
             assert result.exit_code == 0, result.output
             # Same unified layout regardless of detection.
-            assert (root / "tests" / "eval" / "metrics" /
-                    "metric_definitions.json").exists()
+            assert (
+                root / "tests" / "eval" / "metrics" / "metric_definitions.json"
+            ).exists()
             assert (root / "tests" / "eval" / "dataset.jsonl").exists()
-            assert not (root / "app" / "tests").exists(), \
+            assert not (root / "app" / "tests").exists(), (
                 "F3 regression: app/tests/ must not exist"
+            )
             # Next-steps STILL leads with `run` (the iteration loop), then
             # mentions agent-engine as the secondary pass.
             run_idx = result.output.find("agent-eval run")
@@ -200,7 +204,8 @@ class TestInitAutoApprove(unittest.TestCase):
             assert run_idx < ae_idx, (
                 "Next-steps must lead with `agent-eval run` (local iteration "
                 "loop) and surface `agent-engine` second — got run at "
-                f"{run_idx}, agent-engine at {ae_idx}")
+                f"{run_idx}, agent-engine at {ae_idx}"
+            )
             assert "Path A" not in result.output
             assert "Path B" not in result.output
 
@@ -218,10 +223,42 @@ class TestInitAutoApprove(unittest.TestCase):
 
             assert result.exit_code == 0, result.output
             # Unified scaffold lands at <project_root>/tests/eval/.
-            assert (root / "tests" / "eval" / "metrics" /
-                    "metric_definitions.json").exists()
+            assert (
+                root / "tests" / "eval" / "metrics" / "metric_definitions.json"
+            ).exists()
             assert "Path A" not in result.output
             assert "Path B" not in result.output
+
+
+class TestRequiredReferenceFields(unittest.TestCase):
+    def test_extracts_from_dataset_mapping(self):
+        from agent_eval.cli.commands.init import _required_reference_fields
+
+        custom_metrics = {
+            "m1": {
+                "kind": "custom_llm_judge",
+                "dataset_mapping": {
+                    "reference": {"source_column": "reference_data:expected_behavior"}
+                },
+            },
+            "m2": {
+                "kind": "custom_llm_judge",
+                "dataset_mapping": {
+                    "expected_audiences": {
+                        "source_column": "reference_data:expected_audiences"
+                    }
+                },
+            },
+            "m3": {"kind": "managed", "reference_field": "expected_route"},
+        }
+
+        fields = _required_reference_fields(custom_metrics)
+        expected = [
+            ("m1", "expected_behavior"),
+            ("m2", "expected_audiences"),
+            ("m3", "expected_route"),
+        ]
+        self.assertEqual(fields, expected)
 
 
 if __name__ == "__main__":

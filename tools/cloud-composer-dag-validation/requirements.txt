@@ -1,7 +1,7 @@
-apache-airflow==3.2.1rc1
+apache-airflow==3.2.2
 apache-airflow-providers-common-sql==1.25.0rc1
 apache-airflow-providers-ftp==3.7.0
-apache-airflow-providers-google==10.4.0
+apache-airflow-providers-google==22.0.0
 apache-airflow-providers-http==6.0.0
 apache-airflow-providers-imap==3.3.0
 apache-airflow-providers-sqlite==3.4.2
