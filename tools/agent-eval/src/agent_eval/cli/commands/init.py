@@ -1947,8 +1947,23 @@ def _display_agent_analysis(analysis: dict[str, Any]) -> None:
     # Tools
     tools = analysis.get("tools", [])
     if tools:
+        from agent_eval.core.metric_generator import tool_interactions_available
+
         tool_names = ", ".join(t.get("name", "?") for t in tools[:5])
-        table.add_row("tool_interactions", f"{len(tools)} tools: {tool_names}")
+        if tool_interactions_available(analysis):
+            table.add_row("tool_interactions", f"{len(tools)} tools: {tool_names}")
+        else:
+            # Built-in tools run server-side and never emit functionCall events,
+            # so this column stays empty — say so instead of implying it's usable.
+            table.add_row(
+                "[dim]tool_interactions[/]",
+                f"[dim]empty — {tool_names} are built-in tools (grounding "
+                "metadata, not tool calls)[/]",
+            )
+            table.add_row(
+                "grounding_chunks",
+                "What the built-in search returned — use this instead",
+            )
 
     # State variables
     state_vars = analysis.get("state_variables", {})
