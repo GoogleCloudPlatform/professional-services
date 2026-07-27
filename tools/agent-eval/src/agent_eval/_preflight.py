@@ -49,7 +49,12 @@ def _declared_specifiers() -> dict[str, object]:
     except PackageNotFoundError:
         return {}
 
-    from packaging.requirements import Requirement
+    try:
+        from packaging.requirements import Requirement
+    except ImportError:
+        # A check that cannot run must not become the failure it exists to
+        # prevent — e.g. an intentionally dependency-free install.
+        return {}
 
     found: dict[str, object] = {}
     for entry in raw:

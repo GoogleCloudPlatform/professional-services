@@ -102,3 +102,19 @@ def test_declared_specifiers_reads_our_own_metadata():
     # or the distribution name changes.
     found = _preflight._declared_specifiers()
     assert set(found) == {"google-adk", "google-cloud-aiplatform"}
+
+
+def test_missing_packaging_disables_check_instead_of_crashing(monkeypatch):
+    # A dependency-free install must not turn the safety check into the failure.
+    import builtins
+
+    real_import = builtins.__import__
+
+    def no_packaging(name, *args, **kwargs):
+        if name.startswith("packaging"):
+            raise ImportError("No module named 'packaging'")
+        return real_import(name, *args, **kwargs)
+
+    monkeypatch.setattr(builtins, "__import__", no_packaging)
+    assert _preflight._declared_specifiers() == {}
+    check_runtime_dependencies()  # must not raise
