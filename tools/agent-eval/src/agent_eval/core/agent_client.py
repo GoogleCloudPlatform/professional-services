@@ -209,7 +209,13 @@ class AgentClient(BaseAgentClient):
         Raises:
             RuntimeError: If trace cannot be retrieved.
         """
+        # Current ADK serves the debug endpoints under /dev and namespaces them
+        # by app; older builds exposed them at the root. Try newest first — the
+        # legacy URLs 404 on current ADK, which silently emptied extracted_data
+        # and made every metric sourcing `extracted_data:*` fail with
+        # "Response is required but missing".
         urls = [
+            f"{self.base_url}/dev/apps/{self.app_name}/debug/trace/session/{session_id}",
             f"{self.base_url}/debug/trace/session/{session_id}",
             f"{self.base_url}/apps/{self.app_name}/sessions/{session_id}/trace",
         ]
