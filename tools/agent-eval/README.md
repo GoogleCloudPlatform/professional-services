@@ -34,9 +34,12 @@ You need **Python 3.10–3.12**, **[`uv`](https://docs.astral.sh/uv/)**, and **[
 
 ```bash
 cd agent-eval
-uv sync                   # creates .venv/ and installs all deps
+uv venv --python 3.12     # pin the interpreter — see the note below
+uv sync                   # installs all deps into .venv/
 source .venv/bin/activate # so `agent-eval` is on your PATH
 ```
+
+> ⚠️ **Pin the interpreter — don't let `uv` pick.** With no `.venv` present, `uv` selects the newest Python installed on your machine. On **Python 3.13+** that currently fails during install: the locked `scipy` (a transitive dependency of `google-cloud-aiplatform[evaluation]`) publishes no wheels for those versions, so `uv` falls back to building it from source and stops with a missing-Fortran-compiler error. Creating the venv with `--python 3.12` first avoids this. Already stuck? `rm -rf .venv && uv venv --python 3.12 && uv sync`.
 
 Then walk Google Cloud setup (once per shell):
 
