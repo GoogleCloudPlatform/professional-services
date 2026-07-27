@@ -184,6 +184,27 @@ This applies to whatever drives the agent over HTTP. In-process paths (importing
 `agent.py` directly) pick changes up automatically; anything talking to a server
 does not.
 
+### Treat AI root-cause analysis as a hypothesis, not a finding
+
+Automated analysis is good at spotting *that* something is wrong and bad at
+being sure *why*. It will produce a specific, well-argued, source-citing
+explanation that is confidently wrong — and it reads exactly like a correct one.
+
+A real case: analysis reported the agent was fabricating `customer_id='123'`
+from tool docstring examples, quoting the docstrings. Acting on it — adding an
+instruction never to invent a customer id — made every metric worse
+(`instruction_following` 0.89 → 0.61) and introduced tool-call loops. The
+system prompt turned out to inject `Customer.get_customer("123")` as the
+signed-in customer. Nothing was fabricated; the agent had been told to distrust
+a legitimate value.
+
+**Before acting on a diagnosis, verify its claim against the source.** Grep for
+the value. Check whether the prompt already supplies it. Confirm the mechanism
+exists. One minute of checking beats a 25-minute run in the wrong direction.
+
+And when a fix makes things worse, that is a result: it usually means the
+diagnosis was wrong, not that the fix was too small.
+
 Common causes worth checking, in rough order of how often they turn out to be it:
 
 - **Docstring examples read as facts.** Mock values like `customer_id='123'` in
