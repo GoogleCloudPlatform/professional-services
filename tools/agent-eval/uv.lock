@@ -55,7 +55,7 @@ requires-dist = [
     { name = "click", specifier = ">=8.1.0" },
     { name = "db-dtypes", specifier = ">=1.4.2,<2.0.0" },
     { name = "google-adk", extras = ["eval"], specifier = ">=2.0.0,<3.0.0" },
-    { name = "google-cloud-aiplatform", extras = ["evaluation", "agent-engines"], specifier = ">=1.132.0,<2.0.0" },
+    { name = "google-cloud-aiplatform", extras = ["evaluation", "agent-engines"], specifier = ">=1.156.0,<2.0.0" },
     { name = "google-cloud-bigquery", specifier = ">=3.25.0" },
     { name = "gradio", marker = "extra == 'dashboard'", specifier = ">=6.15.1" },
     { name = "kfp", specifier = ">=2.7.0" },

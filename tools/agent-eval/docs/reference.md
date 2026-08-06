@@ -27,7 +27,7 @@ For installation and getting started, see the [README](../README.md).
    - [interact](#interact)
    - [evaluate](#evaluate)
    - [analyze](#analyze)
-   - [agent-engine](#agent-engine) *(currently being re-validated — see note in section)*
+   - [agent-engine](#agent-engine)
    - [import](#import)
    - [migrate](#migrate)
    - [convert](#convert)
@@ -836,10 +836,6 @@ See [Run Comparison](#run-comparison) for details on how comparison works.
 
 ### agent-engine
 
-> ⚠️ **Currently deferred.** The streamlined Agent Engine pass (`create_evaluation_run`) is being re-validated — we recently started hitting an issue when sending the inference request. The command is **not registered in `--help`** in this build. The implementation still ships at `src/agent_eval/cli/commands/agent_engine.py` and the full investigation context (current status, what's already AE-ready, SDK pin notes, reproduction steps, suggested debugging path) lives in [`docs/FUTURE_WORK.md`](FUTURE_WORK.md#1-re-validate-the-streamlined-agent-engine-pass-agent-eval-agent-engine). The local pipeline (`agent-eval run`) is unaffected — it imports the agent module directly and never goes through `create_evaluation_run`.
->
-> The reference text below is preserved for the eventual re-enable; skip it if you just need the working flow.
-
 The **streamlined Agent Engine pass** — for agents deployed to a Reasoning Engine. Wraps `client.evals.create_evaluation_run()` so Vertex handles inference, scoring, and GCS upload in one managed call. This is additive to the local pipeline; you don't choose between them.
 
 ```bash
@@ -868,7 +864,7 @@ agent-eval agent-engine [OPTIONS]
 
 **Custom LLM metrics on the streamlined Agent Engine pass.** Every entry in `eval_config.yaml` declares one of six `kind` values per the canonical schema (`core/metric_schema.py`). `agent-engine` routes them all through `metric_factory.build_metric(name, spec)`: `kind: managed` and `kind: parametrized_managed` resolve via `getattr(types.RubricMetric, base.upper())`; `kind: custom_llm_judge` builds a `types.LLMMetric` whose `prompt_template` is a `types.MetricPromptBuilder(instruction=..., criteria={...}, rating_scores={...})`; `kind: computation` becomes `types.Metric(name='bleu' | 'rouge_l' | ...)`. The built metric is then wrapped via `metric_factory.to_evaluation_run_metric` for `create_evaluation_run`. `kind: python_function` and `kind: remote_code` are deferred — `create_evaluation_run` cannot execute local Python and our remote-code wrapping isn't wired through this path yet, so they're skipped with a warning.
 
-**SDK pattern.** `agent-engine` follows the [evaluation-agents-client docs pattern](https://docs.cloud.google.com/vertex-ai/generative-ai/docs/models/evaluation-agents-client) verbatim: the `Client` is constructed with `http_options=HttpOptions(api_version="v1beta1")`, the local agent is imported (default `app.agent:root_agent`, override with `--agent-module`), and an `AgentInfo` is attached to `create_evaluation_run`. Without `agent_info` the deployed agent's events come back without `content.parts` and the SDK fails the run with "Failed to parse agent run response []" — the local-agent enrichment is what makes the deployed run actually score.
+**SDK pattern.** `agent-engine` follows the modern [evaluation-agents-client docs pattern](https://docs.cloud.google.com/vertex-ai/generative-ai/docs/models/evaluation-agents-client): the `Client` is constructed using the new Vertex AI SDK (`>=1.156.0`). Due to an upstream Vertex platform bug, linking `agent` and `agent_info` triggers server-side simulation and trace logging, which crashes with an `INTERNAL` error when parsing ADK traces on the backend. Thus, the CLI conditionally omits `agent` and `agent_info` for runs that do not evaluate agent-specific metrics, allowing non-agent metrics (like `GENERAL_QUALITY`) to succeed. For trace-based metrics (like `TOOL_USE_QUALITY`), users should use client-side trace capture via the local `agent-eval evaluate` pipeline.
 
 **Three layers of fidelity** for `AgentInfo`, picked automatically depending on what's importable in your venv:
 
@@ -878,7 +874,7 @@ agent-eval agent-engine [OPTIONS]
 
 > **⚠ Install the agent's deps in agent-eval's venv before running.** Most ASP-deployed agents bring extras like `vectorsearch_v1beta`, `neo4j`, custom retrievers, etc. — none of which are in agent-eval's venv by default. From the repo root: `uv pip install -e <agent_dir>`. The CLI surfaces actionable warnings when a missing dep forces the Layer 3 fallback (names the missing dep + gives the install command).
 
-> **SDK pin.** `pyproject.toml` constrains `google-cloud-aiplatform[evaluation,agent-engines]>=1.132.0,<1.140.0`. Versions ≥1.140 changed the `AgentInfo` schema (drops `agent_resource_name`, requires an `agents`/`root_agent_id` map) and tightened `AgentData` validation in `run_inference` to reject ADK's rich event fields. Bumping past this will need `_build_agent_info` rewritten for the new schema.
+> **SDK pin.** `pyproject.toml` supports `google-cloud-aiplatform[evaluation,agent-engines]>=1.156.0,<2.0.0` (fully compatible with Python 3.13 and the modern Pydantic schema using nested `agents` and `root_agent_id`).
 
 The dataset only needs `prompt` (and optionally `session_inputs`) — `reference` is not required for managed rubrics, but custom judges that declare `requires_reference: true` will only score rows that have a reference column.
 

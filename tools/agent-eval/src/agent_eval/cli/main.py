@@ -112,12 +112,7 @@ cli.add_command(
     evaluate, name="grade"
 )  # Contract C2 alias: agent-eval grade == agent-eval evaluate
 # `agent-engine` (streamlined Agent Engine pass via create_evaluation_run)
-# is intentionally NOT registered here while it's being re-validated. The
-# command implementation is still in agent_eval.cli.commands.agent_engine
-# and the import above stays so it doesn't bit-rot. To re-enable, uncomment
-# the cli.add_command(agent_engine, name="agent-engine") line below. See
-# docs/FUTURE_WORK.md for the investigation context.
-# cli.add_command(agent_engine, name="agent-engine")
+cli.add_command(agent_engine, name="agent-engine")
 cli.add_command(analyze)  # View / interpret results
 cli.add_command(report)  # Open the HTML report in a browser
 cli.add_command(dashboard)  # View / interpret results (interactive)

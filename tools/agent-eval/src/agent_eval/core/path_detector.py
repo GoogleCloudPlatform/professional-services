@@ -43,6 +43,8 @@ _SKIP_DIRS = {
     "sub_agents",
     "app_env",
     "eval_history",
+    "tmp_clone",
+    "test_init_tmp",
 }
 
 # Placeholder value ASP writes when an agent is scaffolded but not yet deployed.

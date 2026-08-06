@@ -166,7 +166,7 @@ Everything you see here is months of *"this didn't work — what do we actually 
 
 **Honest caveats up front** — see [`docs/FUTURE_WORK.md`](docs/FUTURE_WORK.md) for the full context on each:
 
-- The streamlined Agent Engine pass (`agent-eval agent-engine`) is currently being re-validated; the local pipeline (`agent-eval run`) is what we ship and recommend.
+- The streamlined Agent Engine pass (`agent-eval agent-engine`) is compatible with SDK `>=1.156.0` and supported for offline batch evaluation. However, server-side trace evaluation (passing `agent`/`agent_info`) is currently blocked by an upstream Vertex platform bug. The local pipeline (`agent-eval run`) is the recommended path for complete trace grading.
 - Token / cache / thinking metrics read Gemini-specific field names from `usage_metadata` — verified against Gemini 3 / 3.1 Flash and Pro. After a model-family bump, sanity-check `eval_summary.json` for unexpected zeros.
 - ADK is the only agent framework supported out of the box. Other frameworks need the trace-collection layer abstracted.
 

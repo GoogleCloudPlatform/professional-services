@@ -1,3 +1,4 @@
+import os
 # Copyright 2026 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -188,10 +189,10 @@ def _load_python_callable(module_path: str | Path, function: str) -> Callable:
     """Load a callable from an arbitrary file path."""
     module_path = Path(module_path)
     if not module_path.exists():
+        fallback_app = os.environ.get("AGENT_EVAL_APP_DIR", "app")
         for candidate in (
-            Path("digital-twin-agent") / module_path,
-            Path("app") / module_path.name,
-            Path("digital-twin-agent/app") / module_path.name,
+            Path(fallback_app) / module_path,
+            Path(fallback_app) / module_path.name,
         ):
             if candidate.exists():
                 module_path = candidate
@@ -364,6 +365,11 @@ def to_evaluation_run_metric(metric: Any):
                 ),
             ),
         )
+    # Prebuilt computation metrics (bare Metric with name and no functions)
+    if isinstance(metric, vt.Metric) and not getattr(
+            metric, "custom_function", None) and not getattr(
+            metric, "remote_custom_function", None):
+        return vt.EvaluationRunMetric(metric=metric.name)
 
     # Bare Metric with custom_function: in-process only; not supported by
     # the streamlined `agent-engine` runner. Caller must convert it to

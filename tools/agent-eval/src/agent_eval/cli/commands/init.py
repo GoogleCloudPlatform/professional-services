@@ -637,6 +637,8 @@ _SKIP_DIRS = {
     "sub_agents",
     "app_env",
     "eval_history",
+    "tmp_clone",
+    "test_init_tmp",
 }
 
 INTERACTION_MODES = [
