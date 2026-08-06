@@ -196,7 +196,7 @@ async def test_init_interactive_full_multistep_flow(
 @mock.patch("agent_eval.core.evaluator.Client")
 @mock.patch("google.cloud.aiplatform.init")
 def test_run_pipeline_success(
-    mock_aiplatform_init, mock_client_class, mock_run_simulate
+    _mock_aiplatform_init, mock_client_class, mock_run_simulate
 ):
     """Verify that agent-eval run completes successfully in-process with mocks.
 

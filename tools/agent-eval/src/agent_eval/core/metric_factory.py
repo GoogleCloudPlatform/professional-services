@@ -143,9 +143,14 @@ def custom_llm_judge(
     }
     if instruction:
         builder_kwargs["instruction"] = instruction
+    from google.adk.evaluation.eval_metrics import JudgeModelOptions
+
     return vt.LLMMetric(
         name=name,
         prompt_template=vt.MetricPromptBuilder(**builder_kwargs),
+        judge_model_options=JudgeModelOptions(
+            judge_model_config={"response_mime_type": "application/json"}
+        ),
     )
 
 

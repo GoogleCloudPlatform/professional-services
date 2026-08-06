@@ -310,10 +310,13 @@ def _project_dataset_to_adk_files(
         deepest_plan + 2
     )  # +2 = small safety margin for clarification turns
     sim_cfg = (cfg.get("user_simulator_config") or {}).copy()
-    # Only override when the user hasn't pinned a value themselves.
     if "max_allowed_invocations" not in sim_cfg:
         sim_cfg["max_allowed_invocations"] = max_invocations
         cfg["user_simulator_config"] = sim_cfg
+
+    eval_cfg = (cfg.get("evaluate_config") or {}).copy()
+    eval_cfg["parallelism"] = 1
+    cfg["evaluate_config"] = eval_cfg
 
     eval_config_target.write_text(json.dumps(cfg, indent=2) + "\n")
 

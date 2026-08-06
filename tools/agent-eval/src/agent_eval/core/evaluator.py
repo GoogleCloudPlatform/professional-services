@@ -25,6 +25,12 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
+try:
+    import urllib3.contrib.pyopenssl
+    urllib3.contrib.pyopenssl.extract_from_urllib3()
+except Exception:
+    pass
+
 import pandas as pd
 from google.cloud import aiplatform
 from google.genai.types import HttpOptions
@@ -1264,8 +1270,6 @@ class Evaluator:
                             original_df_filtered,
                             mapping,
                             metric_name,
-                            CONFIG.METRIC_TOOL_USE_QUALITY,
-                            is_managed_metric=True,
                         )
                         logger.info(
                             f"Using standard column mapping for GCS metric: {metric_name}"
@@ -1276,7 +1280,6 @@ class Evaluator:
                         original_df_filtered,
                         info.get("dataset_mapping", {}),
                         metric_name,
-                        CONFIG.METRIC_TOOL_USE_QUALITY,
                         is_managed_metric=False,
                     )
 

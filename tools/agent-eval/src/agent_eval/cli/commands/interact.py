@@ -13,6 +13,7 @@
 # limitations under the License.
 """agent-eval interact — run interactions against a live agent."""
 
+import asyncio
 import json
 import os
 import sys
@@ -273,8 +274,6 @@ def interact(
     )
 
     if in_process:
-        import asyncio
-
         from agent_eval.core.path_resolver import agent_project_root
         from agent_eval.core.simulation import run_simulation_in_process
 

@@ -269,8 +269,6 @@ def map_dataset_columns(
     original_df: pd.DataFrame,
     mapping: dict[str, Any],
     metric_name: str,
-    metric_tool_use_name: str = "TOOL_USE_QUALITY",
-    is_managed_metric: bool = False,
 ) -> pd.DataFrame:
     """
     Maps columns from the raw agent DataFrame to the evaluation dataset based on the metric config.

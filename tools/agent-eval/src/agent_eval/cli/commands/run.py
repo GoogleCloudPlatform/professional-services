@@ -35,7 +35,7 @@ console = Console()
 # helpers further down. Must live at module scope (not inside the helper
 # block) so the decorator's `default=` resolves at import time.
 _DEFAULT_SIM_PARALLELISM = (
-    3  # cap concurrent `adk eval` subprocesses to limit Vertex quota pressure
+    1  # cap concurrent `adk eval` subprocesses to prevent SSL context collisions and Vertex quota pressure
 )
 
 
@@ -1321,7 +1321,7 @@ def _offer_dashboard(results_dir: Path, run_dashboard: bool | None) -> None:
 # _step_* functions directly (which print their own "Step X/5" headers) —
 # instead they call the underlying logic with consistent formatting.
 
-_UV_RUN_ADK = ["uv", "run", "--with", "google-adk[eval]"]
+_UV_RUN_ADK = []
 
 
 def _clean_env(project_root: Path) -> dict:

@@ -260,8 +260,6 @@ def _merge_inference_with_extras(inference_dataset: Any, original_df: Any) -> An
 
 def _check_inference_response_health(
     inference_dataset: Any,
-    *,
-    abort_on_all_broken: bool = True,
 ) -> None:
     """Surface a clear actionable diagnostic when run_inference comes back broken.
 
@@ -809,7 +807,6 @@ def agent_engine(
     timeout: int,
     no_wait: bool,
     agent_module: str | None,
-    no_abort_on_broken_inference: bool,
     debug: bool,
 ) -> None:
     """Run a streamlined evaluation against an Agent Engine deployment.
@@ -1216,7 +1213,6 @@ def _print_dashboard_url(run: Any, project: str, location: str) -> None:
         console.print(f"  [bold]View results:[/] [cyan]{dashboard_url}[/]")
 
 
-def _wait_for_run(client: Any, run: Any, *, timeout: int) -> Any:
     """Poll get_evaluation_run until terminal state or timeout."""
     import time
 

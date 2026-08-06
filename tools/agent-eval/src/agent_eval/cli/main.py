@@ -13,6 +13,12 @@
 # limitations under the License.
 """agent-eval CLI — evaluate your ADK agents with confidence."""
 
+try:
+    import urllib3.contrib.pyopenssl
+    urllib3.contrib.pyopenssl.extract_from_urllib3()
+except Exception:
+    pass
+
 import importlib.metadata
 
 import click
@@ -60,7 +66,7 @@ def _display_banner() -> None:
     console.print(panel)
 
 
-def print_version(ctx: click.Context, param: click.Parameter, value: bool) -> None:
+def print_version(ctx: click.Context, _param: click.Parameter, value: bool) -> None:
     if not value or ctx.resilient_parsing:
         return
     console.print(f"agent-eval v{_get_version()}")

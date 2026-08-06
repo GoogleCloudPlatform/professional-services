@@ -818,7 +818,13 @@ def _build_iterations_data(
                 "is_current": run_dir.name == current_run_id,
             }
         )
-    iterations.sort(key=lambda x: x["_sort"])
+    def _natural_key(item: dict[str, Any]) -> tuple[int | str, float]:
+        rid = str(item.get("run_id", ""))
+        if rid.startswith("v") and rid[1:].isdigit():
+            return (int(rid[1:]), item.get("_sort", 0.0))
+        return (rid, item.get("_sort", 0.0))
+
+    iterations.sort(key=_natural_key)
     # Compute deltas vs immediately-previous iteration so each card can
     # show movement at a glance.
     for i, it in enumerate(iterations):
