@@ -32,6 +32,23 @@ Each phase inside `run` is also exposed as a standalone command (`simulate`, `in
 
 You need **Python 3.10–3.12**, **[`uv`](https://docs.astral.sh/uv/)**, and **[`gcloud`](https://cloud.google.com/sdk/docs/install)** installed locally.
 
+#### Option A: Direct Git Install (Recommended)
+Install `agent-eval` directly from GitHub into your project's virtual environment:
+
+```bash
+# Install from main branch into your current virtual environment
+uv pip install "agent-eval @ git+https://github.com/danielazamorah/professional-services.git@main#subdirectory=tools/agent-eval"
+
+# Or install into a specific virtual environment (e.g. .venv-eval):
+uv pip install --python .venv-eval/bin/python \
+    "agent-eval @ git+https://github.com/danielazamorah/professional-services.git@main#subdirectory=tools/agent-eval"
+```
+
+*(Tip: You can target a specific branch by replacing `@main` with `@branch-name`, e.g. `@chore/agent-eval-0.1.1-docs`).*
+
+#### Option B: Local Source Development
+If you are developing or modifying `agent-eval` locally:
+
 ```bash
 cd agent-eval
 uv sync                   # creates .venv/ and installs all deps
@@ -47,8 +64,6 @@ agent-eval setup
 Six idempotent steps — walks gcloud auth, picks your project + location, enables the Vertex AI API, binds the autorater IAM. Re-run whenever you switch projects or your token expires; already-done steps are detected and skipped.
 
 > ⚠️ **Use Vertex AI, not `GOOGLE_API_KEY`** — eval metrics will be empty otherwise. `agent-eval setup` configures this for you.
-
-> Wheel install is on the roadmap; for now, source clone + `uv sync` is the supported install path.
 
 ### [1] Initialize an agent
 
@@ -74,8 +89,10 @@ make backend     # only needed for `agent_engine` / `cloud_run` — provisions +
 
 **What `init` scaffolds** under your project's `tests/eval/`:
 
-- **`dataset.jsonl`** — your single source of truth for evaluation rows (canonical Vertex SDK columns: `prompt`, `response`, `reference`, `history`, `intermediate_events`, `session_inputs`, …). One file feeds every command.
-- **`metrics/metric_definitions.json`** — LLM-as-judge rubrics. With `--ai-metrics`, Gemini reads your agent code and drafts agent-specific metrics; without it, you get a curated starter set.
+- **`dataset.jsonl`** — your single source of truth for evaluation inputs. This is an immutable, read-only input dataset containing `prompt`, `conversation_plan`, and `session_inputs`. Heavy outputs (like `turns` and `events`) are saved to an isolated, git-ignored execution folder at `tests/eval/results/<run-id>/traces.jsonl` to keep Git clean, and AutoRaters read from there.
+- **`eval_config.yaml`** — the declarative configuration file that replaces `metric_definitions.json`. It combines your declarative OOTB AutoRaters and custom LLM judges, supporting 6 metric `kind` options (e.g. `managed`, `custom_llm_judge`, `multiturn_trajectory_judge`, `python_function`). With `--ai-metrics`, Gemini reads your agent code and drafts agent-specific judges; without it, you get a curated starter set.
+
+Note: The `simulate` command temporarily generates an `eval_config.json` next to `agent.py` for runtime compatibility.
 
 ```bash
 agent-eval init   # auto-detects your agent + scaffolds dataset/metrics (run from anywhere)
@@ -96,6 +113,14 @@ agent-eval run        # collect → score → analyze → view
 ```
 
 `run` ends by opening that self-contained `report.html` in your browser. On a remote dev box without a display, it offers to spawn a localhost HTTP server you can SSH-tunnel or open via Cloud Workstation's Web Preview. `agent-eval report` re-opens it anytime.
+
+### [3] Pluggable trace storage (Local, GCS, BigQuery)
+
+`agent-eval run` supports an agnostic storage abstraction (`StorageBackend`) so your evaluation traces (`AgentData` trajectories and `eval_summary.json` scorecards) can transition smoothly from local debugging to cloud persistence:
+
+- **Local filesystem (default)** — writes atomic `.tmp`-buffered files to `tests/eval/results/<run-id>/traces.jsonl`. Perfect for offline development; git-ignored to prevent repository bloat.
+- **Google Cloud Storage (`--storage=gcs --bucket=gs://...`)** — streams structured JSON runs directly to cloud object storage for CI/CD artifact persistence and team collaboration.
+- **BigQuery Analytics (`--storage=bigquery --dataset=...`)** — streams telemetry rows into OLAP BigQuery tables (`agent_runs`, `agent_runs_summary`), making your agent's historical quality trends instantly queryable in SQL and dashboardable in Looker.
 
 See [`docs/reference.md`](docs/reference.md) for the per-phase walkthrough, every flag, dataset schema details, custom metric patterns, troubleshooting, and the BYOD roadmap.
 

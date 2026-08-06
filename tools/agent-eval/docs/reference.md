@@ -147,12 +147,12 @@ The Vertex AI docs recommend starting with `GENERAL_QUALITY` only and opting int
 
 | Detected | Scaffolded |
 |---|---|
-| Local `agent.py` only | One unified `<project_root>/tests/eval/dataset.jsonl` + `tests/eval/metrics/metric_definitions.json` |
-| Agent Engine deployment + local `agent.py` (the typical `make backend` case) | Same one file. The Next Steps panel additionally surfaces `agent-eval agent-engine` for the streamlined deployed pass |
-| Agent Engine deployment only (rare — no source on disk) | Same one file. Next Steps surfaces only `agent-engine` (no local pipeline available without source to import) |
-| Neither | Same one file (the typical "I'm starting fresh" case — wire up `agent.py` next, then re-run init) |
+| Local `agent.py` only | One unified `<project_root>/tests/eval/dataset.jsonl` + `tests/eval/eval_config.yaml` |
+| Agent Engine deployment + local `agent.py` (the typical `make backend` case) | Same configuration files. The Next Steps panel additionally surfaces `agent-eval agent-engine` for the streamlined deployed pass |
+| Agent Engine deployment only (rare — no source on disk) | Same configuration files. Next Steps surfaces only `agent-engine` (no local pipeline available without source to import) |
+| Neither | Same configuration files (the typical "I'm starting fresh" case — wire up `agent.py` next, then re-run init) |
 
-Same files, different commands surfaced. The Phase D unified-dataset refactor (April 2026) collapsed the old per-detection scaffold variants — there is nothing the user maintains other than `tests/eval/dataset.jsonl` and `tests/eval/metrics/metric_definitions.json`. ADK's per-run scenario files live inside the agent module dir as ephemeral cache projected from `dataset.jsonl` by `simulate`.
+Same files, different commands surfaced. The Phase D unified-dataset refactor (April 2026) collapsed the old per-detection scaffold variants — there is nothing the user maintains other than `tests/eval/dataset.jsonl` and `tests/eval/eval_config.yaml`. ADK's per-run scenario files live inside the agent module dir as ephemeral cache projected from `dataset.jsonl` by `simulate`.
 
 Detection signals: `AGENT_ENGINE_RESOURCE_NAME` env var or `deployment/agent_engine_metadata.json` (from ASP) for the deployment; an `agent.py` reachable from `cwd` via `rglob` for local source.
 
@@ -196,7 +196,9 @@ The end result: both surfaces produce the same `dataset.jsonl` row shape, and bo
 
 ### Dataset row schema
 
-The unified dataset lives at `<project_root>/tests/eval/dataset.jsonl`. Every row is a JSON object that opens with `kind` + `id` so the row's identity is the first thing your eye lands on.
+`tests/eval/dataset.jsonl` is the immutable, read-only input dataset containing `prompt`, `conversation_plan`, and `session_inputs`. When running evaluations, the CLI outputs execution trace structures (containing the heavy `turns` and `events` arrays) to an isolated, git-ignored folder like `tests/eval/results/<run-id>/traces.jsonl`. AutoRaters read from this `traces.jsonl`.
+
+The unified dataset lives at `<project_root>/tests/eval/dataset.jsonl`. Every row is a JSON object. It opens with an `id`, and leverages `turns` and `events` for trajectory tracking. `dataset.jsonl` objects are hydrated directly into `AgentData` instances.
 
 **Multi-turn row** (`kind: "multi_turn"` — drives `simulate`):
 
@@ -235,31 +237,31 @@ A row may also carry `kind: "both"` to drive every path (multi-turn replay AND s
 
 | Field | Required | Where it goes |
 |---|---|---|
-| `kind` | yes | `"multi_turn"` / `"single_turn"` / `"both"` — decides which command(s) read the row. The scaffold writes it; `dataset_io.detect_capabilities` reads it first, falls back to field-presence inference for hand-written rows that omit it. |
 | `id` | yes | Short label (`multi_turn_001`, `single_turn_007`, etc.) so failures point at a specific row. Edit freely. |
+| `kind` | conditional | `"multi_turn"` / `"single_turn"` / `"both"` — determines command routing in earlier versions, but new evaluation dynamically assesses `turns` vs `prompt`. |
 | `prompt` | yes | The user's first message to the agent. SDK FLATTEN canonical column. |
+| `turns` | yes (multi-turn) | `AgentTurn` objects representing the session conversation track. |
+| `events` | added at runtime | `AgentEvent` array tracing tools, citations, and steps internally. |
 | `session_inputs` | recommended | ADK session init: `app_name` (must match the agent module folder name), `user_id`, `state` seed. |
-| `conversation_plan` | multi-turn only | **JSON ARRAY of strings** — one per follow-up turn the simulated user sends. *Not a numbered string* — ADK's UserSim splits this and would iterate over individual characters of a string. |
-| `history` | multi-turn only (optional) | Earlier user turns in canonical Vertex shape (`[{"role":"user","parts":[{"text":"..."}]}]`). Auto-built by the scaffold when `user_inputs` had >1 entry. SDK FLATTEN canonical name; `conversation_history` is the legacy alias. |
-| `reference_data` | single-turn (when reference-required metrics are in play) | **NESTED dict** with `expected_behavior` (human-readable golden answer) + any metric-specific fields (`expected_response`, `expected_docs`, `expected_routing`, `expected_tool_calls`, `expected_citations`, etc.). Single source of truth — the evaluator pulls from here via `SDK_COLUMN_DEFAULTS["reference"] = "reference_data:expected_behavior"` plus per-metric `reference_field` overrides. |
-| `response`, `intermediate_events` | added at runtime | By `run_inference` (Agent Engine pass) or `simulate` / `interact` (local pipeline). Don't hand-edit. |
+| `reference_data` | single-turn (when reference-required metrics are in play) | **NESTED dict** with `expected_behavior` (human-readable golden answer) + any metric-specific fields (`expected_response`, `expected_docs`, `expected_routing`, etc.). |
+| `response` | added at runtime | The final output generated. |
 
-`response` and `intermediate_events` are added at runtime — by `run_inference` (when going through the streamlined Agent Engine pass) or by `simulate` / `interact` (in the local pipeline). Optional fields per row enable mixed datasets. Per-row capability detection (`dataset_io.detect_capabilities`) determines metric eligibility at evaluation time using the `kind` field.
+`response`, `turns`, and `events` are populated at runtime - by the local pipeline or by `run_inference` (Agent Engine pass) forming a complete `AgentData`.
 
-**Legacy aliases that still parse but aren't emitted by new code:** `conversation_history` (use `history`), top-level `reference` mirror (use `reference_data.expected_behavior`), top-level `expected_*` flat columns (nest under `reference_data`).
+**Legacy aliases that still parse but aren't emitted by new code:** `conversation_history` (use `turns`), top-level `reference` mirror, `intermediate_events` (now `events` inside `AgentData`), top-level `expected_*` flat columns (nest under `reference_data`).
 
-> **Why every generated row has `reference_data.expected_behavior` even when no metric explicitly reads it.** Two reasons it earns its keep: (1) **Doc value** — it's the human-readable description of what the row tests, so anyone scanning the file (or a test failure) immediately understands the intent without parsing metric mappings. (2) **Safety net** — `SDK_COLUMN_DEFAULTS["reference"] = "reference_data:expected_behavior"` makes it the fallback source for the SDK's `reference` column whenever a managed metric needs one (e.g. `FINAL_RESPONSE_MATCH`) and the user hasn't configured a per-metric `reference_field` or `dataset_mapping.reference` override. Without `expected_behavior`, those metrics would silently skip every row. Read it as the row's "test purpose / what good looks like" — load-bearing only for some metric configurations, but always useful as documentation.
+> **Why every generated row has `reference_data.expected_behavior` even when no metric explicitly reads it.** Two reasons it earns its keep: (1) **Doc value** — it's the human-readable description of what the row tests. (2) **Safety net** — acts as the fallback source for the SDK's `reference` column whenever a managed metric needs one. Read it as the row's "test purpose / what good looks like".
 
 **Sources of dataset rows:**
 
 1. **Gemini-generated** — `agent-eval init` drafts test cases from your agent code, then pauses for review/edit/diff (Phase D4).
 2. **ADK evalset import** — `agent-eval import --from <file>.evalset.json` flattens existing ADK evalsets.
 3. **Hand-edited** — open `dataset.jsonl` and write rows directly.
-4. **Legacy migration** — `dataset_io.migrate_legacy()` folds four legacy locations into the unified file: `<agent>/eval/scenarios/`, `<agent>/eval/eval_data/golden_dataset.json`, `<agent>/eval/metrics/metric_definitions.json` (relocated to `<project_root>/tests/eval/metrics/`), and the wrongly-placed `<agent>/tests/eval/dataset.jsonl` (F3, from pre-rescue scaffolds — folded and source removed). Originals copied to `<project_root>/tests/eval/.backup/<timestamp>/`. Idempotent.
+4. **Legacy migration** — `dataset_io.migrate_legacy()` folds four legacy locations into the unified file: `<agent>/eval/scenarios/`, `<agent>/eval/eval_data/golden_dataset.json`, `<agent>/eval/eval_config.yaml` (relocated to `<project_root>/tests/eval/metrics/`), and the wrongly-placed `<agent>/tests/eval/dataset.jsonl` (F3, from pre-rescue scaffolds — folded and source removed). Originals copied to `<project_root>/tests/eval/.backup/<timestamp>/`. Idempotent.
 
 ### Folder layout (legacy → new)
 
-The refactor moves eval artifacts into one folder that lives next to ADK's existing convention. Existing projects don't need to reorganize manually — `dataset_io.migrate_legacy()` handles the conversion and preserves originals.
+The refactor moves eval artifacts into one folder that lives next to ADK's existing convention. Existing projects don't need to reorganize manually — `dataset_io.migrate_legacy()` handles the conversion and preserves originals. Note that while `eval_config.yaml` is the new source of truth, the execution runner temporarily generates an `eval_config.json` next to `agent.py` for runtime compatibility.
 
 **Before** (multiple folders, multiple data shapes, F3 scaffold-into-app/ bug — confusing):
 
@@ -281,15 +283,13 @@ my-agent/
 my-agent/
 ├── app/                                 ← agent code (untouched)
 │   ├── conversation_scenarios.json      ← ephemeral cache, projected from dataset.jsonl by `simulate`
-│   ├── session_input.json               ← ephemeral cache (gitignore — regenerated each run)
-│   └── eval_config.json                 ← ephemeral cache
+│   └── session_input.json               ← ephemeral cache (gitignore — regenerated each run)
 ├── pyproject.toml
 └── tests/
     └── eval/
         ├── dataset.jsonl                ← UNIFIED — every command reads this single file
+        ├── eval_config.yaml             ← the declarative configuration file combining OOTB AutoRaters and custom LLM judges
         ├── evalsets/*.evalset.json      ← ADK's existing files (preserved; importable via `agent-eval import`)
-        ├── metrics/
-        │   └── metric_definitions.json
         └── results/
             └── <timestamp>/…
 ```
@@ -300,38 +300,49 @@ my-agent/
 
 ### Custom metric patterns
 
-The Vertex AI docs describe five custom metric patterns. `metric_factory.py` exposes all five, defined in `tests/eval/metrics/metric_definitions.json` using a unified `kind` schema. The CLI's "AI generation" flow drafts pattern #2 (`custom_llm_judge`) for you, but power users can add the others by editing the JSON directly:
+The Vertex AI docs describe five custom metric patterns. `eval_config.yaml` replaces the deprecated `metric_definitions.json` and supports generic metric `kind` options (e.g. `managed`, `custom_llm_judge`, `python_function`). `metric_factory.py` exposes all five, defined in `tests/eval/eval_config.yaml` using a unified `kind` schema. The CLI's "AI generation" flow drafts pattern #2 (`custom_llm_judge`) for you, but power users can add the others by editing the YAML directly:
 
 | `kind` | Wraps | Use case |
 |---|---|---|
 | `managed` | `RubricMetric.<NAME>` | Pin a managed metric exactly as-is. |
 | `parametrized_managed` | `RubricMetric.<NAME>(metric_spec_parameters=…)` | Add custom guidelines or rubric groups to a managed metric. |
 | `custom_llm_judge` | `LLMMetric(prompt_template=MetricPromptBuilder(…))` | Hand-written LLM judge with instruction + criteria + rating scores. |
+| `multiturn_trajectory_judge` | `MultiTurnTrajectoryJudge` | 3-stage LLM recipe (Intents Extraction → Rubric Generation → Trajectory Scoring) for evaluating multi-turn clarification dialogues and conversation drift. |
 | `python_function` | `Metric(custom_function=…)` | In-process deterministic check (Python). **Not compatible with the streamlined Agent Engine pass** — `metric_factory.to_evaluation_run_metric()` rejects this kind for `create_evaluation_run` calls; use it via the local pipeline instead. |
 | `remote_code` | `Metric(remote_custom_function=…)` | Sandboxed code execution metric. |
 
-Schema example:
+Schema example (`eval_config.yaml`):
 
-```jsonc
-{
-  "general_quality_with_guidelines": {
-    "kind": "parametrized_managed",
-    "base": "general_quality_v1",
-    "guidelines": "Must maintain professional tone, no financial advice."
-  },
-  "language_simplicity": {
-    "kind": "custom_llm_judge",
-    "instruction": "Evaluate simplicity for a 5-year-old.",
-    "criteria": {"Vocabulary": "...", "Sentences": "..."},
-    "rating_scores": {"5": "...", "1": "..."}
-  },
-  "contains_keyword": {
-    "kind": "python_function",
-    "module": "tests/eval/custom_metrics.py",
-    "function": "contains_keyword"
-  }
-}
+```yaml
+general_quality_with_guidelines:
+  kind: parametrized_managed
+  base: general_quality_v1
+  guidelines: Must maintain professional tone, no financial advice.
+
+language_simplicity:
+  kind: custom_llm_judge
+  instruction: Evaluate simplicity for a 5-year-old.
+  criteria:
+    Vocabulary: ...
+    Sentences: ...
+  rating_scores:
+    5: ...
+    1: ...
+
+contains_keyword:
+  kind: python_function
+  module: tests/eval/custom_metrics.py
+  function: contains_keyword
 ```
+
+**Schema Keys & Defaults for `eval_config.yaml`:**
+- **kind**: `string` (required). Must be one of `managed`, `parametrized_managed`, `custom_llm_judge`, `python_function`, `remote_code`.
+- **base**: `string` (required for managed/parametrized_managed). Matches a Vertex SDK predefined rubric.
+- **guidelines**: `string` (optional for parametrized_managed). Replaces definition logic.
+- **instruction**: `string` (required for custom_llm_judge). Core prompt criteria text.
+- **criteria**: `dict` (required for custom_llm_judge). Assessment variables or components.
+- **rating_scores**: `dict` (required for custom_llm_judge). The possible rating values (e.g., 0/1 or 1-5).
+- **module** / **function**: `string` (required for python_function). Path to local check function.
 
 `metric_factory.build_all()` reads this file and instantiates the right SDK type. The streamlined Agent Engine pass automatically wraps each metric via `to_evaluation_run_metric()` so it can be passed to `client.evals.create_evaluation_run()`.
 
@@ -474,19 +485,19 @@ Before agent selection, `init` runs a quick readiness check against your Google 
 
 #### AI-Powered Metric Generation
 
-Step 3 runs a guided metric configuration pipeline (or use `--ai-metrics` with `-y` for non-interactive):
+Step 3 runs a guided configuration pipeline (or use `--ai-metrics` with `-y` for non-interactive) that scaffolds the declarative configuration logic:
 
-1. **Existing metrics detection** — If you've run `init` before, the CLI loads your existing `metric_definitions.json`, shows what you have, and pre-checks your previous selections.
+1. **Existing metrics detection** — If you've run `init` before, the CLI loads your existing `eval_config.yaml`, shows what you have, and pre-checks your previous selections.
 
-2. **Managed metrics selection** — Discovers all available metrics from the Vertex AI SDK at runtime and presents an interactive checkbox UI (arrow keys to navigate, space to toggle, enter to confirm). Metrics are grouped into server-side (API Predefined, auto-evaluated by Google) and template-based (GCS YAML, evaluated by LLM judge). First run pre-selects only `GENERAL_QUALITY` (per the Vertex AI docs' recommended starting point — *"Start with `GENERAL_QUALITY` as the default"*); re-runs pre-select whatever you had before.
+2. **Managed OOTB AutoRaters** — Discovers all available metrics from the Vertex AI SDK at runtime and presents an interactive checkbox UI. Metrics are grouped into server-side (API Predefined, auto-evaluated by Google) and template-based AutoRaters (evaluated by LLM judge). First run pre-selects only `GENERAL_QUALITY`; re-runs pre-select whatever you had before.
 
-3. **Custom metrics priorities** — Optionally describe what matters most for your agent (e.g., "accuracy of billing lookups, response tone"). Press Enter to skip — Gemini will pick what to focus on by reading the agent code. Custom metric generation always runs; the accept/refine/skip loop after generation is your off-ramp.
+3. **Custom declarative LLM judges** — Optionally describe what matters most for your agent (e.g., "accuracy of billing lookups, response tone"). Press Enter to skip — Gemini will pick what to focus on by reading the agent code. Custom configurations are generated as declarative blocks in `eval_config.yaml`.
 
 4. **Agent analysis** (Gemini Call 1) — Analyzes your agent's source code to identify tools, state variables, sub-agents, and key behaviors. Surfaces any state-variable additions that would unlock richer metrics, with copy-paste-ready code snippets and an AI-generated disclaimer. After you've added them, the loop re-analyzes so the new state is visible to the next two calls.
 
-5. **Metric generation** (Gemini Call 2) — Generates custom LLM-as-judge metric definitions that complement your selected managed metrics. Defaults to a 0-1 rubric scale, includes at least one `requires_reference: true` metric that compares the agent response against `reference_data.<field>` (the field name is chosen to match your agent's domain — e.g. `expected_response`, `expected_docs`, `expected_tool_calls`). For managed metrics that need a reference (e.g. `FINAL_RESPONSE_MATCH`), Gemini also sets a matching `reference_field` so the evaluator knows which slot in `reference_data` to read.
+5. **Scaffold `eval_config.yaml`** (Gemini Call 2) — Scaffolds `eval_config.yaml` to declare the OOTB AutoRaters alongside the declarative parameters for the custom LLM judges generated. Defaults to a 0-1 rubric scale, includes at least one reference-required judge.
 
-5b. **Materialize + review metrics** (NEW 2026-05-01, between Calls 2 and 3) — `metric_definitions.json` is written to disk as soon as Call 2 finishes. The CLI shows a polished editing guide ("what each metric does", "what you can edit freely", "what you must keep") and pauses for you to open the file in your editor. When you continue, the file is re-parsed, validated against the canonical schema (`kind` + per-kind required fields + `rating_scores` shape + `dataset_mapping` source-column validity), and any errors loop back through `Edit again / Restore the AI version / Abort init` until clean. Call 3 then reads this on-disk file (NOT an in-memory copy) so your edits flow forward into the test data generation.
+5b. **Materialize + review metrics** (NEW 2026-05-01, between Calls 2 and 3) — `eval_config.yaml` is written to disk as soon as Call 2 finishes. The CLI shows a polished editing guide ("what each metric does", "what you can edit freely", "what you must keep") and pauses for you to open the file in your editor. When you continue, the file is re-parsed, validated against the canonical schema, and any errors loop back through `Edit again / Restore the AI version / Abort init` until clean. Call 3 then reads this on-disk file (NOT an in-memory copy) so your edits flow forward into the test data generation.
 
 6. **Evaluation data generation** (Gemini Call 3) — Asks how many test rows per kind to generate (default 5; multi-turn + single-turn = 10 total). Generates EXACTLY that many conversation scenarios (multi-turn, for simulation) and golden dataset entries (single-turn, for regression testing). The prompt receives both the metrics' `rationale` paragraph from Call 2 AND an explicit list of required `reference_data.<field>` names extracted from the metrics — so test rows are designed to EXERCISE the metrics rather than ignore them. The same `reference_data.<field>` chosen in step 5 is populated here as a starter; you're expected to refine the values with the actual answers you want the agent to produce.
 
@@ -496,7 +507,7 @@ After generation you can accept, refine (provide feedback and re-run), or skip t
 
 **Non-destructive re-runs:** If eval files already exist, they are backed up to `<project_root>/tests/eval/.backup/<timestamp>/` before AI content is written. Existing custom metrics are preserved (Gemini is asked to keep them as-is or improve them). Dataset rows are merged with existing entries.
 
-**Iterative review (Phase D4).** After each artifact is written — first `metric_definitions.json`, then `dataset.jsonl` — `init` pauses, shows the file path, renders an explanation table of what each section/field does and which internal flags drive routing, and waits for you to press Enter. While paused you can open the file in your editor and tweak anything that doesn't fit your agent. When you return, `init`:
+**Iterative review (Phase D4).** After each artifact is written — first `eval_config.yaml`, then `dataset.jsonl` — `init` pauses, shows the file path, renders an explanation table of what each section/field does and which internal flags drive routing, and waits for you to press Enter. While paused you can open the file in your editor and tweak anything that doesn't fit your agent. When you return, `init`:
 
 1. Re-reads the file and re-hashes it.
 2. If unchanged → continues with the in-memory generated version.
@@ -504,7 +515,7 @@ After generation you can accept, refine (provide feedback and re-run), or skip t
 4. On valid parse → diffs against the AI-generated baseline (saved as a sibling `.gen` snapshot, cleaned up afterward) and prints a human-readable change list:
 
 ```
-✓ Picked up your edits to metric_definitions.json:
+✓ Picked up your edits to eval_config.yaml:
     + added    response_grounding
     ~ updated  citation_accuracy
     − removed  safety
@@ -544,7 +555,7 @@ flowchart TD
     G1 --> SUG["💡 <b>Display analysis</b><br/>• tools / state vars / behaviors<br/>• state-var suggestions (optional re-analyze)"]
     SUG --> G2["🤖 <b>Gemini call 2</b><br/>generate_metric_definitions — canonical schema, binary by default"]
 
-    G2 --> REV1["🔍 <b>Review pause</b><br/>• show <code>metric_definitions.json</code><br/>• explain every section + key<br/>• edits during pause are diffed back"]
+    G2 --> REV1["🔍 <b>Review pause</b><br/>• show <code>eval_config.yaml</code><br/>• explain every section + key<br/>• edits during pause are diffed back"]
     REV1 --> G3["🤖 <b>Gemini call 3</b><br/>generate_eval_data — starter <code>dataset.jsonl</code> with reference_data fields"]
     G3 --> REV2["🔍 <b>Review pause</b><br/>• show <code>dataset.jsonl</code><br/>• edits diffed back<br/>• flow forward to scaffold"]
 
@@ -606,7 +617,7 @@ agent-eval run --no-simulate --no-interact       # re-score existing traces
 
 **0 · pre-flight** — auto-detects the agent (single `agent.py` under cwd, or pass `--agent-dir`). Probes `--base-url`, then scans `localhost`+`127.0.0.1` × {8501, 8500, 8000, 8080, 8888, 5000, 7860} in parallel. If nothing responds, **offers to spawn `adk web` itself** in the background — same command `make playground` runs — and tears it down at the end of the interact phase. No need to keep `make playground` running in another shell.
 
-**1/5 Simulate** — projects multi-turn rows from `dataset.jsonl` into ADK's expected files (`conversation_scenarios.json`, `session_input.json`, `eval_config.json`) inside the agent dir. Caps `user_simulator_config.max_allowed_invocations` to `max(plan_depth) + 2` (default ADK is 20, which stalls slow agents). Splits scenarios into N evalsets and fires N `adk eval` subprocesses concurrently (`--sim-parallelism`). Streams per-scenario logs to `raw/sim_logs/` for live `tail -f`. Cleans up its own aux files after. Wall-clock = slowest single scenario (Amdahl's law); per-scenario timing is printed at the end so you see the distribution.
+**1/5 Simulate** — projects multi-turn rows from `dataset.jsonl` into ADK's expected files (`conversation_scenarios.json`, `session_input.json`, `eval_config.yaml`) inside the agent dir. Caps `user_simulator_config.max_allowed_invocations` to `max(plan_depth) + 2` (default ADK is 20, which stalls slow agents). Splits scenarios into N evalsets and fires N `adk eval` subprocesses concurrently (`--sim-parallelism`). Streams per-scenario logs to `raw/sim_logs/` for live `tail -f`. Cleans up its own aux files after. Wall-clock = slowest single scenario (Amdahl's law); per-scenario timing is printed at the end so you see the distribution.
 
 **2/5 Interact** — fires single-turn rows from `dataset.jsonl` at the live agent in parallel via `asyncio.gather`. The unified loader auto-skips multi-turn rows. If `--simulate` failed, you're prompted whether to continue with interact only.
 
@@ -704,7 +715,7 @@ uv run agent-eval simulate --agent-dir path/to/agent_module
 
 **What it does (5 steps):**
 
-1. **Projects scenario files from `dataset.jsonl`** — reads multi-turn rows (rows with `history` or `conversation_plan`) from `<project_root>/tests/eval/dataset.jsonl`, writes `conversation_scenarios.json` + `session_input.json` + `eval_config.json` directly into `<agent_dir>/` as ephemeral cache (ADK requires these next to `agent.py`). Caps `user_simulator_config.max_allowed_invocations` to `max(plan_depth) + 2` (default ADK is 20, which can stall slow agents past your scripted plan).
+1. **Projects scenario files from `dataset.jsonl`** — reads multi-turn rows (rows with `history` or `conversation_plan`) from `<project_root>/tests/eval/dataset.jsonl`, writes `conversation_scenarios.json` + `session_input.json` + `eval_config.yaml` directly into `<agent_dir>/` as ephemeral cache (ADK requires these next to `agent.py`). Caps `user_simulator_config.max_allowed_invocations` to `max(plan_depth) + 2` (default ADK is 20, which can stall slow agents past your scripted plan).
 2. **Clears eval history + stale aux files** — Removes `.adk/eval_history/` and any leftover `.agent_eval_tmp/eval_set_*.scenarios.json` from prior runs.
 3. **Splits scenarios into N eval_sets** — One per scenario, named `eval_set_<run_id>_NNN`, so they can run in parallel.
 4. **Runs ADK User Sim — parallel** — Fires up to `--sim-parallelism` (default 3) `adk eval` subprocesses concurrently. Each writes a per-scenario log to `raw/sim_logs/<eval_set>.log` for live `tail -f`. `uv` resolver pre-warmed once before fan-out to avoid lockfile contention. **Wall-clock = the slowest single scenario** (Amdahl's law); per-scenario timing printed at the end so you see the distribution.
@@ -712,11 +723,11 @@ uv run agent-eval simulate --agent-dir path/to/agent_module
 
 **Output:** `tests/eval/results/<run-id>/raw/processed_interaction_sim.jsonl`
 
-#### eval_config.json handling
+#### eval_config.yaml handling
 
-> ADK runs its own per-interaction LLM scoring during `adk eval` if `eval_config.json` has non-empty `criteria`. `simulate` deliberately writes empty `criteria` to its agent-dir copy so ADK skips this — `agent-eval` handles all scoring in batch via Vertex AI Evaluation, which is faster + parallel + custom-rubric capable. Running both is slow + confusing.
+> ADK runs its own per-interaction LLM scoring during `adk eval` if `eval_config.yaml` has non-empty `criteria`. `simulate` deliberately writes empty `criteria` to its agent-dir copy so ADK skips this — `agent-eval` handles all scoring in batch via Vertex AI Evaluation, which is faster + parallel + custom-rubric capable. Running both is slow + confusing.
 >
-> If your project's `tests/eval/eval_config.json` has non-empty `criteria` (e.g. an Agent Starter Pack scaffold's defaults), `simulate` **backs it up** to `tests/eval/.backup/<timestamp>/eval_config.json` and replaces the source with empty `criteria` on the first run. Translate the backed-up criteria into `metric_definitions.json` as `custom_llm_judge` entries to bring them back into the agent-eval scoring path.
+> If your project's `tests/eval/eval_config.yaml` has non-empty `criteria` (e.g. an Agent Starter Pack scaffold's defaults), `simulate` **backs it up** to `tests/eval/.backup/<timestamp>/eval_config.yaml` and replaces the source with empty `criteria` on the first run. Translate the backed-up criteria into `eval_config.yaml` as `custom_llm_judge` entries to bring them back into the agent-eval scoring path.
 
 **CI / scripted runs.** Set `AGENT_EVAL_NO_PAUSES=1` to skip the interactive Run ID prompt (and every other `_continue` pause). The command falls back to a timestamp like `20260421_073914`, so you can pipe `simulate → evaluate → analyze` end-to-end without any keystrokes.
 
@@ -762,7 +773,7 @@ Runs metrics on processed interaction data.
 ```bash
 uv run agent-eval evaluate \
   --interaction-file path/to/interactions.jsonl \
-  --metrics-files path/to/metric_definitions.json \
+  --metrics-files path/to/eval_config.yaml \
   --results-dir path/to/results
 ```
 
@@ -781,7 +792,7 @@ uv run agent-eval evaluate \
 uv run agent-eval evaluate \
   --interaction-file results/run1/raw/processed_interaction_sim.jsonl \
   --interaction-file results/run1/raw/processed_interaction_app.jsonl \
-  --metrics-files eval/metrics/metric_definitions.json \
+  --metrics-files eval/eval_config.yaml \
   --results-dir results/run1
 ```
 
@@ -838,7 +849,7 @@ agent-eval agent-engine [OPTIONS]
 | Option | Default | Description |
 |---|---|---|
 | `--dataset` | resolved from `<project_root>/tests/eval/dataset.jsonl` (walks up looking for `pyproject.toml`) | Unified dataset JSONL. Multi-turn rows are automatically skipped here — Agent Engine's `create_evaluation_run` is single-turn only — with a clear pointer to use `agent-eval simulate` for those. |
-| `--metrics` | resolved from `<project_root>/tests/eval/metrics/metric_definitions.json` | Metric definitions (managed rubrics + custom LLM judges via `template` + `score_range`). Falls back to `<agent>/eval/metrics/metric_definitions.json` for legacy projects until `agent-eval migrate` runs. |
+| `--metrics` | resolved from `<project_root>/tests/eval/eval_config.yaml` | Metric definitions (managed rubrics + custom LLM judges via `template` + `score_range`). Falls back to `<agent>/eval/eval_config.yaml` for legacy projects until `agent-eval migrate` runs. |
 | `--resource-name` | env `AGENT_ENGINE_RESOURCE_NAME` or auto-detection | Agent Engine resource (`projects/.../reasoningEngines/...`). |
 | `--dest` | `gs://<project>-agent-eval/<timestamp>` | GCS destination for results. The bucket is **auto-created** on first run if it doesn't exist. |
 | `--project` | env `GOOGLE_CLOUD_PROJECT` | GCP project ID. |
@@ -855,7 +866,7 @@ agent-eval agent-engine [OPTIONS]
 - You want managed inference — no local FastAPI server required, no traces to capture yourself.
 - You want a single `dashboard_url` to share with stakeholders.
 
-**Custom LLM metrics on the streamlined Agent Engine pass.** Every entry in `metric_definitions.json` declares one of six `kind` values per the canonical schema (`core/metric_schema.py`). `agent-engine` routes them all through `metric_factory.build_metric(name, spec)`: `kind: managed` and `kind: parametrized_managed` resolve via `getattr(types.RubricMetric, base.upper())`; `kind: custom_llm_judge` builds a `types.LLMMetric` whose `prompt_template` is a `types.MetricPromptBuilder(instruction=..., criteria={...}, rating_scores={...})`; `kind: computation` becomes `types.Metric(name='bleu' | 'rouge_l' | ...)`. The built metric is then wrapped via `metric_factory.to_evaluation_run_metric` for `create_evaluation_run`. `kind: python_function` and `kind: remote_code` are deferred — `create_evaluation_run` cannot execute local Python and our remote-code wrapping isn't wired through this path yet, so they're skipped with a warning.
+**Custom LLM metrics on the streamlined Agent Engine pass.** Every entry in `eval_config.yaml` declares one of six `kind` values per the canonical schema (`core/metric_schema.py`). `agent-engine` routes them all through `metric_factory.build_metric(name, spec)`: `kind: managed` and `kind: parametrized_managed` resolve via `getattr(types.RubricMetric, base.upper())`; `kind: custom_llm_judge` builds a `types.LLMMetric` whose `prompt_template` is a `types.MetricPromptBuilder(instruction=..., criteria={...}, rating_scores={...})`; `kind: computation` becomes `types.Metric(name='bleu' | 'rouge_l' | ...)`. The built metric is then wrapped via `metric_factory.to_evaluation_run_metric` for `create_evaluation_run`. `kind: python_function` and `kind: remote_code` are deferred — `create_evaluation_run` cannot execute local Python and our remote-code wrapping isn't wired through this path yet, so they're skipped with a warning.
 
 **SDK pattern.** `agent-engine` follows the [evaluation-agents-client docs pattern](https://docs.cloud.google.com/vertex-ai/generative-ai/docs/models/evaluation-agents-client) verbatim: the `Client` is constructed with `http_options=HttpOptions(api_version="v1beta1")`, the local agent is imported (default `app.agent:root_agent`, override with `--agent-module`), and an `AgentInfo` is attached to `create_evaluation_run`. Without `agent_info` the deployed agent's events come back without `content.parts` and the SDK fails the run with "Failed to parse agent run response []" — the local-agent enrichment is what makes the deployed run actually score.
 
@@ -897,7 +908,7 @@ Folds four legacy locations into the canonical `<project_root>/tests/eval/datase
 
 1. `<agent>/eval/scenarios/conversation_scenarios.json` (legacy UserSim)
 2. `<agent>/eval/eval_data/golden_dataset.json` (legacy DIY)
-3. `<agent>/eval/metrics/metric_definitions.json` (relocated to `<project_root>/tests/eval/metrics/`)
+3. `<agent>/eval/eval_config.yaml` (relocated to `<project_root>/tests/eval/metrics/`)
 4. `<agent>/tests/eval/dataset.jsonl` (the F3 wrongly-placed unified file from pre-rescue scaffolds — folded into the canonical project-root location, source folder removed)
 
 Originals are copied to `<project_root>/tests/eval/.backup/<timestamp>/` first. Idempotent — re-running on an already-migrated project is a no-op.
@@ -917,7 +928,7 @@ agent-eval migrate [OPTIONS]
 
 1. Auto-detects the legacy folder via `dataset_io._find_legacy_eval_dir()` — tries `<agent-dir>/app/eval/`, then `<agent-dir>/eval/`.
 2. Flattens `scenarios/conversation_scenarios.json` (`starting_prompt` → `prompt`, `conversation_plan` preserved as a column) and `eval_data/golden_dataset.json` (last `user_inputs` → `prompt`, multi-turn user_inputs → `history`, `expected_behavior` → `reference`) into the unified row shape.
-3. Copies `metric_definitions.json` from `<legacy>/metrics/` into `tests/eval/metrics/` if not already there.
+3. Copies `eval_config.yaml` from `<legacy>/metrics/` into `tests/eval/metrics/` if not already there.
 4. Copies the original files to `tests/eval/.backup/<timestamp>/` (unless `--no-backup`), so `agent-eval simulate` keeps working against the legacy layout while you transition.
 
 `init` also offers to run this for you when it detects a legacy layout.
@@ -1022,7 +1033,7 @@ Automatically calculated from OpenTelemetry session traces. No configuration nee
 
 ### Managed Metrics (Vertex AI)
 
-Built into the Vertex AI SDK, discovered at runtime by `agent-eval`. In `metric_definitions.json` they declare `kind: "managed"` (or `kind: "parametrized_managed"` when carrying custom guidelines) plus `base: "GENERAL_QUALITY"` (the SDK metric name). The `init` command configures them automatically; the picker generates the right shape per selection.
+Built into the Vertex AI SDK, discovered at runtime by `agent-eval`. In `eval_config.yaml` they declare `kind: "managed"` (or `kind: "parametrized_managed"` when carrying custom guidelines) plus `base: "GENERAL_QUALITY"` (the SDK metric name). The `init` command configures them automatically; the picker generates the right shape per selection.
 
 Managed metrics resolve via two distinct internal paths inside the SDK — this is internal mechanics, not part of the schema you write:
 
@@ -1069,13 +1080,13 @@ Managed metrics resolve via two distinct internal paths inside the SDK — this 
 
 ### Custom LLM-as-Judge Metrics
 
-Your own scoring rubrics, defined in `metric_definitions.json`. These use `metric_type: "llm"` and include a `template` with the evaluation prompt. See [Creating Custom Metrics](#creating-custom-metrics) below.
+Your own scoring rubrics, defined in `eval_config.yaml`. These use `metric_type: "llm"` and include a `template` with the evaluation prompt. See [Creating Custom Metrics](#creating-custom-metrics) below.
 
 ---
 
 ## Creating Custom Metrics
 
-> **Two schemas live side by side today.** This section documents the **trace-driven schema** (`metric_type`, `dataset_mapping`, `requires_reference` / `requires_multi_turn`, `template`) used by `agent-eval evaluate` against the JSONL produced by `simulate` / `interact`. The **unified schema** (`kind: managed | parametrized_managed | custom_llm_judge | python_function | remote_code`) is used by `agent-eval agent-engine` (the streamlined Agent Engine pass) — see [Custom metric patterns](#custom-metric-patterns) above. Both schemas read the same `tests/eval/metrics/metric_definitions.json` file; `metric_factory.py` discriminates on the `kind` field, while the trace-driven evaluator path keys off `metric_type`.
+> **Two schemas live side by side today.** This section documents the **trace-driven schema** (`metric_type`, `dataset_mapping`, `requires_reference` / `requires_multi_turn`, `template`) used by `agent-eval evaluate` against the JSONL produced by `simulate` / `interact`. The **unified schema** (`kind: managed | parametrized_managed | custom_llm_judge | python_function | remote_code`) is used by `agent-eval agent-engine` (the streamlined Agent Engine pass) — see [Custom metric patterns](#custom-metric-patterns) above. Both schemas read the same `tests/eval/eval_config.yaml` file; `metric_factory.py` discriminates on the `kind` field, while the trace-driven evaluator path keys off `metric_type`.
 
 ### Basic Structure
 
@@ -1268,7 +1279,7 @@ Generates multi-turn conversations from scenario definitions. An LLM simulates r
 
 **When to use:** Multi-turn conversational agents, rapid prototyping (no golden dataset needed), exploring agent behavior across many scenarios.
 
-> ADK's runtime (`adk eval`) expects `conversation_scenarios.json` + `session_input.json` + `eval_config.json` at fixed paths next to `agent.py`. Phase D2 (April 2026) made those files an **ephemeral cache**: `simulate` reads multi-turn rows from the unified `<project_root>/tests/eval/dataset.jsonl`, projects them into ADK's expected shape, writes them inside the agent module dir, and runs `adk eval` against the cache. Users only ever edit `dataset.jsonl`. Add the cached filenames to `.gitignore`.
+> ADK's runtime (`adk eval`) expects `conversation_scenarios.json` + `session_input.json` + `eval_config.yaml` at fixed paths next to `agent.py`. Phase D2 (April 2026) made those files an **ephemeral cache**: `simulate` reads multi-turn rows from the unified `<project_root>/tests/eval/dataset.jsonl`, projects them into ADK's expected shape, writes them inside the agent module dir, and runs `adk eval` against the cache. Users only ever edit `dataset.jsonl`. Add the cached filenames to `.gitignore`.
 
 **What you maintain (one file):**
 
@@ -1281,7 +1292,7 @@ Generates multi-turn conversations from scenario definitions. An LLM simulates r
 ```
 <agent_dir>/conversation_scenarios.json   # Projected from multi-turn rows in dataset.jsonl
 <agent_dir>/session_input.json            # Pulled from row's session_inputs
-<agent_dir>/eval_config.json              # ADK eval criteria (default: empty — agent-eval scores its own batch)
+<agent_dir>/eval_config.yaml              # ADK eval criteria (default: empty — agent-eval scores its own batch)
 ```
 
 **Run it:**
@@ -1619,7 +1630,7 @@ This is exactly the right behavior for `make install` / `make backend` — the a
 ### Multi-turn metric reports `SKIPPED — no rows have required capabilities: multi_turn`
 
 **Cause:** Your `dataset.jsonl` has no rows with `history` or `conversation_plan`, so the per-row capability filter correctly skips multi-turn metrics.
-**Fix:** Either add rows that drive a multi-turn flow, or remove the multi-turn metric from `metric_definitions.json` if it doesn't fit your agent.
+**Fix:** Either add rows that drive a multi-turn flow, or remove the multi-turn metric from `eval_config.yaml` if it doesn't fit your agent.
 
 ### Empty metrics / all scores are zero
 
@@ -1663,7 +1674,7 @@ This is exactly the right behavior for `make install` / `make backend` — the a
 ### ADK UserSim: "Error rendering metric prompt template"
 
 **Cause:** ADK runs its own built-in LLM scoring during `adk eval`, which is separate from `agent-eval`.
-**Fix:** The `simulate` command defaults to an empty `eval_config.json` (`{"criteria": {}}`) which skips ADK's scoring. `agent-eval` handles all scoring via the `evaluate` command instead.
+**Fix:** The `simulate` command defaults to an empty `eval_config.yaml` (`{"criteria": {}}`) which skips ADK's scoring. `agent-eval` handles all scoring via the `evaluate` command instead.
 
 ### Trajectory accuracy penalizing for missing tools
 
@@ -1727,7 +1738,7 @@ This section is a developer signpost — features sketched in the SDK-aligned pl
 2. CLI inspects the first 3 traces, calls Gemini with: *"Here's a sample trace. Generate a Python conversion script that produces rows matching this JSON schema: `{prompt, response, history, intermediate_events, session_inputs}`."* (canonical SDK FLATTEN column names — see `~/.claude/projects/.../memory/vertex-eval-sdk-schema.md`).
 3. CLI writes the draft to `tests/eval/byod_converter.py` for the user to review and tweak.
 4. User runs `python tests/eval/byod_converter.py ./my-traces/ tests/eval/dataset.jsonl` to produce rows compatible with the rest of the pipeline.
-5. From there, evaluation works exactly like the local pipeline — the dataset is just `dataset.jsonl`, the metrics live in `metric_definitions.json`, and the SDK doesn't care where the rows came from.
+5. From there, evaluation works exactly like the local pipeline — the dataset is just `dataset.jsonl`, the metrics live in `eval_config.yaml`, and the SDK doesn't care where the rows came from.
 
 **Why it's deferred.** The dataset schema unification (`dataset_io.py`, the canonical SDK columns + free-form `expected_*` extras, the `getattr`-based custom metric resolution) is the *enabler* — once that's in place, BYOD is mechanical. But designing the converter prompt well requires real OTel trace samples. Building it speculatively risks producing a converter that handles toy examples and breaks on the messy traces people actually have. We'd rather wait for the first user with a non-ADK agent and design `ingest-traces` against their data.
 
@@ -1735,7 +1746,7 @@ This section is a developer signpost — features sketched in the SDK-aligned pl
 
 ### Other deferred items from the plan
 
-- **5-option custom-metrics flow in `init`** — `metric_factory.py` already supports all five `kind` values (`managed`, `parametrized_managed`, `custom_llm_judge`, `python_function`, `remote_code`). The init flow currently exposes only the Gemini-drafted `custom_llm_judge` path because the questionary forms for the other four would add ~200 lines of UI for capability that power users can already access by hand-editing `metric_definitions.json`. If you want that UI surfaced interactively, file an issue.
+- **5-option custom-metrics flow in `init`** — `metric_factory.py` already supports all five `kind` values (`managed`, `parametrized_managed`, `custom_llm_judge`, `python_function`, `remote_code`). The init flow currently exposes only the Gemini-drafted `custom_llm_judge` path because the questionary forms for the other four would add ~200 lines of UI for capability that power users can already access by hand-editing `eval_config.yaml`. If you want that UI surfaced interactively, file an issue.
 - ~~**Folder collapse for UserSim files**~~ — **DONE in Phase D2 (April 2026).** UserSim no longer reads `eval/scenarios/` as a user-edited source; `simulate` projects the multi-turn rows from `<project_root>/tests/eval/dataset.jsonl` into `<agent_dir>/conversation_scenarios.json` (and the two siblings) as ephemeral cache that gets regenerated each run. The user maintains exactly one file: `dataset.jsonl`. ADK's filename constraint is hidden behind the projection, not propagated to the user.
 
 ### SDK features `agent-eval` doesn't surface yet

@@ -31,7 +31,7 @@ from agent_eval import run_evaluation, run_evaluation_sync
 @mock.patch("agent_eval.sdk.Evaluator")
 @mock.patch("agent_eval.sdk.run_simulation_in_process", autospec=True)
 async def test_sdk_run_evaluation_success(
-    mock_run_sim, mock_evaluator, mock_generate_html_report
+    mock_run_sim, mock_evaluator, _mock_generate_html_report
 ):
     # Setup mocks
     mock_run_sim.return_value = [{"id": "case_0"}]
@@ -101,7 +101,7 @@ async def test_sdk_run_evaluation_success(
 @mock.patch("agent_eval.sdk.Evaluator")
 @mock.patch("agent_eval.sdk.run_simulation_in_process", autospec=True)
 async def test_sdk_run_evaluation_error_metric(
-    mock_run_sim, mock_evaluator, mock_generate_html_report
+    mock_run_sim, mock_evaluator, _mock_generate_html_report
 ):
     mock_run_sim.return_value = [{"id": "case_0"}]
 
@@ -187,7 +187,7 @@ def test_sdk_run_evaluation_sync(mock_run_eval):
 @mock.patch("agent_eval.sdk.Evaluator")
 @mock.patch("agent_eval.sdk.run_simulation_in_process", autospec=True)
 async def test_sdk_run_evaluation_threshold_success(
-    mock_run_sim, mock_evaluator, mock_generate_html_report
+    mock_run_sim, mock_evaluator, _mock_generate_html_report
 ):
     mock_run_sim.return_value = [{"id": "case_0"}]
 
@@ -251,7 +251,7 @@ async def test_sdk_run_evaluation_threshold_success(
 @mock.patch("agent_eval.sdk.Evaluator")
 @mock.patch("agent_eval.sdk.run_simulation_in_process", autospec=True)
 async def test_sdk_run_evaluation_threshold_failure(
-    mock_run_sim, mock_evaluator, mock_generate_html_report
+    mock_run_sim, mock_evaluator, _mock_generate_html_report
 ):
     mock_run_sim.return_value = [{"id": "case_0"}]
 
@@ -327,7 +327,7 @@ async def test_sdk_run_evaluation_pipeline_success(
     mock_compile,
     mock_submit,
     mock_get_project_id,
-    mock_generate_html_report,
+    _mock_generate_html_report,
 ):
     # Setup mocks
     mock_get_project_id.return_value = "test-project"
@@ -554,7 +554,7 @@ async def test_sdk_run_evaluation_pipeline_downloads_csv_files(
     mock_compile,
     mock_submit,
     mock_get_project_id,
-    mock_generate_html_report,
+    _mock_generate_html_report,
 ):
     """Verify that raw CSV files are correctly downloaded from GCS details/ path."""
     mock_get_project_id.return_value = "test-project"

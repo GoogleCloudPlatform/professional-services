@@ -511,11 +511,12 @@ def _build_csv_lookup(results_csv: Path | None) -> dict[str, dict[str, Any]]:
                 def _sum_by_type(node: Any, target_type: str) -> float:
                     if not isinstance(node, dict):
                         return 0.0
-                    s = 0.0
                     if node.get("type") == target_type:
                         d = node.get("duration_seconds")
                         if isinstance(d, (int, float)):
-                            s += float(d)
+                            return float(d)
+                        return 0.0
+                    s = 0.0
                     for child in node.get("children") or []:
                         s += _sum_by_type(child, target_type)
                     return s
@@ -797,14 +798,19 @@ def _build_iterations_data(
             n: (info.get("average") if isinstance(info, dict) else info)
             for n, info in llm.items()
         }
-        # Use mtime as the datetime — it's the run completion time.
+        dt_str = str(data.get("interaction_datetime") or "")
         try:
-            dt = datetime.fromtimestamp(summary_file.stat().st_mtime)
+            dt = datetime.fromisoformat(dt_str.replace("Z", "+00:00"))
             dt_str = dt.strftime("%Y-%m-%d %H:%M")
             dt_sort = dt.timestamp()
-        except OSError:
-            dt_str = ""
-            dt_sort = 0
+        except (ValueError, TypeError):
+            try:
+                dt = datetime.fromtimestamp(summary_file.stat().st_mtime)
+                dt_str = dt.strftime("%Y-%m-%d %H:%M")
+                dt_sort = dt.timestamp()
+            except OSError:
+                dt_str = ""
+                dt_sort = 0
         git = data.get("git_info") or {}
         iterations.append(
             {
@@ -1735,6 +1741,14 @@ _HTML_TEMPLATE = r"""<!doctype html>
   <section id="iterations" class="tab-content">
     <h2><span class="accent yellow"></span>Metrics over time</h2>
     <div class="card">
+      <div style="margin-bottom: 12px; display: flex; justify-content: flex-end; align-items: center; gap: 8px;">
+        <label for="iterations-range-select" style="font-size: 12px; font-weight: 600; color: #555;">Time Range:</label>
+        <select id="iterations-range-select" style="padding: 4px 8px; border-radius: 4px; border: 1px solid #ccc; font-size: 12px; font-family: inherit;">
+          <option value="15" selected>Last 15 runs (Default)</option>
+          <option value="30">Last 30 runs</option>
+          <option value="all">All runs (50+)</option>
+        </select>
+      </div>
       <div id="iterations-chart-empty" class="empty" style="display:none">
         Only one run so far — chart needs ≥2 iterations to draw a trend line.
       </div>
@@ -2148,9 +2162,9 @@ _HTML_TEMPLATE = r"""<!doctype html>
         '</summary>' +
         '<div class="qa-detail">' +
           renderRunStats(q.deterministic) +
+          renderStateAndTrajectory(q.state_vars, q.agents_invoked, q.trajectory, q.turn_latencies, q.deterministic) +
           renderConversation(q.conversation, q.final_response) +
           renderToolCalls(q.tool_calls) +
-          renderStateAndTrajectory(q.state_vars, q.agents_invoked, q.trajectory, q.turn_latencies, q.deterministic) +
           renderThinking(q.thinking) +
           renderAgentSpec(q.system_instruction, q.tool_declarations) +
           renderMetricsBlock(q.metrics) +
@@ -2172,6 +2186,7 @@ _HTML_TEMPLATE = r"""<!doctype html>
       ['Cached tokens', det['token_usage.cached_tokens'], 'n'],
       ['Cost', det['token_usage.estimated_cost_usd'], 'cost'],
       ['Wall-clock', det['latency_metrics.total_latency_seconds'], 's'],
+      ['Turn latency', det['latency_metrics.average_turn_latency_seconds'], 's'],
       ['LLM time', det['latency_metrics.llm_latency_seconds'], 's'],
       ['Tool time', det['latency_metrics.tool_latency_seconds'], 's'],
       ['LLM calls', det['token_usage.llm_calls'], 'n'],
@@ -2366,13 +2381,13 @@ _HTML_TEMPLATE = r"""<!doctype html>
               '<code>' + escapeHtml(String(peakSpan)) + '</code></div>';
     }
     if (hasLat) {
-      html += '<div class="state-card"><div class="tool-label">Per-turn latency</div>' +
-              '<table class="metrics" style="font-size:11px"><thead><tr><th>Turn</th><th class="num">Total</th><th class="num">LLM</th><th class="num">Tools</th></tr></thead><tbody>' +
+      html += '<div class="state-card" style="grid-column:1/-1; border-color:var(--g-blue); background:var(--g-blue-soft)"><div class="tool-label" style="font-weight:600; color:var(--g-blue)">⏱️ Per-Turn Wall-Clock Latency Breakdown</div>' +
+              '<table class="metrics" style="font-size:12px; width:100%; margin-top:6px;"><thead><tr><th style="text-align:left">Turn</th><th class="num" style="font-weight:600">Total</th><th class="num">LLM</th><th class="num" style="font-weight:600; color:var(--g-blue)">Tools</th></tr></thead><tbody>' +
               latencies.map(function(t) {
-                return '<tr><td>' + t.turn + '</td>' +
-                  '<td class="num">' + (t.total_s != null ? Number(t.total_s).toFixed(2) + 's' : '—') + '</td>' +
+                return '<tr><td style="font-weight:500">' + t.turn + '</td>' +
+                  '<td class="num" style="font-weight:600">' + (t.total_s != null ? Number(t.total_s).toFixed(2) + 's' : '—') + '</td>' +
                   '<td class="num">' + (t.llm_s != null ? Number(t.llm_s).toFixed(2) + 's' : '—') + '</td>' +
-                  '<td class="num">' + (t.tool_s != null ? Number(t.tool_s).toFixed(2) + 's' : '—') + '</td></tr>';
+                  '<td class="num" style="font-weight:600; color:var(--g-blue)">' + (t.tool_s != null ? Number(t.tool_s).toFixed(2) + 's' : '—') + '</td></tr>';
               }).join('') +
               '</tbody></table></div>';
     }
@@ -2401,54 +2416,76 @@ _HTML_TEMPLATE = r"""<!doctype html>
   // Trend line chart of LLM metrics over runs + per-iteration cards
   // with delta deltas. Replaces the old marked.js render of OPT_LOG.md
   // (markdown stays on disk for git/grep but isn't the source here).
-  safe('iterations-chart', function() {
-    const its = data.iterations || [];
-    if (its.length < 2 || typeof Chart === 'undefined') {
-      $('#iterations-chart-empty').style.display = 'block';
-      return;
-    }
-    const labels = its.map(function(it) { return it.run_id; });
-    // Pull every LLM metric name across all iterations.
-    const metricNames = [];
-    its.forEach(function(it) {
-      Object.keys(it.llm_metrics || {}).forEach(function(n) {
-        if (metricNames.indexOf(n) < 0) metricNames.push(n);
+  let iterationsChartInst = null;
+  function renderIterationsView(limitVal) {
+    safe('iterations-chart', function() {
+      const allIts = data.iterations || [];
+      let its = allIts.slice();
+      if (limitVal !== 'all') {
+        const n = parseInt(limitVal, 10);
+        if (!isNaN(n) && n > 0 && its.length > n) {
+          its = its.slice(its.length - n);
+        }
+      }
+      if (iterationsChartInst) {
+        iterationsChartInst.destroy();
+        iterationsChartInst = null;
+      }
+      if (its.length < 2 || typeof Chart === 'undefined') {
+        $('#iterations-chart-empty').style.display = 'block';
+        if ($('#iterations-chart')) $('#iterations-chart').style.display = 'none';
+        return;
+      }
+      $('#iterations-chart-empty').style.display = 'none';
+      if ($('#iterations-chart')) $('#iterations-chart').style.display = 'block';
+      const labels = its.map(function(it) { return it.run_id; });
+      const metricNames = [];
+      its.forEach(function(it) {
+        Object.keys(it.llm_metrics || {}).forEach(function(n) {
+          if (metricNames.indexOf(n) < 0) metricNames.push(n);
+        });
+      });
+      const palette = ['#4285f4', '#ea4335', '#34a853', '#fbbc04',
+                       '#9334e6', '#00897b', '#f57c00', '#5e35b1'];
+      const datasets = metricNames.map(function(n, i) {
+        return {
+          label: n,
+          data: its.map(function(it) { return it.llm_metrics[n] != null ? it.llm_metrics[n] : null; }),
+          borderColor: palette[i % palette.length],
+          backgroundColor: palette[i % palette.length] + '20',
+          borderWidth: 2.5,
+          tension: 0.25,
+          spanGaps: true,
+          pointRadius: 4,
+        };
+      });
+      iterationsChartInst = new Chart($('#iterations-chart'), {
+        type: 'line',
+        data: { labels: labels, datasets: datasets },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          scales: {
+            y: { min: 0, max: 1, ticks: { stepSize: 0.2 } },
+            x: { ticks: { font: { size: 11, weight: '600' } } }
+          },
+          plugins: { legend: { position: 'bottom', labels: { font: { size: 11, weight: '600' } } } }
+        }
       });
     });
-    const palette = ['#4285f4', '#ea4335', '#34a853', '#fbbc04',
-                     '#9334e6', '#00897b', '#f57c00', '#5e35b1'];
-    const datasets = metricNames.map(function(n, i) {
-      return {
-        label: n,
-        data: its.map(function(it) { return it.llm_metrics[n] != null ? it.llm_metrics[n] : null; }),
-        borderColor: palette[i % palette.length],
-        backgroundColor: palette[i % palette.length] + '20',
-        borderWidth: 2.5,
-        tension: 0.25,
-        spanGaps: true,
-        pointRadius: 4,
-      };
-    });
-    new Chart($('#iterations-chart'), {
-      type: 'line',
-      data: { labels: labels, datasets: datasets },
-      options: {
-        responsive: true, maintainAspectRatio: false,
-        scales: {
-          y: { min: 0, max: 1, ticks: { stepSize: 0.2 } },
-          x: { ticks: { font: { size: 11, weight: '600' } } }
-        },
-        plugins: { legend: { position: 'bottom', labels: { font: { size: 11, weight: '600' } } } }
-      }
-    });
-  });
 
-  safe('iterations-list', function() {
-    const its = data.iterations || [];
-    const list = $('#iterations-list');
-    if (!its.length) return;
-    // Newest first for the card list (the chart is left-to-right oldest-first).
-    const reversed = its.slice().reverse();
+    safe('iterations-list', function() {
+      const allIts = data.iterations || [];
+      let its = allIts.slice();
+      if (limitVal !== 'all') {
+        const n = parseInt(limitVal, 10);
+        if (!isNaN(n) && n > 0 && its.length > n) {
+          its = its.slice(its.length - n);
+        }
+      }
+      const list = $('#iterations-list');
+      if (!its.length) return;
+      // Newest first for the card list (the chart is left-to-right oldest-first).
+      const reversed = its.slice().reverse();
     list.innerHTML = reversed.map(function(it) {
       const isCurrent = it.is_current;
       const llmRows = Object.entries(it.llm_metrics || {}).map(function(e) {
@@ -2511,6 +2548,16 @@ _HTML_TEMPLATE = r"""<!doctype html>
       '</div>';
     }).join('');
   });
+  }
+
+  const rangeSel = $('#iterations-range-select');
+  if (rangeSel) {
+    rangeSel.addEventListener('change', function() {
+      renderIterationsView(this.value);
+    });
+  }
+  renderIterationsView(rangeSel ? rangeSel.value : '15');
+
   safe('gemini-md', function() {
     const gem = data.gemini_analysis_md || '';
     const el = $('#gemini-md');

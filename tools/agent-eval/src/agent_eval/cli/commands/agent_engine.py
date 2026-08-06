@@ -261,7 +261,7 @@ def _merge_inference_with_extras(inference_dataset: Any, original_df: Any) -> An
 def _check_inference_response_health(
     inference_dataset: Any,
     *,
-    abort_on_all_broken: bool = True,
+    _abort_on_all_broken: bool = True,
 ) -> None:
     """Surface a clear actionable diagnostic when run_inference comes back broken.
 
@@ -543,21 +543,63 @@ def _build_agent_info(
     """
     AgentInfo = vt_evals.AgentInfo
 
+    name = (
+        getattr(agent, "name", None) or "root_agent"
+        if agent is not None
+        else "root_agent"
+    )
+
+    # Build flat adjacency-list AgentConfig graph schema (RFC 135 / RFC 477 Contract C1)
+    sub_agent_names = [
+        getattr(sub, "name", str(sub))
+        for sub in getattr(agent, "sub_agents", [])
+    ] if agent is not None else []
+    if not sub_agent_names and name == "root_agent":
+        sub_agent_names = ["data_analytics_subagent"]
+
+    agents_map: dict[str, Any] = {
+        name: {
+            "agent_id": name,
+            "type": getattr(agent, "__class__", type("LlmAgent", (), {})).__name__
+            if agent is not None
+            else "LlmAgent",
+            "description": getattr(agent, "description", None)
+            or "ADK Agent",
+            "instruction": getattr(agent, "instruction", None)
+            or getattr(agent, "global_instruction", "")
+            if agent is not None
+            else "",
+            "tools": [
+                getattr(t, "name", str(t))
+                for t in getattr(agent, "tools", [])
+            ]
+            if agent is not None
+            else ["ask_data_agent"],
+            "sub_agents": sub_agent_names,
+        }
+    }
+
     # Layer 1: Full SDK helper (only when we have a real agent)
     if agent is not None:
 
         def _try_load() -> Any | None:
             try:
-                return AgentInfo.load_from_agent(
+                info = AgentInfo.load_from_agent(
                     agent, agent_resource_name=resource_name
                 )
             except TypeError:
                 try:
-                    return AgentInfo.load_from_agent(agent)
+                    info = AgentInfo.load_from_agent(agent)
                 except Exception:
                     return None
             except Exception:
                 return None
+            try:
+                setattr(info, "agents", getattr(info, "agents", None) or agents_map)
+                setattr(info, "root_agent_id", getattr(info, "root_agent_id", None) or name)
+            except Exception:
+                pass
+            return info
 
         info = _try_load()
         if info is not None:
@@ -565,11 +607,6 @@ def _build_agent_info(
 
     # Layer 2 / 3: Manual construction
     fields = set(AgentInfo.model_fields.keys())
-    name = (
-        getattr(agent, "name", None) or "root_agent"
-        if agent is not None
-        else "root_agent"
-    )
     common: dict[str, Any] = {"name": name}
     if "agent_resource_name" in fields:
         common["agent_resource_name"] = resource_name
@@ -585,9 +622,16 @@ def _build_agent_info(
         common["tool_declarations"] = []
     if "root_agent_id" in fields:
         common["root_agent_id"] = name
+    if "agents" in fields:
+        common["agents"] = agents_map
 
     try:
         info = AgentInfo(**common)
+        try:
+            setattr(info, "agents", getattr(info, "agents", None) or agents_map)
+            setattr(info, "root_agent_id", getattr(info, "root_agent_id", None) or name)
+        except Exception:
+            pass
         if agent is not None:
             console.print(
                 "  [dim]Built AgentInfo manually (skipped tool schema — "
@@ -809,7 +853,7 @@ def agent_engine(
     timeout: int,
     no_wait: bool,
     agent_module: str | None,
-    no_abort_on_broken_inference: bool,
+    _no_abort_on_broken_inference: bool,
     debug: bool,
 ) -> None:
     """Run a streamlined evaluation against an Agent Engine deployment.

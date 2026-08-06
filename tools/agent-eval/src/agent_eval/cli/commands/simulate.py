@@ -687,7 +687,8 @@ def _step_convert(
 @click.command()
 @click.option(
     "--agent-dir",
-    required=True,
+    required=False,
+    default=None,
     help="Path to the agent module directory (containing agent.py).",
 )
 @click.option(
@@ -713,7 +714,12 @@ def _step_convert(
     default=False,
     help="Run simulation in-process using ADK Python APIs instead of CLI.",
 )
-def simulate(agent_dir, eval_dir, run_id, debug, in_process):
+@click.option(
+    "--dataset",
+    default=None,
+    help="Path to evaluation dataset file (.md, .jsonl, or .evalset.json) for canonical AgentData simulation projection.",
+)
+def simulate(agent_dir, eval_dir, run_id, debug, in_process, dataset):
     """Run ADK User Sim scenarios and convert traces to evaluation format.
 
     This command wraps the full ADK User Sim workflow into a single step:
@@ -736,11 +742,57 @@ def simulate(agent_dir, eval_dir, run_id, debug, in_process):
     """
     from agent_eval.cli.main import _display_banner
     from agent_eval.core.evaluator import configure_logging
+    from agent_eval.core.dataset_io import read_dataset, write_dataset
+    from agent_eval.core.schema import AgentData
 
     _display_banner()
     configure_logging(debug=debug)
 
+    if not agent_dir:
+        if Path("app/agent.py").exists():
+            agent_dir = "."
+        else:
+            agent_dir = "."
+
     agent_path = Path(agent_dir).resolve()
+
+    # Find eval directory
+    if eval_dir:
+        eval_path = Path(eval_dir).resolve()
+    else:
+        eval_path = _find_eval_dir(agent_path)
+        if not eval_path and (agent_path / "tests" / "eval").is_dir():
+            eval_path = agent_path / "tests" / "eval"
+        if not eval_path:
+            eval_path = agent_path / "tests" / "eval"
+            eval_path.mkdir(parents=True, exist_ok=True)
+
+    if dataset:
+        dataset_path = Path(dataset).resolve()
+        console.print(f"\n  [bold blue]Contract C1 Schema Seam:[/] Projecting dataset {dataset_path} to canonical AgentData...")
+        records = read_dataset(dataset_path)
+        if not records:
+            console.print(f"  [red]Error:[/] No records found in dataset {dataset_path}")
+            sys.exit(1)
+
+        validated = []
+        for idx, r in enumerate(records, start=1):
+            try:
+                ad = AgentData.model_validate(r)
+                validated.append(r)
+            except Exception as exc:
+                console.print(f"  [red]Row {idx} failed AgentData validation:[/] {exc}")
+                sys.exit(1)
+
+        run_id_val = run_id or datetime.now().strftime("%Y%m%d_%H%M%S")
+        out_dir = eval_path / "results" / run_id_val / "raw"
+        out_dir.mkdir(parents=True, exist_ok=True)
+        out_path = out_dir / "processed_interaction_sim.jsonl"
+        write_dataset(out_path, validated)
+        console.print(
+            f"    [green]+[/] Converted [cyan]{len(validated)}[/] dataset rows to canonical AgentData format with AgentConfig graph map."
+        )
+        return
 
     # ── Validation ──────────────────────────────────────────────────────────
 
@@ -752,6 +804,7 @@ def simulate(agent_dir, eval_dir, run_id, debug, in_process):
         sys.exit(1)
 
     agent_name = agent_path.name
+
 
     # Find eval directory
     if eval_dir:

@@ -160,7 +160,7 @@ class TestMapDatasetColumnsDefaults(unittest.TestCase):
         result = map_dataset_columns(df, df, {}, "TEST_METRIC")
 
         assert "prompt" in result.columns
-        assert result["prompt"].iloc[0] == "Turn 1\nTurn 2"
+        assert result["prompt"].iloc[0] == "Turn 2"  # Verifies exact single-turn isolation
 
     def test_auto_adds_response_from_final_response(self):
         """When 'response' is not in mapping, it's auto-populated from final_response."""

@@ -35,6 +35,7 @@ from __future__ import annotations
 
 import json
 import logging
+import re
 import shutil
 from pathlib import Path
 from typing import Any
@@ -48,6 +49,113 @@ CAP_SESSION_INPUTS = "has_session_inputs"
 CAP_INTERMEDIATE_EVENTS = "has_intermediate_events"
 CAP_RESPONSE = "has_response"
 
+
+def ensure_agentdata_projection(row: dict[str, Any]) -> dict[str, Any]:
+    """Ensure row has canonical AgentData projection (agents, turns, events) per Contract C1."""
+    row = dict(row)
+    if "agents" not in row:
+        row["agents"] = {
+            "root_agent": {
+                "agent_id": "root_agent",
+                "type": "LlmAgent",
+                "description": "ADK Agent Orchestrator",
+                "instruction": "Orchestrate user queries and tool calls.",
+                "tools": [],
+                "sub_agents": [],
+            },
+        }
+    prompt = row.get("prompt") or ""
+    expected = ""
+    ref = row.get("reference_data")
+    if isinstance(ref, dict):
+        expected = ref.get("expected_response") or ""
+    elif isinstance(ref, str):
+        expected = ref
+    if not expected:
+        expected = str(row.get("response") or row.get("final_response") or "")
+
+    user_event = {
+        "author": "USER",
+        "content": prompt,
+        "tool_calls": [],
+        "tool_responses": [],
+        "state_delta": {},
+    }
+    agent_event = {
+        "author": "AGENT",
+        "content": expected,
+        "tool_calls": [],
+        "tool_responses": [],
+        "state_delta": {},
+    }
+    if "turns" not in row:
+        row["turns"] = [
+            {
+                "turn_id": 1,
+                "state": "COMPLETED",
+                "events": [user_event, agent_event],
+            }
+        ]
+    if "events" not in row:
+        all_events = []
+        for t in row.get("turns", []):
+            if isinstance(t, dict):
+                all_events.extend(t.get("events", []))
+        if not all_events:
+            all_events = [user_event, agent_event]
+        row["events"] = all_events
+    return row
+
+
+def parse_markdown_dataset(path: Path | str) -> list[dict[str, Any]]:
+    """Parse an evaluation markdown file (like doc/example_eval_set.md) into AgentData rows."""
+    p = Path(path)
+    if not p.exists():
+        return []
+    text = p.read_text(encoding="utf-8")
+    rows: list[dict[str, Any]] = []
+
+    sections = re.split(r"(?m)^##\s+Q(\d+)", text)
+    for idx in range(1, len(sections), 2):
+        q_num = sections[idx].strip()
+        body = sections[idx + 1]
+
+        lines = body.splitlines()
+        first_line = lines[0] if lines else ""
+        prompt_match = re.match(r"^(?:\s*[—–-]\s*)?(.*?)(?:\s*[—–-]\s*\*\*|\s*$)", first_line)
+        prompt = prompt_match.group(1).strip() if prompt_match else first_line.strip()
+        prompt = re.sub(r"\s*[—–-]\s*\*\*[^*]+\*\*.*$", "", prompt).strip()
+
+        id_match = re.search(r"id\s+([A-Za-z0-9_-]+)", body)
+        canonical_id = id_match.group(1).strip() if id_match else f"NA_Q{q_num}"
+
+        expected_response = ""
+        grading_notes = ""
+        exp_match = re.search(r"\*\*Expected[^*]*\*\*[:\s]+(.*?)(?=\n\n|\n\*\*|$)", body, re.DOTALL | re.IGNORECASE)
+        if exp_match:
+            expected_response = exp_match.group(1).strip()
+        else:
+            body_paras = [
+                para.strip()
+                for para in body.split("\n\n")
+                if para.strip() and not para.strip().startswith("**Keys**")
+            ]
+            if body_paras:
+                expected_response = body_paras[0]
+
+        row = {
+            "id": f"NA_Q{q_num}",
+            "canonical_id": canonical_id,
+            "prompt": prompt,
+            "reference_data": {
+                "expected_response": expected_response,
+                "grading_notes": grading_notes,
+            },
+        }
+        rows.append(ensure_agentdata_projection(row))
+    return rows
+
+
 # ---------------------------------------------------------------------------
 # Read / write
 # ---------------------------------------------------------------------------
@@ -58,6 +166,8 @@ def read_dataset(path: Path | str) -> list[dict[str, Any]]:
     p = Path(path)
     if not p.exists():
         return []
+    if p.suffix.lower() == ".md":
+        return parse_markdown_dataset(p)
     rows: list[dict[str, Any]] = []
     with p.open("r", encoding="utf-8") as f:
         for lineno, line in enumerate(f, start=1):
@@ -65,7 +175,7 @@ def read_dataset(path: Path | str) -> list[dict[str, Any]]:
             if not line:
                 continue
             try:
-                rows.append(json.loads(line))
+                rows.append(ensure_agentdata_projection(json.loads(line)))
             except json.JSONDecodeError as exc:
                 raise ValueError(
                     f"Invalid JSON in {p} on line {lineno}: {exc}"

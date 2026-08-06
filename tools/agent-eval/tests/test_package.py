@@ -53,14 +53,17 @@ def test_cli_importable():
     assert callable(main)
 
 
-def test_config_defaults():
+def test_config_defaults(monkeypatch):
     """Config should load with sensible defaults even without env vars."""
-    from agent_eval.core.config import CONFIG
+    for k in ("EVAL_GOOGLE_CLOUD_LOCATION", "GOOGLE_CLOUD_LOCATION", "LOCATION"):
+        monkeypatch.delenv(k, raising=False)
+    from agent_eval.core.config import EvalConfig
 
-    assert CONFIG.GOOGLE_CLOUD_LOCATION == "us-central1"
-    assert CONFIG.MAX_RETRIES == 3
-    assert CONFIG.MAX_WORKERS == 4
-    assert CONFIG.COL_PROMPT == "prompt"
+    cfg = EvalConfig(_env_file=None)
+    assert cfg.GOOGLE_CLOUD_LOCATION == "us-central1"
+    assert cfg.MAX_RETRIES == 3
+    assert cfg.MAX_WORKERS == 4
+    assert cfg.COL_PROMPT == "prompt"
 
 
 def test_cli_version():

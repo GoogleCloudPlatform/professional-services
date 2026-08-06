@@ -295,10 +295,20 @@ def _start_storyteller():
     help="Show detailed logs from all phases (ADK, Vertex AI SDK, etc.).",
 )
 @click.option(
-    "--in-process",
-    is_flag=True,
-    default=False,
-    help="Run simulation in-process using ADK Python APIs instead of CLI.",
+    "--storage",
+    default="local",
+    type=click.Choice(["local", "gcs", "bigquery", "bq"], case_sensitive=False),
+    help="Trace storage backend: 'local' (default), 'gcs', or 'bigquery'.",
+)
+@click.option(
+    "--gcs-bucket",
+    default=None,
+    help="GCS bucket name when --storage=gcs (e.g. 'gs://my-eval-bucket').",
+)
+@click.option(
+    "--bq-dataset",
+    default=None,
+    help="BigQuery dataset ID when --storage=bigquery (e.g. 'agent_eval_analytics').",
 )
 def run(
     agent_dir,
@@ -319,7 +329,9 @@ def run(
     skip_gemini,
     run_dashboard,
     debug,
-    in_process,
+    storage,
+    gcs_bucket,
+    bq_dataset,
 ):
     """Run the full evaluation pipeline: simulate, interact, evaluate, and analyze.
 
@@ -449,12 +461,8 @@ def run(
     n_multi_turn = sum(1 for r in _all_rows if is_multi_turn(r))
     n_single_turn = sum(1 for r in _all_rows if is_single_turn(r))
 
-    if in_process:
-        run_simulate = n_multi_turn > 0 or n_single_turn > 0
-        run_interact = False
-
     # Validate simulate prerequisites — needs multi-turn rows.
-    if run_simulate and not in_process and n_multi_turn == 0:
+    if run_simulate and n_multi_turn == 0:
         console.print(
             f"\n  [yellow]Warning:[/] No multi-turn rows in {dataset_path.name}. "
             f"Skipping simulate phase."
@@ -487,7 +495,7 @@ def run(
         # If the user-supplied --base-url isn't responding, scan a short list
         # of common ADK / FastAPI / dev-server ports on localhost so users
         # who started the agent on a non-default port aren't punished.
-        if run_interact and not in_process:
+        if run_interact:
             from concurrent.futures import ThreadPoolExecutor
 
             from rich.prompt import Prompt
@@ -780,7 +788,6 @@ def run(
             raw_dir,
             debug=debug,
             max_parallel=sim_parallelism,
-            in_process=in_process,
         )
 
         if _simulate_ok:
@@ -966,6 +973,29 @@ def run(
             interaction_files, metric_paths, run_dir, run_id, debug=debug
         )
         phase_outcomes["Evaluate"] = "completed"
+
+        if storage and storage.lower() != "local":
+            eval_summary_path = run_dir / "eval_summary.json"
+            if eval_summary_path.exists():
+                try:
+                    from agent_eval.core.storage import get_storage_backend
+
+                    backend = get_storage_backend(
+                        storage,
+                        bucket_name=gcs_bucket,
+                        dataset_id=bq_dataset,
+                        results_dir=run_dir.parent,
+                    )
+                    with eval_summary_path.open() as _f:
+                        _es = json.load(_f)
+                    remote_uri = backend.save_summary(run_id, _es)
+                    console.print(
+                        f"[green]✔ Evaluation summary persisted to remote storage:[/] {remote_uri}"
+                    )
+                except Exception as e:
+                    console.print(
+                        f"     [yellow]Warning: Failed to persist summary to remote storage backend '{storage}': {e}[/]"
+                    )
 
         # Stop and ask if any metrics failed before pressing on into Analyze.
         # Analyze runs Gemini over a possibly-incomplete metric table; users
@@ -1674,7 +1704,6 @@ def _run_simulate_phase(
     raw_dir: Path,
     debug: bool = False,
     max_parallel: int = _DEFAULT_SIM_PARALLELISM,
-    in_process: bool = False,
 ) -> bool:
     """Run the simulate workflow. Returns True on success.
 
@@ -1683,42 +1712,6 @@ def _run_simulate_phase(
     in parallel (capped by ``max_parallel`` to limit Vertex AI quota
     pressure). Eval_history files are timestamp-suffixed → no collisions.
     """
-    if in_process:
-        from agent_eval.core.converters import write_jsonl
-        from agent_eval.core.simulation import run_simulation_in_process
-
-        dataset_path = project_root / "tests" / "eval" / "dataset.jsonl"
-        if not dataset_path.exists():
-            console.print(f"     [red]Dataset not found at {dataset_path}[/]")
-            return False
-
-        console.print("  [bold]1.[/] Running simulation in-process...")
-        try:
-            records = asyncio.run(
-                run_simulation_in_process(
-                    agent_dir=agent_path,
-                    project_root=project_root,
-                    dataset_path=dataset_path,
-                    parallelism=max_parallel,
-                )
-            )
-            if not records:
-                console.print("     [yellow]![/] No simulation records generated.")
-                return False
-
-            sim_output = raw_dir / "processed_interaction_sim.jsonl"
-            write_jsonl(records, str(sim_output))
-            console.print(
-                f"     [green]+[/] Converted [cyan]{len(records)}[/] simulation interaction{'s' if len(records) != 1 else ''}"
-            )
-            return True
-        except Exception as e:
-            console.print(f"     [red]Error running simulation in-process:[/] {e}")
-            if debug:
-                import traceback
-
-                traceback.print_exc()
-            return False
 
     import shutil
     import time

@@ -60,6 +60,7 @@ from agent_eval.core.metric_schema import (
     KIND_COMPUTATION,
     KIND_CUSTOM_LLM_JUDGE,
     KIND_MANAGED,
+    KIND_MULTITURN_TRAJECTORY_JUDGE,
     KIND_PARAMETRIZED_MANAGED,
     KIND_PYTHON_FUNCTION,
     KIND_REMOTE_CODE,
@@ -187,6 +188,15 @@ def _load_python_callable(module_path: str | Path, function: str) -> Callable:
     """Load a callable from an arbitrary file path."""
     module_path = Path(module_path)
     if not module_path.exists():
+        for candidate in (
+            Path("digital-twin-agent") / module_path,
+            Path("app") / module_path.name,
+            Path("digital-twin-agent/app") / module_path.name,
+        ):
+            if candidate.exists():
+                module_path = candidate
+                break
+    if not module_path.exists():
         raise FileNotFoundError(f"Python function module not found: {module_path}")
     spec = importlib.util.spec_from_file_location(module_path.stem, module_path)
     if spec is None or spec.loader is None:
@@ -241,6 +251,15 @@ def build_metric(name: str, spec: dict[str, Any], *, base_dir: Path | None = Non
             rating_scores=rating_scores,
             instruction=spec.get("instruction"),
             prompt_template=prompt_template,
+        )
+
+    if kind == KIND_MULTITURN_TRAJECTORY_JUDGE:
+        from agent_eval.core.multiturn_judge import MultiTurnTrajectoryJudge
+
+        return MultiTurnTrajectoryJudge(
+            metric_name=name,
+            prompt_template=spec.get("prompt_template", ""),
+            threshold=float(spec.get("threshold", 0.8)),
         )
 
     if kind == KIND_COMPUTATION:

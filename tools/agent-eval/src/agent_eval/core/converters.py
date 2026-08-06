@@ -184,10 +184,15 @@ def synthesize_trace_from_events(
                     {"usage_metadata": usage}
                 )
 
+            next_ts = (
+                events[_i + 1].get("timestamp", timestamp + 1.0)
+                if _i + 1 < len(events)
+                else timestamp + 1.0
+            )
             step_span = create_span(
                 span_name,
                 timestamp,
-                timestamp + 1.0,
+                max(timestamp + 0.001, next_ts),
                 current_agent_span["span_id"],
                 attrs,
             )
