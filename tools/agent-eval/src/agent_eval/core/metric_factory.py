@@ -1,4 +1,5 @@
-import os
+from __future__ import annotations
+
 # Copyright 2026 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -46,10 +47,9 @@ Unified schema (per ``tests/eval/metrics/metric_definitions.json`` entry):
     }
 """
 
-from __future__ import annotations
-
 import importlib.util
 import logging
+import os
 from collections.abc import Callable
 from pathlib import Path
 from typing import Any

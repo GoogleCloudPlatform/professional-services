@@ -507,22 +507,25 @@ def run_single_metric_evaluation(
         metric_obj,
         metric_df,
         metric_name,
-        _unused_client,
+        client_arg,
         retries,
         delay,
         gcs_dest,
     ) = task_args
 
-    # Thread-safe client instantiation: 
-    # httpx connections cannot be safely reused across to_thread boundaries
-    from vertexai import Client
-    from google.genai.types import HttpOptions
-    with _vertex_init_lock:
-        client = Client(
-            project=get_project_id(),
-            location=CONFIG.GOOGLE_CLOUD_LOCATION,
-            http_options=HttpOptions(api_version="v1beta1"),
-        )
+    if client_arg is not None:
+        client = client_arg
+    else:
+        # Thread-safe client instantiation: 
+        # httpx connections cannot be safely reused across to_thread boundaries
+        from vertexai import Client
+        from google.genai.types import HttpOptions
+        with _vertex_init_lock:
+            client = Client(
+                project=get_project_id(),
+                location=CONFIG.GOOGLE_CLOUD_LOCATION,
+                http_options=HttpOptions(api_version="v1beta1"),
+            )
 
     eval_kwargs: dict[str, Any] = {}
     if gcs_dest:
@@ -537,7 +540,12 @@ def run_single_metric_evaluation(
                 res = custom_fn(row_dict)
                 score = res.get("score", 0.0) if isinstance(res, dict) else float(res)
                 explanation = res.get("explanation", "") if isinstance(res, dict) else ""
-                results_list.append({"score": score, "explanation": explanation})
+                results_list.append({
+                    f"{metric_name}/score": score,
+                    f"{metric_name}/explanation": explanation,
+                    "score": score,
+                    "explanation": explanation,
+                })
             res_df = pd.DataFrame(results_list, index=metric_df.index)
             res_df["original_index"] = metric_df.index
             return res_df, metric_name, eval_dataset, None
@@ -1042,11 +1050,16 @@ class Evaluator:
             file_ext = ifile.suffix.lower()
             if file_ext == ".jsonl":
                 from agent_eval.core.converters import read_jsonl
+                from agent_eval.core.data_mapper import _map_agents
 
                 records = read_jsonl(str(ifile))
+                if records and isinstance(records, list) and isinstance(records[0], dict) and "turns" in records[0]:
+                    records = _map_agents(records)
                 df = pd.DataFrame(records)
                 if "question_id" in df.columns:
                     df["question_id"] = df["question_id"].astype(str)
+                elif "session_id" in df.columns:
+                    df["question_id"] = df["session_id"].astype(str)
                 is_jsonl = True
             else:
                 df = pd.read_csv(ifile, dtype={"question_id": str})
@@ -1176,7 +1189,7 @@ class Evaluator:
                 continue
 
             for metric_name, info in metrics:
-                if info.get("metric_type") == "deterministic":
+                if info.get("metric_type") == "deterministic" or info.get("kind") == "deterministic" or metric_name in DETERMINISTIC_METRICS:
                     continue
 
                 # Per-row capability filter — a metric runs on rows whose

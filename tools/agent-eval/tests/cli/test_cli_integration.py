@@ -271,6 +271,7 @@ def test_run_pipeline_success(
         dataset_path = eval_dir / "dataset.jsonl"
         dataset_row = {
             "prompt": "hello",
+            "conversation_plan": ["Greet the user"],
             "reference_data": {
                 "expected_behavior": "The agent should greet the user politely.",
                 "expected_concise": "hi",

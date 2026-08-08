@@ -19,6 +19,7 @@ import click
 from rich.console import Console
 from rich.panel import Panel
 
+from agent_eval.cli.commands.agent_engine import agent_engine
 from agent_eval.cli.commands.analyze import analyze
 from agent_eval.cli.commands.convert import convert
 from agent_eval.cli.commands.create_dataset import create_dataset

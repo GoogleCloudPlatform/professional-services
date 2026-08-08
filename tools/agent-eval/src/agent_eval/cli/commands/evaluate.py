@@ -271,7 +271,6 @@ def evaluate(
         import json
         import tempfile
         import yaml
-        from pathlib import Path
 
         cfg_path = Path(config).resolve()
         if not cfg_path.exists():

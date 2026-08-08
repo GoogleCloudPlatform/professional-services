@@ -51,6 +51,7 @@ def _prompt_for_config(
     results_dir,
     run_id,
     eval_dir=None,
+    in_process=False,
 ):
     """Interactively prompt for any missing configuration."""
     from rich.prompt import Prompt
@@ -116,7 +117,7 @@ def _prompt_for_config(
         sys.exit(1)
 
     # ── Base URL ───────────────────────────────────────────────────────────
-    if not base_url:
+    if not in_process and not base_url:
         console.print()
         console.print(
             Panel(
@@ -209,6 +210,11 @@ def _prompt_for_config(
     help="Path to eval/ directory (auto-detected if omitted).",
 )
 @click.option(
+    "--in-process",
+    is_flag=True,
+    help="Run simulation in-process without requiring a running server.",
+)
+@click.option(
     "--case-id",
     default=None,
     help="Specify a case ID to run. If not specified, all cases in the dataset will be run.",
@@ -230,6 +236,7 @@ def interact(
     debug,
     eval_dir,
     case_id,
+    in_process=False,
 ):
     """Run interactions against a live agent and collect traces.
 

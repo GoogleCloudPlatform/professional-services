@@ -306,6 +306,11 @@ def _start_storyteller():
     help="GCS bucket name when --storage=gcs (e.g. 'gs://my-eval-bucket').",
 )
 @click.option(
+    "--in-process",
+    is_flag=True,
+    help="Run simulation in-process without requiring a running server.",
+)
+@click.option(
     "--bq-dataset",
     default=None,
     help="BigQuery dataset ID when --storage=bigquery (e.g. 'agent_eval_analytics').",
@@ -332,6 +337,7 @@ def run(
     storage,
     gcs_bucket,
     bq_dataset,
+    in_process=False,
 ):
     """Run the full evaluation pipeline: simulate, interact, evaluate, and analyze.
 
