@@ -112,6 +112,33 @@ so it always renders text:
 
 ---
 
+## 3.1. Testing Trajectories, Tool Calls, and Sub-Agent Actions
+
+For agents that interact with tools and sub-agents, evaluating just the final text is insufficient. You must evaluate the **system trajectory**:
+
+1. **Mapping Intermediate Tool Events:**
+   In your `eval_config.yaml`, bind the judge to `extracted_data:tool_interactions` and `extracted_data:subagent_delegations`:
+   ```yaml
+   metrics:
+     tool_call_quality:
+       kind: custom_llm_judge
+       requires_multi_turn: true
+       instruction: "Evaluate whether the agent called the correct tools with valid, unhallucinated parameters to support its claims."
+       criteria:
+         tool_selection: Did the agent pick the correct tool or delegate to the appropriate sub-agent?
+         parameter_validity: Are the SQL queries or API parameters mathematically and semantically correct?
+         data_traceability: Can every factual claim in the final response be traced back to the tool return payload?
+         self_correction: If an initial tool call returned an error or 0 rows, did the agent adapt and retry?
+       rating_scores:
+         '1': 'Pass: Valid tools and parameters used, claims grounded in tool output.'
+         '0': 'Fail: Hallucinated parameters, wrong tool, or ungrounded claims.'
+   ```
+
+2. **Verifying Trajectory Hops:**
+   The canonical `AgentData` model stores each action as an `AgentEvent(event_type="TOOL_CALL" | "DELEGATION", author="subagent_name", payload={...})`. Multi-turn judges inspect the full conversation sequence alongside these events to verify sub-agent handoffs.
+
+---
+
 ## 4. Design a dataset that can fail (The 60/20/20 Rule)
 
 A dataset consisting only of happy paths produces false confidence. A production-grade **Golden Set** must follow a disciplined **60 / 20 / 20 Composition**:
