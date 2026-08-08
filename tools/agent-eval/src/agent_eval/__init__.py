@@ -11,7 +11,17 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from agent_eval.sdk import EvaluationResult, run_evaluation, run_evaluation_sync
+from agent_eval._preflight import check_runtime_dependencies
+
+# Before the heavy imports below — a drifted environment otherwise fails deep in
+# the import chain with an error that points nowhere near the real cause.
+check_runtime_dependencies()
+
+from agent_eval.sdk import (  # noqa: E402  (must follow the preflight check)
+    EvaluationResult,
+    run_evaluation,
+    run_evaluation_sync,
+)
 
 __all__ = [
     "EvaluationResult",

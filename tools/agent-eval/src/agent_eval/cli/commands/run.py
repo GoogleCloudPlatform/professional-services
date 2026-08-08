@@ -2061,6 +2061,28 @@ def _run_simulate_phase(
         return False
 
 
+def _interaction_failures(raw_df) -> tuple[int, str | None]:
+    """Count failed interaction rows, and return one representative error.
+
+    ``status`` is written by ``InteractionRunner`` as a JSON string shaped
+    ``{"boolean": "success"|"failed", "error_message": ...}``.
+    """
+    failed = 0
+    first_error: str | None = None
+    if "status" not in getattr(raw_df, "columns", []):
+        return 0, None
+    for value in raw_df["status"]:
+        try:
+            status = json.loads(value) if isinstance(value, str) else (value or {})
+        except (json.JSONDecodeError, TypeError):
+            continue
+        if isinstance(status, dict) and status.get("boolean") == "failed":
+            failed += 1
+            if first_error is None:
+                first_error = status.get("error_message")
+    return failed, first_error
+
+
 def _run_interact_phase(
     app_name: str,
     agent_path: Path,
@@ -2144,6 +2166,43 @@ def _run_interact_phase(
     console.print(
         f"    [green]+[/] Captured [cyan]{len(raw_df)}[/] interaction{'s' if len(raw_df) != 1 else ''}"
     )
+
+    # "Captured N" only means N rows came back — each row may still be an
+    # error. agent-eval does not start the agent; it POSTs to whatever is
+    # already on base_url, so a leftover server for a *different* agent will
+    # answer every request with a 5xx and produce N failed rows. Writing those
+    # out as if they were data is how a run reports "Interact ✓" while every
+    # judge downstream sees an empty response.
+    failed_count, sample_error = _interaction_failures(raw_df)
+    if failed_count and failed_count == len(raw_df):
+        console.print()
+        console.print(
+            Panel(
+                f"[bold red]All {failed_count} interaction(s) failed.[/]  No usable data was produced.\n\n"
+                + (
+                    f"[bold]Agent replied:[/] [dim]{sample_error}[/]\n\n"
+                    if sample_error
+                    else ""
+                )
+                + "[bold]Most likely cause:[/]\n"
+                f"  [dim]>[/] Something other than your agent is listening on [cyan]{base_url}[/].\n"
+                "  [dim]>[/] agent-eval never starts your agent — it sends requests to whatever\n"
+                "    is already on that port. A leftover [cyan]adk web[/] from another agent\n"
+                "    will accept the connection and fail every request.\n\n"
+                "[bold]Check which agent is actually serving:[/]\n"
+                "  [dim]>[/] [cyan]ss -ltnp | grep 8501[/]                     [dim]# get the PID[/]\n"
+                "  [dim]>[/] [cyan]tr '\\0' ' ' < /proc/<PID>/cmdline[/]        [dim]# see its agents dir[/]",
+                title="[bold]Interact produced no usable data[/]",
+                border_style="red",
+                padding=(1, 2),
+            )
+        )
+        return None
+    if failed_count:
+        console.print(
+            f"    [yellow]![/] [yellow]{failed_count}[/] of {len(raw_df)} interaction(s) failed — "
+            f"scoring continues on the {len(raw_df) - failed_count} that succeeded."
+        )
 
     processor = InteractionProcessor(config)
     try:

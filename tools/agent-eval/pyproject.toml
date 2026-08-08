@@ -1,6 +1,6 @@
 [project]
 name = "agent-eval"
-version = "0.1.0"
+version = "0.1.1"
 description = "Evaluation CLI for ADK agents — run interactions, evaluate with metrics, and analyze results."
 requires-python = ">=3.10"
 dependencies = [
@@ -17,6 +17,7 @@ dependencies = [
     "questionary>=2.0.0",
     "pydantic-settings>=2.12.0",
     "kfp>=2.7.0",
+    "packaging>=23.0",
 ]
 
 [project.optional-dependencies]

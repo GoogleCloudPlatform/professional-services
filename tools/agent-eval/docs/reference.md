@@ -1606,6 +1606,39 @@ Requires: `pip install agent-eval[dashboard]`. See the [dashboard](#dashboard) C
 
 ## Troubleshooting
 
+### `uv sync` fails building `scipy` — "Running `gfortran --version` gave [Errno 2] No such file or directory"
+
+**Cause:** you're on **Python 3.13+**. With no `.venv` present, `uv` picks the newest interpreter on your machine. The locked `scipy` (pulled in transitively by `google-cloud-aiplatform[evaluation]` → `scikit-learn`) publishes wheels only up to cp312, so `uv` falls back to compiling it from source — which needs a Fortran compiler and BLAS headers you almost certainly don't have.
+
+Note the floor and the ceiling are coupled: newer `scipy` releases *do* ship wheels for recent Pythons, but they require Python ≥3.11, so the lock can't move while 3.10 is supported.
+
+**Fix:** pin the interpreter when you create the venv.
+
+```bash
+rm -rf .venv
+uv venv --python 3.12
+uv sync
+```
+
+### `interact` rows all fail with `500 Server Error` — but the pipeline still says `✓ Interact`
+
+**Cause:** `agent-eval` does **not** start your agent — `interact` POSTs to whatever is already listening on `--base-url` (default `http://localhost:8501`). A leftover `adk web` process from a different agent (or an older checkout) will happily accept the connection and return `500`. If that other agents directory contains a same-named subfolder, even `/list-apps` looks correct, so nothing obviously points at the server.
+
+The downstream symptoms are misleading: metrics that map `response` from trace data fail with `Response is required but missing for eval_case_0`, and LLM judges receive `response='nan'` and may return `400 INVALID_ARGUMENT — Error parsing JSON` (the autorater emits prose instead of JSON when handed garbage).
+
+**Fix:** check which agent the listening process was actually launched against, not just that something is listening.
+
+```bash
+ss -ltnp | grep 8501                      # get the PID
+tr '\0' ' ' < /proc/<PID>/cmdline         # see the agents dir it was started with
+```
+
+Kill the stale process and restart against the right directory:
+
+```bash
+adk web /path/to/your-agent-project --host 127.0.0.1 --port 8501
+```
+
 ### `uv` warning: `VIRTUAL_ENV=... does not match the project environment path .venv and will be ignored; use --active`
 
 **This warning is expected and benign — leave it alone.** It fires when you have agent-eval activated (`source agent-eval/.venv/bin/activate`) and run `uv` commands inside the agent's directory (e.g. `make install`, `make backend`). uv reads the agent's `pyproject.toml`, sees its preferred venv is `<agent>/.venv`, notices your shell points at agent-eval's venv, and tells you it'll respect the project's preference (not yours).

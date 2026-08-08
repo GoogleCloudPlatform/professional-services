@@ -39,6 +39,92 @@ class MetricGenerationError(Exception):
     """Raised when metric generation fails."""
 
 
+# Gemini built-in tools execute server-side and surface as grounding metadata,
+# never as ADK functionCall events. get_tool_interactions() therefore returns []
+# for an agent whose only tools are these, so any metric sourcing
+# extracted_data:tool_interactions can never be satisfied — it fails with
+# "Response is required but missing", which points at the agent instead of at
+# the metric.
+BUILTIN_TOOL_NAMES = {
+    "google_search",
+    "google_search_retrieval",
+    "enterprise_web_search",
+    "vertex_ai_search",
+    "vertex_ai_search_tool",
+    "built_in_code_execution",
+    "code_execution",
+    "code_executor",
+    "google_maps_grounding",
+    "url_context",
+}
+
+
+def _tool_names(agent_analysis: dict[str, Any]) -> list[str]:
+    tools = agent_analysis.get("tools") or []
+    names = []
+    for tool in tools:
+        name = tool.get("name") if isinstance(tool, dict) else tool
+        if name:
+            names.append(str(name))
+    return names
+
+
+def function_tool_names(agent_analysis: dict[str, Any]) -> list[str]:
+    """Tool names that produce real functionCall events (built-ins excluded)."""
+    return [
+        n for n in _tool_names(agent_analysis) if n.lower() not in BUILTIN_TOOL_NAMES
+    ]
+
+
+_TOOL_ONLY_COLUMNS = (
+    "extracted_data:tool_interactions",
+    "extracted_data:tool_declarations",
+)
+
+
+def _warn_unsatisfiable_tool_metrics(
+    metrics: dict[str, Any], agent_analysis: dict[str, Any]
+) -> list[str]:
+    """Flag metrics reading tool columns this agent can never populate.
+
+    Backstop for when the model ignores the prompt constraint. Warn rather than
+    drop — the user may be about to add function tools, and a silently missing
+    metric is worse than a visible warning.
+    """
+    if tool_interactions_available(agent_analysis):
+        return []
+
+    warnings = []
+    for name, spec in (metrics or {}).items():
+        mapping = (spec or {}).get("dataset_mapping") or {}
+        used = set()
+        for details in mapping.values():
+            if not isinstance(details, dict):
+                continue
+            if details.get("source_column") in _TOOL_ONLY_COLUMNS:
+                used.add(details["source_column"])
+            used.update(
+                c
+                for c in details.get("source_columns") or []
+                if c in _TOOL_ONLY_COLUMNS
+            )
+        if used:
+            warnings.append(
+                f"'{name}' reads {', '.join(sorted(used))}, but this agent has no "
+                "function-call tools — only Gemini built-ins, which emit grounding "
+                "metadata rather than functionCall events. That column will be "
+                "empty on every row and the metric will fail with 'Response is "
+                "required but missing'. Use extracted_data:grounding_chunks "
+                "instead, or remove the metric."
+            )
+    return warnings
+
+
+def tool_interactions_available(agent_analysis: dict[str, Any]) -> bool:
+    """Whether ``extracted_data:tool_interactions`` can ever be populated."""
+    return bool(function_tool_names(agent_analysis))
+
+
 # All valid source_column values that dataset_mapping can reference.
 VALID_SOURCE_COLUMNS = {
     "user_inputs",
@@ -579,8 +665,30 @@ def generate_metric_definitions(
     managed_ref = format_metrics_for_prompt()
     adk_knowledge = format_adk_knowledge_for_prompt()
 
+    # An agent whose only tools are Gemini built-ins never emits functionCall
+    # events, so tool_interactions is permanently empty. Say so explicitly —
+    # otherwise the model sees `tools=[google_search]` and writes trajectory
+    # metrics that can never be satisfied.
+    if tool_interactions_available(agent_analysis):
+        tool_availability_section = ""
+    else:
+        builtin = ", ".join(_tool_names(agent_analysis)) or "none detected"
+        tool_availability_section = (
+            "\n## CONSTRAINT — this agent has no function-call tools\n\n"
+            f"Its tools ({builtin}) are Gemini built-ins that execute server-side "
+            "and surface as grounding metadata, never as functionCall events.\n"
+            "`extracted_data:tool_interactions` and "
+            "`extracted_data:tool_declarations` will therefore be EMPTY on every "
+            "row.\n\n"
+            "Do NOT reference either column in any `dataset_mapping`, and do not "
+            "write metrics about tool-call trajectories or tool-argument "
+            "correctness.\nTo score retrieval behaviour use "
+            "`extracted_data:grounding_chunks` (what the built-in search "
+            "returned) together with `final_response`.\n"
+        )
+
     prompt = METRIC_DEFINITIONS_PROMPT.format(
-        user_priorities_section=user_priorities_section,
+        user_priorities_section=user_priorities_section + tool_availability_section,
         agent_analysis_json=json.dumps(agent_analysis, indent=2),
         selected_managed_json=selected_json,
         existing_metrics_section=existing_metrics_section,
@@ -592,6 +700,7 @@ def generate_metric_definitions(
 
     raw = _call_gemini(prompt, model)
     metrics, warnings = _parse_and_validate_metrics(raw, agent_name)
+    warnings.extend(_warn_unsatisfiable_tool_metrics(metrics, agent_analysis))
 
     if not metrics:
         raise MetricGenerationError(
