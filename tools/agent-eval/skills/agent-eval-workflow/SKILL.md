@@ -112,17 +112,19 @@ so it always renders text:
 
 ---
 
-## 4. Design a dataset that can fail
+## 4. Design a dataset that can fail (The 60/20/20 Rule)
 
-Rows should include boundary and negative cases, not just happy paths:
+A dataset consisting only of happy paths produces false confidence. A production-grade **Golden Set** must follow a disciplined **60 / 20 / 20 Composition**:
 
-- **At the limit** and **over the limit** (10% vs 15% vs 25%)
-- The **second condition** people forget (percentage limit *and* flat-amount limit)
-- Cases where the right answer is **do nothing** / **refuse**
-- **Consent given** and **consent withheld**, as separate rows
-- One clearly **out-of-scope** request
+1. **Nominal Happy Paths (60%):** Standard in-scope requests verifying core business logic.
+2. **Boundary & Edge Cases (20%):** At-limit requests (e.g. 10% vs 10.01%), secondary forgotten constraints, and empty-database responses requiring self-correction retries.
+3. **Adversarial & Negative Traps (20%):** Inquiries designed to catch cheating models:
+   - **Domain Refusal Traps:** Inquiries asking for unsupported attributes (e.g. uncoded trait meanings) where the agent *must refuse and pivot*.
+   - **Ambiguity Traps:** Vague user requests where querying tools without asking for clarification is a critical failure.
+   - **Negative Consent / Do Nothing:** Cases where user consent is withheld or the correct action is *do not execute*.
+   - **Out-of-Scope Distractors:** Adversarial prompts attempting to bypass guardrails.
 
-If every row passes at baseline, the dataset is too easy to teach you anything.
+> **The Rule:** If an agent scores 100% on Turn 1 of a new dataset without any prompt tuning, the dataset is defective—not the agent. Ensure at least 20–30% of rows contain negative or adversarial traps.
 
 ---
 
