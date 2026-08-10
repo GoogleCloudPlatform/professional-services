@@ -158,23 +158,43 @@ def calculate_latency_metrics(
 
     root_start = sorted_spans[0]["start_time"]
 
-    # Calculate Component Latencies from full trace
+    # BUGFIX: Iterate over `sorted_spans` (chronological) instead of the unsorted `session_trace`.
+    # This prevents `first_response_latency` from grabbing a later LLM call out-of-order!
+    llm_intervals = []
+    tool_intervals = []
     max_end = 0
-    for span in session_trace:
+
+    for span in sorted_spans:
         start = span.get("start_time", 0)
         end = span.get("end_time", 0)
         max_end = max(max_end, end)
-        duration = (end - start) / 1e9
         name = span.get("name", "")
 
         if name == "call_llm":
-            llm_latency += duration
-            # Proxy for Time to First Token: end of first LLM call
+            llm_intervals.append((start, end))
+            # Proxy for Time to First Token: end of first chronologically sorted LLM call
             if first_response_latency is None:
                 first_response_latency = (end - root_start) / 1e9
 
         elif "tool_call" in name or "execute_tool" in name:
-            tool_latency += duration
+            tool_intervals.append((start, end))
+
+    def _merge_and_sum_spans(intervals: list[tuple[int, int]]) -> float:
+        """Merge overlapping disjoint intervals (e.g. nested tool_call in execute_tool) to avoid double counting."""
+        if not intervals:
+            return 0.0
+        # Intervals are already sorted by start time because `sorted_spans` was used
+        merged = [intervals[0]]
+        for cur_start, cur_end in intervals[1:]:
+            last_start, last_end = merged[-1]
+            if cur_start <= last_end:
+                merged[-1] = (last_start, max(last_end, cur_end))
+            else:
+                merged.append((cur_start, cur_end))
+        return sum((end - start) for start, end in merged) / 1e9
+
+    llm_latency = _merge_and_sum_spans(llm_intervals)
+    tool_latency = _merge_and_sum_spans(tool_intervals)
 
     # Calculate Total & Average Latency from high-level summary (latency_data)
     # This is preferred as it excludes user think time in multi-turn sessions.

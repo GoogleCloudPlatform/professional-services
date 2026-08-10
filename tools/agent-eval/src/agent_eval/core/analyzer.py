@@ -368,17 +368,17 @@ class Analyzer:
             # Evaluation results with scores and explanations
             eval_results = robust_json_loads(row.get("eval_results", "{}")) or {}
 
-            # Latency summary (extract key metrics)
+            # Latency summary (extract key metrics across all conversation turns)
             latency_data = robust_json_loads(row.get("latency_data", []))
             latency_summary = {}
             if isinstance(latency_data, list) and latency_data:
-                # Find the root invocation span for total latency
-                for span in latency_data:
-                    if span.get("name") == "invocation":
-                        latency_summary["total_seconds"] = span.get(
-                            "duration_seconds", 0
-                        )
-                        break
+                total_s = sum(
+                    span.get("duration_seconds", 0)
+                    for span in latency_data
+                    if isinstance(span, dict) and span.get("name") == "invocation"
+                )
+                if total_s > 0:
+                    latency_summary["total_seconds"] = total_s
 
             # ADK scores (hallucinations, safety)
             adk_scores = {}

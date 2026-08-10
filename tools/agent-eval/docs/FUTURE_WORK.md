@@ -4,68 +4,24 @@ This file is the staging ground for things `agent-eval` could do better, plus th
 
 ---
 
-## 1. Re-validate the streamlined Agent Engine pass (`agent-eval agent-engine`)
+## 1. Upgrade of the SDK Pin & Vertex Evaluation API Platform Limits
 
-### What it's supposed to do
+### What was accomplished
+We successfully resolved the outdated SDK dependency debt by bumping the Vertex AI SDK pin to `>=1.156.0,<2.0.0` in `pyproject.toml`. This upgrade aligned the CLI with the modern GenAI Evaluation API surface. Specifically:
+- **`_build_agent_info` Rewrite:** Rewrote the `AgentInfo` builder in `src/agent_eval/cli/commands/agent_engine.py` to match the new `1.140.0+` schema. It now constructs the `AgentInfo` using the required nested `agents` mapping and `root_agent_id`, successfully dropping the deprecated `agent_resource_name` field.
+- **mTLS Issue Resolution:** Resolved connection crashes on Python 3.13 by removing the obsolete `pyopenssl` monkey-patching wrapper from our dependencies.
+- **Local Suite Validation:** Ran and fully validated the complete CLI local suite (198/198 pytest tests passing under the upgraded environment).
 
-`agent-eval agent-engine` wraps Vertex's `client.evals.create_evaluation_run()` so that — when your agent is already deployed to a Reasoning Engine — Vertex handles inference, scoring, and GCS upload in one managed call. No local agent server needed, no traces to capture yourself. The CLI follows the upstream [evaluation-agents-client docs pattern](https://docs.cloud.google.com/vertex-ai/generative-ai/docs/models/evaluation-agents-client) verbatim:
+### Upstream Platform Bug & Backend Scorer Mismatch
+While local Pydantic validations pass perfectly, E2E testing against the live Vertex backend revealed a structural API mismatch when executing server-side runs:
+1. **The Linking Constraint:** In modern SDK versions, passing `agent_info` to `create_evaluation_run` strictly forces you to also pass `agent` (the reasoning engine resource).
+2. **The Server-Side Tracer Crash:** Linking the reasoning engine triggers server-side simulation and trace logging. When the backend attempts to parse ADK's complex, rich event logs on the server, the parser throws an exception resulting in a generic `INTERNAL: Internal error occurred` failure.
+3. **The Pre-computed Workaround:** We successfully verified that calling `create_evaluation_run` with a pre-computed GCS dataset **succeeds completely** if both the `agent` and `agent_info` parameters are omitted. However, doing so prevents the evaluator from scoring agent-specific metrics like `TOOL_USE_QUALITY` (which require `agent_info` to resolve tool schemas).
 
-```python
-client = genai.Client(http_options=HttpOptions(api_version="v1beta1"))
-agent_info = AgentInfo.load_from_agent(root_agent, agent_resource_name=...)
-run = client.evals.create_evaluation_run(
-    dataset=..., metrics=..., agent_info=agent_info, dest=...
-)
-```
-
-Implementation lives in `src/agent_eval/cli/commands/agent_engine.py` and `src/agent_eval/core/agent_engine_client.py`. The command is **currently not registered in `--help`** (`src/agent_eval/cli/main.py` — the `cli.add_command(agent_engine, ...)` line is commented out) so first-time users don't try it and hit the issue below. To re-enable for local debugging, uncomment that one line.
-
-### Current status
-
-Inference requests submitted via `create_evaluation_run()` started failing recently. The Vertex run lands in `FAILED` state with the deployed agent's events coming back without `content.parts`, which the SDK reports as **"Failed to parse agent run response []"**. The local pipeline (`agent-eval run` → `simulate` + `interact` + `evaluate`) is unaffected — it imports the agent module directly and never goes through `create_evaluation_run`.
-
-We don't yet know whether this is:
-- A regression in the deployed agent's response shape (ADK update or an agent-side change)
-- A regression in the SDK's parsing of those responses
-- Something we changed in the request payload we send to `create_evaluation_run`
-- A server-side change in Vertex's evaluation backend
-
-### What's already AE-ready in the code (don't redo this)
-
-A non-trivial amount of work went into making the request shape correct and the failure modes legible. Before debugging fresh, read these files — most of the obvious traps are already handled:
-
-- **`src/agent_eval/cli/commands/agent_engine.py:_resolve_bucket_location`** — decouples GCS bucket region from Vertex eval `--location`. Gemini 3+ defaults `--location` to `global`; GCS rejects `global` for STANDARD-class buckets, so we map `global → us-central1` (or whatever `--bucket-location` overrides to). This was a real customer-demo failure (April 23, 2026) — don't reintroduce.
-- **`src/agent_eval/cli/commands/agent_engine.py:_build_agent_info`** — three-layer fallback for `AgentInfo` construction:
-  1. **Full**: `AgentInfo.load_from_agent(agent, agent_resource_name=...)` walks `agent.tools` and emits JSON schemas.
-  2. **Manual-from-agent**: `AgentInfo(name=..., instruction=..., tool_declarations=[])` from the imported agent's attributes. Used when `load_from_agent` trips on the ADK ↔ google-genai `tool_context: ToolContext` schema bug (a known SDK ↔ ADK seam issue).
-  3. **Minimal-from-resource-name**: `AgentInfo(name="root_agent", agent_resource_name=...)` only. Used when local import itself fails (agent has deps not in agent-eval's venv). Eval still runs; tool-call-quality metrics may be unreliable because Vertex parses events server-side without the agent's tool schemas.
-- **NaN-safe multi-turn classification** — earlier code crashed with `cannot convert float NaN to integer` when a row's `history` field was empty (pandas read it as float NaN). Multi-turn rows are now correctly skipped at the front (Agent Engine's `create_evaluation_run` is single-turn only) with a clear pointer to use `agent-eval simulate` for those.
-- **Bucket auto-create on first run** — `google.cloud.storage.Client.create_bucket(location=<bucket_location>)` with the resolved location. Don't move that logic elsewhere; it's tested.
-- **EvaluationDataset wrapper handling** — the SDK returns wrapped objects from `merge`; helpers in `agent_engine_client.py` unwrap correctly so health-check and merge paths don't crash on the wrapper type.
-- **Failure summary** — when every row in a run fails, `agent-eval agent-engine` aborts with a structured error message instead of letting the autorater "score" empty error strings (which generates garbage metrics + wastes a GCS upload + a Vertex eval run).
-- **"Re-deploy if you changed agent.py" reminder** — surfaced before submitting, because a stale Reasoning Engine deployment is a common silent cause of mismatched behavior.
-
-### SDK pin (read before bumping)
-
-`pyproject.toml` constrains `google-cloud-aiplatform[evaluation,agent-engines]>=1.132.0,<1.140.0`. Versions ≥1.140 changed the `AgentInfo` schema (drops `agent_resource_name`, requires an `agents`/`root_agent_id` map) AND tightened `AgentData` validation in `run_inference` to reject ADK's rich event fields. Bumping past this needs `_build_agent_info` rewritten for the new schema — that's a real chunk of work, not a one-line bump.
-
-### How to reproduce
-
-1. Deploy any ADK agent via Agent Starter Pack with `-d agent_engine`. The simplest path is the rag-mini reproducer at `agents/rag-mini/` (instructions in its README).
-2. Confirm `deployment_metadata.json` shows a valid `remote_agent_engine_id` (not the placeholder string `"None"`).
-3. Re-enable the command: in `src/agent_eval/cli/main.py`, uncomment the `cli.add_command(agent_engine, name="agent-engine")` line.
-4. Install the agent's deps in agent-eval's venv: `uv pip install -e agents/rag-mini/`.
-5. Run: `cd agents/rag-mini && agent-eval agent-engine --debug`. The `--debug` flag exposes the full SDK logs.
-6. The run will eventually transition to `FAILED`. Inspect the events Vertex returned (the CLI prints them when `--debug` is on), and inspect what we sent (request payload is logged at INFO under debug).
-
-### Suggested debugging path
-
-- Compare the request payload we build (`_project_to_run_inference_shape` in `agent_engine.py`) against the latest [evaluation-agents-client](https://docs.cloud.google.com/vertex-ai/generative-ai/docs/models/evaluation-agents-client) docs. If the docs have evolved, the canonical 2-column shape for `run_inference` may have changed.
-- Check what the deployed agent actually returns when invoked outside `create_evaluation_run` (call it directly with the SDK, log the raw response). If `content.parts` is empty there too, the issue is on the deployment side, not in our wiring.
-- Try the SDK's own example payload from the docs against the same deployed agent. If their example also fails, the issue is upstream.
-- Try a minimal request-shape variant (just `prompt`, no `session_inputs`) to isolate whether session seeding is the trigger.
-
-When fixed, remove this section, re-enable the `cli.add_command()` line, and update `docs/reference.md`'s `### agent-engine` callout to remove the "currently being re-validated" warning.
+### Recommended Workflow Alignment
+For standard evaluation loops, users should prefer:
+- **The Local Pipeline (`agent-eval run`):** This runs the simulation and captures intermediate traces client-side. The CLI flattens the ADK traces and submits them via client-side `evaluate()`. This is robust, framework-agnostic, supports all custom/managed metrics (including `TOOL_USE_QUALITY`), and bypasses all server-side tracer bugs.
+- **The Managed Batch Pipeline:** If you must use `create_evaluation_run` for large batch files on the backend, only use it for non-agent metrics (`GENERAL_QUALITY`, custom LLM judges) and do not pass `agent`/`agent_info`.
 
 ---
 

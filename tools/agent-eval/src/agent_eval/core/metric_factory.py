@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 # Copyright 2026 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -45,10 +47,9 @@ Unified schema (per ``tests/eval/metrics/metric_definitions.json`` entry):
     }
 """
 
-from __future__ import annotations
-
 import importlib.util
 import logging
+import os
 from collections.abc import Callable
 from pathlib import Path
 from typing import Any
@@ -60,6 +61,7 @@ from agent_eval.core.metric_schema import (
     KIND_COMPUTATION,
     KIND_CUSTOM_LLM_JUDGE,
     KIND_MANAGED,
+    KIND_MULTITURN_TRAJECTORY_JUDGE,
     KIND_PARAMETRIZED_MANAGED,
     KIND_PYTHON_FUNCTION,
     KIND_REMOTE_CODE,
@@ -187,6 +189,15 @@ def _load_python_callable(module_path: str | Path, function: str) -> Callable:
     """Load a callable from an arbitrary file path."""
     module_path = Path(module_path)
     if not module_path.exists():
+        fallback_app = os.environ.get("AGENT_EVAL_APP_DIR", "app")
+        for candidate in (
+            Path(fallback_app) / module_path,
+            Path(fallback_app) / module_path.name,
+        ):
+            if candidate.exists():
+                module_path = candidate
+                break
+    if not module_path.exists():
         raise FileNotFoundError(f"Python function module not found: {module_path}")
     spec = importlib.util.spec_from_file_location(module_path.stem, module_path)
     if spec is None or spec.loader is None:
@@ -241,6 +252,15 @@ def build_metric(name: str, spec: dict[str, Any], *, base_dir: Path | None = Non
             rating_scores=rating_scores,
             instruction=spec.get("instruction"),
             prompt_template=prompt_template,
+        )
+
+    if kind == KIND_MULTITURN_TRAJECTORY_JUDGE:
+        from agent_eval.core.multiturn_judge import MultiTurnTrajectoryJudge
+
+        return MultiTurnTrajectoryJudge(
+            metric_name=name,
+            prompt_template=spec.get("prompt_template", ""),
+            threshold=float(spec.get("threshold", 0.8)),
         )
 
     if kind == KIND_COMPUTATION:
@@ -345,6 +365,11 @@ def to_evaluation_run_metric(metric: Any):
                 ),
             ),
         )
+    # Prebuilt computation metrics (bare Metric with name and no functions)
+    if isinstance(metric, vt.Metric) and not getattr(
+            metric, "custom_function", None) and not getattr(
+            metric, "remote_custom_function", None):
+        return vt.EvaluationRunMetric(metric=metric.name)
 
     # Bare Metric with custom_function: in-process only; not supported by
     # the streamlined `agent-engine` runner. Caller must convert it to

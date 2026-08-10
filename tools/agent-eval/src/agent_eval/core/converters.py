@@ -184,10 +184,15 @@ def synthesize_trace_from_events(
                     {"usage_metadata": usage}
                 )
 
+            next_ts = (
+                events[_i + 1].get("timestamp", timestamp + 1.0)
+                if _i + 1 < len(events)
+                else timestamp + 1.0
+            )
             step_span = create_span(
                 span_name,
                 timestamp,
-                timestamp + 1.0,
+                max(timestamp + 0.001, next_ts),
                 current_agent_span["span_id"],
                 attrs,
             )
@@ -563,7 +568,11 @@ class AdkHistoryConverter:
 
             # Extract final response
             resp_content = inv.get("final_response", {})
-            resp_parts = resp_content.get("parts", [])
+            if isinstance(resp_content, dict) and "candidates" in resp_content:
+                cands = resp_content.get("candidates", [])
+                resp_parts = cands[0].get("content", {}).get("parts", []) if cands else []
+            else:
+                resp_parts = resp_content.get("parts", []) if isinstance(resp_content, dict) else []
             resp_text = "".join(p.get("text", "") for p in resp_parts)
             if resp_text:
                 text_responses.append(resp_text)

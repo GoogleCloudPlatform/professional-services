@@ -212,7 +212,7 @@ def _prompt_for_config(
 @click.option(
     "--in-process",
     is_flag=True,
-    help="Run the agent in-process using ADK Python APIs (no external HTTP calls).",
+    help="Run simulation in-process without requiring a running server.",
 )
 @click.option(
     "--case-id",
@@ -234,9 +234,9 @@ def interact(
     state_variables,
     user,
     debug,
-    in_process,
     eval_dir,
     case_id,
+    in_process=False,
 ):
     """Run interactions against a live agent and collect traces.
 

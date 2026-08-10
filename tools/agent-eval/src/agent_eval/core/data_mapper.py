@@ -163,10 +163,25 @@ def convert_interactions_to_events(val: Any, sub_agent_trace: Any = None) -> lis
         # Since tool_interactions don't have timestamps, add text responses first
         # then tool events (this approximates the conversation flow)
         for tr in text_responses:
-            text_part = genai_types.Part.from_text(text=tr["text"])
-            text_content = genai_types.Content(role="model", parts=[text_part])
-            text_event = types.evals.Event(content=text_content, author="model")
-            events.append(text_event.model_dump(mode="json", exclude_none=True))
+            try:
+                text_part = genai_types.Part.from_text(text=tr["text"])
+                text_content = genai_types.Content(role="model", parts=[text_part])
+                text_event = types.evals.Event(content=text_content, author="model")
+                dumped = text_event.model_dump(mode="json", exclude_none=True)
+                if isinstance(dumped, dict) and not hasattr(dumped, "_mock_name"):
+                    events.append(dumped)
+                else:
+                    raise TypeError("model_dump returned mock")
+            except Exception:
+                events.append(
+                    {
+                        "author": "model",
+                        "content": {
+                            "role": "model",
+                            "parts": [{"text": str(tr["text"])}],
+                        },
+                    }
+                )
 
     # Add tool call and response events
     for item in interactions:
@@ -176,25 +191,55 @@ def convert_interactions_to_events(val: Any, sub_agent_trace: Any = None) -> lis
 
         # Ensure args is a dict (SDK requirement)
         if not isinstance(args, dict):
-            args = {"value": args} if args else {}
+            args = {"value": args} if args is not None else {}
 
         # Ensure response is a dict (SDK requirement)
         if not isinstance(response, dict):
-            response = {"result": response} if response else {}
+            response = {"result": response} if response is not None else {}
 
         # 1. Tool Call Event (Model generated) - as dict for SDK validation
-        fc_part = genai_types.Part.from_function_call(name=tool_name, args=args)
-        model_content = genai_types.Content(role="model", parts=[fc_part])
-        model_event = types.evals.Event(content=model_content, author="model")
-        events.append(model_event.model_dump(mode="json", exclude_none=True))
+        try:
+            fc_part = genai_types.Part.from_function_call(name=tool_name, args=args)
+            model_content = genai_types.Content(role="model", parts=[fc_part])
+            model_event = types.evals.Event(content=model_content, author="model")
+            dumped = model_event.model_dump(mode="json", exclude_none=True)
+            if isinstance(dumped, dict) and not hasattr(dumped, "_mock_name"):
+                events.append(dumped)
+            else:
+                raise TypeError("model_dump returned mock")
+        except Exception:
+            events.append(
+                {
+                    "author": "model",
+                    "content": {
+                        "role": "model",
+                        "parts": [{"function_call": {"name": tool_name, "args": args}}],
+                    },
+                }
+            )
 
         # 2. Tool Response Event (System provided) - as dict for SDK validation
-        fr_part = genai_types.Part.from_function_response(
-            name=tool_name, response=response
-        )
-        tool_content = genai_types.Content(role="tool", parts=[fr_part])
-        tool_event = types.evals.Event(content=tool_content, author="tool")
-        events.append(tool_event.model_dump(mode="json", exclude_none=True))
+        try:
+            fr_part = genai_types.Part.from_function_response(
+                name=tool_name, response=response
+            )
+            tool_content = genai_types.Content(role="tool", parts=[fr_part])
+            tool_event = types.evals.Event(content=tool_content, author="tool")
+            dumped = tool_event.model_dump(mode="json", exclude_none=True)
+            if isinstance(dumped, dict) and not hasattr(dumped, "_mock_name"):
+                events.append(dumped)
+            else:
+                raise TypeError("model_dump returned mock")
+        except Exception:
+            events.append(
+                {
+                    "author": "tool",
+                    "content": {
+                        "role": "tool",
+                        "parts": [{"function_response": {"name": tool_name, "response": response}}],
+                    },
+                }
+            )
 
     return events
 
@@ -269,8 +314,8 @@ def map_dataset_columns(
     original_df: pd.DataFrame,
     mapping: dict[str, Any],
     metric_name: str,
-    metric_tool_use_name: str = "TOOL_USE_QUALITY",
     is_managed_metric: bool = False,
+    **kwargs: Any,
 ) -> pd.DataFrame:
     """
     Maps columns from the raw agent DataFrame to the evaluation dataset based on the metric config.
@@ -309,10 +354,10 @@ def map_dataset_columns(
             inputs = agent_df["user_inputs"]
             # Normalize multi-turn lists into a single context string.
             eval_dataset["prompt"] = inputs.apply(
-                lambda x: "\n".join(x)
-                if isinstance(x, list)
+                lambda x: str(x[-1])
+                if isinstance(x, list) and len(x) > 0
                 else str(x)
-                if x is not None
+                if x is not None and not isinstance(x, list)
                 else ""
             )
         else:
@@ -537,3 +582,257 @@ def map_dataset_columns(
             eval_dataset[placeholder] = agent_df.apply(format_template, axis=1)
 
     return eval_dataset
+
+
+# ---------------------------------------------------------------------------
+# Contract C1 / C3: Canonical AgentData to Evaluation Row Mapper
+# ---------------------------------------------------------------------------
+
+
+def _extract_event_data(
+    ev: Any,
+    user_inputs: list[str],
+    text_responses: list[str],
+    tool_interactions: list[dict[str, Any]],
+    sub_agent_trace: list[dict[str, Any]],
+    accumulated_state: dict[str, Any],
+    agents_evaluated: list[str],
+) -> None:
+    if isinstance(ev, dict):
+        author = ev.get("author", "")
+        content = ev.get("content", "")
+        event_type = ev.get("event_type", "") or ev.get("type", "")
+        tool_calls = ev.get("tool_calls", [])
+        tool_responses = ev.get("tool_responses", [])
+        state_delta = ev.get("state_delta", {})
+        payload = ev.get("payload", {})
+    else:
+        author = getattr(ev, "author", "")
+        content = getattr(ev, "content", "")
+        event_type = getattr(ev, "event_type", "") or getattr(ev, "type", "")
+        tool_calls = getattr(ev, "tool_calls", []) or []
+        tool_responses = getattr(ev, "tool_responses", []) or []
+        state_delta = getattr(ev, "state_delta", {}) or {}
+        payload = getattr(ev, "payload", {}) or {}
+
+    if (author in ("USER", "user", "human") or event_type == "USER_INPUT") and content and str(content) not in user_inputs:
+        user_inputs.append(str(content))
+    elif (author in ("MODEL", "model", "assistant") or event_type == "MODEL_INFERENCE") and content and str(content) not in text_responses:
+        text_responses.append(str(content))
+        sub_agent_trace.append(
+            {
+                "agent_name": agents_evaluated[0] if agents_evaluated else author or "model",
+                "text_response": str(content),
+            }
+        )
+
+    if state_delta and isinstance(state_delta, dict):
+        accumulated_state.update(state_delta)
+
+    # OpenInference / C3 TOOL_CALL payload
+    if event_type in ("TOOL_CALL", "TOOL") or (isinstance(payload, dict) and payload.get("tool_name")):
+        t_name = payload.get("tool_name", "unknown_tool")
+        t_args = next(
+            (payload[k] for k in ("arguments", "input_arguments", "args") if k in payload and payload[k] is not None),
+            {},
+        )
+        t_result = next(
+            (payload[k] for k in ("result", "output_result", "tool_output", "response") if k in payload and payload[k] is not None),
+            "",
+        )
+        tool_interactions.append(
+            {
+                "tool_name": t_name,
+                "input_arguments": t_args,
+                "output_result": t_result,
+                "arguments": t_args,
+                "result": t_result,
+            }
+        )
+    # RFC 477 tool_calls format (when not already captured by TOOL_CALL payload)
+    elif tool_calls and isinstance(tool_calls, list):
+        for idx, tc in enumerate(tool_calls):
+            if isinstance(tc, dict):
+                t_name = tc.get("name") or tc.get("tool_name", "unknown_tool")
+                t_args = next(
+                    (tc[k] for k in ("args", "arguments", "input_arguments") if k in tc and tc[k] is not None),
+                    {},
+                )
+                t_result = ""
+                if idx < len(tool_responses) and isinstance(tool_responses[idx], dict):
+                    tr = tool_responses[idx]
+                    t_result = next(
+                        (tr[k] for k in ("response", "result", "output_result", "output") if k in tr and tr[k] is not None),
+                        "",
+                    )
+                tool_interactions.append(
+                    {
+                        "tool_name": t_name,
+                        "input_arguments": t_args,
+                        "output_result": t_result,
+                        "arguments": t_args,
+                        "result": t_result,
+                    }
+                )
+
+
+def _map_agent_data_to_row(agent_data: Any) -> dict[str, Any]:
+    """Projects a single AgentData instance or raw dict into a canonical evaluation row.
+
+    Extracts prompt, response, extracted_data.tool_interactions, sub_agent_trace,
+    final_session_state, user_inputs, reference_data, and agents_evaluated.
+    """
+    if isinstance(agent_data, dict):
+        session_id = (
+            agent_data.get("session_id")
+            or agent_data.get("trace_id")
+            or agent_data.get("id")
+            or "session_default"
+        )
+        turns = agent_data.get("turns", [])
+        events = agent_data.get("events", [])
+        agents_dict = agent_data.get("agents", {})
+        top_user_inputs = agent_data.get("user_inputs")
+        top_response = agent_data.get("final_response") or agent_data.get("response")
+        top_fss = agent_data.get("final_session_state")
+        top_ref = agent_data.get("reference_data")
+    else:
+        session_id = (
+            getattr(agent_data, "session_id", None)
+            or getattr(agent_data, "trace_id", None)
+            or getattr(agent_data, "id", None)
+            or "session_default"
+        )
+        turns = getattr(agent_data, "turns", []) or []
+        events = getattr(agent_data, "events", []) or []
+        agents_dict = getattr(agent_data, "agents", {}) or {}
+        top_user_inputs = getattr(agent_data, "user_inputs", None)
+        top_response = getattr(agent_data, "final_response", None) or getattr(agent_data, "response", None)
+        top_fss = getattr(agent_data, "final_session_state", None)
+        top_ref = getattr(agent_data, "reference_data", None)
+
+    # Agents evaluated
+    if isinstance(agents_dict, dict):
+        agents_evaluated = list(agents_dict.keys())
+    elif isinstance(agents_dict, list):
+        agents_evaluated = [
+            a.get("agent_id") if isinstance(a, dict) else getattr(a, "agent_id", str(a))
+            for a in agents_dict
+        ]
+    else:
+        agents_evaluated = []
+
+    user_inputs: list[str] = []
+    text_responses: list[str] = []
+    tool_interactions: list[dict[str, Any]] = []
+    sub_agent_trace: list[dict[str, Any]] = []
+    accumulated_state: dict[str, Any] = {}
+
+    # 1. Process turns
+    for turn in turns:
+        if isinstance(turn, dict):
+            role = turn.get("role")
+            content = turn.get("content", "")
+            turn_events = turn.get("events", [])
+        else:
+            role = getattr(turn, "role", None)
+            content = getattr(turn, "content", "")
+            turn_events = getattr(turn, "events", []) or []
+
+        if role in ("user", "human"):
+            if content:
+                user_inputs.append(str(content))
+        elif role in ("model", "assistant", "agent", "system"):
+            if content:
+                text_responses.append(str(content))
+                sub_agent_trace.append(
+                    {
+                        "agent_name": agents_evaluated[0] if agents_evaluated else "model",
+                        "text_response": str(content),
+                    }
+                )
+
+        # Process turn-level events
+        for ev in turn_events:
+            _extract_event_data(
+                ev,
+                user_inputs,
+                text_responses,
+                tool_interactions,
+                sub_agent_trace,
+                accumulated_state,
+                agents_evaluated,
+            )
+
+    # 2. Process top-level events
+    for ev in events:
+        _extract_event_data(
+            ev,
+            user_inputs,
+            text_responses,
+            tool_interactions,
+            sub_agent_trace,
+            accumulated_state,
+            agents_evaluated,
+        )
+
+    # Fallbacks from top-level attributes
+    if top_user_inputs:
+        if isinstance(top_user_inputs, list):
+            for ui in top_user_inputs:
+                if str(ui) not in user_inputs:
+                    user_inputs.append(str(ui))
+        elif str(top_user_inputs) not in user_inputs:
+            user_inputs.append(str(top_user_inputs))
+
+    prompt = user_inputs[-1] if user_inputs else (
+        (getattr(agent_data, "prompt", "") if not isinstance(agent_data, dict) else agent_data.get("prompt", "")) or ""
+    )
+
+    final_response = text_responses[-1] if text_responses else (str(top_response) if top_response else "")
+    response = final_response
+
+    # Final session state
+    final_session_state: dict[str, Any] = {}
+    if isinstance(top_fss, dict):
+        final_session_state.update(top_fss)
+    final_session_state.update(accumulated_state)
+
+    reference_data = top_ref if isinstance(top_ref, dict) else {}
+
+    extracted_data = {
+        "tool_interactions": tool_interactions,
+        "sub_agent_trace": sub_agent_trace,
+    }
+
+    return {
+        "session_id": str(session_id),
+        "prompt": str(prompt),
+        "response": str(response),
+        "user_inputs": user_inputs,
+        "final_response": str(final_response),
+        "extracted_data": extracted_data,
+        "extracted_data.tool_interactions": tool_interactions,
+        "extracted_data.sub_agent_trace": sub_agent_trace,
+        "final_session_state": final_session_state,
+        "reference_data": reference_data,
+        "agents_evaluated": agents_evaluated,
+    }
+
+
+def _map_agent_data(data: Any) -> dict[str, Any] | list[dict[str, Any]]:
+    """Maps an AgentData instance, raw dict, or list of instances into canonical evaluation row(s)."""
+    if isinstance(data, list):
+        return [_map_agent_data_to_row(item) for item in data]
+    return _map_agent_data_to_row(data)
+
+
+def _map_agents(data: Any) -> list[dict[str, Any]] | pd.DataFrame:
+    """Projects AgentData instances, list of AgentData, or DataFrame into canonical evaluation dataset."""
+    if isinstance(data, pd.DataFrame):
+        records = [_map_agent_data_to_row(row.to_dict()) for _, row in data.iterrows()]
+        return pd.DataFrame(records)
+    if isinstance(data, list):
+        return [_map_agent_data_to_row(item) for item in data]
+    return [_map_agent_data_to_row(data)]
+

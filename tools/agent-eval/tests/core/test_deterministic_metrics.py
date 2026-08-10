@@ -442,3 +442,25 @@ def test_evaluate_deterministic_metrics_registry():
 
     # Unselected metrics should not be in the output dict
     assert "latency_metrics" not in results
+
+def test_calculate_latency_metrics_nested_tools():
+    """Verify that nested child tool spans do not inflate tool_latency_seconds."""
+    mock_trace = [
+        {"name": "root", "start_time": 0, "end_time": 5_000_000_000},
+        {
+            "name": "execute_tool outer",
+            "start_time": 1_000_000_000,
+            "end_time": 4_000_000_000,
+        },
+        {
+            "name": "tool_call inner",
+            "start_time": 2_000_000_000,
+            "end_time": 3_500_000_000,
+        },
+    ]
+
+    score, _explanation, details = calculate_latency_metrics(mock_trace, [])
+
+    # The outer span covers 3 seconds. The inner span covers 1.5 seconds.
+    # Due to interval merging, the total tool latency should be exactly 3.0s, not 4.5s.
+    assert details["tool_latency_seconds"] == 3.0

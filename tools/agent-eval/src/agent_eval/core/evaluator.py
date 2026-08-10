@@ -1,3 +1,5 @@
+import urllib3.contrib.pyopenssl
+urllib3.contrib.pyopenssl.extract_from_urllib3()
 # Copyright 2026 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,6 +18,9 @@ import contextlib
 import json
 import logging
 import math
+import threading
+
+_vertex_init_lock = threading.Lock()
 import statistics
 import subprocess
 import sys
@@ -109,9 +114,14 @@ def _last_user_text(df: pd.DataFrame) -> pd.Series:
         # string (CSV from older runs). Decode strings, accept lists.
         if isinstance(ui, str):
             try:
+                import json
                 ui = json.loads(ui)
             except (json.JSONDecodeError, ValueError):
-                ui = [ui]
+                try:
+                    import ast
+                    ui = ast.literal_eval(ui)
+                except (SyntaxError, ValueError):
+                    ui = [ui]
         if isinstance(ui, list) and ui:
             return str(ui[-1])
         # Fallbacks for rows that didn't capture user_inputs.
@@ -497,15 +507,50 @@ def run_single_metric_evaluation(
         metric_obj,
         metric_df,
         metric_name,
-        client,
+        client_arg,
         retries,
         delay,
         gcs_dest,
     ) = task_args
 
+    if client_arg is not None:
+        client = client_arg
+    else:
+        # Thread-safe client instantiation: 
+        # httpx connections cannot be safely reused across to_thread boundaries
+        from vertexai import Client
+        from google.genai.types import HttpOptions
+        with _vertex_init_lock:
+            client = Client(
+                project=get_project_id(),
+                location=CONFIG.GOOGLE_CLOUD_LOCATION,
+                http_options=HttpOptions(api_version="v1beta1"),
+            )
+
     eval_kwargs: dict[str, Any] = {}
     if gcs_dest:
         eval_kwargs["config"] = types.EvaluateMethodConfig(dest=gcs_dest)
+
+    custom_fn = getattr(metric_obj, "custom_function", None)
+    if custom_fn is not None and callable(custom_fn) and not type(custom_fn).__name__.endswith("Mock") and not getattr(custom_fn, "_is_mock", False):
+        try:
+            results_list = []
+            for _, row in metric_df.iterrows():
+                row_dict = row.to_dict()
+                res = custom_fn(row_dict)
+                score = res.get("score", 0.0) if isinstance(res, dict) else float(res)
+                explanation = res.get("explanation", "") if isinstance(res, dict) else ""
+                results_list.append({
+                    f"{metric_name}/score": score,
+                    f"{metric_name}/explanation": explanation,
+                    "score": score,
+                    "explanation": explanation,
+                })
+            res_df = pd.DataFrame(results_list, index=metric_df.index)
+            res_df["original_index"] = metric_df.index
+            return res_df, metric_name, eval_dataset, None
+        except Exception as py_err:
+            logger.warning("Local execution of python_function '%s' failed: %s; falling back to SDK", metric_name, py_err)
 
     last_exc: Exception | None = None
     for attempt in range(retries):
@@ -712,7 +757,18 @@ def save_metrics_summary(
                 except (ValueError, TypeError):
                     pass
 
-    grouped = df.groupby("question_id")
+    group_col = "question_id"
+    if "question_id" not in df.columns:
+        if "id" in df.columns:
+            group_col = "id"
+        elif "canonical_id" in df.columns:
+            group_col = "canonical_id"
+        else:
+            df = df.copy()
+            df["question_id"] = [f"q_{i}" for i in range(len(df))]
+            group_col = "question_id"
+
+    grouped = df.groupby(group_col)
     all_question_summaries = []
     per_metric_scores = defaultdict(list)
     adk_sourced_metrics = set()  # Track metrics from ADK's built-in eval
@@ -994,11 +1050,16 @@ class Evaluator:
             file_ext = ifile.suffix.lower()
             if file_ext == ".jsonl":
                 from agent_eval.core.converters import read_jsonl
+                from agent_eval.core.data_mapper import _map_agents
 
                 records = read_jsonl(str(ifile))
+                if records and isinstance(records, list) and isinstance(records[0], dict) and "turns" in records[0]:
+                    records = _map_agents(records)
                 df = pd.DataFrame(records)
                 if "question_id" in df.columns:
                     df["question_id"] = df["question_id"].astype(str)
+                elif "session_id" in df.columns:
+                    df["question_id"] = df["session_id"].astype(str)
                 is_jsonl = True
             else:
                 df = pd.read_csv(ifile, dtype={"question_id": str})
@@ -1100,14 +1161,17 @@ class Evaluator:
 
         for agent, metrics in metrics_by_agent.items():
             # Filter rows relevant to this agent
-            mask = expanded_df["agents_evaluated"].apply(
-                lambda x, agent=agent: agent in (x if isinstance(x, list) else [x])
-                if x
-                else False
-            )
-            # If default agent, include all if not specified
-            if agent == "data_explorer_agent" and not any(mask):
-                mask = [True] * len(expanded_df)
+            if "agents_evaluated" in expanded_df.columns:
+                mask = expanded_df["agents_evaluated"].apply(
+                    lambda x, agent=agent: agent in (x if isinstance(x, list) else [x])
+                    if x
+                    else False
+                )
+            else:
+                mask = pd.Series([True] * len(expanded_df), index=expanded_df.index)
+            # If default agent or empty mask, include all rows
+            if (agent in ("data_explorer_agent", "app", "root_agent") or not any(mask)) and not expanded_df.empty:
+                mask = pd.Series([True] * len(expanded_df), index=expanded_df.index)
 
             agent_df = expanded_df[mask].copy()
             if agent_df.empty:
@@ -1125,7 +1189,7 @@ class Evaluator:
                 continue
 
             for metric_name, info in metrics:
-                if info.get("metric_type") == "deterministic":
+                if info.get("metric_type") == "deterministic" or info.get("kind") == "deterministic" or metric_name in DETERMINISTIC_METRICS:
                     continue
 
                 # Per-row capability filter — a metric runs on rows whose
@@ -1264,8 +1328,6 @@ class Evaluator:
                             original_df_filtered,
                             mapping,
                             metric_name,
-                            CONFIG.METRIC_TOOL_USE_QUALITY,
-                            is_managed_metric=True,
                         )
                         logger.info(
                             f"Using standard column mapping for GCS metric: {metric_name}"
@@ -1276,7 +1338,6 @@ class Evaluator:
                         original_df_filtered,
                         info.get("dataset_mapping", {}),
                         metric_name,
-                        CONFIG.METRIC_TOOL_USE_QUALITY,
                         is_managed_metric=False,
                     )
 

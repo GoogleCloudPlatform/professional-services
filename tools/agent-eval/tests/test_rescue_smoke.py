@@ -523,5 +523,43 @@ class TestCustomLlmJudgeStateGrounded(unittest.TestCase):
         self.assertEqual(eval_dataset["state_val"].iloc[0], "value_from_state")
 
 
+# ---------------------------------------------------------------------------
+# agent-engine metric check tests
+# ---------------------------------------------------------------------------
+
+
+class TestAgentEngineMetricsCheck(unittest.TestCase):
+    """Verify that _has_agent_specific_metrics detects tool/agent metrics correctly."""
+
+    def test_non_agent_metrics_returns_false(self):
+        from agent_eval.cli.commands.agent_engine import _has_agent_specific_metrics
+
+        m1 = mock.MagicMock()
+        m1.metric = "general_quality"
+        m2 = mock.MagicMock()
+        m2.metric = "safety"
+
+        self.assertFalse(_has_agent_specific_metrics([m1, m2]))
+
+    def test_tool_use_metric_returns_true(self):
+        from agent_eval.cli.commands.agent_engine import _has_agent_specific_metrics
+
+        m1 = mock.MagicMock()
+        m1.metric = "general_quality"
+        m2 = mock.MagicMock()
+        m2.metric = "TOOL_USE_QUALITY"
+
+        self.assertTrue(_has_agent_specific_metrics([m1, m2]))
+
+    def test_tool_call_metric_returns_true(self):
+        from agent_eval.cli.commands.agent_engine import _has_agent_specific_metrics
+
+        m1 = mock.MagicMock()
+        m1.metric = "TOOL_CALL_ACCURACY"
+
+        self.assertTrue(_has_agent_specific_metrics([m1]))
+
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -206,17 +206,24 @@ def _display_metrics_summary(results_dir: str) -> None:
 @click.command()
 @click.option(
     "--interaction-file",
-    required=True,
+    required=False,
+    default=None,
     multiple=True,
     help="Path(s) to processed interaction JSONL or CSV. Can be specified multiple times.",
 )
 @click.option(
     "--metrics-files",
-    required=True,
+    required=False,
+    default=None,
     multiple=True,
     help="Paths to metric definition JSONs.",
 )
-@click.option("--results-dir", required=True, help="Directory for outputs.")
+@click.option("--results-dir", required=False, default=None, help="Directory for outputs.")
+@click.option(
+    "--config",
+    default=None,
+    help="Path to declarative eval_config.yaml (Contract C2).",
+)
 @click.option(
     "--input-label", default="manual", help="Label for this run (e.g. 'baseline')."
 )
@@ -244,6 +251,7 @@ def evaluate(
     interaction_file,
     metrics_files,
     results_dir,
+    config,
     input_label,
     test_description,
     metric_filter,
@@ -258,6 +266,41 @@ def evaluate(
     if gcs_dest and not gcs_dest.startswith("gs://"):
         console.print(f"  [red]--gcs-dest must start with gs://[/] (got: {gcs_dest})")
         sys.exit(1)
+
+    if config:
+        import json
+        import tempfile
+        import yaml
+
+        cfg_path = Path(config).resolve()
+        if not cfg_path.exists():
+            console.print(f"  [red]Error:[/] Config file not found at {cfg_path}")
+            sys.exit(1)
+        cfg_data = yaml.safe_load(cfg_path.read_text(encoding="utf-8")) or {}
+        console.print(f"  [bold blue]Contract C2 Metric Config:[/] Loaded declarative YAML from {cfg_path}")
+        if "metrics" in cfg_data and isinstance(cfg_data["metrics"], dict):
+            tmp_metrics = Path(tempfile.mktemp(suffix="_metric_definitions.json"))
+            tmp_metrics.write_text(json.dumps({"metrics": cfg_data["metrics"]}), encoding="utf-8")
+            metrics_files = list(metrics_files or []) + [str(tmp_metrics)]
+
+    if not interaction_file:
+        for candidate in ("tests/eval/dataset.jsonl",):
+            if Path(candidate).exists():
+                interaction_file = (candidate,)
+                break
+        if not interaction_file:
+            interaction_file = ("tests/eval/dataset.jsonl",)
+
+    if not metrics_files:
+        for candidate in ("tests/eval/metrics/metric_definitions.json",):
+            if Path(candidate).exists():
+                metrics_files = (candidate,)
+                break
+        if not metrics_files:
+            metrics_files = ("tests/eval/metrics/metric_definitions.json",)
+
+    if not results_dir:
+        results_dir = "tests/eval/results/current"
 
     console.print("\n[bold blue]Running Evaluation[/]")
     if len(interaction_file) > 1:

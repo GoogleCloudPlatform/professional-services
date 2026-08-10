@@ -21,6 +21,7 @@ import click
 from rich.console import Console
 
 from agent_eval.core.converters import AdkHistoryConverter, write_jsonl
+from agent_eval.core.trace_converters import get_trace_converter
 
 console = Console()
 
@@ -29,7 +30,7 @@ console = Console()
 @click.option(
     "--agent-dir",
     required=True,
-    help="Path to the agent directory (containing .adk/eval_history).",
+    help="Path to the agent directory (containing .adk/eval_history) or trace file/dir for non-ADK formats.",
 )
 @click.option(
     "--questions-file",
@@ -38,13 +39,25 @@ console = Console()
 )
 @click.option("--output-dir", default="results", help="Directory for outputs.")
 @click.option("--output-file", default=None, help="Custom output filename.")
-def convert(agent_dir, questions_file, output_dir, output_file):
-    """Convert ADK simulation history to evaluation JSONL format."""
-    console.print("\n[bold blue]Converting ADK History[/]")
+@click.option(
+    "--trace-format",
+    default="adk",
+    help="Format of the trace input ('adk', 'openinference', 'langgraph', 'crewai', 'otel', 'llamaindex', 'autogen').",
+)
+def convert(agent_dir, questions_file, output_dir, output_file, trace_format):
+    """Convert ADK or OpenInference simulation history to evaluation JSONL format."""
+    console.print(f"\n[bold blue]Converting Trace History (Format: {trace_format})[/]")
     try:
-        history_path = Path(agent_dir) / ".adk" / "eval_history"
-        converter = AdkHistoryConverter(str(history_path), questions_file)
-        records = converter.run()
+        format_normalized = trace_format.strip().lower() if trace_format else "adk"
+        if format_normalized in ("adk", "default"):
+            history_path = Path(agent_dir) / ".adk" / "eval_history"
+            converter = AdkHistoryConverter(str(history_path), questions_file)
+            records = converter.run()
+        else:
+            core_converter = get_trace_converter(trace_format)
+            history_path = Path(agent_dir)
+            records_agent_data = core_converter.convert_file(history_path)
+            records = [ad.model_dump() for ad in records_agent_data]
 
         if not records:
             console.print("[yellow]No history found to convert.[/]")
