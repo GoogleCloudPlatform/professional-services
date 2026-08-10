@@ -30,7 +30,7 @@ Each phase inside `run` is also exposed as a standalone command (`simulate`, `in
 
 ### [0] Install + set up Google Cloud
 
-You need **Python 3.10–3.12**, **[`uv`](https://docs.astral.sh/uv/)**, and **[`gcloud`](https://cloud.google.com/sdk/docs/install)** installed locally.
+You need **Python 3.10–3.13**, **[`uv`](https://docs.astral.sh/uv/)**, and **[`gcloud`](https://cloud.google.com/sdk/docs/install)** installed locally.
 
 #### Option A: Direct Git Install (Recommended)
 Install `agent-eval` directly from GitHub into your project's virtual environment:
@@ -51,12 +51,12 @@ If you are developing or modifying `agent-eval` locally:
 
 ```bash
 cd agent-eval
-uv venv --python 3.12     # pin the interpreter — see the note below
+uv venv                   # creates .venv using active Python (3.10–3.13)
 uv sync                   # installs all deps into .venv/
 source .venv/bin/activate # so `agent-eval` is on your PATH
 ```
 
-> ⚠️ **Pin the interpreter — don't let `uv` pick.** With no `.venv` present, `uv` selects the newest Python installed on your machine. On **Python 3.13+** that currently fails during install: the locked `scipy` (a transitive dependency of `google-cloud-aiplatform[evaluation]`) publishes no wheels for those versions, so `uv` falls back to building it from source and stops with a missing-Fortran-compiler error. Creating the venv with `--python 3.12` first avoids this. Already stuck? `rm -rf .venv && uv venv --python 3.12 && uv sync`.
+> 💡 **Python 3.10–3.13 Fully Supported.** `agent-eval` targets `google-cloud-aiplatform>=1.156.0` and ships pre-compiled binary wheels across Python 3.10 through 3.13 on Linux, macOS, and Windows. If you are operating on legacy toolchains or encounters Fortran build errors with older packages, pin with `uv venv --python 3.12`.
 
 Then walk Google Cloud setup (once per shell):
 

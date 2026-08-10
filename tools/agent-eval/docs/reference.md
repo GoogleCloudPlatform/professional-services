@@ -1608,11 +1608,11 @@ Requires: `pip install agent-eval[dashboard]`. See the [dashboard](#dashboard) C
 
 ### `uv sync` fails building `scipy` — "Running `gfortran --version` gave [Errno 2] No such file or directory"
 
-**Cause:** you're on **Python 3.13+**. With no `.venv` present, `uv` picks the newest interpreter on your machine. The locked `scipy` (pulled in transitively by `google-cloud-aiplatform[evaluation]` → `scikit-learn`) publishes wheels only up to cp312, so `uv` falls back to compiling it from source — which needs a Fortran compiler and BLAS headers you almost certainly don't have.
+**Cause:** in versions prior to `0.1.1` or on older SDK pins (`<1.140.0`), running on **Python 3.13+** without a pre-built wheel for `scipy` fell back to compiling from source (requiring a local Fortran compiler).
 
-Note the floor and the ceiling are coupled: newer `scipy` releases *do* ship wheels for recent Pythons, but they require Python ≥3.11, so the lock can't move while 3.10 is supported.
+`agent-eval` version `0.1.1+` targets `google-cloud-aiplatform>=1.156.0` with native binary wheels across **Python 3.10–3.13**.
 
-**Fix:** pin the interpreter when you create the venv.
+**Legacy Fix / Pinning:** if working on older pinned dependencies or legacy locks, pin the virtualenv interpreter:
 
 ```bash
 rm -rf .venv
