@@ -42,17 +42,13 @@ from agent_eval.core.deterministic_metrics import (
     DETERMINISTIC_METRICS,
     evaluate_deterministic_metrics,
 )
-from agent_eval.core.metric_discovery import _GCS_PLACEHOLDERS
 from agent_eval.core.metric_discovery import (
+    _GCS_PLACEHOLDERS,
     is_api_predefined as _is_api_predefined_discovery,
 )
 from agent_eval.core.metric_schema import (
     MANAGED_METRIC_REQUIRED_COLUMNS as _MANAGED_METRIC_REQUIRED_COLUMNS,
-)
-from agent_eval.core.metric_schema import (
     SDK_COLUMN_DEFAULTS as _SDK_COLUMN_DEFAULTS,
-)
-from agent_eval.core.metric_schema import (
     is_managed_entry,
     managed_base_name,
 )

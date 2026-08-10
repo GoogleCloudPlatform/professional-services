@@ -2259,11 +2259,10 @@ def _prompt_ai_metrics_multistep(
                         spinner="dots",
                 ):
                     try:
-                        from agent_eval.core.metric_generator import (
-                            analyze_agent_data as _reanalyze,
-                        )
+                        from agent_eval.core import metric_generator
 
-                        agent_analysis = _reanalyze(agent_dir, agent_name)
+                        agent_analysis = metric_generator.analyze_agent_data(
+                            agent_dir, agent_name)
                     except Exception as e:
                         console.print(f"  [yellow]Re-analysis failed:[/] {e}")
                         console.print(

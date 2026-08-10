@@ -71,6 +71,7 @@ select = [
 ]
 ignore = [
     "E501",    # line too long
+    "I001",    # import block sorting (deferred to yapf Google style)
     "RUF001",  # String contains ambiguous unicode character (intentional for UI/HTML)
     "RUF002",  # Docstring contains ambiguous unicode character
     "RUF003",  # Comment contains ambiguous unicode character

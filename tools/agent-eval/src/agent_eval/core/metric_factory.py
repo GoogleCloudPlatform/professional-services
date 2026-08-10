@@ -54,9 +54,7 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
-from agent_eval.core.metric_schema import (
-    ALL_KINDS as _KNOWN_KINDS,
-)
+from agent_eval.core.metric_schema import ALL_KINDS as _KNOWN_KINDS
 from agent_eval.core.metric_schema import (
     KIND_COMPUTATION,
     KIND_CUSTOM_LLM_JUDGE,

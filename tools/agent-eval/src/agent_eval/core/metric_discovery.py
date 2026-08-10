@@ -462,8 +462,6 @@ def extract_adk_eval_knowledge() -> dict[str, Any]:
     try:
         from google.adk.evaluation import (
             rubric_based_final_response_quality_v1 as resp_mod,
-        )
-        from google.adk.evaluation import (
             rubric_based_tool_use_quality_v1 as tool_mod,
         )
 

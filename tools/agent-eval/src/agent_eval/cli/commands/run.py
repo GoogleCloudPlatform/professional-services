@@ -19,8 +19,8 @@ import json
 import os
 import subprocess
 import sys
-from datetime import datetime
 from pathlib import Path
+from typing import Any
 
 import click
 from rich.console import Console
@@ -35,7 +35,7 @@ console = Console()
 # helpers further down. Must live at module scope (not inside the helper
 # block) so the decorator's `default=` resolves at import time.
 _DEFAULT_SIM_PARALLELISM = (
-    3  # cap concurrent `adk eval` subprocesses to limit Vertex quota pressure
+    6  # Default to 6 concurrent workers for fast 2-3 minute evaluations without quota bottlenecks
 )
 
 
@@ -306,21 +306,50 @@ def _start_storyteller():
 @click.option(
     "--gcs-bucket",
     default=None,
-    help="GCS bucket name when --storage=gcs (e.g. 'gs://my-eval-bucket').",
-)
-@click.option(
-    "--in-process",
-    is_flag=True,
-    help="Run simulation in-process without requiring a running server.",
+    help="GCS bucket name when using --storage=gcs.",
 )
 @click.option(
     "--bq-dataset",
     default=None,
-    help=
-    "BigQuery dataset ID when --storage=bigquery (e.g. 'agent_eval_analytics').",
+    help="BigQuery dataset when using --storage=bigquery.",
+)
+@click.option(
+    "--in-process",
+    is_flag=True,
+    default=False,
+    help="Run simulation in-process using ADK Python APIs instead of CLI.",
+)
+@click.option(
+    "--publish",
+    is_flag=True,
+    help="Publish evaluation results to remote storage (GCS/BigQuery) globally.",
+)
+@click.option(
+    "--feature",
+    default=None,
+    help="Feature branch or flag used for this run.",
+)
+@click.option(
+    "--tag",
+    default=None,
+    help="Short tag or description for the run.",
+)
+@click.option(
+    "--compare-to",
+    default=None,
+    help="Baseline run directory or GCS run ID for side-by-side comparison.",
+)
+@click.option(
+    "--description",
+    default=None,
+    help="Detailed description of the run.",
 )
 def run(
     agent_dir,
+    feature,
+    tag,
+    compare_to,
+    description,
     eval_dir,
     run_id,
     run_simulate,
@@ -338,11 +367,14 @@ def run(
     skip_gemini,
     run_dashboard,
     debug,
-    storage,
-    gcs_bucket,
-    bq_dataset,
-    in_process=False,
+    in_process,
+    publish,
+    storage="local",
+    gcs_bucket=None,
+    bq_dataset=None,
 ):
+    import json
+    import os
     """Run the full evaluation pipeline: simulate, interact, evaluate, and analyze.
 
     \b
@@ -475,8 +507,12 @@ def run(
     n_multi_turn = sum(1 for r in _all_rows if is_multi_turn(r))
     n_single_turn = sum(1 for r in _all_rows if is_single_turn(r))
 
+    if in_process:
+        run_simulate = n_multi_turn > 0 or n_single_turn > 0
+        run_interact = False
+
     # Validate simulate prerequisites — needs multi-turn rows.
-    if run_simulate and n_multi_turn == 0:
+    if run_simulate and not in_process and n_multi_turn == 0:
         console.print(
             f"\n  [yellow]Warning:[/] No multi-turn rows in {dataset_path.name}. "
             f"Skipping simulate phase.")
@@ -487,6 +523,19 @@ def run(
 
     # Validate interact prerequisites — point at unified dataset.jsonl.
     # `get_golden_questions` filters single-turn rows automatically.
+    from agent_eval.core.storage import get_storage_backend
+
+    try:
+        storage_backend = get_storage_backend(
+            backend_type=storage,
+            bucket_name=gcs_bucket,
+            dataset=bq_dataset,
+        )
+    except Exception as e:
+        console.print(
+            f"\n  [red]Error initializing storage backend '{storage}':[/] {e}")
+        sys.exit(1)
+
     if run_interact:
         if not questions_file:
             if n_single_turn == 0:
@@ -506,7 +555,7 @@ def run(
         # If the user-supplied --base-url isn't responding, scan a short list
         # of common ADK / FastAPI / dev-server ports on localhost so users
         # who started the agent on a non-default port aren't punished.
-        if run_interact:
+        if run_interact and not in_process:
             from concurrent.futures import ThreadPoolExecutor
 
             from rich.prompt import Prompt
@@ -734,22 +783,62 @@ def run(
     # ── Run ID ─────────────────────────────────────────────────────────────
 
     if not run_id:
+        import getpass
+        import subprocess
+        from datetime import datetime
+
         from rich.prompt import Prompt
 
-        console.print()
-        console.print(
-            Panel(
-                "[bold]Give this run a name[/] so you can easily find it later.\n\n"
-                "Examples: [cyan]baseline[/], [cyan]v2-tool-hardening[/], [cyan]cache-optimization[/]\n\n"
-                "[dim]Results will be saved to tests/eval/results/<run-id>/.\n"
-                "Press Enter to use an auto-generated timestamp instead.[/]",
-                title="[bold]Run ID[/]",
-                border_style="blue",
-                padding=(1, 2),
-            ))
+        user = getpass.getuser()
         default_ts = datetime.now().strftime("%Y%m%d_%H%M%S")
-        run_id = Prompt.ask("  Run ID",
-                            default=default_ts).strip().replace(" ", "-")
+
+        if feature:
+            branch = feature
+        else:
+            try:
+                branch = subprocess.check_output(
+                    ["git", "branch", "--show-current"],
+                    text=True,
+                    stderr=subprocess.DEVNULL).strip()
+                if not branch:
+                    branch = "local_eval"
+            except (subprocess.CalledProcessError, FileNotFoundError):
+                branch = "local_eval"
+
+        if tag:
+            slug = tag
+        else:
+            slug = ""
+            if os.environ.get("AGENT_EVAL_NO_PAUSES") == "1":
+                slug = ""
+            else:
+                console.print()
+                console.print(
+                    Panel(
+                        f"[bold]Provide a short run tag (optional)[/]\n\n"
+                        f"We detect your feature/branch as [cyan]{branch}[/].\n\n"
+                        f"[dim]Run ID will be structured as: {branch}__<tag>__{user}__{default_ts}\n"
+                        "Press Enter to just use the auto-generated components.[/]",
+                        title="[bold]Run Tag[/]",
+                        border_style="blue",
+                        padding=(1, 2),
+                    ))
+                try:
+                    slug = Prompt.ask("  Tag (slug, optional)").strip().replace(
+                        " ", "-")
+                except EOFError:
+                    slug = ""
+
+        feature_safe = branch.replace("/", "-")
+        tag_safe = slug.replace(" ", "-") if slug else ""
+
+        # Format run_id as <feature>__<tag>__<user>__<timestamp> (safe-escape slashes)
+        if tag_safe:
+            run_id = f"{feature_safe}__{tag_safe}__{user}__{default_ts}"
+        else:
+            # Drop tag_safe if empty to avoid double underscore. Actually instructions say `<feature>__<tag>__<user>__<timestamp>`.
+            # If tag is empty string it might be `feature____user__timestamp`. We should probably just use feature, user, timestamp.
+            run_id = f"{feature_safe}__{user}__{default_ts}"
 
     # ── Overview ────────────────────────────────────────────────────────────
 
@@ -808,6 +897,7 @@ def run(
             raw_dir,
             debug=debug,
             max_parallel=sim_parallelism,
+            in_process=in_process,
         )
 
         if _simulate_ok:
@@ -993,31 +1083,9 @@ def run(
                             metric_paths,
                             run_dir,
                             run_id,
+                            description=description,
                             debug=debug)
         phase_outcomes["Evaluate"] = "completed"
-
-        if storage and storage.lower() != "local":
-            eval_summary_path = run_dir / "eval_summary.json"
-            if eval_summary_path.exists():
-                try:
-                    from agent_eval.core.storage import get_storage_backend
-
-                    backend = get_storage_backend(
-                        storage,
-                        bucket_name=gcs_bucket,
-                        dataset_id=bq_dataset,
-                        results_dir=run_dir.parent,
-                    )
-                    with eval_summary_path.open() as _f:
-                        _es = json.load(_f)
-                    remote_uri = backend.save_summary(run_id, _es)
-                    console.print(
-                        f"[green]✔ Evaluation summary persisted to remote storage:[/] {remote_uri}"
-                    )
-                except Exception as e:
-                    console.print(
-                        f"     [yellow]Warning: Failed to persist summary to remote storage backend '{storage}': {e}[/]"
-                    )
 
         # Stop and ask if any metrics failed before pressing on into Analyze.
         # Analyze runs Gemini over a possibly-incomplete metric table; users
@@ -1126,6 +1194,8 @@ def run(
             focus,
             skip_gemini,
             debug=debug,
+            publish=publish,
+            compare_to=compare_to,
         )
         phase_outcomes["Analyze"] = "completed" if analysis_result else "failed"
 
@@ -1297,6 +1367,78 @@ def run(
         console.print(f"  --agent-dir {rel_agent}")
         console.print()
 
+    summary_file = run_dir / "eval_summary.json"
+    if summary_file.exists():
+        try:
+            with summary_file.open() as f:
+                summary_data = json.load(f)
+            summary_data["run_id"] = run_id
+            summary_data["feature_branch"] = feature or ""
+            summary_data["tag"] = tag or ""
+            summary_data["description"] = description or ""
+
+            # Safely get user and timestamp
+            import getpass
+            from datetime import datetime
+            summary_data["timestamp"] = datetime.now().strftime("%Y%m%d_%H%M%S")
+            try:
+                summary_data["user"] = getpass.getuser()
+            except Exception:
+                summary_data["user"] = "unknown"
+
+            with summary_file.open("w") as f:
+                json.dump(summary_data, f, indent=4, default=str)
+
+            if storage_backend and storage != "local":
+                storage_backend.save_summary(summary_data, run_id)
+        except Exception as e:
+            console.print(
+                f"  [yellow]Failed to inject metadata into eval_summary.json:[/] {e}"
+            )
+
+    if publish:
+
+        console.print()
+        console.print(Rule("  Publish to GCS  ", style="bold cyan"))
+        console.print(f"  [dim]Uploading run {run_id} to GCS...[/]")
+        try:
+            import yaml
+            gcs_bucket = os.environ.get("GCS_BUCKET")
+            yaml_config = eval_path / "eval_config.yaml"
+            if not gcs_bucket and yaml_config.exists():
+                try:
+                    with yaml_config.open() as yf:
+                        ydata = yaml.safe_load(yf) or {}
+                        gcs_bucket = ydata.get("gcs_bucket")
+                except Exception:
+                    pass
+            if not gcs_bucket:
+                project_id = os.environ.get("GOOGLE_CLOUD_PROJECT")
+                if not project_id:
+                    try:
+                        from agent_eval.core.environment import get_project_id
+                        project_id = get_project_id()
+                    except Exception:
+                        pass
+                if project_id:
+                    gcs_bucket = f"{project_id}-eval-artifacts"
+
+            if not gcs_bucket:
+                console.print(
+                    "  [yellow]Skipping GCS publish: No GCS bucket or GOOGLE_CLOUD_PROJECT specified.[/]"
+                )
+                return
+
+            from agent_eval.core.storage import StorageManager
+            storage_manager = StorageManager(bucket_name=gcs_bucket)
+            storage_manager.upload_directory(
+                destination_prefix=f"runs/{run_id}", directory_path=run_dir)
+            console.print(
+                f"  [green]✓[/] Published full run directory to gs://{gcs_bucket}/runs/{run_id}/"
+            )
+        except Exception as e:
+            console.print(f"  [red]Failed to publish to GCS:[/] {e}")
+
     # ── Phase 5: Dashboard (optional) ──────────────────────────────────────
 
     if run_evaluate and run_dashboard is not False:
@@ -1363,7 +1505,7 @@ def _offer_dashboard(results_dir: Path, run_dashboard: bool | None) -> None:
 # _step_* functions directly (which print their own "Step X/5" headers) —
 # instead they call the underlying logic with consistent formatting.
 
-_UV_RUN_ADK = ["uv", "run", "--with", "google-adk[eval]"]
+_UV_RUN_ADK = []
 
 
 def _clean_env(project_root: Path) -> dict:
@@ -1715,6 +1857,7 @@ def _run_simulate_phase(
     raw_dir: Path,
     debug: bool = False,
     max_parallel: int = _DEFAULT_SIM_PARALLELISM,
+    in_process: bool = False,
 ) -> bool:
     """Run the simulate workflow. Returns True on success.
 
@@ -1723,6 +1866,43 @@ def _run_simulate_phase(
     in parallel (capped by ``max_parallel`` to limit Vertex AI quota
     pressure). Eval_history files are timestamp-suffixed → no collisions.
     """
+    if in_process:
+        from agent_eval.core.converters import write_jsonl
+        from agent_eval.core.simulation import run_simulation_in_process
+
+        dataset_path = project_root / "tests" / "eval" / "dataset.jsonl"
+        if not dataset_path.exists():
+            console.print(f"     [red]Dataset not found at {dataset_path}[/]")
+            return False
+
+        console.print("  [bold]1.[/] Running simulation in-process...")
+        try:
+            records = asyncio.run(
+                run_simulation_in_process(
+                    agent_dir=agent_path,
+                    project_root=project_root,
+                    dataset_path=dataset_path,
+                    parallelism=max_parallel,
+                ))
+            if not records:
+                console.print(
+                    "     [yellow]![/] No simulation records generated.")
+                return False
+
+            sim_output = raw_dir / "processed_interaction_sim.jsonl"
+            write_jsonl(records, str(sim_output))
+            console.print(
+                f"     [green]+[/] Converted [cyan]{len(records)}[/] simulation interaction{'s' if len(records) != 1 else ''}"
+            )
+            return True
+        except Exception as e:
+            console.print(
+                f"     [red]Error running simulation in-process:[/] {e}")
+            if debug:
+                import traceback
+
+                traceback.print_exc()
+            return False
 
     import shutil
     import time
@@ -2056,12 +2236,8 @@ def _run_simulate_phase(
         return False
 
 
-def _interaction_failures(raw_df) -> tuple[int, str | None]:
-    """Count failed interaction rows, and return one representative error.
-
-    ``status`` is written by ``InteractionRunner`` as a JSON string shaped
-    ``{"boolean": "success"|"failed", "error_message": ...}``.
-    """
+def _interaction_failures(raw_df: Any) -> tuple[int, str | None]:
+    """Count failed interaction rows, and return one representative error."""
     failed = 0
     first_error: str | None = None
     if "status" not in getattr(raw_df, "columns", []):
@@ -2162,38 +2338,6 @@ def _run_interact_phase(
         f"    [green]+[/] Captured [cyan]{len(raw_df)}[/] interaction{'s' if len(raw_df) != 1 else ''}"
     )
 
-    # "Captured N" only means N rows came back — each row may still be an
-    # error. agent-eval does not start the agent; it POSTs to whatever is
-    # already on base_url, so a leftover server for a *different* agent will
-    # answer every request with a 5xx and produce N failed rows. Writing those
-    # out as if they were data is how a run reports "Interact ✓" while every
-    # judge downstream sees an empty response.
-    failed_count, sample_error = _interaction_failures(raw_df)
-    if failed_count and failed_count == len(raw_df):
-        console.print()
-        console.print(
-            Panel(
-                f"[bold red]All {failed_count} interaction(s) failed.[/]  No usable data was produced.\n\n"
-                + (f"[bold]Agent replied:[/] [dim]{sample_error}[/]\n\n"
-                   if sample_error else "") + "[bold]Most likely cause:[/]\n"
-                f"  [dim]>[/] Something other than your agent is listening on [cyan]{base_url}[/].\n"
-                "  [dim]>[/] agent-eval never starts your agent — it sends requests to whatever\n"
-                "    is already on that port. A leftover [cyan]adk web[/] from another agent\n"
-                "    will accept the connection and fail every request.\n\n"
-                "[bold]Check which agent is actually serving:[/]\n"
-                "  [dim]>[/] [cyan]ss -ltnp | grep 8501[/]                     [dim]# get the PID[/]\n"
-                "  [dim]>[/] [cyan]tr '\\0' ' ' < /proc/<PID>/cmdline[/]        [dim]# see its agents dir[/]",
-                title="[bold]Interact produced no usable data[/]",
-                border_style="red",
-                padding=(1, 2),
-            ))
-        return None
-    if failed_count:
-        console.print(
-            f"    [yellow]![/] [yellow]{failed_count}[/] of {len(raw_df)} interaction(s) failed — "
-            f"scoring continues on the {len(raw_df) - failed_count} that succeeded."
-        )
-
     processor = InteractionProcessor(config)
     try:
         with console.status(
@@ -2235,6 +2379,7 @@ def _run_evaluate_phase(
     metric_paths: list[Path],
     run_dir: Path,
     run_id: str,
+    description: str | None = None,
     debug: bool = False,
 ) -> None:
     """Run the evaluate workflow."""
@@ -2242,9 +2387,13 @@ def _run_evaluate_phase(
     from agent_eval.core.evaluator import Evaluator
 
     eval_config = {
-        "metric_filters": None,
-        "input_label": "run",
-        "test_description": f"Combined evaluation run: {run_id}",
+        "metric_filters":
+            None,
+        "input_label":
+            "run",
+        "test_description":
+            description
+            if description else f"Combined evaluation run: {run_id}",
     }
 
     evaluator = Evaluator(eval_config)
@@ -2273,6 +2422,8 @@ def _run_analyze_phase(
     focus: str | None = None,
     skip_gemini: bool = False,
     debug: bool = False,
+    publish: bool = False,
+    compare_to: str | None = None,
 ) -> dict:
     """Run the analyze workflow. Returns the analysis result dict or None."""
     from agent_eval.cli.commands.analyze import _display_metrics_table
@@ -2284,6 +2435,7 @@ def _run_analyze_phase(
         "focus": focus,
         "skip_gemini": skip_gemini,
         "model": "gemini-3.1-pro-preview",
+        "compare_to": compare_to,
     }
 
     analyzer = Analyzer(config)

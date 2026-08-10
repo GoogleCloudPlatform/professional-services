@@ -30,7 +30,7 @@ Each phase inside `run` is also exposed as a standalone command (`simulate`, `in
 
 ### [0] Install + set up Google Cloud
 
-You need **Python 3.10–3.13**, **[`uv`](https://docs.astral.sh/uv/)**, and **[`gcloud`](https://cloud.google.com/sdk/docs/install)** installed locally.
+You need **Python 3.10–3.12**, **[`uv`](https://docs.astral.sh/uv/)**, and **[`gcloud`](https://cloud.google.com/sdk/docs/install)** installed locally.
 
 #### Option A: Direct Git Install (Recommended)
 Install `agent-eval` directly from GitHub into your project's virtual environment:
@@ -51,12 +51,12 @@ If you are developing or modifying `agent-eval` locally:
 
 ```bash
 cd agent-eval
-uv venv                   # creates .venv using active Python (3.10–3.13)
+uv venv --python 3.12     # pin the interpreter — see the note below
 uv sync                   # installs all deps into .venv/
 source .venv/bin/activate # so `agent-eval` is on your PATH
 ```
 
-> 💡 **Python 3.10–3.13 Fully Supported.** `agent-eval` targets `google-cloud-aiplatform>=1.156.0` and ships pre-compiled binary wheels across Python 3.10 through 3.13 on Linux, macOS, and Windows. If you are operating on legacy toolchains or encounters Fortran build errors with older packages, pin with `uv venv --python 3.12`.
+> ⚠️ **Pin the interpreter — don't let `uv` pick.** With no `.venv` present, `uv` selects the newest Python installed on your machine. On **Python 3.13+** that currently fails during install: the locked `scipy` (a transitive dependency of `google-cloud-aiplatform[evaluation]`) publishes no wheels for those versions, so `uv` falls back to building it from source and stops with a missing-Fortran-compiler error. Creating the venv with `--python 3.12` first avoids this. Already stuck? `rm -rf .venv && uv venv --python 3.12 && uv sync`.
 
 Then walk Google Cloud setup (once per shell):
 
@@ -67,6 +67,26 @@ agent-eval setup
 Six idempotent steps — walks gcloud auth, picks your project + location, enables the Vertex AI API, binds the autorater IAM. Re-run whenever you switch projects or your token expires; already-done steps are detected and skipped.
 
 > ⚠️ **Use Vertex AI, not `GOOGLE_API_KEY`** — eval metrics will be empty otherwise. `agent-eval setup` configures this for you.
+
+---
+
+### [Optional] Register Skills for AI Pair Programmers (Jetski / Gemini CLI)
+
+`agent-eval` ships with self-contained agent skills for AI pair programming assistants:
+
+```bash
+# List bundled skills and global registration status
+agent-eval skills list
+
+# Register / symlink bundled skills to global AI CLI config (~/.gemini/config/skills)
+agent-eval skills install
+```
+
+Once installed, coding agents automatically recognize:
+* **`/agent-eval`** — Runs automated benchmark pipelines, GCS publishing (`--publish`), and delta radar comparisons (`--compare-to`).
+* **`/agent-eval-workflow`** — Guides hypothesis-driven evaluation design, metric calibration, and loss cluster remediation.
+
+---
 
 ### [1] Initialize an agent
 
@@ -122,8 +142,8 @@ agent-eval run        # collect → score → analyze → view
 `agent-eval run` supports an agnostic storage abstraction (`StorageBackend`) so your evaluation traces (`AgentData` trajectories and `eval_summary.json` scorecards) can transition smoothly from local debugging to cloud persistence:
 
 - **Local filesystem (default)** — writes atomic `.tmp`-buffered files to `tests/eval/results/<run-id>/traces.jsonl`. Perfect for offline development; git-ignored to prevent repository bloat.
-- **Google Cloud Storage (`--storage=gcs --gcs-bucket=gs://...`)** — streams structured JSON runs directly to cloud object storage for CI/CD artifact persistence and team collaboration.
-- **BigQuery Analytics (`--storage=bigquery --bq-dataset=...`)** — streams telemetry rows into OLAP BigQuery tables (`agent_runs`, `agent_runs_summary`), making your agent's historical quality trends instantly queryable in SQL and dashboardable in Looker.
+- **Google Cloud Storage (`--storage=gcs --bucket=gs://...`)** — streams structured JSON runs directly to cloud object storage for CI/CD artifact persistence and team collaboration.
+- **BigQuery Analytics (`--storage=bigquery --dataset=...`)** — streams telemetry rows into OLAP BigQuery tables (`agent_runs`, `agent_runs_summary`), making your agent's historical quality trends instantly queryable in SQL and dashboardable in Looker.
 
 See [`docs/reference.md`](docs/reference.md) for the per-phase walkthrough, every flag, dataset schema details, custom metric patterns, troubleshooting, and the BYOD roadmap.
 

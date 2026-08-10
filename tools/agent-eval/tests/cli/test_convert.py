@@ -220,8 +220,8 @@ class TestConvertDefaultAndADK:
         record = json.loads(lines[0])
         assert record["session_id"] == "sess_101"
         assert record["app_name"] == "weather_agent"
-        assert (record["final_response"] ==
-                "It is currently 65F and sunny in San Francisco.")
+        assert record[
+            "final_response"] == "It is currently 65F and sunny in San Francisco."
 
     def test_explicit_trace_format_adk(self, cli_runner: CliRunner,
                                        sample_adk_agent_dir: Path,
@@ -378,9 +378,9 @@ class TestConvertOpenInferenceAndDirectPaths:
                     "span_id": "s1",
                     "attributes": {
                         "openinference.span.kind": "LLM",
-                        "output.value": "Ans 1",
-                    },
-                }],
+                        "output.value": "Ans 1"
+                    }
+                }]
             }) + "\n",
             encoding="utf-8",
         )
@@ -392,9 +392,9 @@ class TestConvertOpenInferenceAndDirectPaths:
                     "span_id": "s2",
                     "attributes": {
                         "openinference.span.kind": "LLM",
-                        "output.value": "Ans 2",
-                    },
-                }],
+                        "output.value": "Ans 2"
+                    }
+                }]
             }),
             encoding="utf-8",
         )
@@ -572,8 +572,7 @@ class TestErrorHandlingAndValidation:
         assert result.exit_code == 1
         assert "Error converting history:" in result.output
         normalized_output = " ".join(result.output.split())
-        assert ("Unsupported trace format type: 'unsupported_framework_xyz'"
-                in normalized_output)
+        assert "Unsupported trace format type: 'unsupported_framework_xyz'" in normalized_output
         assert "openinference" in normalized_output
         assert "autogen" in normalized_output
 

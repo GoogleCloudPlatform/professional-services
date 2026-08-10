@@ -112,48 +112,6 @@ so it always renders text:
 
 ---
 
-<<<<<<< HEAD
-## 3.1. Testing Trajectories, Tool Calls, and Sub-Agent Actions
-
-For agents that interact with tools and sub-agents, evaluating just the final text is insufficient. You must evaluate the **system trajectory**:
-
-1. **Mapping Intermediate Tool Events:**
-   In your `eval_config.yaml`, bind the judge to `extracted_data:tool_interactions` and `extracted_data:subagent_delegations`:
-   ```yaml
-   metrics:
-     tool_call_quality:
-       kind: custom_llm_judge
-       requires_multi_turn: true
-       instruction: "Evaluate whether the agent called the correct tools with valid, unhallucinated parameters to support its claims."
-       criteria:
-         tool_selection: Did the agent pick the correct tool or delegate to the appropriate sub-agent?
-         parameter_validity: Are the SQL queries or API parameters mathematically and semantically correct?
-         data_traceability: Can every factual claim in the final response be traced back to the tool return payload?
-         self_correction: If an initial tool call returned an error or 0 rows, did the agent adapt and retry?
-       rating_scores:
-         '1': 'Pass: Valid tools and parameters used, claims grounded in tool output.'
-         '0': 'Fail: Hallucinated parameters, wrong tool, or ungrounded claims.'
-   ```
-
-2. **Verifying Trajectory Hops:**
-   The canonical `AgentData` model stores each action as an `AgentEvent(event_type="TOOL_CALL" | "DELEGATION", author="subagent_name", payload={...})`. Multi-turn judges inspect the full conversation sequence alongside these events to verify sub-agent handoffs.
-
----
-
-## 4. Design a dataset that can fail (The 60/20/20 Rule)
-
-A dataset consisting only of happy paths produces false confidence. A production-grade **Golden Set** must follow a disciplined **60 / 20 / 20 Composition**:
-
-1. **Nominal Happy Paths (60%):** Standard in-scope requests verifying core business logic.
-2. **Boundary & Edge Cases (20%):** At-limit requests (e.g. 10% vs 10.01%), secondary forgotten constraints, and empty-database responses requiring self-correction retries.
-3. **Adversarial & Negative Traps (20%):** Inquiries designed to catch cheating models:
-   - **Domain Refusal Traps:** Inquiries asking for unsupported attributes (e.g. uncoded trait meanings) where the agent *must refuse and pivot*.
-   - **Ambiguity Traps:** Vague user requests where querying tools without asking for clarification is a critical failure.
-   - **Negative Consent / Do Nothing:** Cases where user consent is withheld or the correct action is *do not execute*.
-   - **Out-of-Scope Distractors:** Adversarial prompts attempting to bypass guardrails.
-
-> **The Rule:** If an agent scores 100% on Turn 1 of a new dataset without any prompt tuning, the dataset is defective—not the agent. Ensure at least 20–30% of rows contain negative or adversarial traps.
-=======
 ## 4. Design a dataset that can fail
 
 Rows should include boundary and negative cases, not just happy paths:
@@ -165,7 +123,6 @@ Rows should include boundary and negative cases, not just happy paths:
 - One clearly **out-of-scope** request
 
 If every row passes at baseline, the dataset is too easy to teach you anything.
->>>>>>> dani/chore/agent-eval-0.1.1-docs
 
 ---
 

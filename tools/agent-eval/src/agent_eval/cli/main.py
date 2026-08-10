@@ -13,13 +13,18 @@
 # limitations under the License.
 """agent-eval CLI — evaluate your ADK agents with confidence."""
 
+try:
+    import urllib3.contrib.pyopenssl
+    urllib3.contrib.pyopenssl.extract_from_urllib3()
+except Exception:
+    pass
+
 import importlib.metadata
 
 import click
 from rich.console import Console
 from rich.panel import Panel
 
-from agent_eval.cli.commands.agent_engine import agent_engine
 from agent_eval.cli.commands.analyze import analyze
 from agent_eval.cli.commands.convert import convert
 from agent_eval.cli.commands.create_dataset import create_dataset
@@ -33,7 +38,7 @@ from agent_eval.cli.commands.report import report
 from agent_eval.cli.commands.run import run
 from agent_eval.cli.commands.setup import setup
 from agent_eval.cli.commands.simulate import simulate
-from agent_eval.cli.commands.stage import stage
+from agent_eval.cli.commands.skills import skills
 from agent_eval.cli.commands.stories import stories
 
 console = Console()
@@ -109,20 +114,22 @@ cli.add_command(import_adk,
 cli.add_command(simulate)  # Generate traces (multi-turn)
 cli.add_command(interact)  # Generate traces (single-turn)
 cli.add_command(evaluate)  # Run evaluation
-cli.add_command(
-    evaluate,
-    name="grade")  # Contract C2 alias: agent-eval grade == agent-eval evaluate
 # `agent-engine` (streamlined Agent Engine pass via create_evaluation_run)
-cli.add_command(agent_engine, name="agent-engine")
+# is intentionally NOT registered here while it's being re-validated. The
+# command implementation is still in agent_eval.cli.commands.agent_engine
+# and the import above stays so it doesn't bit-rot. To re-enable, uncomment
+# the cli.add_command(agent_engine, name="agent-engine") line below. See
+# docs/FUTURE_WORK.md for the investigation context.
+# cli.add_command(agent_engine, name="agent-engine")
 cli.add_command(analyze)  # View / interpret results
 cli.add_command(report)  # Open the HTML report in a browser
 cli.add_command(dashboard)  # View / interpret results (interactive)
 cli.add_command(run)  # Full pipeline shortcut
+cli.add_command(skills)  # Manage & install bundled AI coding agent skills
 cli.add_command(convert)  # Utility: ADK traces → JSONL
 cli.add_command(create_dataset,
                 name="create-dataset")  # Utility: legacy dataset converter
 cli.add_command(stories)  # Utility: browse the wait-time story library
-cli.add_command(stage)  # Modular stage execution (Daniela's P1 Workstream)
 
 
 def main():

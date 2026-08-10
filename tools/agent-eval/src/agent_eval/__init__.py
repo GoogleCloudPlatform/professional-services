@@ -11,17 +11,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from agent_eval._preflight import check_runtime_dependencies
+try:
+    import urllib3.contrib.pyopenssl
+    urllib3.contrib.pyopenssl.extract_from_urllib3()
+except Exception:
+    pass
 
-# Before the heavy imports below — a drifted environment otherwise fails deep in
-# the import chain with an error that points nowhere near the real cause.
-check_runtime_dependencies()
-
-from agent_eval.sdk import (  # noqa: E402
-    EvaluationResult,
-    run_evaluation,
-    run_evaluation_sync,
-)
+from agent_eval.sdk import EvaluationResult, run_evaluation, run_evaluation_sync
 
 __all__ = [
     "EvaluationResult",

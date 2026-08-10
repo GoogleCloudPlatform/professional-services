@@ -137,19 +137,6 @@ def _build_evaluation_run_metrics(
     return run_metrics
 
 
-def _has_agent_specific_metrics(run_metrics: list[Any]) -> bool:
-    """Check if there are any agent-specific metrics in the run (like tool use)
-
-    that require agent_info linkage (and thus force agent parameter, which crashes backend tracing).
-    """
-    for m in run_metrics:
-        metric_name = getattr(m, "metric", "") or ""
-        if any(keyword in str(metric_name).upper()
-               for keyword in ("TOOL_USE", "TOOL_CALL")):
-            return True
-    return False
-
-
 def _agent_info_fidelity_label(agent_info: Any, local_agent: Any) -> str:
     """Human-readable label naming which fidelity layer was used for AgentInfo.
 
@@ -265,11 +252,7 @@ def _merge_inference_with_extras(inference_dataset: Any,
     return inference_dataset
 
 
-def _check_inference_response_health(
-    inference_dataset: Any,
-    *,
-    _abort_on_all_broken: bool = True,
-) -> None:
+def _check_inference_response_health(inference_dataset: Any,) -> None:
     """Surface a clear actionable diagnostic when run_inference comes back broken.
 
     The dangerous failure mode: every row's ``response`` is the string
@@ -534,59 +517,20 @@ def _build_agent_info(vt_evals: Any, agent: Any | None,
     """
     AgentInfo = vt_evals.AgentInfo
 
-    name = (getattr(agent, "name", None) or "root_agent"
-            if agent is not None else "root_agent")
-
-    # Build flat adjacency-list AgentConfig graph schema (RFC 135 / RFC 477 Contract C1)
-    sub_agent_names = ([
-        getattr(sub, "name", str(sub))
-        for sub in getattr(agent, "sub_agents", [])
-    ] if agent is not None else [])
-    if not sub_agent_names and name == "root_agent":
-        sub_agent_names = ["data_analytics_subagent"]
-
-    agents_map: dict[str, Any] = {
-        name: {
-            "agent_id":
-                name,
-            "type":
-                getattr(agent, "__class__", type("LlmAgent", (), {})).__name__
-                if agent is not None else "LlmAgent",
-            "description":
-                getattr(agent, "description", None) or "ADK Agent",
-            "instruction":
-                getattr(agent, "instruction", None) or
-                getattr(agent, "global_instruction", "")
-                if agent is not None else "",
-            "tools": [
-                getattr(t, "name", str(t)) for t in getattr(agent, "tools", [])
-            ] if agent is not None else ["ask_data_agent"],
-            "sub_agents":
-                sub_agent_names,
-        }
-    }
-
     # Layer 1: Full SDK helper (only when we have a real agent)
     if agent is not None:
 
         def _try_load() -> Any | None:
             try:
-                info = AgentInfo.load_from_agent(
+                return AgentInfo.load_from_agent(
                     agent, agent_resource_name=resource_name)
             except TypeError:
                 try:
-                    info = AgentInfo.load_from_agent(agent)
+                    return AgentInfo.load_from_agent(agent)
                 except Exception:
                     return None
             except Exception:
                 return None
-            try:
-                info.agents = getattr(info, "agents", None) or agents_map
-                info.root_agent_id = getattr(info, "root_agent_id",
-                                             None) or name
-            except Exception:
-                pass
-            return info
 
         info = _try_load()
         if info is not None:
@@ -594,6 +538,8 @@ def _build_agent_info(vt_evals: Any, agent: Any | None,
 
     # Layer 2 / 3: Manual construction
     fields = set(AgentInfo.model_fields.keys())
+    name = (getattr(agent, "name", None) or "root_agent"
+            if agent is not None else "root_agent")
     common: dict[str, Any] = {"name": name}
     if "agent_resource_name" in fields:
         common["agent_resource_name"] = resource_name
@@ -607,16 +553,9 @@ def _build_agent_info(vt_evals: Any, agent: Any | None,
         common["tool_declarations"] = []
     if "root_agent_id" in fields:
         common["root_agent_id"] = name
-    if "agents" in fields:
-        common["agents"] = agents_map
 
     try:
         info = AgentInfo(**common)
-        try:
-            info.agents = getattr(info, "agents", None) or agents_map
-            info.root_agent_id = getattr(info, "root_agent_id", None) or name
-        except Exception:
-            pass
         if agent is not None:
             console.print(
                 "  [dim]Built AgentInfo manually (skipped tool schema — "
@@ -826,7 +765,6 @@ def agent_engine(
     timeout: int,
     no_wait: bool,
     agent_module: str | None,
-    _no_abort_on_broken_inference: bool,
     debug: bool,
 ) -> None:
     """Run a streamlined evaluation against an Agent Engine deployment.
@@ -838,10 +776,6 @@ def agent_engine(
     from agent_eval.cli.main import _display_banner
 
     _display_banner()
-
-    # Disable client certificates (mTLS) to prevent google-auth/urllib3 from
-    # monkey-patching with pyopenssl, which causes connection crashes on Python 3.13.
-    os.environ.setdefault("GOOGLE_API_USE_CLIENT_CERTIFICATE", "false")
 
     if not debug:
         import logging
@@ -1060,22 +994,12 @@ def agent_engine(
     console.print()
     console.rule("[dim]Submission[/]", style="grey50", align="left")
 
-    has_agent_metrics = _has_agent_specific_metrics(run_metrics)
-
     create_kwargs: dict[str, Any] = {
         "dataset": inference_df,
         "metrics": run_metrics,
         "dest": destination,
     }
-
-    if has_agent_metrics:
-        console.print(
-            "  [yellow]![/] Run contains agent-specific metric(s) (e.g. tool use).\n"
-            "      The Vertex server-side tracer currently has limitations parsing ADK traces on the backend.\n"
-            "      If the run fails with an INTERNAL error, consider using 'agent-eval evaluate' for local trace grading.\n"
-            "      Proceeding with engine linkage...")
-
-    if agent_info is not None and has_agent_metrics:
+    if agent_info is not None:
         create_kwargs["agent_info"] = agent_info
         # Newer SDK (>= 1.143) requires a separate ``agent`` kwarg to link
         # the run back to the deployed Reasoning Engine. Older releases
@@ -1225,6 +1149,16 @@ def _summarize_run_errors(error: Any) -> None:
     )
 
 
+def _has_agent_specific_metrics(metrics: list[Any]) -> bool:
+    """Detect whether any metric is an agent/tool specific metric."""
+    for m in metrics:
+        name = str(getattr(m, "metric", "") or getattr(m, "name", "")).upper()
+        if any(keyword in name
+               for keyword in ("TOOL_", "AGENT_", "TRAJECTORY_", "MULTITURN_")):
+            return True
+    return False
+
+
 def _print_dashboard_url(run: Any, project: str, location: str) -> None:
     """Print the dashboard URL, falling back to a constructed console URL."""
     dashboard_url = getattr(run, "dashboard_url", None)
@@ -1240,7 +1174,7 @@ def _print_dashboard_url(run: Any, project: str, location: str) -> None:
         console.print(f"  [bold]View results:[/] [cyan]{dashboard_url}[/]")
 
 
-def _wait_for_run(client: Any, run: Any, *, timeout: int) -> Any:
+def _wait_for_run(client: Any, run: Any, timeout: int = 1800) -> Any:
     """Poll get_evaluation_run until terminal state or timeout."""
     import time
 
