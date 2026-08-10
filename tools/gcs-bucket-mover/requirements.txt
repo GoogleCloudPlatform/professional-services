@@ -70,7 +70,7 @@ grpcio==1.53.2
     #   google-api-core
     #   googleapis-common-protos
     #   grpc-google-iam-v1
-httplib2==0.20.4
+httplib2==0.32.0
     # via
     #   google-api-python-client
     #   google-auth-httplib2
