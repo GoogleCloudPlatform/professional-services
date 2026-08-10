@@ -66,7 +66,8 @@ def _looks_headless() -> bool:
         return True
     if os.environ.get("CODESPACES"):
         return True
-    return bool(not os.environ.get("DISPLAY") and not os.environ.get("WAYLAND_DISPLAY"))
+    return bool(not os.environ.get("DISPLAY") and
+                not os.environ.get("WAYLAND_DISPLAY"))
 
 
 def _open_report_in_run(html_path: Path, run_dir: Path, cwd: Path) -> None:
@@ -91,8 +92,7 @@ def _open_report_in_run(html_path: Path, run_dir: Path, cwd: Path) -> None:
     if headless:
         console.print(
             "  [dim]Detected headless shell[/] "
-            "[dim](no $DISPLAY / SSH session / Cloud Workstation).[/]"
-        )
+            "[dim](no $DISPLAY / SSH session / Cloud Workstation).[/]")
     console.print()
 
     if _pauses_disabled() or not sys.stdin.isatty():
@@ -107,9 +107,9 @@ def _open_report_in_run(html_path: Path, run_dir: Path, cwd: Path) -> None:
     # for SSH'd-in users.
     if headless:
         if not Confirm.ask(
-            "  Start a localhost server now so you can view via SSH tunnel "
-            "or Cloud Workstation Web Preview?",
-            default=True,
+                "  Start a localhost server now so you can view via SSH tunnel "
+                "or Cloud Workstation Web Preview?",
+                default=True,
         ):
             console.print()
             _print_open_later_commands()
@@ -154,8 +154,8 @@ def _open_report_in_run(html_path: Path, run_dir: Path, cwd: Path) -> None:
         "  [yellow]Couldn't auto-open a browser[/] [dim](no working handler).[/]"
     )
     if not Confirm.ask(
-        "  Start a localhost server you can open manually instead?",
-        default=True,
+            "  Start a localhost server you can open manually instead?",
+            default=True,
     ):
         console.print()
         _print_open_later_commands()
@@ -172,10 +172,8 @@ def _open_report_in_run(html_path: Path, run_dir: Path, cwd: Path) -> None:
 def _print_open_later_commands() -> None:
     """Always end the View phase with copy-paste commands so the user
     knows how to come back later, regardless of which path they took."""
-    console.print(
-        "  [dim]Re-open anytime:[/]  [cyan]agent-eval report[/]"
-        "  [dim]· remote dev:[/] [cyan]agent-eval report --serve[/]"
-    )
+    console.print("  [dim]Re-open anytime:[/]  [cyan]agent-eval report[/]"
+                  "  [dim]· remote dev:[/] [cyan]agent-eval report --serve[/]")
 
 
 def _start_storyteller():
@@ -207,7 +205,8 @@ def _start_storyteller():
 @click.option(
     "--run-id",
     default=None,
-    help="Name for the results folder (e.g., 'baseline'). Defaults to a timestamp.",
+    help=
+    "Name for the results folder (e.g., 'baseline'). Defaults to a timestamp.",
 )
 @click.option(
     "--simulate/--no-simulate",
@@ -220,14 +219,16 @@ def _start_storyteller():
     type=int,
     default=_DEFAULT_SIM_PARALLELISM,
     show_default=True,
-    help="Max concurrent ADK eval subprocesses during simulate. Higher = faster wall-clock "
+    help=
+    "Max concurrent ADK eval subprocesses during simulate. Higher = faster wall-clock "
     "but more Vertex AI quota pressure. Set to 1 to fully serialize.",
 )
 @click.option(
     "--interact/--no-interact",
     "run_interact",
     default=True,
-    help="Run DIY interactions against a live agent (default: yes). Skipped gracefully if agent is unreachable.",
+    help=
+    "Run DIY interactions against a live agent (default: yes). Skipped gracefully if agent is unreachable.",
 )
 @click.option(
     "--base-url",
@@ -278,16 +279,18 @@ def _start_storyteller():
 @click.option(
     "--focus",
     default=None,
-    help="Developer focus for analysis: metric names to highlight (e.g., 'latency, cache').",
+    help=
+    "Developer focus for analysis: metric names to highlight (e.g., 'latency, cache').",
 )
-@click.option(
-    "--skip-gemini", is_flag=True, help="Skip AI-powered analysis in the analyze phase."
-)
+@click.option("--skip-gemini",
+              is_flag=True,
+              help="Skip AI-powered analysis in the analyze phase.")
 @click.option(
     "--dashboard/--no-dashboard",
     "run_dashboard",
     default=None,
-    help="Launch interactive dashboard after pipeline (default: prompt if gradio installed).",
+    help=
+    "Launch interactive dashboard after pipeline (default: prompt if gradio installed).",
 )
 @click.option(
     "--debug",
@@ -313,7 +316,8 @@ def _start_storyteller():
 @click.option(
     "--bq-dataset",
     default=None,
-    help="BigQuery dataset ID when --storage=bigquery (e.g. 'agent_eval_analytics').",
+    help=
+    "BigQuery dataset ID when --storage=bigquery (e.g. 'agent_eval_analytics').",
 )
 def run(
     agent_dir,
@@ -393,13 +397,15 @@ def run(
         cwd = Path.cwd()
         agents = _find_local_agents(cwd)
         if not agents:
-            console.print(f"\n  [red]Error:[/] No agent.py found at or below {cwd}")
+            console.print(
+                f"\n  [red]Error:[/] No agent.py found at or below {cwd}")
             console.print(
                 "  [dim]Run this from your agent project, or pass --agent-dir <path>.[/]"
             )
             sys.exit(1)
         if len(agents) > 1:
-            console.print(f"\n  [yellow]Multiple agent.py files found near {cwd}:[/]")
+            console.print(
+                f"\n  [yellow]Multiple agent.py files found near {cwd}:[/]")
             for a in agents:
                 try:
                     console.print(f"    [dim]-[/] {a.relative_to(cwd)}")
@@ -414,7 +420,8 @@ def run(
                 f"  [dim]Auto-detected agent at[/] [cyan]{rel}[/]  [dim](use --agent-dir to override)[/]"
             )
         except ValueError:
-            console.print(f"  [dim]Auto-detected agent at[/] [cyan]{agent_path}[/]")
+            console.print(
+                f"  [dim]Auto-detected agent at[/] [cyan]{agent_path}[/]")
     else:
         agent_path = Path(agent_dir).resolve()
 
@@ -445,7 +452,8 @@ def run(
             console.print(
                 f"\n  [red]Error:[/] No tests/eval/ directory at {project_root}"
             )
-            console.print("  [dim]Run `agent-eval init` first to scaffold one.[/]")
+            console.print(
+                "  [dim]Run `agent-eval init` first to scaffold one.[/]")
             sys.exit(1)
 
     dataset_path = eval_path / "dataset.jsonl"
@@ -471,12 +479,10 @@ def run(
     if run_simulate and n_multi_turn == 0:
         console.print(
             f"\n  [yellow]Warning:[/] No multi-turn rows in {dataset_path.name}. "
-            f"Skipping simulate phase."
-        )
+            f"Skipping simulate phase.")
         console.print(
             "  [dim]Multi-turn rows have a `history` or `conversation_plan` field. "
-            "Add some, or stick with --no-simulate.[/]"
-        )
+            "Add some, or stick with --no-simulate.[/]")
         run_simulate = False
 
     # Validate interact prerequisites — point at unified dataset.jsonl.
@@ -486,8 +492,7 @@ def run(
             if n_single_turn == 0:
                 console.print(
                     f"\n  [yellow]Warning:[/] No single-turn rows in {dataset_path.name}. "
-                    f"Skipping interact phase."
-                )
+                    f"Skipping interact phase.")
                 run_interact = False
             else:
                 questions_file = str(dataset_path)
@@ -530,14 +535,15 @@ def run(
 
             def _scan_for_live_agents(skip: str) -> list[str]:
                 candidates = [
-                    f"{host}:{port}"
-                    for host in _COMMON_HOSTS
+                    f"{host}:{port}" for host in _COMMON_HOSTS
                     for port in _COMMON_PORTS
                     if f"{host}:{port}" != skip.rstrip("/")
                 ]
                 with ThreadPoolExecutor(max_workers=8) as ex:
                     results = list(ex.map(_check_url, candidates))
-                live_raw = [u for u, ok in zip(candidates, results, strict=False) if ok]
+                live_raw = [
+                    u for u, ok in zip(candidates, results, strict=False) if ok
+                ]
                 # Dedupe by port — localhost:PORT and 127.0.0.1:PORT almost
                 # always point at the same service on a single dev box.
                 # Prefer the localhost form (more readable). If somehow only
@@ -546,7 +552,8 @@ def run(
                 for url in live_raw:
                     port = int(url.rsplit(":", 1)[1])
                     if port in seen_ports:
-                        if "localhost" in url and "localhost" not in seen_ports[port]:
+                        if "localhost" in url and "localhost" not in seen_ports[
+                                port]:
                             seen_ports[port] = url
                     else:
                         seen_ports[port] = url
@@ -567,7 +574,8 @@ def run(
                         )
                         if Confirm.ask("  Use this URL?", default=True):
                             base_url = live[0]
-                            console.print(f"  [green]Connected to {base_url}[/]")
+                            console.print(
+                                f"  [green]Connected to {base_url}[/]")
                         else:
                             console.print("  [dim]Skipping interact phase.[/]")
                             run_interact = False
@@ -588,14 +596,16 @@ def run(
                             console.print("  [dim]Skipping interact phase.[/]")
                         else:
                             base_url = live[int(choice) - 1]
-                            console.print(f"  [green]Connected to {base_url}[/]")
+                            console.print(
+                                f"  [green]Connected to {base_url}[/]")
                 else:
                     # No agent reachable. Before the manual-URL fallback, offer
                     # to spawn `adk api_server` ourselves so the user doesn't
                     # have to keep `make playground` running in another shell.
                     from rich.prompt import Confirm
 
-                    console.print("  [dim]No live agents found on common ports.[/]")
+                    console.print(
+                        "  [dim]No live agents found on common ports.[/]")
                     auto_start = Confirm.ask(
                         "  Start [cyan]adk web[/] for you in the background "
                         f"(same as [cyan]make playground[/] — serves [cyan]{agent_path.name}/[/] on a free port)?",
@@ -606,13 +616,15 @@ def run(
                         console.print(
                             f"  [dim]Spawning `adk web {project_root.name} --port {port}`...[/]"
                         )
-                        proc = _start_adk_api_server(agent_path, project_root, port)
+                        proc = _start_adk_api_server(agent_path, project_root,
+                                                     port)
                         candidate = f"http://127.0.0.1:{port}"
                         with console.status(
-                            f"  [bold blue]Waiting for {candidate} to become ready (≤60s)...[/]",
-                            spinner="dots",
+                                f"  [bold blue]Waiting for {candidate} to become ready (≤60s)...[/]",
+                                spinner="dots",
                         ):
-                            ready = _wait_for_url_ready(candidate, timeout_s=60.0)
+                            ready = _wait_for_url_ready(candidate,
+                                                        timeout_s=60.0)
                         if ready:
                             base_url = candidate
                             auto_started_proc = proc
@@ -638,7 +650,8 @@ def run(
                         ).strip()
                         if alt and _check_url(alt):
                             base_url = alt
-                            console.print(f"  [green]Connected to {base_url}[/]")
+                            console.print(
+                                f"  [green]Connected to {base_url}[/]")
                         elif alt:
                             console.print(
                                 f"  [yellow]Warning:[/] Agent not reachable at {alt} either. Skipping interact."
@@ -657,7 +670,8 @@ def run(
             for raw in metrics_files:
                 p = Path(raw).resolve()
                 if not p.exists():
-                    console.print(f"\n  [red]Error:[/] Metrics file not found: {p}")
+                    console.print(
+                        f"\n  [red]Error:[/] Metrics file not found: {p}")
                     sys.exit(1)
                 metric_paths.append(p)
         else:
@@ -712,8 +726,8 @@ def run(
         idx = phases.index(phase_name) + 1
         console.print()
         console.print(
-            Rule(f"  Phase {idx}/{total_phases}: {phase_name}  ", style="bold cyan")
-        )
+            Rule(f"  Phase {idx}/{total_phases}: {phase_name}  ",
+                 style="bold cyan"))
         console.print(f"  [dim]{description}[/]")
         console.print()
 
@@ -732,10 +746,10 @@ def run(
                 title="[bold]Run ID[/]",
                 border_style="blue",
                 padding=(1, 2),
-            )
-        )
+            ))
         default_ts = datetime.now().strftime("%Y%m%d_%H%M%S")
-        run_id = Prompt.ask("  Run ID", default=default_ts).strip().replace(" ", "-")
+        run_id = Prompt.ask("  Run ID",
+                            default=default_ts).strip().replace(" ", "-")
 
     # ── Overview ────────────────────────────────────────────────────────────
 
@@ -754,8 +768,7 @@ def run(
             title="[bold]Run[/]",
             border_style="blue",
             padding=(1, 2),
-        )
-    )
+        ))
     _continue("Press Enter to start the pipeline →", console=console)
 
     # ── Set up results directory ───────────────────────────────────────────
@@ -774,7 +787,8 @@ def run(
     # Track per-phase outcomes for the end-of-run banner. The lying
     # "Pipeline complete!" green banner from the 2026-04-23 customer demo
     # is replaced with reality: phase_outcomes drives title/border/body.
-    phase_outcomes: dict[str, str] = {}  # name → "completed" | "failed" | "skipped"
+    phase_outcomes: dict[str,
+                         str] = {}  # name → "completed" | "failed" | "skipped"
 
     # ── Phase: Simulate ────────────────────────────────────────────────────
 
@@ -835,10 +849,10 @@ def run(
                     title="[bold]Simulate failed[/]",
                     border_style="red",
                     padding=(1, 2),
-                )
-            )
+                ))
             if _pauses_disabled():
-                console.print("  [dim]AGENT_EVAL_NO_PAUSES=1 — aborting (default).[/]")
+                console.print(
+                    "  [dim]AGENT_EVAL_NO_PAUSES=1 — aborting (default).[/]")
                 sys.exit(1)
             from rich.prompt import Confirm
 
@@ -847,7 +861,8 @@ def run(
                 default=False,
             )
             if not keep_going:
-                console.print("  [dim]Aborted. Fix the simulate failure and re-run.[/]")
+                console.print(
+                    "  [dim]Aborted. Fix the simulate failure and re-run.[/]")
                 sys.exit(1)
             console.print(
                 "  [yellow]Continuing with interact only — multi-turn metrics will be skipped.[/]"
@@ -896,8 +911,7 @@ def run(
                     title="[bold]Interact failed[/]",
                     border_style="red",
                     padding=(1, 2),
-                )
-            )
+                ))
             if not interaction_files:
                 console.print(
                     "  [red]Nothing to score — simulate also produced no output.[/]"
@@ -975,9 +989,11 @@ def run(
         for f in interaction_files:
             console.print(f"    [dim]-[/] {f.name}")
 
-        _run_evaluate_phase(
-            interaction_files, metric_paths, run_dir, run_id, debug=debug
-        )
+        _run_evaluate_phase(interaction_files,
+                            metric_paths,
+                            run_dir,
+                            run_id,
+                            debug=debug)
         phase_outcomes["Evaluate"] = "completed"
 
         if storage and storage.lower() != "local":
@@ -1012,7 +1028,8 @@ def run(
             try:
                 with eval_summary_path.open() as _f:
                     _es = json.load(_f)
-                for entry in _es.get("overall_summary", {}).get("failed_metrics") or []:
+                for entry in _es.get("overall_summary",
+                                     {}).get("failed_metrics") or []:
                     if isinstance(entry, dict):
                         failed_now.append(entry)
                     else:
@@ -1025,13 +1042,11 @@ def run(
 
             by_type: dict[str, list[str]] = {}
             for e in failed_now:
-                by_type.setdefault(e.get("exception_type") or "Unknown", []).append(
-                    e.get("metric", "?")
-                )
+                by_type.setdefault(e.get("exception_type") or "Unknown",
+                                   []).append(e.get("metric", "?"))
             failure_lines = "\n".join(
                 f"  [dim]>[/] [red]{exc_type}[/] in [cyan]{', '.join(names)}[/]"
-                for exc_type, names in by_type.items()
-            )
+                for exc_type, names in by_type.items())
             console.print()
             console.print(
                 Panel(
@@ -1054,8 +1069,7 @@ def run(
                     title="[bold]Evaluate finished with failures[/]",
                     border_style="red",
                     padding=(1, 2),
-                )
-            )
+                ))
             if _pauses_disabled():
                 console.print(
                     "  [dim]AGENT_EVAL_NO_PAUSES=1 — continuing to Analyze (CI default).[/]"
@@ -1101,8 +1115,7 @@ def run(
                         title="[bold]Analysis Focus[/]",
                         border_style="blue",
                         padding=(1, 2),
-                    )
-                )
+                    ))
                 focus_input = Prompt.ask("  Focus", default="").strip()
                 if focus_input:
                     focus = focus_input
@@ -1133,7 +1146,8 @@ def run(
         try:
             with eval_summary_path.open() as _f:
                 _es = json.load(_f)
-            raw_failed = _es.get("overall_summary", {}).get("failed_metrics", []) or []
+            raw_failed = _es.get("overall_summary", {}).get(
+                "failed_metrics", []) or []
             for entry in raw_failed:
                 if isinstance(entry, dict):
                     failed_metrics_summary.append(entry)
@@ -1151,7 +1165,8 @@ def run(
         if analysis_result.get("optimization_log_path"):
             # Show relative-to-cwd so the user can copy/paste. Previously this
             # was relative-to-run_dir (yielded "../OPTIMIZATION_LOG.md" — cryptic).
-            rel_log = os.path.relpath(analysis_result["optimization_log_path"], cwd)
+            rel_log = os.path.relpath(analysis_result["optimization_log_path"],
+                                      cwd)
             output_files.append(f"  - {rel_log}")
         if analysis_result.get("html_report_path"):
             output_files.append(
@@ -1162,8 +1177,7 @@ def run(
     if analysis_result and analysis_result.get("comparison_data"):
         cmp = analysis_result["comparison_data"]
         baseline_label = cmp.get("baseline_run_name") or cmp.get(
-            "baseline_id", "previous"
-        )
+            "baseline_id", "previous")
         comparison_info = f"\n[bold]Compared to:[/]  {baseline_label}\n"
 
     has_phase_failure = any(v == "failed" for v in phase_outcomes.values())
@@ -1180,9 +1194,8 @@ def run(
             phase_summary_parts.append(f"[red]✗[/] {phase_name}")
         else:
             phase_summary_parts.append(f"[dim]·[/] {phase_name}")
-    phase_summary = (
-        "  ".join(phase_summary_parts) if phase_summary_parts else "(no phases ran)"
-    )
+    phase_summary = ("  ".join(phase_summary_parts)
+                     if phase_summary_parts else "(no phases ran)")
 
     if overall_failed:
         title = "[bold]Done[/] — [red]with errors[/]"
@@ -1202,13 +1215,11 @@ def run(
         # display so the banner echoes what the evaluator already showed.
         by_type: dict[str, list[str]] = {}
         for e in failed_metrics_summary:
-            by_type.setdefault(e.get("exception_type") or "Unknown", []).append(
-                e.get("metric", "?")
-            )
+            by_type.setdefault(e.get("exception_type") or "Unknown",
+                               []).append(e.get("metric", "?"))
         body_lines.append(
             f"[bold]Metrics:[/]  [red]{len(failed_metrics_summary)} failed[/] "
-            f"(see eval_summary.json → overall_summary.failed_metrics):"
-        )
+            f"(see eval_summary.json → overall_summary.failed_metrics):")
         for exc_type, names in by_type.items():
             body_lines.append(f"  [red]{exc_type}[/] in {', '.join(names)}")
     if comparison_info.strip():
@@ -1218,9 +1229,8 @@ def run(
     # The View phase below handles opening the report — no need to
     # repeat the open-it instructions here. Just announce the report's
     # existence so users scanning the banner know where it is.
-    html_path = (
-        (analysis_result or {}).get("html_report_path") if analysis_result else None
-    )
+    html_path = ((analysis_result or {}).get("html_report_path")
+                 if analysis_result else None)
     if html_path:
         rel_html = os.path.relpath(html_path, cwd)
         body_lines.append("")
@@ -1240,8 +1250,7 @@ def run(
             title=title,
             border_style=border,
             padding=(1, 2),
-        )
-    )
+        ))
 
     # ── Phase 5: View ──────────────────────────────────────────────────────
     # Open the HTML report. This is a real terminal phase, not an
@@ -1266,15 +1275,11 @@ def run(
 
     if not run_evaluate:
         rel_files = " \\\n  ".join(
-            f"--interaction-file {os.path.relpath(f, cwd)}" for f in interaction_files
-        )
-        rel_metrics = (
-            " \\\n  ".join(
-                f"--metrics-files {os.path.relpath(p, cwd)}" for p in metric_paths
-            )
-            if metric_paths
-            else "--metrics-files <path>"
-        )
+            f"--interaction-file {os.path.relpath(f, cwd)}"
+            for f in interaction_files)
+        rel_metrics = (" \\\n  ".join(
+            f"--metrics-files {os.path.relpath(p, cwd)}" for p in metric_paths)
+                       if metric_paths else "--metrics-files <path>")
         console.print()
         console.print("[bold]Next step — run evaluation:[/]")
         console.print()
@@ -1306,7 +1311,8 @@ def _offer_dashboard(results_dir: Path, run_dashboard: bool | None) -> None:
         if run_dashboard is True:
             # User explicitly asked for --dashboard but gradio is missing
             console.print()
-            console.print("  [yellow]Dashboard requires optional dependencies.[/]")
+            console.print(
+                "  [yellow]Dashboard requires optional dependencies.[/]")
             console.print(
                 "  Install them with:  [cyan]pip install agent-eval\\[dashboard][/]"
             )
@@ -1560,9 +1566,8 @@ def _cleanup_sim_aux_files(
     return cleaned
 
 
-def _start_adk_api_server(
-    agent_path: Path, project_root: Path, port: int
-) -> "subprocess.Popen":
+def _start_adk_api_server(agent_path: Path, project_root: Path,
+                          port: int) -> "subprocess.Popen":
     """Spawn `adk web <project_root> --port <port>` in the background.
 
     Matches what `make playground` does in Agent Starter Pack projects
@@ -1636,9 +1641,9 @@ def _start_adk_api_server(
     return proc
 
 
-def _wait_for_url_ready(
-    url: str, timeout_s: float = 60.0, interval: float = 0.5
-) -> bool:
+def _wait_for_url_ready(url: str,
+                        timeout_s: float = 60.0,
+                        interval: float = 0.5) -> bool:
     """Poll a URL until it returns ANY HTTP response (incl. 404).
 
     ADK's `adk api_server` has no `/` route — it serves `/list-apps`,
@@ -1731,8 +1736,10 @@ def _run_simulate_phase(
 
     # 1. Project the unified dataset into ADK's required files (scenarios,
     # session_input, eval_config). Single source of truth = tests/eval/dataset.jsonl.
-    console.print("  [bold]1.[/] Staging ADK files from tests/eval/dataset.jsonl...")
-    n_scenarios, source = _project_dataset_to_adk_files(agent_path, project_root)
+    console.print(
+        "  [bold]1.[/] Staging ADK files from tests/eval/dataset.jsonl...")
+    n_scenarios, source = _project_dataset_to_adk_files(agent_path,
+                                                        project_root)
     if source != "dataset.jsonl":
         console.print(f"     [red]Could not project scenarios: {source}[/]")
         return False
@@ -1784,14 +1791,12 @@ def _run_simulate_phase(
     console.print(
         f"  [bold]3.[/] Splitting {n_scenarios} scenario{'s' if n_scenarios != 1 else ''} into eval_sets..."
     )
-    evalsets = _split_scenarios_into_evalsets(
-        agent_path, project_root, run_id_for_evalset
-    )
+    evalsets = _split_scenarios_into_evalsets(agent_path, project_root,
+                                              run_id_for_evalset)
     session_file = agent_path / "session_input.json"
     for name, scen_file in evalsets:
-        ok, err = _create_and_load_evalset(
-            agent_name, project_root, name, scen_file, session_file
-        )
+        ok, err = _create_and_load_evalset(agent_name, project_root, name,
+                                           scen_file, session_file)
         if not ok:
             console.print(f"     [red]Failed to set up {name}:[/] {err}")
             return False
@@ -1807,26 +1812,20 @@ def _run_simulate_phase(
     if debug and max_parallel > 1:
         console.print(
             f"     [yellow]![/] [dim]--debug forces serial sim (live ADK output). "
-            f"Drop --debug to use {max_parallel}-way parallel.[/]"
-        )
+            f"Drop --debug to use {max_parallel}-way parallel.[/]")
         max_parallel = 1
     actual_parallel = min(len(evalsets), max(1, max_parallel))
-    parallel_note = (
-        f"in parallel (cap {actual_parallel})"
-        if actual_parallel > 1
-        else "sequentially"
-    )
+    parallel_note = (f"in parallel (cap {actual_parallel})"
+                     if actual_parallel > 1 else "sequentially")
     console.print(
         f"  [bold]4.[/] Running ADK User Sim — {len(evalsets)} scenario(s) {parallel_note}..."
     )
     console.print(
-        "     [dim]An LLM simulates users following your scenario scripts.[/]"
-    )
+        "     [dim]An LLM simulates users following your scenario scripts.[/]")
     if actual_parallel > 1:
         console.print(
             "     [dim]Wall-clock = the slowest single scenario "
-            "(parallel can't shortcut a heavy one — Amdahl's law).[/]"
-        )
+            "(parallel can't shortcut a heavy one — Amdahl's law).[/]")
     console.print()
 
     eval_config = agent_path / "eval_config.json"
@@ -1837,9 +1836,8 @@ def _run_simulate_phase(
     # google-adk[eval]` calls fight over the lockfile (one resolves, others
     # block on the lock for minutes — looks identical to a hung subprocess).
     if actual_parallel > 1:
-        with console.status(
-            "     [dim]Warming uv resolver (one-time)...[/]", spinner="dots"
-        ):
+        with console.status("     [dim]Warming uv resolver (one-time)...[/]",
+                            spinner="dots"):
             _prewarm_uv_resolver(project_root)
 
     if actual_parallel > 1:
@@ -1849,8 +1847,7 @@ def _run_simulate_phase(
             rel_logs = sim_logs_dir
         console.print(
             f"     [dim]Per-scenario logs stream live to[/] [cyan]{rel_logs}/[/]"
-            f"  [dim](tail -f any of them to follow)[/]"
-        )
+            f"  [dim](tail -f any of them to follow)[/]")
         console.print()
 
     started = time.time()
@@ -1898,8 +1895,8 @@ def _run_simulate_phase(
                         name,
                         eval_config,
                         sim_logs_dir / f"{name}.log",
-                    ): name
-                    for name, _ in evalsets
+                    ):
+                        name for name, _ in evalsets
                 }
                 for fut in as_completed(futures):
                     name, rc, tail, elapsed = fut.result()
@@ -1932,16 +1929,14 @@ def _run_simulate_phase(
     if failures:
         console.print(
             f"     [yellow]![/] {len(failures)}/{len(evalsets)} scenario(s) returned non-zero "
-            f"(traces still captured for {n_traces})."
-        )
+            f"(traces still captured for {n_traces}).")
         for name, rc, _ in failures[:3]:
             console.print(
                 f"     [dim]Failed: {name} (rc={rc}) — see sim_logs/ if --debug[/]"
             )
     console.print(
         f"     [dim]Wall-clock: {elapsed_str} for {len(evalsets)} scenario(s) "
-        f"× {actual_parallel}-way parallel[/]"
-    )
+        f"× {actual_parallel}-way parallel[/]")
 
     # Per-scenario timing breakdown — makes Amdahl's law visible. If one
     # scenario dominates (e.g. 7m vs 2m vs 4m), the user sees that parallel
@@ -1992,8 +1987,7 @@ def _run_simulate_phase(
         )
         console.print(
             "     [dim]Use --debug to see ADK's full stderr (deprecation/EXPERIMENTAL warnings, "
-            "missing scoring criteria, etc).[/]"
-        )
+            "missing scoring criteria, etc).[/]")
 
     if has_traces:
         n_traces = sum(1 for _ in eval_history.rglob("*.json"))
@@ -2001,7 +1995,8 @@ def _run_simulate_phase(
         # of rows (e.g. ADK timed out on one) used to slip past the user
         # because the next phase printed a count without a baseline.
         try:
-            scen = json.loads((agent_path / "conversation_scenarios.json").read_text())
+            scen = json.loads(
+                (agent_path / "conversation_scenarios.json").read_text())
             n_expected = len(scen.get("scenarios") or [])
         except (OSError, json.JSONDecodeError):
             n_expected = None
@@ -2014,8 +2009,7 @@ def _run_simulate_phase(
             )
             console.print(
                 "     [dim]Re-run with --debug to see which scenario(s) failed; "
-                "those rows won't score multi-turn metrics this run.[/]"
-            )
+                "those rows won't score multi-turn metrics this run.[/]")
         else:
             console.print(
                 f"     [green]+[/] Simulation complete — {n_traces} trace file{'s' if n_traces != 1 else ''} generated"
@@ -2033,7 +2027,8 @@ def _run_simulate_phase(
 
         prompt_to_ref: dict[str, dict] = {}
         try:
-            for r in read_dataset(project_root / "tests" / "eval" / "dataset.jsonl"):
+            for r in read_dataset(project_root / "tests" / "eval" /
+                                  "dataset.jsonl"):
                 ref = r.get("reference_data")
                 p = r.get("prompt")
                 if isinstance(ref, dict) and ref and p:
@@ -2041,9 +2036,9 @@ def _run_simulate_phase(
         except Exception:
             pass  # converter still works without it; metrics requiring ref will skip
         history_dir = agent_path / ".adk" / "eval_history"
-        converter = AdkHistoryConverter(
-            str(history_dir), None, prompt_to_reference=prompt_to_ref
-        )
+        converter = AdkHistoryConverter(str(history_dir),
+                                        None,
+                                        prompt_to_reference=prompt_to_ref)
         records = converter.run()
         if not records:
             console.print("     [yellow]![/] No traces found to convert.")
@@ -2073,7 +2068,8 @@ def _interaction_failures(raw_df) -> tuple[int, str | None]:
         return 0, None
     for value in raw_df["status"]:
         try:
-            status = json.loads(value) if isinstance(value, str) else (value or {})
+            status = json.loads(value) if isinstance(value, str) else (value or
+                                                                       {})
         except (json.JSONDecodeError, TypeError):
             continue
         if isinstance(status, dict) and status.get("boolean") == "failed":
@@ -2129,8 +2125,7 @@ def _run_interact_phase(
             with qf.open() as _f:
                 _data = json.load(_f)
             _q_count = len(
-                _data.get("questions") or _data.get("golden_questions") or []
-            )
+                _data.get("questions") or _data.get("golden_questions") or [])
         if num_questions and num_questions != -1:
             _q_count = min(_q_count, num_questions)
     except Exception:
@@ -2145,8 +2140,7 @@ def _run_interact_phase(
             interact_storyteller = _start_storyteller() if not debug else None
             console.print(
                 f"    [dim]Querying agent — {_q_count} question"
-                f"{'s' if _q_count != 1 else ''} in flight (parallel)...[/]"
-            )
+                f"{'s' if _q_count != 1 else ''} in flight (parallel)...[/]")
             try:
                 raw_df = asyncio.run(runner.run())
             finally:
@@ -2156,7 +2150,8 @@ def _run_interact_phase(
             raw_df = asyncio.run(runner.run())
     except Exception as e:
         console.print(f"    [red]Error during interactions:[/] {e}")
-        console.print(f"    [dim]Make sure your agent is running at {base_url}[/]")
+        console.print(
+            f"    [dim]Make sure your agent is running at {base_url}[/]")
         return None
 
     if raw_df is None or raw_df.empty:
@@ -2179,12 +2174,8 @@ def _run_interact_phase(
         console.print(
             Panel(
                 f"[bold red]All {failed_count} interaction(s) failed.[/]  No usable data was produced.\n\n"
-                + (
-                    f"[bold]Agent replied:[/] [dim]{sample_error}[/]\n\n"
-                    if sample_error
-                    else ""
-                )
-                + "[bold]Most likely cause:[/]\n"
+                + (f"[bold]Agent replied:[/] [dim]{sample_error}[/]\n\n"
+                   if sample_error else "") + "[bold]Most likely cause:[/]\n"
                 f"  [dim]>[/] Something other than your agent is listening on [cyan]{base_url}[/].\n"
                 "  [dim]>[/] agent-eval never starts your agent — it sends requests to whatever\n"
                 "    is already on that port. A leftover [cyan]adk web[/] from another agent\n"
@@ -2195,8 +2186,7 @@ def _run_interact_phase(
                 title="[bold]Interact produced no usable data[/]",
                 border_style="red",
                 padding=(1, 2),
-            )
-        )
+            ))
         return None
     if failed_count:
         console.print(
@@ -2207,9 +2197,9 @@ def _run_interact_phase(
     processor = InteractionProcessor(config)
     try:
         with console.status(
-            "    [bold blue]Processing and enriching traces[/] — pulling tool calls, "
-            "thinking tokens, latency...",
-            spinner="dots",
+                "    [bold blue]Processing and enriching traces[/] — pulling tool calls, "
+                "thinking tokens, latency...",
+                spinner="dots",
         ):
             enriched_df = asyncio.run(processor.process(raw_df))
     except Exception as e:
@@ -2236,8 +2226,7 @@ def _run_interact_phase(
         rel_out = interact_output
     console.print(
         f"    [green]+[/] Saved [cyan]{len(records)}[/] enriched interaction"
-        f"{'s' if len(records) != 1 else ''} → [dim]{rel_out}[/]"
-    )
+        f"{'s' if len(records) != 1 else ''} → [dim]{rel_out}[/]")
     return interact_output
 
 
@@ -2265,8 +2254,7 @@ def _run_evaluate_phase(
                 interaction_files=interaction_files,
                 metrics_files=[str(p) for p in metric_paths],
                 results_dir=run_dir,
-            )
-        )
+            ))
         _display_metrics_summary(str(run_dir))
 
     except Exception as e:

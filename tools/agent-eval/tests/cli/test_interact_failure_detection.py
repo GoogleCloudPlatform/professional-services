@@ -32,13 +32,15 @@ BAD = json.dumps({"boolean": "failed", "error_message": "500 Server Error"})
 
 
 def test_all_rows_failed_is_detected():
-    failed, error = _interaction_failures(pd.DataFrame({"status": [BAD, BAD, BAD]}))
+    failed, error = _interaction_failures(
+        pd.DataFrame({"status": [BAD, BAD, BAD]}))
     assert failed == 3
     assert error == "500 Server Error"
 
 
 def test_partial_failure_reports_only_the_failures():
-    failed, error = _interaction_failures(pd.DataFrame({"status": [OK, BAD, OK]}))
+    failed, error = _interaction_failures(
+        pd.DataFrame({"status": [OK, BAD, OK]}))
     assert failed == 1
     assert error == "500 Server Error"
 
@@ -54,13 +56,19 @@ def test_missing_status_column_is_not_treated_as_failure():
 
 
 def test_already_parsed_status_dicts_are_handled():
-    rows = [{"boolean": "failed", "error_message": "boom"}, {"boolean": "success"}]
+    rows = [{
+        "boolean": "failed",
+        "error_message": "boom"
+    }, {
+        "boolean": "success"
+    }]
     failed, error = _interaction_failures(pd.DataFrame({"status": rows}))
     assert failed == 1
     assert error == "boom"
 
 
 def test_unparseable_status_is_skipped_not_counted():
-    failed, error = _interaction_failures(pd.DataFrame({"status": ["not json", OK]}))
+    failed, error = _interaction_failures(
+        pd.DataFrame({"status": ["not json", OK]}))
     assert failed == 0
     assert error is None

@@ -45,18 +45,16 @@ class BaseTraceConverter(ABC):
         """
         path = Path(filepath)
         if not path.exists():
-            raise FileNotFoundError(f"Trace file or directory not found: {path}")
+            raise FileNotFoundError(
+                f"Trace file or directory not found: {path}")
 
         results: list[AgentData] = []
         if path.is_dir():
             # Glob all .json and .jsonl files in sorted order
-            json_files = sorted(
-                [
-                    f
-                    for f in path.iterdir()
-                    if f.is_file() and f.suffix.lower() in (".json", ".jsonl")
-                ]
-            )
+            json_files = sorted([
+                f for f in path.iterdir()
+                if f.is_file() and f.suffix.lower() in (".json", ".jsonl")
+            ])
             for f in json_files:
                 results.extend(self.convert_file(f))
             return results
@@ -71,7 +69,8 @@ class BaseTraceConverter(ABC):
                         record = json.loads(line)
                         results.append(self.convert_to_agent_data(record))
                     except Exception as e:
-                        logger.warning(f"Failed to convert JSONL line in {path}: {e}")
+                        logger.warning(
+                            f"Failed to convert JSONL line in {path}: {e}")
         else:
             with path.open("r", encoding="utf-8") as f:
                 content = json.load(f)
@@ -92,12 +91,8 @@ class ADKTraceConverter(BaseTraceConverter):
         if not isinstance(raw_trace, dict):
             return AgentData(session_id="adk_session", turns=[], events=[])
 
-        session_id = (
-            raw_trace.get("session_id")
-            or raw_trace.get("id")
-            or raw_trace.get("eval_id")
-            or "adk_session"
-        )
+        session_id = (raw_trace.get("session_id") or raw_trace.get("id") or
+                      raw_trace.get("eval_id") or "adk_session")
         turns: list[AgentTurn] = []
 
         raw_turns = raw_trace.get("turns")
@@ -113,30 +108,26 @@ class ADKTraceConverter(BaseTraceConverter):
                             continue
                         events.append(
                             AgentEvent(
-                                event_id=ev.get("id", f"ev_{idx}_{len(events)}"),
+                                event_id=ev.get("id",
+                                                f"ev_{idx}_{len(events)}"),
                                 event_type=ev.get("type", "MODEL_INFERENCE"),
                                 status=ev.get("status", "OK"),
-                                payload=ev.get("payload")
-                                if isinstance(ev.get("payload"), dict)
-                                else {},
-                                tool_calls=ev.get("tool_calls")
-                                if isinstance(ev.get("tool_calls"), list)
-                                else [],
+                                payload=ev.get("payload") if isinstance(
+                                    ev.get("payload"), dict) else {},
+                                tool_calls=ev.get("tool_calls") if isinstance(
+                                    ev.get("tool_calls"), list) else [],
                                 tool_responses=ev.get("tool_responses")
                                 if isinstance(ev.get("tool_responses"), list)
                                 else [],
-                                state_delta=ev.get("state_delta")
-                                if isinstance(ev.get("state_delta"), dict)
-                                else {},
+                                state_delta=ev.get("state_delta") if isinstance(
+                                    ev.get("state_delta"), dict) else {},
                                 author=ev.get(
                                     "author",
-                                    "USER"
-                                    if turn_data.get("role") == "user"
+                                    "USER" if turn_data.get("role") == "user"
                                     else "model",
                                 ),
                                 content=ev.get("content", ""),
-                            )
-                        )
+                            ))
 
                 turns.append(
                     AgentTurn(
@@ -145,8 +136,7 @@ class ADKTraceConverter(BaseTraceConverter):
                         role=turn_data.get("role", "model"),
                         content=turn_data.get("content", ""),
                         events=events,
-                    )
-                )
+                    ))
 
         top_events: list[AgentEvent] = []
         raw_top_events = raw_trace.get("events")
@@ -159,24 +149,21 @@ class ADKTraceConverter(BaseTraceConverter):
                         event_id=ev.get("id", f"ev_top_{len(top_events)}"),
                         event_type=ev.get("type", "MODEL_INFERENCE"),
                         status=ev.get("status", "OK"),
-                        payload=ev.get("payload")
-                        if isinstance(ev.get("payload"), dict)
-                        else {},
-                        tool_calls=ev.get("tool_calls")
-                        if isinstance(ev.get("tool_calls"), list)
-                        else [],
-                        tool_responses=ev.get("tool_responses")
-                        if isinstance(ev.get("tool_responses"), list)
-                        else [],
-                        state_delta=ev.get("state_delta")
-                        if isinstance(ev.get("state_delta"), dict)
-                        else {},
+                        payload=ev.get("payload") if isinstance(
+                            ev.get("payload"), dict) else {},
+                        tool_calls=ev.get("tool_calls") if isinstance(
+                            ev.get("tool_calls"), list) else [],
+                        tool_responses=ev.get("tool_responses") if isinstance(
+                            ev.get("tool_responses"), list) else [],
+                        state_delta=ev.get("state_delta") if isinstance(
+                            ev.get("state_delta"), dict) else {},
                         author=ev.get("author", "model"),
                         content=ev.get("content", ""),
-                    )
-                )
+                    ))
 
-        return AgentData(session_id=str(session_id), turns=turns, events=top_events)
+        return AgentData(session_id=str(session_id),
+                         turns=turns,
+                         events=top_events)
 
 
 class OpenInferenceOTelConverter(BaseTraceConverter):
@@ -189,7 +176,9 @@ class OpenInferenceOTelConverter(BaseTraceConverter):
 
     def convert_to_agent_data(self, raw_trace: dict[str, Any]) -> AgentData:
         if isinstance(raw_trace, list):
-            spans: list[dict[str, Any]] = [s for s in raw_trace if isinstance(s, dict)]
+            spans: list[dict[str, Any]] = [
+                s for s in raw_trace if isinstance(s, dict)
+            ]
             session_id = "otel_trace_session"
         elif isinstance(raw_trace, dict):
             raw_spans = raw_trace.get("spans")
@@ -199,12 +188,10 @@ class OpenInferenceOTelConverter(BaseTraceConverter):
                 spans = [s for s in raw_spans if isinstance(s, dict)]
             else:
                 spans = []
-            session_id = (
-                raw_trace.get("trace_id")
-                or raw_trace.get("session_id")
-                or (spans[0].get("trace_id") if spans else None)
-                or "otel_trace_session"
-            )
+            session_id = (raw_trace.get("trace_id") or
+                          raw_trace.get("session_id") or
+                          (spans[0].get("trace_id") if spans else None) or
+                          "otel_trace_session")
         else:
             spans = []
             session_id = "otel_trace_session"
@@ -237,21 +224,18 @@ class OpenInferenceOTelConverter(BaseTraceConverter):
                 if not isinstance(attrs, dict):
                     attrs = {}
 
-                span_kind = (
-                    attrs.get("openinference.span.kind")
-                    or attrs.get("span_kind")
-                    or span.get("span_kind")
-                    or "LLM"
-                )
-                span_kind_str = (
-                    str(span_kind).upper() if span_kind is not None else "LLM"
-                )
+                span_kind = (attrs.get("openinference.span.kind") or
+                             attrs.get("span_kind") or span.get("span_kind") or
+                             "LLM")
+                span_kind_str = (str(span_kind).upper()
+                                 if span_kind is not None else "LLM")
 
                 # Determine error / OK status
                 status_code = "OK"
                 span_status = span.get("status")
                 if isinstance(span_status, dict):
-                    code = span_status.get("code") or span_status.get("status_code")
+                    code = span_status.get("code") or span_status.get(
+                        "status_code")
                     if code in ("ERROR", "STATUS_CODE_ERROR", 2):
                         status_code = "ERROR"
                 elif span_status in ("ERROR", 2):
@@ -260,16 +244,12 @@ class OpenInferenceOTelConverter(BaseTraceConverter):
                 if span_kind_str in ("TOOL", "TOOL_CALL"):
                     # Extract tool parameters
                     tool_params = next(
-                        (
-                            attrs[k]
-                            for k in (
-                                "tool.parameters",
-                                "tool.call.parameters",
-                                "input.value",
-                                "input_arguments",
-                            )
-                            if k in attrs and attrs[k] is not None
-                        ),
+                        (attrs[k] for k in (
+                            "tool.parameters",
+                            "tool.call.parameters",
+                            "input.value",
+                            "input_arguments",
+                        ) if k in attrs and attrs[k] is not None),
                         {},
                     )
                     if isinstance(tool_params, str):
@@ -279,15 +259,11 @@ class OpenInferenceOTelConverter(BaseTraceConverter):
                                 tool_params = json.loads(s_params)
 
                     tool_result = next(
-                        (
-                            attrs[k]
-                            for k in (
-                                "tool.output",
-                                "output.value",
-                                "output_result",
-                            )
-                            if k in attrs and attrs[k] is not None
-                        ),
+                        (attrs[k] for k in (
+                            "tool.output",
+                            "output.value",
+                            "output_result",
+                        ) if k in attrs and attrs[k] is not None),
                         "",
                     )
                     if isinstance(tool_result, str):
@@ -296,15 +272,14 @@ class OpenInferenceOTelConverter(BaseTraceConverter):
                             with contextlib.suppress(Exception):
                                 tool_result = json.loads(s_res)
 
-                    tool_name = (
-                        attrs.get("tool.name")
-                        or attrs.get("tool_name")
-                        or span.get("name", "unknown_tool")
-                    )
+                    tool_name = (attrs.get("tool.name") or
+                                 attrs.get("tool_name") or
+                                 span.get("name", "unknown_tool"))
 
                     events.append(
                         AgentEvent(
-                            event_id=span.get("span_id", f"span_{t_idx}_{len(events)}"),
+                            event_id=span.get("span_id",
+                                              f"span_{t_idx}_{len(events)}"),
                             event_type="TOOL_CALL",
                             status=status_code,
                             payload={
@@ -314,52 +289,47 @@ class OpenInferenceOTelConverter(BaseTraceConverter):
                                 "input_arguments": tool_params,
                                 "output_result": tool_result,
                             },
-                            tool_calls=[
-                                {
-                                    "name": tool_name,
-                                    "args": tool_params
-                                    if isinstance(tool_params, dict)
-                                    else {"input": tool_params},
-                                }
-                            ],
-                            tool_responses=[
-                                {
-                                    "name": tool_name,
-                                    "response": tool_result
-                                    if isinstance(tool_result, dict)
-                                    else {"output": tool_result},
-                                }
-                            ],
-                        )
-                    )
+                            tool_calls=[{
+                                "name":
+                                    tool_name,
+                                "args":
+                                    tool_params if isinstance(
+                                        tool_params, dict) else {
+                                            "input": tool_params
+                                        },
+                            }],
+                            tool_responses=[{
+                                "name":
+                                    tool_name,
+                                "response":
+                                    tool_result if isinstance(
+                                        tool_result, dict) else {
+                                            "output": tool_result
+                                        },
+                            }],
+                        ))
                 elif span_kind_str in ("USER", "HUMAN"):
-                    user_text = (
-                        attrs.get("input.value")
-                        or attrs.get("output.value")
-                        or attrs.get("prompt")
-                        or ""
-                    )
+                    user_text = (attrs.get("input.value") or
+                                 attrs.get("output.value") or
+                                 attrs.get("prompt") or "")
                     if user_text:
                         turn_content = str(user_text)
                     turn_role = "user"
                     events.append(
                         AgentEvent(
-                            event_id=span.get("span_id", f"span_{t_idx}_{len(events)}"),
+                            event_id=span.get("span_id",
+                                              f"span_{t_idx}_{len(events)}"),
                             event_type="USER_INPUT",
                             status=status_code,
                             author="USER",
                             content=turn_content,
                             payload={"content": turn_content},
-                        )
-                    )
+                        ))
                 elif span_kind_str in ("LLM", "CHAIN", "AGENT", "TASK"):
-                    output_val = (
-                        attrs.get("output.value")
-                        or attrs.get("gen_ai.completion")
-                        or attrs.get("llm.output_messages")
-                        or span.get("output")
-                        or ""
-                    )
+                    output_val = (attrs.get("output.value") or
+                                  attrs.get("gen_ai.completion") or
+                                  attrs.get("llm.output_messages") or
+                                  span.get("output") or "")
                     if output_val:
                         turn_content = str(output_val)
                     llm_role = str(attrs.get("role", "model"))
@@ -368,17 +338,19 @@ class OpenInferenceOTelConverter(BaseTraceConverter):
 
                     events.append(
                         AgentEvent(
-                            event_id=span.get("span_id", f"span_{t_idx}_{len(events)}"),
+                            event_id=span.get("span_id",
+                                              f"span_{t_idx}_{len(events)}"),
                             event_type="MODEL_INFERENCE",
                             status=status_code,
                             author=llm_role,
                             content=str(output_val) if output_val else "",
                             payload={
-                                "content": str(output_val) if output_val else "",
-                                "model": attrs.get("llm.model_name", ""),
+                                "content":
+                                    str(output_val) if output_val else "",
+                                "model":
+                                    attrs.get("llm.model_name", ""),
                             },
-                        )
-                    )
+                        ))
 
             turns.append(
                 AgentTurn(
@@ -387,8 +359,7 @@ class OpenInferenceOTelConverter(BaseTraceConverter):
                     role=turn_role,
                     content=turn_content,
                     events=events,
-                )
-            )
+                ))
 
         return AgentData(session_id=str(session_id), turns=turns, events=[])
 
@@ -407,12 +378,12 @@ def get_trace_converter(format_type: str = "adk") -> BaseTraceConverter:
     if format_lower in ("adk", "default"):
         return ADKTraceConverter()
     elif format_lower in (
-        "otel",
-        "openinference",
-        "langgraph",
-        "llamaindex",
-        "crewai",
-        "autogen",
+            "otel",
+            "openinference",
+            "langgraph",
+            "llamaindex",
+            "crewai",
+            "autogen",
     ):
         return OpenInferenceOTelConverter()
     else:

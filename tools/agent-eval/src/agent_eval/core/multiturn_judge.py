@@ -22,45 +22,40 @@ class ExtractedIntent(BaseModel):
     """Stage 1: Intent extracted from a multi-turn conversation."""
 
     intent_id: str = Field(
-        ..., description="Unique identifier for the intent, e.g. 'intent_1'"
-    )
+        ..., description="Unique identifier for the intent, e.g. 'intent_1'")
     description: str = Field(
-        ..., description="Natural language description of the user's goal"
-    )
+        ..., description="Natural language description of the user's goal")
     status: str = Field(
-        ..., description="Intent status: 'ACTIVE', 'MODIFIED', or 'ABANDONED'"
-    )
+        ..., description="Intent status: 'ACTIVE', 'MODIFIED', or 'ABANDONED'")
     origin_turn: int = Field(
-        0, description="The turn index where the intent was first introduced"
-    )
+        0, description="The turn index where the intent was first introduced")
 
 
 class GeneratedRubric(BaseModel):
     """Stage 2: Dynamic objective rubric generated for an active intent."""
 
-    intent_id: str = Field(..., description="The ID of the intent this rubric verifies")
+    intent_id: str = Field(
+        ..., description="The ID of the intent this rubric verifies")
     criterion: str = Field(
-        ..., description="Verifiable criterion to check against the trajectory"
-    )
+        ..., description="Verifiable criterion to check against the trajectory")
     passing_condition: str = Field(
-        ..., description="What must be present in the turns/events to pass"
-    )
+        ..., description="What must be present in the turns/events to pass")
     failing_condition: str = Field(
-        ..., description="What constitutes a failure of this criterion"
-    )
+        ..., description="What constitutes a failure of this criterion")
 
 
 class MultiTurnScoreResult(BaseModel):
     """Stage 3: Final trajectory score and per-rubric reasoning."""
 
     score: float = Field(
-        ..., ge=0.0, le=1.0, description="Overall trajectory score between 0.0 and 1.0"
-    )
+        ...,
+        ge=0.0,
+        le=1.0,
+        description="Overall trajectory score between 0.0 and 1.0")
     intents_extracted: list[ExtractedIntent] = Field(default_factory=list)
     rubrics_evaluated: list[dict[str, Any]] = Field(default_factory=list)
     explanation: str = Field(
-        ..., description="Detailed explanation of the score and any failures"
-    )
+        ..., description="Detailed explanation of the score and any failures")
 
 
 class MultiTurnTrajectoryJudge:
@@ -78,7 +73,9 @@ class MultiTurnTrajectoryJudge:
         self.prompt_template = prompt_template
         self.threshold = threshold
 
-    def evaluate(self, trace: AgentData | dict[str, Any] | str) -> MultiTurnScoreResult:
+    def evaluate(
+            self,
+            trace: AgentData | dict[str, Any] | str) -> MultiTurnScoreResult:
         """Evaluate an AgentData trace or raw dict using the 3-stage LLM recipe.
 
         Args:
@@ -96,7 +93,8 @@ class MultiTurnTrajectoryJudge:
                 # Graceful degradation for raw text
                 return MultiTurnScoreResult(
                     score=1.0,
-                    explanation="Raw text trace evaluated without multi-turn turns array.",
+                    explanation=
+                    "Raw text trace evaluated without multi-turn turns array.",
                 )
         elif isinstance(trace, dict):
             try:
@@ -141,8 +139,7 @@ class MultiTurnTrajectoryJudge:
         """
         try:
             return self.model_client.generate_structured(
-                prompt, schema=list[ExtractedIntent]
-            )
+                prompt, schema=list[ExtractedIntent])
         except AttributeError:
             # Fallback if client doesn't support generate_structured
             return [
@@ -155,9 +152,11 @@ class MultiTurnTrajectoryJudge:
             ]
 
     def _generate_rubrics(
-        self, trace: AgentData, intents: list[ExtractedIntent]
-    ) -> list[GeneratedRubric]:
-        active_intents = [i for i in intents if i.status in ("ACTIVE", "MODIFIED")]
+            self, trace: AgentData,
+            intents: list[ExtractedIntent]) -> list[GeneratedRubric]:
+        active_intents = [
+            i for i in intents if i.status in ("ACTIVE", "MODIFIED")
+        ]
         if not active_intents:
             return []
         if not self.model_client:
@@ -166,9 +165,9 @@ class MultiTurnTrajectoryJudge:
                     intent_id=i.intent_id,
                     criterion=f"Verify {i.description} was satisfied",
                     passing_condition="Agent provided grounded domain response",
-                    failing_condition="Agent hallucinated or refused valid request",
-                )
-                for i in active_intents
+                    failing_condition=
+                    "Agent hallucinated or refused valid request",
+                ) for i in active_intents
             ]
         prompt = f"""
         For each active user intent, generate an objective, verifiable rubric criterion.
@@ -176,8 +175,7 @@ class MultiTurnTrajectoryJudge:
         """
         try:
             return self.model_client.generate_structured(
-                prompt, schema=list[GeneratedRubric]
-            )
+                prompt, schema=list[GeneratedRubric])
         except AttributeError:
             return [
                 GeneratedRubric(
@@ -185,8 +183,7 @@ class MultiTurnTrajectoryJudge:
                     criterion=f"Verify {i.description}",
                     passing_condition="Pass",
                     failing_condition="Fail",
-                )
-                for i in active_intents
+                ) for i in active_intents
             ]
 
     def _score_trajectory(
@@ -200,7 +197,8 @@ class MultiTurnTrajectoryJudge:
                 score=1.0,
                 intents_extracted=intents,
                 rubrics_evaluated=[r.model_dump() for r in rubrics],
-                explanation="Successfully evaluated 3-stage multi-turn trajectory.",
+                explanation=
+                "Successfully evaluated 3-stage multi-turn trajectory.",
             )
         prompt = f"""
         Evaluate the AI agent's performance across all turns against these rubrics.
@@ -210,8 +208,7 @@ class MultiTurnTrajectoryJudge:
         """
         try:
             return self.model_client.generate_structured(
-                prompt, schema=MultiTurnScoreResult
-            )
+                prompt, schema=MultiTurnScoreResult)
         except AttributeError:
             return MultiTurnScoreResult(
                 score=1.0,
@@ -220,7 +217,8 @@ class MultiTurnTrajectoryJudge:
                 explanation="Scored multi-turn trajectory.",
             )
 
-    def _score_single_turn_fallback(self, trace: AgentData) -> MultiTurnScoreResult:
+    def _score_single_turn_fallback(self,
+                                    trace: AgentData) -> MultiTurnScoreResult:
         """Fallback evaluation for single-turn dialogues."""
         return MultiTurnScoreResult(
             score=1.0,
@@ -233,5 +231,6 @@ class MultiTurnTrajectoryJudge:
                 )
             ],
             rubrics_evaluated=[],
-            explanation="Single-turn trace evaluated via graceful degradation fallback.",
+            explanation=
+            "Single-turn trace evaluated via graceful degradation fallback.",
         )

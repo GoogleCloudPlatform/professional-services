@@ -27,11 +27,8 @@ def check_tool_usage(row: dict[str, Any]) -> dict[str, Any]:
                 extracted = json.loads(extracted)
             except Exception:
                 extracted = {}
-        interactions = (
-            extracted.get("tool_interactions", [])
-            if isinstance(extracted, dict)
-            else []
-        )
+        interactions = (extracted.get("tool_interactions", []) if isinstance(
+            extracted, dict) else [])
 
     if isinstance(interactions, str):
         try:
@@ -42,8 +39,10 @@ def check_tool_usage(row: dict[str, Any]) -> dict[str, Any]:
     count = len(interactions) if isinstance(interactions, list) else 0
     score = 1.0 if count > 0 else 0.0
     return {
-        "score": score,
-        "explanation": f"Successfully extracted {count} tool interactions from OpenInference trace.",
+        "score":
+            score,
+        "explanation":
+            f"Successfully extracted {count} tool interactions from OpenInference trace.",
     }
 
 
@@ -54,6 +53,8 @@ def check_prompt_response(row: dict[str, Any]) -> dict[str, Any]:
     valid = bool(prompt and response)
     score = 1.0 if valid else 0.0
     return {
-        "score": score,
-        "explanation": f"Prompt length: {len(prompt)}, Response length: {len(response)}",
+        "score":
+            score,
+        "explanation":
+            f"Prompt length: {len(prompt)}, Response length: {len(response)}",
     }

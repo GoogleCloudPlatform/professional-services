@@ -30,7 +30,8 @@ console = Console()
 @click.option(
     "--agent-dir",
     required=True,
-    help="Path to the agent directory (containing .adk/eval_history) or trace file/dir for non-ADK formats.",
+    help=
+    "Path to the agent directory (containing .adk/eval_history) or trace file/dir for non-ADK formats.",
 )
 @click.option(
     "--questions-file",
@@ -42,13 +43,16 @@ console = Console()
 @click.option(
     "--trace-format",
     default="adk",
-    help="Format of the trace input ('adk', 'openinference', 'langgraph', 'crewai', 'otel', 'llamaindex', 'autogen').",
+    help=
+    "Format of the trace input ('adk', 'openinference', 'langgraph', 'crewai', 'otel', 'llamaindex', 'autogen').",
 )
 def convert(agent_dir, questions_file, output_dir, output_file, trace_format):
     """Convert ADK or OpenInference simulation history to evaluation JSONL format."""
-    console.print(f"\n[bold blue]Converting Trace History (Format: {trace_format})[/]")
+    console.print(
+        f"\n[bold blue]Converting Trace History (Format: {trace_format})[/]")
     try:
-        format_normalized = trace_format.strip().lower() if trace_format else "adk"
+        format_normalized = trace_format.strip().lower(
+        ) if trace_format else "adk"
         if format_normalized in ("adk", "default"):
             history_path = Path(agent_dir) / ".adk" / "eval_history"
             converter = AdkHistoryConverter(str(history_path), questions_file)

@@ -31,7 +31,8 @@ console = Console()
 @click.option(
     "--only",
     default=None,
-    help="Name of the stage to execute (e.g. 'rubrics', 'metric_selection', 'calibration').",
+    help=
+    "Name of the stage to execute (e.g. 'rubrics', 'metric_selection', 'calibration').",
 )
 @click.option(
     "--output",
@@ -52,7 +53,8 @@ def stage(only: str | None, output: str, config: str | None):
 
         cfg_path = Path(config).resolve()
         if not cfg_path.exists():
-            console.print(f"[red]Error:[/] Config file not found: {cfg_path}", err=True)
+            console.print(f"[red]Error:[/] Config file not found: {cfg_path}",
+                          err=True)
             sys.exit(1)
         config_data = yaml.safe_load(cfg_path.read_text(encoding="utf-8"))
 
@@ -61,9 +63,8 @@ def stage(only: str | None, output: str, config: str | None):
     try:
         res = run_stage(target_stage, config_data=config_data)
     except Exception as exc:
-        console.print(
-            f"[red]Error executing stage '{target_stage}':[/] {exc}", err=True
-        )
+        console.print(f"[red]Error executing stage '{target_stage}':[/] {exc}",
+                      err=True)
         sys.exit(1)
 
     if output == "yaml":

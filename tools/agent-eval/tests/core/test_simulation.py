@@ -24,6 +24,7 @@ from agent_eval.core.simulation import _row_to_adk_scenario, run_simulation_in_p
 
 
 class TestSimulationUtils(unittest.TestCase):
+
     def test_row_to_adk_scenario_with_plan(self):
         row = {
             "id": "test_id",
@@ -36,7 +37,11 @@ class TestSimulationUtils(unittest.TestCase):
         self.assertEqual(res["conversation_plan"], "1. Step 1\n2. Step 2")
 
     def test_row_to_adk_scenario_with_plan_string(self):
-        row = {"prompt": "Hello", "conversation_plan": "Step 1", "kind": "multi_turn"}
+        row = {
+            "prompt": "Hello",
+            "conversation_plan": "Step 1",
+            "kind": "multi_turn"
+        }
         res = _row_to_adk_scenario(row, 0)
         self.assertEqual(res["starting_prompt"], "Hello")
         self.assertEqual(res["conversation_plan"], "Step 1")
@@ -45,17 +50,28 @@ class TestSimulationUtils(unittest.TestCase):
         row = {
             "prompt": "Final prompt",
             "history": [
-                {"parts": [{"text": "Hi"}]},
-                {"parts": [{"text": "Hello"}]},
-                {"parts": [{"text": "How are you?"}]},
+                {
+                    "parts": [{
+                        "text": "Hi"
+                    }]
+                },
+                {
+                    "parts": [{
+                        "text": "Hello"
+                    }]
+                },
+                {
+                    "parts": [{
+                        "text": "How are you?"
+                    }]
+                },
             ],
             "kind": "multi_turn",
         }
         res = _row_to_adk_scenario(row, 0)
         self.assertEqual(res["starting_prompt"], "Hi")
-        self.assertEqual(
-            res["conversation_plan"], "1. Hello\n2. How are you?\n3. Final prompt"
-        )
+        self.assertEqual(res["conversation_plan"],
+                         "1. Hello\n2. How are you?\n3. Final prompt")
 
     def test_row_to_adk_scenario_no_plan_no_history(self):
         row = {"prompt": "Just a prompt", "kind": "multi_turn"}
@@ -65,6 +81,7 @@ class TestSimulationUtils(unittest.TestCase):
 
 
 class TestSimulationFlow(unittest.IsolatedAsyncioTestCase):
+
     def setUp(self):
         self.test_dir = tempfile.mkdtemp()
         self.agent_dir = Path(self.test_dir) / "my_agent"
@@ -81,9 +98,10 @@ class TestSimulationFlow(unittest.IsolatedAsyncioTestCase):
     @patch("agent_eval.core.simulation.AgentLoader")
     @patch("agent_eval.core.simulation.PrePopulatingEvalService")
     @patch("agent_eval.core.simulation.AdkHistoryConverter")
-    async def test_run_simulation_in_process_success(
-        self, mock_converter_cls, mock_service_cls, mock_loader_cls, mock_read_dataset
-    ):
+    async def test_run_simulation_in_process_success(self, mock_converter_cls,
+                                                     mock_service_cls,
+                                                     mock_loader_cls,
+                                                     mock_read_dataset):
         # 1. Setup mocks
         mock_read_dataset.return_value = [
             {
@@ -92,7 +110,11 @@ class TestSimulationFlow(unittest.IsolatedAsyncioTestCase):
                 "conversation_plan": "Goal 1",
                 "kind": "multi_turn",
             },
-            {"id": "case_2", "prompt": "Single turn", "kind": "single_turn"},
+            {
+                "id": "case_2",
+                "prompt": "Single turn",
+                "kind": "single_turn"
+            },
         ]
 
         mock_loader = MagicMock()
@@ -135,8 +157,7 @@ class TestSimulationFlow(unittest.IsolatedAsyncioTestCase):
 
         mock_service.perform_inference.assert_called_once()
         called_request = mock_service.perform_inference.call_args[1][
-            "inference_request"
-        ]
+            "inference_request"]
         self.assertEqual(called_request.app_name, "my_agent")
         self.assertEqual(called_request.eval_set_id, "eval_set")
 
@@ -147,7 +168,8 @@ class TestSimulationFlow(unittest.IsolatedAsyncioTestCase):
         # Verify both cases were registered
         mock_service_cls.assert_called_once()
         eval_sets_mgr = mock_service_cls.call_args[1]["eval_sets_manager"]
-        eval_cases = eval_sets_mgr.get_eval_set("my_agent", "eval_set").eval_cases
+        eval_cases = eval_sets_mgr.get_eval_set("my_agent",
+                                                "eval_set").eval_cases
         self.assertEqual(len(eval_cases), 2)
         self.assertEqual(eval_cases[0].eval_id, "case_1")
         self.assertEqual(eval_cases[1].eval_id, "single_turn_case_2")
@@ -157,11 +179,13 @@ class TestSimulationFlow(unittest.IsolatedAsyncioTestCase):
     @patch("agent_eval.core.simulation.PrePopulatingEvalService")
     @patch("agent_eval.core.simulation.AdkHistoryConverter")
     async def test_run_simulation_in_process_only_single_turn(
-        self, mock_converter_cls, mock_service_cls, mock_loader_cls, mock_read_dataset
-    ):
-        mock_read_dataset.return_value = [
-            {"id": "case_2", "prompt": "Single turn", "kind": "single_turn"}
-        ]
+            self, mock_converter_cls, mock_service_cls, mock_loader_cls,
+            mock_read_dataset):
+        mock_read_dataset.return_value = [{
+            "id": "case_2",
+            "prompt": "Single turn",
+            "kind": "single_turn"
+        }]
         mock_loader = MagicMock()
         mock_loader.load_agent.return_value = MagicMock()
         mock_loader_cls.return_value = mock_loader
@@ -197,15 +221,15 @@ class TestSimulationFlow(unittest.IsolatedAsyncioTestCase):
 
         # Verify it was registered as single_turn_case_2
         eval_sets_mgr = mock_service_cls.call_args[1]["eval_sets_manager"]
-        eval_cases = eval_sets_mgr.get_eval_set("my_agent", "eval_set").eval_cases
+        eval_cases = eval_sets_mgr.get_eval_set("my_agent",
+                                                "eval_set").eval_cases
         self.assertEqual(len(eval_cases), 1)
         self.assertEqual(eval_cases[0].eval_id, "single_turn_case_2")
 
     @patch("agent_eval.core.simulation.read_dataset")
     @patch("agent_eval.core.simulation.AgentLoader")
     async def test_run_simulation_in_process_empty_dataset(
-        self, mock_loader_cls, mock_read_dataset
-    ):
+            self, mock_loader_cls, mock_read_dataset):
         mock_read_dataset.return_value = []
         mock_loader = MagicMock()
         mock_loader.load_agent.return_value = MagicMock()
@@ -224,8 +248,8 @@ class TestSimulationFlow(unittest.IsolatedAsyncioTestCase):
     @patch("agent_eval.core.simulation.PrePopulatingEvalService")
     @patch("agent_eval.core.simulation.AdkHistoryConverter")
     async def test_run_simulation_in_process_run_mode_single_turn(
-        self, mock_converter_cls, mock_service_cls, mock_loader_cls, mock_read_dataset
-    ):
+            self, mock_converter_cls, mock_service_cls, mock_loader_cls,
+            mock_read_dataset):
         mock_read_dataset.return_value = [
             {
                 "id": "case_1",
@@ -233,7 +257,11 @@ class TestSimulationFlow(unittest.IsolatedAsyncioTestCase):
                 "conversation_plan": "Goal 1",
                 "kind": "multi_turn",
             },
-            {"id": "case_2", "prompt": "Single turn", "kind": "single_turn"},
+            {
+                "id": "case_2",
+                "prompt": "Single turn",
+                "kind": "single_turn"
+            },
         ]
         mock_loader = MagicMock()
         mock_loader.load_agent.return_value = MagicMock()
@@ -271,7 +299,8 @@ class TestSimulationFlow(unittest.IsolatedAsyncioTestCase):
 
         # Verify only case_2 (single-turn) was registered
         eval_sets_mgr = mock_service_cls.call_args[1]["eval_sets_manager"]
-        eval_cases = eval_sets_mgr.get_eval_set("my_agent", "eval_set").eval_cases
+        eval_cases = eval_sets_mgr.get_eval_set("my_agent",
+                                                "eval_set").eval_cases
         self.assertEqual(len(eval_cases), 1)
         self.assertEqual(eval_cases[0].eval_id, "single_turn_case_2")
 
@@ -280,8 +309,8 @@ class TestSimulationFlow(unittest.IsolatedAsyncioTestCase):
     @patch("agent_eval.core.simulation.PrePopulatingEvalService")
     @patch("agent_eval.core.simulation.AdkHistoryConverter")
     async def test_run_simulation_in_process_run_mode_multi_turn(
-        self, mock_converter_cls, mock_service_cls, mock_loader_cls, mock_read_dataset
-    ):
+            self, mock_converter_cls, mock_service_cls, mock_loader_cls,
+            mock_read_dataset):
         mock_read_dataset.return_value = [
             {
                 "id": "case_1",
@@ -289,7 +318,11 @@ class TestSimulationFlow(unittest.IsolatedAsyncioTestCase):
                 "conversation_plan": "Goal 1",
                 "kind": "multi_turn",
             },
-            {"id": "case_2", "prompt": "Single turn", "kind": "single_turn"},
+            {
+                "id": "case_2",
+                "prompt": "Single turn",
+                "kind": "single_turn"
+            },
         ]
         mock_loader = MagicMock()
         mock_loader.load_agent.return_value = MagicMock()
@@ -327,7 +360,8 @@ class TestSimulationFlow(unittest.IsolatedAsyncioTestCase):
 
         # Verify only case_1 (multi-turn) was registered
         eval_sets_mgr = mock_service_cls.call_args[1]["eval_sets_manager"]
-        eval_cases = eval_sets_mgr.get_eval_set("my_agent", "eval_set").eval_cases
+        eval_cases = eval_sets_mgr.get_eval_set("my_agent",
+                                                "eval_set").eval_cases
         self.assertEqual(len(eval_cases), 1)
         self.assertEqual(eval_cases[0].eval_id, "case_1")
 
@@ -336,12 +370,14 @@ class TestSimulationFlow(unittest.IsolatedAsyncioTestCase):
     @patch("agent_eval.core.simulation.PrePopulatingEvalService")
     @patch("agent_eval.core.simulation.AdkHistoryConverter")
     async def test_run_simulation_in_process_with_agent_instance(
-        self, mock_converter_cls, mock_service_cls, mock_loader_cls, mock_read_dataset
-    ):
+            self, mock_converter_cls, mock_service_cls, mock_loader_cls,
+            mock_read_dataset):
         # 1. Setup mocks
-        mock_read_dataset.return_value = [
-            {"id": "case_1", "prompt": "Hello", "kind": "single_turn"}
-        ]
+        mock_read_dataset.return_value = [{
+            "id": "case_1",
+            "prompt": "Hello",
+            "kind": "single_turn"
+        }]
 
         mock_service = MagicMock()
 
@@ -389,17 +425,28 @@ class TestSimulationFlow(unittest.IsolatedAsyncioTestCase):
 
 
 class TestPrePopulatingSessionService(unittest.IsolatedAsyncioTestCase):
+
     async def test_pre_population(self):
-        rows = [
-            {
-                "id": "case_1",
-                "prompt": "Final prompt",
-                "history": [
-                    {"role": "user", "parts": [{"text": "Hello 1"}]},
-                    {"role": "model", "parts": [{"text": "Response 1"}]},
-                ],
-            }
-        ]
+        rows = [{
+            "id":
+                "case_1",
+            "prompt":
+                "Final prompt",
+            "history": [
+                {
+                    "role": "user",
+                    "parts": [{
+                        "text": "Hello 1"
+                    }]
+                },
+                {
+                    "role": "model",
+                    "parts": [{
+                        "text": "Response 1"
+                    }]
+                },
+            ],
+        }]
         from agent_eval.core.simulation import (
             EVAL_SESSION_ID_PREFIX,
             PrePopulatingSessionService,
@@ -407,9 +454,10 @@ class TestPrePopulatingSessionService(unittest.IsolatedAsyncioTestCase):
 
         service = PrePopulatingSessionService(rows)
         session_id = f"{EVAL_SESSION_ID_PREFIX}case_1___uuid"
-        session = await service.create_session(
-            app_name="test_app", user_id="test_user", state={}, session_id=session_id
-        )
+        session = await service.create_session(app_name="test_app",
+                                               user_id="test_user",
+                                               state={},
+                                               session_id=session_id)
 
         self.assertEqual(len(session.events), 2)
         self.assertEqual(session.events[0].author, "user")
@@ -418,12 +466,10 @@ class TestPrePopulatingSessionService(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(session.events[1].message.parts[0].text, "Response 1")
 
     async def test_pre_population_no_history(self):
-        rows = [
-            {
-                "id": "case_2",
-                "prompt": "Final prompt",
-            }
-        ]
+        rows = [{
+            "id": "case_2",
+            "prompt": "Final prompt",
+        }]
         from agent_eval.core.simulation import (
             EVAL_SESSION_ID_PREFIX,
             PrePopulatingSessionService,
@@ -431,9 +477,10 @@ class TestPrePopulatingSessionService(unittest.IsolatedAsyncioTestCase):
 
         service = PrePopulatingSessionService(rows)
         session_id = f"{EVAL_SESSION_ID_PREFIX}case_2___uuid"
-        session = await service.create_session(
-            app_name="test_app", user_id="test_user", state={}, session_id=session_id
-        )
+        session = await service.create_session(app_name="test_app",
+                                               user_id="test_user",
+                                               state={},
+                                               session_id=session_id)
         self.assertEqual(len(session.events), 0)
 
 

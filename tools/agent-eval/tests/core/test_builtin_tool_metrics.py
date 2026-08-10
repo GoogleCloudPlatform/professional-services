@@ -28,14 +28,24 @@ from agent_eval.core.metric_generator import (
 )
 
 BUILTIN_ONLY = {"tools": [{"name": "google_search"}]}
-FUNCTION_TOOLS = {"tools": [{"name": "approve_discount"}, {"name": "modify_cart"}]}
+FUNCTION_TOOLS = {
+    "tools": [{
+        "name": "approve_discount"
+    }, {
+        "name": "modify_cart"
+    }]
+}
 MIXED = {"tools": [{"name": "google_search"}, {"name": "approve_discount"}]}
 
 TOOL_METRIC = {
     "kind": "custom_llm_judge",
     "dataset_mapping": {
-        "prompt": {"source_column": "user_inputs"},
-        "response": {"source_column": "extracted_data:tool_interactions"},
+        "prompt": {
+            "source_column": "user_inputs"
+        },
+        "response": {
+            "source_column": "extracted_data:tool_interactions"
+        },
     },
 }
 
@@ -66,14 +76,16 @@ def test_plain_string_tool_entries_are_handled():
 
 
 def test_warns_when_metric_reads_tool_interactions_on_builtin_agent():
-    warnings = _warn_unsatisfiable_tool_metrics({"m": TOOL_METRIC}, BUILTIN_ONLY)
+    warnings = _warn_unsatisfiable_tool_metrics({"m": TOOL_METRIC},
+                                                BUILTIN_ONLY)
     assert len(warnings) == 1
     assert "tool_interactions" in warnings[0]
     assert "grounding_chunks" in warnings[0]  # points at the alternative
 
 
 def test_no_warning_when_agent_has_function_tools():
-    assert _warn_unsatisfiable_tool_metrics({"m": TOOL_METRIC}, FUNCTION_TOOLS) == []
+    assert _warn_unsatisfiable_tool_metrics({"m": TOOL_METRIC},
+                                            FUNCTION_TOOLS) == []
 
 
 def test_template_source_columns_are_also_checked():
@@ -91,8 +103,12 @@ def test_template_source_columns_are_also_checked():
 def test_metric_avoiding_tool_columns_is_not_flagged():
     metric = {
         "dataset_mapping": {
-            "prompt": {"source_column": "user_inputs"},
-            "response": {"source_column": "extracted_data:grounding_chunks"},
+            "prompt": {
+                "source_column": "user_inputs"
+            },
+            "response": {
+                "source_column": "extracted_data:grounding_chunks"
+            },
         }
     }
     assert _warn_unsatisfiable_tool_metrics({"m": metric}, BUILTIN_ONLY) == []

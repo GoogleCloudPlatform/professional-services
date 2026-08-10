@@ -34,8 +34,13 @@ def test_generate_metric_definitions_success(mock_call_gemini):
             "custom_quality": {
                 "kind": "custom_llm_judge",
                 "instruction": "Evaluate quality",
-                "criteria": {"good": "is good"},
-                "rating_scores": {"1": "Yes", "0": "No"},
+                "criteria": {
+                    "good": "is good"
+                },
+                "rating_scores": {
+                    "1": "Yes",
+                    "0": "No"
+                },
             }
         },
         "rationale": "Test rationale",
@@ -55,7 +60,10 @@ def test_generate_metric_definitions_success(mock_call_gemini):
             "suggested_state_variables": [],
         }
         selected_managed = {
-            "general_quality": {"kind": "managed", "base": "GENERAL_QUALITY"}
+            "general_quality": {
+                "kind": "managed",
+                "base": "GENERAL_QUALITY"
+            }
         }
 
         metrics, rationale = generate_metric_definitions(
@@ -87,10 +95,14 @@ def test_generate_metric_definitions_invalid_json_fallback(mock_call_gemini):
             "suggested_state_variables": [],
         }
         selected_managed = {
-            "general_quality": {"kind": "managed", "base": "GENERAL_QUALITY"}
+            "general_quality": {
+                "kind": "managed",
+                "base": "GENERAL_QUALITY"
+            }
         }
 
-        with pytest.raises(MetricGenerationError, match="none passed validation"):
+        with pytest.raises(MetricGenerationError,
+                           match="none passed validation"):
             generate_metric_definitions(
                 agent_dir=agent_dir,
                 agent_name="app",
@@ -102,15 +114,16 @@ def test_generate_metric_definitions_invalid_json_fallback(mock_call_gemini):
 @patch("agent_eval.core.metric_generator._call_gemini")
 def test_generate_eval_data_success(mock_call_gemini):
     mock_response = {
-        "scenarios": [
-            {"starting_prompt": "Scenario 1", "conversation_plan": ["Step 1"]}
-        ],
-        "golden_data": [
-            {
-                "user_inputs": ["Input 1"],
-                "reference_data": {"expected_behavior": "Behavior 1"},
-            }
-        ],
+        "scenarios": [{
+            "starting_prompt": "Scenario 1",
+            "conversation_plan": ["Step 1"]
+        }],
+        "golden_data": [{
+            "user_inputs": ["Input 1"],
+            "reference_data": {
+                "expected_behavior": "Behavior 1"
+            },
+        }],
     }
     mock_call_gemini.return_value = json.dumps(mock_response)
 
@@ -122,8 +135,13 @@ def test_generate_eval_data_success(mock_call_gemini):
         metrics = {
             "custom_quality": {
                 "kind": "custom_llm_judge",
-                "criteria": {"good": "is good"},
-                "rating_scores": {"1": "Yes", "0": "No"},
+                "criteria": {
+                    "good": "is good"
+                },
+                "rating_scores": {
+                    "1": "Yes",
+                    "0": "No"
+                },
             }
         }
 

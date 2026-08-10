@@ -43,26 +43,31 @@ class TestAdversarialToolParametersAndOutputs:
 
     def test_dict_parameters_and_output(self, converter):
         raw = {
-            "trace_id": "tr_dict_params",
-            "spans": [
-                {
-                    "span_id": "sp_tool_dict",
-                    "attributes": {
-                        "openinference.span.kind": "TOOL",
-                        "gen_ai.turn.index": 0,
-                        "tool.name": "search_db",
-                        "tool.parameters": {
-                            "query": "weather",
-                            "limit": 5,
-                            "nested": {"a": [1, 2]},
-                        },
-                        "tool.output": {
-                            "status": "ok",
-                            "items": [{"id": 1}, {"id": 2}],
+            "trace_id":
+                "tr_dict_params",
+            "spans": [{
+                "span_id": "sp_tool_dict",
+                "attributes": {
+                    "openinference.span.kind": "TOOL",
+                    "gen_ai.turn.index": 0,
+                    "tool.name": "search_db",
+                    "tool.parameters": {
+                        "query": "weather",
+                        "limit": 5,
+                        "nested": {
+                            "a": [1, 2]
                         },
                     },
-                }
-            ],
+                    "tool.output": {
+                        "status": "ok",
+                        "items": [{
+                            "id": 1
+                        }, {
+                            "id": 2
+                        }],
+                    },
+                },
+            }],
         }
         data = converter.convert_to_agent_data(raw)
         assert len(data.turns) == 1
@@ -71,58 +76,82 @@ class TestAdversarialToolParametersAndOutputs:
         assert ev.payload["arguments"] == {
             "query": "weather",
             "limit": 5,
-            "nested": {"a": [1, 2]},
+            "nested": {
+                "a": [1, 2]
+            },
         }
-        assert ev.payload["result"] == {"status": "ok", "items": [{"id": 1}, {"id": 2}]}
+        assert ev.payload["result"] == {
+            "status": "ok",
+            "items": [{
+                "id": 1
+            }, {
+                "id": 2
+            }]
+        }
         assert ev.tool_calls[0]["args"] == {
             "query": "weather",
             "limit": 5,
-            "nested": {"a": [1, 2]},
+            "nested": {
+                "a": [1, 2]
+            },
         }
         assert ev.tool_responses[0]["response"] == {
             "status": "ok",
-            "items": [{"id": 1}, {"id": 2}],
+            "items": [{
+                "id": 1
+            }, {
+                "id": 2
+            }],
         }
 
     def test_stringified_json_parameters_and_output(self, converter):
         raw = {
-            "trace_id": "tr_str_json",
-            "spans": [
-                {
-                    "span_id": "sp_tool_str",
-                    "attributes": {
-                        "openinference.span.kind": "TOOL",
-                        "gen_ai.turn.index": 0,
-                        "tool.name": "calc",
-                        "tool.parameters": '{"operation": "add", "operands": [10, 20]}',
-                        "tool.output": '{"result": 30}',
-                    },
-                }
-            ],
+            "trace_id":
+                "tr_str_json",
+            "spans": [{
+                "span_id": "sp_tool_str",
+                "attributes": {
+                    "openinference.span.kind":
+                        "TOOL",
+                    "gen_ai.turn.index":
+                        0,
+                    "tool.name":
+                        "calc",
+                    "tool.parameters":
+                        '{"operation": "add", "operands": [10, 20]}',
+                    "tool.output":
+                        '{"result": 30}',
+                },
+            }],
         }
         data = converter.convert_to_agent_data(raw)
         ev = data.turns[0].events[0]
-        assert ev.payload["arguments"] == {"operation": "add", "operands": [10, 20]}
+        assert ev.payload["arguments"] == {
+            "operation": "add",
+            "operands": [10, 20]
+        }
         assert ev.payload["result"] == {"result": 30}
-        assert ev.tool_calls[0]["args"] == {"operation": "add", "operands": [10, 20]}
+        assert ev.tool_calls[0]["args"] == {
+            "operation": "add",
+            "operands": [10, 20]
+        }
         assert ev.tool_responses[0]["response"] == {"result": 30}
 
     def test_malformed_non_json_string_parameters(self, converter):
         """Malformed JSON strings should not crash the converter and should be preserved as raw/fallback."""
         raw = {
-            "trace_id": "tr_malformed_str",
-            "spans": [
-                {
-                    "span_id": "sp_tool_bad_json",
-                    "attributes": {
-                        "openinference.span.kind": "TOOL",
-                        "gen_ai.turn.index": 0,
-                        "tool.name": "raw_query",
-                        "tool.parameters": "{invalid json: unquoted string",
-                        "tool.output": "{broken output",
-                    },
-                }
-            ],
+            "trace_id":
+                "tr_malformed_str",
+            "spans": [{
+                "span_id": "sp_tool_bad_json",
+                "attributes": {
+                    "openinference.span.kind": "TOOL",
+                    "gen_ai.turn.index": 0,
+                    "tool.name": "raw_query",
+                    "tool.parameters": "{invalid json: unquoted string",
+                    "tool.output": "{broken output",
+                },
+            }],
         }
         data = converter.convert_to_agent_data(raw)
         ev = data.turns[0].events[0]
@@ -130,28 +159,30 @@ class TestAdversarialToolParametersAndOutputs:
         assert ev.payload["arguments"] == "{invalid json: unquoted string"
         assert ev.payload["result"] == "{broken output"
         # Verify fallback wrapping in tool_calls and tool_responses
-        assert ev.tool_calls[0]["args"] == {"input": "{invalid json: unquoted string"}
+        assert ev.tool_calls[0]["args"] == {
+            "input": "{invalid json: unquoted string"
+        }
         assert ev.tool_responses[0]["response"] == {"output": "{broken output"}
 
     def test_plain_text_parameters(self, converter):
         raw = {
-            "trace_id": "tr_plain_text",
-            "spans": [
-                {
-                    "span_id": "sp_tool_plain",
-                    "attributes": {
-                        "openinference.span.kind": "TOOL",
-                        "gen_ai.turn.index": 0,
-                        "tool.name": "sql_exec",
-                        "tool.parameters": "SELECT * FROM users WHERE active = 1;",
-                        "tool.output": "3 rows returned: alice, bob, charlie",
-                    },
-                }
-            ],
+            "trace_id":
+                "tr_plain_text",
+            "spans": [{
+                "span_id": "sp_tool_plain",
+                "attributes": {
+                    "openinference.span.kind": "TOOL",
+                    "gen_ai.turn.index": 0,
+                    "tool.name": "sql_exec",
+                    "tool.parameters": "SELECT * FROM users WHERE active = 1;",
+                    "tool.output": "3 rows returned: alice, bob, charlie",
+                },
+            }],
         }
         data = converter.convert_to_agent_data(raw)
         ev = data.turns[0].events[0]
-        assert ev.payload["arguments"] == "SELECT * FROM users WHERE active = 1;"
+        assert ev.payload[
+            "arguments"] == "SELECT * FROM users WHERE active = 1;"
         assert ev.payload["result"] == "3 rows returned: alice, bob, charlie"
         assert ev.tool_calls[0]["args"] == {
             "input": "SELECT * FROM users WHERE active = 1;"
@@ -163,7 +194,8 @@ class TestAdversarialToolParametersAndOutputs:
     def test_attribute_key_aliases(self, converter):
         """Test variations in tool attributes: tool.call.parameters, input.value, input_arguments, etc."""
         raw = {
-            "trace_id": "tr_aliases",
+            "trace_id":
+                "tr_aliases",
             "spans": [
                 {
                     "span_id": "sp_alias_1",
@@ -171,7 +203,9 @@ class TestAdversarialToolParametersAndOutputs:
                         "openinference.span.kind": "TOOL",
                         "gen_ai.turn.index": 0,
                         "tool_name": "alias_tool",
-                        "tool.call.parameters": {"p1": "v1"},
+                        "tool.call.parameters": {
+                            "p1": "v1"
+                        },
                         "tool.output": "out1",
                     },
                 },
@@ -224,17 +258,35 @@ class TestAdversarialStatusFormats:
     @pytest.mark.parametrize(
         "status_val,expected_code",
         [
-            ({"code": "ERROR"}, "ERROR"),
-            ({"code": "STATUS_CODE_ERROR"}, "ERROR"),
-            ({"code": 2}, "ERROR"),
-            ({"status_code": "ERROR"}, "ERROR"),
-            ({"status_code": 2}, "ERROR"),
+            ({
+                "code": "ERROR"
+            }, "ERROR"),
+            ({
+                "code": "STATUS_CODE_ERROR"
+            }, "ERROR"),
+            ({
+                "code": 2
+            }, "ERROR"),
+            ({
+                "status_code": "ERROR"
+            }, "ERROR"),
+            ({
+                "status_code": 2
+            }, "ERROR"),
             ("ERROR", "ERROR"),
             (2, "ERROR"),
-            ({"code": "OK"}, "OK"),
-            ({"code": "STATUS_CODE_OK"}, "OK"),
-            ({"code": 1}, "OK"),
-            ({"code": 0}, "OK"),
+            ({
+                "code": "OK"
+            }, "OK"),
+            ({
+                "code": "STATUS_CODE_OK"
+            }, "OK"),
+            ({
+                "code": 1
+            }, "OK"),
+            ({
+                "code": 0
+            }, "OK"),
             ("OK", "OK"),
             (1, "OK"),
             (None, "OK"),
@@ -242,20 +294,20 @@ class TestAdversarialStatusFormats:
             ("UNKNOWN", "OK"),
         ],
     )
-    def test_status_parsing_resilience(self, converter, status_val, expected_code):
+    def test_status_parsing_resilience(self, converter, status_val,
+                                       expected_code):
         raw = {
-            "trace_id": "tr_status",
-            "spans": [
-                {
-                    "span_id": "sp_status_test",
-                    "status": status_val,
-                    "attributes": {
-                        "openinference.span.kind": "TOOL",
-                        "gen_ai.turn.index": 0,
-                        "tool.name": "status_check",
-                    },
-                }
-            ],
+            "trace_id":
+                "tr_status",
+            "spans": [{
+                "span_id": "sp_status_test",
+                "status": status_val,
+                "attributes": {
+                    "openinference.span.kind": "TOOL",
+                    "gen_ai.turn.index": 0,
+                    "tool.name": "status_check",
+                },
+            }],
         }
         data = converter.convert_to_agent_data(raw)
         assert data.turns[0].events[0].status == expected_code
@@ -271,7 +323,8 @@ class TestAdversarialMultiTurnAndInterleaving:
     def test_out_of_order_turn_indices(self, converter):
         """Spans arrive in order Turn 2 -> Turn 0 -> Turn 1. Converter should sort turns properly."""
         raw = {
-            "trace_id": "tr_out_of_order",
+            "trace_id":
+                "tr_out_of_order",
             "spans": [
                 {
                     "span_id": "sp_t2",
@@ -303,7 +356,9 @@ class TestAdversarialMultiTurnAndInterleaving:
                         "openinference.span.kind": "TOOL",
                         "gen_ai.turn.index": 1,
                         "tool.name": "fetch_data",
-                        "tool.parameters": {"id": 101},
+                        "tool.parameters": {
+                            "id": 101
+                        },
                         "tool.output": "data_101",
                     },
                 },
@@ -319,35 +374,36 @@ class TestAdversarialMultiTurnAndInterleaving:
 
     def test_multiple_tool_calls_in_single_turn(self, converter):
         """5 parallel/sequential tool calls within a single turn."""
-        spans = [
-            {
-                "span_id": f"sp_tool_{i}",
-                "attributes": {
-                    "openinference.span.kind": "TOOL",
-                    "gen_ai.turn.index": 0,
-                    "tool.name": f"tool_op_{i}",
-                    "tool.parameters": {"arg": i},
-                    "tool.output": {"res": i * 10},
+        spans = [{
+            "span_id": f"sp_tool_{i}",
+            "attributes": {
+                "openinference.span.kind": "TOOL",
+                "gen_ai.turn.index": 0,
+                "tool.name": f"tool_op_{i}",
+                "tool.parameters": {
+                    "arg": i
                 },
-            }
-            for i in range(5)
-        ]
-        spans.append(
-            {
-                "span_id": "sp_llm_final",
-                "attributes": {
-                    "openinference.span.kind": "LLM",
-                    "gen_ai.turn.index": 0,
-                    "output.value": "Completed all 5 tool operations.",
+                "tool.output": {
+                    "res": i * 10
                 },
-            }
-        )
+            },
+        } for i in range(5)]
+        spans.append({
+            "span_id": "sp_llm_final",
+            "attributes": {
+                "openinference.span.kind": "LLM",
+                "gen_ai.turn.index": 0,
+                "output.value": "Completed all 5 tool operations.",
+            },
+        })
         raw = {"trace_id": "tr_multi_tools", "spans": spans}
         data = converter.convert_to_agent_data(raw)
         assert len(data.turns) == 1
         turn0 = data.turns[0]
         assert len(turn0.events) == 6
-        tool_events = [ev for ev in turn0.events if ev.event_type == "TOOL_CALL"]
+        tool_events = [
+            ev for ev in turn0.events if ev.event_type == "TOOL_CALL"
+        ]
         assert len(tool_events) == 5
         for i, ev in enumerate(tool_events):
             assert ev.payload["tool_name"] == f"tool_op_{i}"
@@ -357,7 +413,8 @@ class TestAdversarialMultiTurnAndInterleaving:
     def test_missing_or_non_integer_turn_index_fallback(self, converter):
         """Spans with missing, string, or invalid turn indices."""
         raw = {
-            "trace_id": "tr_invalid_turns",
+            "trace_id":
+                "tr_invalid_turns",
             "spans": [
                 {
                     "span_id": "sp_no_idx",
@@ -377,9 +434,12 @@ class TestAdversarialMultiTurnAndInterleaving:
                 {
                     "span_id": "sp_bad_str_idx",
                     "attributes": {
-                        "openinference.span.kind": "LLM",
-                        "gen_ai.turn.index": "invalid_number",
-                        "output.value": "Invalid string turn index fallback to 0",
+                        "openinference.span.kind":
+                            "LLM",
+                        "gen_ai.turn.index":
+                            "invalid_number",
+                        "output.value":
+                            "Invalid string turn index fallback to 0",
                     },
                 },
             ],
@@ -387,9 +447,8 @@ class TestAdversarialMultiTurnAndInterleaving:
         data = converter.convert_to_agent_data(raw)
         assert len(data.turns) == 2
         assert data.turns[0].turn_index == 0
-        assert (
-            len(data.turns[0].events) == 2
-        )  # sp_no_idx and sp_bad_str_idx grouped in 0
+        assert (len(data.turns[0].events) == 2
+               )  # sp_no_idx and sp_bad_str_idx grouped in 0
         assert data.turns[1].turn_index == 1
 
 
@@ -402,44 +461,46 @@ class TestAdversarialOutputAndCompletionFields:
 
     def test_completion_attribute_fallback(self, converter):
         raw = {
-            "trace_id": "tr_gen_ai_completion",
-            "spans": [
-                {
-                    "span_id": "sp_gen_ai",
-                    "attributes": {
-                        "openinference.span.kind": "LLM",
-                        "gen_ai.turn.index": 0,
-                        "gen_ai.completion": "Output via gen_ai.completion convention",
-                    },
-                }
-            ],
+            "trace_id":
+                "tr_gen_ai_completion",
+            "spans": [{
+                "span_id": "sp_gen_ai",
+                "attributes": {
+                    "openinference.span.kind":
+                        "LLM",
+                    "gen_ai.turn.index":
+                        0,
+                    "gen_ai.completion":
+                        "Output via gen_ai.completion convention",
+                },
+            }],
         }
         data = converter.convert_to_agent_data(raw)
-        assert data.turns[0].content == "Output via gen_ai.completion convention"
-        assert (
-            data.turns[0].events[0].content == "Output via gen_ai.completion convention"
-        )
+        assert data.turns[
+            0].content == "Output via gen_ai.completion convention"
+        assert (data.turns[0].events[0].content ==
+                "Output via gen_ai.completion convention")
 
     def test_llm_output_messages_fallback(self, converter):
         raw = {
-            "trace_id": "tr_output_msgs",
-            "spans": [
-                {
-                    "span_id": "sp_msgs",
-                    "attributes": {
-                        "openinference.span.kind": "LLM",
-                        "gen_ai.turn.index": 0,
-                        "llm.output_messages": "Output via llm.output_messages",
-                    },
-                }
-            ],
+            "trace_id":
+                "tr_output_msgs",
+            "spans": [{
+                "span_id": "sp_msgs",
+                "attributes": {
+                    "openinference.span.kind": "LLM",
+                    "gen_ai.turn.index": 0,
+                    "llm.output_messages": "Output via llm.output_messages",
+                },
+            }],
         }
         data = converter.convert_to_agent_data(raw)
         assert data.turns[0].content == "Output via llm.output_messages"
 
     def test_empty_string_and_none_outputs(self, converter):
         raw = {
-            "trace_id": "tr_empty_outputs",
+            "trace_id":
+                "tr_empty_outputs",
             "spans": [
                 {
                     "span_id": "sp_empty_llm",
@@ -463,8 +524,7 @@ class TestAdversarialOutputAndCompletionFields:
         data = converter.convert_to_agent_data(raw)
         assert data.turns[0].content == ""
         tool_ev = next(
-            ev for ev in data.turns[0].events if ev.event_type == "TOOL_CALL"
-        )
+            ev for ev in data.turns[0].events if ev.event_type == "TOOL_CALL")
         assert tool_ev.payload["result"] == ""
         assert tool_ev.tool_responses[0]["response"] == {"output": ""}
 
@@ -478,8 +538,7 @@ class TestAdversarialUnicodeAndSpecialCharacters:
 
     def test_emojis_and_multilingual_characters(self, converter):
         multilingual_prompt = (
-            "你好 🤖 What is the forecast in 東京, München & القاهرة? 🚀"
-        )
+            "你好 🤖 What is the forecast in 東京, München & القاهرة? 🚀")
         multilingual_tool_out = {
             "status": "success ✨",
             "locations": ["東京 🇯🇵", "München 🇩🇪", "القاهرة 🇪🇬"],
@@ -488,7 +547,8 @@ class TestAdversarialUnicodeAndSpecialCharacters:
         multilingual_response = "Here is the weather: 東京 is 25°C ☀️, München is 18°C ⛅, القاهرة is 32°C 🏜️."
 
         raw = {
-            "trace_id": "tr_unicode_✨_123",
+            "trace_id":
+                "tr_unicode_✨_123",
             "spans": [
                 {
                     "span_id": "sp_u_multi",
@@ -501,15 +561,18 @@ class TestAdversarialUnicodeAndSpecialCharacters:
                 {
                     "span_id": "sp_t_multi",
                     "attributes": {
-                        "openinference.span.kind": "TOOL",
-                        "gen_ai.turn.index": 0,
-                        "tool.name": "weather_service_🌍",
+                        "openinference.span.kind":
+                            "TOOL",
+                        "gen_ai.turn.index":
+                            0,
+                        "tool.name":
+                            "weather_service_🌍",
                         "tool.parameters": {
                             "locations": ["東京", "München", "القاهرة"]
                         },
-                        "tool.output": json.dumps(
-                            multilingual_tool_out, ensure_ascii=False
-                        ),
+                        "tool.output":
+                            json.dumps(multilingual_tool_out,
+                                       ensure_ascii=False),
                     },
                 },
                 {
@@ -529,7 +592,8 @@ class TestAdversarialUnicodeAndSpecialCharacters:
         assert turn0.content == multilingual_response
 
         # Check tool event preservation
-        tool_ev = next(ev for ev in turn0.events if ev.event_type == "TOOL_CALL")
+        tool_ev = next(
+            ev for ev in turn0.events if ev.event_type == "TOOL_CALL")
         assert tool_ev.payload["tool_name"] == "weather_service_🌍"
         assert tool_ev.payload["arguments"] == {
             "locations": ["東京", "München", "القاهرة"]
@@ -542,51 +606,52 @@ class TestAdversarialUnicodeAndSpecialCharacters:
         row = rows[0]
         assert row["prompt"] == multilingual_prompt
         assert row["response"] == multilingual_response
-        assert (
-            row["extracted_data"]["tool_interactions"][0]["tool_name"]
-            == "weather_service_🌍"
-        )
+        assert (row["extracted_data"]["tool_interactions"][0]["tool_name"] ==
+                "weather_service_🌍")
 
     def test_special_escaped_characters_and_newlines(self, converter):
         complex_sql = "SELECT 'line1\\nline2\\t\"quoted\"\\r\\0' AS col\nFROM db.table\nWHERE col LIKE '%test%';"
         raw = {
-            "trace_id": "tr_escaped",
-            "spans": [
-                {
-                    "span_id": "sp_sql",
-                    "attributes": {
-                        "openinference.span.kind": "TOOL",
-                        "gen_ai.turn.index": 0,
-                        "tool.name": "sql_engine",
-                        "tool.parameters": complex_sql,
-                        "tool.output": 'Result: 1 row with \n\t tabs and quotes ""',
-                    },
-                }
-            ],
+            "trace_id":
+                "tr_escaped",
+            "spans": [{
+                "span_id": "sp_sql",
+                "attributes": {
+                    "openinference.span.kind": "TOOL",
+                    "gen_ai.turn.index": 0,
+                    "tool.name": "sql_engine",
+                    "tool.parameters": complex_sql,
+                    "tool.output": 'Result: 1 row with \n\t tabs and quotes ""',
+                },
+            }],
         }
         data = converter.convert_to_agent_data(raw)
         ev = data.turns[0].events[0]
         assert ev.payload["arguments"] == complex_sql
-        assert ev.payload["result"] == 'Result: 1 row with \n\t tabs and quotes ""'
+        assert ev.payload[
+            "result"] == 'Result: 1 row with \n\t tabs and quotes ""'
 
     def test_large_payload_stress(self, converter):
         """Large payload stress test (10,000 character arguments and outputs)."""
         large_input = "A" * 10000
         large_output = "B" * 10000
         raw = {
-            "trace_id": "tr_large",
-            "spans": [
-                {
-                    "span_id": "sp_large",
-                    "attributes": {
-                        "openinference.span.kind": "TOOL",
-                        "gen_ai.turn.index": 0,
-                        "tool.name": "big_processor",
-                        "tool.parameters": {"data": large_input},
-                        "tool.output": {"data": large_output},
+            "trace_id":
+                "tr_large",
+            "spans": [{
+                "span_id": "sp_large",
+                "attributes": {
+                    "openinference.span.kind": "TOOL",
+                    "gen_ai.turn.index": 0,
+                    "tool.name": "big_processor",
+                    "tool.parameters": {
+                        "data": large_input
                     },
-                }
-            ],
+                    "tool.output": {
+                        "data": large_output
+                    },
+                },
+            }],
         }
         data = converter.convert_to_agent_data(raw)
         ev = data.turns[0].events[0]
@@ -594,14 +659,8 @@ class TestAdversarialUnicodeAndSpecialCharacters:
         assert len(ev.payload["result"]["data"]) == 10000
 
         rows = _map_agents([data])
-        assert (
-            len(
-                rows[0]["extracted_data"]["tool_interactions"][0]["input_arguments"][
-                    "data"
-                ]
-            )
-            == 10000
-        )
+        assert (len(rows[0]["extracted_data"]["tool_interactions"][0]
+                    ["input_arguments"]["data"]) == 10000)
 
 
 class TestAdversarialDataMapperBridge:
@@ -623,36 +682,40 @@ class TestAdversarialDataMapperBridge:
     def test_convert_interactions_to_events_robustness(self):
         """Test converting various malformed tool interaction lists to Vertex SDK Event dicts."""
         # 1. Normal tool interaction
-        normal = [
-            {
-                "tool_name": "calc",
-                "input_arguments": {"x": 1},
-                "output_result": {"y": 2},
-            }
-        ]
+        normal = [{
+            "tool_name": "calc",
+            "input_arguments": {
+                "x": 1
+            },
+            "output_result": {
+                "y": 2
+            },
+        }]
         events = convert_interactions_to_events(normal)
-        assert len(events) == 2  # 1 function_call (model) + 1 function_response (tool)
+        assert len(
+            events) == 2  # 1 function_call (model) + 1 function_response (tool)
         assert events[0]["author"] == "model"
-        assert events[0]["content"]["parts"][0]["function_call"]["name"] == "calc"
+        assert events[0]["content"]["parts"][0]["function_call"][
+            "name"] == "calc"
         assert events[1]["author"] == "tool"
-        assert events[1]["content"]["parts"][0]["function_response"]["name"] == "calc"
+        assert events[1]["content"]["parts"][0]["function_response"][
+            "name"] == "calc"
 
         # 2. Non-dict arguments and responses
-        non_dict = [
-            {
-                "tool_name": "raw_tool",
-                "input_arguments": "raw_str_arg",
-                "output_result": "raw_str_res",
-            }
-        ]
+        non_dict = [{
+            "tool_name": "raw_tool",
+            "input_arguments": "raw_str_arg",
+            "output_result": "raw_str_res",
+        }]
         events = convert_interactions_to_events(non_dict)
         assert len(events) == 2
         assert events[0]["content"]["parts"][0]["function_call"]["args"] == {
             "value": "raw_str_arg"
         }
-        assert events[1]["content"]["parts"][0]["function_response"]["response"] == {
-            "result": "raw_str_res"
-        }
+        assert events[1]["content"]["parts"][0]["function_response"][
+            "response"] == {
+                "result": "raw_str_res"
+            }
 
         # 3. None / Empty inputs
         assert convert_interactions_to_events(None) == []
@@ -662,7 +725,8 @@ class TestAdversarialDataMapperBridge:
     def test_map_dataset_columns_with_converted_trace(self):
         """Ensure converted data flows smoothly into map_dataset_columns for AutoRaters."""
         raw_otel = {
-            "trace_id": "autorater_test_sess",
+            "trace_id":
+                "autorater_test_sess",
             "spans": [
                 {
                     "span_id": "sp_u",
@@ -700,8 +764,12 @@ class TestAdversarialDataMapperBridge:
 
         # Test mapping for TOOL_USE_QUALITY AutoRater metric
         mapping = {
-            "prompt": {"source_column": "prompt"},
-            "response": {"source_column": "response"},
+            "prompt": {
+                "source_column": "prompt"
+            },
+            "response": {
+                "source_column": "response"
+            },
             "intermediate_events": {
                 "source_column": "extracted_data:tool_interactions"
             },
@@ -717,23 +785,21 @@ class TestAdversarialDataMapperBridge:
         assert "prompt" in mapped_df.columns
         assert mapped_df["prompt"].iloc[0] == "What is the capital of France?"
         assert "response" in mapped_df.columns
-        assert mapped_df["response"].iloc[0] == "The capital of France is Paris."
+        assert mapped_df["response"].iloc[
+            0] == "The capital of France is Paris."
         assert "intermediate_events" in mapped_df.columns
         events = mapped_df["intermediate_events"].iloc[0]
         # Should contain 1 model text event + 1 tool call event + 1 tool response event = 3 events
         assert len(events) == 3
         assert events[0]["author"] == "model"
-        assert (
-            events[0]["content"]["parts"][0]["text"]
-            == "The capital of France is Paris."
-        )
+        assert (events[0]["content"]["parts"][0]["text"] ==
+                "The capital of France is Paris.")
         assert events[1]["author"] == "model"
-        assert events[1]["content"]["parts"][0]["function_call"]["name"] == "geo_lookup"
+        assert events[1]["content"]["parts"][0]["function_call"][
+            "name"] == "geo_lookup"
         assert events[2]["author"] == "tool"
-        assert (
-            events[2]["content"]["parts"][0]["function_response"]["name"]
-            == "geo_lookup"
-        )
+        assert (events[2]["content"]["parts"][0]["function_response"]["name"] ==
+                "geo_lookup")
 
 
 class TestAdversarialRemediatedBugSuite:
@@ -749,8 +815,11 @@ class TestAdversarialRemediatedBugSuite:
         """BUG-02: OTel span with integer openinference.span.kind = 1 (INTERNAL)."""
         converter = OpenInferenceOTelConverter()
         data = converter.convert_to_agent_data(
-            {"spans": [{"attributes": {"openinference.span.kind": 1}}]}
-        )
+            {"spans": [{
+                "attributes": {
+                    "openinference.span.kind": 1
+                }
+            }]})
         assert isinstance(data, AgentData)
 
     def test_bug_03_otel_null_spans_attribute(self):
@@ -778,8 +847,10 @@ class TestAdversarialRemediatedBugSuite:
         """BUG-06: OTel span with {'attributes': None}."""
         converter = OpenInferenceOTelConverter()
         data = converter.convert_to_agent_data(
-            {"spans": [{"attributes": None, "span_id": "sp_null_attr"}]}
-        )
+            {"spans": [{
+                "attributes": None,
+                "span_id": "sp_null_attr"
+            }]})
         assert isinstance(data, AgentData)
 
     def test_bug_07_adk_null_trace_payload(self):
@@ -838,16 +909,14 @@ class TestAdversarialRemediatedBugSuite:
         """BUG-14: Tool parameters with numeric value 0 are preserved with full fidelity."""
         converter = OpenInferenceOTelConverter()
         raw = {
-            "spans": [
-                {
-                    "attributes": {
-                        "openinference.span.kind": "TOOL",
-                        "gen_ai.turn.index": 0,
-                        "tool.name": "math_offset",
-                        "tool.parameters": 0,
-                    }
+            "spans": [{
+                "attributes": {
+                    "openinference.span.kind": "TOOL",
+                    "gen_ai.turn.index": 0,
+                    "tool.name": "math_offset",
+                    "tool.parameters": 0,
                 }
-            ]
+            }]
         }
         data = converter.convert_to_agent_data(raw)
         ev = data.turns[0].events[0]
@@ -856,24 +925,26 @@ class TestAdversarialRemediatedBugSuite:
 
         # Verify mapping through _map_agents
         rows = _map_agents([data])
-        assert rows[0]["extracted_data"]["tool_interactions"][0]["arguments"] == 0
-        assert rows[0]["extracted_data"]["tool_interactions"][0]["input_arguments"] == 0
+        assert rows[0]["extracted_data"]["tool_interactions"][0][
+            "arguments"] == 0
+        assert rows[0]["extracted_data"]["tool_interactions"][0][
+            "input_arguments"] == 0
 
     def test_bug_15_falsy_zero_tool_output(self):
         """BUG-15: Tool output with numeric value 0 is preserved with full fidelity."""
         converter = OpenInferenceOTelConverter()
         raw = {
-            "spans": [
-                {
-                    "attributes": {
-                        "openinference.span.kind": "TOOL",
-                        "gen_ai.turn.index": 0,
-                        "tool.name": "exit_code_checker",
-                        "tool.parameters": {"cmd": "test"},
-                        "tool.output": 0,
-                    }
+            "spans": [{
+                "attributes": {
+                    "openinference.span.kind": "TOOL",
+                    "gen_ai.turn.index": 0,
+                    "tool.name": "exit_code_checker",
+                    "tool.parameters": {
+                        "cmd": "test"
+                    },
+                    "tool.output": 0,
                 }
-            ]
+            }]
         }
         data = converter.convert_to_agent_data(raw)
         ev = data.turns[0].events[0]
@@ -883,22 +954,21 @@ class TestAdversarialRemediatedBugSuite:
         # Verify mapping through _map_agents
         rows = _map_agents([data])
         assert rows[0]["extracted_data"]["tool_interactions"][0]["result"] == 0
-        assert rows[0]["extracted_data"]["tool_interactions"][0]["output_result"] == 0
+        assert rows[0]["extracted_data"]["tool_interactions"][0][
+            "output_result"] == 0
 
     def test_bug_16_falsy_false_tool_parameters(self):
         """BUG-16: Tool parameters with boolean False are preserved without being converted to empty dict."""
         converter = OpenInferenceOTelConverter()
         raw = {
-            "spans": [
-                {
-                    "attributes": {
-                        "openinference.span.kind": "TOOL",
-                        "gen_ai.turn.index": 0,
-                        "tool.name": "toggle_feature",
-                        "tool.parameters": False,
-                    }
+            "spans": [{
+                "attributes": {
+                    "openinference.span.kind": "TOOL",
+                    "gen_ai.turn.index": 0,
+                    "tool.name": "toggle_feature",
+                    "tool.parameters": False,
                 }
-            ]
+            }]
         }
         data = converter.convert_to_agent_data(raw)
         ev = data.turns[0].events[0]
@@ -906,27 +976,27 @@ class TestAdversarialRemediatedBugSuite:
         assert ev.payload["input_arguments"] is False
 
         rows = _map_agents([data])
-        assert rows[0]["extracted_data"]["tool_interactions"][0]["arguments"] is False
+        assert rows[0]["extracted_data"]["tool_interactions"][0][
+            "arguments"] is False
         assert (
             rows[0]["extracted_data"]["tool_interactions"][0]["input_arguments"]
-            is False
-        )
+            is False)
 
     def test_bug_17_falsy_false_tool_output(self):
         """BUG-17: Tool output with boolean False is preserved without being converted to empty string."""
         converter = OpenInferenceOTelConverter()
         raw = {
-            "spans": [
-                {
-                    "attributes": {
-                        "openinference.span.kind": "TOOL",
-                        "gen_ai.turn.index": 0,
-                        "tool.name": "is_valid",
-                        "tool.parameters": {"input": "bad"},
-                        "tool.output": False,
-                    }
+            "spans": [{
+                "attributes": {
+                    "openinference.span.kind": "TOOL",
+                    "gen_ai.turn.index": 0,
+                    "tool.name": "is_valid",
+                    "tool.parameters": {
+                        "input": "bad"
+                    },
+                    "tool.output": False,
                 }
-            ]
+            }]
         }
         data = converter.convert_to_agent_data(raw)
         ev = data.turns[0].events[0]
@@ -934,25 +1004,28 @@ class TestAdversarialRemediatedBugSuite:
         assert ev.payload["output_result"] is False
 
         rows = _map_agents([data])
-        assert rows[0]["extracted_data"]["tool_interactions"][0]["result"] is False
+        assert rows[0]["extracted_data"]["tool_interactions"][0][
+            "result"] is False
         assert (
-            rows[0]["extracted_data"]["tool_interactions"][0]["output_result"] is False
-        )
+            rows[0]["extracted_data"]["tool_interactions"][0]["output_result"]
+            is False)
 
     def test_bug_18_whitespace_json_parameters(self):
         """BUG-18: Formatted JSON parameters with leading/trailing whitespace and newlines deserialize cleanly."""
         converter = OpenInferenceOTelConverter()
         raw = {
-            "spans": [
-                {
-                    "attributes": {
-                        "openinference.span.kind": "TOOL",
-                        "gen_ai.turn.index": 0,
-                        "tool.name": "query_db",
-                        "tool.parameters": '  \n  {"query": "find_users", "limit": 10} \t \n',
-                    }
+            "spans": [{
+                "attributes": {
+                    "openinference.span.kind":
+                        "TOOL",
+                    "gen_ai.turn.index":
+                        0,
+                    "tool.name":
+                        "query_db",
+                    "tool.parameters":
+                        '  \n  {"query": "find_users", "limit": 10} \t \n',
                 }
-            ]
+            }]
         }
         data = converter.convert_to_agent_data(raw)
         ev = data.turns[0].events[0]
@@ -963,19 +1036,26 @@ class TestAdversarialRemediatedBugSuite:
         """BUG-19: Formatted JSON output with leading/trailing whitespace and newlines deserializes cleanly."""
         converter = OpenInferenceOTelConverter()
         raw = {
-            "spans": [
-                {
-                    "attributes": {
-                        "openinference.span.kind": "TOOL",
-                        "gen_ai.turn.index": 0,
-                        "tool.name": "query_db",
-                        "tool.parameters": {"query": "test"},
-                        "tool.output": '  \r\n  {"status": "success", "count": 42}  \n',
-                    }
+            "spans": [{
+                "attributes": {
+                    "openinference.span.kind":
+                        "TOOL",
+                    "gen_ai.turn.index":
+                        0,
+                    "tool.name":
+                        "query_db",
+                    "tool.parameters": {
+                        "query": "test"
+                    },
+                    "tool.output":
+                        '  \r\n  {"status": "success", "count": 42}  \n',
                 }
-            ]
+            }]
         }
         data = converter.convert_to_agent_data(raw)
         ev = data.turns[0].events[0]
         assert ev.payload["result"] == {"status": "success", "count": 42}
-        assert ev.tool_responses[0]["response"] == {"status": "success", "count": 42}
+        assert ev.tool_responses[0]["response"] == {
+            "status": "success",
+            "count": 42
+        }

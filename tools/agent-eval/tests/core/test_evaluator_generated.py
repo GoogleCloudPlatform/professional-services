@@ -30,6 +30,7 @@ from agent_eval.core.evaluator import Evaluator
 @patch("agent_eval.core.evaluator.aiplatform")
 @patch("agent_eval.core.evaluator.Client")
 class TestEvaluator(IsolatedAsyncioTestCase):
+
     def setUp(self):
         self.test_dir = tempfile.mkdtemp()
         self.results_dir = Path(self.test_dir) / "results"
@@ -43,17 +44,15 @@ class TestEvaluator(IsolatedAsyncioTestCase):
     def tearDown(self):
         shutil.rmtree(self.test_dir)
 
-    def test_initialization(
-        self, mock_client, mock_aiplatform, mock_config, mock_get_project_id
-    ):
+    def test_initialization(self, mock_client, mock_aiplatform, mock_config,
+                            mock_get_project_id):
         mock_config.GOOGLE_CLOUD_LOCATION = "us-central1"
 
         Evaluator(self.config)
 
         # Verify the mocked library was initialized
-        mock_aiplatform.init.assert_called_with(
-            project="test-project", location="us-central1"
-        )
+        mock_aiplatform.init.assert_called_with(project="test-project",
+                                                location="us-central1")
 
     @patch("agent_eval.core.evaluator.load_and_consolidate_metrics")
     @patch("agent_eval.core.evaluator.evaluate_deterministic_metrics")
@@ -75,16 +74,14 @@ class TestEvaluator(IsolatedAsyncioTestCase):
         mock_config.MAX_WORKERS = 1
 
         # Setup Input Data with ADK Scores in JSONL format
-        input_data = [
-            {
-                "question_id": "q1",
-                "final_session_state": {},
-                "session_trace": [],
-                "agents_evaluated": ["agent1"],
-                "adk_score.hallucination": 0.1,
-                "adk_score.safety": 1.0,
-            }
-        ]
+        input_data = [{
+            "question_id": "q1",
+            "final_session_state": {},
+            "session_trace": [],
+            "agents_evaluated": ["agent1"],
+            "adk_score.hallucination": 0.1,
+            "adk_score.safety": 1.0,
+        }]
         input_file = Path(self.test_dir) / "input.jsonl"
 
         # Write as JSONL
@@ -117,7 +114,8 @@ class TestEvaluator(IsolatedAsyncioTestCase):
         self.assertEqual(first_row_results["safety"]["score"], 1.0)
 
     @patch("agent_eval.core.evaluator.load_and_consolidate_metrics")
-    @patch("agent_eval.core.evaluator.asyncio.to_thread", new_callable=AsyncMock)
+    @patch("agent_eval.core.evaluator.asyncio.to_thread",
+           new_callable=AsyncMock)
     async def test_evaluate_llm_metrics_execution_jsonl(
         self,
         mock_to_thread,
@@ -132,14 +130,12 @@ class TestEvaluator(IsolatedAsyncioTestCase):
 
         # Input data
         input_file = Path(self.test_dir) / "input.jsonl"
-        input_data = [
-            {
-                "question_id": "q1",
-                "agents_evaluated": ["agent1"],
-                "request": "req",
-                "response": "res",
-            }
-        ]
+        input_data = [{
+            "question_id": "q1",
+            "agents_evaluated": ["agent1"],
+            "request": "req",
+            "response": "res",
+        }]
         with input_file.open("w") as f:
             for record in input_data:
                 f.write(json.dumps(record) + "\n")
@@ -150,13 +146,21 @@ class TestEvaluator(IsolatedAsyncioTestCase):
                 "kind": "custom_llm_judge",
                 "agents": ["agent1"],
                 "instruction": "Test instruction",
-                "criteria": {"only": "test criterion"},
-                "rating_scores": {"1": "Pass", "0": "Fail"},
+                "criteria": {
+                    "only": "test criterion"
+                },
+                "rating_scores": {
+                    "1": "Pass",
+                    "0": "Fail"
+                },
             }
         }
 
         # Setup to_thread Mock
-        mock_parsed_df = pd.DataFrame([{"original_index": 0, "test_metric/score": 5.0}])
+        mock_parsed_df = pd.DataFrame([{
+            "original_index": 0,
+            "test_metric/score": 5.0
+        }])
         mock_input_df = pd.DataFrame(input_data)
         # return (parsed_results_df, metric_name, input_dataset_df, error_info)
         mock_to_thread.return_value = (

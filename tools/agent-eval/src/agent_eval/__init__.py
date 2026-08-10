@@ -17,7 +17,7 @@ from agent_eval._preflight import check_runtime_dependencies
 # the import chain with an error that points nowhere near the real cause.
 check_runtime_dependencies()
 
-from agent_eval.sdk import (  # noqa: E402  (must follow the preflight check)
+from agent_eval.sdk import (  # noqa: E402
     EvaluationResult,
     run_evaluation,
     run_evaluation_sync,

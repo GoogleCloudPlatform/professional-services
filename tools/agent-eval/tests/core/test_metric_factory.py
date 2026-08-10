@@ -23,12 +23,14 @@ from agent_eval.core import metric_factory
 
 # Helper classes to bypass isinstance checks with Mock objects in tests
 class RealLLMMetric:
+
     def __init__(self, name, prompt_template):
         self.name = name
         self.prompt_template = prompt_template
 
 
 class RealMetric:
+
     def __init__(self, name, custom_function=None, remote_custom_function=None):
         self.name = name
         self.custom_function = custom_function
@@ -49,20 +51,27 @@ def test_build_custom_llm_judge_with_rubric():
     spec = {
         "kind": "custom_llm_judge",
         "instruction": "Test instruction",
-        "criteria": {"only": "test criterion"},
-        "rating_scores": {"1": "Pass", "0": "Fail"},
+        "criteria": {
+            "only": "test criterion"
+        },
+        "rating_scores": {
+            "1": "Pass",
+            "0": "Fail"
+        },
     }
 
     metric_factory.build_metric("test_metric", spec)
 
     vt.MetricPromptBuilder.assert_called_once_with(
         criteria={"only": "test criterion"},
-        rating_scores={"1": "Pass", "0": "Fail"},
+        rating_scores={
+            "1": "Pass",
+            "0": "Fail"
+        },
         instruction="Test instruction",
     )
     vt.LLMMetric.assert_called_once_with(
-        name="test_metric", prompt_template=vt.MetricPromptBuilder.return_value
-    )
+        name="test_metric", prompt_template=vt.MetricPromptBuilder.return_value)
 
 
 def test_build_custom_llm_judge_with_prompt_template():
@@ -79,8 +88,7 @@ def test_build_custom_llm_judge_with_prompt_template():
 
     vt.MetricPromptBuilder.assert_not_called()
     vt.LLMMetric.assert_called_once_with(
-        name="test_metric2", prompt_template="Custom prompt: {response}"
-    )
+        name="test_metric2", prompt_template="Custom prompt: {response}")
 
 
 def test_build_custom_llm_judge_missing_required():
@@ -89,7 +97,8 @@ def test_build_custom_llm_judge_missing_required():
         "instruction": "Test instruction",
     }
 
-    with pytest.raises(ValueError, match=r"prompt_template.*or.*criteria.*required"):
+    with pytest.raises(ValueError,
+                       match=r"prompt_template.*or.*criteria.*required"):
         metric_factory.build_metric("test_metric_fail", spec)
 
 
@@ -175,8 +184,13 @@ def test_validate_custom_llm_judge_with_rubric():
 
     defn = {
         "kind": "custom_llm_judge",
-        "criteria": {"only": "test criterion"},
-        "rating_scores": {"1": "Pass", "0": "Fail"},
+        "criteria": {
+            "only": "test criterion"
+        },
+        "rating_scores": {
+            "1": "Pass",
+            "0": "Fail"
+        },
     }
     errors = _validate_single_metric("test_metric", defn)
     assert not errors
@@ -202,9 +216,8 @@ def test_validate_custom_llm_judge_missing_both():
     }
     errors = _validate_single_metric("test_metric", defn)
     assert any(
-        "must provide 'prompt_template' or both 'criteria' and 'rating_scores'" in e
-        for e in errors
-    )
+        "must provide 'prompt_template' or both 'criteria' and 'rating_scores'"
+        in e for e in errors)
 
 
 def test_validate_metric_with_state_mapping():
@@ -214,7 +227,9 @@ def test_validate_metric_with_state_mapping():
         "kind": "custom_llm_judge",
         "prompt_template": "Custom prompt: {state_val}",
         "dataset_mapping": {
-            "state_val": {"source_column": "final_session_state:state.my_var"}
+            "state_val": {
+                "source_column": "final_session_state:state.my_var"
+            }
         },
     }
     errors = _validate_single_metric("test_metric_state", defn)
@@ -234,7 +249,8 @@ def test_validate_computation_missing_metric_name():
 
     defn = {"kind": "computation"}
     errors = _validate_single_metric("test_metric", defn)
-    assert any("missing required field" in e and "metric_name" in e for e in errors)
+    assert any(
+        "missing required field" in e and "metric_name" in e for e in errors)
 
 
 def test_validate_python_function_missing_fields():
@@ -242,7 +258,8 @@ def test_validate_python_function_missing_fields():
 
     defn = {"kind": "python_function", "module": "foo.py"}
     errors = _validate_single_metric("test_metric", defn)
-    assert any("missing required field" in e and "function" in e for e in errors)
+    assert any(
+        "missing required field" in e and "function" in e for e in errors)
 
 
 def test_validate_remote_code_missing_snippet():
@@ -250,7 +267,8 @@ def test_validate_remote_code_missing_snippet():
 
     defn = {"kind": "remote_code"}
     errors = _validate_single_metric("test_metric", defn)
-    assert any("missing required field" in e and "code_snippet" in e for e in errors)
+    assert any(
+        "missing required field" in e and "code_snippet" in e for e in errors)
 
 
 # --- to_evaluation_run_metric Tests ---
@@ -260,6 +278,7 @@ def test_to_evaluation_run_metric_prebuilt():
     from agent_eval.core.metric_factory import to_evaluation_run_metric
 
     class LazyLoadedPrebuiltMetric:
+
         def __init__(self, name):
             self.name = name
 
@@ -291,8 +310,10 @@ def test_to_evaluation_run_metric_llm(monkeypatch):
 
     vt.UnifiedMetric.assert_called_once()
     _, u_kwargs = vt.UnifiedMetric.call_args
-    assert u_kwargs["llm_based_metric_spec"] == vt.LLMBasedMetricSpec.return_value
-    vt.LLMBasedMetricSpec.assert_called_once_with(metric_prompt_template="template")
+    assert u_kwargs[
+        "llm_based_metric_spec"] == vt.LLMBasedMetricSpec.return_value
+    vt.LLMBasedMetricSpec.assert_called_once_with(
+        metric_prompt_template="template")
 
 
 def test_to_evaluation_run_metric_remote_code(monkeypatch):
@@ -315,11 +336,10 @@ def test_to_evaluation_run_metric_remote_code(monkeypatch):
 
     vt.UnifiedMetric.assert_called_once()
     _, u_kwargs = vt.UnifiedMetric.call_args
-    assert (
-        u_kwargs["custom_code_execution_spec"]
-        == vt.CustomCodeExecutionSpec.return_value
-    )
-    vt.CustomCodeExecutionSpec.assert_called_once_with(remote_custom_function="code")
+    assert (u_kwargs["custom_code_execution_spec"] ==
+            vt.CustomCodeExecutionSpec.return_value)
+    vt.CustomCodeExecutionSpec.assert_called_once_with(
+        remote_custom_function="code")
 
 
 def test_to_evaluation_run_metric_local_function_fails(monkeypatch):
@@ -329,7 +349,8 @@ def test_to_evaluation_run_metric_local_function_fails(monkeypatch):
     patch_vt_types(monkeypatch, vt)
 
     metric = RealMetric("custom_local", custom_function=lambda x: x)
-    with pytest.raises(ValueError, match="local Python function and cannot run"):
+    with pytest.raises(ValueError,
+                       match="local Python function and cannot run"):
         to_evaluation_run_metric(metric)
 
 

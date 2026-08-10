@@ -30,46 +30,40 @@ class RubricsStage(BaseStage):
 
     stage_name = "rubrics"
 
-    def execute(
-        self, config_data: dict[str, Any] | None = None, **kwargs: Any
-    ) -> StageResult:
+    def execute(self,
+                config_data: dict[str, Any] | None = None,
+                **kwargs: Any) -> StageResult:
         selection_result = MetricSelectionStage().execute(
-            config_data=config_data, **kwargs
-        )
+            config_data=config_data, **kwargs)
         events: list[dict[str, Any]] = []
 
         # Load raw specs to get criteria / instructions
         metrics_dict: dict[str, Any] = {}
-        if (
-            config_data
-            and "metrics" in config_data
-            and isinstance(config_data["metrics"], dict)
-        ):
+        if (config_data and "metrics" in config_data and
+                isinstance(config_data["metrics"], dict)):
             metrics_dict = config_data["metrics"]
         else:
             for candidate in (
-                Path("app/eval_config.yaml"),
-                Path("tests/eval/eval_config.yaml"),
+                    Path("app/eval_config.yaml"),
+                    Path("tests/eval/eval_config.yaml"),
             ):
                 if candidate.exists():
                     try:
-                        loaded = (
-                            yaml.safe_load(candidate.read_text(encoding="utf-8")) or {}
-                        )
-                        if "metrics" in loaded and isinstance(loaded["metrics"], dict):
+                        loaded = (yaml.safe_load(
+                            candidate.read_text(encoding="utf-8")) or {})
+                        if "metrics" in loaded and isinstance(
+                                loaded["metrics"], dict):
                             metrics_dict = loaded["metrics"]
                             break
                     except Exception:
                         pass
             if not metrics_dict:
                 for candidate_json in (
-                    Path("tests/eval/metrics/metric_definitions.json"),
-                ):
+                        Path("tests/eval/metrics/metric_definitions.json"),):
                     if candidate_json.exists():
                         try:
                             loaded_json = json.loads(
-                                candidate_json.read_text(encoding="utf-8")
-                            )
+                                candidate_json.read_text(encoding="utf-8"))
                             if "metrics" in loaded_json:
                                 metrics_dict = loaded_json["metrics"]
                                 break
@@ -95,7 +89,8 @@ class RubricsStage(BaseStage):
                         f"Evaluate standard managed rubric rules for '{m_name}' (RFC 105 / RFC 462).",
                     ]
             elif kind == "custom_llm_judge":
-                criteria = spec.get("criteria", {}) if isinstance(spec, dict) else {}
+                criteria = spec.get("criteria", {}) if isinstance(spec,
+                                                                  dict) else {}
                 if isinstance(criteria, dict) and criteria:
                     for c_val in criteria.values():
                         rules.append(str(c_val).strip())
@@ -112,14 +107,12 @@ class RubricsStage(BaseStage):
             else:
                 rules = [f"Evaluate '{m_name}' ({kind})."]
 
-            events.append(
-                {
-                    "event_type": "rubric_compiled",
-                    "metric_name": m_name,
-                    "kind": kind,
-                    "rubric_rules": rules,
-                }
-            )
+            events.append({
+                "event_type": "rubric_compiled",
+                "metric_name": m_name,
+                "kind": kind,
+                "rubric_rules": rules,
+            })
 
         return StageResult(
             stage=self.stage_name,
