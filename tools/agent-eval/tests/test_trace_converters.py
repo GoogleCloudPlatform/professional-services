@@ -46,11 +46,17 @@ class TestBaseTraceConverterContract:
         data = [
             {
                 "session_id": "sess_1",
-                "turns": [{"role": "user", "content": "Hello"}],
+                "turns": [{
+                    "role": "user",
+                    "content": "Hello"
+                }],
             },
             {
                 "session_id": "sess_2",
-                "turns": [{"role": "model", "content": "Hi there"}],
+                "turns": [{
+                    "role": "model",
+                    "content": "Hi there"
+                }],
             },
         ]
         json_file = tmp_path / "traces.json"
@@ -66,7 +72,10 @@ class TestBaseTraceConverterContract:
         converter = ADKTraceConverter()
         data = {
             "session_id": "sess_single",
-            "turns": [{"role": "user", "content": "Ping"}],
+            "turns": [{
+                "role": "user",
+                "content": "Ping"
+            }],
         }
         json_file = tmp_path / "single.json"
         json_file.write_text(json.dumps(data), encoding="utf-8")
@@ -78,8 +87,20 @@ class TestBaseTraceConverterContract:
     def test_convert_file_jsonl_streaming(self, tmp_path: Path):
         converter = ADKTraceConverter()
         records = [
-            {"session_id": "line_1", "turns": [{"role": "user", "content": "L1"}]},
-            {"session_id": "line_2", "turns": [{"role": "model", "content": "L2"}]},
+            {
+                "session_id": "line_1",
+                "turns": [{
+                    "role": "user",
+                    "content": "L1"
+                }]
+            },
+            {
+                "session_id": "line_2",
+                "turns": [{
+                    "role": "model",
+                    "content": "L2"
+                }]
+            },
         ]
         jsonl_file = tmp_path / "stream.jsonl"
         jsonl_file.write_text(
@@ -94,11 +115,9 @@ class TestBaseTraceConverterContract:
 
     def test_convert_file_jsonl_with_corrupted_lines(self, tmp_path: Path):
         converter = ADKTraceConverter()
-        content = (
-            '{"session_id": "valid_1", "turns": []}\n'
-            "CORRUPTED_JSON_LINE\n"
-            '{"session_id": "valid_2", "turns": []}\n'
-        )
+        content = ('{"session_id": "valid_1", "turns": []}\n'
+                   "CORRUPTED_JSON_LINE\n"
+                   '{"session_id": "valid_2", "turns": []}\n')
         jsonl_file = tmp_path / "corrupted.jsonl"
         jsonl_file.write_text(content, encoding="utf-8")
 
@@ -114,14 +133,22 @@ class TestBaseTraceConverterContract:
         trace_dir.mkdir()
 
         # Create two json files and one jsonl file
-        (trace_dir / "01_trace.json").write_text(
-            json.dumps({"session_id": "s_01", "turns": []}), encoding="utf-8"
-        )
-        (trace_dir / "02_trace.jsonl").write_text(
-            json.dumps({"session_id": "s_02", "turns": []}) + "\n", encoding="utf-8"
-        )
+        (trace_dir / "01_trace.json").write_text(json.dumps({
+            "session_id": "s_01",
+            "turns": []
+        }),
+                                                 encoding="utf-8")
+        (trace_dir / "02_trace.jsonl").write_text(json.dumps({
+            "session_id": "s_02",
+            "turns": []
+        }) + "\n",
+                                                  encoding="utf-8")
         (trace_dir / "03_trace.json").write_text(
-            json.dumps([{"session_id": "s_03_a"}, {"session_id": "s_03_b"}]),
+            json.dumps([{
+                "session_id": "s_03_a"
+            }, {
+                "session_id": "s_03_b"
+            }]),
             encoding="utf-8",
         )
         # Ignored non-json file
@@ -145,26 +172,31 @@ class TestADKTraceConverter:
 
     def test_adk_turn_and_event_mapping(self):
         raw_adk = {
-            "session_id": "adk_session_789",
+            "session_id":
+                "adk_session_789",
             "turns": [
                 {
-                    "turn_id": "t_0",
-                    "role": "user",
-                    "content": "Where is the nearest cafe?",
-                    "events": [
-                        {
-                            "id": "ev_0_1",
-                            "type": "USER_INPUT",
-                            "status": "OK",
-                            "author": "USER",
-                            "content": "Where is the nearest cafe?",
-                        }
-                    ],
+                    "turn_id":
+                        "t_0",
+                    "role":
+                        "user",
+                    "content":
+                        "Where is the nearest cafe?",
+                    "events": [{
+                        "id": "ev_0_1",
+                        "type": "USER_INPUT",
+                        "status": "OK",
+                        "author": "USER",
+                        "content": "Where is the nearest cafe?",
+                    }],
                 },
                 {
-                    "turn_id": "t_1",
-                    "role": "model",
-                    "content": "There is a cafe 200m away on Elm Street.",
+                    "turn_id":
+                        "t_1",
+                    "role":
+                        "model",
+                    "content":
+                        "There is a cafe 200m away on Elm Street.",
                     "events": [
                         {
                             "id": "ev_1_1",
@@ -172,26 +204,32 @@ class TestADKTraceConverter:
                             "status": "OK",
                             "payload": {
                                 "tool_name": "map_search",
-                                "arguments": {"query": "cafe"},
+                                "arguments": {
+                                    "query": "cafe"
+                                },
                                 "result": "Cafe Nero, 200m",
                             },
                         },
                         {
-                            "id": "ev_1_2",
-                            "type": "MODEL_INFERENCE",
-                            "status": "OK",
-                            "content": "There is a cafe 200m away on Elm Street.",
+                            "id":
+                                "ev_1_2",
+                            "type":
+                                "MODEL_INFERENCE",
+                            "status":
+                                "OK",
+                            "content":
+                                "There is a cafe 200m away on Elm Street.",
                         },
                     ],
                 },
             ],
-            "events": [
-                {
-                    "id": "top_event_0",
-                    "type": "SESSION_INITIALIZED",
-                    "payload": {"version": "2.0"},
-                }
-            ],
+            "events": [{
+                "id": "top_event_0",
+                "type": "SESSION_INITIALIZED",
+                "payload": {
+                    "version": "2.0"
+                },
+            }],
         }
 
         converter = ADKTraceConverter()
@@ -204,7 +242,8 @@ class TestADKTraceConverter:
         assert agent_data.turns[1].role == "model"
         assert len(agent_data.turns[1].events) == 2
         assert agent_data.turns[1].events[0].event_type == "TOOL_CALL"
-        assert agent_data.turns[1].events[0].payload["tool_name"] == "map_search"
+        assert agent_data.turns[1].events[0].payload[
+            "tool_name"] == "map_search"
         assert len(agent_data.events) == 1
         assert agent_data.events[0].event_id == "top_event_0"
 
@@ -220,7 +259,8 @@ class TestOpenInferenceOTelConverter:
 
     def test_single_turn_with_tool_call(self):
         raw_otel = {
-            "trace_id": "otel_trace_12345",
+            "trace_id":
+                "otel_trace_12345",
             "spans": [
                 {
                     "span_id": "span_root",
@@ -235,7 +275,9 @@ class TestOpenInferenceOTelConverter:
                 {
                     "span_id": "span_tool_1",
                     "name": "get_stock_quote",
-                    "status": {"code": "OK"},
+                    "status": {
+                        "code": "OK"
+                    },
                     "attributes": {
                         "openinference.span.kind": "TOOL",
                         "gen_ai.turn.index": 0,
@@ -247,7 +289,9 @@ class TestOpenInferenceOTelConverter:
                 {
                     "span_id": "span_llm_1",
                     "name": "gemini-pro",
-                    "status": {"code": "OK"},
+                    "status": {
+                        "code": "OK"
+                    },
                     "attributes": {
                         "openinference.span.kind": "LLM",
                         "gen_ai.turn.index": 0,
@@ -268,7 +312,9 @@ class TestOpenInferenceOTelConverter:
         assert turn0.content == "GOOG is trading at $185.50 USD."
 
         # Verify Tool Call Event
-        tool_events = [ev for ev in turn0.events if ev.event_type == "TOOL_CALL"]
+        tool_events = [
+            ev for ev in turn0.events if ev.event_type == "TOOL_CALL"
+        ]
         assert len(tool_events) == 1
         tool_ev = tool_events[0]
         assert tool_ev.status == "OK"
@@ -278,7 +324,8 @@ class TestOpenInferenceOTelConverter:
 
     def test_multi_turn_otel_grouping(self):
         raw_otel = {
-            "session_id": "multi_turn_trace",
+            "session_id":
+                "multi_turn_trace",
             "spans": [
                 # Turn 0: User input and Agent reply
                 {
@@ -312,7 +359,9 @@ class TestOpenInferenceOTelConverter:
                         "openinference.span.kind": "TOOL",
                         "gen_ai.turn.index": 1,
                         "tool.name": "get_timezone",
-                        "tool.parameters": {"city": "London"},
+                        "tool.parameters": {
+                            "city": "London"
+                        },
                         "tool.output": "14:00 UTC+1",
                     },
                 },
@@ -337,27 +386,31 @@ class TestOpenInferenceOTelConverter:
 
         # Check turn 1 tool interaction
         t1_events = agent_data.turns[1].events
-        tool_call_ev = next(ev for ev in t1_events if ev.event_type == "TOOL_CALL")
+        tool_call_ev = next(
+            ev for ev in t1_events if ev.event_type == "TOOL_CALL")
         assert tool_call_ev.payload["tool_name"] == "get_timezone"
         assert tool_call_ev.payload["arguments"] == {"city": "London"}
         assert tool_call_ev.payload["result"] == "14:00 UTC+1"
 
     def test_tool_call_error_status_mapping(self):
         raw_otel = {
-            "trace_id": "err_trace",
-            "spans": [
-                {
-                    "span_id": "span_err_tool",
-                    "status": {"code": "ERROR"},
-                    "attributes": {
-                        "openinference.span.kind": "TOOL",
-                        "gen_ai.turn.index": 0,
-                        "tool.name": "database_query",
-                        "tool.parameters": {"sql": "SELECT * FROM non_existent"},
-                        "tool.output": "TableNotFoundException",
+            "trace_id":
+                "err_trace",
+            "spans": [{
+                "span_id": "span_err_tool",
+                "status": {
+                    "code": "ERROR"
+                },
+                "attributes": {
+                    "openinference.span.kind": "TOOL",
+                    "gen_ai.turn.index": 0,
+                    "tool.name": "database_query",
+                    "tool.parameters": {
+                        "sql": "SELECT * FROM non_existent"
                     },
-                }
-            ],
+                    "tool.output": "TableNotFoundException",
+                },
+            }],
         }
 
         converter = OpenInferenceOTelConverter()
@@ -369,15 +422,13 @@ class TestOpenInferenceOTelConverter:
         assert ev.payload["result"] == "TableNotFoundException"
 
     def test_raw_trace_as_list_of_spans(self):
-        raw_spans = [
-            {
-                "span_id": "sp_1",
-                "attributes": {
-                    "openinference.span.kind": "LLM",
-                    "output.value": "Direct span list output.",
-                },
-            }
-        ]
+        raw_spans = [{
+            "span_id": "sp_1",
+            "attributes": {
+                "openinference.span.kind": "LLM",
+                "output.value": "Direct span list output.",
+            },
+        }]
         converter = OpenInferenceOTelConverter()
         agent_data = converter.convert_to_agent_data(raw_spans)
         assert len(agent_data.turns) == 1
@@ -433,7 +484,8 @@ class TestE2ETraceToDataMapperPipeline:
 
     def test_openinference_to_evaluation_dataset(self, tmp_path: Path):
         raw_trace = {
-            "trace_id": "e2e_trace_001",
+            "trace_id":
+                "e2e_trace_001",
             "spans": [
                 {
                     "span_id": "s_user",
@@ -446,11 +498,16 @@ class TestE2ETraceToDataMapperPipeline:
                 {
                     "span_id": "s_tool",
                     "attributes": {
-                        "openinference.span.kind": "TOOL",
-                        "gen_ai.turn.index": 0,
-                        "tool.name": "calculator",
-                        "tool.parameters": '{"operation": "multiply", "a": 80, "b": 0.15}',
-                        "tool.output": '{"result": 12.0}',
+                        "openinference.span.kind":
+                            "TOOL",
+                        "gen_ai.turn.index":
+                            0,
+                        "tool.name":
+                            "calculator",
+                        "tool.parameters":
+                            '{"operation": "multiply", "a": 80, "b": 0.15}',
+                        "tool.output":
+                            '{"result": 12.0}',
                     },
                 },
                 {
@@ -482,5 +539,9 @@ class TestE2ETraceToDataMapperPipeline:
         assert len(row["extracted_data"]["tool_interactions"]) == 1
         ti = row["extracted_data"]["tool_interactions"][0]
         assert ti["tool_name"] == "calculator"
-        assert ti["input_arguments"] == {"operation": "multiply", "a": 80, "b": 0.15}
+        assert ti["input_arguments"] == {
+            "operation": "multiply",
+            "a": 80,
+            "b": 0.15
+        }
         assert ti["output_result"] == {"result": 12.0}

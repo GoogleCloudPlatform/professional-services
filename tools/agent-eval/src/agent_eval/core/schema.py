@@ -81,8 +81,7 @@ class OverallSummary(BaseModel):
     """Aggregated metrics summary for the entire run."""
 
     deterministic_metrics: dict[str, DeterministicMetricSummary] = Field(
-        default_factory=dict
-    )
+        default_factory=dict)
     llm_based_metrics: dict[str, LLMMetricSummary] = Field(default_factory=dict)
     adk_eval_scores: dict[str, ADKEvalScore] = Field(default_factory=dict)
     failed_metrics: list[dict[str, Any] | str] = Field(default_factory=list)

@@ -25,8 +25,10 @@ from agent_eval.core.stages import run_stage
 def test_agentdata_canonical_schema():
     """Verify canonical AgentData schema with AgentConfig adjacency map per RFC 477 / RFC 135."""
     row = {
-        "id": "NA_Q1",
-        "prompt": "Test prompt",
+        "id":
+            "NA_Q1",
+        "prompt":
+            "Test prompt",
         "agents": {
             "root_agent": {
                 "agent_id": "root_agent",
@@ -41,19 +43,31 @@ def test_agentdata_canonical_schema():
                 "sub_agents": [],
             },
         },
-        "turns": [
-            {
-                "turn_id": 1,
-                "state": "COMPLETED",
-                "events": [
-                    {"author": "USER", "content": "Test prompt"},
-                    {"author": "AGENT", "content": "Test answer"},
-                ],
-            }
-        ],
+        "turns": [{
+            "turn_id":
+                1,
+            "state":
+                "COMPLETED",
+            "events": [
+                {
+                    "author": "USER",
+                    "content": "Test prompt"
+                },
+                {
+                    "author": "AGENT",
+                    "content": "Test answer"
+                },
+            ],
+        }],
         "events": [
-            {"author": "USER", "content": "Test prompt"},
-            {"author": "AGENT", "content": "Test answer"},
+            {
+                "author": "USER",
+                "content": "Test prompt"
+            },
+            {
+                "author": "AGENT",
+                "content": "Test answer"
+            },
         ],
     }
 

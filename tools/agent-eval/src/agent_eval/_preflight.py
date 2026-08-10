@@ -89,20 +89,19 @@ def check_runtime_dependencies() -> None:
             continue
         # prereleases=True so an rc of a valid version isn't reported as broken.
         if not specifier.contains(installed, prereleases=True):
-            problems.append(f"  {name}: {installed} installed, needs {specifier}")
+            problems.append(
+                f"  {name}: {installed} installed, needs {specifier}")
 
     if not problems:
         return
 
     raise DependencyMismatchError(
-        "agent-eval's dependencies have drifted:\n"
-        + "\n".join(problems)
-        + "\n\nMost likely cause: agent-eval is installed in your agent's own "
+        "agent-eval's dependencies have drifted:\n" + "\n".join(problems) +
+        "\n\nMost likely cause: agent-eval is installed in your agent's own "
         "virtualenv.\nRunning `uv sync` / `uv run` in that project re-resolves it "
         "against the\nagent's lockfile and downgrades shared packages underneath "
         "agent-eval.\n\nUse a separate environment for evaluation:\n"
         "    uv venv --python 3.12 .venv-eval\n"
         "    uv pip install --python .venv-eval/bin/python <agent-eval wheel>\n"
         "    uv pip install --python .venv-eval/bin/python -e .   # your agent\n"
-        "\nKeep the agent's own venv for running the agent (e.g. `adk web`)."
-    )
+        "\nKeep the agent's own venv for running the agent (e.g. `adk web`).")

@@ -45,9 +45,12 @@ def _display_metrics_summary(results_dir: str) -> None:
     llm_metrics = overall.get("llm_based_metrics", {})
     if llm_metrics:
         # Only add threshold column if there are thresholds defined
-        has_thresholds = any("threshold" in info for info in llm_metrics.values())
+        has_thresholds = any(
+            "threshold" in info for info in llm_metrics.values())
 
-        table = Table(title="LLM-as-Judge Metrics", border_style="blue", padding=(0, 2))
+        table = Table(title="LLM-as-Judge Metrics",
+                      border_style="blue",
+                      padding=(0, 2))
         table.add_column("Metric", style="bold")
         table.add_column("Score", justify="right")
         table.add_column("Range", justify="center", style="dim")
@@ -76,9 +79,8 @@ def _display_metrics_summary(results_dir: str) -> None:
                 # are intentionally neutral — a low score may mean the agent really
                 # is failing this rubric (the most useful signal), or the rubric
                 # itself is mis-targeted; the analyzer's AI report disambiguates.
-                ratio = (
-                    (avg - min_val) / (max_val - min_val) if max_val > min_val else 0
-                )
+                ratio = ((avg - min_val) /
+                         (max_val - min_val) if max_val > min_val else 0)
                 if ratio >= 0.7:
                     color = "green"
                     indicator = "Pass"
@@ -116,16 +118,10 @@ def _display_metrics_summary(results_dir: str) -> None:
         # Show metrics that were skipped by design (dimmed)
         skipped = overall.get("skipped_metrics", [])
         for entry in skipped:
-            reason = (
-                entry.get("reason", "skipped")
-                if isinstance(entry, dict)
-                else str(entry)
-            )
-            m_name = (
-                entry.get("metric", str(entry))
-                if isinstance(entry, dict)
-                else str(entry)
-            )
+            reason = (entry.get("reason", "skipped")
+                      if isinstance(entry, dict) else str(entry))
+            m_name = (entry.get("metric", str(entry)) if isinstance(
+                entry, dict) else str(entry))
             row_args = [f"[dim]{m_name}[/]", "[dim]SKIPPED[/]", "—"]
             if has_thresholds:
                 row_args.append("—")
@@ -143,15 +139,15 @@ def _display_metrics_summary(results_dir: str) -> None:
             # rejection, not a 429).
             by_type: dict[str, list[dict]] = {}
             for e in failed_dicts:
-                by_type.setdefault(e.get("exception_type") or "Unknown", []).append(e)
+                by_type.setdefault(e.get("exception_type") or "Unknown",
+                                   []).append(e)
             console.print(
-                f"  [yellow]Warning:[/] {len(failed_dicts)} metric(s) failed:"
-            )
+                f"  [yellow]Warning:[/] {len(failed_dicts)} metric(s) failed:")
             for exc_type, group in by_type.items():
                 names = ", ".join(g["metric"] for g in group)
                 sample_msg = next(
-                    (g.get("message", "") for g in group if g.get("message")), ""
-                )
+                    (g.get("message", "") for g in group if g.get("message")),
+                    "")
                 console.print(f"    [red]{exc_type}[/] in {names}")
                 if sample_msg:
                     console.print(f"      [dim]{sample_msg}[/]")
@@ -167,9 +163,9 @@ def _display_metrics_summary(results_dir: str) -> None:
     # ── Key deterministic metrics ──────────────────────────────────────
     det = overall.get("deterministic_metrics", {})
     if det:
-        table = Table(
-            title="Key Deterministic Metrics", border_style="blue", padding=(0, 2)
-        )
+        table = Table(title="Key Deterministic Metrics",
+                      border_style="blue",
+                      padding=(0, 2))
         table.add_column("Metric", style="bold")
         table.add_column("Avg Value", justify="right")
 
@@ -182,11 +178,14 @@ def _display_metrics_summary(results_dir: str) -> None:
             ("Prompt tokens", "token_usage.prompt_tokens", "{:.0f}"),
             ("Completion tokens", "token_usage.completion_tokens", "{:.0f}"),
             ("Estimated cost", "token_usage.estimated_cost_usd", "${:.4f}"),
-            ("Wall-clock latency", "latency_metrics.total_latency_seconds", "{:.2f}s"),
-            ("Σ LLM call durations", "latency_metrics.llm_latency_seconds", "{:.2f}s"),
+            ("Wall-clock latency", "latency_metrics.total_latency_seconds",
+             "{:.2f}s"),
+            ("Σ LLM call durations", "latency_metrics.llm_latency_seconds",
+             "{:.2f}s"),
             ("Cache hit rate", "cache_efficiency.cache_hit_rate", "{:.0%}"),
             ("Tool calls", "tool_utilization.total_tool_calls", "{:.0f}"),
-            ("Tool success rate", "tool_success_rate.tool_success_rate", "{:.0%}"),
+            ("Tool success rate", "tool_success_rate.tool_success_rate",
+             "{:.0%}"),
         ]
 
         for label, key, fmt in highlights:
@@ -199,8 +198,7 @@ def _display_metrics_summary(results_dir: str) -> None:
         # One-line legend so the "Σ LLM > Wall-clock" surprise is explained.
         console.print(
             "  [dim]Σ LLM call durations is additive across parallel sub-agent "
-            "calls — it can exceed wall-clock latency.[/]"
-        )
+            "calls — it can exceed wall-clock latency.[/]")
 
 
 @click.command()
@@ -209,7 +207,8 @@ def _display_metrics_summary(results_dir: str) -> None:
     required=False,
     default=None,
     multiple=True,
-    help="Path(s) to processed interaction JSONL or CSV. Can be specified multiple times.",
+    help=
+    "Path(s) to processed interaction JSONL or CSV. Can be specified multiple times.",
 )
 @click.option(
     "--metrics-files",
@@ -218,25 +217,27 @@ def _display_metrics_summary(results_dir: str) -> None:
     multiple=True,
     help="Paths to metric definition JSONs.",
 )
-@click.option(
-    "--results-dir", required=False, default=None, help="Directory for outputs."
-)
+@click.option("--results-dir",
+              required=False,
+              default=None,
+              help="Directory for outputs.")
 @click.option(
     "--config",
     default=None,
     help="Path to declarative eval_config.yaml (Contract C2).",
 )
-@click.option(
-    "--input-label", default="manual", help="Label for this run (e.g. 'baseline')."
-)
+@click.option("--input-label",
+              default="manual",
+              help="Label for this run (e.g. 'baseline').")
 @click.option(
     "--test-description",
     default="Automated evaluation",
     help="Description of this evaluation run.",
 )
-@click.option(
-    "--filter", "metric_filter", multiple=True, help="Metric filters (key:val)."
-)
+@click.option("--filter",
+              "metric_filter",
+              multiple=True,
+              help="Metric filters (key:val).")
 @click.option(
     "--gcs-dest",
     default=None,
@@ -266,7 +267,8 @@ def evaluate(
     configure_logging(debug=debug)
 
     if gcs_dest and not gcs_dest.startswith("gs://"):
-        console.print(f"  [red]--gcs-dest must start with gs://[/] (got: {gcs_dest})")
+        console.print(
+            f"  [red]--gcs-dest must start with gs://[/] (got: {gcs_dest})")
         sys.exit(1)
 
     if config:
@@ -277,17 +279,18 @@ def evaluate(
 
         cfg_path = Path(config).resolve()
         if not cfg_path.exists():
-            console.print(f"  [red]Error:[/] Config file not found at {cfg_path}")
+            console.print(
+                f"  [red]Error:[/] Config file not found at {cfg_path}")
             sys.exit(1)
         cfg_data = yaml.safe_load(cfg_path.read_text(encoding="utf-8")) or {}
         console.print(
             f"  [bold blue]Contract C2 Metric Config:[/] Loaded declarative YAML from {cfg_path}"
         )
         if "metrics" in cfg_data and isinstance(cfg_data["metrics"], dict):
-            tmp_metrics = Path(tempfile.mktemp(suffix="_metric_definitions.json"))
-            tmp_metrics.write_text(
-                json.dumps({"metrics": cfg_data["metrics"]}), encoding="utf-8"
-            )
+            tmp_metrics = Path(
+                tempfile.mktemp(suffix="_metric_definitions.json"))
+            tmp_metrics.write_text(json.dumps({"metrics": cfg_data["metrics"]}),
+                                   encoding="utf-8")
             metrics_files = [*list(metrics_files or []), str(tmp_metrics)]
 
     if not interaction_file:
@@ -311,7 +314,8 @@ def evaluate(
 
     console.print("\n[bold blue]Running Evaluation[/]")
     if len(interaction_file) > 1:
-        console.print(f"  [dim]Combining {len(interaction_file)} interaction files[/]")
+        console.print(
+            f"  [dim]Combining {len(interaction_file)} interaction files[/]")
         for f in interaction_file:
             console.print(f"    [dim]- {f}[/]")
 
@@ -337,16 +341,12 @@ def evaluate(
                 interaction_files=[Path(f) for f in interaction_file],
                 metrics_files=list(metrics_files),
                 results_dir=Path(results_dir),
-            )
-        )
+            ))
 
         cwd = Path.cwd()
         rel_results = os.path.relpath(results_dir, cwd)
-        rel_metrics = (
-            os.path.relpath(metrics_files[0], cwd)
-            if metrics_files
-            else "<metrics.json>"
-        )
+        rel_metrics = (os.path.relpath(metrics_files[0], cwd)
+                       if metrics_files else "<metrics.json>")
 
         # ── Display metrics overview ───────────────────────────────────
         _display_metrics_summary(results_dir)
@@ -376,8 +376,7 @@ def evaluate(
                 title="[bold]Done[/]",
                 border_style="green",
                 padding=(1, 2),
-            )
-        )
+            ))
 
         console.print()
         console.print("[bold]Next step — copy and paste:[/]")

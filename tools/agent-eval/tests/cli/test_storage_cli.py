@@ -41,22 +41,22 @@ class TestStorageCLI(unittest.TestCase):
             raw_dir.mkdir(parents=True)
 
             # Create required files
-            (agent_dir / "agent.py").write_text("root_agent = None\n", encoding="utf-8")
+            (agent_dir / "agent.py").write_text("root_agent = None\n",
+                                                encoding="utf-8")
             (eval_dir / "dataset.jsonl").write_text(
-                json.dumps(
-                    {"id": "q1", "prompt": "test", "conversation_plan": ["step 1"]}
-                )
-                + "\n",
+                json.dumps({
+                    "id": "q1",
+                    "prompt": "test",
+                    "conversation_plan": ["step 1"]
+                }) + "\n",
                 encoding="utf-8",
             )
-            (metrics_dir / "metric.json").write_text(
-                '{"name": "test_metric"}', encoding="utf-8"
-            )
+            (metrics_dir / "metric.json").write_text('{"name": "test_metric"}',
+                                                     encoding="utf-8")
 
             mock_simulate.return_value = True
             (raw_dir / "processed_interaction_sim.jsonl").write_text(
-                "{}", encoding="utf-8"
-            )
+                "{}", encoding="utf-8")
 
             result = self.runner.invoke(
                 cli,
@@ -107,23 +107,23 @@ class TestStorageCLI(unittest.TestCase):
             raw_dir.mkdir(parents=True)
 
             # Create required files
-            (agent_dir / "agent.py").write_text("root_agent = None\n", encoding="utf-8")
+            (agent_dir / "agent.py").write_text("root_agent = None\n",
+                                                encoding="utf-8")
             (eval_dir / "dataset.jsonl").write_text(
-                json.dumps(
-                    {"id": "q1", "prompt": "test", "conversation_plan": ["step 1"]}
-                )
-                + "\n",
+                json.dumps({
+                    "id": "q1",
+                    "prompt": "test",
+                    "conversation_plan": ["step 1"]
+                }) + "\n",
                 encoding="utf-8",
             )
-            (metrics_dir / "metric.json").write_text(
-                '{"name": "test_metric"}', encoding="utf-8"
-            )
+            (metrics_dir / "metric.json").write_text('{"name": "test_metric"}',
+                                                     encoding="utf-8")
 
             # Simulate writes processed_interaction_sim.jsonl to raw_dir
             mock_simulate.return_value = True
             (raw_dir / "processed_interaction_sim.jsonl").write_text(
-                "{}", encoding="utf-8"
-            )
+                "{}", encoding="utf-8")
 
             # Create dummy eval_summary.json
             summary_file = run_dir / "eval_summary.json"
@@ -131,8 +131,7 @@ class TestStorageCLI(unittest.TestCase):
 
             mock_backend = mock.MagicMock()
             mock_backend.save_summary.return_value = (
-                "gs://my-eval-bucket/eval_runs/test_run/eval_summary.json"
-            )
+                "gs://my-eval-bucket/eval_runs/test_run/eval_summary.json")
             mock_get_backend.return_value = mock_backend
 
             result = self.runner.invoke(
@@ -155,9 +154,8 @@ class TestStorageCLI(unittest.TestCase):
                 ],
                 env=self.env,
             )
-            self.assertEqual(
-                result.exit_code, 0, f"CLI should succeed: {result.output}"
-            )
+            self.assertEqual(result.exit_code, 0,
+                             f"CLI should succeed: {result.output}")
             mock_get_backend.assert_called_once()
             mock_backend.save_summary.assert_called_once()
 

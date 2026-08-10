@@ -58,15 +58,27 @@ class TestAgentDataSchema:
             status="OK",
             payload={
                 "tool_name": "book_flight",
-                "arguments": {"destination": "HND", "seat": "12A"},
-                "result": {"booking_id": "BK-9988"},
+                "arguments": {
+                    "destination": "HND",
+                    "seat": "12A"
+                },
+                "result": {
+                    "booking_id": "BK-9988"
+                },
             },
-            tool_calls=[
-                {"name": "book_flight", "args": {"destination": "HND", "seat": "12A"}}
-            ],
-            tool_responses=[
-                {"name": "book_flight", "response": {"booking_id": "BK-9988"}}
-            ],
+            tool_calls=[{
+                "name": "book_flight",
+                "args": {
+                    "destination": "HND",
+                    "seat": "12A"
+                }
+            }],
+            tool_responses=[{
+                "name": "book_flight",
+                "response": {
+                    "booking_id": "BK-9988"
+                }
+            }],
             state_delta={"booked_flight": "BK-9988"},
         )
         assert event.author == "model"
@@ -86,7 +98,12 @@ class TestAgentDataSchema:
             AgentEvent(
                 author="model",
                 event_type="TOOL_CALL",
-                payload={"tool_name": "search_flights", "arguments": {"to": "CDG"}},
+                payload={
+                    "tool_name": "search_flights",
+                    "arguments": {
+                        "to": "CDG"
+                    }
+                },
             ),
         ]
         turn = AgentTurn(
@@ -113,7 +130,8 @@ class TestAgentDataSchema:
             role="model",
             content="Hi! How can I help you today?",
             events=[
-                AgentEvent(author="model", content="Hi! How can I help you today?")
+                AgentEvent(author="model",
+                           content="Hi! How can I help you today?")
             ],
         )
         agent_data = AgentData(
@@ -138,7 +156,8 @@ class TestDataMapperAgentDataProjection:
             role="user",
             content="What is the capital of France?",
             events=[
-                AgentEvent(author="USER", content="What is the capital of France?")
+                AgentEvent(author="USER",
+                           content="What is the capital of France?")
             ],
         )
         turn_model = AgentTurn(
@@ -151,7 +170,9 @@ class TestDataMapperAgentDataProjection:
                     event_type="TOOL_CALL",
                     payload={
                         "tool_name": "wiki_lookup",
-                        "arguments": {"query": "Capital of France"},
+                        "arguments": {
+                            "query": "Capital of France"
+                        },
                         "result": "Paris",
                     },
                     state_delta={"verified": True},
@@ -178,15 +199,21 @@ class TestDataMapperAgentDataProjection:
         assert row["user_inputs"] == ["What is the capital of France?"]
         assert row["agents_evaluated"] == ["search_bot"]
         assert row["final_session_state"] == {"verified": True}
-        assert row["reference_data"] == {"expected_behavior": "Should state Paris"}
+        assert row["reference_data"] == {
+            "expected_behavior": "Should state Paris"
+        }
 
         # Tool interactions verification
         tool_interactions = row["extracted_data"]["tool_interactions"]
         assert len(tool_interactions) == 1
         assert tool_interactions[0]["tool_name"] == "wiki_lookup"
-        assert tool_interactions[0]["input_arguments"] == {"query": "Capital of France"}
+        assert tool_interactions[0]["input_arguments"] == {
+            "query": "Capital of France"
+        }
         assert tool_interactions[0]["output_result"] == "Paris"
-        assert tool_interactions[0]["arguments"] == {"query": "Capital of France"}
+        assert tool_interactions[0]["arguments"] == {
+            "query": "Capital of France"
+        }
         assert tool_interactions[0]["result"] == "Paris"
 
         # Flattened key for pandas dataframe compatibility
@@ -200,13 +227,19 @@ class TestDataMapperAgentDataProjection:
             events=[
                 AgentEvent(
                     author="model",
-                    tool_calls=[{"name": "get_weather", "args": {"city": "Seattle"}}],
-                    tool_responses=[
-                        {
-                            "name": "get_weather",
-                            "response": {"temp": "18C", "rain": True},
+                    tool_calls=[{
+                        "name": "get_weather",
+                        "args": {
+                            "city": "Seattle"
                         }
-                    ],
+                    }],
+                    tool_responses=[{
+                        "name": "get_weather",
+                        "response": {
+                            "temp": "18C",
+                            "rain": True
+                        },
+                    }],
                 )
             ],
         )
@@ -278,26 +311,35 @@ class TestDataMapperAgentDataProjection:
                 {
                     "role": "user",
                     "content": "Tell me a joke",
-                    "events": [{"author": "USER", "content": "Tell me a joke"}],
+                    "events": [{
+                        "author": "USER",
+                        "content": "Tell me a joke"
+                    }],
                 },
                 {
-                    "role": "model",
-                    "content": "Why did the chicken cross the road?",
-                    "events": [
-                        {
-                            "author": "model",
-                            "event_type": "TOOL_CALL",
-                            "payload": {
-                                "tool_name": "joke_db",
-                                "arguments": {"tag": "poultry"},
-                                "result": "cross the road",
+                    "role":
+                        "model",
+                    "content":
+                        "Why did the chicken cross the road?",
+                    "events": [{
+                        "author": "model",
+                        "event_type": "TOOL_CALL",
+                        "payload": {
+                            "tool_name": "joke_db",
+                            "arguments": {
+                                "tag": "poultry"
                             },
-                        }
-                    ],
+                            "result": "cross the road",
+                        },
+                    }],
                 },
             ],
-            "final_session_state": {"jokes_told": 1},
-            "reference_data": {"expected_topic": "humor"},
+            "final_session_state": {
+                "jokes_told": 1
+            },
+            "reference_data": {
+                "expected_topic": "humor"
+            },
         }
         row = _map_agent_data_to_row(raw_dict)
         assert row["session_id"] == "dict_session_100"
@@ -305,4 +347,5 @@ class TestDataMapperAgentDataProjection:
         assert row["response"] == "Why did the chicken cross the road?"
         assert row["final_session_state"] == {"jokes_told": 1}
         assert len(row["extracted_data"]["tool_interactions"]) == 1
-        assert row["extracted_data"]["tool_interactions"][0]["tool_name"] == "joke_db"
+        assert row["extracted_data"]["tool_interactions"][0][
+            "tool_name"] == "joke_db"

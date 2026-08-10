@@ -38,9 +38,9 @@ _STAGES: dict[str, type[BaseStage]] = {
 }
 
 
-def run_stage(
-    stage_name: str, config_data: dict[str, Any] | None = None, **kwargs: Any
-) -> StageResult:
+def run_stage(stage_name: str,
+              config_data: dict[str, Any] | None = None,
+              **kwargs: Any) -> StageResult:
     """Run a named evaluation CLI stage and return structured event output."""
     norm = stage_name.strip().lower()
     stage_cls = _STAGES.get(norm)

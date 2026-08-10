@@ -41,7 +41,11 @@ def _has_non_finite_token(s: str) -> bool:
 
 
 def test_nan_and_infinity_become_null():
-    payload = {"score": float("nan"), "delta": float("inf"), "neg": float("-inf")}
+    payload = {
+        "score": float("nan"),
+        "delta": float("inf"),
+        "neg": float("-inf")
+    }
     safe = _json_safe(payload)
     assert safe == {"score": None, "delta": None, "neg": None}
 
@@ -53,8 +57,14 @@ def test_finite_values_are_preserved():
 
 def test_nested_structures_are_sanitized():
     payload = {
-        "rows": [{"x": float("nan")}, {"x": 1.5}],
-        "nested": {"vals": [1, float("-inf"), 3.0]},
+        "rows": [{
+            "x": float("nan")
+        }, {
+            "x": 1.5
+        }],
+        "nested": {
+            "vals": [1, float("-inf"), 3.0]
+        },
         "tuple_becomes_list": (float("inf"), 2),
     }
     safe = _json_safe(payload)
@@ -66,8 +76,12 @@ def test_nested_structures_are_sanitized():
 
 def test_serialized_output_is_always_valid_json():
     payload = {
-        "m": {"coherence": float("nan")},
-        "deltas": [{"pct_change": float("inf")}],
+        "m": {
+            "coherence": float("nan")
+        },
+        "deltas": [{
+            "pct_change": float("inf")
+        }],
     }
     dumped = json.dumps(_json_safe(payload))
     assert "NaN" not in dumped

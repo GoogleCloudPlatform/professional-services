@@ -746,9 +746,11 @@ def random_stories(n: int) -> list[tuple[str, str]]:
     return random.sample(STORIES, sample_size)
 
 
-def render_story_panel(
-    title: str, body: str, *, index: int | None = None, total: int | None = None
-):
+def render_story_panel(title: str,
+                       body: str,
+                       *,
+                       index: int | None = None,
+                       total: int | None = None):
     """Render one story as a Rich Panel for display. Index/total optional
     for the browser context (e.g. \"Story 7 of 15\"); omitted in the
     while-you-wait context where users see one or two at a time.
@@ -845,21 +847,18 @@ class StoryStreamer:
                 state["deck"] = list(STORIES)
                 random.shuffle(state["deck"])
                 # Don't show the last story first in the new deck.
-                if (
-                    state["last_title"]
-                    and state["deck"]
-                    and (
-                        state["deck"][-1][0] == state["last_title"]
-                        and len(state["deck"]) > 1
-                    )
-                ):
+                if (state["last_title"] and state["deck"] and
+                    (state["deck"][-1][0] == state["last_title"] and
+                     len(state["deck"]) > 1)):
                     state["deck"][-1], state["deck"][0] = (
                         state["deck"][0],
                         state["deck"][-1],
                     )
             title, body = state["deck"].pop()
             state["last_title"] = title
-            state["paragraphs"] = [p.strip() for p in body.split("\n\n") if p.strip()]
+            state["paragraphs"] = [
+                p.strip() for p in body.split("\n\n") if p.strip()
+            ]
             state["paragraph_idx"] = 0
             self._console.print()
             self._console.print(f"  [bold cyan]§[/]  [bold]{title}[/]")
@@ -904,8 +903,7 @@ class StoryStreamer:
         self._console.print(
             "  [dim italic]☕ Press [bold]Space[/] (or [bold]↓[/]) to read "
             "short field notes while you wait. They loop forever; scroll "
-            "your terminal up to re-read. [bold]Ctrl+C[/] cancels the run.[/]"
-        )
+            "your terminal up to re-read. [bold]Ctrl+C[/] cancels the run.[/]")
         self._console.print()
 
         # State that the closure mutates across keypresses.
@@ -955,9 +953,8 @@ class StoryStreamer:
                         self._print_paragraph(state)
                     # Other arrows / ESC alone — silently ignore so
                     # accidental key mashing doesn't burn through stories.
-                elif (
-                    ch == "\x03"
-                ):  # Ctrl+C — kernel doesn't deliver in cbreak; forward.
+                elif (ch == "\x03"
+                     ):  # Ctrl+C — kernel doesn't deliver in cbreak; forward.
                     import os
                     import signal
 

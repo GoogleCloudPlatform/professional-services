@@ -48,12 +48,15 @@ def _record_attempts(client, monkeypatch, responder):
 
 
 def test_current_adk_url_is_tried_first(client, monkeypatch):
-    attempted = _record_attempts(client, monkeypatch, lambda url: [{"name": "span"}])
+    attempted = _record_attempts(client, monkeypatch, lambda url: [{
+        "name": "span"
+    }])
     client.get_session_trace(SID)
     assert attempted[0] == CURRENT_ADK_URL
 
 
-def test_legacy_urls_still_tried_when_current_returns_nothing(client, monkeypatch):
+def test_legacy_urls_still_tried_when_current_returns_nothing(
+        client, monkeypatch):
     # Older ADK builds served the trace at the root; keep working against them.
     def responder(url):
         return None if "/dev/" in url else [{"name": "span"}]
@@ -65,6 +68,7 @@ def test_legacy_urls_still_tried_when_current_returns_nothing(client, monkeypatc
 
 
 def test_raises_only_after_every_url_is_exhausted(client, monkeypatch):
+
     def responder(url):
         raise RuntimeError("404 Not Found")
 

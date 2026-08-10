@@ -21,7 +21,9 @@ class TestMultiTurnTrajectoryJudge(unittest.TestCase):
         judge = MultiTurnTrajectoryJudge(metric_name="ambiguity_handling")
         single_turn_trace = AgentData(
             session_id="s1",
-            turns=[AgentTurn(turn_index=0, role="user", content="hello", events=[])],
+            turns=[
+                AgentTurn(turn_index=0, role="user", content="hello", events=[])
+            ],
             events=[],
         )
 
@@ -48,7 +50,10 @@ class TestMultiTurnTrajectoryJudge(unittest.TestCase):
                     content="Could you clarify which market segment?",
                     events=[],
                 ),
-                AgentTurn(turn_index=2, role="user", content="US market", events=[]),
+                AgentTurn(turn_index=2,
+                          role="user",
+                          content="US market",
+                          events=[]),
             ],
             events=[],
         )
@@ -75,16 +80,19 @@ class TestMultiTurnTrajectoryJudge(unittest.TestCase):
         mock_rubrics = [
             GeneratedRubric(
                 intent_id="intent_1",
-                criterion="Verify agent clarifies ambiguous region before tool call",
+                criterion=
+                "Verify agent clarifies ambiguous region before tool call",
                 passing_condition="Agent asks clarifying question on Turn 1",
-                failing_condition="Agent immediately runs tool without clarifying",
+                failing_condition=
+                "Agent immediately runs tool without clarifying",
             )
         ]
         mock_score = MultiTurnScoreResult(
             score=0.95,
             intents_extracted=mock_intents,
             rubrics_evaluated=[mock_rubrics[0].model_dump()],
-            explanation="Agent properly halted on Turn 1 to ask clarifying question.",
+            explanation=
+            "Agent properly halted on Turn 1 to ask clarifying question.",
         )
 
         mock_client.generate_structured.side_effect = [
@@ -93,9 +101,8 @@ class TestMultiTurnTrajectoryJudge(unittest.TestCase):
             mock_score,
         ]
 
-        judge = MultiTurnTrajectoryJudge(
-            metric_name="ambiguity_handling", model_client=mock_client
-        )
+        judge = MultiTurnTrajectoryJudge(metric_name="ambiguity_handling",
+                                         model_client=mock_client)
         multi_turn_trace = AgentData(
             session_id="s3",
             turns=[
@@ -105,9 +112,10 @@ class TestMultiTurnTrajectoryJudge(unittest.TestCase):
                     content="Analyze sales data for 2025",
                     events=[],
                 ),
-                AgentTurn(
-                    turn_index=1, role="model", content="Clarify market?", events=[]
-                ),
+                AgentTurn(turn_index=1,
+                          role="model",
+                          content="Clarify market?",
+                          events=[]),
             ],
             events=[],
         )
