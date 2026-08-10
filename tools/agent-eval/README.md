@@ -122,8 +122,8 @@ agent-eval run        # collect → score → analyze → view
 `agent-eval run` supports an agnostic storage abstraction (`StorageBackend`) so your evaluation traces (`AgentData` trajectories and `eval_summary.json` scorecards) can transition smoothly from local debugging to cloud persistence:
 
 - **Local filesystem (default)** — writes atomic `.tmp`-buffered files to `tests/eval/results/<run-id>/traces.jsonl`. Perfect for offline development; git-ignored to prevent repository bloat.
-- **Google Cloud Storage (`--storage=gcs --bucket=gs://...`)** — streams structured JSON runs directly to cloud object storage for CI/CD artifact persistence and team collaboration.
-- **BigQuery Analytics (`--storage=bigquery --dataset=...`)** — streams telemetry rows into OLAP BigQuery tables (`agent_runs`, `agent_runs_summary`), making your agent's historical quality trends instantly queryable in SQL and dashboardable in Looker.
+- **Google Cloud Storage (`--storage=gcs --gcs-bucket=gs://...`)** — streams structured JSON runs directly to cloud object storage for CI/CD artifact persistence and team collaboration.
+- **BigQuery Analytics (`--storage=bigquery --bq-dataset=...`)** — streams telemetry rows into OLAP BigQuery tables (`agent_runs`, `agent_runs_summary`), making your agent's historical quality trends instantly queryable in SQL and dashboardable in Looker.
 
 See [`docs/reference.md`](docs/reference.md) for the per-phase walkthrough, every flag, dataset schema details, custom metric patterns, troubleshooting, and the BYOD roadmap.
 
