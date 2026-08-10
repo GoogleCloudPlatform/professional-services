@@ -30,13 +30,21 @@ class RubricsStage(BaseStage):
 
     stage_name = "rubrics"
 
-    def execute(self, config_data: dict[str, Any] | None = None, **kwargs: Any) -> StageResult:
-        selection_result = MetricSelectionStage().execute(config_data=config_data, **kwargs)
+    def execute(
+        self, config_data: dict[str, Any] | None = None, **kwargs: Any
+    ) -> StageResult:
+        selection_result = MetricSelectionStage().execute(
+            config_data=config_data, **kwargs
+        )
         events: list[dict[str, Any]] = []
 
         # Load raw specs to get criteria / instructions
         metrics_dict: dict[str, Any] = {}
-        if config_data and "metrics" in config_data and isinstance(config_data["metrics"], dict):
+        if (
+            config_data
+            and "metrics" in config_data
+            and isinstance(config_data["metrics"], dict)
+        ):
             metrics_dict = config_data["metrics"]
         else:
             for candidate in (
@@ -45,7 +53,9 @@ class RubricsStage(BaseStage):
             ):
                 if candidate.exists():
                     try:
-                        loaded = yaml.safe_load(candidate.read_text(encoding="utf-8")) or {}
+                        loaded = (
+                            yaml.safe_load(candidate.read_text(encoding="utf-8")) or {}
+                        )
                         if "metrics" in loaded and isinstance(loaded["metrics"], dict):
                             metrics_dict = loaded["metrics"]
                             break
@@ -57,7 +67,9 @@ class RubricsStage(BaseStage):
                 ):
                     if candidate_json.exists():
                         try:
-                            loaded_json = json.loads(candidate_json.read_text(encoding="utf-8"))
+                            loaded_json = json.loads(
+                                candidate_json.read_text(encoding="utf-8")
+                            )
                             if "metrics" in loaded_json:
                                 metrics_dict = loaded_json["metrics"]
                                 break
@@ -85,7 +97,7 @@ class RubricsStage(BaseStage):
             elif kind == "custom_llm_judge":
                 criteria = spec.get("criteria", {}) if isinstance(spec, dict) else {}
                 if isinstance(criteria, dict) and criteria:
-                    for c_key, c_val in criteria.items():
+                    for c_val in criteria.values():
                         rules.append(str(c_val).strip())
                 elif isinstance(spec, dict) and spec.get("instruction"):
                     rules.append(str(spec.get("instruction")).strip())

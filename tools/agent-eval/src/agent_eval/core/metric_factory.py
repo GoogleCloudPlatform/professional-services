@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 # Copyright 2026 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -46,6 +44,8 @@ Unified schema (per ``tests/eval/metrics/metric_definitions.json`` entry):
       }
     }
 """
+
+from __future__ import annotations
 
 import importlib.util
 import logging
@@ -366,9 +366,11 @@ def to_evaluation_run_metric(metric: Any):
             ),
         )
     # Prebuilt computation metrics (bare Metric with name and no functions)
-    if isinstance(metric, vt.Metric) and not getattr(
-            metric, "custom_function", None) and not getattr(
-            metric, "remote_custom_function", None):
+    if (
+        isinstance(metric, vt.Metric)
+        and not getattr(metric, "custom_function", None)
+        and not getattr(metric, "remote_custom_function", None)
+    ):
         return vt.EvaluationRunMetric(metric=metric.name)
 
     # Bare Metric with custom_function: in-process only; not supported by

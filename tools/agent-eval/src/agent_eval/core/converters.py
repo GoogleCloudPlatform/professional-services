@@ -570,9 +570,15 @@ class AdkHistoryConverter:
             resp_content = inv.get("final_response", {})
             if isinstance(resp_content, dict) and "candidates" in resp_content:
                 cands = resp_content.get("candidates", [])
-                resp_parts = cands[0].get("content", {}).get("parts", []) if cands else []
+                resp_parts = (
+                    cands[0].get("content", {}).get("parts", []) if cands else []
+                )
             else:
-                resp_parts = resp_content.get("parts", []) if isinstance(resp_content, dict) else []
+                resp_parts = (
+                    resp_content.get("parts", [])
+                    if isinstance(resp_content, dict)
+                    else []
+                )
             resp_text = "".join(p.get("text", "") for p in resp_parts)
             if resp_text:
                 text_responses.append(resp_text)

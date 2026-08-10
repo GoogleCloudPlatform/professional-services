@@ -18,24 +18,19 @@ Tests edge cases, malformed payloads, unicode, out-of-order turns, and schema re
 """
 
 import json
-from pathlib import Path
-from typing import Any, Dict, List
+
 import pandas as pd
 import pytest
 
 from agent_eval.core.data_mapper import (
-    _map_agent_data,
     _map_agents,
     convert_interactions_to_events,
     map_dataset_columns,
-    robust_json_loads,
 )
-from agent_eval.core.schema import AgentData, AgentEvent, AgentTurn
+from agent_eval.core.schema import AgentData
 from agent_eval.core.trace_converters import (
     ADKTraceConverter,
-    BaseTraceConverter,
     OpenInferenceOTelConverter,
-    get_trace_converter,
 )
 
 
@@ -56,8 +51,15 @@ class TestAdversarialToolParametersAndOutputs:
                         "openinference.span.kind": "TOOL",
                         "gen_ai.turn.index": 0,
                         "tool.name": "search_db",
-                        "tool.parameters": {"query": "weather", "limit": 5, "nested": {"a": [1, 2]}},
-                        "tool.output": {"status": "ok", "items": [{"id": 1}, {"id": 2}]},
+                        "tool.parameters": {
+                            "query": "weather",
+                            "limit": 5,
+                            "nested": {"a": [1, 2]},
+                        },
+                        "tool.output": {
+                            "status": "ok",
+                            "items": [{"id": 1}, {"id": 2}],
+                        },
                     },
                 }
             ],
@@ -66,10 +68,21 @@ class TestAdversarialToolParametersAndOutputs:
         assert len(data.turns) == 1
         ev = data.turns[0].events[0]
         assert ev.event_type == "TOOL_CALL"
-        assert ev.payload["arguments"] == {"query": "weather", "limit": 5, "nested": {"a": [1, 2]}}
+        assert ev.payload["arguments"] == {
+            "query": "weather",
+            "limit": 5,
+            "nested": {"a": [1, 2]},
+        }
         assert ev.payload["result"] == {"status": "ok", "items": [{"id": 1}, {"id": 2}]}
-        assert ev.tool_calls[0]["args"] == {"query": "weather", "limit": 5, "nested": {"a": [1, 2]}}
-        assert ev.tool_responses[0]["response"] == {"status": "ok", "items": [{"id": 1}, {"id": 2}]}
+        assert ev.tool_calls[0]["args"] == {
+            "query": "weather",
+            "limit": 5,
+            "nested": {"a": [1, 2]},
+        }
+        assert ev.tool_responses[0]["response"] == {
+            "status": "ok",
+            "items": [{"id": 1}, {"id": 2}],
+        }
 
     def test_stringified_json_parameters_and_output(self, converter):
         raw = {
@@ -140,8 +153,12 @@ class TestAdversarialToolParametersAndOutputs:
         ev = data.turns[0].events[0]
         assert ev.payload["arguments"] == "SELECT * FROM users WHERE active = 1;"
         assert ev.payload["result"] == "3 rows returned: alice, bob, charlie"
-        assert ev.tool_calls[0]["args"] == {"input": "SELECT * FROM users WHERE active = 1;"}
-        assert ev.tool_responses[0]["response"] == {"output": "3 rows returned: alice, bob, charlie"}
+        assert ev.tool_calls[0]["args"] == {
+            "input": "SELECT * FROM users WHERE active = 1;"
+        }
+        assert ev.tool_responses[0]["response"] == {
+            "output": "3 rows returned: alice, bob, charlie"
+        }
 
     def test_attribute_key_aliases(self, converter):
         """Test variations in tool attributes: tool.call.parameters, input.value, input_arguments, etc."""
@@ -370,7 +387,9 @@ class TestAdversarialMultiTurnAndInterleaving:
         data = converter.convert_to_agent_data(raw)
         assert len(data.turns) == 2
         assert data.turns[0].turn_index == 0
-        assert len(data.turns[0].events) == 2  # sp_no_idx and sp_bad_str_idx grouped in 0
+        assert (
+            len(data.turns[0].events) == 2
+        )  # sp_no_idx and sp_bad_str_idx grouped in 0
         assert data.turns[1].turn_index == 1
 
 
@@ -397,7 +416,9 @@ class TestAdversarialOutputAndCompletionFields:
         }
         data = converter.convert_to_agent_data(raw)
         assert data.turns[0].content == "Output via gen_ai.completion convention"
-        assert data.turns[0].events[0].content == "Output via gen_ai.completion convention"
+        assert (
+            data.turns[0].events[0].content == "Output via gen_ai.completion convention"
+        )
 
     def test_llm_output_messages_fallback(self, converter):
         raw = {
@@ -441,7 +462,9 @@ class TestAdversarialOutputAndCompletionFields:
         }
         data = converter.convert_to_agent_data(raw)
         assert data.turns[0].content == ""
-        tool_ev = next(ev for ev in data.turns[0].events if ev.event_type == "TOOL_CALL")
+        tool_ev = next(
+            ev for ev in data.turns[0].events if ev.event_type == "TOOL_CALL"
+        )
         assert tool_ev.payload["result"] == ""
         assert tool_ev.tool_responses[0]["response"] == {"output": ""}
 
@@ -454,7 +477,9 @@ class TestAdversarialUnicodeAndSpecialCharacters:
         return OpenInferenceOTelConverter()
 
     def test_emojis_and_multilingual_characters(self, converter):
-        multilingual_prompt = "你好 🤖 What is the forecast in 東京, München & القاهرة? 🚀"
+        multilingual_prompt = (
+            "你好 🤖 What is the forecast in 東京, München & القاهرة? 🚀"
+        )
         multilingual_tool_out = {
             "status": "success ✨",
             "locations": ["東京 🇯🇵", "München 🇩🇪", "القاهرة 🇪🇬"],
@@ -479,8 +504,12 @@ class TestAdversarialUnicodeAndSpecialCharacters:
                         "openinference.span.kind": "TOOL",
                         "gen_ai.turn.index": 0,
                         "tool.name": "weather_service_🌍",
-                        "tool.parameters": {"locations": ["東京", "München", "القاهرة"]},
-                        "tool.output": json.dumps(multilingual_tool_out, ensure_ascii=False),
+                        "tool.parameters": {
+                            "locations": ["東京", "München", "القاهرة"]
+                        },
+                        "tool.output": json.dumps(
+                            multilingual_tool_out, ensure_ascii=False
+                        ),
                     },
                 },
                 {
@@ -502,7 +531,9 @@ class TestAdversarialUnicodeAndSpecialCharacters:
         # Check tool event preservation
         tool_ev = next(ev for ev in turn0.events if ev.event_type == "TOOL_CALL")
         assert tool_ev.payload["tool_name"] == "weather_service_🌍"
-        assert tool_ev.payload["arguments"] == {"locations": ["東京", "München", "القاهرة"]}
+        assert tool_ev.payload["arguments"] == {
+            "locations": ["東京", "München", "القاهرة"]
+        }
         assert tool_ev.payload["result"] == multilingual_tool_out
 
         # Pipeline to _map_agents
@@ -511,7 +542,10 @@ class TestAdversarialUnicodeAndSpecialCharacters:
         row = rows[0]
         assert row["prompt"] == multilingual_prompt
         assert row["response"] == multilingual_response
-        assert row["extracted_data"]["tool_interactions"][0]["tool_name"] == "weather_service_🌍"
+        assert (
+            row["extracted_data"]["tool_interactions"][0]["tool_name"]
+            == "weather_service_🌍"
+        )
 
     def test_special_escaped_characters_and_newlines(self, converter):
         complex_sql = "SELECT 'line1\\nline2\\t\"quoted\"\\r\\0' AS col\nFROM db.table\nWHERE col LIKE '%test%';"
@@ -525,7 +559,7 @@ class TestAdversarialUnicodeAndSpecialCharacters:
                         "gen_ai.turn.index": 0,
                         "tool.name": "sql_engine",
                         "tool.parameters": complex_sql,
-                        "tool.output": "Result: 1 row with \n\t tabs and quotes \"\"",
+                        "tool.output": 'Result: 1 row with \n\t tabs and quotes ""',
                     },
                 }
             ],
@@ -533,7 +567,7 @@ class TestAdversarialUnicodeAndSpecialCharacters:
         data = converter.convert_to_agent_data(raw)
         ev = data.turns[0].events[0]
         assert ev.payload["arguments"] == complex_sql
-        assert ev.payload["result"] == "Result: 1 row with \n\t tabs and quotes \"\""
+        assert ev.payload["result"] == 'Result: 1 row with \n\t tabs and quotes ""'
 
     def test_large_payload_stress(self, converter):
         """Large payload stress test (10,000 character arguments and outputs)."""
@@ -560,7 +594,14 @@ class TestAdversarialUnicodeAndSpecialCharacters:
         assert len(ev.payload["result"]["data"]) == 10000
 
         rows = _map_agents([data])
-        assert len(rows[0]["extracted_data"]["tool_interactions"][0]["input_arguments"]["data"]) == 10000
+        assert (
+            len(
+                rows[0]["extracted_data"]["tool_interactions"][0]["input_arguments"][
+                    "data"
+                ]
+            )
+            == 10000
+        )
 
 
 class TestAdversarialDataMapperBridge:
@@ -582,7 +623,13 @@ class TestAdversarialDataMapperBridge:
     def test_convert_interactions_to_events_robustness(self):
         """Test converting various malformed tool interaction lists to Vertex SDK Event dicts."""
         # 1. Normal tool interaction
-        normal = [{"tool_name": "calc", "input_arguments": {"x": 1}, "output_result": {"y": 2}}]
+        normal = [
+            {
+                "tool_name": "calc",
+                "input_arguments": {"x": 1},
+                "output_result": {"y": 2},
+            }
+        ]
         events = convert_interactions_to_events(normal)
         assert len(events) == 2  # 1 function_call (model) + 1 function_response (tool)
         assert events[0]["author"] == "model"
@@ -591,11 +638,21 @@ class TestAdversarialDataMapperBridge:
         assert events[1]["content"]["parts"][0]["function_response"]["name"] == "calc"
 
         # 2. Non-dict arguments and responses
-        non_dict = [{"tool_name": "raw_tool", "input_arguments": "raw_str_arg", "output_result": "raw_str_res"}]
+        non_dict = [
+            {
+                "tool_name": "raw_tool",
+                "input_arguments": "raw_str_arg",
+                "output_result": "raw_str_res",
+            }
+        ]
         events = convert_interactions_to_events(non_dict)
         assert len(events) == 2
-        assert events[0]["content"]["parts"][0]["function_call"]["args"] == {"value": "raw_str_arg"}
-        assert events[1]["content"]["parts"][0]["function_response"]["response"] == {"result": "raw_str_res"}
+        assert events[0]["content"]["parts"][0]["function_call"]["args"] == {
+            "value": "raw_str_arg"
+        }
+        assert events[1]["content"]["parts"][0]["function_response"]["response"] == {
+            "result": "raw_str_res"
+        }
 
         # 3. None / Empty inputs
         assert convert_interactions_to_events(None) == []
@@ -645,7 +702,9 @@ class TestAdversarialDataMapperBridge:
         mapping = {
             "prompt": {"source_column": "prompt"},
             "response": {"source_column": "response"},
-            "intermediate_events": {"source_column": "extracted_data:tool_interactions"},
+            "intermediate_events": {
+                "source_column": "extracted_data:tool_interactions"
+            },
         }
         mapped_df = map_dataset_columns(
             agent_df=agent_df,
@@ -664,11 +723,17 @@ class TestAdversarialDataMapperBridge:
         # Should contain 1 model text event + 1 tool call event + 1 tool response event = 3 events
         assert len(events) == 3
         assert events[0]["author"] == "model"
-        assert events[0]["content"]["parts"][0]["text"] == "The capital of France is Paris."
+        assert (
+            events[0]["content"]["parts"][0]["text"]
+            == "The capital of France is Paris."
+        )
         assert events[1]["author"] == "model"
         assert events[1]["content"]["parts"][0]["function_call"]["name"] == "geo_lookup"
         assert events[2]["author"] == "tool"
-        assert events[2]["content"]["parts"][0]["function_response"]["name"] == "geo_lookup"
+        assert (
+            events[2]["content"]["parts"][0]["function_response"]["name"]
+            == "geo_lookup"
+        )
 
 
 class TestAdversarialRemediatedBugSuite:
@@ -842,7 +907,10 @@ class TestAdversarialRemediatedBugSuite:
 
         rows = _map_agents([data])
         assert rows[0]["extracted_data"]["tool_interactions"][0]["arguments"] is False
-        assert rows[0]["extracted_data"]["tool_interactions"][0]["input_arguments"] is False
+        assert (
+            rows[0]["extracted_data"]["tool_interactions"][0]["input_arguments"]
+            is False
+        )
 
     def test_bug_17_falsy_false_tool_output(self):
         """BUG-17: Tool output with boolean False is preserved without being converted to empty string."""
@@ -867,7 +935,9 @@ class TestAdversarialRemediatedBugSuite:
 
         rows = _map_agents([data])
         assert rows[0]["extracted_data"]["tool_interactions"][0]["result"] is False
-        assert rows[0]["extracted_data"]["tool_interactions"][0]["output_result"] is False
+        assert (
+            rows[0]["extracted_data"]["tool_interactions"][0]["output_result"] is False
+        )
 
     def test_bug_18_whitespace_json_parameters(self):
         """BUG-18: Formatted JSON parameters with leading/trailing whitespace and newlines deserialize cleanly."""
@@ -909,4 +979,3 @@ class TestAdversarialRemediatedBugSuite:
         ev = data.turns[0].events[0]
         assert ev.payload["result"] == {"status": "success", "count": 42}
         assert ev.tool_responses[0]["response"] == {"status": "success", "count": 42}
-

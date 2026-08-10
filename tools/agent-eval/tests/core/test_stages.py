@@ -14,10 +14,11 @@
 """Unit tests for modular CLI stages and canonical AgentData schema (Daniela's P1 Workstream)."""
 
 import json
+
 from click.testing import CliRunner
 
 from agent_eval.cli.commands.stage import stage
-from agent_eval.core.schema import AgentConfig, AgentData, AgentEvent, AgentTurn
+from agent_eval.core.schema import AgentData
 from agent_eval.core.stages import run_stage
 
 

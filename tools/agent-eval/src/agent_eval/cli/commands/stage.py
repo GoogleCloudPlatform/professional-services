@@ -61,7 +61,9 @@ def stage(only: str | None, output: str, config: str | None):
     try:
         res = run_stage(target_stage, config_data=config_data)
     except Exception as exc:
-        console.print(f"[red]Error executing stage '{target_stage}':[/] {exc}", err=True)
+        console.print(
+            f"[red]Error executing stage '{target_stage}':[/] {exc}", err=True
+        )
         sys.exit(1)
 
     if output == "yaml":

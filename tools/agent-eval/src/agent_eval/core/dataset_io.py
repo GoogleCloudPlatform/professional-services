@@ -122,7 +122,9 @@ def parse_markdown_dataset(path: Path | str) -> list[dict[str, Any]]:
 
         lines = body.splitlines()
         first_line = lines[0] if lines else ""
-        prompt_match = re.match(r"^(?:\s*[—–-]\s*)?(.*?)(?:\s*[—–-]\s*\*\*|\s*$)", first_line)
+        prompt_match = re.match(
+            r"^(?:\s*[—–-]\s*)?(.*?)(?:\s*[—–-]\s*\*\*|\s*$)", first_line
+        )
         prompt = prompt_match.group(1).strip() if prompt_match else first_line.strip()
         prompt = re.sub(r"\s*[—–-]\s*\*\*[^*]+\*\*.*$", "", prompt).strip()
 
@@ -131,7 +133,11 @@ def parse_markdown_dataset(path: Path | str) -> list[dict[str, Any]]:
 
         expected_response = ""
         grading_notes = ""
-        exp_match = re.search(r"\*\*Expected[^*]*\*\*[:\s]+(.*?)(?=\n\n|\n\*\*|$)", body, re.DOTALL | re.IGNORECASE)
+        exp_match = re.search(
+            r"\*\*Expected[^*]*\*\*[:\s]+(.*?)(?=\n\n|\n\*\*|$)",
+            body,
+            re.DOTALL | re.IGNORECASE,
+        )
         if exp_match:
             expected_response = exp_match.group(1).strip()
         else:

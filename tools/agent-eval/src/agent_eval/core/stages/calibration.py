@@ -26,7 +26,9 @@ class CalibrationStage(BaseStage):
 
     stage_name = "calibration"
 
-    def execute(self, config_data: dict[str, Any] | None = None, **kwargs: Any) -> StageResult:
+    def execute(
+        self, config_data: dict[str, Any] | None = None, **kwargs: Any
+    ) -> StageResult:
         rubrics_result = RubricsStage().execute(config_data=config_data, **kwargs)
         events: list[dict[str, Any]] = []
 

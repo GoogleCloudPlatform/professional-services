@@ -10,7 +10,7 @@ import json
 import logging
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 from agent_eval.core.schema import AgentData
 
@@ -47,7 +47,7 @@ class StorageBackend(ABC):
         ...
 
     @abstractmethod
-    def load_summary(self, run_id: str) -> Optional[dict[str, Any]]:
+    def load_summary(self, run_id: str) -> dict[str, Any] | None:
         """Load an evaluation summary for a given run_id.
 
         Args:
@@ -93,7 +93,7 @@ class LocalStorageBackend(StorageBackend):
         tmp_file.replace(target_file)
         return str(target_file)
 
-    def load_summary(self, run_id: str) -> Optional[dict[str, Any]]:
+    def load_summary(self, run_id: str) -> dict[str, Any] | None:
         target_file = self.base_dir / run_id / "eval_summary.json"
         if not target_file.exists():
             return None
@@ -106,7 +106,9 @@ class GCSStorageBackend(StorageBackend):
 
     def __init__(self, bucket_name: str, prefix: str = "eval_runs"):
         try:
-            from google.cloud import storage  # type: ignore[import-untyped,import-not-found]
+            from google.cloud import (
+                storage,  # type: ignore[import-untyped,import-not-found]
+            )
         except ImportError as e:
             raise RuntimeError(
                 "Install 'google-cloud-storage' to use GCSStorageBackend."
@@ -139,7 +141,7 @@ class GCSStorageBackend(StorageBackend):
         )
         return f"gs://{self.bucket_name}/{blob_path}"
 
-    def load_summary(self, run_id: str) -> Optional[dict[str, Any]]:
+    def load_summary(self, run_id: str) -> dict[str, Any] | None:
         blob_path = f"{self.prefix}/{run_id}/eval_summary.json"
         blob = self.bucket.blob(blob_path)
         if not blob.exists():
@@ -153,7 +155,9 @@ class BigQueryStorageBackend(StorageBackend):
 
     def __init__(self, dataset_id: str, table_id: str = "agent_runs"):
         try:
-            from google.cloud import bigquery  # type: ignore[import-untyped,import-not-found]
+            from google.cloud import (
+                bigquery,  # type: ignore[import-untyped,import-not-found]
+            )
         except ImportError as e:
             raise RuntimeError(
                 "Install 'google-cloud-bigquery' to use BigQueryStorageBackend."
@@ -180,7 +184,7 @@ class BigQueryStorageBackend(StorageBackend):
             )
         return summary_table
 
-    def load_summary(self, run_id: str) -> Optional[dict[str, Any]]:
+    def load_summary(self, run_id: str) -> dict[str, Any] | None:
         summary_table = f"{self.table_ref}_summary"
         query = f"""
             SELECT summary FROM `{summary_table}`

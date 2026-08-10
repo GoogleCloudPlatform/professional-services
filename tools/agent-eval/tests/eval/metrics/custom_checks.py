@@ -14,10 +14,10 @@
 """Custom deterministic metric checkers for E2E evaluation verification."""
 
 import json
-from typing import Any, Dict
+from typing import Any
 
 
-def check_tool_usage(row: Dict[str, Any]) -> Dict[str, Any]:
+def check_tool_usage(row: dict[str, Any]) -> dict[str, Any]:
     """Verify tool interactions are extracted and non-empty."""
     interactions = row.get("extracted_data.tool_interactions")
     if interactions is None:
@@ -27,7 +27,11 @@ def check_tool_usage(row: Dict[str, Any]) -> Dict[str, Any]:
                 extracted = json.loads(extracted)
             except Exception:
                 extracted = {}
-        interactions = extracted.get("tool_interactions", []) if isinstance(extracted, dict) else []
+        interactions = (
+            extracted.get("tool_interactions", [])
+            if isinstance(extracted, dict)
+            else []
+        )
 
     if isinstance(interactions, str):
         try:
@@ -43,7 +47,7 @@ def check_tool_usage(row: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 
-def check_prompt_response(row: Dict[str, Any]) -> Dict[str, Any]:
+def check_prompt_response(row: dict[str, Any]) -> dict[str, Any]:
     """Verify prompt and response are non-empty and accurately resolved."""
     prompt = str(row.get("prompt", "") or "").strip()
     response = str(row.get("response", "") or "").strip()

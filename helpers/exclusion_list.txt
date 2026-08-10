@@ -95,3 +95,4 @@
 ./tools/oas-mcp-tools-weaver
 ./examples/slo-assistant
 ./examples/gemini-live-multimodal-avatar/frontend
+./tools/agent-eval

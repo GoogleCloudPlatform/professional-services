@@ -15,12 +15,11 @@
 
 import json
 from pathlib import Path
-from typing import Any, Dict
 
 import pytest
 
 from agent_eval.core.data_mapper import _map_agents
-from agent_eval.core.schema import AgentData, AgentEvent, AgentTurn
+from agent_eval.core.schema import AgentData
 from agent_eval.core.trace_converters import (
     ADKTraceConverter,
     BaseTraceConverter,
@@ -97,7 +96,7 @@ class TestBaseTraceConverterContract:
         converter = ADKTraceConverter()
         content = (
             '{"session_id": "valid_1", "turns": []}\n'
-            'CORRUPTED_JSON_LINE\n'
+            "CORRUPTED_JSON_LINE\n"
             '{"session_id": "valid_2", "turns": []}\n'
         )
         jsonl_file = tmp_path / "corrupted.jsonl"

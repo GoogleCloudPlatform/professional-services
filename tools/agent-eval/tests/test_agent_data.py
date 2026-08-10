@@ -14,7 +14,6 @@
 """Unit tests for AgentData schema and data mapping functions."""
 
 import pandas as pd
-import pytest
 
 from agent_eval.core.data_mapper import (
     _map_agent_data,
@@ -113,7 +112,9 @@ class TestAgentDataSchema:
             turn_index=1,
             role="model",
             content="Hi! How can I help you today?",
-            events=[AgentEvent(author="model", content="Hi! How can I help you today?")],
+            events=[
+                AgentEvent(author="model", content="Hi! How can I help you today?")
+            ],
         )
         agent_data = AgentData(
             session_id="session_abc123",
@@ -136,7 +137,9 @@ class TestDataMapperAgentDataProjection:
             turn_index=0,
             role="user",
             content="What is the capital of France?",
-            events=[AgentEvent(author="USER", content="What is the capital of France?")],
+            events=[
+                AgentEvent(author="USER", content="What is the capital of France?")
+            ],
         )
         turn_model = AgentTurn(
             turn_index=1,
@@ -198,7 +201,12 @@ class TestDataMapperAgentDataProjection:
                 AgentEvent(
                     author="model",
                     tool_calls=[{"name": "get_weather", "args": {"city": "Seattle"}}],
-                    tool_responses=[{"name": "get_weather", "response": {"temp": "18C", "rain": True}}],
+                    tool_responses=[
+                        {
+                            "name": "get_weather",
+                            "response": {"temp": "18C", "rain": True},
+                        }
+                    ],
                 )
             ],
         )

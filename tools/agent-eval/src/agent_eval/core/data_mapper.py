@@ -236,7 +236,14 @@ def convert_interactions_to_events(val: Any, sub_agent_trace: Any = None) -> lis
                     "author": "tool",
                     "content": {
                         "role": "tool",
-                        "parts": [{"function_response": {"name": tool_name, "response": response}}],
+                        "parts": [
+                            {
+                                "function_response": {
+                                    "name": tool_name,
+                                    "response": response,
+                                }
+                            }
+                        ],
                     },
                 }
             )
@@ -615,13 +622,23 @@ def _extract_event_data(
         state_delta = getattr(ev, "state_delta", {}) or {}
         payload = getattr(ev, "payload", {}) or {}
 
-    if (author in ("USER", "user", "human") or event_type == "USER_INPUT") and content and str(content) not in user_inputs:
+    if (
+        (author in ("USER", "user", "human") or event_type == "USER_INPUT")
+        and content
+        and str(content) not in user_inputs
+    ):
         user_inputs.append(str(content))
-    elif (author in ("MODEL", "model", "assistant") or event_type == "MODEL_INFERENCE") and content and str(content) not in text_responses:
+    elif (
+        (author in ("MODEL", "model", "assistant") or event_type == "MODEL_INFERENCE")
+        and content
+        and str(content) not in text_responses
+    ):
         text_responses.append(str(content))
         sub_agent_trace.append(
             {
-                "agent_name": agents_evaluated[0] if agents_evaluated else author or "model",
+                "agent_name": agents_evaluated[0]
+                if agents_evaluated
+                else author or "model",
                 "text_response": str(content),
             }
         )
@@ -630,14 +647,24 @@ def _extract_event_data(
         accumulated_state.update(state_delta)
 
     # OpenInference / C3 TOOL_CALL payload
-    if event_type in ("TOOL_CALL", "TOOL") or (isinstance(payload, dict) and payload.get("tool_name")):
+    if event_type in ("TOOL_CALL", "TOOL") or (
+        isinstance(payload, dict) and payload.get("tool_name")
+    ):
         t_name = payload.get("tool_name", "unknown_tool")
         t_args = next(
-            (payload[k] for k in ("arguments", "input_arguments", "args") if k in payload and payload[k] is not None),
+            (
+                payload[k]
+                for k in ("arguments", "input_arguments", "args")
+                if k in payload and payload[k] is not None
+            ),
             {},
         )
         t_result = next(
-            (payload[k] for k in ("result", "output_result", "tool_output", "response") if k in payload and payload[k] is not None),
+            (
+                payload[k]
+                for k in ("result", "output_result", "tool_output", "response")
+                if k in payload and payload[k] is not None
+            ),
             "",
         )
         tool_interactions.append(
@@ -655,14 +682,22 @@ def _extract_event_data(
             if isinstance(tc, dict):
                 t_name = tc.get("name") or tc.get("tool_name", "unknown_tool")
                 t_args = next(
-                    (tc[k] for k in ("args", "arguments", "input_arguments") if k in tc and tc[k] is not None),
+                    (
+                        tc[k]
+                        for k in ("args", "arguments", "input_arguments")
+                        if k in tc and tc[k] is not None
+                    ),
                     {},
                 )
                 t_result = ""
                 if idx < len(tool_responses) and isinstance(tool_responses[idx], dict):
                     tr = tool_responses[idx]
                     t_result = next(
-                        (tr[k] for k in ("response", "result", "output_result", "output") if k in tr and tr[k] is not None),
+                        (
+                            tr[k]
+                            for k in ("response", "result", "output_result", "output")
+                            if k in tr and tr[k] is not None
+                        ),
                         "",
                     )
                 tool_interactions.append(
@@ -707,7 +742,9 @@ def _map_agent_data_to_row(agent_data: Any) -> dict[str, Any]:
         events = getattr(agent_data, "events", []) or []
         agents_dict = getattr(agent_data, "agents", {}) or {}
         top_user_inputs = getattr(agent_data, "user_inputs", None)
-        top_response = getattr(agent_data, "final_response", None) or getattr(agent_data, "response", None)
+        top_response = getattr(agent_data, "final_response", None) or getattr(
+            agent_data, "response", None
+        )
         top_fss = getattr(agent_data, "final_session_state", None)
         top_ref = getattr(agent_data, "reference_data", None)
 
@@ -742,15 +779,14 @@ def _map_agent_data_to_row(agent_data: Any) -> dict[str, Any]:
         if role in ("user", "human"):
             if content:
                 user_inputs.append(str(content))
-        elif role in ("model", "assistant", "agent", "system"):
-            if content:
-                text_responses.append(str(content))
-                sub_agent_trace.append(
-                    {
-                        "agent_name": agents_evaluated[0] if agents_evaluated else "model",
-                        "text_response": str(content),
-                    }
-                )
+        elif role in ("model", "assistant", "agent", "system") and content:
+            text_responses.append(str(content))
+            sub_agent_trace.append(
+                {
+                    "agent_name": agents_evaluated[0] if agents_evaluated else "model",
+                    "text_response": str(content),
+                }
+            )
 
         # Process turn-level events
         for ev in turn_events:
@@ -785,11 +821,24 @@ def _map_agent_data_to_row(agent_data: Any) -> dict[str, Any]:
         elif str(top_user_inputs) not in user_inputs:
             user_inputs.append(str(top_user_inputs))
 
-    prompt = user_inputs[-1] if user_inputs else (
-        (getattr(agent_data, "prompt", "") if not isinstance(agent_data, dict) else agent_data.get("prompt", "")) or ""
+    prompt = (
+        user_inputs[-1]
+        if user_inputs
+        else (
+            (
+                getattr(agent_data, "prompt", "")
+                if not isinstance(agent_data, dict)
+                else agent_data.get("prompt", "")
+            )
+            or ""
+        )
     )
 
-    final_response = text_responses[-1] if text_responses else (str(top_response) if top_response else "")
+    final_response = (
+        text_responses[-1]
+        if text_responses
+        else (str(top_response) if top_response else "")
+    )
     response = final_response
 
     # Final session state
@@ -835,4 +884,3 @@ def _map_agents(data: Any) -> list[dict[str, Any]] | pd.DataFrame:
     if isinstance(data, list):
         return [_map_agent_data_to_row(item) for item in data]
     return [_map_agent_data_to_row(data)]
-

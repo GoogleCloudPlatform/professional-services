@@ -218,7 +218,9 @@ def _display_metrics_summary(results_dir: str) -> None:
     multiple=True,
     help="Paths to metric definition JSONs.",
 )
-@click.option("--results-dir", required=False, default=None, help="Directory for outputs.")
+@click.option(
+    "--results-dir", required=False, default=None, help="Directory for outputs."
+)
 @click.option(
     "--config",
     default=None,
@@ -270,6 +272,7 @@ def evaluate(
     if config:
         import json
         import tempfile
+
         import yaml
 
         cfg_path = Path(config).resolve()
@@ -277,11 +280,15 @@ def evaluate(
             console.print(f"  [red]Error:[/] Config file not found at {cfg_path}")
             sys.exit(1)
         cfg_data = yaml.safe_load(cfg_path.read_text(encoding="utf-8")) or {}
-        console.print(f"  [bold blue]Contract C2 Metric Config:[/] Loaded declarative YAML from {cfg_path}")
+        console.print(
+            f"  [bold blue]Contract C2 Metric Config:[/] Loaded declarative YAML from {cfg_path}"
+        )
         if "metrics" in cfg_data and isinstance(cfg_data["metrics"], dict):
             tmp_metrics = Path(tempfile.mktemp(suffix="_metric_definitions.json"))
-            tmp_metrics.write_text(json.dumps({"metrics": cfg_data["metrics"]}), encoding="utf-8")
-            metrics_files = list(metrics_files or []) + [str(tmp_metrics)]
+            tmp_metrics.write_text(
+                json.dumps({"metrics": cfg_data["metrics"]}), encoding="utf-8"
+            )
+            metrics_files = [*list(metrics_files or []), str(tmp_metrics)]
 
     if not interaction_file:
         for candidate in ("tests/eval/dataset.jsonl",):

@@ -741,18 +741,15 @@ def simulate(agent_dir, eval_dir, run_id, debug, in_process, dataset):
     and analyze on traces from any agent framework.
     """
     from agent_eval.cli.main import _display_banner
-    from agent_eval.core.evaluator import configure_logging
     from agent_eval.core.dataset_io import read_dataset, write_dataset
+    from agent_eval.core.evaluator import configure_logging
     from agent_eval.core.schema import AgentData
 
     _display_banner()
     configure_logging(debug=debug)
 
     if not agent_dir:
-        if Path("app/agent.py").exists():
-            agent_dir = "."
-        else:
-            agent_dir = "."
+        agent_dir = "."
 
     agent_path = Path(agent_dir).resolve()
 
@@ -769,16 +766,20 @@ def simulate(agent_dir, eval_dir, run_id, debug, in_process, dataset):
 
     if dataset:
         dataset_path = Path(dataset).resolve()
-        console.print(f"\n  [bold blue]Contract C1 Schema Seam:[/] Projecting dataset {dataset_path} to canonical AgentData...")
+        console.print(
+            f"\n  [bold blue]Contract C1 Schema Seam:[/] Projecting dataset {dataset_path} to canonical AgentData..."
+        )
         records = read_dataset(dataset_path)
         if not records:
-            console.print(f"  [red]Error:[/] No records found in dataset {dataset_path}")
+            console.print(
+                f"  [red]Error:[/] No records found in dataset {dataset_path}"
+            )
             sys.exit(1)
 
         validated = []
         for idx, r in enumerate(records, start=1):
             try:
-                ad = AgentData.model_validate(r)
+                AgentData.model_validate(r)
                 validated.append(r)
             except Exception as exc:
                 console.print(f"  [red]Row {idx} failed AgentData validation:[/] {exc}")
@@ -804,7 +805,6 @@ def simulate(agent_dir, eval_dir, run_id, debug, in_process, dataset):
         sys.exit(1)
 
     agent_name = agent_path.name
-
 
     # Find eval directory
     if eval_dir:

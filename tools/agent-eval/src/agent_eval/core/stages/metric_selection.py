@@ -29,12 +29,18 @@ class MetricSelectionStage(BaseStage):
 
     stage_name = "metric_selection"
 
-    def execute(self, config_data: dict[str, Any] | None = None, **kwargs: Any) -> StageResult:
+    def execute(
+        self, config_data: dict[str, Any] | None = None, **kwargs: Any
+    ) -> StageResult:
         events: list[dict[str, Any]] = []
         metrics_dict: dict[str, Any] = {}
         source = "default"
 
-        if config_data and "metrics" in config_data and isinstance(config_data["metrics"], dict):
+        if (
+            config_data
+            and "metrics" in config_data
+            and isinstance(config_data["metrics"], dict)
+        ):
             metrics_dict = config_data["metrics"]
             source = "eval_config.yaml"
         else:
@@ -45,7 +51,9 @@ class MetricSelectionStage(BaseStage):
             ):
                 if candidate.exists():
                     try:
-                        loaded = yaml.safe_load(candidate.read_text(encoding="utf-8")) or {}
+                        loaded = (
+                            yaml.safe_load(candidate.read_text(encoding="utf-8")) or {}
+                        )
                         if "metrics" in loaded and isinstance(loaded["metrics"], dict):
                             metrics_dict = loaded["metrics"]
                             source = str(candidate)
@@ -58,7 +66,9 @@ class MetricSelectionStage(BaseStage):
                 ):
                     if candidate_json.exists():
                         try:
-                            loaded_json = json.loads(candidate_json.read_text(encoding="utf-8"))
+                            loaded_json = json.loads(
+                                candidate_json.read_text(encoding="utf-8")
+                            )
                             if "metrics" in loaded_json:
                                 metrics_dict = loaded_json["metrics"]
                                 source = str(candidate_json)
@@ -75,10 +85,7 @@ class MetricSelectionStage(BaseStage):
             source = "default_ootb_baseline"
 
         for m_name, spec in metrics_dict.items():
-            if isinstance(spec, dict):
-                kind = spec.get("kind", "managed")
-            else:
-                kind = "managed"
+            kind = spec.get("kind", "managed") if isinstance(spec, dict) else "managed"
             events.append(
                 {
                     "event_type": "metric_selected",

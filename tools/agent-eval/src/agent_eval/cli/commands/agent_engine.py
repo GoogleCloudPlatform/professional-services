@@ -141,7 +141,7 @@ def _build_evaluation_run_metrics(
     return run_metrics
 
 
-def _has_agent_specific_metrics(run_metrics: List[Any]) -> bool:
+def _has_agent_specific_metrics(run_metrics: list[Any]) -> bool:
     """Check if there are any agent-specific metrics in the run (like tool use)
 
     that require agent_info linkage (and thus force agent parameter, which crashes backend tracing).
@@ -564,10 +564,11 @@ def _build_agent_info(
     )
 
     # Build flat adjacency-list AgentConfig graph schema (RFC 135 / RFC 477 Contract C1)
-    sub_agent_names = [
-        getattr(sub, "name", str(sub))
-        for sub in getattr(agent, "sub_agents", [])
-    ] if agent is not None else []
+    sub_agent_names = (
+        [getattr(sub, "name", str(sub)) for sub in getattr(agent, "sub_agents", [])]
+        if agent is not None
+        else []
+    )
     if not sub_agent_names and name == "root_agent":
         sub_agent_names = ["data_analytics_subagent"]
 
@@ -577,16 +578,12 @@ def _build_agent_info(
             "type": getattr(agent, "__class__", type("LlmAgent", (), {})).__name__
             if agent is not None
             else "LlmAgent",
-            "description": getattr(agent, "description", None)
-            or "ADK Agent",
+            "description": getattr(agent, "description", None) or "ADK Agent",
             "instruction": getattr(agent, "instruction", None)
             or getattr(agent, "global_instruction", "")
             if agent is not None
             else "",
-            "tools": [
-                getattr(t, "name", str(t))
-                for t in getattr(agent, "tools", [])
-            ]
+            "tools": [getattr(t, "name", str(t)) for t in getattr(agent, "tools", [])]
             if agent is not None
             else ["ask_data_agent"],
             "sub_agents": sub_agent_names,
@@ -609,8 +606,8 @@ def _build_agent_info(
             except Exception:
                 return None
             try:
-                setattr(info, "agents", getattr(info, "agents", None) or agents_map)
-                setattr(info, "root_agent_id", getattr(info, "root_agent_id", None) or name)
+                info.agents = getattr(info, "agents", None) or agents_map
+                info.root_agent_id = getattr(info, "root_agent_id", None) or name
             except Exception:
                 pass
             return info
@@ -642,8 +639,8 @@ def _build_agent_info(
     try:
         info = AgentInfo(**common)
         try:
-            setattr(info, "agents", getattr(info, "agents", None) or agents_map)
-            setattr(info, "root_agent_id", getattr(info, "root_agent_id", None) or name)
+            info.agents = getattr(info, "agents", None) or agents_map
+            info.root_agent_id = getattr(info, "root_agent_id", None) or name
         except Exception:
             pass
         if agent is not None:

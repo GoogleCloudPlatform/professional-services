@@ -1,17 +1,16 @@
 """Unit tests for Option 1: Multi-Turn 3-Stage AutoRater Algorithm (RFC 527 Workstream 1)."""
 
-import json
 import unittest
 from unittest import mock
 
+from agent_eval.core.metric_factory import build_metric
 from agent_eval.core.multiturn_judge import (
     ExtractedIntent,
     GeneratedRubric,
     MultiTurnScoreResult,
     MultiTurnTrajectoryJudge,
 )
-from agent_eval.core.schema import AgentData, AgentTurn, AgentEvent
-from agent_eval.core.metric_factory import build_metric
+from agent_eval.core.schema import AgentData, AgentTurn
 
 
 class TestMultiTurnTrajectoryJudge(unittest.TestCase):
@@ -37,7 +36,12 @@ class TestMultiTurnTrajectoryJudge(unittest.TestCase):
         multi_turn_trace = AgentData(
             session_id="s2",
             turns=[
-                AgentTurn(turn_index=0, role="user", content="Analyze sales data for 2025", events=[]),
+                AgentTurn(
+                    turn_index=0,
+                    role="user",
+                    content="Analyze sales data for 2025",
+                    events=[],
+                ),
                 AgentTurn(
                     turn_index=1,
                     role="model",
@@ -95,8 +99,15 @@ class TestMultiTurnTrajectoryJudge(unittest.TestCase):
         multi_turn_trace = AgentData(
             session_id="s3",
             turns=[
-                AgentTurn(turn_index=0, role="user", content="Analyze sales data for 2025", events=[]),
-                AgentTurn(turn_index=1, role="model", content="Clarify market?", events=[]),
+                AgentTurn(
+                    turn_index=0,
+                    role="user",
+                    content="Analyze sales data for 2025",
+                    events=[],
+                ),
+                AgentTurn(
+                    turn_index=1, role="model", content="Clarify market?", events=[]
+                ),
             ],
             events=[],
         )

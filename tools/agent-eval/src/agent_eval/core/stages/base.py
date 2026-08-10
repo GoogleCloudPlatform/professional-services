@@ -59,6 +59,8 @@ class BaseStage:
 
     stage_name: str = "base"
 
-    def execute(self, config_data: dict[str, Any] | None = None, **kwargs: Any) -> StageResult:
+    def execute(
+        self, config_data: dict[str, Any] | None = None, **kwargs: Any
+    ) -> StageResult:
         """Run the stage and emit structured JSON/YAML events."""
         raise NotImplementedError("Subclasses must implement execute()")

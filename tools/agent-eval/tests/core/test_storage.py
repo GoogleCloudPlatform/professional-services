@@ -2,10 +2,10 @@
 
 import json
 from pathlib import Path
-from typing import Any
 from unittest.mock import MagicMock, patch
 
 import pytest
+
 from agent_eval.core.schema import AgentData
 from agent_eval.core.storage import (
     BigQueryStorageBackend,
@@ -40,7 +40,9 @@ class TestLocalStorageBackend:
         assert record["session_id"] == "test_session_001"
 
         # Append second trace
-        sample_agent_data_2 = AgentData(session_id="test_session_002", turns=[], events=[])
+        sample_agent_data_2 = AgentData(
+            session_id="test_session_002", turns=[], events=[]
+        )
         backend.save_trace(run_id=run_id, trace=sample_agent_data_2)
         lines = trace_path.read_text(encoding="utf-8").strip().splitlines()
         assert len(lines) == 2
@@ -60,7 +62,9 @@ class TestLocalStorageBackend:
 
 class TestGCSStorageBackend:
     @patch("google.cloud.storage.Client")
-    def test_gcs_save_trace(self, mock_client_cls: MagicMock, sample_agent_data: AgentData):
+    def test_gcs_save_trace(
+        self, mock_client_cls: MagicMock, sample_agent_data: AgentData
+    ):
         mock_client = MagicMock()
         mock_bucket = MagicMock()
         mock_blob = MagicMock()
@@ -73,7 +77,9 @@ class TestGCSStorageBackend:
         uri = backend.save_trace("v38_run", sample_agent_data)
 
         assert uri == "gs://test-bucket/runs/v38_run/traces/test_session_001.json"
-        mock_bucket.blob.assert_called_once_with("runs/v38_run/traces/test_session_001.json")
+        mock_bucket.blob.assert_called_once_with(
+            "runs/v38_run/traces/test_session_001.json"
+        )
         mock_blob.upload_from_string.assert_called_once()
         args, kwargs = mock_blob.upload_from_string.call_args
         assert "test_session_001" in args[0]
@@ -103,7 +109,9 @@ class TestGCSStorageBackend:
 
 class TestBigQueryStorageBackend:
     @patch("google.cloud.bigquery.Client")
-    def test_bq_save_trace(self, mock_client_cls: MagicMock, sample_agent_data: AgentData):
+    def test_bq_save_trace(
+        self, mock_client_cls: MagicMock, sample_agent_data: AgentData
+    ):
         mock_client = MagicMock()
         mock_client.project = "test-gcp-project"
         mock_client.insert_rows_json.return_value = []
@@ -120,10 +128,14 @@ class TestBigQueryStorageBackend:
         assert args[1][0]["session_id"] == "test_session_001"
 
     @patch("google.cloud.bigquery.Client")
-    def test_bq_insert_failure_raises_runtime_error(self, mock_client_cls: MagicMock, sample_agent_data: AgentData):
+    def test_bq_insert_failure_raises_runtime_error(
+        self, mock_client_cls: MagicMock, sample_agent_data: AgentData
+    ):
         mock_client = MagicMock()
         mock_client.project = "test-gcp-project"
-        mock_client.insert_rows_json.return_value = [{"index": 0, "errors": [{"message": "schema mismatch"}]}]
+        mock_client.insert_rows_json.return_value = [
+            {"index": 0, "errors": [{"message": "schema mismatch"}]}
+        ]
         mock_client_cls.return_value = mock_client
 
         backend = BigQueryStorageBackend(dataset_id="ds")

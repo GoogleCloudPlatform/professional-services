@@ -17,7 +17,6 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Any, Dict
 
 import pytest
 from click.testing import CliRunner
@@ -51,7 +50,9 @@ def sample_adk_agent_dir(tmp_path: Path) -> Path:
                         {
                             "author": "user",
                             "timestamp": 1700000000.0,
-                            "content": {"parts": [{"text": "What is the weather in SF?"}]},
+                            "content": {
+                                "parts": [{"text": "What is the weather in SF?"}]
+                            },
                         },
                         {
                             "author": "weather_agent",
@@ -209,7 +210,10 @@ class TestConvertDefaultAndADK:
         record = json.loads(lines[0])
         assert record["session_id"] == "sess_101"
         assert record["app_name"] == "weather_agent"
-        assert record["final_response"] == "It is currently 65F and sunny in San Francisco."
+        assert (
+            record["final_response"]
+            == "It is currently 65F and sunny in San Francisco."
+        )
 
     def test_explicit_trace_format_adk(
         self, cli_runner: CliRunner, sample_adk_agent_dir: Path, tmp_path: Path
@@ -259,7 +263,10 @@ class TestConvertDefaultAndADK:
         """Verify merging reference data with --questions-file."""
         questions_file = tmp_path / "golden.jsonl"
         questions_file.write_text(
-            json.dumps({"id": "case_101", "reference_data": {"ground_truth": "65F and sunny"}}) + "\n",
+            json.dumps(
+                {"id": "case_101", "reference_data": {"ground_truth": "65F and sunny"}}
+            )
+            + "\n",
             encoding="utf-8",
         )
 
@@ -353,11 +360,38 @@ class TestConvertOpenInferenceAndDirectPaths:
         traces_dir.mkdir()
 
         (traces_dir / "trace1.jsonl").write_text(
-            json.dumps({"trace_id": "t1", "spans": [{"span_id": "s1", "attributes": {"openinference.span.kind": "LLM", "output.value": "Ans 1"}}]}) + "\n",
+            json.dumps(
+                {
+                    "trace_id": "t1",
+                    "spans": [
+                        {
+                            "span_id": "s1",
+                            "attributes": {
+                                "openinference.span.kind": "LLM",
+                                "output.value": "Ans 1",
+                            },
+                        }
+                    ],
+                }
+            )
+            + "\n",
             encoding="utf-8",
         )
         (traces_dir / "trace2.json").write_text(
-            json.dumps({"trace_id": "t2", "spans": [{"span_id": "s2", "attributes": {"openinference.span.kind": "LLM", "output.value": "Ans 2"}}]}),
+            json.dumps(
+                {
+                    "trace_id": "t2",
+                    "spans": [
+                        {
+                            "span_id": "s2",
+                            "attributes": {
+                                "openinference.span.kind": "LLM",
+                                "output.value": "Ans 2",
+                            },
+                        }
+                    ],
+                }
+            ),
             encoding="utf-8",
         )
 
@@ -536,7 +570,10 @@ class TestErrorHandlingAndValidation:
         assert result.exit_code == 1
         assert "Error converting history:" in result.output
         normalized_output = " ".join(result.output.split())
-        assert "Unsupported trace format type: 'unsupported_framework_xyz'" in normalized_output
+        assert (
+            "Unsupported trace format type: 'unsupported_framework_xyz'"
+            in normalized_output
+        )
         assert "openinference" in normalized_output
         assert "autogen" in normalized_output
 
@@ -578,9 +615,7 @@ class TestErrorHandlingAndValidation:
         assert "Error converting history:" in result.output
         assert "Trace file or directory not found" in result.output
 
-    def test_empty_adk_history_directory(
-        self, cli_runner: CliRunner, tmp_path: Path
-    ):
+    def test_empty_adk_history_directory(self, cli_runner: CliRunner, tmp_path: Path):
         """When ADK history directory exists but contains no .json files."""
         agent_dir = tmp_path / "empty_agent"
         (agent_dir / ".adk" / "eval_history").mkdir(parents=True)

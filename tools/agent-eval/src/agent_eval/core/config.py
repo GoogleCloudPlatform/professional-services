@@ -20,7 +20,6 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 logger = logging.getLogger("agent_eval")
 
 
-
 class EvalConfig(BaseSettings):
     """
     Centralized configuration for the evaluation pipeline using Pydantic.

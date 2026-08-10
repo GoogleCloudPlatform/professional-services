@@ -24,10 +24,10 @@ from agent_eval.core.stages.rubrics import RubricsStage
 
 __all__ = [
     "BaseStage",
-    "StageResult",
+    "CalibrationStage",
     "MetricSelectionStage",
     "RubricsStage",
-    "CalibrationStage",
+    "StageResult",
     "run_stage",
 ]
 

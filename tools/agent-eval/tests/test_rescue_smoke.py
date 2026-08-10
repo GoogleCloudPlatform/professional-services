@@ -560,6 +560,5 @@ class TestAgentEngineMetricsCheck(unittest.TestCase):
         self.assertTrue(_has_agent_specific_metrics([m1]))
 
 
-
 if __name__ == "__main__":
     unittest.main()

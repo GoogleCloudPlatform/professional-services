@@ -1,5 +1,3 @@
-import urllib3.contrib.pyopenssl
-urllib3.contrib.pyopenssl.extract_from_urllib3()
 # Copyright 2026 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,17 +11,16 @@ urllib3.contrib.pyopenssl.extract_from_urllib3()
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 import asyncio
 import contextlib
 import json
 import logging
 import math
-import threading
-
-_vertex_init_lock = threading.Lock()
 import statistics
 import subprocess
 import sys
+import threading
 import time
 from collections import defaultdict
 from datetime import datetime
@@ -31,6 +28,7 @@ from pathlib import Path
 from typing import Any
 
 import pandas as pd
+import urllib3.contrib.pyopenssl
 from google.cloud import aiplatform
 from google.genai.types import HttpOptions
 from vertexai import Client, types
@@ -55,6 +53,9 @@ from agent_eval.core.metric_schema import (
     SDK_COLUMN_DEFAULTS as _SDK_COLUMN_DEFAULTS,
 )
 from agent_eval.core.metric_schema import is_managed_entry, managed_base_name
+
+urllib3.contrib.pyopenssl.extract_from_urllib3()
+_vertex_init_lock = threading.Lock()
 
 # Setup Logger — root logger at CRITICAL silences all third-party noise by default.
 # Our own logger (agent_eval) is explicitly set to INFO so our messages show.
@@ -115,10 +116,12 @@ def _last_user_text(df: pd.DataFrame) -> pd.Series:
         if isinstance(ui, str):
             try:
                 import json
+
                 ui = json.loads(ui)
             except (json.JSONDecodeError, ValueError):
                 try:
                     import ast
+
                     ui = ast.literal_eval(ui)
                 except (SyntaxError, ValueError):
                     ui = [ui]
@@ -516,10 +519,11 @@ def run_single_metric_evaluation(
     if client_arg is not None:
         client = client_arg
     else:
-        # Thread-safe client instantiation: 
+        # Thread-safe client instantiation:
         # httpx connections cannot be safely reused across to_thread boundaries
-        from vertexai import Client
         from google.genai.types import HttpOptions
+        from vertexai import Client
+
         with _vertex_init_lock:
             client = Client(
                 project=get_project_id(),
@@ -532,25 +536,38 @@ def run_single_metric_evaluation(
         eval_kwargs["config"] = types.EvaluateMethodConfig(dest=gcs_dest)
 
     custom_fn = getattr(metric_obj, "custom_function", None)
-    if custom_fn is not None and callable(custom_fn) and not type(custom_fn).__name__.endswith("Mock") and not getattr(custom_fn, "_is_mock", False):
+    if (
+        custom_fn is not None
+        and callable(custom_fn)
+        and not type(custom_fn).__name__.endswith("Mock")
+        and not getattr(custom_fn, "_is_mock", False)
+    ):
         try:
             results_list = []
             for _, row in metric_df.iterrows():
                 row_dict = row.to_dict()
                 res = custom_fn(row_dict)
                 score = res.get("score", 0.0) if isinstance(res, dict) else float(res)
-                explanation = res.get("explanation", "") if isinstance(res, dict) else ""
-                results_list.append({
-                    f"{metric_name}/score": score,
-                    f"{metric_name}/explanation": explanation,
-                    "score": score,
-                    "explanation": explanation,
-                })
+                explanation = (
+                    res.get("explanation", "") if isinstance(res, dict) else ""
+                )
+                results_list.append(
+                    {
+                        f"{metric_name}/score": score,
+                        f"{metric_name}/explanation": explanation,
+                        "score": score,
+                        "explanation": explanation,
+                    }
+                )
             res_df = pd.DataFrame(results_list, index=metric_df.index)
             res_df["original_index"] = metric_df.index
             return res_df, metric_name, eval_dataset, None
         except Exception as py_err:
-            logger.warning("Local execution of python_function '%s' failed: %s; falling back to SDK", metric_name, py_err)
+            logger.warning(
+                "Local execution of python_function '%s' failed: %s; falling back to SDK",
+                metric_name,
+                py_err,
+            )
 
     last_exc: Exception | None = None
     for attempt in range(retries):
@@ -1053,7 +1070,12 @@ class Evaluator:
                 from agent_eval.core.data_mapper import _map_agents
 
                 records = read_jsonl(str(ifile))
-                if records and isinstance(records, list) and isinstance(records[0], dict) and "turns" in records[0]:
+                if (
+                    records
+                    and isinstance(records, list)
+                    and isinstance(records[0], dict)
+                    and "turns" in records[0]
+                ):
                     records = _map_agents(records)
                 df = pd.DataFrame(records)
                 if "question_id" in df.columns:
@@ -1170,7 +1192,9 @@ class Evaluator:
             else:
                 mask = pd.Series([True] * len(expanded_df), index=expanded_df.index)
             # If default agent or empty mask, include all rows
-            if (agent in ("data_explorer_agent", "app", "root_agent") or not any(mask)) and not expanded_df.empty:
+            if (
+                agent in ("data_explorer_agent", "app", "root_agent") or not any(mask)
+            ) and not expanded_df.empty:
                 mask = pd.Series([True] * len(expanded_df), index=expanded_df.index)
 
             agent_df = expanded_df[mask].copy()
@@ -1189,7 +1213,11 @@ class Evaluator:
                 continue
 
             for metric_name, info in metrics:
-                if info.get("metric_type") == "deterministic" or info.get("kind") == "deterministic" or metric_name in DETERMINISTIC_METRICS:
+                if (
+                    info.get("metric_type") == "deterministic"
+                    or info.get("kind") == "deterministic"
+                    or metric_name in DETERMINISTIC_METRICS
+                ):
                     continue
 
                 # Per-row capability filter — a metric runs on rows whose
