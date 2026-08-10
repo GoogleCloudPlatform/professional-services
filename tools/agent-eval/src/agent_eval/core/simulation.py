@@ -34,10 +34,12 @@ from google.adk.evaluation.eval_case import EvalCase, SessionInput
 from google.adk.evaluation.in_memory_eval_sets_manager import InMemoryEvalSetsManager
 from google.adk.evaluation.local_eval_service import LocalEvalService
 from google.adk.evaluation.local_eval_set_results_manager import (
-    LocalEvalSetResultsManager,)
+    LocalEvalSetResultsManager,
+)
 from google.adk.evaluation.simulation.user_simulator import UserSimulator
 from google.adk.evaluation.simulation.user_simulator_provider import (
-    UserSimulatorProvider,)
+    UserSimulatorProvider,
+)
 from google.adk.events.event import Event
 from google.adk.sessions.in_memory_session_service import InMemorySessionService
 
@@ -60,7 +62,8 @@ class SingleTurnLimitingUserSimulatorProvider(UserSimulatorProvider):
             model = config_dict.get("model", model)
 
             single_turn_config = LlmBackedUserSimulatorConfig(
-                model=model, max_allowed_invocations=1)
+                model=model, max_allowed_invocations=1
+            )
             return LlmBackedUserSimulator(
                 config=single_turn_config,
                 conversation_scenario=eval_case.conversation_scenario,
@@ -97,9 +100,8 @@ def _row_to_adk_scenario(row: dict, idx: int) -> dict:
         if isinstance(turn, dict):
             parts = turn.get("parts") or []
             text = " ".join(
-                p.get("text", "")
-                for p in parts
-                if isinstance(p, dict)).strip()
+                p.get("text", "") for p in parts if isinstance(p, dict)
+            ).strip()
             if text:
                 history_texts.append(text)
 
@@ -128,7 +130,6 @@ def custom_session_id_supplier() -> str:
 
 
 class PrePopulatingSessionService(InMemorySessionService):
-
     def __init__(self, dataset_rows: list[dict]):
         super().__init__()
         self.rows_map = {}
@@ -140,21 +141,19 @@ class PrePopulatingSessionService(InMemorySessionService):
     async def create_session(self, app_name, user_id, state, session_id):
         case_id = None
         if session_id.startswith(EVAL_SESSION_ID_PREFIX):
-            parts = session_id[len(EVAL_SESSION_ID_PREFIX):].split("___")
+            parts = session_id[len(EVAL_SESSION_ID_PREFIX) :].split("___")
             if len(parts) > 0:
                 case_id = parts[0]
                 if "_rep_" in case_id:
                     case_id = case_id.split("_rep_")[0]
 
-        session = await super().create_session(app_name=app_name,
-                                               user_id=user_id,
-                                               state=state,
-                                               session_id=session_id)
+        session = await super().create_session(
+            app_name=app_name, user_id=user_id, state=state, session_id=session_id
+        )
 
         if case_id and case_id in self.rows_map:
             row = self.rows_map[case_id]
-            history = row.get("history") or row.get(
-                "conversation_history") or []
+            history = row.get("history") or row.get("conversation_history") or []
             if history:
                 logger.info(
                     "Pre-populating session %s with history for case %s",
@@ -166,9 +165,8 @@ class PrePopulatingSessionService(InMemorySessionService):
                         role = turn.get("role") or "user"
                         parts = turn.get("parts") or []
                         text = " ".join(
-                            p.get("text", "")
-                            for p in parts
-                            if isinstance(p, dict)).strip()
+                            p.get("text", "") for p in parts if isinstance(p, dict)
+                        ).strip()
                         if text:
                             author = "user" if role == "user" else app_name
                             event = Event(author=author, message=text)
@@ -177,7 +175,6 @@ class PrePopulatingSessionService(InMemorySessionService):
 
 
 class PrePopulatingEvalService(LocalEvalService):
-
     async def _perform_inference_single_eval_item(
         self,
         app_name: str,
@@ -303,8 +300,7 @@ async def run_simulation_in_process(
     # 4. Setup InMemoryEvalSetsManager
     eval_sets_manager = InMemoryEvalSetsManager()
     eval_set_id = "eval_set"
-    eval_sets_manager.create_eval_set(app_name=app_name,
-                                      eval_set_id=eval_set_id)
+    eval_sets_manager.create_eval_set(app_name=app_name, eval_set_id=eval_set_id)
     for eval_case in eval_cases:
         eval_sets_manager.add_eval_case(
             app_name=app_name,
@@ -337,19 +333,16 @@ async def run_simulation_in_process(
             )
         ]
 
-        logger.info("Running simulation inferences (parallelism=%d)...",
-                    parallelism)
+        logger.info("Running simulation inferences (parallelism=%d)...", parallelism)
         inference_results = []
         for req in inference_requests:
-            async for res in eval_service.perform_inference(
-                    inference_request=req):
+            async for res in eval_service.perform_inference(inference_request=req):
                 inference_results.append(res)
 
         # 8. Run Evaluation (with empty metrics to trigger saving results to disk)
         evaluate_request = EvaluateRequest(
             inference_results=inference_results,
-            evaluate_config=EvaluateConfig(eval_metrics=[],
-                                           parallelism=parallelism),
+            evaluate_config=EvaluateConfig(eval_metrics=[], parallelism=parallelism),
         )
 
         logger.info("Saving simulation results...")

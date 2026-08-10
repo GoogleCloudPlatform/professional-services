@@ -43,32 +43,30 @@ def test_eval_config_defaults():
 def test_eval_config_project_id_aliases():
     """Verify GOOGLE_CLOUD_PROJECT loads from all supported aliases and respects priority."""
     # 1. Test loading from PROJECT_ID (lowest priority alias)
-    with mock.patch.dict(os.environ, {"PROJECT_ID": "low-priority-project"},
-                         clear=True):
+    with mock.patch.dict(
+        os.environ, {"PROJECT_ID": "low-priority-project"}, clear=True
+    ):
         config = EvalConfig()
         assert config.GOOGLE_CLOUD_PROJECT == "low-priority-project"
 
     # 2. Test loading from GOOGLE_CLOUD_PROJECT (medium priority alias)
     with mock.patch.dict(
-            os.environ,
-        {
-            "PROJECT_ID": "low",
-            "GOOGLE_CLOUD_PROJECT": "medium-priority-project"
-        },
-            clear=True,
+        os.environ,
+        {"PROJECT_ID": "low", "GOOGLE_CLOUD_PROJECT": "medium-priority-project"},
+        clear=True,
     ):
         config = EvalConfig()
         assert config.GOOGLE_CLOUD_PROJECT == "medium-priority-project"
 
     # 3. Test loading from EVAL_GOOGLE_CLOUD_PROJECT (highest priority prefixed env var)
     with mock.patch.dict(
-            os.environ,
+        os.environ,
         {
             "PROJECT_ID": "low",
             "GOOGLE_CLOUD_PROJECT": "medium",
             "EVAL_GOOGLE_CLOUD_PROJECT": "high-priority-project",
         },
-            clear=True,
+        clear=True,
     ):
         config = EvalConfig()
         assert config.GOOGLE_CLOUD_PROJECT == "high-priority-project"
@@ -83,25 +81,22 @@ def test_eval_config_location_aliases():
 
     # 2. Test loading from GOOGLE_CLOUD_LOCATION (alias)
     with mock.patch.dict(
-            os.environ,
-        {
-            "LOCATION": "europe",
-            "GOOGLE_CLOUD_LOCATION": "us-east1"
-        },
-            clear=True,
+        os.environ,
+        {"LOCATION": "europe", "GOOGLE_CLOUD_LOCATION": "us-east1"},
+        clear=True,
     ):
         config = EvalConfig()
         assert config.GOOGLE_CLOUD_LOCATION == "us-east1"
 
     # 3. Test loading from EVAL_GOOGLE_CLOUD_LOCATION (prefixed)
     with mock.patch.dict(
-            os.environ,
+        os.environ,
         {
             "LOCATION": "europe",
             "GOOGLE_CLOUD_LOCATION": "us-east1",
             "EVAL_GOOGLE_CLOUD_LOCATION": "asia-northeast1",
         },
-            clear=True,
+        clear=True,
     ):
         config = EvalConfig()
         assert config.GOOGLE_CLOUD_LOCATION == "asia-northeast1"
@@ -112,12 +107,14 @@ def test_get_project_id_dynamic():
     with mock.patch.dict(os.environ, {}, clear=True):
         assert get_project_id() is None
 
-    with mock.patch.dict(os.environ, {"GOOGLE_CLOUD_PROJECT": "mocked-project"},
-                         clear=True):
+    with mock.patch.dict(
+        os.environ, {"GOOGLE_CLOUD_PROJECT": "mocked-project"}, clear=True
+    ):
         assert get_project_id() == "mocked-project"
 
-    with mock.patch.dict(os.environ, {"PROJECT_ID": "another-mocked-project"},
-                         clear=True):
+    with mock.patch.dict(
+        os.environ, {"PROJECT_ID": "another-mocked-project"}, clear=True
+    ):
         assert get_project_id() == "another-mocked-project"
 
 
@@ -127,8 +124,7 @@ def test_get_location_dynamic():
     with mock.patch.dict(os.environ, {}, clear=True):
         assert get_location() == "us-central1"
 
-    with mock.patch.dict(os.environ, {"GOOGLE_CLOUD_LOCATION": "us-east1"},
-                         clear=True):
+    with mock.patch.dict(os.environ, {"GOOGLE_CLOUD_LOCATION": "us-east1"}, clear=True):
         assert get_location() == "us-east1"
         # Gemini 3+ models require 'global' location
         assert get_location(model="gemini-3.1-pro") == "global"

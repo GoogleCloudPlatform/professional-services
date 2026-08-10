@@ -33,12 +33,14 @@ logger = logging.getLogger("agent_eval")
 
 # Static rubrics use fixed criteria (no LLM-generated rubric step). Per docs:
 # https://docs.cloud.google.com/vertex-ai/generative-ai/docs/models/rubric-metric-details
-_STATIC_RUBRIC: frozenset = frozenset({
-    "grounding_v1",
-    "safety_v1",
-    "final_response_match_v2",
-    "hallucination_v1",
-})
+_STATIC_RUBRIC: frozenset = frozenset(
+    {
+        "grounding_v1",
+        "safety_v1",
+        "final_response_match_v2",
+        "hallucination_v1",
+    }
+)
 
 
 def _normalize(name: str) -> str:

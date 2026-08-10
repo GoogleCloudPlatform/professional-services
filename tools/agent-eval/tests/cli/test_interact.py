@@ -23,7 +23,6 @@ from agent_eval.cli.commands.interact import interact
 
 
 class TestInteractCommand(unittest.TestCase):
-
     def setUp(self):
         self.test_dir = tempfile.mkdtemp()
         self.agent_dir = Path(self.test_dir) / "my_agent"
@@ -33,7 +32,8 @@ class TestInteractCommand(unittest.TestCase):
         self.eval_dir.mkdir()
         self.dataset_path = self.eval_dir / "dataset.jsonl"
         self.dataset_path.write_text(
-            '{"id": "case_1", "prompt": "Hello", "kind": "single_turn"}')
+            '{"id": "case_1", "prompt": "Hello", "kind": "single_turn"}'
+        )
 
     def tearDown(self):
         shutil.rmtree(self.test_dir)
@@ -82,11 +82,16 @@ class TestInteractCommand(unittest.TestCase):
         )
 
         # Verify write_jsonl was called to save results
-        expected_output_path = (self.eval_dir / "results" / "test-run" / "raw" /
-                                "processed_interaction_my_agent.jsonl")
-        mock_write_jsonl.assert_called_once_with([{
-            "converted": "record"
-        }], str(expected_output_path))
+        expected_output_path = (
+            self.eval_dir
+            / "results"
+            / "test-run"
+            / "raw"
+            / "processed_interaction_my_agent.jsonl"
+        )
+        mock_write_jsonl.assert_called_once_with(
+            [{"converted": "record"}], str(expected_output_path)
+        )
 
     @patch("agent_eval.core.simulation.run_simulation_in_process")
     @patch("agent_eval.core.path_resolver.agent_project_root")
@@ -135,8 +140,9 @@ class TestInteractCommand(unittest.TestCase):
     @patch("agent_eval.core.simulation.run_simulation_in_process")
     @patch("agent_eval.core.path_resolver.agent_project_root")
     @patch("agent_eval.cli.commands.interact.write_jsonl")
-    def test_interact_in_process_with_eval_dir(self, mock_write_jsonl,
-                                               mock_project_root, mock_run_sim):
+    def test_interact_in_process_with_eval_dir(
+        self, mock_write_jsonl, mock_project_root, mock_run_sim
+    ):
         mock_project_root.return_value = self.agent_dir
         mock_run_sim.return_value = [{"converted": "record"}]
 
@@ -144,7 +150,8 @@ class TestInteractCommand(unittest.TestCase):
         custom_eval_dir.mkdir()
         custom_dataset = custom_eval_dir / "dataset.jsonl"
         custom_dataset.write_text(
-            '{"id": "case_1", "prompt": "Hello", "kind": "single_turn"}')
+            '{"id": "case_1", "prompt": "Hello", "kind": "single_turn"}'
+        )
 
         runner = CliRunner()
         result = runner.invoke(
@@ -177,11 +184,16 @@ class TestInteractCommand(unittest.TestCase):
         )
 
         # Verify write_jsonl was called to save results under custom_eval_dir
-        expected_output_path = (custom_eval_dir / "results" / "test-run" /
-                                "raw" / "processed_interaction_my_agent.jsonl")
-        mock_write_jsonl.assert_called_once_with([{
-            "converted": "record"
-        }], str(expected_output_path))
+        expected_output_path = (
+            custom_eval_dir
+            / "results"
+            / "test-run"
+            / "raw"
+            / "processed_interaction_my_agent.jsonl"
+        )
+        mock_write_jsonl.assert_called_once_with(
+            [{"converted": "record"}], str(expected_output_path)
+        )
 
 
 if __name__ == "__main__":

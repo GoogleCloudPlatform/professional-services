@@ -84,7 +84,6 @@ def _serve(report: Path, port_hint: int = 0) -> None:
 
     # Quiet logging — http.server logs every request to stderr by default.
     class _QuietHandler(handler_cls):
-
         def log_message(self, *args, **kwargs):
             pass
 
@@ -93,8 +92,7 @@ def _serve(report: Path, port_hint: int = 0) -> None:
     httpd = None
     for attempt_port in (port_hint, 0) if port_hint else (0,):
         try:
-            httpd = socketserver.TCPServer(("0.0.0.0", attempt_port),
-                                           _QuietHandler)
+            httpd = socketserver.TCPServer(("0.0.0.0", attempt_port), _QuietHandler)
             port = httpd.server_address[1]
             break
         except OSError:
@@ -124,7 +122,8 @@ def _serve(report: Path, port_hint: int = 0) -> None:
             title="[bold]agent-eval report[/]",
             border_style="cyan",
             padding=(1, 2),
-        ))
+        )
+    )
     try:
         httpd.serve_forever()
     except KeyboardInterrupt:
@@ -147,8 +146,7 @@ def _serve(report: Path, port_hint: int = 0) -> None:
 @click.option(
     "--serve",
     is_flag=True,
-    help=
-    "Start a localhost HTTP server instead of opening in the default browser. "
+    help="Start a localhost HTTP server instead of opening in the default browser. "
     "Use this on remote dev boxes (Cloud Workstation, SSH) where no display exists.",
 )
 @click.option(
@@ -157,9 +155,9 @@ def _serve(report: Path, port_hint: int = 0) -> None:
     default=0,
     help="With --serve, the port to bind. Default: OS-assigned.",
 )
-@click.option("--no-open",
-              is_flag=True,
-              help="Just print the path; don't open a browser.")
+@click.option(
+    "--no-open", is_flag=True, help="Just print the path; don't open a browser."
+)
 def report(run_id, results_dir, serve, port, no_open):
     """Open the latest evaluation report in your default browser.
 
@@ -185,7 +183,8 @@ def report(run_id, results_dir, serve, port, no_open):
         if not report_path.exists():
             console.print(
                 f"  [red]No report.html for run [cyan]{run_id}[/]:[/] {report_path}\n"
-                f"  [dim]Available runs:[/]")
+                f"  [dim]Available runs:[/]"
+            )
             for run_dir in sorted(results.iterdir()):
                 if (run_dir / "report.html").exists():
                     console.print(f"    [cyan]{run_dir.name}[/]")
@@ -231,4 +230,5 @@ def report(run_id, results_dir, serve, port, no_open):
             "  [yellow]Couldn't open a browser automatically.[/] "
             "[dim]On a remote dev box?[/]\n"
             "  [bold]Try:[/]  [cyan]agent-eval report --serve[/]  "
-            "[dim](starts a localhost HTTP server you can SSH-tunnel to)[/]")
+            "[dim](starts a localhost HTTP server you can SSH-tunnel to)[/]"
+        )

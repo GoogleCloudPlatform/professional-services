@@ -78,8 +78,7 @@ def _continue(
         return
     if console is not None:
         console.print()
-    label = message if "enter" in message.lower(
-    ) else f"{message}  · press Enter ↵"
+    label = message if "enter" in message.lower() else f"{message}  · press Enter ↵"
     questionary.press_any_key_to_continue(label).ask()
 
 

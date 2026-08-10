@@ -30,8 +30,9 @@ from agent_eval import run_evaluation, run_evaluation_sync
 @mock.patch("agent_eval.sdk.generate_html_report")
 @mock.patch("agent_eval.sdk.Evaluator")
 @mock.patch("agent_eval.sdk.run_simulation_in_process", autospec=True)
-async def test_sdk_run_evaluation_success(mock_run_sim, mock_evaluator,
-                                          _mock_generate_html_report):
+async def test_sdk_run_evaluation_success(
+    mock_run_sim, mock_evaluator, _mock_generate_html_report
+):
     # Setup mocks
     mock_run_sim.return_value = [{"id": "case_0"}]
 
@@ -60,8 +61,7 @@ async def test_sdk_run_evaluation_success(mock_run_sim, mock_evaluator,
         raw_dir.mkdir(parents=True, exist_ok=True)
         # Write dummy CSV
         df = pd.DataFrame([{"question_id": "case_0", "score": 1.0}])
-        df.to_csv(raw_dir / "evaluation_results_20260101_000000.csv",
-                  index=False)
+        df.to_csv(raw_dir / "evaluation_results_20260101_000000.csv", index=False)
 
     mock_evaluator.return_value.evaluate.side_effect = fake_evaluate
 
@@ -87,10 +87,7 @@ async def test_sdk_run_evaluation_success(mock_run_sim, mock_evaluator,
             run_id="test_run",
         )
 
-        mock_evaluator.assert_called_once_with({
-            "location": None,
-            "gcs_dest": None
-        })
+        mock_evaluator.assert_called_once_with({"location": None, "gcs_dest": None})
         assert result.success is True
         assert result.failed_metrics == []
         assert result.metrics == {
@@ -103,8 +100,9 @@ async def test_sdk_run_evaluation_success(mock_run_sim, mock_evaluator,
 @mock.patch("agent_eval.sdk.generate_html_report")
 @mock.patch("agent_eval.sdk.Evaluator")
 @mock.patch("agent_eval.sdk.run_simulation_in_process", autospec=True)
-async def test_sdk_run_evaluation_error_metric(mock_run_sim, mock_evaluator,
-                                               _mock_generate_html_report):
+async def test_sdk_run_evaluation_error_metric(
+    mock_run_sim, mock_evaluator, _mock_generate_html_report
+):
     mock_run_sim.return_value = [{"id": "case_0"}]
 
     async def fake_evaluate(interaction_files, metrics_files, results_dir):
@@ -120,10 +118,9 @@ async def test_sdk_run_evaluation_error_metric(mock_run_sim, mock_evaluator,
                         "average": 0.9,
                     }
                 },
-                "failed_metrics": [{
-                    "metric": "broken_metric",
-                    "exception_type": "ValueError"
-                }],
+                "failed_metrics": [
+                    {"metric": "broken_metric", "exception_type": "ValueError"}
+                ],
             },
         }
         with (results_dir / "eval_summary.json").open("w") as f:
@@ -131,8 +128,7 @@ async def test_sdk_run_evaluation_error_metric(mock_run_sim, mock_evaluator,
         raw_dir = results_dir / "raw"
         raw_dir.mkdir(parents=True, exist_ok=True)
         df = pd.DataFrame([{"question_id": "case_0", "score": 1.0}])
-        df.to_csv(raw_dir / "evaluation_results_20260101_000000.csv",
-                  index=False)
+        df.to_csv(raw_dir / "evaluation_results_20260101_000000.csv", index=False)
 
     mock_evaluator.return_value.evaluate.side_effect = fake_evaluate
 
@@ -154,10 +150,7 @@ async def test_sdk_run_evaluation_error_metric(mock_run_sim, mock_evaluator,
             run_id="test_run",
         )
 
-        mock_evaluator.assert_called_once_with({
-            "location": None,
-            "gcs_dest": None
-        })
+        mock_evaluator.assert_called_once_with({"location": None, "gcs_dest": None})
         assert result.success is False
         assert "broken_metric" in result.failed_metrics
 
@@ -193,9 +186,9 @@ def test_sdk_run_evaluation_sync(mock_run_eval):
 @mock.patch("agent_eval.sdk.generate_html_report")
 @mock.patch("agent_eval.sdk.Evaluator")
 @mock.patch("agent_eval.sdk.run_simulation_in_process", autospec=True)
-async def test_sdk_run_evaluation_threshold_success(mock_run_sim,
-                                                    mock_evaluator,
-                                                    _mock_generate_html_report):
+async def test_sdk_run_evaluation_threshold_success(
+    mock_run_sim, mock_evaluator, _mock_generate_html_report
+):
     mock_run_sim.return_value = [{"id": "case_0"}]
 
     async def fake_evaluate(interaction_files, metrics_files, results_dir):
@@ -223,8 +216,7 @@ async def test_sdk_run_evaluation_threshold_success(mock_run_sim,
         raw_dir = results_dir / "raw"
         raw_dir.mkdir(parents=True, exist_ok=True)
         df = pd.DataFrame([{"question_id": "case_0", "score": 1.0}])
-        df.to_csv(raw_dir / "evaluation_results_20260101_000000.csv",
-                  index=False)
+        df.to_csv(raw_dir / "evaluation_results_20260101_000000.csv", index=False)
 
     mock_evaluator.return_value.evaluate.side_effect = fake_evaluate
 
@@ -248,10 +240,7 @@ async def test_sdk_run_evaluation_threshold_success(mock_run_sim,
             run_id="test_run",
         )
 
-        mock_evaluator.assert_called_once_with({
-            "location": None,
-            "gcs_dest": None
-        })
+        mock_evaluator.assert_called_once_with({"location": None, "gcs_dest": None})
         assert result.success is True
         assert result.failed_metrics == []
         assert result.threshold_failures == []
@@ -261,9 +250,9 @@ async def test_sdk_run_evaluation_threshold_success(mock_run_sim,
 @mock.patch("agent_eval.sdk.generate_html_report")
 @mock.patch("agent_eval.sdk.Evaluator")
 @mock.patch("agent_eval.sdk.run_simulation_in_process", autospec=True)
-async def test_sdk_run_evaluation_threshold_failure(mock_run_sim,
-                                                    mock_evaluator,
-                                                    _mock_generate_html_report):
+async def test_sdk_run_evaluation_threshold_failure(
+    mock_run_sim, mock_evaluator, _mock_generate_html_report
+):
     mock_run_sim.return_value = [{"id": "case_0"}]
 
     async def fake_evaluate(interaction_files, metrics_files, results_dir):
@@ -291,8 +280,7 @@ async def test_sdk_run_evaluation_threshold_failure(mock_run_sim,
         raw_dir = results_dir / "raw"
         raw_dir.mkdir(parents=True, exist_ok=True)
         df = pd.DataFrame([{"question_id": "case_0", "score": 1.0}])
-        df.to_csv(raw_dir / "evaluation_results_20260101_000000.csv",
-                  index=False)
+        df.to_csv(raw_dir / "evaluation_results_20260101_000000.csv", index=False)
 
     mock_evaluator.return_value.evaluate.side_effect = fake_evaluate
 
@@ -316,17 +304,16 @@ async def test_sdk_run_evaluation_threshold_failure(mock_run_sim,
             run_id="test_run",
         )
 
-        mock_evaluator.assert_called_once_with({
-            "location": None,
-            "gcs_dest": None
-        })
+        mock_evaluator.assert_called_once_with({"location": None, "gcs_dest": None})
         assert result.success is False
         assert result.failed_metrics == []
-        assert result.threshold_failures == [{
-            "metric": "trajectory_accuracy",
-            "average": 0.7,
-            "threshold": 0.8,
-        }]
+        assert result.threshold_failures == [
+            {
+                "metric": "trajectory_accuracy",
+                "average": 0.7,
+                "threshold": 0.8,
+            }
+        ]
 
 
 @pytest.mark.anyio
@@ -356,18 +343,21 @@ async def test_sdk_run_evaluation_pipeline_success(
     # Sinks a fake summary JSON on GCS download
     def fake_download_to_filename(dest_path):
         Path(dest_path).write_text(
-            json.dumps({
-                "experiment_id": "test_run",
-                "overall_summary": {
-                    "failed_metrics": [],
-                    "llm_based_metrics": {
-                        "trajectory_accuracy": {
-                            "average": 0.85,
-                            "threshold": 0.7,
-                        }
+            json.dumps(
+                {
+                    "experiment_id": "test_run",
+                    "overall_summary": {
+                        "failed_metrics": [],
+                        "llm_based_metrics": {
+                            "trajectory_accuracy": {
+                                "average": 0.85,
+                                "threshold": 0.7,
+                            }
+                        },
                     },
-                },
-            }))
+                }
+            )
+        )
 
     mock_blob.download_to_filename.side_effect = fake_download_to_filename
 
@@ -414,8 +404,7 @@ async def test_sdk_run_evaluation_pipeline_success(
             pipeline_yaml_path=mock.ANY,
             gcs_dest="gs://my-bucket/runs/run_01",
             dataset_gcs_path="gs://my-bucket/runs/run_01/staging/dataset.jsonl",
-            metrics_gcs_path=
-            "gs://my-bucket/runs/run_01/staging/metric_definitions.json",
+            metrics_gcs_path="gs://my-bucket/runs/run_01/staging/metric_definitions.json",
             agent_url="http://my-agent/run",
             agent_name="my_agent_app",
             wait=True,
@@ -489,8 +478,7 @@ async def test_sdk_run_evaluation_pipeline_missing_files(mock_storage_client):
         metrics_dir.mkdir()
         (metrics_dir / "metric_definitions.json").touch()
 
-        with pytest.raises(FileNotFoundError,
-                           match="Evaluation dataset not found"):
+        with pytest.raises(FileNotFoundError, match="Evaluation dataset not found"):
             await run_evaluation(
                 agent_dir=agent_dir,
                 eval_dir=eval_dir_a,
@@ -507,8 +495,7 @@ async def test_sdk_run_evaluation_pipeline_missing_files(mock_storage_client):
         (eval_dir_b / "dataset.jsonl").touch()
         (eval_dir_b / "metrics").mkdir()
 
-        with pytest.raises(FileNotFoundError,
-                           match="Metric definitions not found"):
+        with pytest.raises(FileNotFoundError, match="Metric definitions not found"):
             await run_evaluation(
                 agent_dir=agent_dir,
                 eval_dir=eval_dir_b,
@@ -524,7 +511,8 @@ async def test_sdk_run_evaluation_pipeline_missing_files(mock_storage_client):
 @mock.patch("agent_eval.sdk.storage.Client")
 @mock.patch("agent_eval.sdk.get_project_id")
 async def test_sdk_run_evaluation_pipeline_missing_project_id(
-        mock_get_project_id, mock_storage_client):
+    mock_get_project_id, mock_storage_client
+):
     """Verify that missing GOOGLE_CLOUD_PROJECT raises ValueError."""
     mock_get_project_id.return_value = None
 
@@ -542,8 +530,8 @@ async def test_sdk_run_evaluation_pipeline_missing_project_id(
         (metrics_dir / "metric_definitions.json").touch()
 
         with pytest.raises(
-                ValueError,
-                match="GOOGLE_CLOUD_PROJECT environment variable is not set"):
+            ValueError, match="GOOGLE_CLOUD_PROJECT environment variable is not set"
+        ):
             await run_evaluation(
                 agent_dir=agent_dir,
                 eval_dir=eval_dir,
@@ -582,13 +570,13 @@ async def test_sdk_run_evaluation_pipeline_downloads_csv_files(
     # Fake download for summary
     def fake_download_to_filename(dest_path):
         Path(dest_path).write_text(
-            json.dumps({
-                "experiment_id": "test_run",
-                "overall_summary": {
-                    "failed_metrics": [],
-                    "llm_based_metrics": {}
-                },
-            }))
+            json.dumps(
+                {
+                    "experiment_id": "test_run",
+                    "overall_summary": {"failed_metrics": [], "llm_based_metrics": {}},
+                }
+            )
+        )
 
     mock_blob.download_to_filename.side_effect = fake_download_to_filename
 
@@ -597,9 +585,7 @@ async def test_sdk_run_evaluation_pipeline_downloads_csv_files(
     mock_csv_blob_1.name = "runs/run_01/details/evaluation_results_1.csv"
     mock_csv_blob_2 = mock.MagicMock()
     mock_csv_blob_2.name = "runs/run_01/details/evaluation_results_2.csv"
-    mock_client_inst.list_blobs.return_value = [
-        mock_csv_blob_1, mock_csv_blob_2
-    ]
+    mock_client_inst.list_blobs.return_value = [mock_csv_blob_1, mock_csv_blob_2]
 
     with tempfile.TemporaryDirectory() as tmpdir:
         tmp_path = Path(tmpdir)
@@ -627,22 +613,27 @@ async def test_sdk_run_evaluation_pipeline_downloads_csv_files(
         )
 
         # Assertions: Verify both CSV blobs were downloaded
-        expected_local_csv_1 = (eval_dir / "results" / "test_run" / "raw" /
-                                "evaluation_results_1.csv")
-        expected_local_csv_2 = (eval_dir / "results" / "test_run" / "raw" /
-                                "evaluation_results_2.csv")
+        expected_local_csv_1 = (
+            eval_dir / "results" / "test_run" / "raw" / "evaluation_results_1.csv"
+        )
+        expected_local_csv_2 = (
+            eval_dir / "results" / "test_run" / "raw" / "evaluation_results_2.csv"
+        )
 
         mock_csv_blob_1.download_to_filename.assert_called_once_with(
-            str(expected_local_csv_1))
+            str(expected_local_csv_1)
+        )
         mock_csv_blob_2.download_to_filename.assert_called_once_with(
-            str(expected_local_csv_2))
+            str(expected_local_csv_2)
+        )
 
 
 @pytest.mark.anyio
 @mock.patch("agent_eval.sdk.Evaluator")
 @mock.patch("agent_eval.sdk.run_simulation_in_process")
 async def test_sdk_run_evaluation_local_with_agent_instance(
-        mock_run_sim, mock_evaluator_class):
+    mock_run_sim, mock_evaluator_class
+):
     # Setup mocks
     mock_run_sim.return_value = [{"converted": "record"}]
 
@@ -696,16 +687,15 @@ async def test_sdk_run_evaluation_local_with_agent_instance(
 @mock.patch("agent_eval.sdk.Evaluator")
 @mock.patch("agent_eval.core.interactions.InteractionRunner")
 async def test_sdk_run_evaluation_local_interact_with_agent_instance(
-        mock_runner_class, mock_evaluator_class):
+    mock_runner_class, mock_evaluator_class
+):
     # Setup mocks
     mock_runner = mock.MagicMock()
     mock_runner.run = mock.AsyncMock()
     # Return a dummy dataframe containing the interaction results
-    mock_runner.run.return_value = pd.DataFrame([{
-        "status": "success",
-        "question_id": "q1",
-        "response": "hello"
-    }])
+    mock_runner.run.return_value = pd.DataFrame(
+        [{"status": "success", "question_id": "q1", "response": "hello"}]
+    )
     mock_runner_class.return_value = mock_runner
 
     mock_evaluator = mock.MagicMock()

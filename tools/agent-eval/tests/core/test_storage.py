@@ -26,15 +26,12 @@ def sample_agent_data() -> AgentData:
 
 
 class TestLocalStorageBackend:
-
-    def test_save_trace_and_summary(self, tmp_path: Path,
-                                    sample_agent_data: AgentData):
+    def test_save_trace_and_summary(self, tmp_path: Path, sample_agent_data: AgentData):
         backend = LocalStorageBackend(base_dir=tmp_path)
         run_id = "v38_test_run"
 
         # Save trace
-        trace_path_str = backend.save_trace(run_id=run_id,
-                                            trace=sample_agent_data)
+        trace_path_str = backend.save_trace(run_id=run_id, trace=sample_agent_data)
         trace_path = Path(trace_path_str)
         assert trace_path.exists()
         lines = trace_path.read_text(encoding="utf-8").strip().splitlines()
@@ -43,17 +40,16 @@ class TestLocalStorageBackend:
         assert record["session_id"] == "test_session_001"
 
         # Append second trace
-        sample_agent_data_2 = AgentData(session_id="test_session_002",
-                                        turns=[],
-                                        events=[])
+        sample_agent_data_2 = AgentData(
+            session_id="test_session_002", turns=[], events=[]
+        )
         backend.save_trace(run_id=run_id, trace=sample_agent_data_2)
         lines = trace_path.read_text(encoding="utf-8").strip().splitlines()
         assert len(lines) == 2
 
         # Save and load summary
         summary_payload = {"agronomic_accuracy": 1.0, "status": "PASSED"}
-        summary_path = backend.save_summary(run_id=run_id,
-                                            summary=summary_payload)
+        summary_path = backend.save_summary(run_id=run_id, summary=summary_payload)
         assert Path(summary_path).exists()
 
         loaded_summary = backend.load_summary(run_id=run_id)
@@ -65,10 +61,10 @@ class TestLocalStorageBackend:
 
 
 class TestGCSStorageBackend:
-
     @patch("google.cloud.storage.Client")
-    def test_gcs_save_trace(self, mock_client_cls: MagicMock,
-                            sample_agent_data: AgentData):
+    def test_gcs_save_trace(
+        self, mock_client_cls: MagicMock, sample_agent_data: AgentData
+    ):
         mock_client = MagicMock()
         mock_bucket = MagicMock()
         mock_blob = MagicMock()
@@ -77,13 +73,13 @@ class TestGCSStorageBackend:
         mock_bucket.blob.return_value = mock_blob
         mock_bucket.name = "test-bucket"
 
-        backend = GCSStorageBackend(bucket_name="gs://test-bucket",
-                                    prefix="runs")
+        backend = GCSStorageBackend(bucket_name="gs://test-bucket", prefix="runs")
         uri = backend.save_trace("v38_run", sample_agent_data)
 
         assert uri == "gs://test-bucket/runs/v38_run/traces/test_session_001.json"
         mock_bucket.blob.assert_called_once_with(
-            "runs/v38_run/traces/test_session_001.json")
+            "runs/v38_run/traces/test_session_001.json"
+        )
         mock_blob.upload_from_string.assert_called_once()
         args, kwargs = mock_blob.upload_from_string.call_args
         assert "test_session_001" in args[0]
@@ -112,17 +108,16 @@ class TestGCSStorageBackend:
 
 
 class TestBigQueryStorageBackend:
-
     @patch("google.cloud.bigquery.Client")
-    def test_bq_save_trace(self, mock_client_cls: MagicMock,
-                           sample_agent_data: AgentData):
+    def test_bq_save_trace(
+        self, mock_client_cls: MagicMock, sample_agent_data: AgentData
+    ):
         mock_client = MagicMock()
         mock_client.project = "test-gcp-project"
         mock_client.insert_rows_json.return_value = []
         mock_client_cls.return_value = mock_client
 
-        backend = BigQueryStorageBackend(dataset_id="analytics_ds",
-                                         table_id="runs_tbl")
+        backend = BigQueryStorageBackend(dataset_id="analytics_ds", table_id="runs_tbl")
         table_ref = backend.save_trace("v38_run", sample_agent_data)
 
         assert table_ref == "test-gcp-project.analytics_ds.runs_tbl"
@@ -134,15 +129,13 @@ class TestBigQueryStorageBackend:
 
     @patch("google.cloud.bigquery.Client")
     def test_bq_insert_failure_raises_runtime_error(
-            self, mock_client_cls: MagicMock, sample_agent_data: AgentData):
+        self, mock_client_cls: MagicMock, sample_agent_data: AgentData
+    ):
         mock_client = MagicMock()
         mock_client.project = "test-gcp-project"
-        mock_client.insert_rows_json.return_value = [{
-            "index": 0,
-            "errors": [{
-                "message": "schema mismatch"
-            }]
-        }]
+        mock_client.insert_rows_json.return_value = [
+            {"index": 0, "errors": [{"message": "schema mismatch"}]}
+        ]
         mock_client_cls.return_value = mock_client
 
         backend = BigQueryStorageBackend(dataset_id="ds")
@@ -151,7 +144,6 @@ class TestBigQueryStorageBackend:
 
 
 class TestStorageBackendFactory:
-
     def test_factory_local(self, tmp_path: Path):
         backend = get_storage_backend("local", results_dir=tmp_path)
         assert isinstance(backend, LocalStorageBackend)
@@ -163,8 +155,7 @@ class TestStorageBackendFactory:
         assert isinstance(backend, GCSStorageBackend)
 
     def test_factory_gcs_missing_bucket_raises(self):
-        with pytest.raises(ValueError,
-                           match="requires 'bucket_name' parameter"):
+        with pytest.raises(ValueError, match="requires 'bucket_name' parameter"):
             get_storage_backend("gcs")
 
     @patch("google.cloud.bigquery.Client")
@@ -178,6 +169,5 @@ class TestStorageBackendFactory:
             get_storage_backend("bq")
 
     def test_factory_unsupported_raises(self):
-        with pytest.raises(ValueError,
-                           match="Unsupported storage backend type"):
+        with pytest.raises(ValueError, match="Unsupported storage backend type"):
             get_storage_backend("ftp")

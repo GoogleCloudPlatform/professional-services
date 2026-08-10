@@ -30,7 +30,8 @@ class StageResult:
     stage: str
     status: str = "COMPLETED"
     timestamp: str = field(
-        default_factory=lambda: datetime.now(timezone.utc).isoformat())
+        default_factory=lambda: datetime.now(timezone.utc).isoformat()
+    )
     events: list[dict[str, Any]] = field(default_factory=list)
     metadata: dict[str, Any] = field(default_factory=dict)
 
@@ -50,9 +51,7 @@ class StageResult:
 
     def to_yaml(self) -> str:
         """Serialize stage result to YAML string."""
-        return yaml.dump(self.to_dict(),
-                         default_flow_style=False,
-                         sort_keys=False)
+        return yaml.dump(self.to_dict(), default_flow_style=False, sort_keys=False)
 
 
 class BaseStage:
@@ -60,8 +59,8 @@ class BaseStage:
 
     stage_name: str = "base"
 
-    def execute(self,
-                config_data: dict[str, Any] | None = None,
-                **kwargs: Any) -> StageResult:
+    def execute(
+        self, config_data: dict[str, Any] | None = None, **kwargs: Any
+    ) -> StageResult:
         """Run the stage and emit structured JSON/YAML events."""
         raise NotImplementedError("Subclasses must implement execute()")

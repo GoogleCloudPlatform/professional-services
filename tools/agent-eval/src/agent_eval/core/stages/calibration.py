@@ -26,11 +26,10 @@ class CalibrationStage(BaseStage):
 
     stage_name = "calibration"
 
-    def execute(self,
-                config_data: dict[str, Any] | None = None,
-                **kwargs: Any) -> StageResult:
-        rubrics_result = RubricsStage().execute(config_data=config_data,
-                                                **kwargs)
+    def execute(
+        self, config_data: dict[str, Any] | None = None, **kwargs: Any
+    ) -> StageResult:
+        rubrics_result = RubricsStage().execute(config_data=config_data, **kwargs)
         events: list[dict[str, Any]] = []
 
         for ev in rubrics_result.events:
@@ -40,24 +39,20 @@ class CalibrationStage(BaseStage):
             kind = ev.get("kind", "managed")
             rules = ev.get("rubric_rules", [])
 
-            events.append({
-                "event_type": "calibration_checked",
-                "metric_name": m_name,
-                "kind": kind,
-                "score_range": {
-                    "min": 0,
-                    "max": 1
-                },
-                "rules_count": len(rules),
-                "calibration_status": "calibrated",
-            })
+            events.append(
+                {
+                    "event_type": "calibration_checked",
+                    "metric_name": m_name,
+                    "kind": kind,
+                    "score_range": {"min": 0, "max": 1},
+                    "rules_count": len(rules),
+                    "calibration_status": "calibrated",
+                }
+            )
 
         return StageResult(
             stage=self.stage_name,
             status="COMPLETED",
             events=events,
-            metadata={
-                "total_calibrated": len(events),
-                "engine": "VertexGenAI"
-            },
+            metadata={"total_calibrated": len(events), "engine": "VertexGenAI"},
         )

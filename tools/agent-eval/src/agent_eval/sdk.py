@@ -90,8 +90,7 @@ async def run_evaluation(
         replications: The number of times to repeat the evaluation simulations (Monte Carlo runs) to calculate averaged metrics, smoothing out temperature-based LLM variance.
     """
     agent_dir = Path(agent_dir).resolve()
-    eval_dir = Path(eval_dir).resolve() if eval_dir else find_eval_dir(
-        agent_dir)
+    eval_dir = Path(eval_dir).resolve() if eval_dir else find_eval_dir(agent_dir)
 
     # 1. Resolve run_id and output dirs
 
@@ -136,8 +135,7 @@ async def run_evaluation(
         # Upload dataset.jsonl
         dataset_path = eval_dir / "dataset.jsonl"
         if not dataset_path.exists():
-            raise FileNotFoundError(
-                f"Evaluation dataset not found at {dataset_path}")
+            raise FileNotFoundError(f"Evaluation dataset not found at {dataset_path}")
         dataset_gcs_blob = f"{blob_prefix}/staging/dataset.jsonl"
         dataset_gcs_path = f"gs://{bucket_name}/{dataset_gcs_blob}"
         bucket.blob(dataset_gcs_blob).upload_from_filename(str(dataset_path))
@@ -146,8 +144,7 @@ async def run_evaluation(
         # Upload metric_definitions.json
         metrics_path = eval_dir / "metrics" / "metric_definitions.json"
         if not metrics_path.exists():
-            raise FileNotFoundError(
-                f"Metric definitions not found at {metrics_path}")
+            raise FileNotFoundError(f"Metric definitions not found at {metrics_path}")
         metrics_gcs_blob = f"{blob_prefix}/staging/metric_definitions.json"
         metrics_gcs_path = f"gs://{bucket_name}/{metrics_gcs_blob}"
         bucket.blob(metrics_gcs_blob).upload_from_filename(str(metrics_path))
@@ -156,14 +153,12 @@ async def run_evaluation(
         # B. Compile Pipeline locally
         temp_dir = Path(tempfile.mkdtemp())
         pipeline_yaml_path = temp_dir / "pipeline.yaml"
-        compile_pipeline(output_path=pipeline_yaml_path,
-                         runner_image=runner_image)
+        compile_pipeline(output_path=pipeline_yaml_path, runner_image=runner_image)
 
         # C. Submit and execute pipeline job on Vertex AI
         project_id = get_project_id()
         if not project_id:
-            raise ValueError(
-                "GOOGLE_CLOUD_PROJECT environment variable is not set.")
+            raise ValueError("GOOGLE_CLOUD_PROJECT environment variable is not set.")
 
         loc = location or "us-central1"
 
@@ -190,14 +185,12 @@ async def run_evaluation(
         eval_summary_path = results_dir / "eval_summary.json"
 
         summary_gcs_blob = f"{blob_prefix}/eval_summary.json"
-        bucket.blob(summary_gcs_blob).download_to_filename(
-            str(eval_summary_path))
+        bucket.blob(summary_gcs_blob).download_to_filename(str(eval_summary_path))
         logger.info(f"Downloaded evaluation summary to {eval_summary_path}")
 
         # Download raw CSV to local raw_dir so downstream code can load it
         logger.info("Downloading raw evaluation CSV records...")
-        blobs = storage_client.list_blobs(bucket_name,
-                                          prefix=f"{blob_prefix}/details/")
+        blobs = storage_client.list_blobs(bucket_name, prefix=f"{blob_prefix}/details/")
         for blob in blobs:
             if blob.name.endswith(".csv"):
                 local_csv_name = Path(blob.name).name
@@ -218,8 +211,7 @@ async def run_evaluation(
                 "runs": 1,
                 "base_url": "local://in-process",
             }
-            runner = InteractionRunner(runner_config,
-                                       agent_instance=agent_instance)
+            runner = InteractionRunner(runner_config, agent_instance=agent_instance)
             results_df = await runner.run()
 
             if results_df.empty:
@@ -269,8 +261,7 @@ async def run_evaluation(
         # 3. Verify metric definitions exist
         metrics_path = eval_dir / "metrics" / "metric_definitions.json"
         if not metrics_path.exists():
-            raise FileNotFoundError(
-                f"Metric definitions not found at {metrics_path}")
+            raise FileNotFoundError(f"Metric definitions not found at {metrics_path}")
 
         # 4. Evaluate
         logger.info("Evaluating interactions...")
@@ -288,10 +279,10 @@ async def run_evaluation(
     # Read the summary to get failed metrics from evaluator runtime
     eval_summary_path = results_dir / "eval_summary.json"
     if not eval_summary_path.exists():
-        raise FileNotFoundError(
-            f"Evaluation summary not found at {eval_summary_path}")
+        raise FileNotFoundError(f"Evaluation summary not found at {eval_summary_path}")
     summary = EvaluationSummary.model_validate_json(
-        eval_summary_path.read_text(encoding="utf-8"))
+        eval_summary_path.read_text(encoding="utf-8")
+    )
 
     evaluator_failed_metrics = summary.overall_summary.failed_metrics
     failed_metric_names = []
@@ -349,11 +340,13 @@ async def run_evaluation(
 
         threshold = data.threshold
         if threshold is not None and avg < threshold:
-            threshold_failures.append({
-                "metric": metric_name,
-                "average": avg,
-                "threshold": threshold,
-            })
+            threshold_failures.append(
+                {
+                    "metric": metric_name,
+                    "average": avg,
+                    "threshold": threshold,
+                }
+            )
 
     # success means no evaluator crashes/errors AND no threshold failures
     success = (len(failed_metric_names) == 0) and (len(threshold_failures) == 0)
@@ -415,4 +408,5 @@ def run_evaluation_sync(
             runner_image=runner_image,
             agent_url=agent_url,
             agent_name=agent_name,
-        ))
+        )
+    )

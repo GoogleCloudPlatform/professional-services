@@ -38,8 +38,7 @@ TOTAL_STEPS = 2
 def _step_header(n: int, title: str, description: str) -> None:
     """Print a formatted step header."""
     console.print()
-    console.print(
-        Rule(f"  Step {n}/{TOTAL_STEPS}: {title}  ", style="bold blue"))
+    console.print(Rule(f"  Step {n}/{TOTAL_STEPS}: {title}  ", style="bold blue"))
     console.print(f"  [dim]{description}[/]")
     console.print()
 
@@ -70,7 +69,8 @@ def _prompt_for_config(
                 title="[bold]Agent Directory[/]",
                 border_style="blue",
                 padding=(1, 2),
-            ))
+            )
+        )
         raw = Prompt.ask("  Agent directory")
         agent_path = Path(raw).resolve()
 
@@ -83,8 +83,7 @@ def _prompt_for_config(
         app_name = agent_path.name
 
     # Resolve eval dir
-    eval_path = Path(eval_dir).resolve() if eval_dir else find_eval_dir(
-        agent_path)
+    eval_path = Path(eval_dir).resolve() if eval_dir else find_eval_dir(agent_path)
 
     # ── Questions file ─────────────────────────────────────────────────────
     if not questions_file:
@@ -106,15 +105,15 @@ def _prompt_for_config(
                 title="[bold]Questions File[/]",
                 border_style="blue",
                 padding=(1, 2),
-            ))
+            )
+        )
         questions_file = Prompt.ask(
             "  Questions file",
             default=auto_detected,
         )
 
     if not Path(questions_file).exists():
-        console.print(
-            f"\n  [red]Error:[/] Questions file not found: {questions_file}")
+        console.print(f"\n  [red]Error:[/] Questions file not found: {questions_file}")
         sys.exit(1)
 
     # ── Base URL ───────────────────────────────────────────────────────────
@@ -129,7 +128,8 @@ def _prompt_for_config(
                 title="[bold]Base URL[/]",
                 border_style="blue",
                 padding=(1, 2),
-            ))
+            )
+        )
         base_url = Prompt.ask("  Base URL", default="http://localhost:8501")
 
     # ── Results directory ──────────────────────────────────────────────────
@@ -149,10 +149,10 @@ def _prompt_for_config(
                 title="[bold]Run ID[/]",
                 border_style="blue",
                 padding=(1, 2),
-            ))
+            )
+        )
         default_ts = datetime.now().strftime("%Y%m%d_%H%M%S")
-        run_id = Prompt.ask("  Run ID",
-                            default=default_ts).strip().replace(" ", "-")
+        run_id = Prompt.ask("  Run ID", default=default_ts).strip().replace(" ", "-")
 
     return agent_path, app_name, questions_file, base_url, results_dir, run_id
 
@@ -168,12 +168,10 @@ def _prompt_for_config(
     default=None,
     help="Name of the agent application (defaults to agent dir name).",
 )
-@click.option("--questions-file",
-              default=None,
-              help="Path to the Golden Dataset JSON.")
-@click.option("--base-url",
-              default=None,
-              help="Agent API URL (default: http://localhost:8501).")
+@click.option("--questions-file", default=None, help="Path to the Golden Dataset JSON.")
+@click.option(
+    "--base-url", default=None, help="Agent API URL (default: http://localhost:8501)."
+)
 @click.option("--user-id", default="eval_user", help="Session User ID.")
 @click.option(
     "--results-dir",
@@ -193,20 +191,14 @@ def _prompt_for_config(
     help="Limit number of questions (-1 = all).",
 )
 @click.option("--runs", type=int, default=1, help="Runs per question.")
-@click.option("--skip-traces",
-              is_flag=True,
-              help="Skip trace retrieval (faster).")
-@click.option("--filter",
-              "metadata_filters",
-              multiple=True,
-              help="Metadata filters (key:val).")
-@click.option("--state",
-              "state_variables",
-              multiple=True,
-              help="State variables (key:val).")
-@click.option("--user",
-              default=os.environ.get("USER"),
-              help="Operator username.")
+@click.option("--skip-traces", is_flag=True, help="Skip trace retrieval (faster).")
+@click.option(
+    "--filter", "metadata_filters", multiple=True, help="Metadata filters (key:val)."
+)
+@click.option(
+    "--state", "state_variables", multiple=True, help="State variables (key:val)."
+)
+@click.option("--user", default=os.environ.get("USER"), help="Operator username.")
 @click.option(
     "--debug",
     is_flag=True,
@@ -225,8 +217,7 @@ def _prompt_for_config(
 @click.option(
     "--case-id",
     default=None,
-    help=
-    "Specify a case ID to run. If not specified, all cases in the dataset will be run.",
+    help="Specify a case ID to run. If not specified, all cases in the dataset will be run.",
 )
 def interact(
     agent_dir,
@@ -278,7 +269,8 @@ def interact(
             run_id,
             eval_dir=eval_dir,
             in_process=in_process,
-        ))
+        )
+    )
 
     if in_process:
         import asyncio
@@ -289,8 +281,7 @@ def interact(
         project_root = agent_project_root(agent_path)
         dataset_path = Path(questions_file)
 
-        console.print(
-            f"\n  Running interactions in-process (Run ID: {run_id})...")
+        console.print(f"\n  Running interactions in-process (Run ID: {run_id})...")
         try:
             records = asyncio.run(
                 run_simulation_in_process(
@@ -300,7 +291,8 @@ def interact(
                     parallelism=4,
                     run_mode="single_turn",
                     case_id=case_id,
-                ))
+                )
+            )
             if not records:
                 console.print("  [yellow]No interaction records generated.[/]")
                 sys.exit(1)
@@ -329,8 +321,11 @@ def interact(
                 _discovered = find_eval_files(eval_path)
                 if _discovered["metrics"]:
                     eval_metrics = _discovered["metrics"][0]
-            rel_metrics = (os.path.relpath(eval_metrics, cwd) if eval_metrics
-                           else "<path/to/metric_definitions.json>")
+            rel_metrics = (
+                os.path.relpath(eval_metrics, cwd)
+                if eval_metrics
+                else "<path/to/metric_definitions.json>"
+            )
 
             console.print()
             console.print(
@@ -339,13 +334,13 @@ def interact(
                     title="[bold]Done[/]",
                     border_style="green",
                     padding=(1, 2),
-                ))
+                )
+            )
 
             console.print()
             console.print("[bold]Next steps — copy and paste:[/]")
             console.print()
-            console.print(
-                "[bold]1.[/] Run deterministic + LLM-as-judge metrics:")
+            console.print("[bold]1.[/] Run deterministic + LLM-as-judge metrics:")
             console.print()
             console.print("agent-eval evaluate \\")
             console.print(f"  --interaction-file {rel_output} \\")
@@ -361,8 +356,7 @@ def interact(
 
             sys.exit(0)
         except Exception as e:
-            console.print(
-                f"  [red]Error running interactions in-process:[/] {e}")
+            console.print(f"  [red]Error running interactions in-process:[/] {e}")
             sys.exit(1)
 
     # ── Overview ───────────────────────────────────────────────────────────
@@ -380,34 +374,24 @@ def interact(
             title="[bold]Interact[/]",
             border_style="blue",
             padding=(1, 2),
-        ))
+        )
+    )
     _continue("Press Enter to start interacting →", console=console)
 
     # ── Build config ───────────────────────────────────────────────────────
 
     config = {
-        "app_name":
-            app_name,
-        "questions_file":
-            questions_file,
-        "base_url":
-            base_url,
-        "user_id":
-            user_id,
-        "num_questions":
-            num_questions,
-        "results_dir":
-            results_dir,
-        "runs":
-            runs,
-        "metadata_filters":
-            list(metadata_filters) if metadata_filters else None,
-        "state_variables":
-            list(state_variables) if state_variables else None,
-        "skip_traces":
-            skip_traces,
-        "user":
-            user,
+        "app_name": app_name,
+        "questions_file": questions_file,
+        "base_url": base_url,
+        "user_id": user_id,
+        "num_questions": num_questions,
+        "results_dir": results_dir,
+        "runs": runs,
+        "metadata_filters": list(metadata_filters) if metadata_filters else None,
+        "state_variables": list(state_variables) if state_variables else None,
+        "skip_traces": skip_traces,
+        "user": user,
     }
 
     # ── Step 1: Run interactions ───────────────────────────────────────────
@@ -426,8 +410,7 @@ def interact(
         raw_df = asyncio.run(runner.run())
     except Exception as e:
         console.print(f"    [red]Error during interaction run:[/] {e}")
-        console.print(
-            f"    [dim]Make sure your agent is running at {base_url}[/]")
+        console.print(f"    [dim]Make sure your agent is running at {base_url}[/]")
         sys.exit(1)
 
     if raw_df.empty:
@@ -501,8 +484,11 @@ def interact(
         _discovered = find_eval_files(eval_path)
         if _discovered["metrics"]:
             eval_metrics = _discovered["metrics"][0]
-    rel_metrics = (os.path.relpath(eval_metrics, cwd)
-                   if eval_metrics else "<path/to/metric_definitions.json>")
+    rel_metrics = (
+        os.path.relpath(eval_metrics, cwd)
+        if eval_metrics
+        else "<path/to/metric_definitions.json>"
+    )
 
     console.print()
     console.print(
@@ -511,7 +497,8 @@ def interact(
             title="[bold]Done[/]",
             border_style="green",
             padding=(1, 2),
-        ))
+        )
+    )
 
     console.print()
     console.print("[bold]Next steps — copy and paste:[/]")

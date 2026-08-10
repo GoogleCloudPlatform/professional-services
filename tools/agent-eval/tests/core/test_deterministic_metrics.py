@@ -42,17 +42,17 @@ def test_calculate_token_usage_success():
         {
             "name": "call_llm",
             "attributes": {
-                "gen_ai.request.model":
-                    "gemini-3.1-pro",
-                "gcp.vertex.agent.llm_response":
-                    json.dumps({
+                "gen_ai.request.model": "gemini-3.1-pro",
+                "gcp.vertex.agent.llm_response": json.dumps(
+                    {
                         "usage_metadata": {
                             "prompt_token_count": 1000,
                             "candidates_token_count": 500,
                             "cached_content_token_count": 200,
                             "total_token_count": 1500,
                         }
-                    }),
+                    }
+                ),
             },
         },
         {
@@ -98,13 +98,15 @@ def test_calculate_token_usage_empty_and_errors():
     assert details == {}
 
     # 2. Malformed JSON
-    mock_trace = [{
-        "name": "call_llm",
-        "attributes": {
-            "gen_ai.request.model": "gemini-3.1-pro",
-            "gcp.vertex.agent.llm_response": "invalid json",
-        },
-    }]
+    mock_trace = [
+        {
+            "name": "call_llm",
+            "attributes": {
+                "gen_ai.request.model": "gemini-3.1-pro",
+                "gcp.vertex.agent.llm_response": "invalid json",
+            },
+        }
+    ]
     cost, explanation, details = calculate_token_usage(mock_trace)
     assert cost == 0.0
     assert details["llm_calls"] == 0
@@ -114,16 +116,8 @@ def test_calculate_latency_metrics():
     """Verify total, turn, first token, and component latency calculations."""
     # Spans in nanoseconds. Root start: 0, LLM call: 1s duration. Tool call: 2s.
     mock_trace = [
-        {
-            "name": "root",
-            "start_time": 0,
-            "end_time": 5_000_000_000
-        },
-        {
-            "name": "call_llm",
-            "start_time": 1_000_000_000,
-            "end_time": 2_000_000_000
-        },
+        {"name": "root", "start_time": 0, "end_time": 5_000_000_000},
+        {"name": "call_llm", "start_time": 1_000_000_000, "end_time": 2_000_000_000},
         {
             "name": "execute_tool write_file",
             "start_time": 2_500_000_000,
@@ -133,18 +127,13 @@ def test_calculate_latency_metrics():
 
     # Latency summary data from turns (excluding user think time)
     mock_latency_data = [
-        {
-            "name": "invocation",
-            "duration_seconds": 1.5
-        },
-        {
-            "name": "invocation",
-            "duration_seconds": 2.5
-        },
+        {"name": "invocation", "duration_seconds": 1.5},
+        {"name": "invocation", "duration_seconds": 2.5},
     ]
 
     score, _explanation, details = calculate_latency_metrics(
-        mock_trace, mock_latency_data)
+        mock_trace, mock_latency_data
+    )
 
     # Score should equal sum of turn latencies if latency_data is provided
     assert score == 4.0  # 1.5 + 2.5
@@ -152,18 +141,15 @@ def test_calculate_latency_metrics():
     assert details["average_turn_latency_seconds"] == 2.0
     assert details["llm_latency_seconds"] == 1.0  # (2 - 1)s
     assert details["tool_latency_seconds"] == 2.0  # (4.5 - 2.5)s
-    assert (details["time_to_first_response_seconds"] == 2.0
-           )  # First LLM end - root start = 2.0s
+    assert (
+        details["time_to_first_response_seconds"] == 2.0
+    )  # First LLM end - root start = 2.0s
 
 
 def test_calculate_latency_metrics_fallbacks():
     """Verify wall-clock duration fallback when turn latency data is absent."""
     mock_trace = [
-        {
-            "name": "root",
-            "start_time": 10_000_000_000,
-            "end_time": 15_000_000_000
-        },
+        {"name": "root", "start_time": 10_000_000_000, "end_time": 15_000_000_000},
     ]
 
     # No latency_data provided -> falls back to trace wall-clock duration
@@ -173,25 +159,25 @@ def test_calculate_latency_metrics_fallbacks():
     assert details["average_turn_latency_seconds"] == 0.0
 
     # No timestamps in trace
-    score, explanation, details = calculate_latency_metrics([{
-        "name": "root"
-    }], None)
+    score, explanation, details = calculate_latency_metrics([{"name": "root"}], None)
     assert score == 0.0
     assert "no timestamps" in explanation
 
 
 def test_calculate_cache_efficiency():
     """Verify cache hit rate calculation."""
-    mock_trace = [{
-        "attributes": {
-            "gcp.vertex.agent.llm_response": {
-                "usage_metadata": {
-                    "prompt_token_count": 300,
-                    "cached_content_token_count": 700,
+    mock_trace = [
+        {
+            "attributes": {
+                "gcp.vertex.agent.llm_response": {
+                    "usage_metadata": {
+                        "prompt_token_count": 300,
+                        "cached_content_token_count": 700,
+                    }
                 }
             }
         }
-    }]
+    ]
 
     score, explanation, details = calculate_cache_efficiency(mock_trace)
 
@@ -205,16 +191,18 @@ def test_calculate_cache_efficiency():
 
 def test_calculate_thinking_metrics():
     """Verify model reasoning ratio calculation."""
-    mock_trace = [{
-        "attributes": {
-            "gcp.vertex.agent.llm_response": {
-                "usage_metadata": {
-                    "thoughts_token_count": 400,
-                    "candidates_token_count": 600,
+    mock_trace = [
+        {
+            "attributes": {
+                "gcp.vertex.agent.llm_response": {
+                    "usage_metadata": {
+                        "thoughts_token_count": 400,
+                        "candidates_token_count": 600,
+                    }
                 }
             }
         }
-    }]
+    ]
 
     score, explanation, details = calculate_thinking_metrics(mock_trace)
 
@@ -229,20 +217,12 @@ def test_calculate_thinking_metrics():
 def test_calculate_tool_utilization():
     """Verify tool execution count and unique tool breakdown."""
     mock_trace = [
-        {
-            "name": "execute_tool search_web"
-        },
-        {
-            "name": "execute_tool read_file"
-        },
-        {
-            "name": "execute_tool search_web"
-        },
+        {"name": "execute_tool search_web"},
+        {"name": "execute_tool read_file"},
+        {"name": "execute_tool search_web"},
         {
             "name": "generic_tool_call",
-            "attributes": {
-                "gen_ai.tool.name": "custom_api"
-            },
+            "attributes": {"gen_ai.tool.name": "custom_api"},
         },
     ]
 
@@ -263,25 +243,25 @@ def test_calculate_tool_success_rate():
         {
             "name": "execute_tool read_file",
             "attributes": {
-                "gcp.vertex.agent.tool_response":
-                    json.dumps({"content": "file contents"})
+                "gcp.vertex.agent.tool_response": json.dumps(
+                    {"content": "file contents"}
+                )
             },
         },
         {
             "name": "execute_tool save_artifact",
             "attributes": {
-                "gcp.vertex.agent.tool_response":
-                    json.dumps({
-                        "status": "error",
-                        "message": "disk full"
-                    })
+                "gcp.vertex.agent.tool_response": json.dumps(
+                    {"status": "error", "message": "disk full"}
+                )
             },
         },
         {
             "name": "execute_tool run_command",
             "attributes": {
-                "gcp.vertex.agent.tool_response":
-                    json.dumps({"error": "command not found"})
+                "gcp.vertex.agent.tool_response": json.dumps(
+                    {"error": "command not found"}
+                )
             },
         },
     ]
@@ -306,28 +286,24 @@ def test_calculate_tool_success_rate():
 
 def test_calculate_grounding_utilization():
     """Verify grounding metadata citation chunk counting."""
-    mock_trace = [{
-        "attributes": {
-            "gcp.vertex.agent.llm_response": {
-                "candidates": [{
-                    "grounding_metadata": {
-                        "grounding_chunks": [
-                            {
-                                "web": {
-                                    "uri": "http://google.com"
-                                }
-                            },
-                            {
-                                "web": {
-                                    "uri": "http://wikipedia.org"
-                                }
-                            },
-                        ]
-                    }
-                }]
+    mock_trace = [
+        {
+            "attributes": {
+                "gcp.vertex.agent.llm_response": {
+                    "candidates": [
+                        {
+                            "grounding_metadata": {
+                                "grounding_chunks": [
+                                    {"web": {"uri": "http://google.com"}},
+                                    {"web": {"uri": "http://wikipedia.org"}},
+                                ]
+                            }
+                        }
+                    ]
+                }
             }
         }
-    }]
+    ]
 
     score, _explanation, details = calculate_grounding_utilization(mock_trace)
 
@@ -343,9 +319,7 @@ def test_calculate_context_saturation():
             "name": "turn_1",
             "attributes": {
                 "gcp.vertex.agent.llm_response": {
-                    "usage_metadata": {
-                        "total_token_count": 800
-                    }
+                    "usage_metadata": {"total_token_count": 800}
                 }
             },
         },
@@ -353,9 +327,7 @@ def test_calculate_context_saturation():
             "name": "turn_2",
             "attributes": {
                 "gcp.vertex.agent.llm_response": {
-                    "usage_metadata": {
-                        "total_token_count": 2500
-                    }
+                    "usage_metadata": {"total_token_count": 2500}
                 }
             },
         },
@@ -363,9 +335,7 @@ def test_calculate_context_saturation():
             "name": "turn_3",
             "attributes": {
                 "gcp.vertex.agent.llm_response": {
-                    "usage_metadata": {
-                        "total_token_count": 1200
-                    }
+                    "usage_metadata": {"total_token_count": 1200}
                 }
             },
         },
@@ -381,15 +351,9 @@ def test_calculate_context_saturation():
 def test_calculate_agent_handoffs():
     """Verify counting of agent handoffs and sub-agent invocations."""
     mock_trace = [
-        {
-            "name": "invoke_agent SupportAgent"
-        },
-        {
-            "name": "execute_tool BillingAgent"
-        },
-        {
-            "name": "execute_tool search_web"
-        },  # Not an agent
+        {"name": "invoke_agent SupportAgent"},
+        {"name": "execute_tool BillingAgent"},
+        {"name": "execute_tool search_web"},  # Not an agent
     ]
 
     score, _explanation, details = calculate_agent_handoffs(mock_trace)
@@ -406,18 +370,14 @@ def test_calculate_output_density():
         {
             "attributes": {
                 "gcp.vertex.agent.llm_response": {
-                    "usage_metadata": {
-                        "candidates_token_count": 150
-                    }
+                    "usage_metadata": {"candidates_token_count": 150}
                 }
             }
         },
         {
             "attributes": {
                 "gcp.vertex.agent.llm_response": {
-                    "usage_metadata": {
-                        "candidates_token_count": 250
-                    }
+                    "usage_metadata": {"candidates_token_count": 250}
                 }
             }
         },
@@ -434,15 +394,9 @@ def test_calculate_output_density():
 def test_calculate_sandbox_usage():
     """Verify sandbox and file system tool usage tracking."""
     mock_trace = [
-        {
-            "name": "execute_tool write_file"
-        },
-        {
-            "name": "execute_tool run_python_script"
-        },
-        {
-            "name": "execute_tool search_web"
-        },  # Non-sandbox
+        {"name": "execute_tool write_file"},
+        {"name": "execute_tool run_python_script"},
+        {"name": "execute_tool search_web"},  # Non-sandbox
     ]
 
     score, _explanation, details = calculate_sandbox_usage(mock_trace)
@@ -456,19 +410,21 @@ def test_calculate_sandbox_usage():
 
 def test_evaluate_deterministic_metrics_registry():
     """Verify the orchestrator executes and aggregates all metrics."""
-    mock_trace = [{
-        "name": "call_llm",
-        "attributes": {
-            "gen_ai.request.model": "gemini-3.1-pro",
-            "gcp.vertex.agent.llm_response": {
-                "usage_metadata": {
-                    "prompt_token_count": 100,
-                    "candidates_token_count": 50,
-                    "total_token_count": 150,
-                }
+    mock_trace = [
+        {
+            "name": "call_llm",
+            "attributes": {
+                "gen_ai.request.model": "gemini-3.1-pro",
+                "gcp.vertex.agent.llm_response": {
+                    "usage_metadata": {
+                        "prompt_token_count": 100,
+                        "candidates_token_count": 50,
+                        "total_token_count": 150,
+                    }
+                },
             },
-        },
-    }]
+        }
+    ]
 
     results = evaluate_deterministic_metrics(
         session_state={},
@@ -491,11 +447,7 @@ def test_evaluate_deterministic_metrics_registry():
 def test_calculate_latency_metrics_nested_tools():
     """Verify that nested child tool spans do not inflate tool_latency_seconds."""
     mock_trace = [
-        {
-            "name": "root",
-            "start_time": 0,
-            "end_time": 5_000_000_000
-        },
+        {"name": "root", "start_time": 0, "end_time": 5_000_000_000},
         {
             "name": "execute_tool outer",
             "start_time": 1_000_000_000,

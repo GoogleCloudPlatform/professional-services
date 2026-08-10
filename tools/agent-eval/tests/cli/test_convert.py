@@ -37,56 +37,52 @@ def sample_adk_agent_dir(tmp_path: Path) -> Path:
     history_dir.mkdir(parents=True)
 
     eval_data = {
-        "eval_case_results": [{
-            "eval_id": "case_101",
-            "session_id": "sess_101",
-            "session_details": {
-                "id":
-                    "sess_101",
-                "app_name":
-                    "weather_agent",
-                "user_id":
-                    "tester_1",
-                "state": {
-                    "location": "San Francisco"
+        "eval_case_results": [
+            {
+                "eval_id": "case_101",
+                "session_id": "sess_101",
+                "session_details": {
+                    "id": "sess_101",
+                    "app_name": "weather_agent",
+                    "user_id": "tester_1",
+                    "state": {"location": "San Francisco"},
+                    "events": [
+                        {
+                            "author": "user",
+                            "timestamp": 1700000000.0,
+                            "content": {
+                                "parts": [{"text": "What is the weather in SF?"}]
+                            },
+                        },
+                        {
+                            "author": "weather_agent",
+                            "timestamp": 1700000001.0,
+                            "content": {
+                                "parts": [
+                                    {
+                                        "functionCall": {
+                                            "name": "get_weather",
+                                            "args": {"city": "San Francisco"},
+                                        }
+                                    }
+                                ]
+                            },
+                        },
+                        {
+                            "author": "weather_agent",
+                            "timestamp": 1700000002.0,
+                            "content": {
+                                "parts": [
+                                    {
+                                        "text": "It is currently 65F and sunny in San Francisco."
+                                    }
+                                ]
+                            },
+                        },
+                    ],
                 },
-                "events": [
-                    {
-                        "author": "user",
-                        "timestamp": 1700000000.0,
-                        "content": {
-                            "parts": [{
-                                "text": "What is the weather in SF?"
-                            }]
-                        },
-                    },
-                    {
-                        "author": "weather_agent",
-                        "timestamp": 1700000001.0,
-                        "content": {
-                            "parts": [{
-                                "functionCall": {
-                                    "name": "get_weather",
-                                    "args": {
-                                        "city": "San Francisco"
-                                    },
-                                }
-                            }]
-                        },
-                    },
-                    {
-                        "author": "weather_agent",
-                        "timestamp": 1700000002.0,
-                        "content": {
-                            "parts": [{
-                                "text":
-                                    "It is currently 65F and sunny in San Francisco."
-                            }]
-                        },
-                    },
-                ],
-            },
-        }]
+            }
+        ]
     }
 
     history_file = history_dir / "eval_run_01.json"
@@ -99,8 +95,7 @@ def sample_openinference_jsonl(tmp_path: Path) -> Path:
     """Creates a mock OpenInference JSONL trace file."""
     trace_file = tmp_path / "traces.jsonl"
     record = {
-        "trace_id":
-            "tr_openinf_01",
+        "trace_id": "tr_openinf_01",
         "spans": [
             {
                 "span_id": "s_user",
@@ -138,44 +133,39 @@ def sample_openinference_jsonl(tmp_path: Path) -> Path:
 def sample_openinference_json(tmp_path: Path) -> Path:
     """Creates a mock OpenInference JSON trace file."""
     trace_file = tmp_path / "trace.json"
-    data = [{
-        "trace_id":
-            "tr_openinf_json",
-        "spans": [
-            {
-                "span_id": "s_u",
-                "attributes": {
-                    "openinference.span.kind": "USER",
-                    "gen_ai.turn.index": 0,
-                    "input.value": "Calculate 2 + 2",
-                },
-            },
-            {
-                "span_id": "s_t",
-                "attributes": {
-                    "openinference.span.kind": "TOOL",
-                    "gen_ai.turn.index": 0,
-                    "tool.name": "calc",
-                    "tool.parameters": {
-                        "operation": "add",
-                        "a": 2,
-                        "b": 2
-                    },
-                    "tool.output": {
-                        "result": 4
+    data = [
+        {
+            "trace_id": "tr_openinf_json",
+            "spans": [
+                {
+                    "span_id": "s_u",
+                    "attributes": {
+                        "openinference.span.kind": "USER",
+                        "gen_ai.turn.index": 0,
+                        "input.value": "Calculate 2 + 2",
                     },
                 },
-            },
-            {
-                "span_id": "s_m",
-                "attributes": {
-                    "openinference.span.kind": "LLM",
-                    "gen_ai.turn.index": 0,
-                    "output.value": "2 + 2 is 4.",
+                {
+                    "span_id": "s_t",
+                    "attributes": {
+                        "openinference.span.kind": "TOOL",
+                        "gen_ai.turn.index": 0,
+                        "tool.name": "calc",
+                        "tool.parameters": {"operation": "add", "a": 2, "b": 2},
+                        "tool.output": {"result": 4},
+                    },
                 },
-            },
-        ],
-    }]
+                {
+                    "span_id": "s_m",
+                    "attributes": {
+                        "openinference.span.kind": "LLM",
+                        "gen_ai.turn.index": 0,
+                        "output.value": "2 + 2 is 4.",
+                    },
+                },
+            ],
+        }
+    ]
     trace_file.write_text(json.dumps(data), encoding="utf-8")
     return trace_file
 
@@ -188,9 +178,9 @@ def _find_output_jsonl(output_dir: Path) -> list[Path]:
 class TestConvertDefaultAndADK:
     """Tests for default trace-format omission and explicit ADK format."""
 
-    def test_default_trace_format_omitted_uses_adk(self, cli_runner: CliRunner,
-                                                   sample_adk_agent_dir: Path,
-                                                   tmp_path: Path):
+    def test_default_trace_format_omitted_uses_adk(
+        self, cli_runner: CliRunner, sample_adk_agent_dir: Path, tmp_path: Path
+    ):
         """When --trace-format is omitted, default to ADK and read .adk/eval_history."""
         output_dir = tmp_path / "results_default"
         result = cli_runner.invoke(
@@ -220,12 +210,14 @@ class TestConvertDefaultAndADK:
         record = json.loads(lines[0])
         assert record["session_id"] == "sess_101"
         assert record["app_name"] == "weather_agent"
-        assert (record["final_response"] ==
-                "It is currently 65F and sunny in San Francisco.")
+        assert (
+            record["final_response"]
+            == "It is currently 65F and sunny in San Francisco."
+        )
 
-    def test_explicit_trace_format_adk(self, cli_runner: CliRunner,
-                                       sample_adk_agent_dir: Path,
-                                       tmp_path: Path):
+    def test_explicit_trace_format_adk(
+        self, cli_runner: CliRunner, sample_adk_agent_dir: Path, tmp_path: Path
+    ):
         """When --trace-format adk is explicitly passed."""
         output_dir = tmp_path / "results_adk"
         result = cli_runner.invoke(
@@ -245,9 +237,9 @@ class TestConvertDefaultAndADK:
         output_files = _find_output_jsonl(output_dir)
         assert len(output_files) == 1
 
-    def test_case_insensitive_adk_format(self, cli_runner: CliRunner,
-                                         sample_adk_agent_dir: Path,
-                                         tmp_path: Path):
+    def test_case_insensitive_adk_format(
+        self, cli_runner: CliRunner, sample_adk_agent_dir: Path, tmp_path: Path
+    ):
         """Case insensitive ADK format handling (e.g. 'ADK', ' adk ')."""
         output_dir = tmp_path / "results_adk_case"
         result = cli_runner.invoke(
@@ -265,18 +257,16 @@ class TestConvertDefaultAndADK:
         assert result.exit_code == 0
         assert "SUCCESS: Converted 1 interactions" in result.output
 
-    def test_adk_with_questions_file(self, cli_runner: CliRunner,
-                                     sample_adk_agent_dir: Path,
-                                     tmp_path: Path):
+    def test_adk_with_questions_file(
+        self, cli_runner: CliRunner, sample_adk_agent_dir: Path, tmp_path: Path
+    ):
         """Verify merging reference data with --questions-file."""
         questions_file = tmp_path / "golden.jsonl"
         questions_file.write_text(
-            json.dumps({
-                "id": "case_101",
-                "reference_data": {
-                    "ground_truth": "65F and sunny"
-                }
-            }) + "\n",
+            json.dumps(
+                {"id": "case_101", "reference_data": {"ground_truth": "65F and sunny"}}
+            )
+            + "\n",
             encoding="utf-8",
         )
 
@@ -303,9 +293,9 @@ class TestConvertDefaultAndADK:
 class TestConvertOpenInferenceAndDirectPaths:
     """Tests for direct JSON/JSONL file paths and OpenInference trace conversion."""
 
-    def test_openinference_direct_jsonl_file(self, cli_runner: CliRunner,
-                                             sample_openinference_jsonl: Path,
-                                             tmp_path: Path):
+    def test_openinference_direct_jsonl_file(
+        self, cli_runner: CliRunner, sample_openinference_jsonl: Path, tmp_path: Path
+    ):
         """Pass direct .jsonl file path to --agent-dir without expecting .adk dir."""
         output_dir = tmp_path / "results_oi_jsonl"
         result = cli_runner.invoke(
@@ -333,14 +323,12 @@ class TestConvertOpenInferenceAndDirectPaths:
         tool_events = [e for e in events if e["event_type"] == "TOOL_CALL"]
         assert len(tool_events) == 1
         assert tool_events[0]["payload"]["tool_name"] == "search_db"
-        assert tool_events[0]["payload"]["arguments"] == {
-            "query": "Japan capital"
-        }
+        assert tool_events[0]["payload"]["arguments"] == {"query": "Japan capital"}
         assert tool_events[0]["payload"]["result"] == {"capital": "Tokyo"}
 
-    def test_openinference_direct_json_file(self, cli_runner: CliRunner,
-                                            sample_openinference_json: Path,
-                                            tmp_path: Path):
+    def test_openinference_direct_json_file(
+        self, cli_runner: CliRunner, sample_openinference_json: Path, tmp_path: Path
+    ):
         """Pass direct .json file path to --agent-dir with --trace-format openinference."""
         output_dir = tmp_path / "results_oi_json"
         result = cli_runner.invoke(
@@ -364,38 +352,46 @@ class TestConvertOpenInferenceAndDirectPaths:
         assert record["session_id"] == "tr_openinf_json"
         assert record["turns"][0]["events"][1]["payload"]["tool_name"] == "calc"
 
-    def test_openinference_directory_globbing(self, cli_runner: CliRunner,
-                                              tmp_path: Path):
+    def test_openinference_directory_globbing(
+        self, cli_runner: CliRunner, tmp_path: Path
+    ):
         """Pass directory path containing multiple .json and .jsonl trace files."""
         traces_dir = tmp_path / "multi_traces"
         traces_dir.mkdir()
 
         (traces_dir / "trace1.jsonl").write_text(
-            json.dumps({
-                "trace_id":
-                    "t1",
-                "spans": [{
-                    "span_id": "s1",
-                    "attributes": {
-                        "openinference.span.kind": "LLM",
-                        "output.value": "Ans 1",
-                    },
-                }],
-            }) + "\n",
+            json.dumps(
+                {
+                    "trace_id": "t1",
+                    "spans": [
+                        {
+                            "span_id": "s1",
+                            "attributes": {
+                                "openinference.span.kind": "LLM",
+                                "output.value": "Ans 1",
+                            },
+                        }
+                    ],
+                }
+            )
+            + "\n",
             encoding="utf-8",
         )
         (traces_dir / "trace2.json").write_text(
-            json.dumps({
-                "trace_id":
-                    "t2",
-                "spans": [{
-                    "span_id": "s2",
-                    "attributes": {
-                        "openinference.span.kind": "LLM",
-                        "output.value": "Ans 2",
-                    },
-                }],
-            }),
+            json.dumps(
+                {
+                    "trace_id": "t2",
+                    "spans": [
+                        {
+                            "span_id": "s2",
+                            "attributes": {
+                                "openinference.span.kind": "LLM",
+                                "output.value": "Ans 2",
+                            },
+                        }
+                    ],
+                }
+            ),
             encoding="utf-8",
         )
 
@@ -470,9 +466,9 @@ class TestFrameworkAliases:
 class TestOutputDirectoryAndFileHandling:
     """Tests for custom output directory, custom output filename, and extension normalization."""
 
-    def test_custom_output_file_jsonl(self, cli_runner: CliRunner,
-                                      sample_openinference_jsonl: Path,
-                                      tmp_path: Path):
+    def test_custom_output_file_jsonl(
+        self, cli_runner: CliRunner, sample_openinference_jsonl: Path, tmp_path: Path
+    ):
         """Custom --output-file with .jsonl extension."""
         output_dir = tmp_path / "custom_out"
         result = cli_runner.invoke(
@@ -495,8 +491,8 @@ class TestOutputDirectoryAndFileHandling:
         assert output_files[0].name == "my_custom_traces.jsonl"
 
     def test_output_file_csv_extension_normalized_to_jsonl(
-            self, cli_runner: CliRunner, sample_openinference_jsonl: Path,
-            tmp_path: Path):
+        self, cli_runner: CliRunner, sample_openinference_jsonl: Path, tmp_path: Path
+    ):
         """When --output-file is provided as .csv, normalize to .jsonl."""
         output_dir = tmp_path / "csv_norm_out"
         result = cli_runner.invoke(
@@ -519,8 +515,8 @@ class TestOutputDirectoryAndFileHandling:
         assert output_files[0].name == "eval_results.jsonl"
 
     def test_output_file_without_extension_appends_jsonl(
-            self, cli_runner: CliRunner, sample_openinference_jsonl: Path,
-            tmp_path: Path):
+        self, cli_runner: CliRunner, sample_openinference_jsonl: Path, tmp_path: Path
+    ):
         """When --output-file is provided without extension, append .jsonl."""
         output_dir = tmp_path / "no_ext_out"
         result = cli_runner.invoke(
@@ -547,14 +543,16 @@ class TestErrorHandlingAndValidation:
     """Tests for invalid formats, missing arguments, non-existent directories."""
 
     def test_missing_agent_dir_validation_error_exit_code_2(
-            self, cli_runner: CliRunner):
+        self, cli_runner: CliRunner
+    ):
         """Missing required --agent-dir option must exit with Click validation code 2."""
         result = cli_runner.invoke(convert, [])
         assert result.exit_code == 2
         assert "Missing option '--agent-dir'" in result.output
 
-    def test_invalid_trace_format_error_exit_code_1(self, cli_runner: CliRunner,
-                                                    tmp_path: Path):
+    def test_invalid_trace_format_error_exit_code_1(
+        self, cli_runner: CliRunner, tmp_path: Path
+    ):
         """Unsupported --trace-format must exit with code 1 and descriptive error message."""
         dummy_dir = tmp_path / "dummy"
         dummy_dir.mkdir()
@@ -572,13 +570,16 @@ class TestErrorHandlingAndValidation:
         assert result.exit_code == 1
         assert "Error converting history:" in result.output
         normalized_output = " ".join(result.output.split())
-        assert ("Unsupported trace format type: 'unsupported_framework_xyz'"
-                in normalized_output)
+        assert (
+            "Unsupported trace format type: 'unsupported_framework_xyz'"
+            in normalized_output
+        )
         assert "openinference" in normalized_output
         assert "autogen" in normalized_output
 
-    def test_missing_agent_dir_path_adk_exit_code_1(self, cli_runner: CliRunner,
-                                                    tmp_path: Path):
+    def test_missing_agent_dir_path_adk_exit_code_1(
+        self, cli_runner: CliRunner, tmp_path: Path
+    ):
         """Non-existent agent-dir path in ADK mode exits with code 1."""
         non_existent = tmp_path / "non_existent_adk_dir"
         result = cli_runner.invoke(
@@ -596,7 +597,8 @@ class TestErrorHandlingAndValidation:
         assert "History directory not found" in result.output
 
     def test_missing_agent_dir_path_openinference_exit_code_1(
-            self, cli_runner: CliRunner, tmp_path: Path):
+        self, cli_runner: CliRunner, tmp_path: Path
+    ):
         """Non-existent agent-dir file in OpenInference mode exits with code 1."""
         non_existent = tmp_path / "missing_traces.jsonl"
         result = cli_runner.invoke(
@@ -613,8 +615,7 @@ class TestErrorHandlingAndValidation:
         assert "Error converting history:" in result.output
         assert "Trace file or directory not found" in result.output
 
-    def test_empty_adk_history_directory(self, cli_runner: CliRunner,
-                                         tmp_path: Path):
+    def test_empty_adk_history_directory(self, cli_runner: CliRunner, tmp_path: Path):
         """When ADK history directory exists but contains no .json files."""
         agent_dir = tmp_path / "empty_agent"
         (agent_dir / ".adk" / "eval_history").mkdir(parents=True)

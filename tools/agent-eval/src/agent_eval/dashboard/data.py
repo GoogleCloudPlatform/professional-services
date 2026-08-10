@@ -169,21 +169,15 @@ def runs_to_overview_df(runs: list[RunInfo]) -> pd.DataFrame:
     rows: list[dict[str, Any]] = []
     for r in runs:
         row: dict[str, Any] = {
-            "experiment_id":
-                r.experiment_id,
-            "run_id":
-                r.run_id,
-            "datetime":
-                r.timestamp,
-            "run_type":
-                r.run_type,
-            "git_commit":
-                r.git_info.get("commit", "")[:8]
-                if r.git_info.get("commit") else "",
-            "git_branch":
-                r.git_info.get("branch", ""),
-            "git_dirty":
-                r.git_info.get("dirty", False),
+            "experiment_id": r.experiment_id,
+            "run_id": r.run_id,
+            "datetime": r.timestamp,
+            "run_type": r.run_type,
+            "git_commit": r.git_info.get("commit", "")[:8]
+            if r.git_info.get("commit")
+            else "",
+            "git_branch": r.git_info.get("branch", ""),
+            "git_dirty": r.git_info.get("dirty", False),
         }
         row.update(r.deterministic_metrics)
         for name, info in r.llm_metrics.items():
@@ -282,20 +276,12 @@ def compute_delta(
     Returns ``{"pct_change": float, "direction": str, "is_improvement": bool}``.
     """
     if baseline_val == 0:
-        return {
-            "pct_change": 0.0,
-            "direction": "neutral",
-            "is_improvement": False
-        }
+        return {"pct_change": 0.0, "direction": "neutral", "is_improvement": False}
 
     pct = ((current_val - baseline_val) / abs(baseline_val)) * 100.0
 
     if abs(pct) < 1.0:
-        return {
-            "pct_change": pct,
-            "direction": "neutral",
-            "is_improvement": False
-        }
+        return {"pct_change": pct, "direction": "neutral", "is_improvement": False}
 
     lower_better = _is_lower_better(metric_name)
     is_improvement = (pct < 0) if lower_better else (pct > 0)

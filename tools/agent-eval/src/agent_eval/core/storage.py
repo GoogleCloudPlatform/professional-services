@@ -171,8 +171,7 @@ class BigQueryStorageBackend(StorageBackend):
         row_data["run_id"] = run_id
         errors = self.client.insert_rows_json(self.table_ref, [row_data])
         if errors:
-            raise RuntimeError(
-                f"BigQuery insert failed for {self.table_ref}: {errors}")
+            raise RuntimeError(f"BigQuery insert failed for {self.table_ref}: {errors}")
         return self.table_ref
 
     def save_summary(self, run_id: str, summary: dict[str, Any]) -> str:
@@ -181,7 +180,8 @@ class BigQueryStorageBackend(StorageBackend):
         errors = self.client.insert_rows_json(summary_table, [row_data])
         if errors:
             raise RuntimeError(
-                f"BigQuery summary insert failed for {summary_table}: {errors}")
+                f"BigQuery summary insert failed for {summary_table}: {errors}"
+            )
         return summary_table
 
     def load_summary(self, run_id: str) -> dict[str, Any] | None:
@@ -197,9 +197,11 @@ class BigQueryStorageBackend(StorageBackend):
         except ImportError:
             return None
 
-        job_config = bigquery.QueryJobConfig(query_parameters=[
-            bigquery.ScalarQueryParameter("run_id", "STRING", run_id),
-        ])
+        job_config = bigquery.QueryJobConfig(
+            query_parameters=[
+                bigquery.ScalarQueryParameter("run_id", "STRING", run_id),
+            ]
+        )
         try:
             query_job = self.client.query(query, job_config=job_config)
             rows = list(query_job.result())
@@ -207,13 +209,11 @@ class BigQueryStorageBackend(StorageBackend):
                 return None
             return json.loads(rows[0]["summary"])
         except Exception as e:
-            logger.warning(
-                f"Failed to load BQ summary for run_id={run_id}: {e}")
+            logger.warning(f"Failed to load BQ summary for run_id={run_id}: {e}")
             return None
 
 
-def get_storage_backend(storage_type: str = "local",
-                        **kwargs: Any) -> StorageBackend:
+def get_storage_backend(storage_type: str = "local", **kwargs: Any) -> StorageBackend:
     """Factory method for creating configured StorageBackend instances.
 
     Args:
@@ -226,22 +226,24 @@ def get_storage_backend(storage_type: str = "local",
     storage_type_lower = storage_type.lower().strip()
     if storage_type_lower == "local":
         return LocalStorageBackend(
-            base_dir=kwargs.get("results_dir", "tests/eval/results"))
+            base_dir=kwargs.get("results_dir", "tests/eval/results")
+        )
     elif storage_type_lower == "gcs":
         bucket_name = kwargs.get("bucket_name") or kwargs.get("bucket")
         if not bucket_name:
-            raise ValueError(
-                "GCSStorageBackend requires 'bucket_name' parameter.")
-        return GCSStorageBackend(bucket_name=bucket_name,
-                                 prefix=kwargs.get("prefix", "eval_runs"))
+            raise ValueError("GCSStorageBackend requires 'bucket_name' parameter.")
+        return GCSStorageBackend(
+            bucket_name=bucket_name, prefix=kwargs.get("prefix", "eval_runs")
+        )
     elif storage_type_lower in ("bigquery", "bq"):
         dataset_id = kwargs.get("dataset_id") or kwargs.get("dataset")
         if not dataset_id:
-            raise ValueError(
-                "BigQueryStorageBackend requires 'dataset_id' parameter.")
-        return BigQueryStorageBackend(dataset_id=dataset_id,
-                                      table_id=kwargs.get(
-                                          "table_id", "agent_runs"))
+            raise ValueError("BigQueryStorageBackend requires 'dataset_id' parameter.")
+        return BigQueryStorageBackend(
+            dataset_id=dataset_id, table_id=kwargs.get("table_id", "agent_runs")
+        )
     else:
-        raise ValueError(f"Unsupported storage backend type: '{storage_type}'. "
-                         f"Valid options are: 'local', 'gcs', 'bigquery'.")
+        raise ValueError(
+            f"Unsupported storage backend type: '{storage_type}'. "
+            f"Valid options are: 'local', 'gcs', 'bigquery'."
+        )

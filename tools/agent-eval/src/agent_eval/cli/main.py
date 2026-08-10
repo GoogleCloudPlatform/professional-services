@@ -62,8 +62,7 @@ def _display_banner() -> None:
     console.print(panel)
 
 
-def print_version(ctx: click.Context, _param: click.Parameter,
-                  value: bool) -> None:
+def print_version(ctx: click.Context, _param: click.Parameter, value: bool) -> None:
     if not value or ctx.resilient_parsing:
         return
     console.print(f"agent-eval v{_get_version()}")
@@ -104,14 +103,15 @@ def cli() -> None:
 cli.add_command(setup)  # One-time GCP env preparation
 cli.add_command(init)  # Tutorial / first-run scaffold
 cli.add_command(migrate)  # Convert legacy eval/ → tests/eval/
-cli.add_command(import_adk,
-                name="import")  # Prepare dataset (from existing ADK evalsets)
+cli.add_command(
+    import_adk, name="import"
+)  # Prepare dataset (from existing ADK evalsets)
 cli.add_command(simulate)  # Generate traces (multi-turn)
 cli.add_command(interact)  # Generate traces (single-turn)
 cli.add_command(evaluate)  # Run evaluation
 cli.add_command(
-    evaluate,
-    name="grade")  # Contract C2 alias: agent-eval grade == agent-eval evaluate
+    evaluate, name="grade"
+)  # Contract C2 alias: agent-eval grade == agent-eval evaluate
 # `agent-engine` (streamlined Agent Engine pass via create_evaluation_run)
 cli.add_command(agent_engine, name="agent-engine")
 cli.add_command(analyze)  # View / interpret results
@@ -119,8 +119,9 @@ cli.add_command(report)  # Open the HTML report in a browser
 cli.add_command(dashboard)  # View / interpret results (interactive)
 cli.add_command(run)  # Full pipeline shortcut
 cli.add_command(convert)  # Utility: ADK traces → JSONL
-cli.add_command(create_dataset,
-                name="create-dataset")  # Utility: legacy dataset converter
+cli.add_command(
+    create_dataset, name="create-dataset"
+)  # Utility: legacy dataset converter
 cli.add_command(stories)  # Utility: browse the wait-time story library
 cli.add_command(stage)  # Modular stage execution (Daniela's P1 Workstream)
 

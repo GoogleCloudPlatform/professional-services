@@ -40,7 +40,6 @@ def declared(monkeypatch):
 
 
 def _versions(monkeypatch, mapping):
-
     def fake_version(name):
         if name not in mapping:
             raise PackageNotFoundError(name)
@@ -50,18 +49,16 @@ def _versions(monkeypatch, mapping):
 
 
 def test_in_range_versions_pass_silently(declared, monkeypatch):
-    _versions(monkeypatch, {
-        "google-adk": "2.5.0",
-        "google-cloud-aiplatform": "1.162.0"
-    })
+    _versions(
+        monkeypatch, {"google-adk": "2.5.0", "google-cloud-aiplatform": "1.162.0"}
+    )
     check_runtime_dependencies()  # must not raise
 
 
 def test_downgraded_adk_is_reported(declared, monkeypatch):
-    _versions(monkeypatch, {
-        "google-adk": "1.28.0",
-        "google-cloud-aiplatform": "1.162.0"
-    })
+    _versions(
+        monkeypatch, {"google-adk": "1.28.0", "google-cloud-aiplatform": "1.162.0"}
+    )
     with pytest.raises(DependencyMismatchError) as err:
         check_runtime_dependencies()
     message = str(err.value)
@@ -79,10 +76,7 @@ def test_missing_package_is_reported(declared, monkeypatch):
 
 
 def test_every_out_of_range_package_is_listed(declared, monkeypatch):
-    _versions(monkeypatch, {
-        "google-adk": "1.28.0",
-        "google-cloud-aiplatform": "2.5.0"
-    })
+    _versions(monkeypatch, {"google-adk": "1.28.0", "google-cloud-aiplatform": "2.5.0"})
     with pytest.raises(DependencyMismatchError) as err:
         check_runtime_dependencies()
     message = str(err.value)
@@ -91,10 +85,9 @@ def test_every_out_of_range_package_is_listed(declared, monkeypatch):
 
 
 def test_prerelease_within_range_is_accepted(declared, monkeypatch):
-    _versions(monkeypatch, {
-        "google-adk": "2.6.0rc1",
-        "google-cloud-aiplatform": "1.162.0"
-    })
+    _versions(
+        monkeypatch, {"google-adk": "2.6.0rc1", "google-cloud-aiplatform": "1.162.0"}
+    )
     check_runtime_dependencies()  # must not raise
 
 

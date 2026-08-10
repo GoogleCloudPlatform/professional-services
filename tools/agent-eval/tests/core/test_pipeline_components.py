@@ -23,7 +23,6 @@ import pandas as pd
 
 
 class TestConverters(unittest.TestCase):
-
     def setUp(self):
         from agent_eval.core.converters import (
             AdkHistoryConverter,
@@ -46,24 +45,15 @@ class TestConverters(unittest.TestCase):
             {
                 "author": "user",
                 "timestamp": 1000,
-                "content": {
-                    "parts": [{
-                        "text": "hello"
-                    }]
-                },
+                "content": {"parts": [{"text": "hello"}]},
             },
             {
                 "author": "model",
                 "timestamp": 1001,
-                "content": {
-                    "parts": [{
-                        "text": "hi"
-                    }]
-                },
+                "content": {"parts": [{"text": "hi"}]},
             },
         ]
-        spans = self.synthesize_trace_from_events(events, "session-123",
-                                                  "test-app")
+        spans = self.synthesize_trace_from_events(events, "session-123", "test-app")
 
         # Should have invocation span, agent span, and at least one step span (call_llm)
         self.assertTrue(len(spans) >= 3)
@@ -77,50 +67,34 @@ class TestConverters(unittest.TestCase):
 
         # Create a dummy ADK history file
         history_data = {
-            "eval_case_results": [{
-                "eval_id":
-                    "eval_1",
-                "session_details": {
-                    "id":
-                        "session_1",
-                    "app_name":
-                        "test_agent",
-                    "user_id":
-                        "user_1",
-                    "events": [
-                        {
-                            "author": "user",
-                            "timestamp": 1000,
-                            "content": {
-                                "parts": [{
-                                    "text": "hi"
-                                }]
+            "eval_case_results": [
+                {
+                    "eval_id": "eval_1",
+                    "session_details": {
+                        "id": "session_1",
+                        "app_name": "test_agent",
+                        "user_id": "user_1",
+                        "events": [
+                            {
+                                "author": "user",
+                                "timestamp": 1000,
+                                "content": {"parts": [{"text": "hi"}]},
                             },
-                        },
-                        {
-                            "author": "agent",
-                            "timestamp": 1001,
-                            "content": {
-                                "parts": [{
-                                    "text": "hello"
-                                }]
+                            {
+                                "author": "agent",
+                                "timestamp": 1001,
+                                "content": {"parts": [{"text": "hello"}]},
+                                "text_response": "hello",
                             },
-                            "text_response": "hello",
-                        },
+                        ],
+                    },
+                    # This is the key part: Simulated scores
+                    "eval_metric_results": [
+                        {"metric_name": "hallucination", "score": 0.1},
+                        {"metric_name": "safety", "score": 1.0},
                     ],
-                },
-                # This is the key part: Simulated scores
-                "eval_metric_results": [
-                    {
-                        "metric_name": "hallucination",
-                        "score": 0.1
-                    },
-                    {
-                        "metric_name": "safety",
-                        "score": 1.0
-                    },
-                ],
-            }]
+                }
+            ]
         }
 
         history_file = self.history_dir / "test_history.json"
@@ -145,7 +119,6 @@ class TestConverters(unittest.TestCase):
 
 
 class TestAnalyzer(unittest.TestCase):
-
     def setUp(self):
         from agent_eval.core.analyzer import Analyzer, LogEntry
 
@@ -156,21 +129,14 @@ class TestAnalyzer(unittest.TestCase):
     def test_process_log_row_robustness(self):
         """Test extracting log entry from a dataframe row with mixed types."""
         row_data = {
-            "question_id":
-                "q1",
-            "metadata":
-                '{"category": "test"}',  # JSON string
-            "user_inputs":
-                "['help']",  # Python string repr of list
-            "final_response":
-                "Here is help",
-            "eval_results":
-                json.dumps({"quality": {
-                    "score": 5,
-                    "explanation": "Good"
-                }}),
-            "adk_score.hallucination":
-                0.0,  # Float directly in row
+            "question_id": "q1",
+            "metadata": '{"category": "test"}',  # JSON string
+            "user_inputs": "['help']",  # Python string repr of list
+            "final_response": "Here is help",
+            "eval_results": json.dumps(
+                {"quality": {"score": 5, "explanation": "Good"}}
+            ),
+            "adk_score.hallucination": 0.0,  # Float directly in row
         }
         row = pd.Series(row_data)
 
@@ -196,17 +162,14 @@ class TestAnalyzer(unittest.TestCase):
             final_response="response 1",
             trace_summary=["step1", "step2"],
             sub_agent_trace=[],
-            tool_interactions=[{
-                "tool_name": "search",
-                "input_arguments": {
-                    "q": "foo"
-                },
-                "output_result": "bar",
-            }],
-            eval_results={"quality": {
-                "score": 5,
-                "explanation": "ok"
-            }},
+            tool_interactions=[
+                {
+                    "tool_name": "search",
+                    "input_arguments": {"q": "foo"},
+                    "output_result": "bar",
+                }
+            ],
+            eval_results={"quality": {"score": 5, "explanation": "ok"}},
             latency_summary={"total_seconds": 1.5},
             adk_scores={"hallucination": 0.0},
             agents_evaluated=["agent_a"],

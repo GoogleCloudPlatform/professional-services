@@ -37,8 +37,7 @@ def test_init_interactive_fallback_success(mock_discover):
     inputs to accept starter metrics.
     """
     # Force discovery to fail so it falls back to starter metrics
-    mock_discover.side_effect = Exception(
-        "Vertex AI API not enabled in this project")
+    mock_discover.side_effect = Exception("Vertex AI API not enabled in this project")
 
     runner = CliRunner()
     with tempfile.TemporaryDirectory() as td:
@@ -47,15 +46,14 @@ def test_init_interactive_fallback_success(mock_discover):
 
         # Mock env check to skip gcloud checks
         with mock.patch(
-                "agent_eval.cli.commands.init._verify_environment",
-                return_value=None,
+            "agent_eval.cli.commands.init._verify_environment",
+            return_value=None,
         ):
             # Run interactive init, sending empty newlines to select defaults
             result = runner.invoke(
                 init,
                 ["--target-dir", str(root)],
-                input=
-                "\n\n\n",  # Select agent (1) -> Select mode (1) -> Toggle metrics (empty)
+                input="\n\n\n",  # Select agent (1) -> Select mode (1) -> Toggle metrics (empty)
                 env=_env_for_init(root),
                 catch_exceptions=False,
             )
@@ -67,8 +65,9 @@ def test_init_interactive_fallback_success(mock_discover):
             assert "Toggle" in result.output
 
             # Verify files written to the discovered agent_dir (root / "app")
-            assert (root / "app" / "tests" / "eval" / "metrics" /
-                    "metric_definitions.json").exists()
+            assert (
+                root / "app" / "tests" / "eval" / "metrics" / "metric_definitions.json"
+            ).exists()
             assert (root / "app" / "tests" / "eval" / "dataset.jsonl").exists()
 
 
@@ -109,12 +108,8 @@ async def test_init_interactive_full_multistep_flow(
 
     # 3. Mock agent code analysis (no suggestions to avoid the suggestions prompt)
     mock_analyze.return_value = {
-        "tools": [{
-            "name": "search_web"
-        }],
-        "state_variables": {
-            "current_user": "str"
-        },
+        "tools": [{"name": "search_web"}],
+        "state_variables": {"current_user": "str"},
         "key_behaviors": ["answer questions concisely"],
         "suggested_state_variables": [],
     }
@@ -130,9 +125,7 @@ async def test_init_interactive_full_multistep_flow(
                 "kind": "custom_llm_judge",
                 "description": "Score 1-5 for conciseness.",
                 "dataset_mapping": {
-                    "reference": {
-                        "source_column": "reference_data:expected_concise"
-                    }
+                    "reference": {"source_column": "reference_data:expected_concise"}
                 },
             },
         },
@@ -141,15 +134,13 @@ async def test_init_interactive_full_multistep_flow(
 
     # 5. Mock evaluation test data generation
     mock_gen_data.return_value = {
-        "scenarios": [{
-            "steps": ["hello"]
-        }],
-        "golden_dataset": [{
-            "prompt": "hello",
-            "reference_data": {
-                "expected_concise": "hi"
-            },
-        }],
+        "scenarios": [{"steps": ["hello"]}],
+        "golden_dataset": [
+            {
+                "prompt": "hello",
+                "reference_data": {"expected_concise": "hi"},
+            }
+        ],
     }
 
     runner = CliRunner()
@@ -159,8 +150,8 @@ async def test_init_interactive_full_multistep_flow(
 
         # Mock env check to skip gcloud checks
         with mock.patch(
-                "agent_eval.cli.commands.init._verify_environment",
-                return_value=None,
+            "agent_eval.cli.commands.init._verify_environment",
+            return_value=None,
         ):
             # Feed stdin inputs sequentially:
             # 1. Select agent (Enter -> 1)
@@ -190,8 +181,9 @@ async def test_init_interactive_full_multistep_flow(
             assert "Creating test scenarios and sample queries" in result.output
 
             # Verify all files are written and correct under discovered agent_dir (root / "app")
-            metrics_file = (root / "app" / "tests" / "eval" / "metrics" /
-                            "metric_definitions.json")
+            metrics_file = (
+                root / "app" / "tests" / "eval" / "metrics" / "metric_definitions.json"
+            )
             assert metrics_file.exists()
             metrics_data = json.loads(metrics_file.read_text())
             assert "general_quality" in metrics_data["metrics"]
@@ -203,8 +195,9 @@ async def test_init_interactive_full_multistep_flow(
 @mock.patch("agent_eval.cli.commands.run._run_simulate_phase")
 @mock.patch("agent_eval.core.evaluator.Client")
 @mock.patch("google.cloud.aiplatform.init")
-def test_run_pipeline_success(_mock_aiplatform_init, mock_client_class,
-                              mock_run_simulate):
+def test_run_pipeline_success(
+    _mock_aiplatform_init, mock_client_class, mock_run_simulate
+):
     """Verify that agent-eval run completes successfully in-process with mocks.
 
     Mocks out the simulation phase to write a pre-recorded mock trace,
@@ -212,8 +205,7 @@ def test_run_pipeline_success(_mock_aiplatform_init, mock_client_class,
     """
 
     # 1. Setup mock simulator behavior
-    def side_effect_simulate(agent_name, agent_path, project_root, raw_dir,
-                             **kwargs):
+    def side_effect_simulate(agent_name, agent_path, project_root, raw_dir, **kwargs):
         raw_dir.mkdir(parents=True, exist_ok=True)
         sim_output = raw_dir / "processed_interaction_sim.jsonl"
         mock_record = {
@@ -224,36 +216,23 @@ def test_run_pipeline_success(_mock_aiplatform_init, mock_client_class,
             "response": "Hello! I am a helpful agent.",
             "extracted_data": {},
             "reference_data": {
-                "expected_behavior":
-                    "The agent should greet the user politely.",
-                "expected_concise":
-                    "hi",
+                "expected_behavior": "The agent should greet the user politely.",
+                "expected_concise": "hi",
             },
             "latency_data": {
                 "total_time": 1.5,
-                "steps": [{
-                    "step_time": 1.5
-                }],
+                "steps": [{"step_time": 1.5}],
             },
             "session_trace": [
-                {
-                    "name": "root",
-                    "start_time": 0,
-                    "end_time": 1500,
-                    "attributes": {}
-                },
+                {"name": "root", "start_time": 0, "end_time": 1500, "attributes": {}},
                 {
                     "name": "execute_tool search_web",
                     "start_time": 200,
                     "end_time": 800,
-                    "attributes": {
-                        "gen_ai.tool.name": "search_web"
-                    },
+                    "attributes": {"gen_ai.tool.name": "search_web"},
                 },
             ],
-            "final_session_state": {
-                "events": []
-            },
+            "final_session_state": {"events": []},
         }
         with sim_output.open("w") as f:
             f.write(json.dumps(mock_record) + "\n")
@@ -266,12 +245,14 @@ def test_run_pipeline_success(_mock_aiplatform_init, mock_client_class,
     mock_evaluate_result = mock.MagicMock()
 
     # metrics_table contains the mock scores and explanations
-    mock_metrics_table = pd.DataFrame({
-        "general_quality/score": [4.0],
-        "general_quality/explanation": ["Good"],
-        "custom_conciseness/score": [5.0],
-        "custom_conciseness/explanation": ["Very concise"],
-    })
+    mock_metrics_table = pd.DataFrame(
+        {
+            "general_quality/score": [4.0],
+            "general_quality/explanation": ["Good"],
+            "custom_conciseness/score": [5.0],
+            "custom_conciseness/explanation": ["Very concise"],
+        }
+    )
 
     mock_evaluate_result.metrics_table = mock_metrics_table
     mock_client.evals.evaluate.return_value = mock_evaluate_result
@@ -292,10 +273,8 @@ def test_run_pipeline_success(_mock_aiplatform_init, mock_client_class,
             "prompt": "hello",
             "conversation_plan": ["Greet the user"],
             "reference_data": {
-                "expected_behavior":
-                    "The agent should greet the user politely.",
-                "expected_concise":
-                    "hi",
+                "expected_behavior": "The agent should greet the user politely.",
+                "expected_concise": "hi",
             },
         }
         with dataset_path.open("w") as f:
@@ -314,9 +293,7 @@ def test_run_pipeline_success(_mock_aiplatform_init, mock_client_class,
                 "custom_conciseness": {
                     "kind": "custom_llm_judge",
                     "description": "Score 1-5 for conciseness.",
-                    "criteria": {
-                        "conciseness": "The response must be concise."
-                    },
+                    "criteria": {"conciseness": "The response must be concise."},
                     "rating_scores": {
                         "1": "Pass: response is concise.",
                         "0": "Fail: response is wordy.",
@@ -334,8 +311,8 @@ def test_run_pipeline_success(_mock_aiplatform_init, mock_client_class,
 
         # Mock env check to skip gcloud checks
         with mock.patch(
-                "agent_eval.cli.commands.run._looks_headless",
-                return_value=True,
+            "agent_eval.cli.commands.run._looks_headless",
+            return_value=True,
         ):
             # Run the command in-process
             result = runner.invoke(
