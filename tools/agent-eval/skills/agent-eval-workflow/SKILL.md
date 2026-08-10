@@ -112,6 +112,7 @@ so it always renders text:
 
 ---
 
+<<<<<<< HEAD
 ## 3.1. Testing Trajectories, Tool Calls, and Sub-Agent Actions
 
 For agents that interact with tools and sub-agents, evaluating just the final text is insufficient. You must evaluate the **system trajectory**:
@@ -152,6 +153,19 @@ A dataset consisting only of happy paths produces false confidence. A production
    - **Out-of-Scope Distractors:** Adversarial prompts attempting to bypass guardrails.
 
 > **The Rule:** If an agent scores 100% on Turn 1 of a new dataset without any prompt tuning, the dataset is defective—not the agent. Ensure at least 20–30% of rows contain negative or adversarial traps.
+=======
+## 4. Design a dataset that can fail
+
+Rows should include boundary and negative cases, not just happy paths:
+
+- **At the limit** and **over the limit** (10% vs 15% vs 25%)
+- The **second condition** people forget (percentage limit *and* flat-amount limit)
+- Cases where the right answer is **do nothing** / **refuse**
+- **Consent given** and **consent withheld**, as separate rows
+- One clearly **out-of-scope** request
+
+If every row passes at baseline, the dataset is too easy to teach you anything.
+>>>>>>> dani/chore/agent-eval-0.1.1-docs
 
 ---
 
