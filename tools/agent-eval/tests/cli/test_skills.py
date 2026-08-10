@@ -14,9 +14,8 @@
 """Unit tests for the agent-eval skills CLI command."""
 
 from pathlib import Path
-
-import pytest
 from click.testing import CliRunner
+import pytest
 
 from agent_eval.cli.main import cli
 
@@ -56,4 +55,4 @@ def test_skills_show():
     runner = CliRunner()
     result = runner.invoke(cli, ["skills", "show", "agent-eval"])
     assert result.exit_code == 0
-    assert "Agent Evaluation & GCS Registry Framework" in result.output
+    assert "Agent Evaluation & Continuous Optimization Framework" in result.output
