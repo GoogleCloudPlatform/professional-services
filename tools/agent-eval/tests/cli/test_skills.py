@@ -36,6 +36,7 @@ def test_skills_list():
     assert result.exit_code == 0
     assert "Bundled agent-eval Skills" in result.output
     assert "agent-eval" in result.output
+    assert "eval-breakdown" in result.output
 
 
 def test_skills_install(temp_skills_env: Path):
@@ -49,6 +50,10 @@ def test_skills_install(temp_skills_env: Path):
     assert installed_skill.exists()
     assert (installed_skill / "SKILL.md").exists()
 
+    installed_breakdown = temp_skills_env / "eval-breakdown"
+    assert installed_breakdown.exists()
+    assert (installed_breakdown / "SKILL.md").exists()
+
 
 def test_skills_show():
     """Verify that agent-eval skills show displays skill markdown."""
@@ -56,3 +61,7 @@ def test_skills_show():
     result = runner.invoke(cli, ["skills", "show", "agent-eval"])
     assert result.exit_code == 0
     assert "Agent Evaluation & Continuous Optimization Framework" in result.output
+
+    result_breakdown = runner.invoke(cli, ["skills", "show", "eval-breakdown"])
+    assert result_breakdown.exit_code == 0
+    assert "Eval Breakdown: Question-by-Question Diagnostic Analysis" in result_breakdown.output
