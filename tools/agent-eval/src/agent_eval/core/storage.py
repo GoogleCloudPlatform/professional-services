@@ -106,9 +106,7 @@ class GCSStorageBackend(StorageBackend):
 
     def __init__(self, bucket_name: str, prefix: str = "eval_runs"):
         try:
-            from google.cloud import (
-                storage,  # type: ignore[import-untyped,import-not-found]
-            )
+            from google.cloud import storage
         except ImportError as e:
             raise RuntimeError(
                 "Install 'google-cloud-storage' to use GCSStorageBackend."
@@ -155,9 +153,7 @@ class BigQueryStorageBackend(StorageBackend):
 
     def __init__(self, dataset_id: str, table_id: str = "agent_runs"):
         try:
-            from google.cloud import (
-                bigquery,  # type: ignore[import-untyped,import-not-found]
-            )
+            from google.cloud import bigquery
         except ImportError as e:
             raise RuntimeError(
                 "Install 'google-cloud-bigquery' to use BigQueryStorageBackend."
