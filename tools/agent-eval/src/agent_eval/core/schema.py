@@ -18,7 +18,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Any
 
-from pydantic import BaseModel, Field, model_serializer, model_validator
+from pydantic import BaseModel, ConfigDict, Field, model_serializer, model_validator
 
 
 class ScoreRange(BaseModel):
@@ -81,8 +81,7 @@ class OverallSummary(BaseModel):
     """Aggregated metrics summary for the entire run."""
 
     deterministic_metrics: dict[str, DeterministicMetricSummary] = Field(
-        default_factory=dict
-    )
+        default_factory=dict)
     llm_based_metrics: dict[str, LLMMetricSummary] = Field(default_factory=dict)
     adk_eval_scores: dict[str, ADKEvalScore] = Field(default_factory=dict)
     failed_metrics: list[dict[str, Any] | str] = Field(default_factory=list)
@@ -99,3 +98,44 @@ class EvaluationSummary(BaseModel):
     git_info: GitInfo | None = None
     overall_summary: OverallSummary
     per_question_summary: list[dict[str, Any]] = Field(default_factory=list)
+
+
+class AgentConfig(BaseModel):
+    """Static Agent configuration in flat adjacency-list graph schema (RFC 135 / RFC 477)."""
+
+    model_config = ConfigDict(extra="allow")
+    agent_id: str
+    type: str = "LlmAgent"
+    description: str | None = ""
+    instruction: str | None = ""
+    tools: list[Any] = Field(default_factory=list)
+    sub_agents: list[str] = Field(default_factory=list)
+
+
+class AgentEvent(BaseModel):
+    """Per-turn event in AgentData execution timeline (RFC 477)."""
+
+    model_config = ConfigDict(extra="allow")
+    author: str = "USER"
+    content: str = ""
+    tool_calls: list[dict[str, Any]] = Field(default_factory=list)
+    tool_responses: list[dict[str, Any]] = Field(default_factory=list)
+    state_delta: dict[str, Any] = Field(default_factory=dict)
+
+
+class AgentTurn(BaseModel):
+    """Single conversation turn in AgentData (RFC 477)."""
+
+    model_config = ConfigDict(extra="allow")
+    turn_id: str | int | None = None
+    state: str = "COMPLETED"
+    events: list[AgentEvent] = Field(default_factory=list)
+
+
+class AgentData(BaseModel):
+    """Canonical interchange data model for agent evaluations (RFC 477 - Contract C1)."""
+
+    model_config = ConfigDict(extra="allow")
+    agents: dict[str, AgentConfig] = Field(default_factory=dict)
+    turns: list[AgentTurn] = Field(default_factory=list)
+    events: list[AgentEvent] = Field(default_factory=list)

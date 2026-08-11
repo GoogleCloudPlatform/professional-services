@@ -31,9 +31,8 @@ _EXCLUDE_PATTERNS = [
 ]
 
 
-def discover_agent_context(
-    agent_dir: Path | None, quiet: bool = False
-) -> dict[str, str]:
+def discover_agent_context(agent_dir: Path | None,
+                           quiet: bool = False) -> dict[str, str]:
     """Discover and load agent source code and ADK context from an agent directory.
 
     Scans for agent.py, tools.py, and GEMINI.md files while skipping

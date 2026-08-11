@@ -1,0 +1,26 @@
+{
+  "metrics": {
+    "tool_utilization": {
+      "kind": "deterministic",
+      "metric_type": "tool_utilization",
+      "description": "Calculates total tool invocations and distinct tools used."
+    },
+    "tool_success_rate": {
+      "kind": "deterministic",
+      "metric_type": "tool_success_rate",
+      "description": "Calculates the ratio of successful tool calls."
+    },
+    "custom_tool_usage_validator": {
+      "kind": "python_function",
+      "module": "tests/eval/metrics/custom_checks.py",
+      "function": "check_tool_usage",
+      "description": "Deterministic validation of extracted tool interactions."
+    },
+    "custom_prompt_response_validator": {
+      "kind": "python_function",
+      "module": "tests/eval/metrics/custom_checks.py",
+      "function": "check_prompt_response",
+      "description": "Deterministic validation of non-empty prompt and response."
+    }
+  }
+}
