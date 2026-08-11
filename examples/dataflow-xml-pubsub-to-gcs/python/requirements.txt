@@ -43,7 +43,7 @@ packaging==21.3
 proto-plus==1.22.2
 protobuf==4.25.8
 pyarrow==14.0.1
-pyasn1==0.4.8
+pyasn1==0.6.4
 pyasn1-modules==0.2.8
 pydot==1.4.2
 pymongo==4.6.3
