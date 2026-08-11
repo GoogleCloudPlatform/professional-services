@@ -21,7 +21,6 @@ from kfp import compiler, dsl
 
 logger = logging.getLogger("agent_eval.kfp_pipeline")
 
-
 # ── KFP Component Definitions ────────────────────────────────────────────────
 
 
@@ -30,8 +29,8 @@ logger = logging.getLogger("agent_eval.kfp_pipeline")
     packages_to_install=["google-cloud-storage", "pandas", "pydantic"],
 )
 def simulate_component(
-    dataset_gcs_path: str,
-    prompts_gcs_output: dsl.OutputPath(str),
+        dataset_gcs_path: str,
+        prompts_gcs_output: dsl.OutputPath(str),
 ) -> None:
     """KFP component to run the User Simulator and generate prompts."""
     import logging
@@ -86,9 +85,9 @@ def simulate_component(
     subprocess.run(cmd, check=True)
 
     # 3. Upload prompts to the KFP-managed output GCS path
-    out_bucket_name, out_blob_name = prompts_gcs_output.replace("gs://", "").split(
-        "/", 1
-    )
+    out_bucket_name, out_blob_name = prompts_gcs_output.replace("gs://",
+                                                                "").split(
+                                                                    "/", 1)
     out_bucket = storage_client.bucket(out_bucket_name)
     out_blob = out_bucket.blob(out_blob_name)
     out_blob.upload_from_filename(local_output)
@@ -103,10 +102,10 @@ def simulate_component(
     packages_to_install=["google-cloud-storage", "requests"],
 )
 def interact_component(
-    prompts_gcs_path: str,
-    agent_url: str,
-    agent_name: str,
-    interactions_gcs_output: dsl.OutputPath(str),
+        prompts_gcs_path: str,
+        agent_url: str,
+        agent_name: str,
+        interactions_gcs_output: dsl.OutputPath(str),
 ) -> None:
     """KFP component to drive the remote agent and record interactions."""
     import logging
@@ -148,9 +147,8 @@ def interact_component(
     subprocess.run(cmd, check=True)
 
     # 3. Upload interactions to GCS
-    out_bucket_name, out_blob_name = interactions_gcs_output.replace("gs://", "").split(
-        "/", 1
-    )
+    out_bucket_name, out_blob_name = interactions_gcs_output.replace(
+        "gs://", "").split("/", 1)
     out_bucket = storage_client.bucket(out_bucket_name)
     out_blob = out_bucket.blob(out_blob_name)
     out_blob.upload_from_filename(local_output)
@@ -188,13 +186,15 @@ def evaluate_component(
 
     # 1. Download inputs from GCS
     local_interactions = Path(tempfile.mktemp(suffix="_interactions.jsonl"))
-    bucket_name, blob_name = interactions_gcs_path.replace("gs://", "").split("/", 1)
+    bucket_name, blob_name = interactions_gcs_path.replace("gs://",
+                                                           "").split("/", 1)
     bucket = storage_client.bucket(bucket_name)
     blob = bucket.blob(blob_name)
     blob.download_to_filename(local_interactions)
 
     local_metrics = Path(tempfile.mktemp(suffix="_metrics.json"))
-    m_bucket_name, m_blob_name = metrics_gcs_path.replace("gs://", "").split("/", 1)
+    m_bucket_name, m_blob_name = metrics_gcs_path.replace("gs://",
+                                                          "").split("/", 1)
     m_bucket = storage_client.bucket(m_bucket_name)
     m_blob = m_bucket.blob(m_blob_name)
     m_blob.download_to_filename(local_metrics)
@@ -224,17 +224,16 @@ def evaluate_component(
     local_summary = local_results_dir / "eval_summary.json"
     if local_summary.exists():
         # A. Upload to KFP managed output path
-        out_bucket_name, out_blob_name = results_gcs_output.replace("gs://", "").split(
-            "/", 1
-        )
+        out_bucket_name, out_blob_name = results_gcs_output.replace(
+            "gs://", "").split("/", 1)
         out_bucket = storage_client.bucket(out_bucket_name)
         out_blob = out_bucket.blob(out_blob_name)
         out_blob.upload_from_filename(local_summary)
 
         # B. Upload directly to explicit_gcs_dest/eval_summary.json (for easy SDK access)
-        exp_bucket_name, exp_blob_name = explicit_gcs_dest.replace("gs://", "").split(
-            "/", 1
-        )
+        exp_bucket_name, exp_blob_name = explicit_gcs_dest.replace("gs://",
+                                                                   "").split(
+                                                                       "/", 1)
         exp_bucket = storage_client.bucket(exp_bucket_name)
         exp_blob_path = f"{exp_blob_name.rstrip('/')}/eval_summary.json"
         exp_blob = exp_bucket.blob(exp_blob_path)
@@ -264,7 +263,8 @@ def create_evaluation_pipeline(runner_image: str):
 
     @dsl.pipeline(
         name="agent-eval-end-to-end",
-        description="End-to-end serverless agent evaluation pipeline: Simulate, Interact, and Evaluate.",
+        description=
+        "End-to-end serverless agent evaluation pipeline: Simulate, Interact, and Evaluate.",
     )
     def agent_eval_pipeline(
         dataset_gcs_path: str,
@@ -275,9 +275,7 @@ def create_evaluation_pipeline(runner_image: str):
         location: str = "us-central1",
     ):
         # 1. Run Simulation
-        sim_task = simulate_component(
-            dataset_gcs_path=dataset_gcs_path,
-        )
+        sim_task = simulate_component(dataset_gcs_path=dataset_gcs_path,)
 
         # 2. Run Interaction (depends on Simulation prompts)
         interact_task = interact_component(
@@ -288,7 +286,8 @@ def create_evaluation_pipeline(runner_image: str):
 
         # 3. Run Evaluation (depends on Interaction history)
         eval_task = evaluate_component(
-            interactions_gcs_path=interact_task.outputs["interactions_gcs_output"],
+            interactions_gcs_path=interact_task.
+            outputs["interactions_gcs_output"],
             metrics_gcs_path=metrics_gcs_path,
             explicit_gcs_dest=gcs_dest,
             location=location,
@@ -324,7 +323,8 @@ def compile_pipeline(
 
     pipeline_func = create_evaluation_pipeline(runner_image)
 
-    logger.info(f"Compiling agent-eval pipeline using runner image: {runner_image}...")
+    logger.info(
+        f"Compiling agent-eval pipeline using runner image: {runner_image}...")
     compiler.Compiler().compile(
         pipeline_func=pipeline_func,
         package_path=str(output_path),
@@ -388,11 +388,11 @@ def submit_pipeline_job(
 
     logger.info("Submitting PipelineJob to Vertex AI Pipelines...")
     job.submit()
-    logger.info(f"PipelineJob submitted successfully! Job ID: {job.resource_name}")
+    logger.info(
+        f"PipelineJob submitted successfully! Job ID: {job.resource_name}")
     logger.info(
         f"Monitor the job at: https://console.cloud.google.com/vertex-ai/pipelines/locations/"
-        f"{location}/runs/{job.name}?project={project_id}"
-    )
+        f"{location}/runs/{job.name}?project={project_id}")
 
     if wait:
         logger.info("Waiting for pipeline job completion...")

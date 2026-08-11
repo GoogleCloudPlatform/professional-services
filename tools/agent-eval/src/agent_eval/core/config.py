@@ -11,10 +11,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import logging
 from pathlib import Path
 
 from pydantic import AliasChoices, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+logger = logging.getLogger("agent_eval")
 
 
 class EvalConfig(BaseSettings):
@@ -23,9 +26,10 @@ class EvalConfig(BaseSettings):
     Reads from environment variables and provides type safety.
     """
 
-    model_config = SettingsConfigDict(
-        env_prefix="EVAL_", env_file=".env", env_file_encoding="utf-8", extra="ignore"
-    )
+    model_config = SettingsConfigDict(env_prefix="EVAL_",
+                                      env_file=".env",
+                                      env_file_encoding="utf-8",
+                                      extra="ignore")
 
     # Managed Metric Names
     METRIC_TOOL_USE_QUALITY: str = "TOOL_USE_QUALITY"
@@ -40,21 +44,21 @@ class EvalConfig(BaseSettings):
     # Execution Settings
     GOOGLE_CLOUD_PROJECT: str | None = Field(
         default=None,
-        validation_alias=AliasChoices(
-            "EVAL_GOOGLE_CLOUD_PROJECT", "GOOGLE_CLOUD_PROJECT", "PROJECT_ID"
-        ),
+        validation_alias=AliasChoices("EVAL_GOOGLE_CLOUD_PROJECT",
+                                      "GOOGLE_CLOUD_PROJECT", "PROJECT_ID"),
         description="GCP Project ID",
     )
     GOOGLE_CLOUD_LOCATION: str = Field(
         default="us-central1",
-        validation_alias=AliasChoices(
-            "EVAL_GOOGLE_CLOUD_LOCATION", "GOOGLE_CLOUD_LOCATION", "LOCATION"
-        ),
+        validation_alias=AliasChoices("EVAL_GOOGLE_CLOUD_LOCATION",
+                                      "GOOGLE_CLOUD_LOCATION", "LOCATION"),
         description="GCP Region",
     )
     MAX_RETRIES: int = Field(default=3, description="Max retries for LLM calls")
-    RETRY_DELAY_SECONDS: int = Field(default=5, description="Base delay for retries")
-    MAX_WORKERS: int = Field(default=4, description="Threads for parallel evaluation")
+    RETRY_DELAY_SECONDS: int = Field(default=5,
+                                     description="Base delay for retries")
+    MAX_WORKERS: int = Field(default=4,
+                             description="Threads for parallel evaluation")
 
     # Data Mappings
     EXTRACTED_DATA_PREFIX: str = "extracted_data"
@@ -114,11 +118,9 @@ def find_eval_files(eval_dir: Path) -> dict[str, list[Path]]:
 
     scenarios_dir = eval_dir / "scenarios"
     if scenarios_dir.is_dir():
-        result["scenarios"] = sorted(
-            f
-            for f in scenarios_dir.glob("*.json")
-            if f.name not in ("session_input.json", "eval_config.json")
-        )
+        result["scenarios"] = sorted(f for f in scenarios_dir.glob("*.json")
+                                     if f.name not in ("session_input.json",
+                                                       "eval_config.json"))
         session = scenarios_dir / "session_input.json"
         if session.exists():
             result["session_input"] = [session]

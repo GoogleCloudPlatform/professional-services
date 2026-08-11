@@ -48,26 +48,29 @@ METRIC_TEMPLATES = {
         "instruction": (
             "Evaluate whether the agent's execution trajectory used the available "
             "tools correctly to address the user's request. Score 1 only if EVERY "
-            "criterion below is met; 0 if any criterion fails."
-        ),
+            "criterion below is met; 0 if any criterion fails."),
         "criteria": {
             "tool_existence": (
                 "Every tool the agent called appears in the **Available Tools** list. "
-                "Hallucinated tool names → 0."
-            ),
+                "Hallucinated tool names → 0."),
             "no_obvious_detour": (
                 "The agent did not take an obvious detour or call an irrelevant tool "
-                "before reaching the answer."
-            ),
+                "before reaching the answer."),
         },
         "rating_scores": {
             "1": "Pass: both criteria met",
             "0": "Fail: at least one criterion not met",
         },
         "dataset_mapping": {
-            "prompt": {"source_column": "user_inputs"},
-            "response": {"source_column": "trace_summary"},
-            "reference": {"source_column": "extracted_data:tool_declarations"},
+            "prompt": {
+                "source_column": "user_inputs"
+            },
+            "response": {
+                "source_column": "trace_summary"
+            },
+            "reference": {
+                "source_column": "extracted_data:tool_declarations"
+            },
         },
     },
     "tool_use_quality": {
@@ -76,25 +79,30 @@ METRIC_TEMPLATES = {
         "instruction": (
             "Evaluate the agent's tool calls for correctness. Score 1 only if EVERY "
             "criterion below is met; 0 if any criterion fails. The tool list and "
-            "actual call trace are in the **Reference** section."
-        ),
+            "actual call trace are in the **Reference** section."),
         "criteria": {
-            "selection": "Each tool the agent chose is appropriate for the request.",
-            "arguments": "Tool arguments are populated correctly (right keys, right types, no obvious typos).",
-            "no_redundancy": "No duplicate / unnecessary tool calls.",
+            "selection":
+                "Each tool the agent chose is appropriate for the request.",
+            "arguments":
+                "Tool arguments are populated correctly (right keys, right types, no obvious typos).",
+            "no_redundancy":
+                "No duplicate / unnecessary tool calls.",
         },
         "rating_scores": {
             "1": "Pass: all three criteria met",
             "0": "Fail: at least one criterion not met",
         },
         "dataset_mapping": {
-            "prompt": {"source_column": "user_inputs"},
-            "response": {"source_column": "final_response"},
+            "prompt": {
+                "source_column": "user_inputs"
+            },
+            "response": {
+                "source_column": "final_response"
+            },
             "reference": {
-                "template": (
-                    "Available Tools: {extracted_data_tool_declarations}\n\n"
-                    "Tool Calls: {extracted_data_tool_interactions}"
-                ),
+                "template":
+                    ("Available Tools: {extracted_data_tool_declarations}\n\n"
+                     "Tool Calls: {extracted_data_tool_interactions}"),
                 "source_columns": [
                     "extracted_data:tool_declarations",
                     "extracted_data:tool_interactions",
@@ -106,7 +114,11 @@ METRIC_TEMPLATES = {
         "kind": "managed",
         "base": "GROUNDING",
         "threshold": 4.0,
-        "dataset_mapping": {"context": {"source_column": "final_session_state"}},
+        "dataset_mapping": {
+            "context": {
+                "source_column": "final_session_state"
+            }
+        },
     },
     "safety": {
         "kind": "managed",
@@ -123,7 +135,8 @@ def _backup_existing_files(eval_dir: Path, mode: str) -> Path | None:
     """
     files_to_backup = [eval_dir / "metrics" / "metric_definitions.json"]
     if mode in ("user-sim", "both"):
-        files_to_backup.append(eval_dir / "scenarios" / "conversation_scenarios.json")
+        files_to_backup.append(eval_dir / "scenarios" /
+                               "conversation_scenarios.json")
     if mode in ("diy", "both"):
         files_to_backup.append(eval_dir / "eval_data" / "golden_dataset.json")
 
@@ -197,8 +210,7 @@ def scaffold_metrics_only(
         if if_exists == "skip":
             console.print(
                 f"  [yellow]kept[/]     {eval_dir}/metrics/metric_definitions.json  "
-                f"[dim](already on disk; not overwriting)[/]"
-            )
+                f"[dim](already on disk; not overwriting)[/]")
             return
         if if_exists == "backup_and_overwrite" and custom_metric_definitions:
             backup = _backup_existing_files(eval_dir, mode="dataset-only")
@@ -212,7 +224,8 @@ def scaffold_metrics_only(
             )
             return
     metrics_path.write_text(json.dumps(metric_defs, indent=2) + "\n")
-    console.print(f"  [green]created[/]  {eval_dir}/metrics/metric_definitions.json")
+    console.print(
+        f"  [green]created[/]  {eval_dir}/metrics/metric_definitions.json")
     console.print(f"  [green]created[/]  {eval_dir}/results/.gitkeep")
 
 
@@ -297,9 +310,12 @@ def _rows_from_recommendations(
             # SDK FLATTEN canonical column name. Older code used
             # 'conversation_history'; both still parse but 'history' is
             # the wire form so writing it directly avoids a translation.
-            row["history"] = [
-                {"role": "user", "parts": [{"text": t}]} for t in user_inputs[:-1]
-            ]
+            row["history"] = [{
+                "role": "user",
+                "parts": [{
+                    "text": t
+                }]
+            } for t in user_inputs[:-1]]
         # Keep reference_data NESTED — single source of truth for
         # golden-comparison metrics. The evaluator's per-metric
         # `reference_data:<field>` source columns + the
@@ -373,7 +389,11 @@ def scaffold_dataset_jsonl(
     project_root = agent_project_root(target_dir)
     dataset_path = project_root / "tests" / "eval" / "dataset.jsonl"
 
-    session_inputs = {"app_name": agent_name, "user_id": "eval_user", "state": {}}
+    session_inputs = {
+        "app_name": agent_name,
+        "user_id": "eval_user",
+        "state": {}
+    }
     ai_rows = _rows_from_recommendations(recommendations, session_inputs)
 
     if dataset_path.exists() and not ai_rows:
@@ -381,13 +401,8 @@ def scaffold_dataset_jsonl(
         return
 
     if dataset_path.exists() and ai_rows:
-        backup_root = (
-            project_root
-            / "tests"
-            / "eval"
-            / ".backup"
-            / datetime.now().strftime("%Y%m%d_%H%M%S")
-        )
+        backup_root = (project_root / "tests" / "eval" / ".backup" /
+                       datetime.now().strftime("%Y%m%d_%H%M%S"))
         backup_root.mkdir(parents=True, exist_ok=True)
         shutil.copy2(dataset_path, backup_root / "dataset.jsonl")
         console.print(f"  [dim]Previous dataset backed up to {backup_root}[/]")
@@ -407,7 +422,8 @@ def scaffold_dataset_jsonl(
     with dataset_path.open("w", encoding="utf-8") as fh:
         for row in rows:
             fh.write(json.dumps(row, ensure_ascii=False) + "\n")
-    console.print(f"  [green]created[/]  {dataset_path} [dim]({len(rows)} rows)[/]")
+    console.print(
+        f"  [green]created[/]  {dataset_path} [dim]({len(rows)} rows)[/]")
 
 
 def _write_if_missing(path: Path, content: str) -> None:
