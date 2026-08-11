@@ -87,16 +87,15 @@ def _summarize_diff(before: Any, after: Any) -> list[str]:
     lines: list[str] = []
 
     if isinstance(before, dict) and isinstance(after, dict):
-        b_metrics = (before.get("metrics") or {}) if "metrics" in before else before
-        a_metrics = (after.get("metrics") or {}) if "metrics" in after else after
+        b_metrics = (before.get("metrics") or
+                     {}) if "metrics" in before else before
+        a_metrics = (after.get("metrics") or
+                     {}) if "metrics" in after else after
         if isinstance(b_metrics, dict) and isinstance(a_metrics, dict):
             removed = sorted(set(b_metrics) - set(a_metrics))
             added = sorted(set(a_metrics) - set(b_metrics))
-            modified = sorted(
-                k
-                for k in (set(b_metrics) & set(a_metrics))
-                if b_metrics.get(k) != a_metrics.get(k)
-            )
+            modified = sorted(k for k in (set(b_metrics) & set(a_metrics))
+                              if b_metrics.get(k) != a_metrics.get(k))
             for name in added:
                 lines.append(f"[green]+ added[/]    {name}")
             for name in removed:
@@ -108,12 +107,13 @@ def _summarize_diff(before: Any, after: Any) -> list[str]:
         delta = len(after) - len(before)
         if delta > 0:
             lines.append(
-                f"[green]+ added[/]    {delta} row(s) (now {len(after)} total)"
-            )
+                f"[green]+ added[/]    {delta} row(s) (now {len(after)} total)")
         elif delta < 0:
-            lines.append(f"[red]− removed[/]  {-delta} row(s) (now {len(after)} total)")
+            lines.append(
+                f"[red]− removed[/]  {-delta} row(s) (now {len(after)} total)")
         else:
-            lines.append(f"[yellow]~ same row count[/] ({len(after)}); content edited")
+            lines.append(
+                f"[yellow]~ same row count[/] ({len(after)}); content edited")
 
     if not lines:
         lines.append("[yellow]~ file changed[/] (couldn't structurally diff)")
@@ -160,7 +160,8 @@ def _review_artifact(
 
     post_hash = _hash_file(path)
     if pre_hash == post_hash:
-        console.print("  [dim]No edits — continuing with the generated version.[/]")
+        console.print(
+            "  [dim]No edits — continuing with the generated version.[/]")
         snap = path.with_suffix(path.suffix + ".gen")
         if snap.exists():
             with contextlib.suppress(OSError):
@@ -174,8 +175,7 @@ def _review_artifact(
         console.print(
             f"  [red]Couldn't re-parse {path.name}:[/] {exc.msg} (at offset {exc.pos})\n"
             f"  [dim]Fix the file and re-run `agent-eval init`, or restore the AI version "
-            f"from a backup under tests/eval/.backup/.[/]"
-        )
+            f"from a backup under tests/eval/.backup/.[/]")
         raise click.Abort() from None
 
     # Diff against the generated version, then clean up the snapshot so it
@@ -236,11 +236,13 @@ def _render_metric_review_guide(
     n = len(custom_metrics)
     plural = "metric" if n == 1 else "metrics"
     console.print(
-        f"  [bold]{n} {plural}[/] will score every row in your dataset.jsonl."
-    )
+        f"  [bold]{n} {plural}[/] will score every row in your dataset.jsonl.")
 
     # Compact per-metric summary so the user knows what each entry does.
-    summary = Table(show_header=False, box=None, padding=(0, 2), show_edge=False)
+    summary = Table(show_header=False,
+                    box=None,
+                    padding=(0, 2),
+                    show_edge=False)
     summary.add_column(style="bold cyan", min_width=24)
     summary.add_column(style="dim")
     for name, defn in custom_metrics.items():
@@ -250,33 +252,31 @@ def _render_metric_review_guide(
         elif defn.get("kind") == "custom_llm_judge":
             n_crit = len(defn.get("criteria") or {})
             scores = sorted((defn.get("rating_scores") or {}).keys())
-            scale = (
-                "binary 0/1"
-                if scores == ["0", "1"]
-                else f"scale {scores[0]}-{scores[-1]}"
-                if scores
-                else "?"
-            )
+            scale = ("binary 0/1" if scores == ["0", "1"] else
+                     f"scale {scores[0]}-{scores[-1]}" if scores else "?")
             tags = []
             if defn.get("requires_reference"):
                 tags.append("reference rows")
             if defn.get("requires_multi_turn"):
                 tags.append("multi-turn rows")
             tag_str = f" · {' · '.join(tags)}" if tags else ""
-            summary.add_row(name, f"custom · {n_crit} criteria · {scale}{tag_str}")
+            summary.add_row(name,
+                            f"custom · {n_crit} criteria · {scale}{tag_str}")
         else:
             summary.add_row(name, f"kind: {defn.get('kind', '?')}")
     console.print(summary)
 
     if rationale:
         console.print()
-        console.print("  [bold]Why these metrics[/] [dim](Gemini's reasoning):[/]")
+        console.print(
+            "  [bold]Why these metrics[/] [dim](Gemini's reasoning):[/]")
         for line in rationale.strip().splitlines():
             console.print(f"    [dim]│[/] {line}")
 
     console.print()
     console.print("  [bold]What you can edit freely[/]")
-    console.print("    [green]✓[/] Add or remove entries under [cyan]metrics[/]")
+    console.print(
+        "    [green]✓[/] Add or remove entries under [cyan]metrics[/]")
     console.print(
         "    [green]✓[/] For [cyan]custom_llm_judge[/] metrics — edit [cyan]instruction[/], [cyan]criteria[/], [cyan]rating_scores[/]"
     )
@@ -345,7 +345,8 @@ def _validate_user_edited_metrics(parsed: Any) -> list[str]:
     return errors
 
 
-def _required_reference_fields(custom_metrics: dict[str, Any]) -> list[tuple[str, str]]:
+def _required_reference_fields(
+        custom_metrics: dict[str, Any]) -> list[tuple[str, str]]:
     """Extract (metric_name, reference_data_field) pairs from the metrics dict.
 
     The data-generation step needs this to know which ``reference_data:<field>``
@@ -363,7 +364,8 @@ def _required_reference_fields(custom_metrics: dict[str, Any]) -> list[tuple[str
         if not isinstance(defn, dict):
             continue
         # Custom LLM judge with requires_reference + reference_data:<field> mapping
-        for _placeholder, mapping in (defn.get("dataset_mapping") or {}).items():
+        for _placeholder, mapping in (defn.get("dataset_mapping") or
+                                      {}).items():
             if isinstance(mapping, dict):
                 col = mapping.get("source_column", "")
                 if isinstance(col, str) and col.startswith("reference_data:"):
@@ -405,9 +407,9 @@ def _review_with_validation_loop(
         edited, parsed = _review_artifact(
             metrics_path,
             explanation=lambda: _render_metric_review_guide(
-                custom_metrics, rationale, metrics_path
-            ),
-            title="here's what each metric does + open the file to tweak before we generate test data",
+                custom_metrics, rationale, metrics_path),
+            title=
+            "here's what each metric does + open the file to tweak before we generate test data",
             auto_approve=auto_approve,
         )
 
@@ -417,20 +419,20 @@ def _review_with_validation_loop(
         errors = _validate_user_edited_metrics(parsed)
         if not errors:
             edited_metrics = parsed.get("metrics") or {}
-            return {k: v for k, v in edited_metrics.items() if isinstance(v, dict)}
+            return {
+                k: v for k, v in edited_metrics.items() if isinstance(v, dict)
+            }
 
         # Validation failed — surface errors and let user retry.
         console.print()
         console.print(
             f"  [yellow]·[/] [bold]Found {len(errors)} issue(s) in your edits.[/] "
-            "[dim]Fix them so the eval pipeline doesn't break:[/]"
-        )
+            "[dim]Fix them so the eval pipeline doesn't break:[/]")
         for err in errors:
             console.print(f"    [red]✗[/] {err}")
         console.print()
         console.print(
-            "    [bold]1.[/] [green]Edit again[/] — fix the file and continue"
-        )
+            "    [bold]1.[/] [green]Edit again[/] — fix the file and continue")
         console.print(
             "    [bold]2.[/] [yellow]Restore the AI version[/] — discard your edits, use what Gemini generated"
         )
@@ -449,7 +451,8 @@ def _review_with_validation_loop(
             if snapshot.exists():
                 metrics_path.write_text(snapshot.read_text())
                 snapshot.unlink()
-                console.print("  [green]>[/] Restored the Gemini-generated version.")
+                console.print(
+                    "  [green]>[/] Restored the Gemini-generated version.")
             return custom_metrics
         if choice == 3:
             console.print("  [dim]Aborting init. Re-run when you're ready.[/]")
@@ -488,10 +491,8 @@ def _validate_dataset_against_metrics(
     required_fields = _required_reference_fields(custom_metrics)
     for metric_name, field in required_fields:
         rows_with_field = [
-            r
-            for r in rows
-            if isinstance(r.get("reference_data"), dict)
-            and r["reference_data"].get(field) not in (None, "", [], {})
+            r for r in rows if isinstance(r.get("reference_data"), dict) and
+            r["reference_data"].get(field) not in (None, "", [], {})
         ]
         if rows_with_field:
             continue
@@ -506,8 +507,7 @@ def _validate_dataset_against_metrics(
                 f"[bold cyan]{metric_name}[/] needs [cyan]reference_data.{field}[/] populated, "
                 f"but [bold]{len(rows_with_field_top_level)} row(s)[/] have it as a "
                 f"[cyan]top-level[/] field instead. Move [cyan]{field}[/] inside a nested "
-                f"[cyan]reference_data: {{...}}[/] dict on each row."
-            )
+                f"[cyan]reference_data: {{...}}[/] dict on each row.")
         else:
             warnings.append(
                 f"[bold cyan]{metric_name}[/] needs [cyan]reference_data.{field}[/] populated, "
@@ -516,14 +516,12 @@ def _validate_dataset_against_metrics(
 
     # Multi-turn metric needs multi-turn rows to score against.
     multi_turn_metrics = [
-        n
-        for n, d in custom_metrics.items()
+        n for n, d in custom_metrics.items()
         if isinstance(d, dict) and d.get("requires_multi_turn")
     ]
     if multi_turn_metrics:
         has_multi_turn = any(
-            (r.get("history") or r.get("conversation_plan")) for r in rows
-        )
+            (r.get("history") or r.get("conversation_plan")) for r in rows)
         if not has_multi_turn:
             names = ", ".join(f"[cyan]{n}[/]" for n in multi_turn_metrics)
             warnings.append(
@@ -538,21 +536,17 @@ def _validate_dataset_against_metrics(
     # actionable fixes (add reference_data to a multi-turn row, OR drop one
     # flag). NOT a blocker — both shapes are fully supported at runtime.
     both_flagged_metrics = [
-        (n, d)
-        for n, d in custom_metrics.items()
-        if isinstance(d, dict)
-        and d.get("requires_multi_turn")
-        and d.get("requires_reference")
+        (n, d) for n, d in custom_metrics.items() if isinstance(d, dict) and
+        d.get("requires_multi_turn") and d.get("requires_reference")
     ]
     if both_flagged_metrics:
         has_both_in_dataset = any(
-            (r.get("history") or r.get("conversation_plan"))
-            and isinstance(r.get("reference_data"), dict)
-            and any(
-                v for v in r["reference_data"].values() if v not in (None, "", [], {})
-            )
-            for r in rows
-        )
+            (r.get("history") or r.get("conversation_plan")) and
+            isinstance(r.get("reference_data"), dict) and any(
+                v
+                for v in r["reference_data"].values()
+                if v not in (None, "", [], {}))
+            for r in rows)
         if not has_both_in_dataset:
             names = ", ".join(f"[cyan]{n}[/]" for n, _ in both_flagged_metrics)
             warnings.append(
@@ -561,8 +555,7 @@ def _validate_dataset_against_metrics(
                 f"Two fixes (either works): "
                 f"(1) add a [cyan]reference_data[/] block to a multi-turn row in "
                 f"[cyan]dataset.jsonl[/] populating the field this metric reads, OR "
-                f"(2) drop one flag from the metric definition."
-            )
+                f"(2) drop one flag from the metric definition.")
 
     return warnings
 
@@ -592,15 +585,15 @@ def _review_dataset_with_validation(
             auto_approve=auto_approve,
         )
 
-        warnings = _validate_dataset_against_metrics(dataset_path, custom_metrics)
+        warnings = _validate_dataset_against_metrics(dataset_path,
+                                                     custom_metrics)
         if not warnings:
             return  # clean — continue
 
         console.print()
         console.print(
             f"  [yellow]·[/] [bold]Found {len(warnings)} coverage issue(s) in your dataset.[/] "
-            "[dim]Some metrics won't have rows to score:[/]"
-        )
+            "[dim]Some metrics won't have rows to score:[/]")
         for w in warnings:
             console.print(f"    [yellow]![/] {w}")
         console.print()
@@ -637,6 +630,8 @@ _SKIP_DIRS = {
     "sub_agents",
     "app_env",
     "eval_history",
+    "tmp_clone",
+    "test_init_tmp",
 }
 
 INTERACTION_MODES = [
@@ -745,7 +740,8 @@ def _maybe_offer_legacy_migration(agent_dir: Path) -> None:
     if legacy is None:
         return
 
-    has_scenarios = (legacy / "scenarios" / "conversation_scenarios.json").exists()
+    has_scenarios = (legacy / "scenarios" /
+                     "conversation_scenarios.json").exists()
     has_golden = (legacy / "eval_data" / "golden_dataset.json").exists()
     if not (has_scenarios or has_golden):
         return
@@ -804,19 +800,15 @@ def _verify_environment(auto_approve: bool = False) -> None:
 
     # Lazy import — setup.py imports _pause from this module, so a top-level
     # import the other way would create a cycle at module load time.
-    from agent_eval.cli.commands.setup import (
-        _adc_file_path,
-    )
-    from agent_eval.cli.commands.setup import (
-        _check_api_enabled as _setup_check_api,
-    )
+    from agent_eval.cli.commands.setup import _adc_file_path
+    from agent_eval.cli.commands.setup import _check_api_enabled as _setup_check_api
 
     load_dotenv(dotenv_path=".env", override=True)
 
     console.print()
     console.print(
-        Rule("  Step 1/4: Checking your Google Cloud environment  ", style="bold cyan")
-    )
+        Rule("  Step 1/4: Checking your Google Cloud environment  ",
+             style="bold cyan"))
     console.print()
     console.print(
         "  [dim]Eval needs a project, ADC credentials, and the Vertex AI API enabled.[/]"
@@ -826,13 +818,15 @@ def _verify_environment(auto_approve: bool = False) -> None:
     )
     _pause()
 
-    project = os.environ.get("GOOGLE_CLOUD_PROJECT") or os.environ.get("PROJECT_ID")
+    project = os.environ.get("GOOGLE_CLOUD_PROJECT") or os.environ.get(
+        "PROJECT_ID")
     location = os.environ.get("GOOGLE_CLOUD_LOCATION") or "us-central1"
     missing: list[str] = []
 
     console.print()
     if project:
-        console.print(f"  [green]>[/] GOOGLE_CLOUD_PROJECT = [cyan]{project}[/]")
+        console.print(
+            f"  [green]>[/] GOOGLE_CLOUD_PROJECT = [cyan]{project}[/]")
     else:
         console.print("  [red]x[/] GOOGLE_CLOUD_PROJECT is not set")
         missing.append("project")
@@ -852,7 +846,8 @@ def _verify_environment(auto_approve: bool = False) -> None:
         if api_ok is True:
             console.print("  [green]>[/] Vertex AI API is enabled")
         elif api_ok is False:
-            console.print("  [red]x[/] Vertex AI API is not enabled on this project")
+            console.print(
+                "  [red]x[/] Vertex AI API is not enabled on this project")
             missing.append("api")
         else:
             console.print(
@@ -861,7 +856,8 @@ def _verify_environment(auto_approve: bool = False) -> None:
 
     if missing:
         console.print()
-        console.print("  [yellow]![/] Your Google Cloud environment isn't ready yet.")
+        console.print(
+            "  [yellow]![/] Your Google Cloud environment isn't ready yet.")
         console.print(
             "  [dim]Run this first — it walks the same checks and fixes anything missing:[/]"
         )
@@ -896,8 +892,8 @@ def _display_path_detection(search_dir: Path) -> PathDetection:  # noqa: F821
 
     console.print()
     console.print(
-        Rule("  Step 3/4: Figuring out how to reach your agent  ", style="bold cyan")
-    )
+        Rule("  Step 3/4: Figuring out how to reach your agent  ",
+             style="bold cyan"))
     console.print()
     console.print(
         "  [dim]To score your agent, agent-eval first needs to[/] [bold]run it against test inputs[/]"
@@ -908,8 +904,7 @@ def _display_path_detection(search_dir: Path) -> PathDetection:  # noqa: F821
     console.print()
     console.print(
         "  [dim]The[/] [bold]local pipeline[/] [dim]is the default — we import your[/] [cyan]agent.py[/] "
-        "[dim]directly so you can iterate without redeploying.[/]"
-    )
+        "[dim]directly so you can iterate without redeploying.[/]")
     console.print()
     console.print(
         "  [dim]Captured interactions land in[/] [cyan]tests/eval/dataset.jsonl[/][dim], which Step 4 hands to[/]"
@@ -922,8 +917,8 @@ def _display_path_detection(search_dir: Path) -> PathDetection:  # noqa: F821
     # ── Scan: local ADK source (the primary surface) ──
     _continue("Next: look for a local agent.py →", console=console)
     with console.status(
-        "  [dim]Scanning for a local agent.py...[/]",
-        spinner="dots",
+            "  [dim]Scanning for a local agent.py...[/]",
+            spinner="dots",
     ):
         _pause(_PAUSE_LONG)
         local_detection = _detect_local_adk(search_dir)
@@ -1002,8 +997,7 @@ def _display_path_detection(search_dir: Path) -> PathDetection:  # noqa: F821
             _pause()
             console.print(
                 "    [dim italic]Have non-ADK traces? See[/] [cyan]docs/reference.md[/] [dim italic]→ "
-                "Experimental & on the roadmap (BYOD ingest is in design).[/]"
-            )
+                "Experimental & on the roadmap (BYOD ingest is in design).[/]")
 
             # Manual deployment-resource entry — only shown when nothing was
             # auto-detected AND we're interactive. Keeps the operational
@@ -1026,8 +1020,8 @@ def _display_path_detection(search_dir: Path) -> PathDetection:  # noqa: F821
                 if manual and manual.strip():
                     stripped = manual.strip()
                     if re.match(
-                        r"^projects/[^/]+/locations/[^/]+/reasoningEngines/[^/]+$",
-                        stripped,
+                            r"^projects/[^/]+/locations/[^/]+/reasoningEngines/[^/]+$",
+                            stripped,
                     ):
                         ae_detection = PathDetection(
                             path="A",
@@ -1046,8 +1040,7 @@ def _display_path_detection(search_dir: Path) -> PathDetection:  # noqa: F821
     if ae_detection is not None and local_detection is not None:
         ae_detection.local_agents = local_detection.local_agents
         ae_detection.evidence = (
-            f"{ae_detection.evidence}; also found {local_detection.evidence}"
-        )
+            f"{ae_detection.evidence}; also found {local_detection.evidence}")
         detection: PathDetection = ae_detection
     elif ae_detection is not None:
         detection = ae_detection
@@ -1060,9 +1053,8 @@ def _display_path_detection(search_dir: Path) -> PathDetection:  # noqa: F821
         )
 
     console.print()
-    _continue(
-        "Next: configuring the metrics that will score your agent →", console=console
-    )
+    _continue("Next: configuring the metrics that will score your agent →",
+              console=console)
     return detection
 
 
@@ -1108,13 +1100,13 @@ def _prompt_path_choice(detection) -> set[str]:
     if chosen == {"A", "B"}:
         console.print(
             "  [green]>[/] Scaffolding the [bold]local pipeline[/] [dim]+[/] "
-            "the [bold]Agent Engine streamlined pass[/]."
-        )
+            "the [bold]Agent Engine streamlined pass[/].")
         console.print(
             "    [dim]They compose — keep iterating locally, re-run the streamlined pass to confirm against the deployed agent.[/]"
         )
     elif chosen == {"B"}:
-        console.print("  [green]>[/] Scaffolding the [bold]local pipeline[/] only.")
+        console.print(
+            "  [green]>[/] Scaffolding the [bold]local pipeline[/] only.")
         console.print(
             "    [dim]No deployment detected — that's the typical starting point. Deploy with[/] "
             "[cyan]make backend[/] [dim](or any agent_engine target) to also unlock the streamlined pass.[/]"
@@ -1136,9 +1128,8 @@ def _prompt_path_choice(detection) -> set[str]:
 # ── Step 2: Agent Selection ─────────────────────────────────────────────────
 
 
-def _prompt_agent_selection(
-    agents: list[tuple[str, Path]], search_dir: Path
-) -> tuple[str, Path]:
+def _prompt_agent_selection(agents: list[tuple[str, Path]],
+                            search_dir: Path) -> tuple[str, Path]:
     """Let the user select which discovered agent to scaffold for."""
     console.print()
     console.print(Rule("  Step 2/4: Selecting your agent  ", style="bold cyan"))
@@ -1157,7 +1148,8 @@ def _prompt_agent_selection(
 
     if len(agents) > 1:
         console.print()
-        console.print("  [dim]Sub-agents (inside sub_agents/) are excluded —[/]")
+        console.print(
+            "  [dim]Sub-agents (inside sub_agents/) are excluded —[/]")
         console.print("  [dim]evaluate them through their parent agent.[/]")
 
     console.print()
@@ -1167,7 +1159,8 @@ def _prompt_agent_selection(
         choice = IntPrompt.ask(f"  Select agent [dim](1-{len(agents)})[/]")
 
     while choice < 1 or choice > len(agents):
-        console.print(f"  [red]Please enter a number between 1 and {len(agents)}[/]")
+        console.print(
+            f"  [red]Please enter a number between 1 and {len(agents)}[/]")
         choice = IntPrompt.ask("  Select agent")
 
     selected = agents[choice - 1]
@@ -1181,7 +1174,8 @@ def _prompt_agent_name_manual() -> tuple[str, Path]:
     console.print(Rule("  Step 2/4: Selecting your agent  ", style="bold cyan"))
     console.print()
     console.print()
-    console.print("  [yellow]![/] No ADK agents found in the current directory tree.")
+    console.print(
+        "  [yellow]![/] No ADK agents found in the current directory tree.")
     console.print(
         "  [dim]An ADK agent is identified by a folder containing an agent.py file.[/]"
     )
@@ -1214,8 +1208,7 @@ def _prompt_interaction_mode(chosen_paths: set[str] | None = None) -> str:
         console.print()
         console.print(
             "  [dim]Streamlined Agent Engine pass scaffolds[/] [cyan]tests/eval/dataset.jsonl[/] "
-            "[dim]only — no scenarios needed (no local agent to drive).[/]"
-        )
+            "[dim]only — no scenarios needed (no local agent to drive).[/]")
         return "dataset-only"
 
     console.print()
@@ -1275,7 +1268,7 @@ def _prompt_interaction_mode(chosen_paths: set[str] | None = None) -> str:
 
 
 def _prompt_metrics_choice(
-    agent_dir: Path, agent_name: str
+        agent_dir: Path, agent_name: str
 ) -> tuple[list[str], dict | None, dict | None, dict | None]:
     """Let user choose between starter metrics or AI-generated metrics.
 
@@ -1286,8 +1279,7 @@ def _prompt_metrics_choice(
         Rule(
             "  Step 4/4: Configuring the metrics that will score your agent  ",
             style="bold cyan",
-        )
-    )
+        ))
     console.print()
     console.print(
         "  [dim]Deterministic metrics (latency, tokens, cost) are always included — they come for free[/]"
@@ -1307,7 +1299,8 @@ def _prompt_starter_metrics() -> list[str]:
     console.print()
     _draw_metrics(selected)
 
-    console.print("\n  [dim]Enter numbers to toggle, or press Enter to continue.[/]")
+    console.print(
+        "\n  [dim]Enter numbers to toggle, or press Enter to continue.[/]")
 
     while True:
         raw = Prompt.ask("  Toggle", default="")
@@ -1325,7 +1318,8 @@ def _prompt_starter_metrics() -> list[str]:
                 _draw_metrics(selected)
                 console.print()
         except ValueError:
-            console.print("  [red]Enter a number or press Enter to continue.[/]")
+            console.print(
+                "  [red]Enter a number or press Enter to continue.[/]")
 
     return selected
 
@@ -1364,7 +1358,8 @@ def _display_metrics_education(managed_metrics: dict[str, dict]) -> None:
 
     # ── Background 1 — the SDK call ──────────────────────────────────────
     console.print()
-    console.print("  [dim]── Background 1 of 3 — the SDK call we'll run for you ──[/]")
+    console.print(
+        "  [dim]── Background 1 of 3 — the SDK call we'll run for you ──[/]")
     console.print()
     console.print(
         "  [dim]When you later run[/] [cyan]agent-eval evaluate[/][dim], we hand the dataset and[/]"
@@ -1383,13 +1378,13 @@ def _display_metrics_education(managed_metrics: dict[str, dict]) -> None:
         "result = client.evals.evaluate(\n"
         "    dataset=eval_dataset,              # tests/eval/dataset.jsonl\n"
         "    metrics=[ ...your selections... ], # SDK Metric objects\n"
-        ")"
-    )
+        ")")
     console.print(
-        Syntax(
-            code, "python", theme="monokai", padding=(0, 4), background_color="default"
-        )
-    )
+        Syntax(code,
+               "python",
+               theme="monokai",
+               padding=(0, 4),
+               background_color="default"))
     console.print()
     console.print(
         "  [dim]Docs:[/] [cyan]https://cloud.google.com/vertex-ai/generative-ai/docs/models/run-evaluation[/]"
@@ -1414,15 +1409,19 @@ def _display_metrics_education(managed_metrics: dict[str, dict]) -> None:
     cols.add_column(style="dim")
     cols.add_row("prompt", "user input — always present")
     cols.add_row(
-        "response", "agent's text reply — filled in at runtime by simulate / interact"
-    )
+        "response",
+        "agent's text reply — filled in at runtime by simulate / interact")
     cols.add_row(
-        "reference", "expected answer — used by computation + final_response_match"
-    )
-    cols.add_row("conversation_history", "multi-turn dialogue — multi_turn_* metrics")
-    cols.add_row("intermediate_events", "tool calls + thoughts — tool_use_quality")
-    cols.add_row("session_inputs", "ADK session init (app_name, user_id, state)")
-    cols.add_row("expected_*", "free-form columns surfaced to custom metric templates")
+        "reference",
+        "expected answer — used by computation + final_response_match")
+    cols.add_row("conversation_history",
+                 "multi-turn dialogue — multi_turn_* metrics")
+    cols.add_row("intermediate_events",
+                 "tool calls + thoughts — tool_use_quality")
+    cols.add_row("session_inputs",
+                 "ADK session init (app_name, user_id, state)")
+    cols.add_row("expected_*",
+                 "free-form columns surfaced to custom metric templates")
     console.print(cols)
     console.print()
     console.print(
@@ -1434,8 +1433,7 @@ def _display_metrics_education(managed_metrics: dict[str, dict]) -> None:
     console.print()
     console.print(
         f"  [dim]── Background 3 of 3 — the families your[/] [bold]{len(managed_metrics)}[/] "
-        "[dim]managed metrics belong to ──[/]"
-    )
+        "[dim]managed metrics belong to ──[/]")
     console.print()
     console.print(
         "  [dim]Knowing the family tells you what data the metric needs and how it's scored.[/]"
@@ -1501,7 +1499,8 @@ def _display_metrics_education(managed_metrics: dict[str, dict]) -> None:
     console.print(fams)
 
     if absent_families:
-        absent_names = " and ".join(f"[bold]{label}[/]" for label, _ in absent_families)
+        absent_names = " and ".join(
+            f"[bold]{label}[/]" for label, _ in absent_families)
         console.print()
         console.print(
             f"  [dim italic]Vertex docs also catalog {absent_names}, but the SDK we pin[/]"
@@ -1524,15 +1523,12 @@ def _display_metrics_education(managed_metrics: dict[str, dict]) -> None:
 
     # ── Resilience callout ───────────────────────────────────────────────
     counts_str = " · ".join(
-        f"{family_counts.get(f, 0)} {label}"
-        for f, label in [
+        f"{family_counts.get(f, 0)} {label}" for f, label in [
             ("adaptive_rubric", "adaptive"),
             ("static_rubric", "static"),
             ("computation", "computation"),
             ("translation", "translation"),
-        ]
-        if family_counts.get(f, 0) > 0
-    )
+        ] if family_counts.get(f, 0) > 0)
     console.print()
     console.print(
         f"  [green]>[/] [dim]Found[/] [bold]{len(managed_metrics)}[/] [dim]managed metrics in[/] "
@@ -1626,10 +1622,8 @@ def _prompt_managed_metrics_selection(
     # choices breaks the moment any value grows or the terminal shrinks.
     console.print()
     console.print("  [bold]Now pick which managed metrics to enable[/]")
-    console.print(
-        "  [dim]Same families you just saw, grouped the same way. "
-        "Catalog first, picker right after.[/]"
-    )
+    console.print("  [dim]Same families you just saw, grouped the same way. "
+                  "Catalog first, picker right after.[/]")
     console.print()
 
     # Render one sub-table per family, sandwiched between Rich rules. This
@@ -1653,7 +1647,8 @@ def _prompt_managed_metrics_selection(
         return family_short.get(key, key.replace("_", " ").title())
 
     def _family_subtitle(key: str) -> str:
-        return family_subtitle.get(key, "[new family from SDK — not yet curated]")
+        return family_subtitle.get(key,
+                                   "[new family from SDK — not yet curated]")
 
     # Iteration counter the catalog reads to vary the "Pre-checked" wording
     # between the first render and re-opens. Dict-wrapped so the closure can
@@ -1673,10 +1668,8 @@ def _prompt_managed_metrics_selection(
                 if not members:
                     continue
                 console.print()
-                console.print(
-                    f"  [bold cyan]{_family_label(family)}[/]  "
-                    f"[dim]· {_family_subtitle(family)}[/]"
-                )
+                console.print(f"  [bold cyan]{_family_label(family)}[/]  "
+                              f"[dim]· {_family_subtitle(family)}[/]")
                 sub = Table(
                     header_style="bold cyan",
                     border_style="grey50",
@@ -1715,8 +1708,7 @@ def _prompt_managed_metrics_selection(
             console.print()
             console.print(
                 "  [bold yellow]End of catalog.[/]  "
-                "[dim]Press[/] [bold]q[/] [dim]to exit and open the picker.[/]"
-            )
+                "[dim]Press[/] [bold]q[/] [dim]to exit and open the picker.[/]")
             console.rule(style="grey50")
         console.print()
 
@@ -1732,8 +1724,7 @@ def _prompt_managed_metrics_selection(
         _checked_names = sorted(
             managed_base_name(managed_metrics[k])
             for k in defaults
-            if k in managed_metrics
-        )
+            if k in managed_metrics)
         _names_text = ", ".join(_checked_names) if _checked_names else "nothing"
         if _from_existing_file and not _picker_iteration["count"]:
             console.print(
@@ -1744,31 +1735,26 @@ def _prompt_managed_metrics_selection(
         elif _picker_iteration["count"]:
             console.print(
                 f"  [dim]Pre-checked:[/] [bold green]{_names_text}[/] "
-                f"[dim]— your selections so far (preserved across reopens).[/]"
-            )
+                f"[dim]— your selections so far (preserved across reopens).[/]")
         else:
             console.print(
                 f"  [dim]Pre-checked for you:[/] [bold green]{_names_text}[/] "
-                "[dim]— the Vertex AI docs' recommended starting point.[/]"
-            )
+                "[dim]— the Vertex AI docs' recommended starting point.[/]")
         console.print(
             "  [dim]Forgot what something does? Tick[/] [bold]↩ Reopen the catalog[/] "
-            "[dim](first option) and confirm — selections are kept.[/]"
-        )
+            "[dim](first option) and confirm — selections are kept.[/]")
         console.print()
 
-    picker_style = questionary.Style(
-        [
-            ("qmark", "fg:#00d7ff bold"),
-            ("question", "bold"),
-            ("answer", "fg:#5fff87 bold"),
-            ("pointer", "fg:#00d7ff bold"),
-            ("highlighted", "fg:#00d7ff bold"),
-            ("selected", "fg:#5fff87 bold"),
-            ("separator", "fg:#6c6c6c bold"),
-            ("instruction", "fg:#6c6c6c italic"),
-        ]
-    )
+    picker_style = questionary.Style([
+        ("qmark", "fg:#00d7ff bold"),
+        ("question", "bold"),
+        ("answer", "fg:#5fff87 bold"),
+        ("pointer", "fg:#00d7ff bold"),
+        ("highlighted", "fg:#00d7ff bold"),
+        ("selected", "fg:#5fff87 bold"),
+        ("separator", "fg:#6c6c6c bold"),
+        ("instruction", "fg:#6c6c6c italic"),
+    ])
 
     # Sentinel value for the "↩ Reopen the catalog" choice. If the user leaves
     # this checked when they confirm, we re-render the catalog (preserving
@@ -1795,7 +1781,8 @@ def _prompt_managed_metrics_selection(
             if not members:
                 continue
             # Thin grouping marker — full label/subtitle live in the catalog above.
-            choices.append(questionary.Separator(f"── {_family_label(family)} ──"))
+            choices.append(
+                questionary.Separator(f"── {_family_label(family)} ──"))
             for key in sorted(members):
                 info = members[key]
                 tag = _tag_for(info)
@@ -1803,13 +1790,15 @@ def _prompt_managed_metrics_selection(
                 if tag:
                     label = f"{label}  [{tag}]"
                 choices.append(
-                    questionary.Choice(label, value=key, checked=(key in defaults))
-                )
+                    questionary.Choice(label,
+                                       value=key,
+                                       checked=(key in defaults)))
 
         selected_keys = questionary.checkbox(
             "Select managed metrics:",
             choices=choices,
-            instruction=" ",  # legend already printed above; keep prompt line clean
+            instruction=
+            " ",  # legend already printed above; keep prompt line clean
             style=picker_style,
             qmark="?",
         ).ask()
@@ -1848,8 +1837,7 @@ def _prompt_managed_metrics_selection(
 
             console.print(
                 f"  [bold]Review your selection — {len(selected_keys)} managed metric"
-                f"{'s' if len(selected_keys) != 1 else ''}:[/]"
-            )
+                f"{'s' if len(selected_keys) != 1 else ''}:[/]")
             for fam in family_order:
                 if fam not in review_by_family:
                     continue
@@ -1860,8 +1848,7 @@ def _prompt_managed_metrics_selection(
         else:
             console.print(
                 "  [yellow]·[/] [bold]No managed metrics selected.[/] "
-                "[dim](custom metrics are still available in the next step)[/]"
-            )
+                "[dim](custom metrics are still available in the next step)[/]")
 
         console.print()
         try:
@@ -1893,8 +1880,7 @@ def _prompt_managed_metrics_selection(
             console.print(
                 f"  [dim]↩ Reopening the picker — your[/] "
                 f"[bold]{len(defaults)}[/] [dim]selection"
-                f"{'s' if len(defaults) != 1 else ''} will be kept.[/]"
-            )
+                f"{'s' if len(defaults) != 1 else ''} will be kept.[/]")
             console.print()
             continue
 
@@ -1913,13 +1899,11 @@ def _prompt_managed_metrics_selection(
     if selected:
         console.print(
             f"  [green]✓[/] [bold]Locked in {len(selected)} managed metric"
-            f"{'s' if len(selected) != 1 else ''}.[/]"
-        )
+            f"{'s' if len(selected) != 1 else ''}.[/]")
     else:
         console.print(
             "  [yellow]>[/] [bold]Continuing with no managed metrics.[/] "
-            "[dim](you can add custom metrics in the next step)[/]"
-        )
+            "[dim](you can add custom metrics in the next step)[/]")
 
     return selected
 
@@ -1930,7 +1914,8 @@ def _display_agent_analysis(analysis: dict[str, Any]) -> None:
     console.print(
         "  [dim]These are the data points found in your code. Custom metrics[/]"
     )
-    console.print("  [dim]will be designed to evaluate your agent using this data.[/]")
+    console.print(
+        "  [dim]will be designed to evaluate your agent using this data.[/]")
     console.print()
     table = Table(
         border_style="cyan",
@@ -1947,8 +1932,24 @@ def _display_agent_analysis(analysis: dict[str, Any]) -> None:
     # Tools
     tools = analysis.get("tools", [])
     if tools:
+        from agent_eval.core.metric_generator import tool_interactions_available
+
         tool_names = ", ".join(t.get("name", "?") for t in tools[:5])
-        table.add_row("tool_interactions", f"{len(tools)} tools: {tool_names}")
+        if tool_interactions_available(analysis):
+            table.add_row("tool_interactions",
+                          f"{len(tools)} tools: {tool_names}")
+        else:
+            # Built-in tools run server-side and never emit functionCall events,
+            # so this column stays empty — say so instead of implying it's usable.
+            table.add_row(
+                "[dim]tool_interactions[/]",
+                f"[dim]empty — {tool_names} are built-in tools (grounding "
+                "metadata, not tool calls)[/]",
+            )
+            table.add_row(
+                "grounding_chunks",
+                "What the built-in search returned — use this instead",
+            )
 
     # State variables
     state_vars = analysis.get("state_variables", {})
@@ -1959,16 +1960,17 @@ def _display_agent_analysis(analysis: dict[str, Any]) -> None:
     sub_agents = analysis.get("sub_agents", [])
     if sub_agents:
         agent_names = ", ".join(a.get("name", "?") for a in sub_agents[:5])
-        table.add_row("sub_agent_trace", f"{len(sub_agents)} sub-agents: {agent_names}")
+        table.add_row("sub_agent_trace",
+                      f"{len(sub_agents)} sub-agents: {agent_names}")
 
     # Conversation history
-    table.add_row(
-        "conversation_history", "Full multi-turn conversation (if simulation)"
-    )
+    table.add_row("conversation_history",
+                  "Full multi-turn conversation (if simulation)")
 
     console.print(table)
     console.print()
-    console.print("  [dim]State variables are available via extracted_data:<name>[/]")
+    console.print(
+        "  [dim]State variables are available via extracted_data:<name>[/]")
     console.print("  [dim]Creating state variables in your agent makes them[/]")
     console.print("  [dim]available for evaluation metrics automatically.[/]")
 
@@ -1977,7 +1979,9 @@ def _display_agent_analysis(analysis: dict[str, Any]) -> None:
     behaviors = analysis.get("key_behaviors", [])
     if behaviors:
         console.print()
-        console.rule("[dim]Key behaviors to evaluate[/]", style="grey50", align="left")
+        console.rule("[dim]Key behaviors to evaluate[/]",
+                     style="grey50",
+                     align="left")
         console.print()
         for b in behaviors[:5]:
             console.print(f"    [dim]•[/] {b}")
@@ -2067,15 +2071,16 @@ def _prompt_ai_metrics_multistep(
             console.print(
                 f"  [green]>[/] {len(existing_custom)} custom: [cyan]{custom_names}[/]"
             )
-        console.print("  [dim]Your existing selections will be pre-checked below.[/]")
+        console.print(
+            "  [dim]Your existing selections will be pre-checked below.[/]")
 
     # ── Discover managed metrics from SDK ─────────────────────────────────
     console.print()
     managed_metrics = {}
     try:
         with console.status(
-            "[bold blue]  Asking the Vertex AI Eval SDK what's available...[/]",
-            spinner="dots",
+                "[bold blue]  Asking the Vertex AI Eval SDK what's available...[/]",
+                spinner="dots",
         ):
             from agent_eval.core.metric_discovery import discover_managed_metrics
 
@@ -2091,10 +2096,12 @@ def _prompt_ai_metrics_multistep(
 
     # ── User selects managed metrics (intro lives inside the helper) ──────
     preselected = existing_managed_keys if existing_managed_keys else None
-    selected_managed = _prompt_managed_metrics_selection(managed_metrics, preselected)
+    selected_managed = _prompt_managed_metrics_selection(
+        managed_metrics, preselected)
 
     if selected_managed:
-        names = ", ".join(managed_base_name(info) for info in selected_managed.values())
+        names = ", ".join(
+            managed_base_name(info) for info in selected_managed.values())
         console.print(f"\n  [green]Selected:[/] {names}")
     else:
         console.print("\n  [dim]No managed metrics selected.[/]")
@@ -2107,8 +2114,7 @@ def _prompt_ai_metrics_multistep(
     if existing_custom:
         console.print(
             f"  [dim]You have {len(existing_custom)} existing custom metric(s): "
-            f"{', '.join(sorted(existing_custom.keys()))}[/]"
-        )
+            f"{', '.join(sorted(existing_custom.keys()))}[/]")
         console.print("  [dim]Gemini will preserve and may improve them.[/]")
     console.print(
         "  [dim]Guide what custom metrics should focus on (optional) — e.g., accuracy[/]"
@@ -2120,7 +2126,8 @@ def _prompt_ai_metrics_multistep(
         "  [dim]Press Enter to skip — Gemini will analyze the code on its own.[/]"
     )
     console.print()
-    user_priorities = Prompt.ask("  What should custom metrics focus on?", default="")
+    user_priorities = Prompt.ask("  What should custom metrics focus on?",
+                                 default="")
 
     # How many custom metrics? Gemini gravitates to the upper bound of any
     # range we give it (told 2-4 → returned 3 even when the user asked for
@@ -2129,16 +2136,13 @@ def _prompt_ai_metrics_multistep(
     console.print()
     console.print(
         "  [dim italic]Tip: start small.[/] [dim]One sharp metric you understand "
-        "beats five fuzzy ones — easier to debug,[/]"
-    )
+        "beats five fuzzy ones — easier to debug,[/]")
     console.print(
         "  [dim]easier to trust, and the eval loop becomes more meaningful. "
-        "You can grow the catalog later — your[/]"
-    )
+        "You can grow the catalog later — your[/]")
     console.print(
         "  [cyan]CLAUDE.md[/] [dim]/[/] [cyan]GEMINI.md[/] [dim]teach your code assistant the "
-        "metric_definitions.json schema, so editing it[/]"
-    )
+        "metric_definitions.json schema, so editing it[/]")
     console.print("  [dim]is a one-line ask away.[/]")
     console.print()
     while True:
@@ -2160,7 +2164,8 @@ def _prompt_ai_metrics_multistep(
 
     generate_custom = True  # always generate; refine/skip loop is the user's off-ramp
 
-    _continue("Next: scan your agent's code for evaluation data →", console=console)
+    _continue("Next: scan your agent's code for evaluation data →",
+              console=console)
 
     # ── Gemini Call 1 — Analyze agent source code ─────────────────────────
     console.print()
@@ -2171,8 +2176,8 @@ def _prompt_ai_metrics_multistep(
     console.print()
     agent_analysis: dict[str, Any] = {}
     with console.status(
-        "[bold blue]  Analyzing agent source code...[/]",
-        spinner="dots",
+            "[bold blue]  Analyzing agent source code...[/]",
+            spinner="dots",
     ):
         try:
             from agent_eval.core.metric_generator import analyze_agent_data
@@ -2181,7 +2186,11 @@ def _prompt_ai_metrics_multistep(
         except Exception as e:
             console.print(f"  [yellow]Agent analysis failed:[/] {e}")
             console.print("  [dim]Continuing with default data assumptions.[/]")
-            agent_analysis = {"tools": [], "state_variables": {}, "key_behaviors": []}
+            agent_analysis = {
+                "tools": [],
+                "state_variables": {},
+                "key_behaviors": []
+            }
 
     if agent_analysis.get("tools") or agent_analysis.get("state_variables"):
         console.print()
@@ -2205,8 +2214,7 @@ def _prompt_ai_metrics_multistep(
         console.print()
         console.print(
             f"  [bold]Gemini found {len(suggestions)} state variable(s)[/] [dim]you could add to "
-            "your agent that would unlock richer evaluation[/]"
-        )
+            "your agent that would unlock richer evaluation[/]")
         console.print(
             "  [dim](e.g. tracking tool inputs/outputs explicitly so metrics can score them).[/]"
         )
@@ -2232,8 +2240,7 @@ def _prompt_ai_metrics_multistep(
             )
             console.print(
                 "    [bold]2.[/] [green]No — continue[/] (use the agent's current state variables only; "
-                "drop the suggestions)"
-            )
+                "drop the suggestions)")
             console.print()
             action = IntPrompt.ask("  Select", default=2)
             while action not in (1, 2):
@@ -2245,24 +2252,24 @@ def _prompt_ai_metrics_multistep(
                 console.print()
                 console.print("  [bold cyan]Re-analyzing your agent's code[/]")
                 console.print(
-                    "  [dim]Reading updated agent.py, tools, and prompts...[/]"
-                )
+                    "  [dim]Reading updated agent.py, tools, and prompts...[/]")
                 console.print()
                 with console.status(
-                    "[bold blue]  Re-analyzing agent source code...[/]",
-                    spinner="dots",
+                        "[bold blue]  Re-analyzing agent source code...[/]",
+                        spinner="dots",
                 ):
                     try:
-                        from agent_eval.core.metric_generator import (
-                            analyze_agent_data as _reanalyze,
-                        )
+                        from agent_eval.core import metric_generator
 
-                        agent_analysis = _reanalyze(agent_dir, agent_name)
+                        agent_analysis = metric_generator.analyze_agent_data(
+                            agent_dir, agent_name)
                     except Exception as e:
                         console.print(f"  [yellow]Re-analysis failed:[/] {e}")
-                        console.print("  [dim]Continuing with previous analysis.[/]")
+                        console.print(
+                            "  [dim]Continuing with previous analysis.[/]")
 
-                if agent_analysis.get("tools") or agent_analysis.get("state_variables"):
+                if agent_analysis.get("tools") or agent_analysis.get(
+                        "state_variables"):
                     console.print()
                     _display_agent_analysis(agent_analysis)
 
@@ -2302,9 +2309,8 @@ def _prompt_ai_metrics_multistep(
             "  [dim]These complement your selected managed metrics — they won't be replaced.[/]"
         )
         console.print()
-        with console.status(
-            "[bold blue]  Generating custom metrics...[/]", spinner="dots"
-        ):
+        with console.status("[bold blue]  Generating custom metrics...[/]",
+                            spinner="dots"):
             try:
                 from agent_eval.core.metric_generator import generate_metric_definitions
 
@@ -2325,13 +2331,13 @@ def _prompt_ai_metrics_multistep(
         if custom_metrics:
             console.print()
             _display_generated_metrics(custom_metrics, rationale)
-            _continue(
-                "Next: accept, refine, or skip the generated metrics →", console=console
-            )
+            _continue("Next: accept, refine, or skip the generated metrics →",
+                      console=console)
 
             while True:
                 console.print()
-                console.print("    [bold]1.[/] [green]Accept[/] — use these metrics")
+                console.print(
+                    "    [bold]1.[/] [green]Accept[/] — use these metrics")
                 console.print(
                     "    [bold]2.[/] [cyan]Refine[/] — provide feedback and regenerate"
                 )
@@ -2358,8 +2364,7 @@ def _prompt_ai_metrics_multistep(
                     '  [dim]Tell Gemini what to adjust — e.g., "focus more on tool error[/]'
                 )
                 console.print(
-                    '  [dim]handling", "add a metric for latency awareness"[/]'
-                )
+                    '  [dim]handling", "add a metric for latency awareness"[/]')
                 console.print()
                 feedback = Prompt.ask("  Feedback")
                 if not feedback.strip():
@@ -2372,9 +2377,8 @@ def _prompt_ai_metrics_multistep(
                     combined_priorities = f"FEEDBACK on previous generation: {feedback}"
 
                 console.print()
-                with console.status(
-                    "[bold blue]Regenerating metrics...[/]", spinner="dots"
-                ):
+                with console.status("[bold blue]Regenerating metrics...[/]",
+                                    spinner="dots"):
                     try:
                         custom_metrics, rationale = generate_metric_definitions(
                             agent_dir=agent_dir,
@@ -2386,7 +2390,8 @@ def _prompt_ai_metrics_multistep(
                             existing_metrics=existing_metrics,
                         )
                     except Exception as e:
-                        console.print(f"\n  [yellow]Regeneration failed:[/] {e}")
+                        console.print(
+                            f"\n  [yellow]Regeneration failed:[/] {e}")
                         console.print("  [dim]Showing previous results.[/]")
                         continue
 
@@ -2410,9 +2415,8 @@ def _prompt_ai_metrics_multistep(
     from agent_eval.core.scaffold import scaffold_metrics_only
 
     project_root = agent_project_root(agent_dir)
-    metrics_path = (
-        project_root / "tests" / "eval" / "metrics" / "metric_definitions.json"
-    )
+    metrics_path = (project_root / "tests" / "eval" / "metrics" /
+                    "metric_definitions.json")
     console.print()
     console.print(
         "  [bold cyan]Writing metric_definitions.json[/] [dim](you can tweak it before we generate test data)[/]"
@@ -2432,7 +2436,8 @@ def _prompt_ai_metrics_multistep(
     # ── Test data guidance ────────────────────────────────────────────────
     console.print()
     console.print("  [bold cyan]Creating test scenarios and sample queries[/]")
-    console.print("  [dim]We'll generate two kinds of test rows from your metrics:[/]")
+    console.print(
+        "  [dim]We'll generate two kinds of test rows from your metrics:[/]")
     console.print(
         "    [cyan]•[/] [bold]Multi-turn[/] [dim]— conversation scripts that drive[/] [cyan]simulate[/] [dim](ADK UserSim plays the user role)[/]"
     )
@@ -2446,16 +2451,13 @@ def _prompt_ai_metrics_multistep(
     # and let the user override.
     console.print(
         "  [dim italic]Tip: start small.[/] [dim]A few well-chosen rows you can read end-to-end "
-        "beat dozens of[/]"
-    )
+        "beat dozens of[/]")
     console.print(
         "  [dim]auto-generated noise — easier to debug, easier to trust the scores. "
-        "You can grow the[/]"
-    )
+        "You can grow the[/]")
     console.print(
         "  [dim]dataset later — your[/] [cyan]CLAUDE.md[/] [dim]/[/] [cyan]GEMINI.md[/] "
-        "[dim]teach your code assistant the row schema, so adding[/]"
-    )
+        "[dim]teach your code assistant the row schema, so adding[/]")
     console.print("  [dim]more rows is a one-line ask away.[/]")
     console.print()
     while True:
@@ -2472,8 +2474,7 @@ def _prompt_ai_metrics_multistep(
         console.print("  [red]Pick a number between 1 and 30.[/]")
     console.print(
         f"  [dim]→ Gemini will generate exactly[/] [bold]{n_rows} multi-turn[/] [dim]+[/] "
-        f"[bold]{n_rows} single-turn[/] [dim]rows ({n_rows * 2} total).[/]"
-    )
+        f"[bold]{n_rows} single-turn[/] [dim]rows ({n_rows * 2} total).[/]")
 
     console.print()
     if existing_scenarios or existing_golden:
@@ -2494,9 +2495,11 @@ def _prompt_ai_metrics_multistep(
             "  [dim]Press Enter to skip — Gemini will generate based on agent code and metrics.[/]"
         )
     console.print()
-    test_data_priorities = Prompt.ask("  What should test data focus on?", default="")
+    test_data_priorities = Prompt.ask("  What should test data focus on?",
+                                      default="")
 
-    _continue("Next: generate test scenarios and sample queries →", console=console)
+    _continue("Next: generate test scenarios and sample queries →",
+              console=console)
 
     # Required reference_data field names — extracted from the (possibly
     # user-edited) metrics so Call 3 knows which fields MUST be populated.
@@ -2507,7 +2510,8 @@ def _prompt_ai_metrics_multistep(
 
     # ── Gemini Call 3 — Generate test data ────────────────────────────────
     recommendations: dict[str, Any] = {}
-    with console.status("[bold blue]  Generating test data...[/]", spinner="dots"):
+    with console.status("[bold blue]  Generating test data...[/]",
+                        spinner="dots"):
         try:
             from agent_eval.core.metric_generator import generate_eval_data
 
@@ -2532,9 +2536,8 @@ def _prompt_ai_metrics_multistep(
     # ── Confirm/Refine test data ──────────────────────────────────────────
     if recommendations:
         _display_recommendations(recommendations)
-        _continue(
-            "Next: accept, refine, or skip the generated test data →", console=console
-        )
+        _continue("Next: accept, refine, or skip the generated test data →",
+                  console=console)
 
         while True:
             console.print()
@@ -2580,9 +2583,8 @@ def _prompt_ai_metrics_multistep(
                 test_data_priorities = f"FEEDBACK on previous generation: {feedback}"
 
             console.print()
-            with console.status(
-                "[bold blue]Regenerating test data...[/]", spinner="dots"
-            ):
+            with console.status("[bold blue]Regenerating test data...[/]",
+                                spinner="dots"):
                 try:
                     recommendations = generate_eval_data(
                         agent_dir=agent_dir,
@@ -2628,8 +2630,7 @@ def _load_existing_metrics(agent_dir: Path) -> dict[str, Any] | None:
 
 
 def _load_existing_eval_data(
-    agent_dir: Path,
-) -> tuple[list | None, list | None]:
+    agent_dir: Path,) -> tuple[list | None, list | None]:
     """Load existing scenarios and golden data if present."""
     eval_dir = agent_dir / "eval"
     if not eval_dir.exists():
@@ -2656,8 +2657,7 @@ def _load_existing_eval_data(
         try:
             content = json.loads(f.read_text())
             all_questions.extend(
-                content.get("golden_questions", content.get("questions", []))
-            )
+                content.get("golden_questions", content.get("questions", [])))
         except Exception:
             pass
     if all_questions:
@@ -2687,9 +2687,9 @@ def _display_generated_metrics(metrics: dict, rationale: str) -> None:
         return "any row"
 
     # Sort: managed metrics first, then custom
-    sorted_metrics = sorted(
-        metrics.items(), key=lambda x: (0 if is_managed_entry(x[1]) else 1, x[0])
-    )
+    sorted_metrics = sorted(metrics.items(),
+                            key=lambda x:
+                            (0 if is_managed_entry(x[1]) else 1, x[0]))
 
     shown_custom_separator = False
     for name, defn in sorted_metrics:
@@ -2706,17 +2706,15 @@ def _display_generated_metrics(metrics: dict, rationale: str) -> None:
             shown_custom_separator = True
 
         metric_type = "managed" if is_managed else "custom"
-        desc = (
-            defn.get("description", "")
-            if is_managed
-            else defn.get("score_range", {}).get("description", "")
-        )
+        desc = (defn.get("description", "") if is_managed else defn.get(
+            "score_range", {}).get("description", ""))
         table.add_row(name, metric_type, desc[:60], _runs_on(defn))
 
     console.print(table)
 
     console.print()
-    console.print("  [dim]Runs On:  any row       = no row capability required[/]")
+    console.print(
+        "  [dim]Runs On:  any row       = no row capability required[/]")
     console.print(
         "  [dim]         multi-turn rows = needs conversation_history (simulate output)[/]"
     )
@@ -2724,14 +2722,16 @@ def _display_generated_metrics(metrics: dict, rationale: str) -> None:
         "  [dim]         reference rows  = needs reference_data (golden questions)[/]"
     )
     console.print()
-    console.print("  [dim]Managed = Google's built-in rubrics (you selected these)[/]")
-    console.print("  [dim]Custom  = AI-generated rubrics tailored to your agent[/]")
+    console.print(
+        "  [dim]Managed = Google's built-in rubrics (you selected these)[/]")
+    console.print(
+        "  [dim]Custom  = AI-generated rubrics tailored to your agent[/]")
 
     if rationale and not rationale.startswith("\n"):
         console.print()
-        console.rule(
-            "[dim]Rationale — why these metrics[/]", style="grey50", align="left"
-        )
+        console.rule("[dim]Rationale — why these metrics[/]",
+                     style="grey50",
+                     align="left")
         console.print()
         for line in rationale.strip().splitlines():
             console.print(f"  [dim]{line}[/]")
@@ -2805,11 +2805,8 @@ def _display_recommendations(recommendations: dict) -> None:
             inputs = g.get("user_inputs", [])
             query = inputs[0] if inputs else g.get("description", "")
             ref_data = g.get("reference_data", {})
-            expected = (
-                ref_data.get("expected_behavior", "")
-                if isinstance(ref_data, dict)
-                else ""
-            )
+            expected = (ref_data.get("expected_behavior", "") if isinstance(
+                ref_data, dict) else "")
             if not expected:
                 expected = g.get("expected_behavior", g.get("description", ""))
             golden_table.add_row(str(i), query, expected)
@@ -2819,7 +2816,8 @@ def _display_recommendations(recommendations: dict) -> None:
 def _draw_metrics(selected: list[str]) -> None:
     for i, (key, label, desc, _) in enumerate(STARTER_METRICS, 1):
         marker = "[green]x[/]" if key in selected else " "
-        console.print(f"    [{marker}] [bold]{i}.[/] {label:24s} [dim]{desc}[/]")
+        console.print(
+            f"    [{marker}] [bold]{i}.[/] {label:24s} [dim]{desc}[/]")
 
 
 # ── Summary & Next Steps ───────────────────────────────────────────────────
@@ -2846,9 +2844,8 @@ def _display_summary(
 
     # Determine what will happen to each file
     existing_dataset = (unified_dir / "dataset.jsonl").exists()
-    existing_unified_metrics = (
-        unified_dir / "metrics" / "metric_definitions.json"
-    ).exists()
+    existing_unified_metrics = (unified_dir / "metrics" /
+                                "metric_definitions.json").exists()
     has_ai = custom_metrics is not None
 
     # One unified location, both surfaces read from it (Phase D — single
@@ -2857,8 +2854,7 @@ def _display_summary(
     # change WHERE we write.
     console.print(
         f"  Writing eval files to [cyan]{unified_dir}/[/]  "
-        f"[dim](one location feeds simulate, interact, and agent-engine)[/]"
-    )
+        f"[dim](one location feeds simulate, interact, and agent-engine)[/]")
     if is_existing and has_ai:
         console.print(
             "  [dim]Existing files will be backed up to .backup/ before updating.[/]"
@@ -2868,7 +2864,10 @@ def _display_summary(
     console.print()
 
     # Build file table with descriptions
-    table = Table(show_header=True, border_style="blue", padding=(0, 2), expand=True)
+    table = Table(show_header=True,
+                  border_style="blue",
+                  padding=(0, 2),
+                  expand=True)
     table.add_column("Status", width=10)
     table.add_column("File", style="cyan", ratio=2)
     table.add_column("Purpose", ratio=3)
@@ -2923,8 +2922,7 @@ def _display_summary(
     console.print(
         "  [dim]One file feeds every path. ADK's per-run scenario files "
         "(conversation_scenarios.json etc.) are projected from this dataset "
-        "by `agent-eval simulate` and live in app/ as ephemeral cache.[/]"
-    )
+        "by `agent-eval simulate` and live in app/ as ephemeral cache.[/]")
 
 
 def _display_next_steps(
@@ -2955,7 +2953,8 @@ def _display_next_steps(
 
     # Review files — single source of truth at the project root.
     lines.append(f"[bold]{step}.[/] Review your metric definitions:")
-    lines.append(f"   [cyan]{unified_eval / 'metrics' / 'metric_definitions.json'}[/]")
+    lines.append(
+        f"   [cyan]{unified_eval / 'metrics' / 'metric_definitions.json'}[/]")
     step += 1
     lines.append(
         f"[bold]{step}.[/] Review your evaluation dataset (one file, all paths):"
@@ -2982,7 +2981,8 @@ def _display_next_steps(
     # available. The streamlined Agent Engine pass is a confirmation step
     # against the deployed agent — surfaced second.
     if has_local:
-        lines.append(f"[bold]{step}.[/] Run the local pipeline (the iteration loop):")
+        lines.append(
+            f"[bold]{step}.[/] Run the local pipeline (the iteration loop):")
         lines.append(f"   [dim]$[/] agent-eval run --agent-dir {agent_dir_rel}")
         lines.append("")
         lines.append(
@@ -3005,8 +3005,7 @@ def _display_next_steps(
         lines.append("")
         lines.append(
             "   [dim]Auto-discovers[/] [cyan]tests/eval/dataset.jsonl[/] [dim]and[/] "
-            "[cyan]deployment_metadata.json[/] [dim]from the project root.[/]"
-        )
+            "[cyan]deployment_metadata.json[/] [dim]from the project root.[/]")
         lines.append(
             "   [yellow]⚠[/] [dim]This hits the[/] [bold]deployed[/] [dim]agent — local edits to[/] "
             "[cyan]agent.py[/] [dim]won't show up until you re-deploy with[/] [cyan]make backend[/][dim].[/]"
@@ -3061,8 +3060,7 @@ def _display_next_steps(
             title="[bold]Next Steps[/]",
             border_style="green",
             padding=(1, 2),
-        )
-    )
+        ))
 
 
 def _metric_uses_reference_data(defn: dict) -> bool:
@@ -3081,7 +3079,9 @@ def _metric_reference_fields(defn: dict) -> set[str]:
     for config in mapping.values():
         if not isinstance(config, dict):
             continue
-        cols = [config.get("source_column", ""), *config.get("source_columns", [])]
+        cols = [
+            config.get("source_column", ""), *config.get("source_columns", [])
+        ]
         for col in cols:
             if not col or "reference_data" not in col:
                 continue
@@ -3177,12 +3177,11 @@ def _display_connection_map(
                 for config in mapping.values():
                     if isinstance(config, dict):
                         for col in [
-                            config.get("source_column", ""),
-                            *config.get("source_columns", []),
+                                config.get("source_column", ""),
+                                *config.get("source_columns", []),
                         ]:
                             if "state_variables" in col or col.startswith(
-                                "extracted_data:"
-                            ):
+                                    "extracted_data:"):
                                 key = col.split(":")[-1].split(".")[-1]
                                 if key in state_vars:
                                     referenced.add(key)
@@ -3231,7 +3230,8 @@ def _display_connection_map(
 
     if ref_metric_fields:
         all_required = {
-            f for fields in ref_metric_fields.values() for f in fields if f != "*"
+            f for fields in ref_metric_fields.values() for f in fields
+            if f != "*"
         }
         populated = _populated_reference_fields(recommendations)
         missing = all_required - populated
@@ -3239,11 +3239,8 @@ def _display_connection_map(
         console.print()
         console.print("  [bold]Reference-data metrics[/]")
         for name, fields in sorted(ref_metric_fields.items()):
-            field_str = (
-                ", ".join(sorted(fields))
-                if fields != {"*"}
-                else "any populated field (auto-resolved)"
-            )
+            field_str = (", ".join(sorted(fields)) if fields != {"*"} else
+                         "any populated field (auto-resolved)")
             console.print(
                 f"    [cyan]{name}[/] -> reads [bold]reference_data.{field_str}[/]"
             )
@@ -3284,9 +3281,10 @@ def _display_connection_map(
     default=None,
     help="Interaction mode.",
 )
-@click.option(
-    "--auto-approve", "-y", is_flag=True, help="Skip interactive prompts, use defaults."
-)
+@click.option("--auto-approve",
+              "-y",
+              is_flag=True,
+              help="Skip interactive prompts, use defaults.")
 @click.option(
     "--ai-metrics",
     is_flag=True,
@@ -3312,7 +3310,8 @@ def init(target_dir, agent_name, mode, auto_approve, ai_metrics):
     custom_metrics = None
     recommendations = None
     agent_analysis = None
-    chosen_paths: set[str] = set()  # derived from detection below (interactive + auto)
+    chosen_paths: set[str] = set(
+    )  # derived from detection below (interactive + auto)
 
     if auto_approve:
         if target_dir:
@@ -3348,8 +3347,8 @@ def init(target_dir, agent_name, mode, auto_approve, ai_metrics):
         if ai_metrics:
             console.print()
             with console.status(
-                "[bold blue]Generating tailored metrics with Gemini...[/]",
-                spinner="dots",
+                    "[bold blue]Generating tailored metrics with Gemini...[/]",
+                    spinner="dots",
             ):
                 try:
                     from agent_eval.core.metric_discovery import (
@@ -3373,8 +3372,7 @@ def init(target_dir, agent_name, mode, auto_approve, ai_metrics):
                     # Preserve any existing metrics/test data on re-runs
                     existing_metrics_auto = _load_existing_metrics(agent_dir)
                     existing_scenarios_auto, existing_golden_auto = (
-                        _load_existing_eval_data(agent_dir)
-                    )
+                        _load_existing_eval_data(agent_dir))
 
                     # Run the 3-step pipeline
                     agent_analysis = analyze_agent_data(agent_dir, agent_name)
@@ -3396,12 +3394,13 @@ def init(target_dir, agent_name, mode, auto_approve, ai_metrics):
                     recommendations = eval_data
                     metrics = list(selected_managed.keys())
                     console.print(
-                        f"  [green]Generated {len(custom_metrics)} metrics[/]"
-                    )
+                        f"  [green]Generated {len(custom_metrics)} metrics[/]")
                 except Exception as e:
                     console.print(f"  [yellow]AI generation failed:[/] {e}")
                     console.print("  [dim]Using default starter metrics.[/]")
-                    metrics = [key for key, _, _, default in STARTER_METRICS if default]
+                    metrics = [
+                        key for key, _, _, default in STARTER_METRICS if default
+                    ]
         else:
             metrics = [key for key, _, _, default in STARTER_METRICS if default]
     else:
@@ -3413,7 +3412,8 @@ def init(target_dir, agent_name, mode, auto_approve, ai_metrics):
         # file — even if the user wants to work on a different one.
         agents = _find_agents(search_dir)
         if agents:
-            agent_name_found, agent_dir = _prompt_agent_selection(agents, search_dir)
+            agent_name_found, agent_dir = _prompt_agent_selection(
+                agents, search_dir)
             agent_name = agent_name or agent_name_found
         else:
             agent_name, agent_dir = _prompt_agent_name_manual()
@@ -3444,8 +3444,7 @@ def init(target_dir, agent_name, mode, auto_approve, ai_metrics):
 
         mode = mode or _prompt_interaction_mode(chosen_paths)
         metrics, custom_metrics, recommendations, agent_analysis = (
-            _prompt_metrics_choice(agent_dir, agent_name)
-        )
+            _prompt_metrics_choice(agent_dir, agent_name))
 
     # No-detect fallback: default to the local pipeline. It's the typical
     # starting point — you don't need a deployment to start iterating, and
@@ -3455,12 +3454,12 @@ def init(target_dir, agent_name, mode, auto_approve, ai_metrics):
         chosen_paths = {"B"}
 
     console.print()
-    _display_summary(agent_dir, agent_name, mode, metrics, custom_metrics, chosen_paths)
+    _display_summary(agent_dir, agent_name, mode, metrics, custom_metrics,
+                     chosen_paths)
 
     if not auto_approve:
-        _continue(
-            "Next: write the eval files (you'll review each one) →", console=console
-        )
+        _continue("Next: write the eval files (you'll review each one) →",
+                  console=console)
 
     console.print()
 
@@ -3474,9 +3473,8 @@ def init(target_dir, agent_name, mode, auto_approve, ai_metrics):
     from agent_eval.core.scaffold import scaffold_dataset_jsonl, scaffold_metrics_only
 
     project_root = agent_project_root(agent_dir)
-    metrics_path = (
-        project_root / "tests" / "eval" / "metrics" / "metric_definitions.json"
-    )
+    metrics_path = (project_root / "tests" / "eval" / "metrics" /
+                    "metric_definitions.json")
 
     metrics_already_materialized = metrics_path.exists()
     scaffold_metrics_only(
@@ -3489,7 +3487,8 @@ def init(target_dir, agent_name, mode, auto_approve, ai_metrics):
     # Non-AI / starter-metrics path: the file was just written for the first
     # time. Run the same review + validation loop the AI path uses so the
     # user gets a chance to tweak before the dataset gets written.
-    if not metrics_already_materialized and metrics_path.exists() and not auto_approve:
+    if not metrics_already_materialized and metrics_path.exists(
+    ) and not auto_approve:
         try:
             starter_parsed = _parse_artifact(metrics_path)
         except Exception:
@@ -3533,7 +3532,8 @@ def init(target_dir, agent_name, mode, auto_approve, ai_metrics):
     eval_config_path = project_root / "tests" / "eval" / "eval_config.json"
     if not eval_config_path.exists():
         eval_config_path.parent.mkdir(parents=True, exist_ok=True)
-        eval_config_path.write_text(json.dumps({"criteria": {}}, indent=2) + "\n")
+        eval_config_path.write_text(
+            json.dumps({"criteria": {}}, indent=2) + "\n")
 
     # Legacy ADK runtime files (eval/scenarios/) are NOT written anymore in
     # the unified flow. simulate.py projects them on-demand from
@@ -3548,10 +3548,12 @@ def init(target_dir, agent_name, mode, auto_approve, ai_metrics):
     if not auto_approve:
         _continue("Next: how to run your first evaluation →", console=console)
     console.print()
-    _display_next_steps(agent_name, agent_dir, mode, custom_metrics, chosen_paths)
+    _display_next_steps(agent_name, agent_dir, mode, custom_metrics,
+                        chosen_paths)
 
 
-def _explain_metrics_file(path: Path, custom_metrics: dict[str, Any] | None) -> None:
+def _explain_metrics_file(path: Path,
+                          custom_metrics: dict[str, Any] | None) -> None:
     """Render the per-metric breakdown of metric_definitions.json so the
     user knows what each entry does + which internal flags drive routing."""
     try:
@@ -3578,13 +3580,13 @@ def _explain_metrics_file(path: Path, custom_metrics: dict[str, Any] | None) -> 
         if is_managed:
             mname = managed_base_name(defn)
             required = _MANAGED_METRIC_REQUIRED_COLUMNS.get(
-                mname, ("prompt", "response")
-            )
+                mname, ("prompt", "response"))
             required_str = ", ".join(required)
             type_str = "[cyan]managed[/]"
         else:
             mapping = defn.get("dataset_mapping") or {}
-            required_str = ", ".join(sorted(mapping.keys())) or "(custom template)"
+            required_str = ", ".join(sorted(
+                mapping.keys())) or "(custom template)"
             type_str = "[magenta]custom[/]"
         flags = []
         if defn.get("requires_reference"):
@@ -3600,8 +3602,7 @@ def _explain_metrics_file(path: Path, custom_metrics: dict[str, Any] | None) -> 
         "[bold]is_managed[/]→takes Vertex's RubricMetric path; "
         "[bold]requires_multi_turn[/]→only score rows with `history`; "
         "[bold]requires_reference[/]→only score rows with `reference`; "
-        "[bold]dataset_mapping[/]→which trace fields go in which SDK column."
-    )
+        "[bold]dataset_mapping[/]→which trace fields go in which SDK column.")
 
 
 def _explain_dataset_file(path: Path) -> None:
@@ -3623,10 +3624,8 @@ def _explain_dataset_file(path: Path) -> None:
     n_single = sum(1 for r in rows if is_single_turn(r))
     n_both = sum(1 for r in rows if is_multi_turn(r) and is_single_turn(r))
     n_with_ref = sum(
-        1
-        for r in rows
-        if r.get("reference") or isinstance(r.get("reference_data"), dict)
-    )
+        1 for r in rows
+        if r.get("reference") or isinstance(r.get("reference_data"), dict))
 
     # Two orthogonal axes describe each row:
     #   1. SHAPE — multi-turn (driven by `simulate`) vs single-turn (driven by
@@ -3638,14 +3637,12 @@ def _explain_dataset_file(path: Path) -> None:
         f"[cyan]{n_multi} multi-turn[/] (→ `simulate`, "
         f"tests conversation flow), "
         f"[green]{n_single} single-turn[/] (→ `interact` + `agent-engine`, "
-        f"tests one-shot quality)"
-    )
+        f"tests one-shot quality)")
     if n_both:
         summary += f", [magenta]{n_both} both[/] (drive every command)"
     summary += (
         f". [yellow]{n_with_ref} carry [cyan]reference_data[/][/] "
-        f"(eligible for golden-comparison metrics — works on either shape)."
-    )
+        f"(eligible for golden-comparison metrics — works on either shape).")
     console.print(summary)
 
     # Show a 1-line sample per row, capped at 6 so the output stays scannable.
@@ -3658,9 +3655,8 @@ def _explain_dataset_file(path: Path) -> None:
 
     for i, row in enumerate(rows[:6]):
         rid = row.get("id") or f"row_{i:03d}"
-        kind = row.get("kind") or (
-            "multi_turn" if is_multi_turn(row) else "single_turn"
-        )
+        kind = row.get("kind") or ("multi_turn"
+                                   if is_multi_turn(row) else "single_turn")
         if is_multi_turn(row) and is_single_turn(row):
             drives = "simulate + interact + agent-engine"
         elif is_multi_turn(row):
@@ -3668,11 +3664,8 @@ def _explain_dataset_file(path: Path) -> None:
         else:
             drives = "interact + agent-engine"
         prompt = (row.get("prompt") or "").replace("\n", " ")[:55]
-        has_ref = (
-            "✓"
-            if (row.get("reference") or isinstance(row.get("reference_data"), dict))
-            else "[dim]—[/]"
-        )
+        has_ref = ("✓" if (row.get("reference") or isinstance(
+            row.get("reference_data"), dict)) else "[dim]—[/]")
         table.add_row(rid, kind, drives, prompt, has_ref)
 
     if len(rows) > 6:
@@ -3692,7 +3685,8 @@ def _explain_dataset_file(path: Path) -> None:
         'REQUIRED — "multi_turn" / "single_turn" / "both". Decides which command(s) read the row.',
     )
     keys.add_row(
-        "id", "REQUIRED — short label so failures point at a specific row. Edit freely."
+        "id",
+        "REQUIRED — short label so failures point at a specific row. Edit freely."
     )
     keys.add_row("prompt", "REQUIRED — the user's first message to the agent.")
     keys.add_row(
