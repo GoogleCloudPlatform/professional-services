@@ -97,7 +97,7 @@ agent-eval run        # collect → score → analyze → view
 
 `run` ends by opening that self-contained `report.html` in your browser. On a remote dev box without a display, it offers to spawn a localhost HTTP server you can SSH-tunnel or open via Cloud Workstation's Web Preview. `agent-eval report` re-opens it anytime.
 
-See [`docs/reference.md`](docs/reference.md) for the per-phase walkthrough, every flag, dataset schema details, custom metric patterns, troubleshooting, and the BYOD roadmap.
+See [`docs/reference.md`](docs/reference.md) for the per-phase walkthrough, every flag, dataset schema details, custom metric patterns, and troubleshooting. For detailed information on Bring Your Own Data schema contracts and offline trace injection, see the [Offline BYOD Schema Guide](docs/bring-your-own-data.md).
 
 ## Background Story
 
