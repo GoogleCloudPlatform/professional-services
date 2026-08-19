@@ -602,7 +602,7 @@ async def test_sdk_run_evaluation_pipeline_downloads_csv_files(
     ]
 
     with tempfile.TemporaryDirectory() as tmpdir:
-        tmp_path = Path(tmpdir)
+        tmp_path = Path(tmpdir).resolve()
         agent_dir = tmp_path / "my_agent"
         agent_dir.mkdir()
         (agent_dir / "agent.py").touch()

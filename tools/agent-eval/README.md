@@ -37,11 +37,11 @@ Install `agent-eval` directly from GitHub into your project's virtual environmen
 
 ```bash
 # Install from main branch into your current virtual environment
-uv pip install "agent-eval @ git+https://github.com/danielazamorah/professional-services.git@main#subdirectory=tools/agent-eval"
+uv pip install "agent-eval @ git+https://github.com/GoogleCloudPlatform/professional-services.git@main#subdirectory=tools/agent-eval"
 
 # Or install into a specific virtual environment (e.g. .venv-eval):
 uv pip install --python .venv-eval/bin/python \
-    "agent-eval @ git+https://github.com/danielazamorah/professional-services.git@main#subdirectory=tools/agent-eval"
+    "agent-eval @ git+https://github.com/GoogleCloudPlatform/professional-services.git@main#subdirectory=tools/agent-eval"
 ```
 
 *(Tip: You can target a specific branch by replacing `@main` with `@branch-name`, e.g. `@chore/agent-eval-0.1.1-docs`).*

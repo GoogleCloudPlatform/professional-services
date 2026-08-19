@@ -399,6 +399,47 @@ def map_dataset_columns(
         else:
             eval_dataset["response"] = ""
 
+    # Add 'reference' if not explicitly mapped but present in agent_df or original_df
+    if "reference" not in mapping:
+        ref_col = None
+        if "reference" in agent_df.columns:
+            ref_col = agent_df["reference"]
+        elif "reference_data" in agent_df.columns:
+            def extract_ref(x):
+                data = x if isinstance(x, dict) else robust_json_loads(x)
+                if isinstance(data, dict):
+                    if "reference_answer" in data:
+                        return data["reference_answer"]
+                    if "expected_response" in data:
+                        return data["expected_response"]
+                    if "reference" in data:
+                        return data["reference"]
+                    if "ground_truth" in data:
+                        return data["ground_truth"]
+                    return json.dumps(data)
+                return str(data) if data is not None else ""
+
+            ref_col = agent_df["reference_data"].apply(extract_ref)
+        elif "reference_data" in original_df.columns:
+            def extract_ref(x):
+                data = x if isinstance(x, dict) else robust_json_loads(x)
+                if isinstance(data, dict):
+                    if "reference_answer" in data:
+                        return data["reference_answer"]
+                    if "expected_response" in data:
+                        return data["expected_response"]
+                    if "reference" in data:
+                        return data["reference"]
+                    if "ground_truth" in data:
+                        return data["ground_truth"]
+                    return json.dumps(data)
+                return str(data) if data is not None else ""
+
+            ref_col = original_df["reference_data"].apply(extract_ref)
+
+        if ref_col is not None:
+            eval_dataset["reference"] = ref_col
+
     for placeholder, details in mapping.items():
         if "source_column" in details:
             col_path = details["source_column"]
@@ -710,6 +751,11 @@ def _map_agent_data_to_row(agent_data: Any) -> dict[str, Any]:
             "response")
         top_fss = agent_data.get("final_session_state")
         top_ref = agent_data.get("reference_data")
+        top_session_trace = agent_data.get("session_trace")
+        top_latency_data = agent_data.get("latency_data")
+        top_metadata = agent_data.get("metadata")
+        top_question_id = agent_data.get("question_id")
+        top_app_name = agent_data.get("app_name")
     else:
         session_id = (getattr(agent_data, "session_id", None) or
                       getattr(agent_data, "trace_id", None) or
@@ -722,6 +768,11 @@ def _map_agent_data_to_row(agent_data: Any) -> dict[str, Any]:
             agent_data, "response", None)
         top_fss = getattr(agent_data, "final_session_state", None)
         top_ref = getattr(agent_data, "reference_data", None)
+        top_session_trace = getattr(agent_data, "session_trace", None)
+        top_latency_data = getattr(agent_data, "latency_data", None)
+        top_metadata = getattr(agent_data, "metadata", None)
+        top_question_id = getattr(agent_data, "question_id", None)
+        top_app_name = getattr(agent_data, "app_name", None)
 
     # Agents evaluated
     if isinstance(agents_dict, dict):
@@ -802,7 +853,6 @@ def _map_agent_data_to_row(agent_data: Any) -> dict[str, Any]:
 
     final_response = (text_responses[-1] if text_responses else
                       (str(top_response) if top_response else ""))
-    response = final_response
 
     # Final session state
     final_session_state: dict[str, Any] = {}
@@ -812,23 +862,43 @@ def _map_agent_data_to_row(agent_data: Any) -> dict[str, Any]:
 
     reference_data = top_ref if isinstance(top_ref, dict) else {}
 
+    # Build Gemini batch format contents (request & response)
+    contents: list[dict[str, Any]] = []
+    for i, u_inp in enumerate(user_inputs):
+        contents.append({"role": "user", "parts": [{"text": str(u_inp)}]})
+        if i < len(text_responses):
+            contents.append({"role": "model", "parts": [{"text": str(text_responses[i])}]})
+    if not contents and prompt:
+        contents.append({"role": "user", "parts": [{"text": str(prompt)}]})
+
+    conversation_history = contents[:-1] if len(contents) > 1 else []
+
     extracted_data = {
         "tool_interactions": tool_interactions,
         "sub_agent_trace": sub_agent_trace,
+        "conversation_history": conversation_history,
     }
 
     return {
         "session_id": str(session_id),
+        "question_id": str(top_question_id or session_id),
         "prompt": str(prompt),
-        "response": str(response),
-        "user_inputs": user_inputs,
+        "response": str(final_response),
         "final_response": str(final_response),
+        "user_inputs": user_inputs,
         "extracted_data": extracted_data,
         "extracted_data.tool_interactions": tool_interactions,
         "extracted_data.sub_agent_trace": sub_agent_trace,
         "final_session_state": final_session_state,
         "reference_data": reference_data,
-        "agents_evaluated": agents_evaluated,
+        "metadata": top_metadata if isinstance(top_metadata, dict) else {},
+        "agents_evaluated": agents_evaluated or [top_app_name or "model"],
+        "session_trace": top_session_trace if isinstance(top_session_trace, list) else [],
+        "latency_data": top_latency_data if isinstance(top_latency_data, list) else [],
+        "turns": [
+            t.model_dump() if hasattr(t, "model_dump") else t
+            for t in (turns or [])
+        ],
     }
 
 

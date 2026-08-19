@@ -22,7 +22,7 @@ from agent_eval.core.stages.rubrics import RubricsStage
 
 
 class CalibrationStage(BaseStage):
-    """Validates metric score ranges and calibration readiness (Daniela's P1 Workstream)."""
+    """Validates metric score ranges and calibration readiness."""
 
     stage_name = "calibration"
 

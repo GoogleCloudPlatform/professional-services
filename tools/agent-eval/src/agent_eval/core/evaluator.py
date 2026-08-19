@@ -632,7 +632,9 @@ def load_and_consolidate_metrics(metric_files: list[str]) -> dict[str, Any]:
                             definition, dict):
                         continue
                     full_name = f"{prefix}_{name}".lstrip("_")
-                    consolidated[full_name] = definition
+                    metric_def = dict(definition)
+                    metric_def["_base_dir"] = str(Path(file_path).resolve().parent)
+                    consolidated[full_name] = metric_def
         except Exception as e:
             logger.error(f"Error loading {file_path}: {e}")
             sys.exit(1)
@@ -1117,7 +1119,7 @@ class Evaluator:
 
         for index, row in expanded_df.iterrows():
             try:
-                if not row.get("final_session_state"):
+                if row.get("final_session_state") is None and not row.get("session_trace") and not row.get("latency_data"):
                     continue
 
                 row_metrics = _get_row_metrics(row)
@@ -1353,7 +1355,10 @@ class Evaluator:
                 from agent_eval.core import metric_factory
 
                 try:
-                    metric_obj = metric_factory.build_metric(metric_name, info)
+                    base_dir = Path(info["_base_dir"]) if "_base_dir" in info else None
+                    metric_obj = metric_factory.build_metric(
+                        metric_name, info, base_dir=base_dir
+                    )
                 except Exception as build_err:
                     skipped_metrics.append({
                         "metric": metric_name,
@@ -1371,7 +1376,7 @@ class Evaluator:
                     metric_obj,
                     agent_df_filtered,
                     metric_name,
-                    self.client,
+                    None,
                     CONFIG.MAX_RETRIES,
                     CONFIG.RETRY_DELAY_SECONDS,
                     self.config.get("gcs_dest"),
@@ -1382,9 +1387,12 @@ class Evaluator:
         # the long-standing misleading "API rate limits" warning.
         failed_metrics: list[dict[str, str]] = []
 
+        sem = asyncio.Semaphore(CONFIG.MAX_WORKERS)
+
         async def run_task(task_arg):
-            return await asyncio.to_thread(run_single_metric_evaluation,
-                                           task_arg)
+            async with sem:
+                return await asyncio.to_thread(run_single_metric_evaluation,
+                                               task_arg)
 
         tasks = [run_task(t) for t in eval_tasks]
         results = await asyncio.gather(*tasks)

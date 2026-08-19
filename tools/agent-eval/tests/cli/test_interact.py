@@ -26,7 +26,7 @@ class TestInteractCommand(unittest.TestCase):
 
     def setUp(self):
         self.test_dir = tempfile.mkdtemp()
-        self.agent_dir = Path(self.test_dir) / "my_agent"
+        self.agent_dir = Path(self.test_dir).resolve() / "my_agent"
         self.agent_dir.mkdir()
         (self.agent_dir / "agent.py").write_text("# dummy")
         self.eval_dir = self.agent_dir / "eval"
@@ -140,7 +140,7 @@ class TestInteractCommand(unittest.TestCase):
         mock_project_root.return_value = self.agent_dir
         mock_run_sim.return_value = [{"converted": "record"}]
 
-        custom_eval_dir = Path(self.test_dir) / "custom_eval"
+        custom_eval_dir = Path(self.test_dir).resolve() / "custom_eval"
         custom_eval_dir.mkdir()
         custom_dataset = custom_eval_dir / "dataset.jsonl"
         custom_dataset.write_text(

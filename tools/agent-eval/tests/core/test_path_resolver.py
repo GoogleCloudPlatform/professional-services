@@ -34,26 +34,26 @@ class TestFindEvalDir(unittest.TestCase):
 
     def test_prefers_canonical_tests_eval(self):
         with tempfile.TemporaryDirectory() as td:
-            root = Path(td)
+            root = Path(td).resolve()
             (root / "tests" / "eval").mkdir(parents=True)
             (root / "eval").mkdir(parents=True)
             assert find_eval_dir(root) == root / "tests" / "eval"
 
     def test_falls_back_to_legacy_flat(self):
         with tempfile.TemporaryDirectory() as td:
-            root = Path(td)
+            root = Path(td).resolve()
             (root / "eval").mkdir(parents=True)
             assert find_eval_dir(root) == root / "eval"
 
     def test_falls_back_to_legacy_nested_under_app(self):
         with tempfile.TemporaryDirectory() as td:
-            root = Path(td)
+            root = Path(td).resolve()
             (root / "app" / "eval").mkdir(parents=True)
             assert find_eval_dir(root) == root / "app" / "eval"
 
     def test_returns_canonical_default_when_nothing_exists(self):
         with tempfile.TemporaryDirectory() as td:
-            root = Path(td)
+            root = Path(td).resolve()
             assert find_eval_dir(root) == root / "tests" / "eval"
 
 
@@ -61,14 +61,14 @@ class TestFindMetricsPath(unittest.TestCase):
 
     def test_finds_canonical_metrics(self):
         with tempfile.TemporaryDirectory() as td:
-            root = Path(td)
+            root = Path(td).resolve()
             target = _touch(root / "tests" / "eval" / "metrics" /
                             "metric_definitions.json")
             assert find_metrics_path(root) == target
 
     def test_falls_back_to_legacy_metrics(self):
         with tempfile.TemporaryDirectory() as td:
-            root = Path(td)
+            root = Path(td).resolve()
             target = _touch(root / "eval" / "metrics" /
                             "metric_definitions.json")
             assert find_metrics_path(root) == target
@@ -82,7 +82,7 @@ class TestFindDatasetPath(unittest.TestCase):
 
     def test_finds_canonical_dataset(self):
         with tempfile.TemporaryDirectory() as td:
-            root = Path(td)
+            root = Path(td).resolve()
             target = _touch(root / "tests" / "eval" / "dataset.jsonl",
                             '{"prompt": "x"}\n')
             assert find_dataset_path(root) == target

@@ -58,10 +58,16 @@ def convert(agent_dir, questions_file, output_dir, output_file, trace_format):
             converter = AdkHistoryConverter(str(history_path), questions_file)
             records = converter.run()
         else:
-            core_converter = get_trace_converter(trace_format)
+            from agent_eval.core.data_mapper import _map_agents
+
+            core_converter = get_trace_converter(
+                trace_format, questions_file=questions_file
+            )
             history_path = Path(agent_dir)
-            records_agent_data = core_converter.convert_file(history_path)
-            records = [ad.model_dump() for ad in records_agent_data]
+            records_agent_data = core_converter.convert_file(
+                history_path, questions_file=questions_file
+            )
+            records = _map_agents(records_agent_data)
 
         if not records:
             console.print("[yellow]No history found to convert.[/]")

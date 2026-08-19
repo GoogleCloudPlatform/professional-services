@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Unit tests for modular CLI stages and canonical AgentData schema (Daniela's P1 Workstream)."""
+"""Unit tests for modular CLI stages and canonical AgentData schema."""
 
 import json
 
@@ -111,7 +111,7 @@ def test_run_stage_calibration():
 
 
 def test_stage_cli_json_output():
-    """Verify CLI stage command emits clean structured JSON for Antigravity ingestion."""
+    """Verify CLI stage command emits clean structured JSON for downstream ingestion."""
     runner = CliRunner()
     result = runner.invoke(stage, ["--only", "rubrics", "--output", "json"])
     assert result.exit_code == 0, f"Stage command failed: {result.output}"

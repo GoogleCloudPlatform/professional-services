@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Base data models and abstractions for modular CLI stages (Daniela's P1 Workstream)."""
+"""Base data models and abstractions for modular CLI stages."""
 
 from __future__ import annotations
 
@@ -35,7 +35,7 @@ class StageResult:
     metadata: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
-        """Return canonical dictionary representation for Antigravity ingestion."""
+        """Return canonical dictionary representation for downstream ingestion."""
         return {
             "stage": self.stage,
             "status": self.status,
