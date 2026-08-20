@@ -90,7 +90,7 @@ The defensive logging matters too: when `extract_usage` returns an empty dict (u
 
 `agent-eval` was built on top of and for [ADK](https://adk.dev). Most of its surfaces assume ADK conventions (an `agent.py` file with a `root_agent` symbol, ADK's UserSim driver, ADK's FastAPI endpoint shape, ADK's OTel trace shape). The Vertex SDK eval surface itself is framework-neutral — `client.evals.evaluate()` doesn't care what produced the data — but the trace-collection layer is not.
 
-If you want to evaluate a non-ADK agent today, you'd need to BYO traces in the canonical Vertex schema and bypass `simulate` + `interact` entirely (the BYOD `ingest-traces` path is roadmap-only — see `docs/reference.md` → Experimental & on the roadmap).
+If you want to evaluate a non-ADK agent today, you'd need to BYO traces in the canonical Vertex schema and bypass `generate` (`simulate` / `interact`) entirely (the BYOD `ingest-traces` path is roadmap-only — see `docs/reference.md` → Experimental & on the roadmap).
 
 ### What's hardcoded to ADK today
 
@@ -145,7 +145,7 @@ class TraceConverter(Protocol):
         # tool_interactions, latency_data, ...
 ```
 
-Then `convert.py` (the existing utility) becomes a shell that picks the right converter. Most of the work is isolated to `simulate.py`, `interact.py`, and `converters.py`. The `evaluate` / `analyze` / `report` chain wouldn't change.
+Then `convert.py` (the existing utility) becomes a shell that picks the right converter. Most of the work is isolated to `simulate.py`, `interact.py`, and `converters.py`. The `grade` / `evaluate` / `analyze` / `report` chain wouldn't change.
 
 ---
 

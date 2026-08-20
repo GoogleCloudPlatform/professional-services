@@ -96,7 +96,7 @@ def convert(agent_dir, questions_file, output_dir, output_file, trace_format):
         console.print(f"Run folder: {run_path}")
         console.print("\nTo evaluate, run:")
         console.print(
-            f"  agent-eval evaluate --interaction-file {output_path} --metrics-files <metrics.json> --results-dir {run_path}"
+            f"  agent-eval grade --traces {output_path} --eval-config <metrics.json> --results-dir {run_path}"
         )
 
     except Exception as e:

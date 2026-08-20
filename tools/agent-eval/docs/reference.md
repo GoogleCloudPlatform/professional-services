@@ -21,13 +21,13 @@ For installation and getting started, see the [README](../README.md).
 5. [CLI Reference](#cli-reference)
    - [init](#init)
    - [run](#run)
+   - [generate](#generate) — collect interaction traces (simulate or live)
+   - [grade](#grade) — score interaction traces against declarative rubrics
+   - [compare](#compare) — head-to-head delta comparison
+   - [optimize](#optimize) — GEPA evolutionary prompt optimization
    - [report](#report) — open the HTML report
    - [stories](#stories) — browse the wait-time essays
-   - [simulate](#simulate)
-   - [interact](#interact)
-   - [evaluate](#evaluate)
    - [analyze](#analyze)
-   - [agent-engine](#agent-engine)
    - [import](#import)
    - [migrate](#migrate)
    - [convert](#convert)
@@ -105,7 +105,7 @@ Each section under *"Perform evaluation using the GenAI Client in Vertex AI SDK"
 | [Define your evaluation metrics](https://cloud.google.com/vertex-ai/generative-ai/docs/models/determine-eval) | `init` Step 3 — managed metrics grouped by family (adaptive / static / computation / translation), with `GENERAL_QUALITY` pre-checked per the docs' recommendation. |
 | ↳ [Details for managed rubric-based metrics](https://cloud.google.com/vertex-ai/generative-ai/docs/models/rubric-metric-details) | `metric_families.classify()` introspects the SDK's `_evals_constant.SUPPORTED_PREDEFINED_METRICS`, so the picker stays in sync with the managed `RubricMetric.*` entries automatically. |
 | [Prepare your evaluation dataset](https://cloud.google.com/vertex-ai/generative-ai/docs/models/evaluation-dataset) | `init` Step 4 generates a unified `<project_root>/tests/eval/dataset.jsonl`. Each row carries an explicit `kind` (`multi_turn` / `single_turn` / `both`) + `id` + the canonical SDK FLATTEN columns (`prompt`, `response`, `history`, `instruction`, `intermediate_events`, `rubric_groups`) + `session_inputs` for ADK state seeding + a nested `reference_data` dict where reference-required metrics pull from (canonical: `reference_data.expected_behavior` for the SDK `reference` column, with per-metric `reference_field` overrides for domain-specific golden fields like `expected_docs` / `expected_routing`). `agent-eval import --from <evalset>` flattens existing ADK evalsets into the same file. |
-| [Run an evaluation](https://cloud.google.com/vertex-ai/generative-ai/docs/models/run-evaluation) | The **local pipeline** — `agent-eval simulate` (multi-turn via ADK UserSim) or `agent-eval interact` (single-turn via ADK FastAPI) capture responses + traces, then `agent-eval evaluate` scores them with `client.evals.evaluate()`. |
+| [Run an evaluation](https://cloud.google.com/vertex-ai/generative-ai/docs/models/run-evaluation) | The **local pipeline** — `agent-eval generate --mode simulate` (multi-turn via ADK UserSim) or `agent-eval generate --mode live` (single-turn via ADK FastAPI) capture responses + traces, then `agent-eval grade` scores them with `client.evals.evaluate()`. |
 | [View and interpret evaluation results](https://cloud.google.com/vertex-ai/generative-ai/docs/models/view-evaluation) | `agent-eval analyze` produces a Gemini diagnosis + cumulative `OPTIMIZATION_LOG.md`; `agent-eval dashboard` opens an interactive comparison view. |
 | [Evaluate agents](https://cloud.google.com/vertex-ai/generative-ai/docs/models/evaluation-agents-client) | `agent-eval agent-engine` is the **streamlined Agent Engine pass** — calls `client.evals.run_inference()` + `client.evals.create_evaluation_run()` against a deployed Reasoning Engine. Adds a managed single-turn pass on top of the local pipeline whenever a deployment is detected. |
 
@@ -140,7 +140,7 @@ The Vertex AI docs recommend starting with `GENERAL_QUALITY` only and opting int
 
 | Surface | When it's available | What runs the agent | Multi-turn? | Trace fidelity |
 |---|---|---|---|---|
-| **Local pipeline** (default, always on) | Whenever a local `agent.py` is on disk, OR you can point at any ADK FastAPI URL | `agent-eval simulate` (UserSim, in-process import — no FastAPI server needed) + `agent-eval interact` (DIY, REST against any ADK URL) | **Yes** — UserSim drives multi-turn dialogues | Full when local-dev or Agent Engine; degraded on Cloud Run (state-derived metrics only) |
+| **Local pipeline** (default, always on) | Whenever a local `agent.py` is on disk, OR you can point at any ADK FastAPI URL | `agent-eval generate --mode simulate` (UserSim, in-process import — no FastAPI server needed) + `agent-eval generate --mode live` (DIY, REST against any ADK URL) | **Yes** — UserSim drives multi-turn dialogues | Full when local-dev or Agent Engine; degraded on Cloud Run (state-derived metrics only) |
 | **Streamlined Agent Engine pass** (additive) | Agent is deployed to a Reasoning Engine (typically via Agent Starter Pack `make backend`) | `agent-eval agent-engine` → `client.evals.create_evaluation_run()` — Vertex calls the deployed agent for you | **No** — `create_evaluation_run` is single-turn; Vertex doesn't ship a user simulator | Full (managed by Vertex) |
 
 **Auto-detection.** `agent-eval init` runs `path_detector.detect_execution_path()` early and announces what it found:
@@ -158,7 +158,7 @@ Detection signals: `AGENT_ENGINE_RESOURCE_NAME` env var or `deployment/agent_eng
 
 If auto-detection misses your deployment (metadata file in an unexpected place, env var not exported in the current shell, etc.), `init` prints "No Agent Engine deployment found here" and immediately offers a manual escape hatch: paste a `projects/<NUMBER>/locations/<REGION>/reasoningEngines/<ID>` resource name and `init` synthesizes the same `ae_detection` it would have built from a real metadata file — the streamlined pass lights up exactly as if it had been auto-found. Skipped under `AGENT_EVAL_NO_PAUSES=1` so CI runs don't deadlock; invalid format (regex `projects/.+/locations/.+/reasoningEngines/.+`) prints a yellow warning and falls back to local-only.
 
-> **Non-ADK agent? (BYOD)** There's no third surface in the UI. The schema unification means you can hand-write a converter against the row shape in [Dataset row schema](#dataset-row-schema), drop the JSONL into `tests/eval/dataset.jsonl`, and run `agent-eval evaluate` like normal. A streamlined `agent-eval ingest-traces` command is on the [roadmap](#byod-bring-your-own-data--agent-eval-ingest-traces).
+> **Non-ADK agent? (BYOD)** There's no third surface in the UI. The schema unification means you can hand-write a converter against the row shape in [Dataset row schema](#dataset-row-schema), drop the JSONL into `tests/eval/dataset.jsonl`, and run `agent-eval grade` like normal. A streamlined `agent-eval ingest-traces` command is on the [roadmap](#byod-bring-your-own-data--agent-eval-ingest-traces).
 
 **The local pipeline has three sub-modes**, all hitting the same ADK FastAPI routes:
 
@@ -178,9 +178,9 @@ So the **local pipeline** reaches the agent through ADK-native channels and conv
 
 | Command | Surface | How it gets the agent's responses | How it scores them |
 |---|---|---|---|
-| `agent-eval simulate` | Local pipeline | ADK's [User Simulation](https://google.github.io/adk-docs/evaluate/user-sim/) drives a simulated user against your imported `agent.py`. ADK writes traces to `.adk/eval_history/`; we convert them to JSONL. | `client.evals.evaluate(dataset, metrics)` |
-| `agent-eval interact` | Local pipeline | Our REST client (`agent_client.py`) hits ADK's FastAPI endpoints directly: `/run`, `/apps/.../sessions/...`, `/debug/trace/session/{id}`. We capture the full trace ourselves. | `client.evals.evaluate(dataset, metrics)` |
-| `agent-eval evaluate` | Local pipeline | (Reads existing JSONL from `simulate` / `interact`.) | `client.evals.evaluate(dataset, metrics)` |
+| `agent-eval generate --mode simulate` (or `simulate`) | Local pipeline | ADK's [User Simulation](https://google.github.io/adk-docs/evaluate/user-sim/) drives a simulated user against your imported `agent.py`. ADK writes traces to `.adk/eval_history/`; we convert them to JSONL. | `client.evals.evaluate(dataset, metrics)` |
+| `agent-eval generate --mode live` (or `interact`) | Local pipeline | Our REST client (`agent_client.py`) hits ADK's FastAPI endpoints directly: `/run`, `/apps/.../sessions/...`, `/debug/trace/session/{id}`. We capture the full trace ourselves. | `client.evals.evaluate(dataset, metrics)` |
+| `agent-eval grade` (or `evaluate`) | Local pipeline | (Reads existing JSONL/traces from `generate` / `simulate` / `interact`.) | `client.evals.evaluate(dataset, metrics)` |
 | `agent-eval agent-engine` | Streamlined Agent Engine pass | `client.evals.run_inference(agent=<resource>, src=df)` — Vertex calls your deployed Reasoning Engine for you. | `client.evals.create_evaluation_run(...)` — inference + scoring + GCS upload, one call. |
 
 **Why doesn't the local pipeline use `run_inference()`?**
@@ -640,6 +640,96 @@ During the long simulate + interact waits (no debug mode), a background thread s
 
 ---
 
+### generate
+
+Unifies trace generation across UserSim simulations and live agent endpoints (RFC Task 544917821). Auto-detects mode from flags or CWD.
+
+```bash
+# Multi-turn UserSim simulation (default mode)
+agent-eval generate --agent-dir app --sim-parallelism 6
+
+# Single-turn live interaction against a running server
+agent-eval generate --base-url http://localhost:8080 --questions-file tests/eval/dataset.jsonl
+```
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `--mode` | `simulate` (or auto if `--base-url` provided) | Generation mode: `simulate` (UserSim) or `live` / `interact` |
+| `--agent-dir` | auto-detected | Path to agent module directory |
+| `--base-url` | prompted in live mode | Target agent server endpoint |
+| `--questions-file` | auto-detected | Test dataset JSONL or JSON |
+| `--dataset` | alias for `--questions-file` | Canonical dataset file |
+| `--sim-parallelism` | `3` | Concurrent simulation subprocesses |
+| `--results-dir` | auto-detected | Output directory for raw traces |
+| `--run-id` | timestamp | Unique run identifier |
+
+---
+
+### grade / evaluate
+
+Grades generated interaction traces against declarative metrics in `eval_config.yaml`. `grade` is the primary converged command; `evaluate` is retained as a fully compatible alias.
+
+```bash
+# Run with CWD auto-discovery
+agent-eval grade
+
+# Explicit files and aliases
+agent-eval grade \
+  --traces tests/eval/results/latest/raw/processed_interaction_sim.jsonl \
+  --eval-config tests/eval/eval_config.yaml \
+  --results-dir tests/eval/results/latest
+```
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `--traces`, `--dataset`, `--interaction-file` | auto-detected | Input interaction traces (JSONL or CSV; can specify multiple) |
+| `--eval-config`, `--metrics-files` | auto-detected | Declarative `eval_config.yaml` or metric definition JSON |
+| `--results-dir` | auto-detected | Output directory for scorecards and summaries |
+| `--input-label` | none | Run label (e.g., "candidate") |
+| `--test-description` | none | Human-readable run description |
+| `--debug` | `false` | Show Vertex AI SDK logs |
+
+---
+
+### compare
+
+Computes head-to-head metric deltas between a candidate run and a baseline run (Task 544917821).
+
+```bash
+agent-eval compare tests/eval/results/run_v2 tests/eval/results/run_v1
+```
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `CANDIDATE_DIR` | required (argument) | Path or ID of the candidate evaluation run |
+| `BASELINE_DIR` | required (argument) | Path or ID of the baseline evaluation run |
+| `--output-file`, `-o` | none | Optional path to write a Markdown comparison summary |
+
+---
+
+### optimize
+
+Drives genetic evolutionary prompt optimization (GEPA) using ADK's `GEPARootAgentPromptOptimizer` (Task 544158363).
+
+```bash
+agent-eval optimize \
+  --agent-dir app \
+  --optimizer gepa \
+  --target-metric business_logic_adherence \
+  --generations 5
+```
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `--agent-dir` | auto-detected | Path to agent module directory |
+| `--eval-config` | auto-detected | Declarative eval config defining target fitness metrics |
+| `--optimizer` | `gepa` | Optimization engine |
+| `--target-metric` | required | Metric key to maximize |
+| `--generations` | `5` | Evolution generations |
+| `--population-size` | `4` | Candidate prompt variants per generation |
+
+---
+
 ### report
 
 Opens the latest HTML evaluation report in your default browser, or starts a localhost HTTP server for remote dev environments.
@@ -698,12 +788,12 @@ The pager handles agency: arrow keys scroll, `/` searches, `n`/`N` next/previous
 
 ---
 
-### simulate
+### generate (simulation mode)
 
 Runs the full ADK User Sim workflow: symlinks scenario files, clears stale traces, creates a fresh eval set, runs the simulation, and converts traces.
 
 ```bash
-uv run agent-eval simulate --agent-dir path/to/agent_module
+uv run agent-eval generate --mode simulate --agent-dir path/to/agent_module
 ```
 
 | Option | Default | Description |
@@ -725,20 +815,20 @@ uv run agent-eval simulate --agent-dir path/to/agent_module
 
 #### eval_config.yaml handling
 
-> ADK runs its own per-interaction LLM scoring during `adk eval` if `eval_config.yaml` has non-empty `criteria`. `simulate` deliberately writes empty `criteria` to its agent-dir copy so ADK skips this — `agent-eval` handles all scoring in batch via Vertex AI Evaluation, which is faster + parallel + custom-rubric capable. Running both is slow + confusing.
+> ADK runs its own per-interaction LLM scoring during `adk eval` if `eval_config.yaml` has non-empty `criteria`. `generate` deliberately writes empty `criteria` to its agent-dir copy so ADK skips this — `agent-eval` handles all scoring in batch via Vertex AI Evaluation, which is faster + parallel + custom-rubric capable. Running both is slow + confusing.
 >
-> If your project's `tests/eval/eval_config.yaml` has non-empty `criteria` (e.g. an Agent Starter Pack scaffold's defaults), `simulate` **backs it up** to `tests/eval/.backup/<timestamp>/eval_config.yaml` and replaces the source with empty `criteria` on the first run. Translate the backed-up criteria into `eval_config.yaml` as `custom_llm_judge` entries to bring them back into the agent-eval scoring path.
+> If your project's `tests/eval/eval_config.yaml` has non-empty `criteria` (e.g. an Agent Starter Pack scaffold's defaults), `generate` **backs it up** to `tests/eval/.backup/<timestamp>/eval_config.yaml` and replaces the source with empty `criteria` on the first run. Translate the backed-up criteria into `eval_config.yaml` as `custom_llm_judge` entries to bring them back into the agent-eval scoring path.
 
-**CI / scripted runs.** Set `AGENT_EVAL_NO_PAUSES=1` to skip the interactive Run ID prompt (and every other `_continue` pause). The command falls back to a timestamp like `20260421_073914`, so you can pipe `simulate → evaluate → analyze` end-to-end without any keystrokes.
+**CI / scripted runs.** Set `AGENT_EVAL_NO_PAUSES=1` to skip the interactive Run ID prompt (and every other `_continue` pause). The command falls back to a timestamp like `20260421_073914`, so you can pipe `generate → grade → analyze` end-to-end without any keystrokes.
 
 ---
 
-### interact
+### generate (live interaction mode)
 
 Runs interactions against a live agent endpoint. Prompts interactively for any missing configuration.
 
 ```bash
-uv run agent-eval interact --agent-dir path/to/agent_module
+uv run agent-eval generate --mode live --agent-dir path/to/agent_module
 ```
 
 Before running, start your agent in a separate terminal:
@@ -749,7 +839,7 @@ Before running, start your agent in a separate terminal:
 |--------|---------|-------------|
 | `--agent-dir` | prompted | Agent module directory |
 | `--app-name` | directory name | Agent application name |
-| `--questions-file` | auto-detected | Golden dataset JSON (prompted if not found) |
+| `--questions-file` / `--dataset` | auto-detected | Golden dataset JSON or JSONL (prompted if not found) |
 | `--base-url` | prompted | Agent API URL |
 | `--results-dir` | auto-detected | Output directory |
 | `--run-id` | prompted | Name for results folder |
@@ -766,39 +856,39 @@ Before running, start your agent in a separate terminal:
 
 ---
 
-### evaluate
+### grade
 
-Runs metrics on processed interaction data.
+Grades processed interaction data against declarative metrics in `eval_config.yaml`.
 
 ```bash
-uv run agent-eval evaluate \
-  --interaction-file path/to/interactions.jsonl \
-  --metrics-files path/to/eval_config.yaml \
+uv run agent-eval grade \
+  --traces path/to/interactions.jsonl \
+  --eval-config path/to/eval_config.yaml \
   --results-dir path/to/results
 ```
 
 | Option | Default | Description |
 |--------|---------|-------------|
-| `--interaction-file` | required | Processed JSONL or CSV (can specify multiple times) |
-| `--metrics-files` | required | Metric definition JSON (can specify multiple) |
+| `--traces`, `--dataset`, `--interaction-file` | required | Processed JSONL or CSV (can specify multiple times) |
+| `--eval-config`, `--metrics-files` | required | Declarative `eval_config.yaml` or metric definition JSON (can specify multiple) |
 | `--results-dir` | required | Output directory |
 | `--input-label` | none | Run label (e.g., "baseline") |
 | `--test-description` | none | Description for this run |
 | `--debug` | `false` | Show Vertex AI SDK logs (retries, errors) |
 
-**Combining data sources:** Specify `--interaction-file` multiple times to evaluate both simulation and DIY data together:
+**Combining data sources:** Specify `--traces` multiple times to evaluate both simulation and DIY data together:
 
 ```bash
-uv run agent-eval evaluate \
-  --interaction-file results/run1/raw/processed_interaction_sim.jsonl \
-  --interaction-file results/run1/raw/processed_interaction_app.jsonl \
-  --metrics-files eval/eval_config.yaml \
+uv run agent-eval grade \
+  --traces results/run1/raw/processed_interaction_sim.jsonl \
+  --traces results/run1/raw/processed_interaction_app.jsonl \
+  --eval-config eval/eval_config.yaml \
   --results-dir results/run1
 ```
 
 **Output:** `eval_summary.json`, `evaluation_results_*.csv`
 
-> Both `simulate` and `interact` print the exact `evaluate` and `analyze` commands with correct paths at the end of their output. Just copy and paste them.
+> `generate` prints the exact `grade` and `analyze` commands with correct paths at the end of its output. Just copy and paste them.
 
 ---
 
@@ -844,7 +934,7 @@ agent-eval agent-engine [OPTIONS]
 
 | Option | Default | Description |
 |---|---|---|
-| `--dataset` | resolved from `<project_root>/tests/eval/dataset.jsonl` (walks up looking for `pyproject.toml`) | Unified dataset JSONL. Multi-turn rows are automatically skipped here — Agent Engine's `create_evaluation_run` is single-turn only — with a clear pointer to use `agent-eval simulate` for those. |
+| `--dataset` | resolved from `<project_root>/tests/eval/dataset.jsonl` (walks up looking for `pyproject.toml`) | Unified dataset JSONL. Multi-turn rows are automatically skipped here — Agent Engine's `create_evaluation_run` is single-turn only — with a clear pointer to use `agent-eval generate --mode simulate` (or `simulate`) for those. |
 | `--metrics` | resolved from `<project_root>/tests/eval/eval_config.yaml` | Metric definitions (managed rubrics + custom LLM judges via `template` + `score_range`). Falls back to `<agent>/eval/eval_config.yaml` for legacy projects until `agent-eval migrate` runs. |
 | `--resource-name` | env `AGENT_ENGINE_RESOURCE_NAME` or auto-detection | Agent Engine resource (`projects/.../reasoningEngines/...`). |
 | `--dest` | `gs://<project>-agent-eval/<timestamp>` | GCS destination for results. The bucket is **auto-created** on first run if it doesn't exist. |
@@ -856,7 +946,7 @@ agent-eval agent-engine [OPTIONS]
 | `--agent-module` | auto-detects `pkg.agent:root_agent` from local `agent.py` | Local agent import path used to build `AgentInfo` for the run. Override with `pkg.module:attr` for non-ASP layouts. |
 | `--debug` | _off_ | Show full SDK logs (otherwise suppressed). |
 
-**When to use this instead of `evaluate`:**
+**When to use this instead of `grade` / `evaluate`:**
 
 - Your agent is deployed via [Agent Starter Pack](https://adk.dev/deploy/agent-engine/asp/) (`uvx agent-starter-pack enhance --adk -d agent_engine && make backend`).
 - You want managed inference — no local FastAPI server required, no traces to capture yourself.
@@ -864,7 +954,7 @@ agent-eval agent-engine [OPTIONS]
 
 **Custom LLM metrics on the streamlined Agent Engine pass.** Every entry in `eval_config.yaml` declares one of six `kind` values per the canonical schema (`core/metric_schema.py`). `agent-engine` routes them all through `metric_factory.build_metric(name, spec)`: `kind: managed` and `kind: parametrized_managed` resolve via `getattr(types.RubricMetric, base.upper())`; `kind: custom_llm_judge` builds a `types.LLMMetric` whose `prompt_template` is a `types.MetricPromptBuilder(instruction=..., criteria={...}, rating_scores={...})`; `kind: computation` becomes `types.Metric(name='bleu' | 'rouge_l' | ...)`. The built metric is then wrapped via `metric_factory.to_evaluation_run_metric` for `create_evaluation_run`. `kind: python_function` and `kind: remote_code` are deferred — `create_evaluation_run` cannot execute local Python and our remote-code wrapping isn't wired through this path yet, so they're skipped with a warning.
 
-**SDK pattern.** `agent-engine` follows the modern [evaluation-agents-client docs pattern](https://docs.cloud.google.com/vertex-ai/generative-ai/docs/models/evaluation-agents-client): the `Client` is constructed using the new Vertex AI SDK (`>=1.156.0`). Due to an upstream Vertex platform bug, linking `agent` and `agent_info` triggers server-side simulation and trace logging, which crashes with an `INTERNAL` error when parsing ADK traces on the backend. Thus, the CLI conditionally omits `agent` and `agent_info` for runs that do not evaluate agent-specific metrics, allowing non-agent metrics (like `GENERAL_QUALITY`) to succeed. For trace-based metrics (like `TOOL_USE_QUALITY`), users should use client-side trace capture via the local `agent-eval evaluate` pipeline.
+**SDK pattern.** `agent-engine` follows the modern [evaluation-agents-client docs pattern](https://docs.cloud.google.com/vertex-ai/generative-ai/docs/models/evaluation-agents-client): the `Client` is constructed using the new Vertex AI SDK (`>=1.156.0`). Due to an upstream Vertex platform bug, linking `agent` and `agent_info` triggers server-side simulation and trace logging, which crashes with an `INTERNAL` error when parsing ADK traces on the backend. Thus, the CLI conditionally omits `agent` and `agent_info` for runs that do not evaluate agent-specific metrics, allowing non-agent metrics (like `GENERAL_QUALITY`) to succeed. For trace-based metrics (like `TOOL_USE_QUALITY`), users should use client-side trace capture via the local `agent-eval grade` (or `evaluate`) pipeline.
 
 **Three layers of fidelity** for `AgentInfo`, picked automatically depending on what's importable in your venv:
 
@@ -925,7 +1015,7 @@ agent-eval migrate [OPTIONS]
 1. Auto-detects the legacy folder via `dataset_io._find_legacy_eval_dir()` — tries `<agent-dir>/app/eval/`, then `<agent-dir>/eval/`.
 2. Flattens `scenarios/conversation_scenarios.json` (`starting_prompt` → `prompt`, `conversation_plan` preserved as a column) and `eval_data/golden_dataset.json` (last `user_inputs` → `prompt`, multi-turn user_inputs → `history`, `expected_behavior` → `reference`) into the unified row shape.
 3. Copies `eval_config.yaml` from `<legacy>/metrics/` into `tests/eval/metrics/` if not already there.
-4. Copies the original files to `tests/eval/.backup/<timestamp>/` (unless `--no-backup`), so `agent-eval simulate` keeps working against the legacy layout while you transition.
+4. Copies the original files to `tests/eval/.backup/<timestamp>/` (unless `--no-backup`), so `agent-eval generate --mode simulate` (or `simulate`) keeps working against the legacy layout while you transition.
 
 `init` also offers to run this for you when it detects a legacy layout.
 
@@ -933,7 +1023,7 @@ agent-eval migrate [OPTIONS]
 
 ### convert
 
-Converts ADK simulator history (`.adk/eval_history/`) to evaluation JSONL. Called automatically by `simulate` — only needed if you ran ADK manually.
+Converts ADK simulator history (`.adk/eval_history/`) to evaluation JSONL. Called automatically by `generate --mode simulate` (or `simulate`) — only needed if you ran ADK manually.
 
 ```bash
 uv run agent-eval convert \
@@ -1082,7 +1172,7 @@ Your own scoring rubrics, defined in `eval_config.yaml`. These use `metric_type:
 
 ## Creating Custom Metrics
 
-> **Two schemas live side by side today.** This section documents the **trace-driven schema** (`metric_type`, `dataset_mapping`, `requires_reference` / `requires_multi_turn`, `template`) used by `agent-eval evaluate` against the JSONL produced by `simulate` / `interact`. The **unified schema** (`kind: managed | parametrized_managed | custom_llm_judge | python_function | remote_code`) is used by `agent-eval agent-engine` (the streamlined Agent Engine pass) — see [Custom metric patterns](#custom-metric-patterns) above. Both schemas read the same `tests/eval/eval_config.yaml` file; `metric_factory.py` discriminates on the `kind` field, while the trace-driven evaluator path keys off `metric_type`.
+> **Two schemas live side by side today.** This section documents the **trace-driven schema** (`metric_type`, `dataset_mapping`, `requires_reference` / `requires_multi_turn`, `template`) used by `agent-eval grade` (or `evaluate`) against the JSONL produced by `generate --mode simulate` / `generate --mode live` (or `simulate` / `interact`). The **unified schema** (`kind: managed | parametrized_managed | custom_llm_judge | python_function | remote_code`) is used by `agent-eval agent-engine` (the streamlined Agent Engine pass) — see [Custom metric patterns](#custom-metric-patterns) above. Both schemas read the same `tests/eval/eval_config.yaml` file; `metric_factory.py` discriminates on the `kind` field, while the trace-driven evaluator path keys off `metric_type`.
 
 ### Basic Structure
 
@@ -1294,10 +1384,10 @@ Generates multi-turn conversations from scenario definitions. An LLM simulates r
 **Run it:**
 
 ```bash
-uv run agent-eval simulate --agent-dir path/to/agent_module
+uv run agent-eval generate --mode simulate --agent-dir path/to/agent_module
 ```
 
-The `simulate` command handles the full ADK workflow automatically: project from `dataset.jsonl` → clear stale `eval_history` → create fresh ADK eval_set → run `adk eval` → convert traces to the unified interaction JSONL.
+The `generate --mode simulate` command handles the full ADK workflow automatically: project from `dataset.jsonl` → clear stale `eval_history` → create fresh ADK eval_set → run `adk eval` → convert traces to the unified interaction JSONL.
 
 ### DIY Interactions
 
@@ -1309,12 +1399,12 @@ Sends queries from a golden dataset to a live agent endpoint. Responses and trac
 
 ```bash
 # Interactive — prompts for missing config
-uv run agent-eval interact --agent-dir path/to/agent_module
+uv run agent-eval generate --mode live --agent-dir path/to/agent_module
 
 # Non-interactive
-uv run agent-eval interact \
+uv run agent-eval generate --mode live \
   --agent-dir path/to/agent_module \
-  --questions-file tests/eval/dataset.jsonl \
+  --dataset tests/eval/dataset.jsonl \
   --base-url http://localhost:8501 \
   --run-id baseline
 ```
@@ -1684,7 +1774,7 @@ This is exactly the right behavior for `make install` / `make backend` — the a
 ### ADK evaluation shows stale results
 
 **Cause:** Didn't clear `eval_history` before running.
-**Fix:** Use `uv run agent-eval simulate` which clears eval_history automatically. If running ADK manually: `rm -rf agent_module/.adk/eval_history/*`
+**Fix:** Use `uv run agent-eval generate --mode simulate` (or `simulate`) which clears eval_history automatically. If running ADK manually: `rm -rf agent_module/.adk/eval_history/*`
 
 ### Vertex AI authentication errors
 
@@ -1703,7 +1793,7 @@ This is exactly the right behavior for `make install` / `make backend` — the a
 ### ADK UserSim: "Error rendering metric prompt template"
 
 **Cause:** ADK runs its own built-in LLM scoring during `adk eval`, which is separate from `agent-eval`.
-**Fix:** The `simulate` command defaults to an empty `eval_config.yaml` (`{"criteria": {}}`) which skips ADK's scoring. `agent-eval` handles all scoring via the `evaluate` command instead.
+**Fix:** The `generate --mode simulate` (or `simulate`) command defaults to an empty `eval_config.yaml` (`{"criteria": {}}`) which skips ADK's scoring. `agent-eval` handles all scoring via the `grade` (or `evaluate`) command instead.
 
 ### Trajectory accuracy penalizing for missing tools
 
@@ -1771,7 +1861,7 @@ This section is a developer signpost — features sketched in the SDK-aligned pl
 
 **Why it's deferred.** The dataset schema unification (`dataset_io.py`, the canonical SDK columns + free-form `expected_*` extras, the `getattr`-based custom metric resolution) is the *enabler* — once that's in place, BYOD is mechanical. But designing the converter prompt well requires real OTel trace samples. Building it speculatively risks producing a converter that handles toy examples and breaks on the messy traces people actually have. We'd rather wait for the first user with a non-ADK agent and design `ingest-traces` against their data.
 
-**If you want to BYOD today (manual path):** the schema unification means you can hand-write a converter against the row shape documented in [Dataset row schema](#dataset-row-schema), drop the JSONL into `tests/eval/dataset.jsonl`, and run `agent-eval evaluate` like normal. The CLI doesn't validate the agent framework — it only reads rows.
+**If you want to BYOD today (manual path):** the schema unification means you can hand-write a converter against the row shape documented in [Dataset row schema](#dataset-row-schema), drop the JSONL into `tests/eval/dataset.jsonl`, and run `agent-eval grade` (or `evaluate`) like normal. The CLI doesn't validate the agent framework — it only reads rows.
 
 ### Other deferred items from the plan
 

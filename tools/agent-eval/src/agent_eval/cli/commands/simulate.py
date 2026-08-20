@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""agent-eval simulate — run ADK User Sim and convert traces in one step."""
+"""agent-eval generate (mode: simulate) / simulate — run ADK User Sim and convert traces in one step."""
 
 import json
 import os
@@ -735,13 +735,13 @@ def simulate(agent_dir, eval_dir, run_id, debug, in_process, dataset):
     4. Runs adk eval with your scenarios
     5. Converts the resulting traces to agent-eval format
 
-    After this, run `agent-eval evaluate` on the output.
+    After this, run `agent-eval grade` (or `agent-eval evaluate`) on the output.
 
     \b
     Note: ADK's built-in eval runs a limited set of metrics (hallucination,
     safety). agent-eval adds deterministic metrics (latency, tokens, cost)
     and custom LLM-as-judge metrics via the Vertex AI Evaluation service.
-    This also means agent-eval is not locked to ADK — you can run evaluate
+    This also means agent-eval is not locked to ADK — you can run grade (evaluate)
     and analyze on traces from any agent framework.
     """
     from agent_eval.cli.main import _display_banner
@@ -972,8 +972,8 @@ def simulate(agent_dir, eval_dir, run_id, debug, in_process, dataset):
             f"[bold green]Simulation complete![/]\n\n"
             f"[bold]Results:[/]  {rel_run}/\n\n"
             "[dim]ADK's built-in eval covers hallucination + safety checks.\n"
-            "agent-eval evaluate adds: latency, tokens, cost, cache efficiency,\n"
-            "and your custom LLM-as-judge metrics from metric_definitions.json.[/]",
+            "agent-eval grade adds: latency, tokens, cost, cache efficiency,\n"
+            "and your custom LLM-as-judge metrics from eval_config.yaml.[/]",
             title="[bold]Done[/]",
             border_style="green",
             padding=(1, 2),
@@ -984,11 +984,11 @@ def simulate(agent_dir, eval_dir, run_id, debug, in_process, dataset):
     console.print()
     console.print("[bold]1.[/] Run deterministic + LLM-as-judge metrics:")
     console.print()
-    console.print("agent-eval evaluate \\")
+    console.print("agent-eval grade \\")
     console.print(
-        f"  --interaction-file {rel_run}/raw/processed_interaction_sim.jsonl \\"
+        f"  --traces {rel_run}/raw/processed_interaction_sim.jsonl \\"
     )
-    console.print(f"  --metrics-files {rel_metrics} \\")
+    console.print(f"  --eval-config {rel_metrics} \\")
     console.print(f"  --results-dir {rel_run}")
     console.print()
     console.print("[bold]2.[/] Generate AI-powered analysis:")

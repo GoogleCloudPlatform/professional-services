@@ -53,7 +53,14 @@ from agent_eval.core.metric_schema import (
     managed_base_name,
 )
 
-urllib3.contrib.pyopenssl.extract_from_urllib3()
+try:
+    import urllib3.contrib.pyopenssl
+    # 1. Revert urllib3 back to standard library ssl.SSLContext
+    urllib3.contrib.pyopenssl.extract_from_urllib3()
+    # 2. Permanently neutralize re-injection by google-auth / requests
+    urllib3.contrib.pyopenssl.inject_into_urllib3 = lambda *args, **kwargs: None
+except Exception:
+    pass
 _vertex_init_lock = threading.Lock()
 
 # Setup Logger — root logger at CRITICAL silences all third-party noise by default.
@@ -617,13 +624,18 @@ def run_single_metric_evaluation(
 
 
 def load_and_consolidate_metrics(metric_files: list[str]) -> dict[str, Any]:
-    """Load and consolidate metric definitions from multiple JSON files."""
+    """Load and consolidate metric definitions from JSON or YAML files."""
     consolidated = {}
     logger.info("--- Consolidating Metric Definitions ---")
     for file_path in metric_files:
         try:
-            with Path(file_path).open() as f:
-                data = json.load(f)
+            p = Path(file_path)
+            with p.open() as f:
+                if p.suffix in (".yaml", ".yml"):
+                    import yaml
+                    data = yaml.safe_load(f) or {}
+                else:
+                    data = json.load(f)
                 prefix = data.get("metric_prefix", "").lstrip("_")
                 metrics = data.get("metrics", {})
                 for name, definition in metrics.items():
@@ -633,7 +645,7 @@ def load_and_consolidate_metrics(metric_files: list[str]) -> dict[str, Any]:
                         continue
                     full_name = f"{prefix}_{name}".lstrip("_")
                     metric_def = dict(definition)
-                    metric_def["_base_dir"] = str(Path(file_path).resolve().parent)
+                    metric_def["_base_dir"] = str(p.resolve().parent)
                     consolidated[full_name] = metric_def
         except Exception as e:
             logger.error(f"Error loading {file_path}: {e}")

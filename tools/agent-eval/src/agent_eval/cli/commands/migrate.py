@@ -158,4 +158,4 @@ def migrate(
     console.print()
     console.print(
         "  [dim]Next:[/] verify [cyan]tests/eval/dataset.jsonl[/], then run "
-        "[bold]agent-eval evaluate[/] or [bold]agent-eval agent-engine[/].")
+        "[bold]agent-eval grade[/] (or [bold]agent-eval evaluate[/]) or [bold]agent-eval agent-engine[/].")

@@ -85,7 +85,7 @@ def test_cli_help_lists_all_commands():
     result = runner.invoke(cli, ["--help"])
     assert result.exit_code == 0
     for cmd in [
-            "init", "interact", "evaluate", "analyze", "convert",
+            "init", "generate", "grade", "analyze", "convert",
             "create-dataset"
     ]:
         assert cmd in result.output, f"Command '{cmd}' missing from --help"

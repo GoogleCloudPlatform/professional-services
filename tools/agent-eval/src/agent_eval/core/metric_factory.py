@@ -120,13 +120,25 @@ def custom_llm_judge(
     rating_scores: dict[str, str] | None = None,
     instruction: str | None = None,
     prompt_template: str | None = None,
+    judge_model: str | None = None,
 ):
     """Build a fully-custom LLM judge as ``types.LLMMetric``."""
     vt = _vt()
+    resolved_judge_model = judge_model or os.environ.get("JUDGE_MODEL")
+    judge_kwargs = {}
+    if resolved_judge_model:
+        from google.adk.evaluation.eval_metrics import JudgeModelOptions
+
+        judge_kwargs["judge_model_options"] = JudgeModelOptions(
+            judge_model=resolved_judge_model,
+            judge_model_config={"response_mime_type": "application/json"},
+        )
+
     if prompt_template:
         return vt.LLMMetric(
             name=name,
             prompt_template=prompt_template,
+            **judge_kwargs,
         )
 
     if not criteria or not rating_scores:
@@ -143,6 +155,7 @@ def custom_llm_judge(
     return vt.LLMMetric(
         name=name,
         prompt_template=vt.MetricPromptBuilder(**builder_kwargs),
+        **judge_kwargs,
     )
 
 
@@ -251,6 +264,7 @@ def build_metric(name: str,
         criteria = spec.get("criteria")
         rating_scores = spec.get("rating_scores")
         prompt_template = spec.get("prompt_template")
+        judge_model = spec.get("judge_model")
         if not prompt_template and (not criteria or not rating_scores):
             raise ValueError(
                 f"Metric '{name}' (custom_llm_judge): 'prompt_template' or "
@@ -261,6 +275,7 @@ def build_metric(name: str,
             rating_scores=rating_scores,
             instruction=spec.get("instruction"),
             prompt_template=prompt_template,
+            judge_model=judge_model,
         )
 
     if kind == KIND_MULTITURN_TRAJECTORY_JUDGE:

@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""agent-eval evaluate — run metrics on processed interaction data."""
+"""agent-eval grade (or evaluate) — run metrics on processed interaction data."""
 
 import asyncio
 import json
@@ -201,9 +201,12 @@ def _display_metrics_summary(results_dir: str) -> None:
             "calls — it can exceed wall-clock latency.[/]")
 
 
-@click.command()
+@click.command(help="Run evaluation metrics on processed interaction data.")
 @click.option(
     "--interaction-file",
+    "--dataset",
+    "--traces",
+    "interaction_file",
     required=False,
     default=None,
     multiple=True,
@@ -223,6 +226,8 @@ def _display_metrics_summary(results_dir: str) -> None:
               help="Directory for outputs.")
 @click.option(
     "--config",
+    "--eval-config",
+    "config",
     default=None,
     help="Path to declarative eval_config.yaml (Contract C2).",
 )
@@ -263,6 +268,7 @@ def evaluate(
 ):
     """Run evaluation metrics on processed interaction data."""
     from agent_eval.core.evaluator import configure_logging
+    from agent_eval.core.path_resolver import find_config_path
 
     configure_logging(debug=debug)
 
@@ -270,6 +276,11 @@ def evaluate(
         console.print(
             f"  [red]--gcs-dest must start with gs://[/] (got: {gcs_dest})")
         sys.exit(1)
+
+    if not config:
+        detected_cfg = find_config_path()
+        if detected_cfg:
+            config = str(detected_cfg)
 
     if config:
         import json
@@ -391,3 +402,7 @@ def evaluate(
         traceback.print_exc()
         console.print(f"[bold red]Error during evaluation:[/] {e}")
         sys.exit(1)
+
+
+# Converged verb alias: `agent-eval grade` is synonymous with `agent-eval evaluate`
+grade = evaluate

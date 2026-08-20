@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""agent-eval interact — run interactions against a live agent."""
+"""agent-eval generate (mode: live) / interact — run interactions against a live agent."""
 
 import json
 import os
@@ -347,9 +347,9 @@ def interact(
             console.print(
                 "[bold]1.[/] Run deterministic + LLM-as-judge metrics:")
             console.print()
-            console.print("agent-eval evaluate \\")
-            console.print(f"  --interaction-file {rel_output} \\")
-            console.print(f"  --metrics-files {rel_metrics} \\")
+            console.print("agent-eval grade \\")
+            console.print(f"  --traces {rel_output} \\")
+            console.print(f"  --eval-config {rel_metrics} \\")
             console.print(f"  --results-dir {rel_run}")
             console.print()
             console.print("[bold]2.[/] Generate AI-powered analysis:")
@@ -518,9 +518,9 @@ def interact(
     console.print()
     console.print("[bold]1.[/] Run deterministic + LLM-as-judge metrics:")
     console.print()
-    console.print("agent-eval evaluate \\")
-    console.print(f"  --interaction-file {rel_output} \\")
-    console.print(f"  --metrics-files {rel_metrics} \\")
+    console.print("agent-eval grade \\")
+    console.print(f"  --traces {rel_output} \\")
+    console.print(f"  --eval-config {rel_metrics} \\")
     console.print(f"  --results-dir {rel_run}")
     console.print()
     console.print("[bold]2.[/] Generate AI-powered analysis:")

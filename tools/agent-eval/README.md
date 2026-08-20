@@ -14,7 +14,7 @@ Three commands, in order. The first is once-per-shell setup, the second is once-
 flowchart TD
     setup["<b>1 · agent-eval setup</b><br/><i>once per shell</i><br/>──────────<br/>• walks gcloud auth + ADC<br/>• picks your project + location<br/>• enables the Vertex AI API<br/>• binds the autorater IAM role so Vertex can grade your traces"]
     init["<b>2 · agent-eval init</b><br/><i>once per agent</i><br/>──────────<br/>• auto-detects your local ADK agent (or FastAPI URL)<br/>• picks metrics — 18 managed (Vertex's catalog) + AI-drafted custom (binary by default)<br/>• generates <code>tests/eval/dataset.jsonl</code> in the canonical SDK schema"]
-    run["<b>3 · agent-eval run</b><br/><i>every iteration</i><br/>──────────<br/>• <b>collect</b> — drives <code>simulate</code> (UserSim) + <code>interact</code> (DIY)<br/>• <b>score</b> — two-step <code>run_inference → evaluate</code><br/>• <b>analyze + view</b> — Gemini diagnoses what changed, opens a self-contained <code>report.html</code>"]
+    run["<b>3 · agent-eval run</b><br/><i>every iteration</i><br/>──────────<br/>• <b>collect</b> — drives <code>generate --mode simulate</code> (UserSim) + <code>generate --mode live</code> (DIY)<br/>• <b>score</b> — two-step <code>run_inference → grade</code><br/>• <b>analyze + view</b> — Gemini diagnoses what changed, opens a self-contained <code>report.html</code>"]
 
     setup --> init --> run
     run -->|tweak your agent, re-run| run
@@ -24,7 +24,7 @@ flowchart TD
     style run fill:#ffe1f5
 ```
 
-Each phase inside `run` is also exposed as a standalone command (`simulate`, `interact`, `evaluate`, `analyze`, `report`, `dashboard`) for finer control. The CLI teaches as you go — `--help` and the in-flow prompts carry the technical detail; [`docs/reference.md`](docs/reference.md) is the deep catalog.
+Each phase inside `run` is also exposed as a standalone command (`generate`, `grade`, `compare`, `optimize`, `analyze`, `report`, `dashboard`) for finer control, with `simulate`, `interact`, and `evaluate` supported as backwards-compatible aliases. The CLI teaches as you go — `--help` and the in-flow prompts carry the technical detail; [`docs/reference.md`](docs/reference.md) is the deep catalog.
 
 ## Quickstart
 
@@ -115,13 +115,13 @@ make backend     # only needed for `agent_engine` / `cloud_run` — provisions +
 - **`dataset.jsonl`** — your single source of truth for evaluation inputs. This is an immutable, read-only input dataset containing `prompt`, `conversation_plan`, and `session_inputs`. Heavy outputs (like `turns` and `events`) are saved to an isolated, git-ignored execution folder at `tests/eval/results/<run-id>/traces.jsonl` to keep Git clean, and AutoRaters read from there.
 - **`eval_config.yaml`** — the declarative configuration file that replaces `metric_definitions.json`. It combines your declarative OOTB AutoRaters and custom LLM judges, supporting 6 metric `kind` options (e.g. `managed`, `custom_llm_judge`, `multiturn_trajectory_judge`, `python_function`). With `--ai-metrics`, Gemini reads your agent code and drafts agent-specific judges; without it, you get a curated starter set.
 
-Note: The `simulate` command temporarily generates an `eval_config.json` next to `agent.py` for runtime compatibility.
+Note: The `generate --mode simulate` (or `simulate`) command temporarily generates an `eval_config.json` next to `agent.py` for runtime compatibility.
 
 ```bash
 agent-eval init   # auto-detects your agent + scaffolds dataset/metrics (run from anywhere)
 ```
 
-`init` walks the directory and announces what it found. The local pipeline (UserSim multi-turn + DIY single-turn `interact` + scoring + analysis) is the default — that's where you iterate, and it's what you'll see in the next step.
+`init` walks the directory and announces what it found. The local pipeline (UserSim multi-turn + DIY single-turn `generate --mode live` + scoring + analysis) is the default — that's where you iterate, and it's what you'll see in the next step.
 
 ### [2] Run evaluation
 
@@ -157,7 +157,7 @@ See [`docs/reference.md`](docs/reference.md) for the per-phase walkthrough, ever
 
 The Gen AI SDK eval docs cover three things (the boxes above):
 
-1. **Prepare an evaluation dataset** — the canonical columns each metric expects (`prompt`, `response`, `reference`, `history`, `instruction`, `intermediate_events`, `rubric_groups` for adaptive rubrics, plus `session_inputs` for ADK state seeding). One unified `tests/eval/dataset.jsonl` feeds every command — `simulate` reads multi-turn rows, `interact` and `agent-engine` read single-turn rows.
+1. **Prepare an evaluation dataset** — the canonical columns each metric expects (`prompt`, `response`, `reference`, `history`, `instruction`, `intermediate_events`, `rubric_groups` for adaptive rubrics, plus `session_inputs` for ADK state seeding). One unified `tests/eval/dataset.jsonl` feeds every command — `generate --mode simulate` reads multi-turn rows, `generate --mode live` and `agent-engine` read single-turn rows.
 2. **Pick and configure metrics** — what each metric scores, what columns it reads, and how to mix metric families freely in one evaluation.
 3. **Run an evaluation** — the two-step `client.evals.run_inference()` → `client.evals.evaluate()`, the workhorse for everyday iteration.
 

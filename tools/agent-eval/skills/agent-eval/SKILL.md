@@ -62,20 +62,27 @@ agent-eval run \
 
 ```
 1. Prepare Data (tests/eval/dataset.jsonl)
-       └──► 2. Simulate & Generate Traces (agent-eval simulate --sim-parallelism 6)
-              └──► 3. Grade Traces (agent-eval evaluate via eval_config.yaml)
-                     └──► 4. Analyze & Compare (agent-eval analyze --compare-to <baseline>)
+       └──► 2. Generate Traces (agent-eval generate --sim-parallelism 6)
+              └──► 3. Grade Traces (agent-eval grade via eval_config.yaml)
+                     └──► 4. Compare & Analyze (agent-eval compare <candidate> <baseline>)
                             └──► 5. Optimize via GEPA (agent-eval optimize --optimizer gepa)
 ```
 
 ### Stage 1: Prepare Data (`dataset.jsonl`)
 * Ensure test scenarios are defined in `tests/eval/dataset.jsonl` (see [`references/dataset_schema.md`](references/dataset_schema.md)).
 
-### Stage 2 & 3: Run Inference & Grade Traces
-* `agent-eval run` executes inference and grades traces with Vertex AI AutoRaters and custom domain rubrics in one pass.
+### Stage 2 & 3: Generate Traces & Grade
+* `agent-eval run` executes the end-to-end collect → score → analyze loop.
+* Or drive individual phases:
+  - **Generate Traces**: `agent-eval generate --agent-dir app --sim-parallelism 6` (alias: `simulate` / `interact`)
+  - **Grade Traces**: `agent-eval grade --traces tests/eval/results/<run_id>/raw/processed_interaction_sim.jsonl` (alias: `evaluate`)
 
-### Stage 4: Analyze Failures & Compare Runs
-* Ingests `eval_summary.json` and `report.html` to compute run-to-run deltas:
+### Stage 4: Compare Runs & Analyze Failures
+* Compute head-to-head deltas between candidate and baseline runs:
+```bash
+agent-eval compare tests/eval/results/<candidate_run_id> tests/eval/results/<baseline_run_id>
+```
+* Or perform in-depth Gemini root-cause analysis:
 ```bash
 agent-eval analyze --results-dir tests/eval/results/<run_id> --compare-to <baseline_run_id>
 ```

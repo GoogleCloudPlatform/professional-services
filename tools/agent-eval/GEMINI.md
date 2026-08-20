@@ -9,8 +9,8 @@
 `agent-eval` is an evaluation CLI for ADK agents. It acts as the glue between OpenTelemetry traces from ADK, Vertex AI Evaluation for LLM-as-judge metrics, and Gemini for analysis.
 
 **The evaluation cycle:**
-1. **Interact** — Generate agent traces. Either `agent-eval simulate` (UserSim, multi-turn) or `agent-eval interact` (DIY, single-turn) — both are forms of interacting with the agent, just different drivers.
-2. **Evaluate** — Score traces with deterministic metrics (latency, tokens, cost) + LLM-as-judge metrics (quality, accuracy)
+1. **Generate** — Generate agent traces via `agent-eval generate` (using `--mode simulate` for UserSim multi-turn or `--mode live` for DIY single-turn; aliases `simulate` and `interact` are supported).
+2. **Grade** — Score traces via `agent-eval grade` (or alias `evaluate`) with deterministic metrics (latency, tokens, cost) + LLM-as-judge metrics (quality, accuracy)
 3. **Analyze** — Generate AI-powered root cause analysis
 
 **Context Engineering Principles** guide optimizations:
@@ -26,10 +26,10 @@
 
 `agent-eval init` writes ONE unified `tests/eval/` folder at the **agent project root** (the directory with `pyproject.toml`) — NEVER inside the agent module. There is one source of truth — `tests/eval/dataset.jsonl` — that feeds every command:
 
-- `simulate` reads multi-turn rows (rows with `history` or `conversation_plan`)
-- `interact` reads single-turn rows
-- `agent-engine` reads single-turn rows (skips multi-turn with a clear pointer at `simulate`)
-- `evaluate` consumes whichever interaction file the previous step wrote
+- `generate --mode simulate` (or `simulate`) reads multi-turn rows (rows with `history` or `conversation_plan`)
+- `generate --mode live` (or `interact`) reads single-turn rows
+- `agent-engine` reads single-turn rows (skips multi-turn with a clear pointer at `generate --mode simulate`)
+- `grade` (or `evaluate`) consumes whichever interaction/traces file the previous step wrote
 
 ```
 my-agent/
@@ -45,7 +45,7 @@ my-agent/
 └── .env
 ```
 
-ADK's `adk eval` runtime expects `conversation_scenarios.json`, `session_input.json`, and `eval_config.json` next to `agent.py`. `agent-eval simulate` projects those from `dataset.jsonl` at run time and writes them inside `my_agent/` as **ephemeral cache** (gitignore them). Users never edit those files — they edit `dataset.jsonl`.
+ADK's `adk eval` runtime expects `conversation_scenarios.json`, `session_input.json`, and `eval_config.json` next to `agent.py`. `agent-eval generate --mode simulate` (or `simulate`) projects those from `dataset.jsonl` at run time and writes them inside `my_agent/` as **ephemeral cache** (gitignore them). Users never edit those files — they edit `dataset.jsonl`.
 
 > **Migrating an old project?** Run `agent-eval migrate` to fold every legacy location into the unified file:
 > - `<agent>/eval/scenarios/conversation_scenarios.json` (legacy UserSim)
@@ -64,13 +64,13 @@ ADK's `adk eval` runtime expects `conversation_scenarios.json`, `session_input.j
 | `uv run agent-eval init` | Scaffold eval files (with optional AI metric generation via `--ai-metrics`) |
 | `uv run agent-eval migrate` | Fold legacy `eval/scenarios/` + `golden_dataset.json` AND any wrongly-placed `<agent>/tests/eval/dataset.jsonl` (F3) into the canonical `<project_root>/tests/eval/dataset.jsonl`. Idempotent. |
 | `uv run agent-eval import --from <evalset>.json` | Flatten an ADK `.evalset.json` file into `tests/eval/dataset.jsonl` |
-| `uv run agent-eval run` | Full pipeline: simulate + interact + evaluate + analyze |
-| `uv run agent-eval simulate` | Run ADK User Sim + convert traces (multi-turn) |
-| `uv run agent-eval interact` | Run queries against a live agent endpoint (single-turn) |
-| `uv run agent-eval evaluate` | Run deterministic + LLM-as-judge metrics (supports multiple `--interaction-file`) |
-| `uv run agent-eval agent-engine` | Streamlined `create_evaluation_run()` against a deployed Agent Engine (single-turn, additive when deployed) |
+| `uv run agent-eval run` | Full pipeline: generate + grade + compare + analyze |
+| `uv run agent-eval generate` | Generate traces: `--mode simulate` (UserSim, multi-turn) or `--mode live` (DIY, single-turn) |
+| `uv run agent-eval grade` | Grade traces with deterministic + LLM-as-judge metrics |
+| `uv run agent-eval compare` | Head-to-head delta comparison between candidate and baseline runs |
+| `uv run agent-eval optimize` | GEPA evolutionary prompt optimization |
 | `uv run agent-eval analyze` | Generate AI-powered analysis reports |
-| `uv run agent-eval convert` | Convert ADK traces to evaluation format (used by simulate) |
+| `uv run agent-eval convert` | Convert ADK traces to evaluation format (used by generate) |
 | `uv run agent-eval create-dataset` | Convert ADK test files to golden dataset format |
 | `uv run agent-eval dashboard` | Launch interactive Gradio dashboard for comparing runs |
 
@@ -86,7 +86,7 @@ ADK's `adk eval` runtime expects `conversation_scenarios.json`, `session_input.j
 
 ### Debugging Evaluation Issues
 
-- **Use `--debug`** on any command (`run`, `simulate`, `interact`, `evaluate`, `analyze`) to see detailed logs from ADK, Vertex AI SDK, and other services. By default, third-party logs are suppressed to keep the CLI output clean — `--debug` opens the floodgates.
+- **Use `--debug`** on any command (`run`, `generate`, `grade`, `compare`, `optimize`, `analyze`, `simulate`, `interact`, `evaluate`) to see detailed logs from ADK, Vertex AI SDK, and other services. By default, third-party logs are suppressed to keep the CLI output clean — `--debug` opens the floodgates.
 - **Auth issues?** → Re-run `agent-eval init` — it verifies project ID, ADC, API enablement, and quota project automatically
 - Zero token usage → `app_name` in `session_input.json` (the cached file projected from `dataset.jsonl`) doesn't match the agent module folder name. Fix the `session_inputs` field in your `dataset.jsonl` row, not the cache.
 - Multi-turn metric `SKIPPED — no rows have required capabilities: multi_turn` → expected when your dataset has no rows with `history` or `conversation_plan`. Add multi-turn rows or just remove the metric.
@@ -237,16 +237,16 @@ Instructions:
 ## Critical Reminders
 
 1. **Always use Vertex AI**, not API keys (evaluation won't work otherwise)
-2. **Clear eval_history** before each ADK User Sim run — `simulate` does this automatically; if running manually: `rm -rf <agent_module>/.adk/eval_history/*`
+2. **Clear eval_history** before each ADK User Sim run — `generate --mode simulate` (or `simulate`) does this automatically; if running manually: `rm -rf <agent_module>/.adk/eval_history/*`
 3. **Location is auto-configured** — Gemini 3+ models use `global` automatically via `get_location()` in config.py. Override with `--location` if needed
 4. **`app_name` must match the folder name** containing `agent.py`, not the agent's display name
 5. **Both surfaces (local `evaluator.py` AND `agent_engine.py`) dispatch through `metric_factory.build_metric(name, spec)`** — single source of truth for the canonical schema. Don't reintroduce inline `types.LLMMetric(prompt_template=template_string)` or synthetic `criteria={"evaluation": template}` cargo-cult constructions. If a metric kind isn't routing correctly, fix `build_metric` (and the schema in `core/metric_schema.py`), not the call sites.
-6. **`AGENT_EVAL_NO_PAUSES=1` covers both `_continue` pauses and the `simulate` Run ID prompt.** Any new interactive `Prompt.ask` / `questionary.*` call must guard on `_pauses_disabled()` (or accept a non-interactive default) so CI runs don't deadlock.
+6. **`AGENT_EVAL_NO_PAUSES=1` covers both `_continue` pauses and the `generate`/`simulate` Run ID prompt.** Any new interactive `Prompt.ask` / `questionary.*` call must guard on `_pauses_disabled()` (or accept a non-interactive default) so CI runs don't deadlock.
 7. **`agent-engine` auto-creates the destination GCS bucket** in `--location` if it doesn't exist (uses `google.cloud.storage.Client.create_bucket`). Don't duplicate that logic elsewhere — and don't remove it; first runs depend on it.
 8. **`agent-engine` follows the docs' `evaluation-agents-client` pattern** — `Client(..., http_options=HttpOptions(api_version="v1beta1"))`, builds an `AgentInfo` from a locally-imported `root_agent` (default `app.agent:root_agent`, override via `--agent-module`), and passes it to `create_evaluation_run`. `_build_agent_info` falls back to manual construction with empty `tool_declarations` when `AgentInfo.load_from_agent` trips on ADK's `tool_context` (a known SDK ↔ ADK schema bug). Don't replace this with the original "submit-only + parse-error" flow — without `agent_info` the run lands in `FAILED` with empty event lists.
 9. **SDK pin: `google-cloud-aiplatform[evaluation,agent-engines]>=1.132.0,<1.140.0`.** Versions ≥1.140 changed the `AgentInfo` schema (drops `agent_resource_name`, requires `agents`/`root_agent_id` map) AND tightened `AgentData` validation in `run_inference` to reject ADK's rich event fields. Bumping past this needs the `agent_engine.py` helpers to be re-tested.
-10. **Local pipeline is the default; Agent Engine is purely additive.** `init` auto-detects what's available — local `agent.py` enables the local pipeline (`simulate` + `interact` + `evaluate` + `analyze`); a deployed Agent Engine adds the streamlined `agent-engine` pass on top. They compose, they don't compete. UserSim works against any locally-imported `agent.py` regardless of deployment status. Never reintroduce a "Path A vs Path B" chooser — it's a phantom choice.
-11. **One source of truth — `<project_root>/tests/eval/dataset.jsonl`.** Every command consumes this single file. `simulate` filters multi-turn rows; `interact` and `agent-engine` filter single-turn rows. ADK's required scenario files inside `app/` are an ephemeral cache projected from `dataset.jsonl` by `simulate`, not a parallel data source. NEVER re-introduce `eval/scenarios/` or `eval/eval_data/` as user-edited locations. NEVER write `tests/eval/` inside the agent module dir — always at the project root via `agent_project_root(agent_dir)` in `core/path_resolver.py`.
+10. **Local pipeline is the default; Agent Engine is purely additive.** `init` auto-detects what's available — local `agent.py` enables the local pipeline (`generate`/`simulate` + `grade`/`evaluate` + `analyze`); a deployed Agent Engine adds the streamlined `agent-engine` pass on top. They compose, they don't compete. UserSim works against any locally-imported `agent.py` regardless of deployment status. Never reintroduce a "Path A vs Path B" chooser — it's a phantom choice.
+11. **One source of truth — `<project_root>/tests/eval/dataset.jsonl`.** Every command consumes this single file. `generate --mode simulate` filters multi-turn rows; `generate --mode live` and `agent-engine` filter single-turn rows. ADK's required scenario files inside `app/` are an ephemeral cache projected from `dataset.jsonl` by `generate --mode simulate`, not a parallel data source. NEVER re-introduce `eval/scenarios/` or `eval/eval_data/` as user-edited locations. NEVER write `tests/eval/` inside the agent module dir — always at the project root via `agent_project_root(agent_dir)` in `core/path_resolver.py`.
 12. **FLATTEN schema canonical column names**: `prompt`, `response`, `reference`, `history` (NOT `conversation_history`), `instruction`, `intermediate_events`, `rubric_groups`. Plus arbitrary extras as `EvalCase` pass-through. See `~/.claude/projects/.../memory/vertex-eval-sdk-schema.md`. The old `dataset-mapping-constraint.md` "only 3 columns" claim is superseded.
 
 12b. **`metric_definitions.json` schema is the canonical Vertex SDK schema — six `kind` values mirror the docs.** See `core/metric_schema.py` (single source of truth) and the "Creating Custom Metrics" section above. The six kinds: `managed`, `parametrized_managed`, `custom_llm_judge`, `computation`, `python_function`, `remote_code` — all from docs/determine-eval. Custom LLM judges use `instruction` + `criteria` (dict) + `rating_scores` (dict, integer-as-string keys), built via `types.MetricPromptBuilder`. **Default to binary `rating_scores={"1":..., "0":...}` for new custom metrics** (consistent with the docs' static rubric managed metrics; better inter-rater reliability than multi-tier). The legacy `is_managed` / `managed_metric_name` / `template` / `score_range` fields are gone — `metric_factory.build_metric` rejects entries without `kind`.

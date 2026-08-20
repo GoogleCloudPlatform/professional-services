@@ -724,13 +724,23 @@ def run(
                     sys.exit(1)
                 metric_paths.append(p)
         else:
-            metrics_dir = eval_path / "metrics"
-            if metrics_dir.is_dir():
-                metric_paths = sorted(metrics_dir.glob("*.json"))
+            from agent_eval.core.path_resolver import find_metrics_path
+
+            m = find_metrics_path(eval_path) or find_metrics_path(agent_dir)
+            if m:
+                metric_paths = [m]
+            else:
+                metrics_dir = eval_path / "metrics"
+                if metrics_dir.is_dir():
+                    metric_paths = (
+                        sorted(metrics_dir.glob("*.yaml"))
+                        + sorted(metrics_dir.glob("*.yml"))
+                        + sorted(metrics_dir.glob("*.json"))
+                    )
 
         if not metric_paths:
             console.print(
-                f"\n  [yellow]Warning:[/] No metric files found in {eval_path / 'metrics'}/"
+                f"\n  [yellow]Warning:[/] No metric files found in {eval_path / 'metrics'}/ or {eval_path / 'eval_config.yaml'}"
             )
             console.print(
                 "  [dim]Evaluation will be skipped. Run `agent-eval init` to scaffold one, or pass --metrics-files <path>.[/]"
@@ -1353,7 +1363,7 @@ def run(
         console.print()
         console.print("[bold]Next step — run evaluation:[/]")
         console.print()
-        console.print("agent-eval evaluate \\")
+        console.print("agent-eval grade \\")
         console.print(f"  {rel_files} \\")
         console.print(f"  {rel_metrics} \\")
         console.print(f"  --results-dir {rel_run}")

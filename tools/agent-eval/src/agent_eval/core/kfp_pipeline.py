@@ -53,7 +53,7 @@ def simulate_component(
     blob.download_to_filename(local_dataset)
 
     # 2. Run Simulation
-    # The 'agent-eval simulate' CLI command performs validation checks (see
+    # The 'agent-eval generate' (or 'simulate') CLI command performs validation checks (see
     # agent_eval/cli/commands/simulate.py) and strictly requires 'agent.py'
     # to exist in the agent directory to verify a valid ADK agent context.
     # Since we are running in an isolated container and only using the CLI
