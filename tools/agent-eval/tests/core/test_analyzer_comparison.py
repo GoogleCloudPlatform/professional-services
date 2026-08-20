@@ -47,6 +47,7 @@ def _make_summary(
 
 
 class TestDirectionClassification:
+
     def test_lower_is_better_tokens(self):
         assert _is_lower_better("token_usage.total_tokens") is True
 
@@ -64,7 +65,8 @@ class TestDirectionClassification:
 
     def test_improvement_lower_is_better(self):
         # Tokens went down → improvement
-        direction, emoji = _classify_direction("token_usage.total_tokens", -15.0)
+        direction, emoji = _classify_direction("token_usage.total_tokens",
+                                               -15.0)
         assert direction == "improvement"
         assert emoji == "🟢"
 
@@ -101,6 +103,7 @@ class TestDirectionClassification:
 
 
 class TestPctChange:
+
     def test_basic_increase(self):
         assert _compute_pct_change(100, 120) == 20.0
 
@@ -118,6 +121,7 @@ class TestPctChange:
 
 
 class TestComputeComparison:
+
     def test_basic_deterministic_deltas(self):
         baseline = _make_summary(
             experiment_id="baseline",
@@ -139,27 +143,35 @@ class TestComputeComparison:
         assert result["current_id"] == "current"
         assert len(result["deltas"]) == 2
 
-        token_delta = next(d for d in result["deltas"] if "total_tokens" in d["metric"])
+        token_delta = next(
+            d for d in result["deltas"] if "total_tokens" in d["metric"])
         assert token_delta["baseline"] == 10000
         assert token_delta["current"] == 8000
         assert token_delta["direction"] == "improvement"  # tokens went down
 
         latency_delta = next(
-            d for d in result["deltas"] if "total_seconds" in d["metric"]
-        )
+            d for d in result["deltas"] if "total_seconds" in d["metric"])
         assert latency_delta["direction"] == "regression"  # latency went up
 
     def test_llm_metric_deltas(self):
-        baseline = _make_summary(
-            llm_metrics={
-                "quality": {"average": 4.0, "score_range": {"min": 0, "max": 5}}
-            },
-        )
-        current = _make_summary(
-            llm_metrics={
-                "quality": {"average": 4.5, "score_range": {"min": 0, "max": 5}}
-            },
-        )
+        baseline = _make_summary(llm_metrics={
+            "quality": {
+                "average": 4.0,
+                "score_range": {
+                    "min": 0,
+                    "max": 5
+                }
+            }
+        },)
+        current = _make_summary(llm_metrics={
+            "quality": {
+                "average": 4.5,
+                "score_range": {
+                    "min": 0,
+                    "max": 5
+                }
+            }
+        },)
         result = compute_comparison(baseline, current)
 
         assert len(result["deltas"]) == 1
@@ -170,22 +182,22 @@ class TestComputeComparison:
         assert delta["pct_change"] == 10.0
 
     def test_new_metric(self):
-        baseline = _make_summary(det_metrics={"token_usage.total_tokens": 10000})
-        current = _make_summary(
-            det_metrics={
-                "token_usage.total_tokens": 9000,
-                "cache_efficiency.hit_rate": 0.5,
-            },
-        )
+        baseline = _make_summary(
+            det_metrics={"token_usage.total_tokens": 10000})
+        current = _make_summary(det_metrics={
+            "token_usage.total_tokens": 9000,
+            "cache_efficiency.hit_rate": 0.5,
+        },)
         result = compute_comparison(baseline, current)
 
         assert len(result["new_metrics"]) == 1
         assert result["new_metrics"][0]["metric"] == "cache_efficiency.hit_rate"
 
     def test_removed_metric(self):
-        baseline = _make_summary(
-            det_metrics={"token_usage.total_tokens": 10000, "old_metric": 42},
-        )
+        baseline = _make_summary(det_metrics={
+            "token_usage.total_tokens": 10000,
+            "old_metric": 42
+        },)
         current = _make_summary(det_metrics={"token_usage.total_tokens": 9000})
         result = compute_comparison(baseline, current)
 
@@ -193,7 +205,8 @@ class TestComputeComparison:
         assert result["removed_metrics"][0]["metric"] == "old_metric"
 
     def test_neutral_small_change(self):
-        baseline = _make_summary(det_metrics={"token_usage.total_tokens": 10000})
+        baseline = _make_summary(
+            det_metrics={"token_usage.total_tokens": 10000})
         current = _make_summary(det_metrics={"token_usage.total_tokens": 10050})
         result = compute_comparison(baseline, current)
 
@@ -201,7 +214,10 @@ class TestComputeComparison:
         assert delta["direction"] == "neutral"
 
     def test_git_diff_same_commit(self):
-        baseline = _make_summary(git_info={"commit": "abc123", "branch": "main"})
+        baseline = _make_summary(git_info={
+            "commit": "abc123",
+            "branch": "main"
+        })
         current = _make_summary(git_info={"commit": "abc123", "branch": "main"})
         result = compute_comparison(baseline, current)
         assert result["git_diff"] == ""
@@ -217,19 +233,18 @@ class TestComputeComparison:
 
 
 class TestFormatComparisonTable:
+
     def test_produces_markdown_table(self):
         comparison = {
-            "deltas": [
-                {
-                    "metric": "token_usage.total_tokens",
-                    "baseline": 10000.0,
-                    "current": 8000.0,
-                    "delta": -2000.0,
-                    "pct_change": -20.0,
-                    "direction": "improvement",
-                    "emoji": "🟢",
-                }
-            ],
+            "deltas": [{
+                "metric": "token_usage.total_tokens",
+                "baseline": 10000.0,
+                "current": 8000.0,
+                "delta": -2000.0,
+                "pct_change": -20.0,
+                "direction": "improvement",
+                "emoji": "🟢",
+            }],
             "new_metrics": [],
             "removed_metrics": [],
         }
@@ -245,6 +260,7 @@ class TestFormatComparisonTable:
 
 
 class TestAutoFindPreviousRun:
+
     def test_finds_most_recent(self, tmp_path):
         # Create two run folders with eval_summary.json
         run1 = tmp_path / "baseline"
@@ -285,6 +301,7 @@ class TestAutoFindPreviousRun:
 
 
 class TestOptimizationLog:
+
     def test_creates_baseline_entry(self, tmp_path):
         run_folder = tmp_path / "results" / "baseline"
         run_folder.mkdir(parents=True)
@@ -319,18 +336,16 @@ class TestOptimizationLog:
             "current_id": "eval-v2",
             "baseline_git": {},
             "current_git": {},
-            "deltas": [
-                {
-                    "metric": "token_usage.total_tokens",
-                    "type": "deterministic",
-                    "baseline": 10000.0,
-                    "current": 8000.0,
-                    "delta": -2000.0,
-                    "pct_change": -20.0,
-                    "direction": "improvement",
-                    "emoji": "🟢",
-                }
-            ],
+            "deltas": [{
+                "metric": "token_usage.total_tokens",
+                "type": "deterministic",
+                "baseline": 10000.0,
+                "current": 8000.0,
+                "delta": -2000.0,
+                "pct_change": -20.0,
+                "direction": "improvement",
+                "emoji": "🟢",
+            }],
             "new_metrics": [],
             "removed_metrics": [],
         }
@@ -353,6 +368,7 @@ class TestOptimizationLog:
 
 
 class TestPromptBuilderExtensions:
+
     def _make_prompter(self, focus=None):
         return GeminiAnalysisPrompter(
             summary_data={"overall_summary": {}},
@@ -379,8 +395,12 @@ class TestPromptBuilderExtensions:
         comparison_data = {
             "baseline_id": "eval-baseline",
             "current_id": "eval-v2",
-            "baseline_git": {"commit": "abc123"},
-            "current_git": {"commit": "def456"},
+            "baseline_git": {
+                "commit": "abc123"
+            },
+            "current_git": {
+                "commit": "def456"
+            },
             "git_diff": "diff --git a/agent.py\n-old line\n+new line",
             "deltas": [],
             "new_metrics": [],

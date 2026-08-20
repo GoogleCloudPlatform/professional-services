@@ -1,0 +1,361 @@
+[
+  {
+    "trace_id": "session_portfolio_analytics_001",
+    "session_id": "session_portfolio_analytics_001",
+    "spans": [
+      {
+        "span_id": "span_user_0",
+        "name": "user_input",
+        "status": {
+          "code": "OK"
+        },
+        "attributes": {
+          "gen_ai.turn.index": 0,
+          "openinference.span.kind": "USER",
+          "input.value": "Can you analyze our enterprise cloud infrastructure cost for August 2026 and query GKE cluster usage?"
+        }
+      },
+      {
+        "span_id": "span_tool_1",
+        "name": "query_cloud_billing",
+        "status": {
+          "code": "OK"
+        },
+        "attributes": {
+          "gen_ai.turn.index": 0,
+          "openinference.span.kind": "TOOL",
+          "tool.name": "query_cloud_billing",
+          "tool.parameters": {
+            "billing_account": "01A2B3-4C5D6E",
+            "month": "2026-08",
+            "group_by": "service"
+          },
+          "tool.output": {
+            "total_spend_usd": 42850.25,
+            "top_services": [
+              {
+                "service": "Google Kubernetes Engine",
+                "cost": 28400.0
+              },
+              {
+                "service": "Cloud Storage",
+                "cost": 8250.25
+              },
+              {
+                "service": "BigQuery",
+                "cost": 6200.0
+              }
+            ]
+          }
+        }
+      },
+      {
+        "span_id": "span_tool_2",
+        "name": "query_cluster_metrics",
+        "status": {
+          "code": "OK"
+        },
+        "attributes": {
+          "gen_ai.turn.index": 0,
+          "openinference.span.kind": "TOOL",
+          "tool.name": "query_cluster_metrics",
+          "tool.parameters": {
+            "cluster_name": "prod-us-central1-gke",
+            "metric": "cpu_utilization"
+          },
+          "tool.output": {
+            "average_cpu_pct": 78.4,
+            "peak_cpu_pct": 94.2,
+            "node_count": 32,
+            "status": "OPTIMAL"
+          }
+        }
+      },
+      {
+        "span_id": "span_llm_0",
+        "name": "gemini_llm_turn_0",
+        "status": {
+          "code": "OK"
+        },
+        "attributes": {
+          "gen_ai.turn.index": 0,
+          "openinference.span.kind": "LLM",
+          "llm.model_name": "gemini-1.5-pro",
+          "role": "model",
+          "output.value": "In August 2026, total enterprise cloud spend was $42,850.25, with GKE representing 66.3% ($28,400.00). Cluster utilization averaged 78.4% across 32 nodes."
+        }
+      },
+      {
+        "span_id": "span_user_1",
+        "name": "user_input",
+        "status": {
+          "code": "OK"
+        },
+        "attributes": {
+          "gen_ai.turn.index": 1,
+          "openinference.span.kind": "USER",
+          "input.value": "Optimize node allocation and give me a cost projection for September."
+        }
+      },
+      {
+        "span_id": "span_tool_3",
+        "name": "cost_forecaster",
+        "status": {
+          "code": "OK"
+        },
+        "attributes": {
+          "gen_ai.turn.index": 1,
+          "openinference.span.kind": "TOOL",
+          "tool.name": "cost_forecaster",
+          "tool.parameters": {
+            "baseline_spend": 42850.25,
+            "applied_discounts": [
+              "CUD_3_YR"
+            ],
+            "target_month": "2026-09"
+          },
+          "tool.output": {
+            "projected_spend_usd": 38100.0,
+            "estimated_savings_usd": 4750.25
+          }
+        }
+      },
+      {
+        "span_id": "span_llm_1",
+        "name": "gemini_llm_turn_1",
+        "status": {
+          "code": "OK"
+        },
+        "attributes": {
+          "gen_ai.turn.index": 1,
+          "openinference.span.kind": "LLM",
+          "llm.model_name": "gemini-1.5-pro",
+          "role": "model",
+          "output.value": "Applying 3-year Committed Use Discounts (CUD) on standard node pools will reduce September projected spend to $38,100.00 (saving $4,750.25)."
+        }
+      }
+    ]
+  },
+  {
+    "trace_id": "session_incident_response_002",
+    "session_id": "session_incident_response_002",
+    "spans": [
+      {
+        "span_id": "span_user_inc_0",
+        "name": "user_input",
+        "status": {
+          "code": "OK"
+        },
+        "attributes": {
+          "gen_ai.turn.index": 0,
+          "openinference.span.kind": "USER",
+          "input.value": "Investigate why the database sync pipeline for APAC failed at 04:00 UTC."
+        }
+      },
+      {
+        "span_id": "span_tool_inc_1",
+        "name": "query_pipeline_logs",
+        "status": {
+          "code": "ERROR"
+        },
+        "attributes": {
+          "gen_ai.turn.index": 0,
+          "openinference.span.kind": "TOOL",
+          "tool.name": "query_pipeline_logs",
+          "tool.parameters": {
+            "pipeline_id": "apac-sync-v2",
+            "time_window": "2026-08-06T04:00:00Z/04:15:00Z"
+          },
+          "tool.output": {
+            "error": "ConnectionRefusedError: failed to connect to spanner-replica-tokyo:5432 (DEADLINE_EXCEEDED)"
+          }
+        }
+      },
+      {
+        "span_id": "span_tool_inc_2",
+        "name": "check_network_route",
+        "status": {
+          "code": "OK"
+        },
+        "attributes": {
+          "gen_ai.turn.index": 0,
+          "openinference.span.kind": "TOOL",
+          "tool.name": "check_network_route",
+          "tool.parameters": {
+            "source_region": "asia-east1",
+            "target_region": "asia-northeast1"
+          },
+          "tool.output": {
+            "route_status": "DEGRADED",
+            "packet_loss_pct": 42.5,
+            "backup_route_available": true
+          }
+        }
+      },
+      {
+        "span_id": "span_llm_inc_0",
+        "name": "gemini_llm_inc_0",
+        "status": {
+          "code": "OK"
+        },
+        "attributes": {
+          "gen_ai.turn.index": 0,
+          "openinference.span.kind": "LLM",
+          "llm.model_name": "gemini-1.5-pro",
+          "role": "model",
+          "output.value": "The APAC sync pipeline failed due to network route degradation between asia-east1 and asia-northeast1 (42.5% packet loss), causing Spanner replica connection timeouts."
+        }
+      },
+      {
+        "span_id": "span_user_inc_1",
+        "name": "user_input",
+        "status": {
+          "code": "OK"
+        },
+        "attributes": {
+          "gen_ai.turn.index": 1,
+          "openinference.span.kind": "USER",
+          "input.value": "Trigger failover to the backup cross-region interconnect and verify latency."
+        }
+      },
+      {
+        "span_id": "span_tool_inc_3",
+        "name": "trigger_interconnect_failover",
+        "status": {
+          "code": "OK"
+        },
+        "attributes": {
+          "gen_ai.turn.index": 1,
+          "openinference.span.kind": "TOOL",
+          "tool.name": "trigger_interconnect_failover",
+          "tool.parameters": {
+            "route_id": "interconnect-asia-backup",
+            "priority": "high"
+          },
+          "tool.output": {
+            "status": "SUCCESS",
+            "new_active_route": "interconnect-asia-backup",
+            "latency_ms": 18.2
+          }
+        }
+      },
+      {
+        "span_id": "span_llm_inc_1",
+        "name": "gemini_llm_inc_1",
+        "status": {
+          "code": "OK"
+        },
+        "attributes": {
+          "gen_ai.turn.index": 1,
+          "openinference.span.kind": "LLM",
+          "llm.model_name": "gemini-1.5-pro",
+          "role": "model",
+          "output.value": "Failover to the backup cross-region interconnect was executed successfully. Latency is stable at 18.2 ms with 0% packet loss."
+        }
+      }
+    ]
+  },
+  {
+    "trace_id": "session_customer_support_003",
+    "session_id": "session_customer_support_003",
+    "spans": [
+      {
+        "span_id": "span_user_cust_0",
+        "name": "user_input",
+        "status": {
+          "code": "OK"
+        },
+        "attributes": {
+          "gen_ai.turn.index": 0,
+          "openinference.span.kind": "USER",
+          "input.value": "Look up reservation #RES-98231 and retrieve the customer's loyalty tier."
+        }
+      },
+      {
+        "span_id": "span_tool_cust_1",
+        "name": "lookup_reservation",
+        "status": {
+          "code": "OK"
+        },
+        "attributes": {
+          "gen_ai.turn.index": 0,
+          "openinference.span.kind": "TOOL",
+          "tool.name": "lookup_reservation",
+          "tool.parameters": {
+            "reservation_id": "RES-98231",
+            "include_customer_profile": true
+          },
+          "tool.output": {
+            "reservation_id": "RES-98231",
+            "customer_name": "Elena Rostova",
+            "loyalty_tier": "Platinum",
+            "status": "CONFIRMED",
+            "room_type": "Executive Suite"
+          }
+        }
+      },
+      {
+        "span_id": "span_llm_cust_0",
+        "name": "gemini_llm_cust_0",
+        "status": {
+          "code": "OK"
+        },
+        "attributes": {
+          "gen_ai.turn.index": 0,
+          "openinference.span.kind": "LLM",
+          "llm.model_name": "gemini-1.5-flash",
+          "role": "model",
+          "output.value": "Reservation #RES-98231 is confirmed for Elena Rostova (Platinum loyalty tier) in the Executive Suite."
+        }
+      },
+      {
+        "span_id": "span_user_cust_1",
+        "name": "user_input",
+        "status": {
+          "code": "OK"
+        },
+        "attributes": {
+          "gen_ai.turn.index": 1,
+          "openinference.span.kind": "USER",
+          "input.value": "Apply the complimentary late checkout perk for Platinum members."
+        }
+      },
+      {
+        "span_id": "span_tool_cust_2",
+        "name": "update_checkout_time",
+        "status": {
+          "code": "OK"
+        },
+        "attributes": {
+          "gen_ai.turn.index": 1,
+          "openinference.span.kind": "TOOL",
+          "tool.name": "update_checkout_time",
+          "tool.parameters": {
+            "reservation_id": "RES-98231",
+            "new_checkout_time": "16:00",
+            "perk_code": "PLAT_LATE_CHECKOUT"
+          },
+          "tool.output": {
+            "success": true,
+            "confirmed_checkout": "16:00 UTC",
+            "fee_waived": 75.0
+          }
+        }
+      },
+      {
+        "span_id": "span_llm_cust_1",
+        "name": "gemini_llm_cust_1",
+        "status": {
+          "code": "OK"
+        },
+        "attributes": {
+          "gen_ai.turn.index": 1,
+          "openinference.span.kind": "LLM",
+          "llm.model_name": "gemini-1.5-flash",
+          "role": "model",
+          "output.value": "Complimentary late checkout at 16:00 UTC has been applied for reservation #RES-98231. The $75.00 fee was waived."
+        }
+      }
+    ]
+  }
+]

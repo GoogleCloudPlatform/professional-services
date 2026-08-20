@@ -1,0 +1,101 @@
+{
+    "experiment_id": "eval-20260806_203257",
+    "run_type": "manual",
+    "test_description": "Automated evaluation",
+    "interaction_datetime": "2026-08-06T20:32:57.332275",
+    "git_info": {
+        "commit": "bc6b081357cc8a79513d5d292953f22486a8c94a",
+        "branch": "feat/agent-eval-monorepo-sync",
+        "dirty": true
+    },
+    "overall_summary": {
+        "deterministic_metrics": {},
+        "llm_based_metrics": {
+            "custom_tool_usage_validator": {
+                "average": 1.0,
+                "median": 1.0,
+                "p90": 1.0,
+                "p95": 1.0,
+                "p99": 1.0
+            },
+            "custom_prompt_response_validator": {
+                "average": 1.0,
+                "median": 1.0,
+                "p90": 1.0,
+                "p95": 1.0,
+                "p99": 1.0
+            }
+        }
+    },
+    "per_question_summary": [
+        {
+            "question_id": "session_customer_support_003",
+            "runs": 1,
+            "deterministic_metrics": {},
+            "llm_metrics": {
+                "custom_tool_usage_validator": {
+                    "score": 1.0,
+                    "explanation": "Successfully extracted 2 tool interactions from OpenInference trace.",
+                    "input": {
+                        "prompt": "Apply the complimentary late checkout perk for Platinum members.",
+                        "response": "Complimentary late checkout at 16:00 UTC has been applied for reservation #RES-98231. The $75.00 fee was waived."
+                    }
+                },
+                "custom_prompt_response_validator": {
+                    "score": 1.0,
+                    "explanation": "Prompt length: 64, Response length: 112",
+                    "input": {
+                        "prompt": "Apply the complimentary late checkout perk for Platinum members.",
+                        "response": "Complimentary late checkout at 16:00 UTC has been applied for reservation #RES-98231. The $75.00 fee was waived."
+                    }
+                }
+            }
+        },
+        {
+            "question_id": "session_incident_response_002",
+            "runs": 1,
+            "deterministic_metrics": {},
+            "llm_metrics": {
+                "custom_tool_usage_validator": {
+                    "score": 1.0,
+                    "explanation": "Successfully extracted 3 tool interactions from OpenInference trace.",
+                    "input": {
+                        "prompt": "Trigger failover to the backup cross-region interconnect and verify latency.",
+                        "response": "Failover to the backup cross-region interconnect was executed successfully. Latency is stable at 18.2 ms with 0% packet loss."
+                    }
+                },
+                "custom_prompt_response_validator": {
+                    "score": 1.0,
+                    "explanation": "Prompt length: 76, Response length: 125",
+                    "input": {
+                        "prompt": "Trigger failover to the backup cross-region interconnect and verify latency.",
+                        "response": "Failover to the backup cross-region interconnect was executed successfully. Latency is stable at 18.2 ms with 0% packet loss."
+                    }
+                }
+            }
+        },
+        {
+            "question_id": "session_portfolio_analytics_001",
+            "runs": 1,
+            "deterministic_metrics": {},
+            "llm_metrics": {
+                "custom_tool_usage_validator": {
+                    "score": 1.0,
+                    "explanation": "Successfully extracted 3 tool interactions from OpenInference trace.",
+                    "input": {
+                        "prompt": "Optimize node allocation and give me a cost projection for September.",
+                        "response": "Applying 3-year Committed Use Discounts (CUD) on standard node pools will reduce September projected spend to $38,100.00 (saving $4,750.25)."
+                    }
+                },
+                "custom_prompt_response_validator": {
+                    "score": 1.0,
+                    "explanation": "Prompt length: 69, Response length: 140",
+                    "input": {
+                        "prompt": "Optimize node allocation and give me a cost projection for September.",
+                        "response": "Applying 3-year Committed Use Discounts (CUD) on standard node pools will reduce September projected spend to $38,100.00 (saving $4,750.25)."
+                    }
+                }
+            }
+        }
+    ]
+}

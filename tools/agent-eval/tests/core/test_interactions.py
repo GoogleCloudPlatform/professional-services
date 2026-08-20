@@ -83,13 +83,17 @@ def test_unified_row_to_question():
             "expected_behavior": "greet",
             "expected_facts": ["fact1"],
         },
-        "metadata": {"category": "test"},
+        "metadata": {
+            "category": "test"
+        },
         "agents_evaluated": ["agent_a"],
     }
     expected_nested = {
         "id": "q1",
         "user_inputs": ["hello"],
-        "metadata": {"category": "test"},
+        "metadata": {
+            "category": "test"
+        },
         "reference_data": {
             "expected_behavior": "greet",
             "expected_facts": ["fact1"],
@@ -97,35 +101,16 @@ def test_unified_row_to_question():
         "agents_evaluated": ["agent_a"],
         "metrics": None,
     }
-    assert _unified_row_to_question(row_nested, default_id="def_id") == expected_nested
-
-    # Case D: Row with metrics
-    row_metrics = {
-        "id": "q2",
-        "prompt": "hello",
-        "metrics": ["accuracy", "latency"],
-    }
-    expected_metrics = {
-        "id": "q2",
-        "user_inputs": ["hello"],
-        "metadata": {},
-        "reference_data": {},
-        "agents_evaluated": [],
-        "metrics": ["accuracy", "latency"],
-    }
-    assert (
-        _unified_row_to_question(row_metrics, default_id="def_id") == expected_metrics
-    )
+    assert _unified_row_to_question(row_nested,
+                                    default_id="def_id") == expected_nested
 
     # Test with custom metrics targeted
     row_with_metrics = row_nested.copy()
     row_with_metrics["metrics"] = ["metric1", "metric2"]
     expected_with_metrics = expected_nested.copy()
     expected_with_metrics["metrics"] = ["metric1", "metric2"]
-    assert (
-        _unified_row_to_question(row_with_metrics, default_id="def_id")
-        == expected_with_metrics
-    )
+    assert (_unified_row_to_question(
+        row_with_metrics, default_id="def_id") == expected_with_metrics)
 
     # Case B: Top-level expected_* keys (legacy merge)
     row_legacy_top = {
@@ -133,7 +118,8 @@ def test_unified_row_to_question():
         "expected_response": "hi there",
         "expected_facts": ["fact1"],
     }
-    result_legacy_top = _unified_row_to_question(row_legacy_top, default_id="def_id")
+    result_legacy_top = _unified_row_to_question(row_legacy_top,
+                                                 default_id="def_id")
     assert result_legacy_top["id"] == "def_id"
     assert result_legacy_top["reference_data"] == {
         "expected_response": "hi there",
@@ -145,7 +131,8 @@ def test_unified_row_to_question():
         "prompt": "hello",
         "reference": "hello string reference",
     }
-    result_legacy_str = _unified_row_to_question(row_legacy_str, default_id="def_id")
+    result_legacy_str = _unified_row_to_question(row_legacy_str,
+                                                 default_id="def_id")
     assert result_legacy_str["reference_data"] == {
         "expected_response": "hello string reference",
     }
@@ -182,8 +169,14 @@ def test_get_golden_questions_jsonl():
 def test_get_golden_questions_legacy_json():
     legacy_data = {
         "questions": [
-            {"id": "ql1", "user_inputs": ["legacy prompt 1"]},
-            {"id": "ql2", "user_inputs": ["legacy prompt 2"]},
+            {
+                "id": "ql1",
+                "user_inputs": ["legacy prompt 1"]
+            },
+            {
+                "id": "ql2",
+                "user_inputs": ["legacy prompt 2"]
+            },
         ]
     }
     with tempfile.TemporaryDirectory() as td:
@@ -209,9 +202,27 @@ def test_get_golden_questions_file_not_found():
 
 def test_filter_questions_by_metadata():
     questions = [
-        {"id": "q1", "metadata": {"category": "travel", "difficulty": "easy"}},
-        {"id": "q2", "metadata": {"category": "finance", "difficulty": "hard"}},
-        {"id": "q3", "metadata": {"category": "travel", "difficulty": "hard"}},
+        {
+            "id": "q1",
+            "metadata": {
+                "category": "travel",
+                "difficulty": "easy"
+            }
+        },
+        {
+            "id": "q2",
+            "metadata": {
+                "category": "finance",
+                "difficulty": "hard"
+            }
+        },
+        {
+            "id": "q3",
+            "metadata": {
+                "category": "travel",
+                "difficulty": "hard"
+            }
+        },
     ]
 
     # Empty filters should return all questions
@@ -243,8 +254,12 @@ async def test_process_single_question_success():
     question_data = {
         "id": "q1",
         "user_inputs": ["hello turn 1", "hello turn 2"],
-        "metadata": {"category": "test"},
-        "reference_data": {"expected_behavior": "greet"},
+        "metadata": {
+            "category": "test"
+        },
+        "reference_data": {
+            "expected_behavior": "greet"
+        },
         "agents_evaluated": ["my-agent"],
     }
 
@@ -277,17 +292,17 @@ async def test_process_single_question_success():
     assert result["app_name"] == "my-agent"
     assert result["ADK_USER_ID"] == "eval_user"
     assert result["USER"] == "sergiovidiella"
-    assert json.loads(result["reference_data"]) == {"expected_behavior": "greet"}
+    assert json.loads(result["reference_data"]) == {
+        "expected_behavior": "greet"
+    }
 
     # Verify mock interactions were called
     mock_client.create_session.assert_called_once_with(debug="true")
     assert mock_client.run_interaction.call_count == 2
-    mock_client.run_interaction.assert_has_calls(
-        [
-            mock.call("session_abc", "hello turn 1"),
-            mock.call("session_abc", "hello turn 2"),
-        ]
-    )
+    mock_client.run_interaction.assert_has_calls([
+        mock.call("session_abc", "hello turn 1"),
+        mock.call("session_abc", "hello turn 2"),
+    ])
 
 
 @pytest.mark.anyio
@@ -334,8 +349,20 @@ async def test_interaction_runner_full_orchestration(mock_agent_client_class):
 
     # Seed questions dataset
     dataset_rows = [
-        {"id": "q1", "prompt": "prompt 1", "metadata": {"difficulty": "easy"}},
-        {"id": "q2", "prompt": "prompt 2", "metadata": {"difficulty": "hard"}},
+        {
+            "id": "q1",
+            "prompt": "prompt 1",
+            "metadata": {
+                "difficulty": "easy"
+            }
+        },
+        {
+            "id": "q2",
+            "prompt": "prompt 2",
+            "metadata": {
+                "difficulty": "hard"
+            }
+        },
     ]
     with tempfile.TemporaryDirectory() as td:
         dataset_path = Path(td) / "dataset.jsonl"
@@ -366,20 +393,16 @@ async def test_interaction_runner_full_orchestration(mock_agent_client_class):
         assert list(df["session_id"]) == ["session_1", "session_1"]
 
         # Verify state variables were parsed and passed to session creation
-        mock_client.create_session.assert_has_calls(
-            [
-                mock.call(debug="true"),
-                mock.call(debug="true"),
-            ]
-        )
+        mock_client.create_session.assert_has_calls([
+            mock.call(debug="true"),
+            mock.call(debug="true"),
+        ])
 
         # Verify run_interaction was called for prompt 1 in both runs
-        mock_client.run_interaction.assert_has_calls(
-            [
-                mock.call("session_1", "prompt 1"),
-                mock.call("session_1", "prompt 1"),
-            ]
-        )
+        mock_client.run_interaction.assert_has_calls([
+            mock.call("session_1", "prompt 1"),
+            mock.call("session_1", "prompt 1"),
+        ])
 
 
 @pytest.mark.anyio
@@ -405,7 +428,9 @@ async def test_interaction_runner_local_with_agent_instance():
         "id": "q1",
         "prompt": "prompt 1",
         "kind": "single_turn",
-        "reference_data": {"expected_response": "Hello, local user!"},
+        "reference_data": {
+            "expected_response": "Hello, local user!"
+        },
     }
     with tempfile.TemporaryDirectory() as td:
         dataset_path = Path(td) / "dataset.jsonl"
@@ -443,10 +468,8 @@ async def test_interaction_runner_local_with_agent_instance():
         # Verify response was stored in the session state events!
         session_state = runner.agent_client.get_session_state(session_id)
         assert len(session_state["events"]) == 2
-        assert (
-            session_state["events"][1]["content"]["parts"][0]["text"]
-            == "Hello, local user!"
-        )
+        assert (session_state["events"][1]["content"]["parts"][0]["text"] ==
+                "Hello, local user!")
 
         # Verify run_async was called on our mock_agent_instance
         mock_agent_instance.run_async.assert_called_once()

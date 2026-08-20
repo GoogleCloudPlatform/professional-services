@@ -36,11 +36,34 @@ from __future__ import annotations
 import html
 import json
 import logging
+import math
 from datetime import datetime
 from pathlib import Path
 from typing import Any
 
 logger = logging.getLogger("agent_eval")
+
+
+def _json_safe(obj: Any) -> Any:
+    """Recursively replace non-finite floats (NaN / ±Infinity) with ``None``.
+
+    ``json.dumps`` emits bare ``NaN`` / ``Infinity`` tokens by default, which
+    are NOT valid JSON. The browser's ``JSON.parse`` on the embedded
+    ``<script type="application/json">`` payload then throws, and the whole
+    report fails to render (blank / "weird" page). A single non-finite metric
+    value — e.g. an average over zero successful runs, or a delta vs a missing
+    baseline — is enough to break the page, so we sanitize at the serialization
+    boundary and always emit valid JSON (``null``). The front-end already
+    treats ``null`` gracefully (renders "—").
+    """
+    if isinstance(obj, float):
+        return obj if math.isfinite(obj) else None
+    if isinstance(obj, dict):
+        return {k: _json_safe(v) for k, v in obj.items()}
+    if isinstance(obj, (list, tuple)):
+        return [_json_safe(v) for v in obj]
+    return obj
+
 
 # ---------------------------------------------------------------------------
 # Data extraction (turn analyzer outputs into JSON for the template)
@@ -84,7 +107,8 @@ def _format_value(val: Any, metric: str) -> str:
     return str(val)
 
 
-def _normalize_score(val: Any, score_range: dict[str, Any] | None) -> float | None:
+def _normalize_score(val: Any,
+                     score_range: dict[str, Any] | None) -> float | None:
     if not isinstance(val, (int, float)):
         return None
     if not score_range:
@@ -96,48 +120,41 @@ def _normalize_score(val: Any, score_range: dict[str, Any] | None) -> float | No
 
 
 def _build_overview_tiles(summary: dict[str, Any]) -> list[dict[str, Any]]:
-    det = (summary.get("overall_summary") or {}).get("deterministic_metrics") or {}
+    det = (summary.get("overall_summary") or
+           {}).get("deterministic_metrics") or {}
     tiles = []
     cost = det.get("token_usage.estimated_cost_usd")
     if cost is not None:
-        tiles.append(
-            {
-                "label": "Estimated Cost",
-                "value": f"${cost:.4f}",
-                "hint": "Per question on average",
-                "color": "yellow",
-            }
-        )
+        tiles.append({
+            "label": "Estimated Cost",
+            "value": f"${cost:.4f}",
+            "hint": "Per question on average",
+            "color": "yellow",
+        })
     wall = det.get("latency_metrics.total_latency_seconds")
     if wall is not None:
-        tiles.append(
-            {
-                "label": "Wall-clock",
-                "value": f"{wall:.1f}s",
-                "hint": "Average per question",
-                "color": "blue",
-            }
-        )
+        tiles.append({
+            "label": "Wall-clock",
+            "value": f"{wall:.1f}s",
+            "hint": "Average per question",
+            "color": "blue",
+        })
     cache = det.get("cache_efficiency.cache_hit_rate")
     if cache is not None:
-        tiles.append(
-            {
-                "label": "Cache Hit Rate",
-                "value": f"{cache * 100:.0f}%",
-                "hint": "Higher = cheaper",
-                "color": "green",
-            }
-        )
+        tiles.append({
+            "label": "Cache Hit Rate",
+            "value": f"{cache * 100:.0f}%",
+            "hint": "Higher = cheaper",
+            "color": "green",
+        })
     tokens = det.get("token_usage.total_tokens")
     if tokens is not None:
-        tiles.append(
-            {
-                "label": "Total Tokens",
-                "value": f"{tokens:,.0f}",
-                "hint": "Prompt + completion + thinking",
-                "color": "red",
-            }
-        )
+        tiles.append({
+            "label": "Total Tokens",
+            "value": f"{tokens:,.0f}",
+            "hint": "Prompt + completion + thinking",
+            "color": "red",
+        })
     return tiles
 
 
@@ -146,7 +163,8 @@ def _build_llm_metric_rows(
     comparison: dict[str, Any] | None = None,
 ) -> list[dict[str, Any]]:
     llm = (summary.get("overall_summary") or {}).get("llm_based_metrics") or {}
-    skipped = (summary.get("overall_summary") or {}).get("skipped_metrics") or []
+    skipped = (summary.get("overall_summary") or
+               {}).get("skipped_metrics") or []
     delta_lookup = {}
     if comparison:
         for d in comparison.get("deltas", []):
@@ -160,29 +178,25 @@ def _build_llm_metric_rows(
         rng = info.get("score_range") or {"min": 0, "max": 1}
         normalized = _normalize_score(avg, rng)
         d = delta_lookup.get(name)
-        rows.append(
-            {
-                "name": name,
-                "score": _format_value(avg, name),
-                "score_normalized": normalized,
-                "range": f"{rng.get('min', 0)}–{rng.get('max', 1)}",
-                "baseline": _format_value(d["baseline"], name) if d else None,
-                "delta_pct": d.get("pct_change") if d else None,
-                "delta_direction": d.get("direction") if d else None,
-                "skipped": False,
-            }
-        )
+        rows.append({
+            "name": name,
+            "score": _format_value(avg, name),
+            "score_normalized": normalized,
+            "range": f"{rng.get('min', 0)}–{rng.get('max', 1)}",
+            "baseline": _format_value(d["baseline"], name) if d else None,
+            "delta_pct": d.get("pct_change") if d else None,
+            "delta_direction": d.get("direction") if d else None,
+            "skipped": False,
+        })
     for s in skipped:
         if isinstance(s, dict):
-            rows.append(
-                {
-                    "name": s.get("metric", "?"),
-                    "score": "SKIPPED",
-                    "range": "—",
-                    "skipped": True,
-                    "reason": s.get("reason", ""),
-                }
-            )
+            rows.append({
+                "name": s.get("metric", "?"),
+                "score": "SKIPPED",
+                "range": "—",
+                "skipped": True,
+                "reason": s.get("reason", ""),
+            })
     return rows
 
 
@@ -190,7 +204,8 @@ def _build_deterministic_rows(
     summary: dict[str, Any],
     comparison: dict[str, Any] | None = None,
 ) -> list[dict[str, Any]]:
-    det = (summary.get("overall_summary") or {}).get("deterministic_metrics") or {}
+    det = (summary.get("overall_summary") or
+           {}).get("deterministic_metrics") or {}
     delta_lookup = {}
     if comparison:
         for d in comparison.get("deltas", []):
@@ -198,21 +213,20 @@ def _build_deterministic_rows(
     rows = []
     for name, val in det.items():
         d = delta_lookup.get(name)
-        rows.append(
-            {
-                "name": name,
-                "value": _format_value(val, name),
-                "raw_value": val,
-                "baseline": _format_value(d["baseline"], name) if d else None,
-                "delta_pct": d.get("pct_change") if d else None,
-                "delta_direction": d.get("direction") if d else None,
-                "lower_better": _is_lower_better(name),
-            }
-        )
+        rows.append({
+            "name": name,
+            "value": _format_value(val, name),
+            "raw_value": val,
+            "baseline": _format_value(d["baseline"], name) if d else None,
+            "delta_pct": d.get("pct_change") if d else None,
+            "delta_direction": d.get("direction") if d else None,
+            "lower_better": _is_lower_better(name),
+        })
     return rows
 
 
-def _flatten_det_metrics(det: dict[str, Any], prefix: str = "") -> dict[str, Any]:
+def _flatten_det_metrics(det: dict[str, Any],
+                         prefix: str = "") -> dict[str, Any]:
     flat: dict[str, Any] = {}
     for k, v in (det or {}).items():
         if isinstance(v, dict):
@@ -336,25 +350,25 @@ def _build_csv_lookup(results_csv: Path | None) -> dict[str, dict[str, Any]]:
                         continue
                     args_obj = ti.get("input_arguments") or {}
                     result = ti.get("output_result") or ""
-                    tool_calls.append(
-                        {
-                            "name": ti.get("tool_name") or "?",
-                            "call_id": (ti.get("call_id") or "")[:24],
-                            "args": _truncate_for_payload(
+                    tool_calls.append({
+                        "name":
+                            ti.get("tool_name") or "?",
+                        "call_id": (ti.get("call_id") or "")[:24],
+                        "args":
+                            _truncate_for_payload(
                                 json.dumps(args_obj, default=str)
-                                if not isinstance(args_obj, str)
-                                else args_obj,
+                                if not isinstance(args_obj, str) else args_obj,
                                 800,
                             ),
-                            "result": _truncate_for_payload(
+                        "result":
+                            _truncate_for_payload(
                                 json.dumps(result, default=str)
-                                if not isinstance(result, str)
-                                else result,
+                                if not isinstance(result, str) else result,
                                 2500,
                             ),
-                            "ok": _classify_tool_result(result),
-                        }
-                    )
+                        "ok":
+                            _classify_tool_result(result),
+                    })
 
                 # State variables (final state after all turns).
                 state_vars = ed.get("state_variables") or {}
@@ -362,11 +376,9 @@ def _build_csv_lookup(results_csv: Path | None) -> dict[str, dict[str, Any]]:
                     state_vars = {}
                 state_clean = {}
                 for k, v in list(state_vars.items())[:30]:
-                    rendered = (
-                        json.dumps(v, default=str, indent=2)
-                        if not isinstance(v, (str, int, float, bool, type(None)))
-                        else v
-                    )
+                    rendered = (json.dumps(v, default=str, indent=2)
+                                if not isinstance(v, (str, int, float, bool,
+                                                      type(None))) else v)
                     state_clean[k] = rendered
 
                 # Agents that participated. sub_agent_trace entries have
@@ -385,7 +397,8 @@ def _build_csv_lookup(results_csv: Path | None) -> dict[str, dict[str, Any]]:
                 # (so the report shows what schema the LLM saw for tools).
                 system_instruction = ed.get("system_instruction") or ""
                 if isinstance(system_instruction, list):
-                    system_instruction = "\n\n".join(str(x) for x in system_instruction)
+                    system_instruction = "\n\n".join(
+                        str(x) for x in system_instruction)
                 # ADK wraps tool declarations as
                 #   [{"function_declarations": [{name, description}, ...]}]
                 # Flatten to a flat list of dicts so the JS render doesn't
@@ -395,40 +408,41 @@ def _build_csv_lookup(results_csv: Path | None) -> dict[str, dict[str, Any]]:
                 if isinstance(raw_tds, list):
                     for td in raw_tds:
                         if isinstance(td, dict) and isinstance(
-                            td.get("function_declarations"), list
-                        ):
+                                td.get("function_declarations"), list):
                             for fd in td["function_declarations"]:
                                 if isinstance(fd, dict):
-                                    tool_declarations.append(
-                                        {
-                                            "name": fd.get("name") or "?",
-                                            "description": _truncate_for_payload(
-                                                fd.get("description") or "", 200
-                                            ),
-                                        }
-                                    )
+                                    tool_declarations.append({
+                                        "name":
+                                            fd.get("name") or "?",
+                                        "description":
+                                            _truncate_for_payload(
+                                                fd.get("description") or "",
+                                                200),
+                                    })
                         elif isinstance(td, dict):
-                            tool_declarations.append(
-                                {
-                                    "name": td.get("name")
-                                    or td.get("tool_name")
+                            tool_declarations.append({
+                                "name":
+                                    td.get("name") or td.get("tool_name")
                                     or "?",
-                                    "description": _truncate_for_payload(
-                                        td.get("description") or "", 200
-                                    ),
-                                }
-                            )
+                                "description":
+                                    _truncate_for_payload(
+                                        td.get("description") or "", 200),
+                            })
                         elif isinstance(td, str):
-                            tool_declarations.append({"name": td, "description": ""})
+                            tool_declarations.append({
+                                "name": td,
+                                "description": ""
+                            })
 
                 # Thinking trace (Gemini reasoning tokens) — only the count
                 # + a sample, since these can be massive.
                 thinking_trace = ed.get("thinking_trace") or []
                 thinking_summary = {
-                    "n_thoughts": len(thinking_trace)
-                    if isinstance(thinking_trace, list)
-                    else 0,
-                    "sample": "",
+                    "n_thoughts":
+                        len(thinking_trace)
+                        if isinstance(thinking_trace, list) else 0,
+                    "sample":
+                        "",
                 }
                 if isinstance(thinking_trace, list) and thinking_trace:
                     first = thinking_trace[0]
@@ -439,8 +453,7 @@ def _build_csv_lookup(results_csv: Path | None) -> dict[str, dict[str, Any]]:
                         )
                     else:
                         thinking_summary["sample"] = _truncate_for_payload(
-                            str(first), 600
-                        )
+                            str(first), 600)
 
                 # Conversation history — pair user inputs with model responses.
                 conv_history = ed.get("conversation_history") or []
@@ -451,16 +464,14 @@ def _build_csv_lookup(results_csv: Path | None) -> dict[str, dict[str, Any]]:
                             continue
                         role = turn.get("role") or "user"
                         parts = turn.get("parts") or []
-                        text = " ".join(
-                            (p.get("text") or "") for p in parts if isinstance(p, dict)
-                        ).strip()
+                        text = " ".join((p.get("text") or "")
+                                        for p in parts
+                                        if isinstance(p, dict)).strip()
                         if text:
-                            conversation.append(
-                                {
-                                    "role": role,
-                                    "text": _truncate_for_payload(text, 4000),
-                                }
-                            )
+                            conversation.append({
+                                "role": role,
+                                "text": _truncate_for_payload(text, 4000),
+                            })
                 if not conversation:
                     fss = _safe_parse(row.get("final_session_state")) or {}
                     history_turns = fss.get("state", {}).get("history") or []
@@ -469,35 +480,29 @@ def _build_csv_lookup(results_csv: Path | None) -> dict[str, dict[str, Any]]:
                             author = h.get("author") or h.get("role") or "user"
                             text = h.get("text") or ""
                             if text:
-                                conversation.append(
-                                    {
-                                        "role": (
-                                            "model"
-                                            if author
-                                            in ("agents", "model", "assistant")
-                                            else "user"
-                                        ),
-                                        "text": _truncate_for_payload(text, 4000),
-                                    }
-                                )
+                                conversation.append({
+                                    "role": ("model" if author
+                                             in ("agents", "model",
+                                                 "assistant") else "user"),
+                                    "text": _truncate_for_payload(text, 4000),
+                                })
 
                 if not conversation:
                     # Fall back to user_inputs + final_response.
                     for ui in user_inputs[:20]:
-                        conversation.append(
-                            {
-                                "role": "user",
-                                "text": _truncate_for_payload(str(ui), 4000),
-                            }
-                        )
-                    final_resp = row.get("final_response") or row.get("response") or ""
+                        conversation.append({
+                            "role": "user",
+                            "text": _truncate_for_payload(str(ui), 4000),
+                        })
+                    final_resp = row.get("final_response") or row.get(
+                        "response") or ""
                     if final_resp:
-                        conversation.append(
-                            {
-                                "role": "model",
-                                "text": _truncate_for_payload(str(final_resp), 4000),
-                            }
-                        )
+                        conversation.append({
+                            "role":
+                                "model",
+                            "text":
+                                _truncate_for_payload(str(final_resp), 4000),
+                        })
 
                 # Per-turn latency breakdown. The CSV's `latency_data` column
                 # is a list of invocation trees (one per turn), each with
@@ -511,11 +516,12 @@ def _build_csv_lookup(results_csv: Path | None) -> dict[str, dict[str, Any]]:
                 def _sum_by_type(node: Any, target_type: str) -> float:
                     if not isinstance(node, dict):
                         return 0.0
-                    s = 0.0
                     if node.get("type") == target_type:
                         d = node.get("duration_seconds")
                         if isinstance(d, (int, float)):
-                            s += float(d)
+                            return float(d)
+                        return 0.0
+                    s = 0.0
                     for child in node.get("children") or []:
                         s += _sum_by_type(child, target_type)
                     return s
@@ -528,34 +534,41 @@ def _build_csv_lookup(results_csv: Path | None) -> dict[str, dict[str, Any]]:
                         total = t.get("duration_seconds")
                         llm_s = _sum_by_type(t, "LLM_CALL")
                         tool_s = _sum_by_type(t, "TOOL_CALL")
-                        turn_latencies.append(
-                            {
-                                "turn": i + 1,
-                                "total_s": total
-                                if isinstance(total, (int, float))
-                                else None,
-                                "llm_s": llm_s if llm_s > 0 else None,
-                                "tool_s": tool_s if tool_s > 0 else None,
-                            }
-                        )
+                        turn_latencies.append({
+                            "turn":
+                                i + 1,
+                            "total_s":
+                                total if isinstance(total,
+                                                    (int, float)) else None,
+                            "llm_s":
+                                llm_s if llm_s > 0 else None,
+                            "tool_s":
+                                tool_s if tool_s > 0 else None,
+                        })
 
                 lookup[qid] = {
-                    "conversation": conversation,
-                    "final_response": _truncate_for_payload(
-                        row.get("final_response") or "", 6000
-                    ),
-                    "tool_calls": tool_calls,
-                    "state_vars": state_clean,
-                    "agents_invoked": agents_invoked,
-                    "turn_latencies": turn_latencies,
-                    "trajectory": _truncate_for_payload(
-                        row.get("trace_summary") or "", 500
-                    ),
-                    "system_instruction": _truncate_for_payload(
-                        system_instruction, 4000
-                    ),
-                    "tool_declarations": tool_declarations[:30],
-                    "thinking": thinking_summary,
+                    "conversation":
+                        conversation,
+                    "final_response":
+                        _truncate_for_payload(
+                            row.get("final_response") or "", 6000),
+                    "tool_calls":
+                        tool_calls,
+                    "state_vars":
+                        state_clean,
+                    "agents_invoked":
+                        agents_invoked,
+                    "turn_latencies":
+                        turn_latencies,
+                    "trajectory":
+                        _truncate_for_payload(
+                            row.get("trace_summary") or "", 500),
+                    "system_instruction":
+                        _truncate_for_payload(system_instruction, 4000),
+                    "tool_declarations":
+                        tool_declarations[:30],
+                    "thinking":
+                        thinking_summary,
                 }
     except Exception as exc:
         logger.warning("Could not parse results CSV for HTML report: %s", exc)
@@ -574,13 +587,15 @@ def _build_per_question_data(
     structured data Chart.js + the heatmap need PLUS the rubric verdict
     trees the autorater emitted (which the markdown file doesn't include).
     """
-    qa_list = (
-        summary.get("per_question_summary")
-        or summary.get("all_question_summaries")
-        or []
-    )
+    qa_list = (summary.get("per_question_summary") or
+               summary.get("all_question_summaries") or [])
     if not qa_list:
-        return {"questions": [], "metric_names": [], "matrix": [], "verdicts": []}
+        return {
+            "questions": [],
+            "metric_names": [],
+            "matrix": [],
+            "verdicts": []
+        }
 
     csv_lookup = csv_lookup or {}
 
@@ -630,19 +645,19 @@ def _build_per_question_data(
                     continue
                 ev = v.get("evaluated_rubric") or {}
                 content = (ev.get("content") or {}).get("property") or {}
-                entries.append(
-                    {
-                        "rubric": _truncate_for_payload(
-                            content.get("description") or "", 400
-                        ),
-                        "type": ev.get("type") or "",
-                        "importance": ev.get("importance") or "",
-                        "verdict": v.get("verdict"),
-                        "reasoning": _truncate_for_payload(
-                            v.get("reasoning") or "", 600
-                        ),
-                    }
-                )
+                entries.append({
+                    "rubric":
+                        _truncate_for_payload(
+                            content.get("description") or "", 400),
+                    "type":
+                        ev.get("type") or "",
+                    "importance":
+                        ev.get("importance") or "",
+                    "verdict":
+                        v.get("verdict"),
+                    "reasoning":
+                        _truncate_for_payload(v.get("reasoning") or "", 600),
+                })
             # Preserve the explanation's original shape — string, list (e.g.
             # hallucination's per-claim verdicts), or dict — the JS renders
             # each shape differently. Cap deeply if it's a string. For
@@ -651,19 +666,15 @@ def _build_per_question_data(
             if isinstance(raw_expl, str):
                 expl_payload: Any = _truncate_for_payload(raw_expl, 1200)
             elif isinstance(raw_expl, list):
-                expl_payload = [
-                    {
-                        k: (_truncate_for_payload(v, 1200) if isinstance(v, str) else v)
-                        for k, v in item.items()
-                    }
-                    if isinstance(item, dict)
-                    else _truncate_for_payload(str(item), 1200)
-                    for item in raw_expl
-                ]
+                expl_payload = [{
+                    k: (_truncate_for_payload(v, 1200)
+                        if isinstance(v, str) else v) for k, v in item.items()
+                } if isinstance(item, dict) else _truncate_for_payload(
+                    str(item), 1200) for item in raw_expl]
             elif isinstance(raw_expl, dict):
                 expl_payload = {
-                    k: (_truncate_for_payload(v, 1200) if isinstance(v, str) else v)
-                    for k, v in raw_expl.items()
+                    k: (_truncate_for_payload(v, 1200) if isinstance(v, str)
+                        else v) for k, v in raw_expl.items()
                 }
             else:
                 expl_payload = ""
@@ -675,7 +686,8 @@ def _build_per_question_data(
             err_str = ""
             if err is not None:
                 err_str = _truncate_for_payload(
-                    err if isinstance(err, str) else json.dumps(err, default=str),
+                    err if isinstance(err, str) else json.dumps(err,
+                                                                default=str),
                     600,
                 )
             per_metric_verdicts[mname] = {
@@ -697,52 +709,46 @@ def _build_per_question_data(
                 cell_details.append(None)
             else:
                 row.append(
-                    float(score_val) if isinstance(score_val, (int, float)) else None
-                )
+                    float(score_val) if isinstance(score_val, (
+                        int, float)) else None)
                 cell_details.append(_format_value(score_val, m))
-        questions.append(
-            {
-                "id": friendly,
-                "raw_id": raw_qid,
-                "prompt_preview": prompt_preview,
-                "source_type": source,
-            }
-        )
-        matrix.append(
-            {
-                "id": friendly,
-                "label": prompt_preview or friendly,
-                "raw_id": raw_qid,
-                "source_type": source,
-                "row": row,
-                "cells": cell_details,
-            }
-        )
+        questions.append({
+            "id": friendly,
+            "raw_id": raw_qid,
+            "prompt_preview": prompt_preview,
+            "source_type": source,
+        })
+        matrix.append({
+            "id": friendly,
+            "label": prompt_preview or friendly,
+            "raw_id": raw_qid,
+            "source_type": source,
+            "row": row,
+            "cells": cell_details,
+        })
         # Pull the rich conversation/tool/state data from the CSV lookup
         # if it was pre-parsed. This is the wisely-extracted data the user
         # actually wants to see per question — what did the agent do?
         csv_extra = csv_lookup.get(raw_qid) or {}
-        verdicts.append(
-            {
-                "id": friendly,
-                "raw_id": raw_qid,
-                "source_type": source,
-                "prompt_preview": prompt_preview,
-                "metrics": per_metric_verdicts,
-                "deterministic": det_flat,
-                # New: from CSV
-                "conversation": csv_extra.get("conversation") or [],
-                "final_response": csv_extra.get("final_response") or "",
-                "tool_calls": csv_extra.get("tool_calls") or [],
-                "state_vars": csv_extra.get("state_vars") or {},
-                "agents_invoked": csv_extra.get("agents_invoked") or [],
-                "turn_latencies": csv_extra.get("turn_latencies") or [],
-                "trajectory": csv_extra.get("trajectory") or "",
-                "system_instruction": csv_extra.get("system_instruction") or "",
-                "tool_declarations": csv_extra.get("tool_declarations") or [],
-                "thinking": csv_extra.get("thinking") or {},
-            }
-        )
+        verdicts.append({
+            "id": friendly,
+            "raw_id": raw_qid,
+            "source_type": source,
+            "prompt_preview": prompt_preview,
+            "metrics": per_metric_verdicts,
+            "deterministic": det_flat,
+            # New: from CSV
+            "conversation": csv_extra.get("conversation") or [],
+            "final_response": csv_extra.get("final_response") or "",
+            "tool_calls": csv_extra.get("tool_calls") or [],
+            "state_vars": csv_extra.get("state_vars") or {},
+            "agents_invoked": csv_extra.get("agents_invoked") or [],
+            "turn_latencies": csv_extra.get("turn_latencies") or [],
+            "trajectory": csv_extra.get("trajectory") or "",
+            "system_instruction": csv_extra.get("system_instruction") or "",
+            "tool_declarations": csv_extra.get("tool_declarations") or [],
+            "thinking": csv_extra.get("thinking") or {},
+        })
 
     return {
         "questions": questions,
@@ -752,9 +758,8 @@ def _build_per_question_data(
     }
 
 
-def _build_iterations_data(
-    results_parent: Path, current_run_id: str
-) -> list[dict[str, Any]]:
+def _build_iterations_data(results_parent: Path,
+                           current_run_id: str) -> list[dict[str, Any]]:
     """Walk every run folder under ``results_parent`` and build a sorted
     list of iteration entries from each run's ``eval_summary.json``.
 
@@ -797,27 +802,30 @@ def _build_iterations_data(
             n: (info.get("average") if isinstance(info, dict) else info)
             for n, info in llm.items()
         }
-        # Use mtime as the datetime — it's the run completion time.
+        dt_str = str(data.get("interaction_datetime") or "")
         try:
-            dt = datetime.fromtimestamp(summary_file.stat().st_mtime)
+            dt = datetime.fromisoformat(dt_str.replace("Z", "+00:00"))
             dt_str = dt.strftime("%Y-%m-%d %H:%M")
             dt_sort = dt.timestamp()
-        except OSError:
-            dt_str = ""
-            dt_sort = 0
+        except (ValueError, TypeError):
+            try:
+                dt = datetime.fromtimestamp(summary_file.stat().st_mtime)
+                dt_str = dt.strftime("%Y-%m-%d %H:%M")
+                dt_sort = dt.timestamp()
+            except OSError:
+                dt_str = ""
+                dt_sort = 0
         git = data.get("git_info") or {}
-        iterations.append(
-            {
-                "run_id": run_dir.name,
-                "datetime": dt_str,
-                "_sort": dt_sort,
-                "llm_metrics": llm_picked,
-                "det_metrics": det_picked,
-                "git_commit": (git.get("commit") or "")[:8],
-                "git_branch": git.get("branch") or "",
-                "is_current": run_dir.name == current_run_id,
-            }
-        )
+        iterations.append({
+            "run_id": run_dir.name,
+            "datetime": dt_str,
+            "_sort": dt_sort,
+            "llm_metrics": llm_picked,
+            "det_metrics": det_picked,
+            "git_commit": (git.get("commit") or "")[:8],
+            "git_branch": git.get("branch") or "",
+            "is_current": run_dir.name == current_run_id,
+        })
     iterations.sort(key=lambda x: x["_sort"])
     # Compute deltas vs immediately-previous iteration so each card can
     # show movement at a glance.
@@ -830,7 +838,9 @@ def _build_iterations_data(
         for src in ("llm_metrics", "det_metrics"):
             for k, v in (it[src] or {}).items():
                 pv = (prev[src] or {}).get(k)
-                if isinstance(v, (int, float)) and isinstance(pv, (int, float)) and pv:
+                if (isinstance(v, (int, float)) and
+                        isinstance(pv, (int, float)) and pv and
+                        math.isfinite(v) and math.isfinite(pv)):
                     deltas[k] = round((v - pv) / abs(pv) * 100, 1)
         it["deltas"] = deltas
     # Strip the internal sort key.
@@ -877,36 +887,55 @@ def _build_payload(
     git = summary.get("git_info") or {}
     return {
         "meta": {
-            "run_id": run_id,
-            "agent_name": agent_name,
-            "generated_at": datetime.now().strftime("%Y-%m-%d %H:%M"),
-            "experiment_id": summary.get("experiment_id", ""),
-            "test_description": summary.get("test_description", ""),
-            "interaction_datetime": summary.get("interaction_datetime", ""),
-            "run_type": summary.get("run_type", ""),
+            "run_id":
+                run_id,
+            "agent_name":
+                agent_name,
+            "generated_at":
+                datetime.now().strftime("%Y-%m-%d %H:%M"),
+            "experiment_id":
+                summary.get("experiment_id", ""),
+            "test_description":
+                summary.get("test_description", ""),
+            "interaction_datetime":
+                summary.get("interaction_datetime", ""),
+            "run_type":
+                summary.get("run_type", ""),
             "git_commit": (git.get("commit") or "")[:8],
-            "git_branch": git.get("branch") or "",
-            "git_dirty": bool(git.get("dirty")),
-            "has_comparison": bool(comparison),
-            "baseline_run": (comparison or {}).get("baseline_run_name")
-            or (comparison or {}).get("baseline_id"),
+            "git_branch":
+                git.get("branch") or "",
+            "git_dirty":
+                bool(git.get("dirty")),
+            "has_comparison":
+                bool(comparison),
+            "baseline_run": (comparison or {}).get("baseline_run_name") or
+                            (comparison or {}).get("baseline_id"),
         },
-        "tiles": _build_overview_tiles(summary),
-        "llm_metrics": _build_llm_metric_rows(summary, comparison),
-        "deterministic_metrics": _build_deterministic_rows(summary, comparison),
-        "per_source": _build_per_source_data(summary),
-        "per_question": _build_per_question_data(
-            results_csv, summary, csv_lookup=_build_csv_lookup(results_csv)
-        ),
-        "qa_log_md": _truncate_for_payload(qa_log_md or "", 200000),
-        "iterations": iterations or [],
+        "tiles":
+            _build_overview_tiles(summary),
+        "llm_metrics":
+            _build_llm_metric_rows(summary, comparison),
+        "deterministic_metrics":
+            _build_deterministic_rows(summary, comparison),
+        "per_source":
+            _build_per_source_data(summary),
+        "per_question":
+            _build_per_question_data(results_csv,
+                                     summary,
+                                     csv_lookup=_build_csv_lookup(results_csv)),
+        "qa_log_md":
+            _truncate_for_payload(qa_log_md or "", 200000),
+        "iterations":
+            iterations or [],
         "comparison": {
             "deltas": (comparison or {}).get("deltas") or [],
             "baseline_git": (comparison or {}).get("baseline_git") or {},
             "current_git": (comparison or {}).get("current_git") or {},
         },
-        "gemini_analysis_md": _truncate_for_payload(gemini_analysis_md or "", 60000),
-        "optimization_log_md": _truncate_for_payload(optimization_log_md or "", 60000),
+        "gemini_analysis_md":
+            _truncate_for_payload(gemini_analysis_md or "", 60000),
+        "optimization_log_md":
+            _truncate_for_payload(optimization_log_md or "", 60000),
     }
 
 
@@ -1735,6 +1764,14 @@ _HTML_TEMPLATE = r"""<!doctype html>
   <section id="iterations" class="tab-content">
     <h2><span class="accent yellow"></span>Metrics over time</h2>
     <div class="card">
+      <div style="margin-bottom: 12px; display: flex; justify-content: flex-end; align-items: center; gap: 8px;">
+        <label for="iterations-range-select" style="font-size: 12px; font-weight: 600; color: #555;">Time Range:</label>
+        <select id="iterations-range-select" style="padding: 4px 8px; border-radius: 4px; border: 1px solid #ccc; font-size: 12px; font-family: inherit;">
+          <option value="15" selected>Last 15 runs (Default)</option>
+          <option value="30">Last 30 runs</option>
+          <option value="all">All runs (50+)</option>
+        </select>
+      </div>
       <div id="iterations-chart-empty" class="empty" style="display:none">
         Only one run so far — chart needs ≥2 iterations to draw a trend line.
       </div>
@@ -2148,9 +2185,9 @@ _HTML_TEMPLATE = r"""<!doctype html>
         '</summary>' +
         '<div class="qa-detail">' +
           renderRunStats(q.deterministic) +
+          renderStateAndTrajectory(q.state_vars, q.agents_invoked, q.trajectory, q.turn_latencies, q.deterministic) +
           renderConversation(q.conversation, q.final_response) +
           renderToolCalls(q.tool_calls) +
-          renderStateAndTrajectory(q.state_vars, q.agents_invoked, q.trajectory, q.turn_latencies, q.deterministic) +
           renderThinking(q.thinking) +
           renderAgentSpec(q.system_instruction, q.tool_declarations) +
           renderMetricsBlock(q.metrics) +
@@ -2172,6 +2209,7 @@ _HTML_TEMPLATE = r"""<!doctype html>
       ['Cached tokens', det['token_usage.cached_tokens'], 'n'],
       ['Cost', det['token_usage.estimated_cost_usd'], 'cost'],
       ['Wall-clock', det['latency_metrics.total_latency_seconds'], 's'],
+      ['Turn latency', det['latency_metrics.average_turn_latency_seconds'], 's'],
       ['LLM time', det['latency_metrics.llm_latency_seconds'], 's'],
       ['Tool time', det['latency_metrics.tool_latency_seconds'], 's'],
       ['LLM calls', det['token_usage.llm_calls'], 'n'],
@@ -2366,13 +2404,13 @@ _HTML_TEMPLATE = r"""<!doctype html>
               '<code>' + escapeHtml(String(peakSpan)) + '</code></div>';
     }
     if (hasLat) {
-      html += '<div class="state-card"><div class="tool-label">Per-turn latency</div>' +
-              '<table class="metrics" style="font-size:11px"><thead><tr><th>Turn</th><th class="num">Total</th><th class="num">LLM</th><th class="num">Tools</th></tr></thead><tbody>' +
+      html += '<div class="state-card" style="grid-column:1/-1; border-color:var(--g-blue); background:var(--g-blue-soft)"><div class="tool-label" style="font-weight:600; color:var(--g-blue)">⏱️ Per-Turn Wall-Clock Latency Breakdown</div>' +
+              '<table class="metrics" style="font-size:12px; width:100%; margin-top:6px;"><thead><tr><th style="text-align:left">Turn</th><th class="num" style="font-weight:600">Total</th><th class="num">LLM</th><th class="num" style="font-weight:600; color:var(--g-blue)">Tools</th></tr></thead><tbody>' +
               latencies.map(function(t) {
-                return '<tr><td>' + t.turn + '</td>' +
-                  '<td class="num">' + (t.total_s != null ? Number(t.total_s).toFixed(2) + 's' : '—') + '</td>' +
+                return '<tr><td style="font-weight:500">' + t.turn + '</td>' +
+                  '<td class="num" style="font-weight:600">' + (t.total_s != null ? Number(t.total_s).toFixed(2) + 's' : '—') + '</td>' +
                   '<td class="num">' + (t.llm_s != null ? Number(t.llm_s).toFixed(2) + 's' : '—') + '</td>' +
-                  '<td class="num">' + (t.tool_s != null ? Number(t.tool_s).toFixed(2) + 's' : '—') + '</td></tr>';
+                  '<td class="num" style="font-weight:600; color:var(--g-blue)">' + (t.tool_s != null ? Number(t.tool_s).toFixed(2) + 's' : '—') + '</td></tr>';
               }).join('') +
               '</tbody></table></div>';
     }
@@ -2401,54 +2439,76 @@ _HTML_TEMPLATE = r"""<!doctype html>
   // Trend line chart of LLM metrics over runs + per-iteration cards
   // with delta deltas. Replaces the old marked.js render of OPT_LOG.md
   // (markdown stays on disk for git/grep but isn't the source here).
-  safe('iterations-chart', function() {
-    const its = data.iterations || [];
-    if (its.length < 2 || typeof Chart === 'undefined') {
-      $('#iterations-chart-empty').style.display = 'block';
-      return;
-    }
-    const labels = its.map(function(it) { return it.run_id; });
-    // Pull every LLM metric name across all iterations.
-    const metricNames = [];
-    its.forEach(function(it) {
-      Object.keys(it.llm_metrics || {}).forEach(function(n) {
-        if (metricNames.indexOf(n) < 0) metricNames.push(n);
+  let iterationsChartInst = null;
+  function renderIterationsView(limitVal) {
+    safe('iterations-chart', function() {
+      const allIts = data.iterations || [];
+      let its = allIts.slice();
+      if (limitVal !== 'all') {
+        const n = parseInt(limitVal, 10);
+        if (!isNaN(n) && n > 0 && its.length > n) {
+          its = its.slice(its.length - n);
+        }
+      }
+      if (iterationsChartInst) {
+        iterationsChartInst.destroy();
+        iterationsChartInst = null;
+      }
+      if (its.length < 2 || typeof Chart === 'undefined') {
+        $('#iterations-chart-empty').style.display = 'block';
+        if ($('#iterations-chart')) $('#iterations-chart').style.display = 'none';
+        return;
+      }
+      $('#iterations-chart-empty').style.display = 'none';
+      if ($('#iterations-chart')) $('#iterations-chart').style.display = 'block';
+      const labels = its.map(function(it) { return it.run_id; });
+      const metricNames = [];
+      its.forEach(function(it) {
+        Object.keys(it.llm_metrics || {}).forEach(function(n) {
+          if (metricNames.indexOf(n) < 0) metricNames.push(n);
+        });
+      });
+      const palette = ['#4285f4', '#ea4335', '#34a853', '#fbbc04',
+                       '#9334e6', '#00897b', '#f57c00', '#5e35b1'];
+      const datasets = metricNames.map(function(n, i) {
+        return {
+          label: n,
+          data: its.map(function(it) { return it.llm_metrics[n] != null ? it.llm_metrics[n] : null; }),
+          borderColor: palette[i % palette.length],
+          backgroundColor: palette[i % palette.length] + '20',
+          borderWidth: 2.5,
+          tension: 0.25,
+          spanGaps: true,
+          pointRadius: 4,
+        };
+      });
+      iterationsChartInst = new Chart($('#iterations-chart'), {
+        type: 'line',
+        data: { labels: labels, datasets: datasets },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          scales: {
+            y: { min: 0, max: 1, ticks: { stepSize: 0.2 } },
+            x: { ticks: { font: { size: 11, weight: '600' } } }
+          },
+          plugins: { legend: { position: 'bottom', labels: { font: { size: 11, weight: '600' } } } }
+        }
       });
     });
-    const palette = ['#4285f4', '#ea4335', '#34a853', '#fbbc04',
-                     '#9334e6', '#00897b', '#f57c00', '#5e35b1'];
-    const datasets = metricNames.map(function(n, i) {
-      return {
-        label: n,
-        data: its.map(function(it) { return it.llm_metrics[n] != null ? it.llm_metrics[n] : null; }),
-        borderColor: palette[i % palette.length],
-        backgroundColor: palette[i % palette.length] + '20',
-        borderWidth: 2.5,
-        tension: 0.25,
-        spanGaps: true,
-        pointRadius: 4,
-      };
-    });
-    new Chart($('#iterations-chart'), {
-      type: 'line',
-      data: { labels: labels, datasets: datasets },
-      options: {
-        responsive: true, maintainAspectRatio: false,
-        scales: {
-          y: { min: 0, max: 1, ticks: { stepSize: 0.2 } },
-          x: { ticks: { font: { size: 11, weight: '600' } } }
-        },
-        plugins: { legend: { position: 'bottom', labels: { font: { size: 11, weight: '600' } } } }
-      }
-    });
-  });
 
-  safe('iterations-list', function() {
-    const its = data.iterations || [];
-    const list = $('#iterations-list');
-    if (!its.length) return;
-    // Newest first for the card list (the chart is left-to-right oldest-first).
-    const reversed = its.slice().reverse();
+    safe('iterations-list', function() {
+      const allIts = data.iterations || [];
+      let its = allIts.slice();
+      if (limitVal !== 'all') {
+        const n = parseInt(limitVal, 10);
+        if (!isNaN(n) && n > 0 && its.length > n) {
+          its = its.slice(its.length - n);
+        }
+      }
+      const list = $('#iterations-list');
+      if (!its.length) return;
+      // Newest first for the card list (the chart is left-to-right oldest-first).
+      const reversed = its.slice().reverse();
     list.innerHTML = reversed.map(function(it) {
       const isCurrent = it.is_current;
       const llmRows = Object.entries(it.llm_metrics || {}).map(function(e) {
@@ -2511,6 +2571,16 @@ _HTML_TEMPLATE = r"""<!doctype html>
       '</div>';
     }).join('');
   });
+  }
+
+  const rangeSel = $('#iterations-range-select');
+  if (rangeSel) {
+    rangeSel.addEventListener('change', function() {
+      renderIterationsView(this.value);
+    });
+  }
+  renderIterationsView(rangeSel ? rangeSel.value : '15');
+
   safe('gemini-md', function() {
     const gem = data.gemini_analysis_md || '';
     const el = $('#gemini-md');
@@ -2786,14 +2856,15 @@ def generate_html_report(
     #   - Replace `</` with `<\/` so any literal `</script>` substring in
     #     the data (agent responses sometimes scrape full HTML pages with
     #     analytics tags) doesn't prematurely close our <script> tag
-    data_json = json.dumps(payload, default=str, ensure_ascii=True).replace(
-        "</", "<\\/"
-    )
+    #   - _json_safe() strips non-finite floats (NaN/Infinity) that json.dumps
+    #     would otherwise emit as bare tokens, breaking the browser's JSON.parse
+    data_json = json.dumps(_json_safe(payload), default=str,
+                           ensure_ascii=True).replace("</", "<\\/")
 
-    html_text = (
-        _HTML_TEMPLATE.replace("__RUN_ID__", html.escape(run_id))
-        .replace("__GENERATED_AT__", payload["meta"]["generated_at"])
-        .replace("__DATA_JSON__", data_json)
-    )
+    html_text = (_HTML_TEMPLATE.replace(
+        "__RUN_ID__", html.escape(run_id)).replace(
+            "__GENERATED_AT__",
+            payload["meta"]["generated_at"]).replace("__DATA_JSON__",
+                                                     data_json))
     output_path.write_text(html_text, encoding="utf-8")
     return output_path

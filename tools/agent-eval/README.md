@@ -32,11 +32,31 @@ Each phase inside `run` is also exposed as a standalone command (`simulate`, `in
 
 You need **Python 3.10–3.12**, **[`uv`](https://docs.astral.sh/uv/)**, and **[`gcloud`](https://cloud.google.com/sdk/docs/install)** installed locally.
 
+#### Option A: Direct Git Install (Recommended)
+Install `agent-eval` directly from GitHub into your project's virtual environment:
+
+```bash
+# Install from main branch into your current virtual environment
+uv pip install "agent-eval @ git+https://github.com/danielazamorah/professional-services.git@main#subdirectory=tools/agent-eval"
+
+# Or install into a specific virtual environment (e.g. .venv-eval):
+uv pip install --python .venv-eval/bin/python \
+    "agent-eval @ git+https://github.com/danielazamorah/professional-services.git@main#subdirectory=tools/agent-eval"
+```
+
+*(Tip: You can target a specific branch by replacing `@main` with `@branch-name`, e.g. `@chore/agent-eval-0.1.1-docs`).*
+
+#### Option B: Local Source Development
+If you are developing or modifying `agent-eval` locally:
+
 ```bash
 cd agent-eval
-uv sync                   # creates .venv/ and installs all deps
+uv venv --python 3.12     # pin the interpreter — see the note below
+uv sync                   # installs all deps into .venv/
 source .venv/bin/activate # so `agent-eval` is on your PATH
 ```
+
+> ⚠️ **Pin the interpreter — don't let `uv` pick.** With no `.venv` present, `uv` selects the newest Python installed on your machine. On **Python 3.13+** that currently fails during install: the locked `scipy` (a transitive dependency of `google-cloud-aiplatform[evaluation]`) publishes no wheels for those versions, so `uv` falls back to building it from source and stops with a missing-Fortran-compiler error. Creating the venv with `--python 3.12` first avoids this. Already stuck? `rm -rf .venv && uv venv --python 3.12 && uv sync`.
 
 Then walk Google Cloud setup (once per shell):
 
@@ -48,7 +68,25 @@ Six idempotent steps — walks gcloud auth, picks your project + location, enabl
 
 > ⚠️ **Use Vertex AI, not `GOOGLE_API_KEY`** — eval metrics will be empty otherwise. `agent-eval setup` configures this for you.
 
-> Wheel install is on the roadmap; for now, source clone + `uv sync` is the supported install path.
+---
+
+### [Optional] Register Skills for AI Pair Programmers (Jetski / Gemini CLI)
+
+`agent-eval` ships with self-contained agent skills for AI pair programming assistants:
+
+```bash
+# List bundled skills and global registration status
+agent-eval skills list
+
+# Register / symlink bundled skills to global AI CLI config (~/.gemini/config/skills)
+agent-eval skills install
+```
+
+Once installed, coding agents automatically recognize:
+* **`/agent-eval`** — Runs automated benchmark pipelines, GCS publishing (`--publish`), and delta radar comparisons (`--compare-to`).
+* **`/agent-eval-workflow`** — Guides hypothesis-driven evaluation design, metric calibration, and loss cluster remediation.
+
+---
 
 ### [1] Initialize an agent
 
@@ -74,8 +112,10 @@ make backend     # only needed for `agent_engine` / `cloud_run` — provisions +
 
 **What `init` scaffolds** under your project's `tests/eval/`:
 
-- **`dataset.jsonl`** — your single source of truth for evaluation rows (canonical Vertex SDK columns: `prompt`, `response`, `reference`, `history`, `intermediate_events`, `session_inputs`, …). One file feeds every command.
-- **`metrics/metric_definitions.json`** — LLM-as-judge rubrics. With `--ai-metrics`, Gemini reads your agent code and drafts agent-specific metrics; without it, you get a curated starter set.
+- **`dataset.jsonl`** — your single source of truth for evaluation inputs. This is an immutable, read-only input dataset containing `prompt`, `conversation_plan`, and `session_inputs`. Heavy outputs (like `turns` and `events`) are saved to an isolated, git-ignored execution folder at `tests/eval/results/<run-id>/traces.jsonl` to keep Git clean, and AutoRaters read from there.
+- **`eval_config.yaml`** — the declarative configuration file that replaces `metric_definitions.json`. It combines your declarative OOTB AutoRaters and custom LLM judges, supporting 6 metric `kind` options (e.g. `managed`, `custom_llm_judge`, `multiturn_trajectory_judge`, `python_function`). With `--ai-metrics`, Gemini reads your agent code and drafts agent-specific judges; without it, you get a curated starter set.
+
+Note: The `simulate` command temporarily generates an `eval_config.json` next to `agent.py` for runtime compatibility.
 
 ```bash
 agent-eval init   # auto-detects your agent + scaffolds dataset/metrics (run from anywhere)
@@ -97,7 +137,15 @@ agent-eval run        # collect → score → analyze → view
 
 `run` ends by opening that self-contained `report.html` in your browser. On a remote dev box without a display, it offers to spawn a localhost HTTP server you can SSH-tunnel or open via Cloud Workstation's Web Preview. `agent-eval report` re-opens it anytime.
 
-See [`docs/reference.md`](docs/reference.md) for the per-phase walkthrough, every flag, dataset schema details, custom metric patterns, and troubleshooting. For detailed information on Bring Your Own Data schema contracts and offline trace injection, see the [Offline BYOD Schema Guide](docs/bring-your-own-data.md).
+### [3] Pluggable trace storage (Local, GCS, BigQuery)
+
+`agent-eval run` supports an agnostic storage abstraction (`StorageBackend`) so your evaluation traces (`AgentData` trajectories and `eval_summary.json` scorecards) can transition smoothly from local debugging to cloud persistence:
+
+- **Local filesystem (default)** — writes atomic `.tmp`-buffered files to `tests/eval/results/<run-id>/traces.jsonl`. Perfect for offline development; git-ignored to prevent repository bloat.
+- **Google Cloud Storage (`--storage=gcs --bucket=gs://...`)** — streams structured JSON runs directly to cloud object storage for CI/CD artifact persistence and team collaboration.
+- **BigQuery Analytics (`--storage=bigquery --dataset=...`)** — streams telemetry rows into OLAP BigQuery tables (`agent_runs`, `agent_runs_summary`), making your agent's historical quality trends instantly queryable in SQL and dashboardable in Looker.
+
+See [`docs/reference.md`](docs/reference.md) for the per-phase walkthrough, every flag, dataset schema details, custom metric patterns, troubleshooting, and the BYOD roadmap.
 
 ## Background Story
 
@@ -141,7 +189,7 @@ Everything you see here is months of *"this didn't work — what do we actually 
 
 **Honest caveats up front** — see [`docs/FUTURE_WORK.md`](docs/FUTURE_WORK.md) for the full context on each:
 
-- The streamlined Agent Engine pass (`agent-eval agent-engine`) is currently being re-validated; the local pipeline (`agent-eval run`) is what we ship and recommend.
+- The streamlined Agent Engine pass (`agent-eval agent-engine`) is compatible with SDK `>=1.156.0` and supported for offline batch evaluation. However, server-side trace evaluation (passing `agent`/`agent_info`) is currently blocked by an upstream Vertex platform bug. The local pipeline (`agent-eval run`) is the recommended path for complete trace grading.
 - Token / cache / thinking metrics read Gemini-specific field names from `usage_metadata` — verified against Gemini 3 / 3.1 Flash and Pro. After a model-family bump, sanity-check `eval_summary.json` for unexpected zeros.
 - ADK is the only agent framework supported out of the box. Other frameworks need the trace-collection layer abstracted.
 
