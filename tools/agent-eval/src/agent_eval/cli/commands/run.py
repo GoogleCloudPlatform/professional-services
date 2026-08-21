@@ -747,7 +747,7 @@ def run(
                 f"\n  [yellow]Warning:[/] No metric files found in {eval_path / 'metrics'}/ or {eval_path / 'eval_config.yaml'}"
             )
             console.print(
-                "  [dim]Evaluation will be skipped. Run `agent-eval init` to scaffold one, or pass --metrics-files <path>.[/]"
+                "  [dim]Grading will be skipped. Run `agent-eval init` to scaffold one, or pass --eval-config <path>.[/]"
             )
             run_evaluate = False
 
