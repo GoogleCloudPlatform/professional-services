@@ -56,7 +56,7 @@ uv sync                   # installs all deps into .venv/
 source .venv/bin/activate # so `agent-eval` is on your PATH
 ```
 
-> ⚠️ **Pin the interpreter — don't let `uv` pick.** With no `.venv` present, `uv` selects the newest Python installed on your machine. On **Python 3.13+** that currently fails during install: the locked `scipy` (a transitive dependency of `google-cloud-aiplatform[evaluation]`) publishes no wheels for those versions, so `uv` falls back to building it from source and stops with a missing-Fortran-compiler error. Creating the venv with `--python 3.12` first avoids this. Already stuck? `rm -rf .venv && uv venv --python 3.12 && uv sync`.
+> **Important (Python Version):** With no `.venv` present, `uv` selects the newest Python installed on your machine. On **Python 3.13+** that currently fails during install: the locked `scipy` (a transitive dependency of `google-cloud-aiplatform[evaluation]`) publishes no wheels for those versions, so `uv` falls back to building it from source and stops with a missing-Fortran-compiler error. Creating the venv with `--python 3.12` first avoids this. Already stuck? `rm -rf .venv && uv venv --python 3.12 && uv sync`.
 
 Then walk Google Cloud setup (once per shell):
 
@@ -66,7 +66,7 @@ agent-eval setup
 
 Six idempotent steps — walks gcloud auth, picks your project + location, enables the Vertex AI API, binds the autorater IAM. Re-run whenever you switch projects or your token expires; already-done steps are detected and skipped.
 
-> ⚠️ **Use Vertex AI, not `GOOGLE_API_KEY`** — eval metrics will be empty otherwise. `agent-eval setup` configures this for you.
+> **Note:** Use Vertex AI, not `GOOGLE_API_KEY` — eval metrics will be empty otherwise. `agent-eval setup` configures this for you.
 
 ---
 

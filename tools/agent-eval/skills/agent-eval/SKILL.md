@@ -99,10 +99,10 @@ agent-eval optimize --agent-dir app --optimizer gepa --target-metric business_lo
 
 All runs published with `--publish` are indexed in real time by the Evaluation Registry Viewer:
 
-* 🌐 **Local / Network Reverse Proxy**: 👉 `http://localhost:8550`
-* ☁️ **Cloud Run Endpoint**: `https://<EVAL_VIEWER_SERVICE>.run.app`
-* 🔗 **Direct Deep Link**: `http://localhost:8550/?run_id=<RUN_ID>`
-* 📄 **Direct Standalone HTML Report**: `http://localhost:8550/report/<RUN_ID>`
+* **Local / Network Reverse Proxy**: `http://localhost:8550`
+* **Cloud Run Endpoint**: `https://<EVAL_VIEWER_SERVICE>.run.app`
+* **Direct Deep Link**: `http://localhost:8550/?run_id=<RUN_ID>`
+* **Direct Standalone HTML Report**: `http://localhost:8550/report/<RUN_ID>`
 
 ---
 

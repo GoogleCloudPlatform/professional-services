@@ -123,10 +123,10 @@ Vertex AI managed metrics belong to one of four families per the docs catalog. K
 
 | Family | Examples | Reference required? | How scoring works | In `init` picker today |
 |---|---|---|---|---|
-| **Adaptive Rubric** (recommended start) | `GENERAL_QUALITY`, `TEXT_QUALITY`, `INSTRUCTION_FOLLOWING`, `MULTI_TURN_*`, `FINAL_RESPONSE_QUALITY`, `FINAL_RESPONSE_REFERENCE_FREE`, `TOOL_USE_QUALITY` | optional | Judge LLM generates rubrics on the fly from the prompt + response. | ✅ ~8 metrics |
-| **Static Rubric** | `GROUNDING`, `SAFETY`, `FINAL_RESPONSE_MATCH`, `HALLUCINATION` | optional / match-only | Judge LLM applies a fixed rubric. | ✅ ~3 metrics |
-| **Computation** (deterministic) | `EXACT_MATCH`, `BLEU`, `ROUGE_1`, `ROUGE_L_SUM`, `tool_*` | **required** | Mathematical comparison against `reference`. | ❌ catalogued, not managed — write as custom |
-| **Translation** (niche) | `comet`, `metricx` | **required** | Translation-quality scorers. | ❌ catalogued, not managed — write as custom |
+| **Adaptive Rubric** (recommended start) | `GENERAL_QUALITY`, `TEXT_QUALITY`, `INSTRUCTION_FOLLOWING`, `MULTI_TURN_*`, `FINAL_RESPONSE_QUALITY`, `FINAL_RESPONSE_REFERENCE_FREE`, `TOOL_USE_QUALITY` | optional | Judge LLM generates rubrics on the fly from the prompt + response. | Supported (~8 metrics) |
+| **Static Rubric** | `GROUNDING`, `SAFETY`, `FINAL_RESPONSE_MATCH`, `HALLUCINATION` | optional / match-only | Judge LLM applies a fixed rubric. | Supported (~3 metrics) |
+| **Computation** (deterministic) | `EXACT_MATCH`, `BLEU`, `ROUGE_1`, `ROUGE_L_SUM`, `tool_*` | **required** | Mathematical comparison against `reference`. | Catalogued, not managed — write as custom |
+| **Translation** (niche) | `comet`, `metricx` | **required** | Translation-quality scorers. | Catalogued, not managed — write as custom |
 
 `agent-eval init` groups its checkbox picker by family using `metric_families.classify()`, which introspects the SDK directly — adding a new managed metric upstream lands it in the right group automatically. The `init` background table at run time *only* renders families that have ≥1 metric in the catalog (so you don't see empty rows for Computation / Translation right before a picker that has no Computation / Translation options); the table includes a footnote naming what's missing and where it went.
 
@@ -198,7 +198,7 @@ The end result: both surfaces produce the same `dataset.jsonl` row shape, and bo
 
 `tests/eval/dataset.jsonl` is the immutable, read-only input dataset containing `prompt`, `conversation_plan`, and `session_inputs`. When running evaluations, the CLI outputs execution trace structures (containing the heavy `turns` and `events` arrays) to an isolated, git-ignored folder like `tests/eval/results/<run-id>/traces.jsonl`. AutoRaters read from this `traces.jsonl`.
 
-The unified dataset lives at `<project_root>/tests/eval/dataset.jsonl`. Every row is a JSON object. It opens with an `id`, and leverages `turns` and `events` for trajectory tracking. `dataset.jsonl` objects are hydrated directly into `AgentData` instances.
+The unified dataset lives at `<project_root>/tests/eval/dataset.jsonl`. Every row is a JSON object. It opens with an `id`, and uses `turns` and `events` for trajectory tracking. `dataset.jsonl` objects are hydrated directly into `AgentData` instances.
 
 **Multi-turn row** (`kind: "multi_turn"` — drives `simulate`):
 
@@ -515,7 +515,7 @@ After generation you can accept, refine (provide feedback and re-run), or skip t
 4. On valid parse → diffs against the AI-generated baseline (saved as a sibling `.gen` snapshot, cleaned up afterward) and prints a human-readable change list:
 
 ```
-✓ Picked up your edits to eval_config.yaml:
+Picked up your edits to eval_config.yaml:
     + added    response_grounding
     ~ updated  citation_accuracy
     − removed  safety
@@ -541,26 +541,26 @@ uv run agent-eval init -y --ai-metrics
 
 ```mermaid
 flowchart TD
-    A["🚦 Banner +<br/><b>Step 0</b> · Verify env<br/>• GOOGLE_CLOUD_PROJECT set<br/>• ADC file present<br/>• Vertex AI API enabled"]
-    A --> DT["🔍 <b>Detect evaluation surfaces</b><br/>• <code>deployment_metadata.json</code> + env var → Agent Engine deployment<br/>• <code>agent.py</code> via rglob → local source<br/>• if neither found → manual resource-name escape hatch"]
-    DT --> AGENT["📂 <b>Discover + pick agent module</b><br/>• rglob <code>agent.py</code> across cwd<br/>• one match → auto-select<br/>• many → questionary picker"]
+    A["Banner +<br/><b>Step 0</b> · Verify env<br/>• GOOGLE_CLOUD_PROJECT set<br/>• ADC file present<br/>• Vertex AI API enabled"]
+    A --> DT["<b>Detect evaluation surfaces</b><br/>• <code>deployment_metadata.json</code> + env var → Agent Engine deployment<br/>• <code>agent.py</code> via rglob → local source<br/>• if neither found → manual resource-name escape hatch"]
+    DT --> AGENT["<b>Discover + pick agent module</b><br/>• rglob <code>agent.py</code> across cwd<br/>• one match → auto-select<br/>• many → questionary picker"]
 
-    AGENT --> CAT["📚 <b>Step 4: Catalog walkthrough</b><br/>• Background 1 — the SDK call we'll run<br/>• Background 2 — dataset columns<br/>• Background 3 — families (rendered dynamically — only families with metrics)"]
-    CAT --> PICK["☑️ <b>Managed metric picker</b><br/>• checkbox per family<br/>• ↩ Reopen catalog sentinel<br/>• Enter → review screen, NOT final<br/>• Lock-in confirms; Edit reopens with selections preserved"]
+    AGENT --> CAT["<b>Step 4: Catalog walkthrough</b><br/>• Background 1 — the SDK call we'll run<br/>• Background 2 — dataset columns<br/>• Background 3 — families (rendered dynamically — only families with metrics)"]
+    CAT --> PICK["<b>Managed metric picker</b><br/>• checkbox per family<br/>• ↩ Reopen catalog sentinel<br/>• Enter → review screen, NOT final<br/>• Lock-in confirms; Edit reopens with selections preserved"]
 
     PICK --> AI{"<b>AI custom metrics?</b><br/>(default yes — opt out with <code>--no-ai-metrics</code>)"}
     AI -->|skip| SCAF
-    AI -->|yes| PRI["📝 <b>Custom priorities</b> <i>(optional free-text)</i>"]
-    PRI --> G1["🤖 <b>Gemini call 1</b><br/>analyze_agent_data — read agent.py + tools + prompts"]
-    G1 --> SUG["💡 <b>Display analysis</b><br/>• tools / state vars / behaviors<br/>• state-var suggestions (optional re-analyze)"]
-    SUG --> G2["🤖 <b>Gemini call 2</b><br/>generate_metric_definitions — canonical schema, binary by default"]
+    AI -->|yes| PRI["<b>Custom priorities</b> <i>(optional free-text)</i>"]
+    PRI --> G1["<b>Gemini call 1</b><br/>analyze_agent_data — read agent.py + tools + prompts"]
+    G1 --> SUG["<b>Display analysis</b><br/>• tools / state vars / behaviors<br/>• state-var suggestions (optional re-analyze)"]
+    SUG --> G2["<b>Gemini call 2</b><br/>generate_metric_definitions — canonical schema, binary by default"]
 
-    G2 --> REV1["🔍 <b>Review pause</b><br/>• show <code>eval_config.yaml</code><br/>• explain every section + key<br/>• edits during pause are diffed back"]
-    REV1 --> G3["🤖 <b>Gemini call 3</b><br/>generate_eval_data — starter <code>dataset.jsonl</code> with reference_data fields"]
-    G3 --> REV2["🔍 <b>Review pause</b><br/>• show <code>dataset.jsonl</code><br/>• edits diffed back<br/>• flow forward to scaffold"]
+    G2 --> REV1["<b>Review pause</b><br/>• show <code>eval_config.yaml</code><br/>• explain every section + key<br/>• edits during pause are diffed back"]
+    REV1 --> G3["<b>Gemini call 3</b><br/>generate_eval_data — starter <code>dataset.jsonl</code> with reference_data fields"]
+    G3 --> REV2["<b>Review pause</b><br/>• show <code>dataset.jsonl</code><br/>• edits diffed back<br/>• flow forward to scaffold"]
 
-    REV2 --> SCAF["📦 <b>Scaffold</b><br/>• write at agent project root (<code>tests/eval/</code>)<br/>• back up existing files first<br/>• if AI skipped: use canonical STARTER_METRICS"]
-    SCAF --> NEXT["🎯 <b>Next Steps panel</b><br/>• which commands to run next<br/>• tailored to detected surfaces"]
+    REV2 --> SCAF["<b>Scaffold</b><br/>• write at agent project root (<code>tests/eval/</code>)<br/>• back up existing files first<br/>• if AI skipped: use canonical STARTER_METRICS"]
+    SCAF --> NEXT["<b>Next Steps panel</b><br/>• which commands to run next<br/>• tailored to detected surfaces"]
 
     style A fill:#e1f5ff
     style DT fill:#e1f5ff
@@ -575,7 +575,7 @@ flowchart TD
     style NEXT fill:#ffe1f5
 ```
 
-Color key: 🔵 env-check + detection (blue) · 🟡 catalog + picker (yellow) · 🟠 Gemini API calls (orange) · 🟢 review-and-edit pauses (green) · 🩷 scaffolding + handoff (pink).
+Color key: env-check + detection (blue) · catalog + picker (yellow) · Gemini API calls (orange) · review-and-edit pauses (green) · scaffolding + handoff (pink).
 
 ---
 
@@ -962,7 +962,7 @@ agent-eval agent-engine [OPTIONS]
 2. **Manual-from-agent** — `AgentInfo(name, instruction, ...)` from the imported agent's attributes, with empty `tool_declarations`. Used when `load_from_agent` trips on the ADK ↔ google-genai `tool_context: ToolContext` schema bug. Tool-trace metrics may score against incomplete data.
 3. **Minimal-from-resource-name** — `AgentInfo(name="root_agent", agent_resource_name=...)` only. Used when the local import itself fails (e.g. agent has deps not in agent-eval's venv). The eval still runs but Vertex parses events server-side without the agent's tool schemas — sub-agent routing and tool-call-quality metrics may be unreliable.
 
-> **⚠ Install the agent's deps in agent-eval's venv before running.** Most ASP-deployed agents bring extras like `vectorsearch_v1beta`, `neo4j`, custom retrievers, etc. — none of which are in agent-eval's venv by default. From the repo root: `uv pip install -e <agent_dir>`. The CLI surfaces actionable warnings when a missing dep forces the Layer 3 fallback (names the missing dep + gives the install command).
+> **Note (Agent Dependencies):** Install the agent's deps in agent-eval's venv before running. Most ASP-deployed agents bring extras like `vectorsearch_v1beta`, `neo4j`, custom retrievers, etc. — none of which are in agent-eval's venv by default. From the repo root: `uv pip install -e <agent_dir>`. The CLI surfaces actionable warnings when a missing dep forces the Layer 3 fallback (names the missing dep + gives the install command).
 
 > **SDK pin.** `pyproject.toml` supports `google-cloud-aiplatform[evaluation,agent-engines]>=1.156.0,<2.0.0` (fully compatible with Python 3.13 and the modern Pydantic schema using nested `agents` and `root_agent_id`).
 
@@ -1115,7 +1115,7 @@ Automatically calculated from OpenTelemetry session traces. No configuration nee
 | `output_density` | `average_output_tokens`, `total_output_tokens`, `llm_calls_count` | Output verbosity |
 | `sandbox_usage` | `total_sandbox_ops`, `unique_ops_used`, `sandbox_tools_used` | Code execution / sandbox tool usage |
 
-> ⚠️ **Heads-up on model-API drift.** Token/cache/thinking metrics are computed by reading specific field names off each LLM response's `usage_metadata` — concretely: `prompt_token_count`, `candidates_token_count`, `cached_content_token_count`, `total_token_count`, `thoughts_token_count`. These are the field names emitted by the Gemini family today (Gemini 1.5 added `cached_content_token_count`; Gemini 2.5 added `thoughts_token_count`), and `agent-eval` has been verified against Gemini 3 / 3.1 Flash and Pro. When future model families ship and rename or restructure these fields, the affected metrics will silently report `0` rather than crash — same failure mode as the per-tool-call trace fields we patched in the May 2026 audit. If you bump to a new model family, sanity-check `eval_summary.json` for unexpected zeros under `token_usage`, `cache_efficiency`, or `thinking_metrics`. The extraction lives in `src/agent_eval/core/deterministic_metrics.py`.
+> **Note (Model API Drift):** Token/cache/thinking metrics are computed by reading specific field names off each LLM response's `usage_metadata` — concretely: `prompt_token_count`, `candidates_token_count`, `cached_content_token_count`, `total_token_count`, `thoughts_token_count`. These are the field names emitted by the Gemini family today (Gemini 1.5 added `cached_content_token_count`; Gemini 2.5 added `thoughts_token_count`), and `agent-eval` has been verified against Gemini 3 / 3.1 Flash and Pro. When future model families ship and rename or restructure these fields, the affected metrics will silently report `0` rather than crash — same failure mode as the per-tool-call trace fields we patched in the May 2026 audit. If you bump to a new model family, sanity-check `eval_summary.json` for unexpected zeros under `token_usage`, `cache_efficiency`, or `thinking_metrics`. The extraction lives in `src/agent_eval/core/deterministic_metrics.py`.
 
 ### Managed Metrics (Vertex AI)
 
@@ -1710,7 +1710,7 @@ uv venv --python 3.12
 uv sync
 ```
 
-### `interact` rows all fail with `500 Server Error` — but the pipeline still says `✓ Interact`
+### `interact` rows all fail with `500 Server Error` — but the pipeline still says `Interact Passed`
 
 **Cause:** `agent-eval` does **not** start your agent — `interact` POSTs to whatever is already listening on `--base-url` (default `http://localhost:8501`). A leftover `adk web` process from a different agent (or an older checkout) will happily accept the connection and return `500`. If that other agents directory contains a same-named subfolder, even `/list-apps` looks correct, so nothing obviously points at the server.
 
