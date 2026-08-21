@@ -353,8 +353,8 @@ def test_run_pipeline_success(_mock_aiplatform_init, mock_client_class,
             )
 
             assert result.exit_code == 0, result.output
-            assert "Simulate" in result.output
-            assert "Evaluate" in result.output
+            assert "Generate" in result.output
+            assert "Grade" in result.output
             assert "Pipeline complete!" in result.output
 
             # Verify that results are written

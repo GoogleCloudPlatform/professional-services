@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""agent-eval run — orchestrate simulate, interact, and evaluate in one command."""
+"""agent-eval run — orchestrate generate, grade, analyze, and view in one command."""
 
 import asyncio
 import contextlib
@@ -237,17 +237,20 @@ def _start_storyteller():
 )
 @click.option(
     "--evaluate/--no-evaluate",
+    "--grade/--no-grade",
     "run_evaluate",
     default=True,
-    help="Run evaluation after collecting interactions (default: yes).",
+    help="Run evaluation/grading after collecting interactions (default: yes).",
 )
 @click.option(
     "--metrics-files",
+    "--eval-config",
+    "--config",
     "metrics_files",
     multiple=True,
     default=None,
-    help="Metric definition file(s) — pass once per file. "
-    "Defaults to every *.json under <project>/tests/eval/metrics/.",
+    help="Declarative eval_config.yaml or metric definition file(s). "
+    "Defaults to eval_config.yaml or every *.json under <project>/tests/eval/metrics/.",
 )
 @click.option(
     "--app-name",
@@ -256,8 +259,9 @@ def _start_storyteller():
 )
 @click.option(
     "--questions-file",
+    "--dataset",
     default=None,
-    help="Path to golden dataset JSON for interact mode.",
+    help="Path to golden dataset JSON/JSONL for interact mode.",
 )
 @click.option(
     "--num-questions",
@@ -375,18 +379,18 @@ def run(
 ):
     import json
     import os
-    """Run the full evaluation pipeline: simulate, interact, evaluate, and analyze.
+    """Run the full evaluation pipeline: generate (simulate/interact), grade, analyze, and view.
 
     \b
     This command orchestrates the full workflow in a single step:
-      1. Run ADK User Sim scenarios              → simulation JSONL
-      2. Run DIY interactions against live agent  → interaction JSONL
-      3. Run evaluation metrics on all collected interaction files
-      4. Generate AI-powered analysis + comparison tables
+      1. Generate traces (ADK simulation or live endpoint) → interaction JSONL
+      2. Grade collected traces against eval_config.yaml metrics
+      3. Generate AI-powered analysis + comparison tables
+      4. View interactive HTML report
 
     \b
-    By default, all four phases run. If the agent is not reachable at
-    --base-url, the interact phase is skipped gracefully and evaluation
+    By default, all phases run. If the agent is not reachable at
+    --base-url, the interact phase is skipped gracefully and grading
     proceeds with simulation data only.
 
     \b
@@ -765,11 +769,11 @@ def run(
 
     phases = []
     if run_simulate:
-        phases.append("Simulate")
+        phases.append("Generate (Simulation)")
     if run_interact:
-        phases.append("Interact")
+        phases.append("Generate (Live)")
     if run_evaluate:
-        phases.append("Evaluate")
+        phases.append("Grade")
     if run_analyze:
         phases.append("Analyze")
         # Add an explicit "View" terminal phase whenever Analyze runs —
@@ -889,11 +893,11 @@ def run(
     phase_outcomes: dict[str,
                          str] = {}  # name → "completed" | "failed" | "skipped"
 
-    # ── Phase: Simulate ────────────────────────────────────────────────────
+    # ── Phase: Generate (Simulation) ───────────────────────────────────────
 
     if run_simulate:
         _phase_header(
-            "Simulate",
+            "Generate (Simulation)",
             f"Running ADK User Sim on {n_multi_turn} multi-turn row{'s' if n_multi_turn != 1 else ''} from dataset.jsonl.\n"
             "  Projects scenarios from the unified dataset, clears history, runs the sim, converts traces.",
         )
@@ -911,16 +915,16 @@ def run(
         )
 
         if _simulate_ok:
-            phase_outcomes["Simulate"] = "completed"
+            phase_outcomes["Generate (Simulation)"] = "completed"
             sim_output = raw_dir / "processed_interaction_sim.jsonl"
             if sim_output.exists():
                 interaction_files.append(sim_output)
         else:
-            phase_outcomes["Simulate"] = "failed"
+            phase_outcomes["Generate (Simulation)"] = "failed"
             if not run_interact:
                 console.print()
                 console.print(
-                    "  [red]Simulate failed and interact is disabled — nothing left to score.[/]"
+                    "  [red]Simulate failed and interact is disabled — nothing left to grade.[/]"
                 )
                 console.print(
                     "  [dim]Re-run with `--no-simulate` to scope down, or fix the failure above and try again.[/]"
@@ -968,11 +972,11 @@ def run(
                 "  [yellow]Continuing with interact only — multi-turn metrics will be skipped.[/]"
             )
 
-    # ── Phase: Interact ────────────────────────────────────────────────────
+    # ── Phase: Generate (Live) ─────────────────────────────────────────────
 
     if run_interact:
         _phase_header(
-            "Interact",
+            "Generate (Live)",
             f"Sending queries from golden dataset to your agent at {base_url}.\n"
             "  Make sure your agent is running before this step.",
         )
@@ -990,31 +994,31 @@ def run(
         )
 
         if interact_output:
-            phase_outcomes["Interact"] = "completed"
+            phase_outcomes["Generate (Live)"] = "completed"
             interaction_files.append(interact_output)
         else:
-            phase_outcomes["Interact"] = "failed"
+            phase_outcomes["Generate (Live)"] = "failed"
             from agent_eval.cli._pacing import _pauses_disabled
 
             console.print()
             console.print(
                 Panel(
-                    "[bold red]Interact failed.[/]  See the error above for the cause.\n\n"
+                    "[bold red]Live interaction failed.[/]  See the error above for the cause.\n\n"
                     "[bold]What this means:[/]\n"
                     "  [dim]>[/] No single-turn traces were produced from the live agent.\n"
                     "  [dim]>[/] Single-turn metrics will SKIP every row.\n"
-                    "  [dim]>[/] If simulate succeeded, multi-turn metrics still have data to score.\n\n"
+                    "  [dim]>[/] If simulation succeeded, multi-turn metrics still have data to score.\n\n"
                     "[bold]Common causes:[/]\n"
                     f"  [dim]>[/] Agent not reachable at [cyan]{base_url}[/] — start it (e.g. [cyan]make playground[/])\n"
                     "  [dim]>[/] Agent returned errors mid-stream — check its logs\n"
                     "  [dim]>[/] gcloud / Vertex auth expired — try [cyan]agent-eval setup[/]",
-                    title="[bold]Interact failed[/]",
+                    title="[bold]Generate (Live) failed[/]",
                     border_style="red",
                     padding=(1, 2),
                 ))
             if not interaction_files:
                 console.print(
-                    "  [red]Nothing to score — simulate also produced no output.[/]"
+                    "  [red]Nothing to grade — simulation also produced no output.[/]"
                 )
                 sys.exit(1)
             if _pauses_disabled():
@@ -1070,18 +1074,18 @@ def run(
         except Exception:
             pass
 
-    # ── Phase: Evaluate ────────────────────────────────────────────────────
+    # ── Phase: Grade ───────────────────────────────────────────────────────
 
     if not interaction_files:
         console.print(
-            "\n  [red]Error:[/] No interaction files were produced. Nothing to evaluate."
+            "\n  [red]Error:[/] No interaction files were produced. Nothing to grade."
         )
         sys.exit(1)
 
     if run_evaluate:
         metric_names_preview = ", ".join(p.name for p in metric_paths)
         _phase_header(
-            "Evaluate",
+            "Grade",
             f"Running metrics on {len(interaction_files)} interaction file{'s' if len(interaction_files) != 1 else ''}.\n"
             f"  Metric files: {metric_names_preview}",
         )
@@ -1095,7 +1099,7 @@ def run(
                             run_id,
                             description=description,
                             debug=debug)
-        phase_outcomes["Evaluate"] = "completed"
+        phase_outcomes["Grade"] = "completed"
 
         # Stop and ask if any metrics failed before pressing on into Analyze.
         # Analyze runs Gemini over a possibly-incomplete metric table; users
@@ -1355,13 +1359,13 @@ def run(
 
     if not run_evaluate:
         rel_files = " \\\n  ".join(
-            f"--interaction-file {os.path.relpath(f, cwd)}"
+            f"--traces {os.path.relpath(f, cwd)}"
             for f in interaction_files)
         rel_metrics = (" \\\n  ".join(
-            f"--metrics-files {os.path.relpath(p, cwd)}" for p in metric_paths)
-                       if metric_paths else "--metrics-files <path>")
+            f"--eval-config {os.path.relpath(p, cwd)}" for p in metric_paths)
+                       if metric_paths else "--eval-config <path>")
         console.print()
-        console.print("[bold]Next step — run evaluation:[/]")
+        console.print("[bold]Next step — run grading:[/]")
         console.print()
         console.print("agent-eval grade \\")
         console.print(f"  {rel_files} \\")

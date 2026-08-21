@@ -264,7 +264,7 @@ def create_evaluation_pipeline(runner_image: str):
     @dsl.pipeline(
         name="agent-eval-end-to-end",
         description=
-        "End-to-end serverless agent evaluation pipeline: Simulate, Interact, and Evaluate.",
+        "End-to-end serverless agent evaluation pipeline: Generate, Grade, and Analyze.",
     )
     def agent_eval_pipeline(
         dataset_gcs_path: str,
