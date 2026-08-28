@@ -735,7 +735,7 @@ def simulate(agent_dir, eval_dir, run_id, debug, in_process, dataset):
     4. Runs adk eval with your scenarios
     5. Converts the resulting traces to agent-eval format
 
-    After this, run `agent-eval grade` (or `agent-eval evaluate`) on the output.
+    After this, run `agent-eval grade` on the output.
 
     \b
     Note: ADK's built-in eval runs a limited set of metrics (hallucination,

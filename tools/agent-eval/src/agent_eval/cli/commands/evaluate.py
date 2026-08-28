@@ -404,5 +404,6 @@ def evaluate(
         sys.exit(1)
 
 
-# Converged verb alias: `agent-eval grade` is synonymous with `agent-eval evaluate`
+# Converged verb: the command is registered as `grade`. `evaluate` remains the
+# internal function name; it is not exposed as a CLI verb.
 grade = evaluate
