@@ -20,7 +20,6 @@ import tempfile
 from pathlib import Path
 from unittest import mock
 
-import pytest
 from click.testing import CliRunner
 
 from agent_eval.cli.main import cli
@@ -80,6 +79,7 @@ def test_generate_simulate_and_live_dispatch():
                 ["generate", "--mode", "live", "--base-url", "http://localhost:8080", "--agent-dir", str(root)],
             )
             assert result.exit_code == 0
+            assert mock_interact.called
 
         # Test simulate dispatch
         with mock.patch("agent_eval.cli.commands.generate.simulate") as mock_sim:
@@ -88,6 +88,7 @@ def test_generate_simulate_and_live_dispatch():
                 ["generate", "--mode", "simulate", "--agent-dir", str(root)],
             )
             assert result.exit_code == 0
+            assert mock_sim.called
 
 
 def test_compare_command_calculates_deltas():

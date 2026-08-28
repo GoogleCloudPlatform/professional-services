@@ -28,7 +28,6 @@ from pathlib import Path
 from typing import Any
 
 import pandas as pd
-import urllib3.contrib.pyopenssl
 from google.cloud import aiplatform
 from google.genai.types import HttpOptions
 from vertexai import Client, types
