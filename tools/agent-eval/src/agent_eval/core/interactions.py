@@ -55,7 +55,7 @@ def get_golden_questions(filepath: str) -> list[dict[str, Any]]:
         if skipped_multi_turn:
             logger.info(
                 "interact: skipping %d multi-turn row(s) — those are scored "
-                "by `agent-eval simulate`. Use single-turn rows for interact.",
+                "by `agent-eval generate --mode simulate` (or `simulate`). Use single-turn rows for interact/live mode.",
                 skipped_multi_turn,
             )
         return questions

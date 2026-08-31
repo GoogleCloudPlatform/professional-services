@@ -120,13 +120,25 @@ def custom_llm_judge(
     rating_scores: dict[str, str] | None = None,
     instruction: str | None = None,
     prompt_template: str | None = None,
+    judge_model: str | None = None,
 ):
     """Build a fully-custom LLM judge as ``types.LLMMetric``."""
     vt = _vt()
+    resolved_judge_model = judge_model or os.environ.get("JUDGE_MODEL")
+    judge_kwargs = {}
+    if resolved_judge_model:
+        from google.adk.evaluation.eval_metrics import JudgeModelOptions
+
+        judge_kwargs["judge_model_options"] = JudgeModelOptions(
+            judge_model=resolved_judge_model,
+            judge_model_config={"response_mime_type": "application/json"},
+        )
+
     if prompt_template:
         return vt.LLMMetric(
             name=name,
             prompt_template=prompt_template,
+            **judge_kwargs,
         )
 
     if not criteria or not rating_scores:
@@ -143,6 +155,7 @@ def custom_llm_judge(
     return vt.LLMMetric(
         name=name,
         prompt_template=vt.MetricPromptBuilder(**builder_kwargs),
+        **judge_kwargs,
     )
 
 
@@ -180,15 +193,26 @@ def computation(name: str, metric_name: str):
 # Single source of truth — see ``core/metric_schema.py``.
 
 
-def _load_python_callable(module_path: str | Path, function: str) -> Callable:
+def _load_python_callable(module_path: str | Path, function: str, *, base_dir: Path | None = None) -> Callable:
     """Load a callable from an arbitrary file path."""
     module_path = Path(module_path)
     if not module_path.exists():
+        candidates = []
+        if base_dir:
+            candidates.extend([
+                base_dir / module_path,
+                base_dir / module_path.name,
+                base_dir.parent / module_path,
+                base_dir.parent.parent / module_path,
+                base_dir.parent.parent.parent / module_path,
+            ])
         fallback_app = os.environ.get("AGENT_EVAL_APP_DIR", "app")
-        for candidate in (
-                Path(fallback_app) / module_path,
-                Path(fallback_app) / module_path.name,
-        ):
+        candidates.extend([
+            Path(fallback_app) / module_path,
+            Path(fallback_app) / module_path.name,
+            Path.cwd() / module_path,
+        ])
+        for candidate in candidates:
             if candidate.exists():
                 module_path = candidate
                 break
@@ -240,6 +264,7 @@ def build_metric(name: str,
         criteria = spec.get("criteria")
         rating_scores = spec.get("rating_scores")
         prompt_template = spec.get("prompt_template")
+        judge_model = spec.get("judge_model")
         if not prompt_template and (not criteria or not rating_scores):
             raise ValueError(
                 f"Metric '{name}' (custom_llm_judge): 'prompt_template' or "
@@ -250,6 +275,7 @@ def build_metric(name: str,
             rating_scores=rating_scores,
             instruction=spec.get("instruction"),
             prompt_template=prompt_template,
+            judge_model=judge_model,
         )
 
     if kind == KIND_MULTITURN_TRAJECTORY_JUDGE:
@@ -278,9 +304,7 @@ def build_metric(name: str,
                 f"Metric '{name}' (python_function): 'module' and 'function' required."
             )
         module_path = Path(module)
-        if base_dir and not module_path.is_absolute():
-            module_path = base_dir / module_path
-        fn = _load_python_callable(module_path, function)
+        fn = _load_python_callable(module_path, function, base_dir=base_dir)
         return python_function(name, fn)
 
     if kind == KIND_REMOTE_CODE:

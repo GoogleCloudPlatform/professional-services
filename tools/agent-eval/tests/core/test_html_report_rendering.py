@@ -93,3 +93,45 @@ def test_generated_report_includes_scroll_wrappers(tmp_path):
     html_content = report_path.read_text(encoding="utf-8")
     assert "max-height: 250px; overflow-y: auto;" in html_content
     assert "length > 500" in html_content
+
+
+def test_build_per_question_verdicts_with_json_sub_verdicts():
+    from agent_eval.core.html_report import _build_per_question_data
+    import json
+
+    summary = {
+        "per_question_summary": [{
+            "question_id": "q1",
+            "prompt": "How do I configure the caching service?",
+            "llm_based_metrics": {
+                "technical_documentation_quality": {
+                    "score": 1.0,
+                    "explanation": json.dumps([
+                        {
+                            "rubric": "Structure & Formatting",
+                            "verdict": True,
+                            "reasoning": "Clear Markdown headings used."
+                        },
+                        {
+                            "rubric": "Actionable Keys",
+                            "verdict": False,
+                            "reasoning": "Missing REDIS_URL key."
+                        }
+                    ])
+                }
+            }
+        }]
+    }
+
+    data = _build_per_question_data(results_csv=None, summary=summary)
+    verdicts = data["verdicts"]
+    assert len(verdicts) == 1
+    q0 = verdicts[0]["metrics"]["technical_documentation_quality"]
+    assert len(q0["verdicts"]) == 2
+    assert q0["verdicts"][0]["rubric"] == "Structure & Formatting"
+    assert q0["verdicts"][0]["verdict"] is True
+    assert q0["verdicts"][0]["reasoning"] == "Clear Markdown headings used."
+    assert q0["verdicts"][1]["rubric"] == "Actionable Keys"
+    assert q0["verdicts"][1]["verdict"] is False
+    assert q0["verdicts"][1]["reasoning"] == "Missing REDIS_URL key."
+

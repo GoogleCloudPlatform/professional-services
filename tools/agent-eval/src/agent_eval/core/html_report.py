@@ -33,10 +33,12 @@ run folder and returns its Path.
 
 from __future__ import annotations
 
+import ast
 import html
 import json
 import logging
 import math
+import re
 from datetime import datetime
 from pathlib import Path
 from typing import Any
@@ -575,6 +577,77 @@ def _build_csv_lookup(results_csv: Path | None) -> dict[str, dict[str, Any]]:
     return lookup
 
 
+def _parse_json_sub_verdicts(raw: Any) -> Any:
+    """Robustly parse structured rubric sub-verdicts from an explanation.
+
+    Handles direct lists/dicts, valid JSON strings, and common LLM malformed
+    JSON (such as unbalanced braces, unclosed quotes, or trailing bracket omissions).
+    """
+    if raw is None:
+        return None
+    if isinstance(raw, (list, dict)):
+        return raw
+    if not isinstance(raw, str) or not raw.strip():
+        return None
+
+    s = raw.strip()
+    if not (s.startswith(("[", "{")) or '"rubric"' in s or "'rubric'" in s):
+        return None
+
+    # 1. Standard json.loads
+    try:
+        parsed = json.loads(s)
+        if isinstance(parsed, (list, dict)):
+            return parsed
+    except Exception:
+        pass
+
+    # 2. ast.literal_eval
+    try:
+        parsed = ast.literal_eval(s)
+        if isinstance(parsed, (list, dict)):
+            return parsed
+    except Exception:
+        pass
+
+    # 3. Handle unbalanced braces: e.g. [{"rubric": ...}, {"rubric": ..., "reasoning": "..."]
+    if s.startswith("[") and s.endswith("]"):
+        diff = s.count("{") - s.count("}")
+        if diff > 0:
+            fixed = s[:-1] + ("}" * diff) + "]"
+            try:
+                parsed = json.loads(fixed)
+                if isinstance(parsed, (list, dict)):
+                    return parsed
+            except Exception:
+                try:
+                    parsed = ast.literal_eval(fixed)
+                    if isinstance(parsed, (list, dict)):
+                        return parsed
+                except Exception:
+                    pass
+
+    # 4. Regex object extraction
+    objs = []
+    for m in re.finditer(r"\{[^{}]*\}", s, re.DOTALL):
+        chunk = m.group(0)
+        try:
+            o = json.loads(chunk)
+            if isinstance(o, dict) and any(k in o for k in ("rubric", "property", "verdict", "reasoning", "explanation")):
+                objs.append(o)
+        except Exception:
+            try:
+                o = ast.literal_eval(chunk)
+                if isinstance(o, dict) and any(k in o for k in ("rubric", "property", "verdict", "reasoning", "explanation")):
+                    objs.append(o)
+            except Exception:
+                pass
+    if objs:
+        return objs
+
+    return None
+
+
 def _build_per_question_data(
     results_csv: Path | None,
     summary: dict[str, Any],
@@ -648,21 +721,25 @@ def _build_per_question_data(
                 entries.append({
                     "rubric":
                         _truncate_for_payload(
-                            content.get("description") or "", 400),
+                            content.get("description") or v.get("rubric") or "", 400),
                     "type":
-                        ev.get("type") or "",
+                        ev.get("type") or v.get("type") or "",
                     "importance":
-                        ev.get("importance") or "",
+                        ev.get("importance") or v.get("importance") or "",
                     "verdict":
                         v.get("verdict"),
                     "reasoning":
-                        _truncate_for_payload(v.get("reasoning") or "", 600),
+                        _truncate_for_payload(v.get("reasoning") or v.get("explanation") or "", 600),
                 })
             # Preserve the explanation's original shape — string, list (e.g.
             # hallucination's per-claim verdicts), or dict — the JS renders
-            # each shape differently. Cap deeply if it's a string. For
-            # lists/dicts we cap each leaf string inside.
+            # each shape differently. Deserialize JSON strings if custom LLM
+            # judges emit structured sub-verdict arrays.
             raw_expl = mval.get("explanation")
+            parsed_expl = _parse_json_sub_verdicts(raw_expl)
+            if parsed_expl is not None:
+                raw_expl = parsed_expl
+
             if isinstance(raw_expl, str):
                 expl_payload: Any = _truncate_for_payload(raw_expl, 1200)
             elif isinstance(raw_expl, list):
@@ -671,6 +748,25 @@ def _build_per_question_data(
                         if isinstance(v, str) else v) for k, v in item.items()
                 } if isinstance(item, dict) else _truncate_for_payload(
                     str(item), 1200) for item in raw_expl]
+                if not entries:
+                    for item in expl_payload:
+                        if isinstance(item, dict) and ("rubric" in item or "property" in item or "verdict" in item):
+                            entries.append({
+                                "rubric":
+                                    _truncate_for_payload(
+                                        item.get("rubric") or item.get("property") or "", 400),
+                                "type":
+                                    item.get("type") or "",
+                                "importance":
+                                    item.get("importance") or "",
+                                "verdict":
+                                    item.get("verdict"),
+                                "reasoning":
+                                    _truncate_for_payload(
+                                        item.get("reasoning") or item.get("explanation") or "", 600),
+                            })
+                    if entries:
+                        expl_payload = []
             elif isinstance(raw_expl, dict):
                 expl_payload = {
                     k: (_truncate_for_payload(v, 1200) if isinstance(v, str)
@@ -2639,14 +2735,18 @@ _HTML_TEMPLATE = r"""<!doctype html>
                     '<b>Autorater error:</b> ' + escapeHtml(safeStringify(m.error)) +
                     '</div>';
       }
-      // Top-level explanation — ONLY when it's a string. List/dict
-      // explanations get rendered separately below.
+      // Top-level explanation — ONLY when it's a string AND NOT a raw JSON string of rubrics.
       if (typeof m.explanation === 'string' && m.explanation) {
-        bodyHtml += '<div class="metric-explanation">' + escapeHtml(m.explanation) + '</div>';
+        const trimmed = m.explanation.trim();
+        const isJsonRubric = (trimmed.startsWith('[') || trimmed.startsWith('{')) && (trimmed.includes('"rubric"') || trimmed.includes('"verdict"') || trimmed.includes("'rubric'"));
+        if (!isJsonRubric) {
+          bodyHtml += '<div class="metric-explanation">' + escapeHtml(m.explanation) + '</div>';
+        }
       }
       // List-shape explanation = per-row sub-verdicts (e.g. hallucination
       // returns a list of {response, score, explanation} per claim).
-      if (Array.isArray(m.explanation) && m.explanation.length) {
+      // Only render if verdictEntries did not already render it.
+      if (!verdictEntries.length && Array.isArray(m.explanation) && m.explanation.length) {
         bodyHtml += '<div class="verdict-grid">' +
           m.explanation.map(function(sub) {
             if (!sub || typeof sub !== 'object') {
@@ -2656,9 +2756,13 @@ _HTML_TEMPLATE = r"""<!doctype html>
             if (typeof subScore !== 'number' && sub.label) {
               subScore = sub.label === 'supported' ? 1.0 : (sub.label === 'unsupported' ? 0.0 : null);
             }
-            const responseVal = sub.response || sub.sentence;
-            const explanationVal = sub.explanation || sub.rationale;
+            if (typeof subScore !== 'number' && sub.verdict != null) {
+              subScore = (sub.verdict === true || sub.verdict === 'true' || sub.verdict === 'pass' || sub.verdict === 'PASS') ? 1.0 : 0.0;
+            }
+            const responseVal = sub.rubric || sub.property || sub.name || sub.title || sub.response || sub.sentence;
+            const explanationVal = sub.reasoning || sub.explanation || sub.rationale || sub.detail;
             const excerptVal = sub.excerpt || sub.supporting_excerpt;
+            const importanceTag = sub.importance ? '<span class="verdict-imp imp-' + escapeHtml(String(sub.importance).toLowerCase()) + '">' + escapeHtml(sub.importance) + '</span>' : '';
 
             const subPass = (typeof subScore === 'number') ? subScore >= 0.5 : null;
             const sym = subPass === true ? '✓' : subPass === false ? '✗' : (sub.label === 'no_rad' ? '·' : '—');
@@ -2669,6 +2773,7 @@ _HTML_TEMPLATE = r"""<!doctype html>
               '<div class="verdict-head">' +
                 '<span class="verdict-sym ' + cls + '">' + sym + '</span>' +
                 (scoreStr ? '<span class="verdict-imp">' + escapeHtml(scoreStr) + '</span>' : '') +
+                importanceTag +
               '</div>' +
               (responseVal ? '<div class="verdict-rubric">' + escapeHtml(safeStringify(responseVal)) + '</div>' : '') +
               (explanationVal ? '<div class="verdict-reasoning">' + escapeHtml(safeStringify(explanationVal)) + '</div>' : '') +

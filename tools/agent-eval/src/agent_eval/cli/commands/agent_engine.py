@@ -18,7 +18,7 @@ deployed to Reasoning Engines (Agent Starter Pack ``make backend`` flow).
 This is the **streamlined** path from the docs (``evaluation-agents-client``):
 inference + scoring + GCS upload happen in a single managed call.
 
-When to use this command instead of ``agent-eval evaluate``:
+When to use this command instead of ``agent-eval grade`` (or ``evaluate``):
 
 - Your agent is deployed to Agent Engine (env ``AGENT_ENGINE_RESOURCE_NAME``
   is set, or ``deployment_metadata.json`` contains a real resource name).
@@ -870,7 +870,7 @@ def agent_engine(
     # Agent Engine's `create_evaluation_run` is single-turn only — it can't
     # drive a multi-turn UserSim flow against the deployed agent. Filter the
     # unified dataset to single-turn rows and tell the user clearly which
-    # rows we're skipping + how to score them (`agent-eval simulate`).
+    # rows we're skipping + how to score them (`agent-eval generate --mode simulate` or `simulate`).
     #
     # Use the canonical detector from dataset_io (reads `kind` first, falls
     # back to field-presence). The pandas-mask version this replaces had a
@@ -889,13 +889,13 @@ def agent_engine(
         console.print(
             f"  [yellow]Skipping {n_multi} multi-turn row(s)[/] — Agent Engine "
             f"is single-turn only.\n"
-            f"  [dim]Score those with: agent-eval simulate --agent-dir <local source>[/]"
+            f"  [dim]Score those with: agent-eval generate --mode simulate --agent-dir <local source>[/]"
         )
         dataset = dataset[~multi_turn_mask].reset_index(drop=True)
         if dataset.empty:
             console.print(
                 "  [red]No single-turn rows to evaluate.[/] All rows in this "
-                "dataset are multi-turn. Use `agent-eval simulate` instead.")
+                "dataset are multi-turn. Use `agent-eval generate --mode simulate` (or `simulate`) instead.")
             raise click.Abort()
 
     metric_defs = _load_metric_definitions(metrics_path)

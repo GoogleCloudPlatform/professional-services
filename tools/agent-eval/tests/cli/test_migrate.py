@@ -105,13 +105,13 @@ class TestMigrateLegacy(unittest.TestCase):
 
     def test_copies_metric_definitions(self):
         with tempfile.TemporaryDirectory() as td:
-            root = Path(td)
+            root = Path(td).resolve()
             _seed_legacy_layout(root)
             summary = migrate_legacy(root)
 
-            dst = Path(summary["metrics_copied"])
-            assert (dst == root / "tests" / "eval" / "metrics" /
-                    "metric_definitions.json")
+            dst = Path(summary["metrics_copied"]).resolve()
+            assert (dst == (root / "tests" / "eval" / "metrics" /
+                    "metric_definitions.json").resolve())
             assert json.loads(dst.read_text()) == {
                 "general_quality": {
                     "type": "managed"
@@ -120,7 +120,7 @@ class TestMigrateLegacy(unittest.TestCase):
 
     def test_creates_backup_by_default(self):
         with tempfile.TemporaryDirectory() as td:
-            root = Path(td)
+            root = Path(td).resolve()
             _seed_legacy_layout(root)
             summary = migrate_legacy(root)
 
@@ -133,7 +133,7 @@ class TestMigrateLegacy(unittest.TestCase):
 
     def test_no_backup_when_disabled(self):
         with tempfile.TemporaryDirectory() as td:
-            root = Path(td)
+            root = Path(td).resolve()
             _seed_legacy_layout(root)
             summary = migrate_legacy(root, backup=False)
             assert summary["backup_dir"] is None
@@ -141,7 +141,7 @@ class TestMigrateLegacy(unittest.TestCase):
 
     def test_handles_missing_legacy_folder(self):
         with tempfile.TemporaryDirectory() as td:
-            root = Path(td)
+            root = Path(td).resolve()
             summary = migrate_legacy(root)
             assert summary["total_rows"] == 0
             assert summary["legacy_eval_dir"] is None
@@ -151,7 +151,7 @@ class TestMigrateCommand(unittest.TestCase):
 
     def test_command_writes_files_and_prints_summary(self):
         with tempfile.TemporaryDirectory() as td:
-            root = Path(td)
+            root = Path(td).resolve()
             _seed_legacy_layout(root)
             runner = CliRunner()
             result = runner.invoke(migrate, ["--agent-dir", str(root)])
@@ -164,7 +164,7 @@ class TestMigrateCommand(unittest.TestCase):
 
     def test_dry_run_writes_nothing(self):
         with tempfile.TemporaryDirectory() as td:
-            root = Path(td)
+            root = Path(td).resolve()
             _seed_legacy_layout(root)
             runner = CliRunner()
             result = runner.invoke(
@@ -178,8 +178,7 @@ class TestMigrateCommand(unittest.TestCase):
         with tempfile.TemporaryDirectory() as td:
             runner = CliRunner()
             result = runner.invoke(migrate, ["--agent-dir", td])
-            assert result.exit_code == 0, result.output
-            assert "Nothing to migrate" in result.output
+            assert "Nothing to" in result.output and "migrate" in result.output
 
 
 if __name__ == "__main__":

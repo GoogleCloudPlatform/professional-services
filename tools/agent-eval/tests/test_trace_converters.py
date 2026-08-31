@@ -545,3 +545,223 @@ class TestE2ETraceToDataMapperPipeline:
             "b": 0.15
         }
         assert ti["output_result"] == {"result": 12.0}
+
+    def test_langgraph_hierarchical_trace_conversion(self, tmp_path: Path):
+        """Test hierarchical LangGraph trace without gen_ai.turn.index."""
+        langgraph_trace = {
+            "trace_id": "lg_trace_456",
+            "spans": [
+                {
+                    "span_id": "root_agent",
+                    "parent_id": None,
+                    "name": "hierarchical.agent",
+                    "start_time": 1000000000,
+                    "end_time": 3500000000,
+                    "attributes": {
+                        "openinference.span.kind": "AGENT",
+                        "input.value": "How do I configure Redis cache?",
+                        "output.value": "To configure Redis cache, set REDIS_URL in .env.",
+                        "session_id": "lg_session_001",
+                    },
+                },
+                {
+                    "span_id": "tool_search",
+                    "parent_id": "root_agent",
+                    "name": "tool.search_documentation",
+                    "start_time": 1200000000,
+                    "end_time": 1800000000,
+                    "attributes": {
+                        "openinference.span.kind": "TOOL",
+                        "tool.name": "search_documentation",
+                        "tool.parameters": '{"query": "Redis cache configuration"}',
+                        "tool.output": '{"results": ["Set REDIS_URL=redis://localhost:6379 in your environment."]}',
+                    },
+                },
+                {
+                    "span_id": "llm_generate",
+                    "parent_id": "root_agent",
+                    "name": "ChatOpenAI",
+                    "start_time": 2000000000,
+                    "end_time": 3400000000,
+                    "attributes": {
+                        "openinference.span.kind": "LLM",
+                        "llm.model_name": "gemini-2.5-flash",
+                        "llm.token_count.prompt": 250,
+                        "llm.token_count.completion": 45,
+                        "llm.token_count.total": 295,
+                        "output.value": "To configure Redis cache, set REDIS_URL in .env.",
+                    },
+                },
+            ],
+        }
+
+        trace_file = tmp_path / "langgraph_trace.jsonl"
+        trace_file.write_text(json.dumps(langgraph_trace) + "\n", encoding="utf-8")
+
+        golden_dataset = tmp_path / "golden.jsonl"
+        golden_dataset.write_text(
+            json.dumps({
+                "id": "lg_session_001",
+                "prompt": "How do I configure Redis cache?",
+                "reference_data": {
+                    "reference_answer": "Configure REDIS_URL in environment variables.",
+                    "ground_truth_tools": ["search_documentation"],
+                },
+                "metadata": {"category": "configuration"},
+            }) + "\n",
+            encoding="utf-8",
+        )
+
+        converter = get_trace_converter("langgraph", questions_file=golden_dataset)
+        agent_data_list = converter.convert_file(trace_file)
+        assert len(agent_data_list) == 1
+        agent_data = agent_data_list[0]
+
+        assert agent_data.session_id == "lg_session_001"
+        assert len(agent_data.turns) == 2
+        assert agent_data.turns[0].role == "user"
+        assert "How do I configure Redis cache" in agent_data.turns[0].content
+        assert agent_data.turns[1].role == "model"
+        assert "To configure Redis cache" in agent_data.turns[1].content
+
+        # Project to evaluation rows
+        eval_rows = _map_agents(agent_data_list)
+        assert len(eval_rows) == 1
+        row = eval_rows[0]
+
+        assert row["session_id"] == "lg_session_001"
+        assert row["prompt"] == "How do I configure Redis cache?"
+        assert row["response"] == "To configure Redis cache, set REDIS_URL in .env."
+        assert row["reference_data"]["reference_answer"] == "Configure REDIS_URL in environment variables."
+        assert row["metadata"]["category"] == "configuration"
+        assert len(row["session_trace"]) == 3
+
+    def test_openinference_deterministic_metrics(self):
+        """Test deterministic metrics calculation on OpenInference traces."""
+        from agent_eval.core.deterministic_metrics import (
+            calculate_latency_metrics,
+            calculate_token_usage,
+            calculate_tool_success_rate,
+            calculate_tool_utilization,
+        )
+
+        spans = [
+            {
+                "span_id": "root",
+                "parent_id": None,
+                "start_time": 1000000000,
+                "end_time": 4000000000,
+                "attributes": {"openinference.span.kind": "AGENT"},
+            },
+            {
+                "span_id": "tool1",
+                "name": "tool.lookup_docs",
+                "start_time": 1200000000,
+                "end_time": 1800000000,
+                "status": {"code": "OK"},
+                "attributes": {
+                    "openinference.span.kind": "TOOL",
+                    "tool.name": "lookup_docs",
+                    "tool.output": '{"status": "success", "content": "Sample docs"}',
+                },
+            },
+            {
+                "span_id": "llm1",
+                "name": "ChatVertexAI",
+                "start_time": 2000000000,
+                "end_time": 3500000000,
+                "attributes": {
+                    "openinference.span.kind": "LLM",
+                    "llm.model_name": "gemini-2.5-pro",
+                    "llm.token_count.prompt": 500,
+                    "llm.token_count.completion": 100,
+                    "llm.token_count.total": 600,
+                },
+            },
+        ]
+
+        # 1. Token usage
+        cost, _expl, details = calculate_token_usage(spans)
+        assert details["llm_calls"] == 1
+        assert details["prompt_tokens"] == 500
+        assert details["completion_tokens"] == 100
+        assert details["total_tokens"] == 600
+        assert cost > 0.0
+
+        # 2. Tool utilization
+        total_tools, _expl_tool, details_tool = calculate_tool_utilization(spans)
+        assert total_tools == 1.0
+        assert details_tool["unique_tools_used"] == 1
+        assert details_tool["tool_counts"]["lookup_docs"] == 1
+
+        # 3. Tool success rate
+        success_rate, _expl_sr, details_sr = calculate_tool_success_rate(spans)
+        assert success_rate == 1.0
+        assert details_sr["failed_tool_calls"] == 0
+
+        # 4. Latency
+        _latency_score, _expl_lat, details_lat = calculate_latency_metrics(spans)
+        assert details_lat["total_latency_seconds"] == 3.0
+        assert details_lat["llm_latency_seconds"] == 1.5
+        assert details_lat["tool_latency_seconds"] == 0.6
+
+    def test_cli_convert_openinference_with_golden_file(self, tmp_path: Path):
+        """Test CLI convert command on OpenInference file with --questions-file."""
+        from click.testing import CliRunner
+        from agent_eval.cli.commands.convert import convert
+
+        raw_trace = {
+            "trace_id": "cli_trace_123",
+            "spans": [
+                {
+                    "span_id": "s_root",
+                    "parent_id": None,
+                    "attributes": {
+                        "openinference.span.kind": "AGENT",
+                        "input.value": "Test CLI prompt",
+                        "output.value": "Test CLI response",
+                    },
+                }
+            ],
+        }
+        trace_file = tmp_path / "cli_trace.jsonl"
+        trace_file.write_text(json.dumps(raw_trace) + "\n", encoding="utf-8")
+
+        golden_file = tmp_path / "cli_golden.jsonl"
+        golden_file.write_text(
+            json.dumps({
+                "id": "cli_trace_123",
+                "prompt": "Test CLI prompt",
+                "reference_data": {"golden_answer": "Golden answer"},
+            }) + "\n",
+            encoding="utf-8",
+        )
+
+        out_dir = tmp_path / "results"
+        runner = CliRunner()
+        result = runner.invoke(
+            convert,
+            [
+                "--agent-dir",
+                str(trace_file),
+                "--questions-file",
+                str(golden_file),
+                "--trace-format",
+                "langgraph",
+                "--output-dir",
+                str(out_dir),
+                "--output-file",
+                "test_out.jsonl",
+            ],
+        )
+        assert result.exit_code == 0
+        converted_files = list(out_dir.glob("**/test_out.jsonl"))
+        assert len(converted_files) == 1
+        with converted_files[0].open(encoding="utf-8") as f:
+            lines = [json.loads(line) for line in f if line.strip()]
+        assert len(lines) == 1
+        assert lines[0]["session_id"] == "cli_trace_123"
+        assert lines[0]["prompt"] == "Test CLI prompt"
+        assert lines[0]["response"] == "Test CLI response"
+        assert lines[0]["reference_data"]["golden_answer"] == "Golden answer"
+

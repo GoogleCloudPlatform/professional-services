@@ -26,7 +26,7 @@ from agent_eval.core.stages.metric_selection import MetricSelectionStage
 
 
 class RubricsStage(BaseStage):
-    """Compiles two-step decomposed rubrics for selected metrics (Daniela's P1 Workstream)."""
+    """Compiles two-step decomposed rubrics for selected metrics."""
 
     stage_name = "rubrics"
 

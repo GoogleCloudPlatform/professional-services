@@ -1,11 +1,11 @@
-# Using Offline Data with `agent-eval evaluate`
+# Using Offline Data with `agent-eval grade`
 
-The `agent-eval` CLI is highly modular. While it includes tools to simulate conversations dynamically against live agents (`agent-eval simulate`), you can completely bypass this and evaluate pre-recorded historical traces (e.g., from BigQuery, Cloud Logging, or your custom DB). 
+The `agent-eval` CLI is highly modular. While it includes tools to generate conversations dynamically against live agents (`agent-eval generate --base-url`), you can completely bypass this and evaluate pre-recorded historical traces (e.g., from BigQuery, Cloud Logging, or your custom DB). 
 
 This is known as **Bring Your Own Data (BYOD)**. To do this, you just pass a JSON Lines (`.jsonl`) file to the CLI:
 
 ```bash
-agent-eval evaluate --interaction-file your_dataset.jsonl
+agent-eval grade --interaction-file your_dataset.jsonl
 ```
 
 For the tool to ingest your data properly, your `.jsonl` file must conform to specific data contracts. This guide breaks them down from minimum viable up to the maximum potential.

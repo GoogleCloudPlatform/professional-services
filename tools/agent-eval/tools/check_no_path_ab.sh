@@ -70,7 +70,7 @@ if [ ${#existing[@]} -eq 0 ]; then
 fi
 
 # Capture matches, strip allow-listed lines.
-hits=$(grep -rn 'Path A\|Path B' "${existing[@]}" 2>/dev/null | grep -v "${filter_args[@]}" || true)
+hits=$(grep -rnI --exclude-dir=__pycache__ --exclude-dir=.git 'Path A\|Path B' "${existing[@]}" 2>/dev/null | grep -v "${filter_args[@]}" || true)
 
 if [ -n "$hits" ]; then
   echo "check_no_path_ab.sh: forbidden 'Path A' / 'Path B' strings found in user-facing code:"

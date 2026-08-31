@@ -312,7 +312,7 @@ def create_app(results_dir: str) -> gr.Blocks:
             gr.Markdown("# agent-eval Dashboard")
             gr.Markdown(
                 f"**No evaluation runs found** in `{results_dir}`.\n\n"
-                "Run `agent-eval run` or `agent-eval evaluate` first to generate results."
+                "Run `agent-eval run` or `agent-eval grade` (or `evaluate`) first to generate results."
             )
         return app
 
