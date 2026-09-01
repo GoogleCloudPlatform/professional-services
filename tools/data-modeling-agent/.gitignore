@@ -1,0 +1,47 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual Environments
+.venv/
+venv/
+ENV/
+env/
+
+# Environment Variables & Secrets
+.env
+.env.*
+!.env.example
+
+# Testing & Coverage
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+coverage.xml
+junit.xml
+
+# Code Generation & Artifacts
+code_block.py
+[0-9][0-9][0-9][0-9][0-9][0-9]*
+temp/
+tmp/
+*.log
+*.png
+
+# Distribution / Packaging
+dist/
+build/
+*.egg-info/
+uv.lock
+
+# Operating System
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db

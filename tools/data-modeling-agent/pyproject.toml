@@ -1,0 +1,83 @@
+[tool.poetry]
+name = "data_modelling_agent"
+version = "0.1"
+description = "Helps create models for BQ tables from exising DW models"
+authors = ["Data Modeling Team <maintainers@example.com>"]
+license = "Apache-2.0"
+readme = "README.md"
+package-mode = true
+
+
+[tool.poetry.dependencies]
+python = "^3.11"
+python-dotenv = "^1.0.1"
+google-adk = "^1.9.0"
+immutabledict = "^4.2.1"
+sqlglot = "^26.10.1"
+db-dtypes = "^1.4.2"
+regex = "^2024.11.6"
+tabulate = "^0.9.0"
+google-cloud-aiplatform = { extras = [
+    "adk",
+    "agent-engines",
+], version = "^1.93.0" }
+absl-py = "^2.2.2"
+pydantic = "^2.11.3"
+pandas = "^2.3.0"
+numpy = "^2.3.1"
+bigframes="^2.14.0"
+faker="37.5.3"
+graphviz="0.21"
+pygraphviz="1.14"
+pillow="11.3.0"
+
+[tool.poetry.group.dev.dependencies]
+google-cloud-aiplatform = { extras = [
+    "adk",
+    "agent-engines",
+    "evaluation",
+], version = "^1.93.0" }
+pytest = "^8.3.5"
+pytest-asyncio = "^0.26.0"
+google-adk = { extras = ["eval"], version = "^1.5.0" }
+
+
+[tool.pytest.ini_options]
+console_output_style = "progress"
+addopts = "-vv -s"
+#addopts = "-vv -s --pdb"
+testpaths = ["tests/"]
+log_level = "DEBUG"
+log_cli = true
+log_auto_indent = true
+log_cli_date_format = "%Y-%m-%d %H:%M:%S"
+log_cli_format = "[%(asctime)s] %(levelname)s (%(funcName)s) \t [%(pathname)s:%(lineno)d] %(message)s"
+filterwarnings = [
+    #"error",
+    "ignore::UserWarning",
+    # note the use of single quote below to denote "raw" strings in TOML
+    #'ignore:function ham\(\) is deprecated:DeprecationWarning',
+]
+
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I"]
+ignore = [
+    "E501",
+    "W291",
+    "W292",
+    "W293",
+]
+
+[tool.mypy]
+python_version = "3.11"
+ignore_missing_imports = true
+warn_unused_ignores = false
+ignore_errors = true
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
