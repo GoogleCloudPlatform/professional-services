@@ -385,6 +385,10 @@ Platform usage.
     recommended best practice.
 *   [AssetInventory](tools/asset-inventory) - Import Cloud Asset Inventory
     resourcs into BigQuery.
+*   [BigQuery Data Modeling Multi-Agent System](tools/data-modeling-agent) - A
+    multi-agent AI system built on Google Agent Development Kit (ADK) and Gemini
+    to automate BigQuery schema discovery, documentation, dimensional modeling,
+    and predictive ML feature engineering.
 *   [BigQuery Discount Per-Project Attribution](tools/kunskap) - A tool that
     automates the generation of a BigQuery table that uses existing exported
     billing data, by attributing both CUD and SUD charges on a per-project
