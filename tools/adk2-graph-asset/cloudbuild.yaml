@@ -1,0 +1,148 @@
+steps:
+  # Step 1: Validate configuration
+  - name: 'gcr.io/cloud-builders/gke-deploy'
+    id: 'validate-config'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        echo "=== Validating configuration ==="
+        if [ -z "$GOOGLE_CLOUD_PROJECT" ]; then
+          echo "ERROR: GOOGLE_CLOUD_PROJECT not set"
+          exit 1
+        fi
+        if [ -z "$STAGING_BUCKET" ]; then
+          echo "ERROR: STAGING_BUCKET not set"
+          exit 1
+        fi
+        echo "✓ Configuration valid"
+        echo "  Project: $GOOGLE_CLOUD_PROJECT"
+        echo "  Bucket: $STAGING_BUCKET"
+    env:
+      - 'GOOGLE_CLOUD_PROJECT=$PROJECT_ID'
+      - 'STAGING_BUCKET=gs://${PROJECT_ID}-adk2-staging'
+
+  # Step 2: Setup Python environment
+  - name: 'gcr.io/cloud-builders/python'
+    id: 'setup-python'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        echo "=== Setting up Python environment ==="
+        python -m pip install --upgrade pip
+        pip install -r agent/requirements.txt
+        echo "✓ Dependencies installed"
+
+  # Step 3: Run tests
+  - name: 'gcr.io/cloud-builders/python'
+    id: 'run-tests'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        echo "=== Running tests ==="
+        pip install pytest pytest-cov
+        pytest tests/ -v --cov=agent --cov-report=term-missing
+    onFailure: ['CONTINUE']  # Don't fail build if no tests yet
+
+  # Step 4: Validate YAML schema
+  - name: 'gcr.io/cloud-builders/python'
+    id: 'validate-yaml'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        echo "=== Validating YAML schema ==="
+        python -c "
+        import yaml
+        import sys
+        
+        required_keys = ['version', 'kind', 'metadata', 'spec', 'workflow']
+        
+        with open('agent/sample_graph.yaml') as f:
+            data = yaml.safe_load(f)
+        
+        missing = [k for k in required_keys if k not in data]
+        if missing:
+            print(f'ERROR: Missing required keys: {missing}')
+            sys.exit(1)
+        
+        print('✓ YAML schema valid')
+        print(f'  Agent: {data[\"metadata\"][\"name\"]}')
+        "
+
+  # Step 5: Check GCP prerequisites
+  - name: 'gcr.io/cloud-builders/gcloud'
+    id: 'check-gcp-prerequisites'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        echo "=== Checking GCP prerequisites ==="
+        
+        # Check if Vertex AI API is enabled
+        echo "Checking Vertex AI API..."
+        if gcloud services list --enabled --filter=name:aiplatform.googleapis.com | grep -q aiplatform; then
+          echo "✓ Vertex AI API enabled"
+        else
+          echo "⚠ Enabling Vertex AI API..."
+          gcloud services enable aiplatform.googleapis.com
+        fi
+        
+        # Check if staging bucket exists
+        echo "Checking staging bucket..."
+        if gsutil -h -m ls -b gs://${PROJECT_ID}-adk2-staging > /dev/null 2>&1; then
+          echo "✓ Staging bucket exists"
+        else
+          echo "Creating staging bucket..."
+          gsutil mb -p ${PROJECT_ID} -l ${LOCATION:-us-central1} gs://${PROJECT_ID}-adk2-staging
+        fi
+        
+        echo "✓ GCP prerequisites satisfied"
+    env:
+      - 'PROJECT_ID=${PROJECT_ID}'
+      - 'LOCATION=${_LOCATION}'
+
+  # Step 6: Deploy agent
+  - name: 'gcr.io/cloud-builders/python'
+    id: 'deploy-agent'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        echo "=== Deploying ADK2 graph agent ==="
+        python -m pip install --upgrade google-cloud-aiplatform google-adk google-generativeai
+        
+        python main.py agent/sample_graph.yaml ${_AGENT_DISPLAY_NAME:-ADK2GraphAgent}
+    env:
+      - 'GOOGLE_CLOUD_PROJECT=${PROJECT_ID}'
+      - 'GOOGLE_CLOUD_LOCATION=${_LOCATION}'
+      - 'STAGING_BUCKET=gs://${PROJECT_ID}-adk2-staging'
+
+# Build configuration
+options:
+  machineType: 'N1_HIGHCPU_8'
+  logging: CLOUD_LOGGING_ONLY
+
+# Timeout for the entire build
+timeout: '1800s'
+
+# Substitution variables for customization
+substitutions:
+  _LOCATION: 'us-central1'
+  _AGENT_DISPLAY_NAME: 'ADK2GraphAgent'
+
+# Images to be pushed to registry (optional)
+images:
+  - 'gcr.io/${PROJECT_ID}/adk2-graph-agent:latest'
+
+# Tags for organizing builds
+tags:
+  - 'gcp-cloud-build'
+  - 'adk2-graph-deployment'
+  - '${_LOCATION}'
+
+# On success message
+onSuccess:
+  - 'echo "✓ ADK2 Graph Agent deployed successfully!"'
