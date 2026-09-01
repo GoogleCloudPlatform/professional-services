@@ -29,7 +29,7 @@ bigframes="^2.14.0"
 faker="37.5.3"
 graphviz="0.21"
 pygraphviz="1.14"
-pillow="11.3.0"
+pillow="12.3.0"
 
 [tool.poetry.group.dev.dependencies]
 google-cloud-aiplatform = { extras = [
