@@ -15,7 +15,10 @@
 
 try:
     import urllib3.contrib.pyopenssl
+    # 1. Revert urllib3 back to standard library ssl.SSLContext
     urllib3.contrib.pyopenssl.extract_from_urllib3()
+    # 2. Permanently neutralize re-injection by google-auth / requests
+    urllib3.contrib.pyopenssl.inject_into_urllib3 = lambda *args, **kwargs: None
 except Exception:
     pass
 
@@ -26,18 +29,19 @@ from rich.console import Console
 from rich.panel import Panel
 
 from agent_eval.cli.commands.analyze import analyze
+from agent_eval.cli.commands.compare import compare
 from agent_eval.cli.commands.convert import convert
 from agent_eval.cli.commands.create_dataset import create_dataset
 from agent_eval.cli.commands.dashboard import dashboard
-from agent_eval.cli.commands.evaluate import evaluate
+from agent_eval.cli.commands.evaluate import grade
+from agent_eval.cli.commands.generate import generate
 from agent_eval.cli.commands.import_adk import import_adk
 from agent_eval.cli.commands.init import init
-from agent_eval.cli.commands.interact import interact
 from agent_eval.cli.commands.migrate import migrate
+from agent_eval.cli.commands.optimize import optimize
 from agent_eval.cli.commands.report import report
 from agent_eval.cli.commands.run import run
 from agent_eval.cli.commands.setup import setup
-from agent_eval.cli.commands.simulate import simulate
 from agent_eval.cli.commands.skills import skills
 from agent_eval.cli.commands.stories import stories
 
@@ -104,16 +108,16 @@ def cli() -> None:
 # --- Register commands ---
 
 # Order matches the Vertex AI eval docs sidebar workflow so `agent-eval --help`
+# Order matches the Vertex AI eval docs sidebar workflow so `agent-eval --help`
 # reads top-down as: set up → bring in data → generate traces → score →
-# (Agent Engine streamlined shortcut) → view → orchestrate → utilities.
+# view → orchestrate → utilities.
 cli.add_command(setup)  # One-time GCP env preparation
 cli.add_command(init)  # Tutorial / first-run scaffold
 cli.add_command(migrate)  # Convert legacy eval/ → tests/eval/
 cli.add_command(import_adk,
                 name="import")  # Prepare dataset (from existing ADK evalsets)
-cli.add_command(simulate)  # Generate traces (multi-turn)
-cli.add_command(interact)  # Generate traces (single-turn)
-cli.add_command(evaluate)  # Run evaluation
+cli.add_command(generate)  # Generate traces (simulation or live)
+cli.add_command(grade, name="grade")  # Score traces against declarative rubrics
 # `agent-engine` (streamlined Agent Engine pass via create_evaluation_run)
 # is intentionally NOT registered here while it's being re-validated. The
 # command implementation is still in agent_eval.cli.commands.agent_engine
@@ -121,12 +125,14 @@ cli.add_command(evaluate)  # Run evaluation
 # the cli.add_command(agent_engine, name="agent-engine") line below. See
 # docs/FUTURE_WORK.md for the investigation context.
 # cli.add_command(agent_engine, name="agent-engine")
-cli.add_command(analyze)  # View / interpret results
+cli.add_command(analyze)  # View / interpret results (narrative root-cause)
+cli.add_command(compare)  # Compare two evaluation runs
+cli.add_command(optimize)  # ADK GEPA evolutionary prompt optimization
 cli.add_command(report)  # Open the HTML report in a browser
 cli.add_command(dashboard)  # View / interpret results (interactive)
 cli.add_command(run)  # Full pipeline shortcut
 cli.add_command(skills)  # Manage & install bundled AI coding agent skills
-cli.add_command(convert)  # Utility: ADK traces → JSONL
+cli.add_command(convert)  # Utility: OTel/ADK traces → canonical AgentData JSONL
 cli.add_command(create_dataset,
                 name="create-dataset")  # Utility: legacy dataset converter
 cli.add_command(stories)  # Utility: browse the wait-time story library

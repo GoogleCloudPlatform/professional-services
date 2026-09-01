@@ -13,7 +13,10 @@
 # limitations under the License.
 try:
     import urllib3.contrib.pyopenssl
+    # 1. Revert urllib3 back to standard library ssl.SSLContext
     urllib3.contrib.pyopenssl.extract_from_urllib3()
+    # 2. Permanently neutralize re-injection by google-auth / requests
+    urllib3.contrib.pyopenssl.inject_into_urllib3 = lambda *args, **kwargs: None
 except Exception:
     pass
 

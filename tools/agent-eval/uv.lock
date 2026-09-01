@@ -2,11 +2,11 @@ version = 1
 revision = 3
 requires-python = ">=3.10"
 resolution-markers = [
-    "python_full_version < '3.11'",
     "python_full_version >= '3.14'",
     "python_full_version == '3.13.*'",
     "python_full_version == '3.12.*'",
     "python_full_version == '3.11.*'",
+    "python_full_version < '3.11'",
 ]
 
 [[package]]
@@ -20,7 +20,7 @@ wheels = [
 
 [[package]]
 name = "agent-eval"
-version = "0.1.1"
+version = "0.2.0"
 source = { editable = "." }
 dependencies = [
     { name = "click" },
@@ -1342,9 +1342,9 @@ name = "google-cloud-storage"
 version = "3.7.0"
 source = { registry = "https://pypi.org/simple/" }
 resolution-markers = [
-    "python_full_version < '3.11'",
     "python_full_version == '3.12.*'",
     "python_full_version == '3.11.*'",
+    "python_full_version < '3.11'",
 ]
 dependencies = [
     { name = "google-api-core" },

@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Modular CLI stages package for Antigravity and DocsHound integration (Daniela's P1 Workstream)."""
+"""Modular CLI stages package for pipeline orchestration and validation."""
 
 from __future__ import annotations
 

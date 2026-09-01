@@ -60,53 +60,66 @@ def calculate_token_usage(
         attributes = span.get("attributes", {})
 
         # Identify model (handle None values)
-        model_name = attributes.get("gen_ai.request.model") or "default"
-        model_name = model_name.lower() if isinstance(model_name,
-                                                      str) else "default"
+        model_name = (
+            attributes.get("llm.model_name")
+            or attributes.get("gen_ai.request.model")
+            or "default"
+        )
+        model_name = model_name.lower() if isinstance(model_name, str) else "default"
+
+        p_tokens = int(
+            attributes.get("llm.token_count.prompt")
+            or attributes.get("gen_ai.usage.input_tokens")
+            or 0
+        )
+        c_tokens = int(
+            attributes.get("llm.token_count.completion")
+            or attributes.get("gen_ai.usage.output_tokens")
+            or 0
+        )
+        t_tokens = int(
+            attributes.get("llm.token_count.total")
+            or attributes.get("gen_ai.usage.total_tokens")
+            or 0
+        )
+        ch_tokens = int(attributes.get("gen_ai.usage.cached_tokens") or 0)
 
         # Check for LLM response with usage metadata
         llm_response = attributes.get("gcp.vertex.agent.llm_response")
         if llm_response:
             try:
-                response_data = (json.loads(llm_response) if isinstance(
-                    llm_response, str) else llm_response)
+                response_data = (
+                    json.loads(llm_response)
+                    if isinstance(llm_response, str)
+                    else llm_response
+                )
                 usage = response_data.get("usage_metadata", {})
-
                 if usage:
-                    llm_calls += 1
-                    models_used.add(model_name)
-
-                    p_tokens = usage.get("prompt_token_count") or 0
-                    c_tokens = usage.get("candidates_token_count") or 0
-                    ch_tokens = usage.get("cached_content_token_count") or 0
-                    t_tokens = usage.get("total_token_count") or 0
-
-                    total_prompt_tokens += p_tokens
-                    total_completion_tokens += c_tokens
-                    total_cached_tokens += ch_tokens
-                    # Some models report 0 for total_token_count;
-                    # fall back to prompt + completion when that happens
-                    total_tokens += t_tokens if t_tokens else (p_tokens +
-                                                               c_tokens)
-
-                    # Match model pricing
-                    pricing = MODEL_PRICING["default"]
-                    for known_model, prices in MODEL_PRICING.items():
-                        if known_model in model_name:
-                            pricing = prices
-                            break
-
-                    # Cost calculation (simplified: ignoring cache discount for now to keep it safe upper bound,
-                    # or strictly following list price for active tokens)
-                    call_cost = (p_tokens / 1000 *
-                                 pricing[0]) + (c_tokens / 1000 * pricing[1])
-                    # Note: Cached tokens usually have a separate (lower) pricing tier.
-                    # For this metric, we currently only sum cost for active prompt/completion tokens.
-
-                    total_cost += call_cost
-
+                    p_tokens = usage.get("prompt_token_count") or p_tokens
+                    c_tokens = usage.get("candidates_token_count") or c_tokens
+                    ch_tokens = usage.get("cached_content_token_count") or ch_tokens
+                    t_tokens = usage.get("total_token_count") or t_tokens
             except (json.JSONDecodeError, TypeError, AttributeError):
-                continue
+                pass
+
+        if p_tokens > 0 or c_tokens > 0 or t_tokens > 0:
+            llm_calls += 1
+            models_used.add(model_name)
+
+            total_prompt_tokens += p_tokens
+            total_completion_tokens += c_tokens
+            total_cached_tokens += ch_tokens
+            total_tokens += t_tokens if t_tokens else (p_tokens + c_tokens)
+
+            # Match model pricing
+            pricing = MODEL_PRICING["default"]
+            for known_model, prices in MODEL_PRICING.items():
+                if known_model in model_name:
+                    pricing = prices
+                    break
+
+            call_cost = (p_tokens / 1000 * pricing[0]) + (c_tokens / 1000 * pricing[1])
+            total_cost += call_cost
 
     explanation = (
         f"Usage: {llm_calls} LLM calls using {list(models_used)}. "
@@ -165,14 +178,16 @@ def calculate_latency_metrics(
         end = span.get("end_time", 0)
         max_end = max(max_end, end)
         name = span.get("name", "")
+        attrs = span.get("attributes", {})
+        span_kind = str(attrs.get("openinference.span.kind") or attrs.get("span_kind") or "").upper()
 
-        if name == "call_llm":
+        if name == "call_llm" or span_kind == "LLM":
             llm_intervals.append((start, end))
             # Proxy for Time to First Token: end of first chronologically sorted LLM call
-            if first_response_latency is None:
+            if first_response_latency is None and root_start is not None:
                 first_response_latency = (end - root_start) / 1e9
 
-        elif "tool_call" in name or "execute_tool" in name:
+        elif "tool_call" in name or "execute_tool" in name or span_kind == "TOOL" or name.startswith("tool."):
             tool_intervals.append((start, end))
 
     def _merge_and_sum_spans(intervals: list[tuple[int, int]]) -> float:
@@ -349,17 +364,23 @@ def calculate_tool_utilization(
 
     for span in session_trace:
         name = span.get("name", "")
+        attrs = span.get("attributes", {})
+        span_kind = str(attrs.get("openinference.span.kind") or attrs.get("span_kind") or "").upper()
 
         # Check for tool execution spans.
-        # Standard ADK traces often use "execute_tool <ToolName>"
-        if name.startswith("execute_tool ") or "tool_call" in name:
+        # Standard ADK traces use "execute_tool <ToolName>", OpenInference uses kind="TOOL" or name="tool.<name>"
+        if name.startswith(("execute_tool ", "tool.")) or "tool_call" in name or span_kind == "TOOL":
             tool_name = "unknown"
-            if name.startswith("execute_tool "):
+            if "tool.name" in attrs:
+                tool_name = str(attrs["tool.name"])
+            elif "gen_ai.tool.name" in attrs:
+                tool_name = str(attrs["gen_ai.tool.name"])
+            elif name.startswith("execute_tool "):
                 tool_name = name.replace("execute_tool ", "").strip()
-            elif "gen_ai.tool.name" in span.get("attributes", {}):
-                tool_name = span["attributes"]["gen_ai.tool.name"]
-            elif "tool.name" in span.get("attributes", {}):
-                tool_name = span["attributes"]["tool.name"]
+            elif name.startswith("tool."):
+                tool_name = name[5:].strip()
+            else:
+                tool_name = name
 
             total_tool_calls += 1
             tool_counts[tool_name] = tool_counts.get(tool_name, 0) + 1
@@ -398,33 +419,59 @@ def calculate_tool_success_rate(
     for span in session_trace:
         name = span.get("name", "")
         attributes = span.get("attributes", {})
+        span_kind = str(attributes.get("openinference.span.kind") or attributes.get("span_kind") or "").upper()
 
         # Identify tool execution spans
-        is_tool = name.startswith("execute_tool ") or "tool_call" in name
+        is_tool = (
+            name.startswith(("execute_tool ", "tool."))
+            or "tool_call" in name
+            or span_kind == "TOOL"
+        )
 
         if is_tool:
-            tool_response_str = attributes.get("gcp.vertex.agent.tool_response")
-            if tool_response_str:
-                total_calls += 1
+            total_calls += 1
+            is_error = False
+
+            # Check status code on span
+            span_status = span.get("status")
+            if isinstance(span_status, dict):
+                code = span_status.get("code") or span_status.get("status_code")
+                if code in ("ERROR", "STATUS_CODE_ERROR", 2):
+                    is_error = True
+            elif span_status in ("ERROR", 2):
+                is_error = True
+
+            tool_response_str = (
+                attributes.get("gcp.vertex.agent.tool_response")
+                or attributes.get("tool.output")
+                or attributes.get("output.value")
+            )
+            if tool_response_str and not is_error:
                 try:
                     # Parse the JSON response to check status
-                    response = json.loads(tool_response_str)
+                    response = (
+                        json.loads(tool_response_str)
+                        if isinstance(tool_response_str, str)
+                        else tool_response_str
+                    )
 
                     # Common error patterns in ADK/JSON tools
-                    is_error = False
                     if isinstance(response, dict) and (
                             response.get("status") == "error" or
                             "error" in response or "error_message" in response):
                         is_error = True
 
-                    if is_error:
-                        failed_calls += 1
-                        tool_name = name.replace("execute_tool ", "").strip()
-                        failed_tools.append(tool_name)
-
                 except (json.JSONDecodeError, TypeError):
-                    # Malformed JSON in response could be considered a failure or ignored
                     pass
+
+            if is_error:
+                failed_calls += 1
+                tool_name = (
+                    attributes.get("tool.name")
+                    or attributes.get("tool_name")
+                    or (name.replace("tool.", "").replace("execute_tool ", "").strip())
+                )
+                failed_tools.append(tool_name)
 
     if total_calls > 0:
         success_rate = (total_calls - failed_calls) / total_calls

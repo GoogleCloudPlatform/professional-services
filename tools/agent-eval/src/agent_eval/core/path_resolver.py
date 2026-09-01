@@ -98,18 +98,20 @@ def find_eval_dir(agent_dir: Path | str) -> Path:
 
 
 def find_metrics_path(agent_dir: Path | str) -> Path | None:
-    """Return the active ``metric_definitions.json`` path or ``None`` if missing.
+    """Return the active metric definitions path (.yaml or .json) or ``None`` if missing.
 
-    Searches in canonical-first, then legacy-fallback order. Includes the
-    pre-rescue F3 location ``<agent_dir>/tests/eval/`` so projects that
-    were initialized before the rescue keep working until they migrate.
-    Returns ``None`` when no metric definitions file exists anywhere.
+    Searches canonical-first (eval_config.yaml, then metrics/metric_definitions.json),
+    then legacy-fallback order.
     """
     base = Path(agent_dir)
     project_root = agent_project_root(base)
     for candidate in (
+            project_root / _CANONICAL_EVAL / "eval_config.yaml",
+            project_root / _CANONICAL_EVAL / "eval_config.yml",
             project_root / _CANONICAL_EVAL / "metrics" /
             "metric_definitions.json",
+            base / _CANONICAL_EVAL / "eval_config.yaml",
+            base / _CANONICAL_EVAL / "eval_config.yml",
             base / _CANONICAL_EVAL / "metrics" / "metric_definitions.json",
             base / _LEGACY_EVAL_FLAT / "metrics" / "metric_definitions.json",
             base / _LEGACY_EVAL_NESTED / "metrics" / "metric_definitions.json",
@@ -134,6 +136,61 @@ def find_dataset_path(agent_dir: Path | str) -> Path | None:
         if candidate.exists():
             return candidate
     return None
+
+
+def find_config_path(agent_dir: Path | str | None = None) -> Path | None:
+    """Return the active declarative ``eval_config.yaml`` path or ``None`` if missing.
+
+    Searches in canonical-first, then legacy-fallback order across CWD and project root.
+    """
+    if agent_dir is not None:
+        base = Path(agent_dir)
+        project_root = agent_project_root(base)
+        candidates = [
+            project_root / _CANONICAL_EVAL / "eval_config.yaml",
+            project_root / _CANONICAL_EVAL / "eval_config.yml",
+            base / _CANONICAL_EVAL / "eval_config.yaml",
+            base / _CANONICAL_EVAL / "eval_config.yml",
+            base / "eval_config.yaml",
+            base / "eval_config.yml",
+            base / "app" / "eval_config.yaml",
+        ]
+    else:
+        cwd = Path.cwd()
+        project_root = find_project_root(start=cwd) or cwd
+        candidates = [
+            cwd / _CANONICAL_EVAL / "eval_config.yaml",
+            cwd / _CANONICAL_EVAL / "eval_config.yml",
+            cwd / "eval_config.yaml",
+            cwd / "eval_config.yml",
+            cwd / "app" / "eval_config.yaml",
+            project_root / _CANONICAL_EVAL / "eval_config.yaml",
+            project_root / _CANONICAL_EVAL / "eval_config.yml",
+            project_root / "app" / "eval_config.yaml",
+        ]
+
+    for candidate in candidates:
+        if candidate.exists():
+            return candidate
+    return None
+
+
+def find_agent_dir(start: Path | str | None = None) -> Path:
+    """Return the active agent directory, auto-resolving from CWD if not explicit.
+
+    Searches for 'agent.py' or 'app/agent.py' in start (default CWD) or project root.
+    Falls back to 'app' or CWD.
+    """
+    cur = (Path(start) if start is not None else Path.cwd()).resolve()
+    for candidate in (cur / "app", cur, cur / "agent"):
+        if (candidate / "agent.py").is_file():
+            return candidate
+    project_root = find_project_root(start=cur)
+    if project_root:
+        for candidate in (project_root / "app", project_root):
+            if (candidate / "agent.py").is_file():
+                return candidate
+    return cur / "app" if (cur / "app").is_dir() else cur
 
 
 # ---------------------------------------------------------------------------

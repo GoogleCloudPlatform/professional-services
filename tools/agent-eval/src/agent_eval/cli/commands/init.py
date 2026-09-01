@@ -960,7 +960,7 @@ def _display_path_detection(search_dir: Path) -> PathDetection:  # noqa: F821
             "    [dim]>[/] [bold]Multi-turn conversations[/] — we'll drive your agent locally with ADK's [cyan]UserSim[/]."
         )
         console.print(
-            "    [dim]>[/] [bold]Single-turn queries[/] — [cyan]agent-eval interact[/] hits your agent's REST endpoint"
+            "    [dim]>[/] [bold]Single-turn queries[/] — [cyan]agent-eval generate --mode live[/] (or [cyan]interact[/]) hits your agent's REST endpoint"
         )
         console.print(
             "      ([cyan]/run[/], [cyan]/debug/trace[/]) on local dev, Cloud Run, or any ADK FastAPI host."
@@ -988,7 +988,7 @@ def _display_path_detection(search_dir: Path) -> PathDetection:  # noqa: F821
                 "    [dim]>[/] We'll scaffold a starter [cyan]tests/eval/dataset.jsonl[/] you can hand-edit,"
             )
             console.print(
-                "    [dim]>[/] then point [cyan]agent-eval interact --base-url <url>[/] at any ADK"
+                "    [dim]>[/] then point [cyan]agent-eval generate --mode live --base-url <url>[/] (or [cyan]interact[/]) at any ADK"
             )
             console.print(
                 "    [dim]>[/] FastAPI endpoint (local dev, Cloud Run, or any host) to collect traces."
@@ -1328,7 +1328,7 @@ def _display_metrics_education(managed_metrics: dict[str, dict]) -> None:
     """Walk the user through the relevant Vertex AI eval docs before the picker.
 
     Three short backgrounders, in the order the docs sidebar uses:
-      1. The SDK call we'll run for them when they later run `agent-eval evaluate`.
+      1. The SDK call we'll run for them when they later run `agent-eval grade` (or `evaluate`).
       2. The canonical dataset columns each row in `tests/eval/dataset.jsonl` may use.
       3. The families the catalog's managed metrics belong to (rendered dynamically
          from what the installed SDK actually exposes — only families with ≥1
@@ -1362,7 +1362,7 @@ def _display_metrics_education(managed_metrics: dict[str, dict]) -> None:
         "  [dim]── Background 1 of 3 — the SDK call we'll run for you ──[/]")
     console.print()
     console.print(
-        "  [dim]When you later run[/] [cyan]agent-eval evaluate[/][dim], we hand the dataset and[/]"
+        "  [dim]When you later run[/] [cyan]agent-eval grade[/][dim], we hand the dataset and[/]"
     )
     console.print(
         "  [dim]the metrics you select below to the Vertex AI Evaluation SDK like this:[/]"
@@ -1700,7 +1700,7 @@ def _prompt_managed_metrics_selection(
             console.rule("[bold]Tag legend[/]", style="grey50")
             console.print()
             console.print(
-                "  [bold]multi-turn[/] [dim]needs[/] [cyan]agent-eval simulate[/] [dim]rows[/]"
+                "  [bold]multi-turn[/] [dim]needs[/] [cyan]agent-eval generate --mode simulate[/] [dim]rows[/]"
             )
             console.print(
                 "  [bold]needs ref[/] [dim]needs the[/] [cyan]reference[/] [dim]column populated[/]"
@@ -2913,8 +2913,8 @@ def _display_summary(
         table.add_row(
             "[green]new[/]",
             "tests/eval/dataset.jsonl",
-            "Single source of truth — drives simulate (multi-turn rows), "
-            "interact + agent-engine (single-turn rows)",
+            "Single source of truth — drives generate/simulate (multi-turn rows), "
+            "interact/live + agent-engine (single-turn rows)",
         )
 
     console.print(table)
@@ -2922,7 +2922,7 @@ def _display_summary(
     console.print(
         "  [dim]One file feeds every path. ADK's per-run scenario files "
         "(conversation_scenarios.json etc.) are projected from this dataset "
-        "by `agent-eval simulate` and live in app/ as ephemeral cache.[/]")
+        "by `agent-eval generate` (or `simulate`) and live in app/ as ephemeral cache.[/]")
 
 
 def _display_next_steps(
@@ -2989,7 +2989,7 @@ def _display_next_steps(
             "   [dim]Four phases — collect traces (UserSim + DIY) → evaluate → analyze.[/]"
         )
         lines.append(
-            "   [dim]simulate reads multi-turn rows from dataset.jsonl, interact reads single-turn.[/]"
+            "   [dim]generate reads multi-turn rows from dataset.jsonl, interact/live reads single-turn.[/]"
         )
         step += 1
         lines.append("")
@@ -3015,7 +3015,7 @@ def _display_next_steps(
                 "   [dim]Single-turn managed scoring against the live deployment. Multi-turn rows are[/]"
             )
             lines.append(
-                "   [dim]skipped here (Agent Engine is single-turn only) — covered by[/] [cyan]simulate[/] "
+                "   [dim]skipped here (Agent Engine is single-turn only) — covered by[/] [cyan]generate[/] "
                 "[dim]above. Compare both surfaces with[/] [cyan]agent-eval dashboard[/][dim].[/]"
             )
         else:

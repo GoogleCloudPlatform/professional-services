@@ -28,7 +28,6 @@ from pathlib import Path
 from typing import Any
 
 import pandas as pd
-import urllib3.contrib.pyopenssl
 from google.cloud import aiplatform
 from google.genai.types import HttpOptions
 from vertexai import Client, types
@@ -53,7 +52,14 @@ from agent_eval.core.metric_schema import (
     managed_base_name,
 )
 
-urllib3.contrib.pyopenssl.extract_from_urllib3()
+try:
+    import urllib3.contrib.pyopenssl
+    # 1. Revert urllib3 back to standard library ssl.SSLContext
+    urllib3.contrib.pyopenssl.extract_from_urllib3()
+    # 2. Permanently neutralize re-injection by google-auth / requests
+    urllib3.contrib.pyopenssl.inject_into_urllib3 = lambda *args, **kwargs: None
+except Exception:
+    pass
 _vertex_init_lock = threading.Lock()
 
 # Setup Logger — root logger at CRITICAL silences all third-party noise by default.
@@ -617,13 +623,18 @@ def run_single_metric_evaluation(
 
 
 def load_and_consolidate_metrics(metric_files: list[str]) -> dict[str, Any]:
-    """Load and consolidate metric definitions from multiple JSON files."""
+    """Load and consolidate metric definitions from JSON or YAML files."""
     consolidated = {}
     logger.info("--- Consolidating Metric Definitions ---")
     for file_path in metric_files:
         try:
-            with Path(file_path).open() as f:
-                data = json.load(f)
+            p = Path(file_path)
+            with p.open() as f:
+                if p.suffix in (".yaml", ".yml"):
+                    import yaml
+                    data = yaml.safe_load(f) or {}
+                else:
+                    data = json.load(f)
                 prefix = data.get("metric_prefix", "").lstrip("_")
                 metrics = data.get("metrics", {})
                 for name, definition in metrics.items():
@@ -632,7 +643,9 @@ def load_and_consolidate_metrics(metric_files: list[str]) -> dict[str, Any]:
                             definition, dict):
                         continue
                     full_name = f"{prefix}_{name}".lstrip("_")
-                    consolidated[full_name] = definition
+                    metric_def = dict(definition)
+                    metric_def["_base_dir"] = str(p.resolve().parent)
+                    consolidated[full_name] = metric_def
         except Exception as e:
             logger.error(f"Error loading {file_path}: {e}")
             sys.exit(1)
@@ -1117,7 +1130,7 @@ class Evaluator:
 
         for index, row in expanded_df.iterrows():
             try:
-                if not row.get("final_session_state"):
+                if row.get("final_session_state") is None and not row.get("session_trace") and not row.get("latency_data"):
                     continue
 
                 row_metrics = _get_row_metrics(row)
@@ -1353,7 +1366,10 @@ class Evaluator:
                 from agent_eval.core import metric_factory
 
                 try:
-                    metric_obj = metric_factory.build_metric(metric_name, info)
+                    base_dir = Path(info["_base_dir"]) if "_base_dir" in info else None
+                    metric_obj = metric_factory.build_metric(
+                        metric_name, info, base_dir=base_dir
+                    )
                 except Exception as build_err:
                     skipped_metrics.append({
                         "metric": metric_name,
@@ -1371,7 +1387,7 @@ class Evaluator:
                     metric_obj,
                     agent_df_filtered,
                     metric_name,
-                    self.client,
+                    None,
                     CONFIG.MAX_RETRIES,
                     CONFIG.RETRY_DELAY_SECONDS,
                     self.config.get("gcs_dest"),
@@ -1382,9 +1398,12 @@ class Evaluator:
         # the long-standing misleading "API rate limits" warning.
         failed_metrics: list[dict[str, str]] = []
 
+        sem = asyncio.Semaphore(CONFIG.MAX_WORKERS)
+
         async def run_task(task_arg):
-            return await asyncio.to_thread(run_single_metric_evaluation,
-                                           task_arg)
+            async with sem:
+                return await asyncio.to_thread(run_single_metric_evaluation,
+                                               task_arg)
 
         tasks = [run_task(t) for t in eval_tasks]
         results = await asyncio.gather(*tasks)
