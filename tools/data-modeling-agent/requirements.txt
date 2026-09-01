@@ -84,7 +84,7 @@ jsonschema==4.25.0
 jsonschema-specifications==2025.4.1
 jupyterlab_widgets==3.0.15
 kiwisolver==1.4.8
-litellm==1.74.7
+litellm==1.84.0
 markdown-it-py==3.0.0
 MarkupSafe==3.0.2
 matplotlib==3.10.5
