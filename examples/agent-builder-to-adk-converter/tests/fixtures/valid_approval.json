@@ -1,0 +1,143 @@
+{
+  "name": "projects/test-project/locations/global/collections/default_collection/engines/approval-engine/assistants/default_assistant/agents/agent-approval-004",
+  "displayName": "Corporate Expense Reimbursement Flow",
+  "description": "Validates corporate expense receipts and routes to an executive approval gate before reimbursement dispatch.",
+  "createTime": "2026-07-04T13:00:00Z",
+  "updateTime": "2026-07-04T13:00:00Z",
+  "state": "ACTIVE",
+  "workflowAgentDefinition": {
+    "agentFlow": {
+      "nodes": [
+        {
+          "id": "expense_claim_trigger",
+          "displayName": "Expense Claim Form Submission",
+          "nodeType": "CONNECTOR_EVENT_TRIGGER",
+          "connectorEventTrigger": {
+            "eventType": "form_submit",
+            "inputParameters": {
+              "form_id": "expense-2026"
+            }
+          },
+          "outputSchema": {
+            "properties": {
+              "claim_id": {
+                "type": "STRING",
+                "description": "Unique claim identifier"
+              },
+              "claimant_email": {
+                "type": "STRING",
+                "description": "Employee email"
+              },
+              "claimed_amount": {
+                "type": "NUMBER",
+                "description": "Amount in USD"
+              },
+              "receipt_gcs_uri": {
+                "type": "STRING",
+                "description": "Receipt image URI"
+              }
+            },
+            "required": ["claim_id", "claimant_email", "claimed_amount"]
+          }
+        },
+        {
+          "id": "receipt_audit_agent",
+          "displayName": "Receipt Audit Agent",
+          "nodeType": "AGENT_NODE",
+          "agentNode": {
+            "model": "gemini-2.5-flash",
+            "instruction": "Audit receipt image against corporate travel policy.\nVerify line items, taxes, currency conversion, and detect alcohol/disallowed items.\nCalculate eligible reimbursement amount.",
+            "outputDisplayEnabled": true
+          },
+          "outputSchema": {
+            "properties": {
+              "is_policy_compliant": {
+                "type": "BOOLEAN"
+              },
+              "verified_amount": {
+                "type": "NUMBER"
+              },
+              "audit_notes": {
+                "type": "STRING"
+              }
+            },
+            "required": ["is_policy_compliant", "verified_amount"]
+          }
+        },
+        {
+          "id": "manager_approval_gate",
+          "displayName": "Manager Human-in-the-Loop Approval Gate",
+          "nodeType": "APPROVAL_NODE",
+          "approvalNode": {
+            "message": "Expense claim ${expense_claim_trigger.claim_id} for $${receipt_audit_agent.verified_amount} submitted by ${expense_claim_trigger.claimant_email}. Please approve or reject reimbursement.",
+            "approvalBranch": "Approved",
+            "rejectionBranch": "Rejected"
+          }
+        },
+        {
+          "id": "disburse_funds_tool",
+          "displayName": "Disburse Payment Tool",
+          "nodeType": "CONNECTOR_NODE",
+          "connectorNode": {
+            "toolName": "sap_payment_disburse",
+            "inputParameters": {
+              "claim_id": "${expense_claim_trigger.claim_id}",
+              "amount": "${receipt_audit_agent.verified_amount}",
+              "account": "${expense_claim_trigger.claimant_email}"
+            }
+          },
+          "outputSchema": {
+            "properties": {
+              "transaction_id": {
+                "type": "STRING"
+              },
+              "disbursement_timestamp": {
+                "type": "STRING"
+              }
+            }
+          }
+        },
+        {
+          "id": "send_rejection_notification",
+          "displayName": "Send Rejection Notice",
+          "nodeType": "CONNECTOR_NODE",
+          "connectorNode": {
+            "toolName": "send_email",
+            "inputParameters": {
+              "to": "${expense_claim_trigger.claimant_email}",
+              "subject": "Expense Claim ${expense_claim_trigger.claim_id} Rejected",
+              "body": "Your claim was not approved by management. Reason: ${receipt_audit_agent.audit_notes}"
+            }
+          },
+          "outputSchema": {
+            "properties": {
+              "delivery_status": {
+                "type": "STRING"
+              }
+            }
+          }
+        }
+      ],
+      "edges": [
+        {
+          "sourceNodeId": "expense_claim_trigger",
+          "targetNodeId": "receipt_audit_agent"
+        },
+        {
+          "sourceNodeId": "receipt_audit_agent",
+          "targetNodeId": "manager_approval_gate"
+        },
+        {
+          "sourceNodeId": "manager_approval_gate",
+          "targetNodeId": "disburse_funds_tool",
+          "routeString": "Approved"
+        },
+        {
+          "sourceNodeId": "manager_approval_gate",
+          "targetNodeId": "send_rejection_notification",
+          "routeString": "Rejected"
+        }
+      ]
+    }
+  }
+}
