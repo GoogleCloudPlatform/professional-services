@@ -1,0 +1,247 @@
+{
+  "name": "projects/legal-ops/locations/global/collections/default_collection/engines/legal-engine/assistants/default_assistant/agents/document-approver-agent-v1",
+  "displayName": "Document Approver Agent",
+  "description": "Enterprise contract and compliance document validation workflow extracting risk metrics, evaluating conditional thresholds, and enforcing legal sign-off gates.",
+  "createTime": "2026-06-03T10:00:00Z",
+  "updateTime": "2026-06-03T10:00:00Z",
+  "state": "ACTIVE",
+  "workflowAgentDefinition": {
+    "agentFlow": {
+      "nodes": [
+        {
+          "id": "doc_submission_trigger",
+          "displayName": "Contract Document Upload",
+          "nodeType": "CONNECTOR_EVENT_TRIGGER",
+          "connectorEventTrigger": {
+            "eventType": "gcs_document_uploaded",
+            "inputParameters": {
+              "bucket": "corporate-legal-intake"
+            },
+            "dataConnector": {
+              "name": "projects/legal-ops/dataConnectors/gcs-legal-intake",
+              "dataSource": "google_cloud_storage"
+            }
+          },
+          "outputSchema": {
+            "properties": {
+              "doc_id": {
+                "type": "STRING",
+                "description": "Unique document tracking UUID"
+              },
+              "file_name": {
+                "type": "STRING",
+                "description": "Uploaded document filename"
+              },
+              "uploaded_by": {
+                "type": "STRING",
+                "description": "Submitter email address"
+              },
+              "mime_type": {
+                "type": "STRING",
+                "description": "MIME type (e.g. application/pdf)"
+              }
+            },
+            "required": ["doc_id", "file_name", "uploaded_by"]
+          }
+        },
+        {
+          "id": "contract_extractor_agent",
+          "displayName": "Legal Clause Extraction Agent",
+          "nodeType": "AGENT_NODE",
+          "agentNode": {
+            "model": "gemini-2.5-pro",
+            "instruction": "You are a legal contract intelligence specialist.\nAnalyze master services agreements, statements of work, and vendor contracts.\nExtract:\n1. Counterparty organization name\n2. Total contract valuation amount\n3. Term duration in months\n4. Risk score between 0.0 (minimal risk) and 1.0 (unlimited liability / severe breach penalties).\nOutput JSON conforming to the output schema.",
+            "outputDisplayEnabled": true
+          },
+          "outputSchema": {
+            "properties": {
+              "counterparty_name": {
+                "type": "STRING",
+                "description": "Name of legal entity"
+              },
+              "contract_valuation": {
+                "type": "NUMBER",
+                "description": "Total dollar value"
+              },
+              "term_months": {
+                "type": "NUMBER",
+                "description": "Agreement duration in months"
+              },
+              "risk_score": {
+                "type": "NUMBER",
+                "description": "Computed legal risk index between 0.0 and 1.0"
+              },
+              "risk_classification": {
+                "type": "STRING",
+                "description": "LOW_RISK or HIGH_RISK"
+              }
+            },
+            "required": ["counterparty_name", "contract_valuation", "risk_score", "risk_classification"]
+          }
+        },
+        {
+          "id": "risk_threshold_condition",
+          "displayName": "Risk Level Evaluator",
+          "nodeType": "CONDITION_NODE",
+          "conditionNode": {
+            "ruleBasedRouting": {
+              "rules": [
+                {
+                  "branch": "LOW_RISK",
+                  "rule": {
+                    "rootExpression": {
+                      "logicalGroup": {
+                        "logicalOperator": "AND",
+                        "expressions": [
+                          {
+                            "condition": {
+                              "left": {
+                                "variablePath": "contract_extractor_agent.risk_classification"
+                              },
+                              "conditionOperator": "EQUALS",
+                              "right": {
+                                "literal": "LOW_RISK"
+                              }
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  }
+                },
+                {
+                  "branch": "HIGH_RISK",
+                  "rule": {
+                    "rootExpression": {
+                      "logicalGroup": {
+                        "logicalOperator": "AND",
+                        "expressions": [
+                          {
+                            "condition": {
+                              "left": {
+                                "variablePath": "contract_extractor_agent.risk_classification"
+                              },
+                              "conditionOperator": "EQUALS",
+                              "right": {
+                                "literal": "HIGH_RISK"
+                              }
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        },
+        {
+          "id": "auto_certification_agent",
+          "displayName": "Standard Auto-Certification Agent",
+          "nodeType": "AGENT_NODE",
+          "agentNode": {
+            "model": "gemini-2.5-flash",
+            "instruction": "Generate standard automated compliance certificate stating that contract conforms to low-risk standard terms.",
+            "outputDisplayEnabled": true
+          },
+          "outputSchema": {
+            "properties": {
+              "certificate_id": {
+                "type": "STRING"
+              },
+              "approval_seal": {
+                "type": "STRING"
+              }
+            },
+            "required": ["certificate_id"]
+          }
+        },
+        {
+          "id": "legal_compliance_approval_gate",
+          "displayName": "General Counsel Approval Gate",
+          "nodeType": "APPROVAL_NODE",
+          "approvalNode": {
+            "message": "High-risk agreement detected: ${doc_submission_trigger.file_name} from ${contract_extractor_agent.counterparty_name}. Valuation: $${contract_extractor_agent.contract_valuation}, Risk Score: ${contract_extractor_agent.risk_score}. Please approve or reject execution.",
+            "approvalBranch": "Certified",
+            "rejectionBranch": "Rejected"
+          }
+        },
+        {
+          "id": "archive_contract_tool",
+          "displayName": "Archive Contract Record",
+          "nodeType": "CONNECTOR_NODE",
+          "connectorNode": {
+            "toolName": "ironclad_archive_contract",
+            "inputParameters": {
+              "doc_id": "${doc_submission_trigger.doc_id}",
+              "counterparty": "${contract_extractor_agent.counterparty_name}",
+              "status": "Executed"
+            }
+          },
+          "outputSchema": {
+            "properties": {
+              "archive_record_id": {
+                "type": "STRING"
+              }
+            }
+          }
+        },
+        {
+          "id": "notify_legal_rejection_tool",
+          "displayName": "Notify Contract Rejection",
+          "nodeType": "CONNECTOR_NODE",
+          "connectorNode": {
+            "toolName": "send_email",
+            "inputParameters": {
+              "to": "${doc_submission_trigger.uploaded_by}",
+              "subject": "Contract ${doc_submission_trigger.file_name} Rejected by Legal",
+              "body": "Your document was reviewed and rejected during compliance evaluation."
+            }
+          },
+          "outputSchema": {
+            "properties": {
+              "message_id": {
+                "type": "STRING"
+              }
+            }
+          }
+        }
+      ],
+      "edges": [
+        {
+          "sourceNodeId": "doc_submission_trigger",
+          "targetNodeId": "contract_extractor_agent"
+        },
+        {
+          "sourceNodeId": "contract_extractor_agent",
+          "targetNodeId": "risk_threshold_condition"
+        },
+        {
+          "sourceNodeId": "risk_threshold_condition",
+          "targetNodeId": "auto_certification_agent",
+          "routeString": "LOW_RISK"
+        },
+        {
+          "sourceNodeId": "auto_certification_agent",
+          "targetNodeId": "archive_contract_tool"
+        },
+        {
+          "sourceNodeId": "risk_threshold_condition",
+          "targetNodeId": "legal_compliance_approval_gate",
+          "routeString": "HIGH_RISK"
+        },
+        {
+          "sourceNodeId": "legal_compliance_approval_gate",
+          "targetNodeId": "archive_contract_tool",
+          "routeString": "Certified"
+        },
+        {
+          "sourceNodeId": "legal_compliance_approval_gate",
+          "targetNodeId": "notify_legal_rejection_tool",
+          "routeString": "Rejected"
+        }
+      ]
+    }
+  }
+}

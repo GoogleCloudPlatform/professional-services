@@ -21,6 +21,8 @@ The examples folder contains example solutions across a variety of Google Cloud
 Platform products. Use these solutions as a reference for your own or extend
 them to fit your particular use case.
 
+*   [Agent Builder to Google ADK Converter](examples/agent-builder-to-adk-converter) -
+    Dual-engine conversion architecture (headless Python CLI + Cloud Run web UI with DAG visualization) to migrate Google Cloud Agent Builder workflow JSON exports into production Google Antigravity SDK (ADK) Python code.
 *   [Anthos Service Mesh Multi-Cluster](examples/anthos-service-mesh-multicluster) -
     Solution to federate two private GKE clusters using Anthos Service Mesh.
 *   [Anthos CICD with Gitlab](examples/anthos-cicd-with-gitlab) - A step-by-step
