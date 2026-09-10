@@ -1,0 +1,24 @@
+{
+  "name": "projects/test-project/locations/global/collections/default_collection/engines/invalid-schema/assistants/default_assistant/agents/agent-003",
+  "displayName": "Malformed Invalid Schema Agent",
+  "description": "Workflow where node outputSchema has non-conforming types and corrupt properties structure.",
+  "workflowAgentDefinition": {
+    "agentFlow": {
+      "nodes": [
+        {
+          "id": "node_with_corrupted_schema",
+          "displayName": "Corrupted Schema Node",
+          "nodeType": "AGENT_NODE",
+          "agentNode": {
+            "model": "gemini-2.5-flash",
+            "instruction": "Test node with corrupt schema"
+          },
+          "outputSchema": {
+            "properties": "CORRUPTED_STRING_NOT_A_DICTIONARY"
+          }
+        }
+      ],
+      "edges": []
+    }
+  }
+}

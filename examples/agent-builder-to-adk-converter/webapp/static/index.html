@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<!--
+ Copyright 2026 Google LLC
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+     https://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agent Builder → Google ADK Converter | Google Cloud Console</title>
+  <meta name="description" content="Convert Google Cloud Agent Builder workflow exports to Google Antigravity SDK (ADK) Python code with interactive DAG topology visualization.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Roboto+Mono:wght@400;500&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+</head>
+<body class="theme-google">
+
+  <!-- ============ TOP NAVIGATION BAR ============ -->
+  <header class="top-bar">
+    <div class="top-bar__brand">
+      <svg class="google-cloud-logo" viewBox="0 0 24 24" width="28" height="28" fill="none" aria-label="Google Cloud">
+        <path d="M12 2L2 7v10l10 5 10-5V7L12 2z" stroke="#4285F4" stroke-width="2" stroke-linejoin="round"/>
+        <path d="M12 12l10-5M12 12v10M12 12L2 7" stroke="#34A853" stroke-width="1.5" stroke-linejoin="round"/>
+        <circle cx="12" cy="12" r="2.5" fill="#FBBC05"/>
+      </svg>
+      <div class="top-bar__titles">
+        <span class="top-bar__product">Agent Builder &rarr; Google ADK</span>
+        <span class="top-bar__subtitle">Migration & DAG Visualizer</span>
+      </div>
+    </div>
+
+    <div class="top-bar__center">
+      <div class="sample-selector-group">
+        <label for="sampleSelect" class="selector-label">Sample Workflows:</label>
+        <select id="sampleSelect" class="sample-dropdown" aria-label="Select sample workflow">
+          <option value="">-- Load Sample Workflow --</option>
+          <option value="customer_support_agent">Customer Support Agent (Linear/Branching)</option>
+          <option value="travel_booking_agent">Travel Booking Agent (Connectors & Rules)</option>
+          <option value="document_approver_agent">Document Approver Agent (Human Approval Gate)</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="top-bar__actions">
+      <button class="btn btn--primary" id="convertBtn" title="Run dual-engine conversion (Ctrl+Enter)">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+          <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+        </svg>
+        <span>Convert to ADK</span>
+      </button>
+      <button class="btn btn--secondary" id="exportBtn" title="Download generated Python module" disabled>
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="7 10 12 15 17 10"/>
+          <line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
+        <span>Export Python</span>
+      </button>
+      <div class="view-toggle-group" role="group" aria-label="View Layout Toggle">
+        <button class="view-toggle-btn active" id="viewToggleSplit" data-view="split" title="Split Screen View">Split</button>
+        <button class="view-toggle-btn" id="viewToggleFocus" data-view="focus" title="Focus Right Pane">Full</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ============ MAIN WORKSPACE SHELL ============ -->
+  <main class="app-workspace" id="appWorkspace">
+
+    <!-- LEFT PANE: INPUT JSON EDITOR -->
+    <section class="panel panel--left" id="leftPanel">
+      <div class="panel__header">
+        <div class="panel__title">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <line x1="16" y1="13" x2="8" y2="13"/>
+            <line x1="16" y1="17" x2="8" y2="17"/>
+          </svg>
+          <span>Agent Builder Workflow JSON</span>
+        </div>
+        <div class="panel__tools">
+          <label class="btn-icon" title="Upload JSON export file" for="fileUploadInput">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="17 8 12 3 7 8"/>
+              <line x1="12" y1="3" x2="12" y2="15"/>
+            </svg>
+            <input type="file" id="fileUploadInput" accept=".json,application/json" class="visually-hidden">
+          </label>
+          <button class="btn-icon" id="formatJsonBtn" title="Format / Prettify JSON">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="21" y1="10" x2="3" y2="10"/>
+              <line x1="21" y1="6" x2="3" y2="6"/>
+              <line x1="21" y1="14" x2="3" y2="14"/>
+              <line x1="17" y1="18" x2="7" y2="18"/>
+            </svg>
+          </button>
+          <button class="btn-icon" id="clearJsonBtn" title="Clear editor">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="3 6 5 6 21 6"/>
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Drag & Drop Overlay Zone -->
+      <div class="editor-container" id="dropZone">
+        <textarea
+          id="jsonInput"
+          class="json-editor"
+          spellcheck="false"
+          placeholder="Paste Google Cloud Agent Builder workflow export JSON here, drop a file, or select a sample workflow above..."
+          aria-label="Agent Builder Workflow JSON Input"
+        ></textarea>
+        <div class="drop-overlay" id="dropOverlay">
+          <div class="drop-overlay__content">
+            <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="17 8 12 3 7 8"/>
+              <line x1="12" y1="3" x2="12" y2="15"/>
+            </svg>
+            <p>Drop Agent Builder JSON file to load</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel__status-bar">
+        <span id="jsonStats">Ready • Paste JSON or pick a sample</span>
+        <div id="jsonBadge" class="status-badge status-badge--neutral">Awaiting Input</div>
+      </div>
+    </section>
+
+    <!-- RIGHT PANE: TABBED VISUALIZATION, CODE & REPORT -->
+    <section class="panel panel--right" id="rightPanel">
+      <div class="tabs-header">
+        <nav class="tabs-nav" role="tablist">
+          <button class="tab-btn active" id="tabDag" role="tab" aria-selected="true" data-tab="dag">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="6" cy="6" r="3"/>
+              <circle cx="18" cy="6" r="3"/>
+              <circle cx="6" cy="18" r="3"/>
+              <circle cx="18" cy="18" r="3"/>
+              <line x1="9" y1="6" x2="15" y2="6"/>
+              <line x1="6" y1="9" x2="6" y2="15"/>
+              <line x1="18" y1="9" x2="18" y2="15"/>
+            </svg>
+            <span>DAG Topology</span>
+          </button>
+          <button class="tab-btn" id="tabCode" role="tab" aria-selected="false" data-tab="code">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="16 18 22 12 16 6"/>
+              <polyline points="8 6 2 12 8 18"/>
+            </svg>
+            <span>Generated ADK Code</span>
+          </button>
+          <button class="tab-btn" id="tabReport" role="tab" aria-selected="false" data-tab="report">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+              <polyline points="22 4 12 14.01 9 11.01"/>
+            </svg>
+            <span>Migration Analysis</span>
+          </button>
+        </nav>
+        <div class="tabs-actions" id="tabActions">
+          <!-- Dynamic actions per active tab -->
+        </div>
+      </div>
+
+      <div class="tabs-content">
+
+        <!-- ============ TAB 1: DAG TOPOLOGY ============ -->
+        <div class="tab-pane active" id="paneDag" role="tabpanel">
+          <div class="canvas-viewport" id="canvasViewport">
+            <!-- Floating Canvas Toolbar -->
+            <div class="canvas-toolbar" role="toolbar" aria-label="DAG Navigation Controls">
+              <button class="tool-btn" id="zoomInBtn" title="Zoom In (+)">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              </button>
+              <div class="zoom-readout" id="zoomLevel">100%</div>
+              <button class="tool-btn" id="zoomOutBtn" title="Zoom Out (-)">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              </button>
+              <div class="tool-divider"></div>
+              <button class="tool-btn" id="zoomResetBtn" title="Reset Zoom to 100%">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+              </button>
+              <button class="tool-btn" id="zoomFitBtn" title="Fit to Container">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>
+                </svg>
+              </button>
+            </div>
+
+            <!-- SVG Render Surface -->
+            <div class="svg-container" id="svgContainer">
+              <svg id="dagSvg" class="dag-svg" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                  <marker id="arrowhead" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+                    <polygon points="0 0, 10 4, 0 8" fill="#94a3b8"/>
+                  </marker>
+                  <marker id="arrowhead-active" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+                    <polygon points="0 0, 10 4, 0 8" fill="#3b82f6"/>
+                  </marker>
+                  <filter id="card-shadow" x="-10%" y="-10%" width="120%" height="120%">
+                    <feDropShadow dx="0" dy="4" stdDeviation="6" flood-opacity="0.12" flood-color="#000000"/>
+                  </filter>
+                </defs>
+                <g id="dagRootGroup"></g>
+              </svg>
+            </div>
+
+            <!-- Empty State -->
+            <div class="empty-state" id="dagEmptyState">
+              <div class="empty-state__icon">
+                <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <circle cx="6" cy="6" r="3"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="18" r="3"/>
+                  <path d="M9 6h6M6 9v6M18 15V9"/>
+                </svg>
+              </div>
+              <h3>No Workflow Rendered Yet</h3>
+              <p>Paste or load an Agent Builder workflow JSON and click <strong>Convert to ADK</strong> to inspect the topological DAG with Bézier curves and interactive pan/zoom controls.</p>
+            </div>
+
+            <!-- DAG Legend -->
+            <div class="dag-legend" id="dagLegend">
+              <span class="legend-item"><span class="legend-dot dot-trigger"></span>Trigger</span>
+              <span class="legend-item"><span class="legend-dot dot-agent"></span>Agent Node</span>
+              <span class="legend-item"><span class="legend-dot dot-connector"></span>Connector</span>
+              <span class="legend-item"><span class="legend-dot dot-condition"></span>Condition</span>
+              <span class="legend-item"><span class="legend-dot dot-approval"></span>Approval Gate</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ============ TAB 2: GENERATED ADK CODE ============ -->
+        <div class="tab-pane" id="paneCode" role="tabpanel">
+          <div class="code-viewer-wrap">
+            <div class="code-viewer-header">
+              <div class="code-meta">
+                <span class="code-tag">Python 3.11+</span>
+                <span class="code-tag tag--adk">Google ADK</span>
+                <span class="code-filename" id="codeFilename">agent_workflow.py</span>
+              </div>
+              <div class="code-actions">
+                <button class="btn btn--ghost" id="copyCodeBtn" title="Copy code to clipboard">
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                  </svg>
+                  <span id="copyBtnLabel">Copy Code</span>
+                </button>
+              </div>
+            </div>
+            <div class="code-viewer-body">
+              <pre class="code-display"><code id="codeOutput" class="language-python"># Generated Google ADK Python code will appear here after conversion.</code></pre>
+            </div>
+          </div>
+        </div>
+
+        <!-- ============ TAB 3: MIGRATION ANALYSIS REPORT ============ -->
+        <div class="tab-pane" id="paneReport" role="tabpanel">
+          <div class="report-container" id="reportContainer">
+            <div class="empty-state" id="reportEmptyState">
+              <h3>No Migration Telemetry</h3>
+              <p>Run workflow conversion to calculate AST compilation status, node coverage, connector tool scoping, and approval gate mapping.</p>
+            </div>
+            <div class="report-dashboard" id="reportDashboard" style="display: none;">
+              <!-- Metrics Cards Grid -->
+              <div class="metrics-grid">
+                <div class="metric-card">
+                  <div class="metric-card__header">
+                    <span class="metric-card__title">AST Syntax Verification</span>
+                    <span class="status-pill status-pill--success" id="astStatusPill">CLEAN</span>
+                  </div>
+                  <div class="metric-card__value" id="astResultText">100% Valid</div>
+                  <div class="metric-card__sub" id="astSubText">ast.parse() &amp; compile() succeeded</div>
+                </div>
+
+                <div class="metric-card">
+                  <div class="metric-card__header">
+                    <span class="metric-card__title">Node Conversion Coverage</span>
+                    <span class="status-pill status-pill--success">100%</span>
+                  </div>
+                  <div class="metric-card__value" id="nodeCoverageValue">0 / 0</div>
+                  <div class="metric-card__sub" id="nodeCoverageSub">All nodes mapped without placeholders</div>
+                </div>
+
+                <div class="metric-card">
+                  <div class="metric-card__header">
+                    <span class="metric-card__title">Topology Metrics</span>
+                    <span class="status-pill status-pill--info">DAG</span>
+                  </div>
+                  <div class="metric-card__value" id="topoMetricsValue">0 Edges • 0 Layers</div>
+                  <div class="metric-card__sub" id="topoMetricsSub">Cycle-free dependency layering</div>
+                </div>
+
+                <div class="metric-card">
+                  <div class="metric-card__header">
+                    <span class="metric-card__title">Approval &amp; Connectors</span>
+                    <span class="status-pill status-pill--info">Integrations</span>
+                  </div>
+                  <div class="metric-card__value" id="toolsApprovalsValue">0 Tools • 0 Gates</div>
+                  <div class="metric-card__sub" id="toolsApprovalsSub">AskQuestionHook &amp; Typed Tools</div>
+                </div>
+              </div>
+
+              <!-- Automated Migration Checks List -->
+              <div class="report-section">
+                <h3 class="section-title">Automated Quality Verification Checks</h3>
+                <div class="checks-list" id="checksList"></div>
+              </div>
+
+              <!-- Node Breakdown Table -->
+              <div class="report-section">
+                <h3 class="section-title">Workflow Architecture Breakdown</h3>
+                <div class="table-responsive">
+                  <table class="data-table" id="nodeBreakdownTable">
+                    <thead>
+                      <tr>
+                        <th>Node Category</th>
+                        <th>Agent Builder Source Type</th>
+                        <th>ADK Target Architecture</th>
+                        <th>Count</th>
+                      </tr>
+                    </thead>
+                    <tbody id="nodeBreakdownBody"></tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <script src="/app.js"></script>
+</body>
+</html>

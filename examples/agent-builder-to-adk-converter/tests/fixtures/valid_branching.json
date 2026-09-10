@@ -1,0 +1,234 @@
+{
+  "name": "projects/test-project/locations/global/collections/default_collection/engines/branch-engine/assistants/default_assistant/agents/agent-branching-002",
+  "displayName": "Branching Incident Router Agent",
+  "description": "Evaluates incoming server alerts, branches based on severity level, and routes to appropriate handlers.",
+  "createTime": "2026-07-02T11:00:00Z",
+  "updateTime": "2026-07-02T11:00:00Z",
+  "state": "ACTIVE",
+  "workflowAgentDefinition": {
+    "agentFlow": {
+      "nodes": [
+        {
+          "id": "alert_webhook",
+          "displayName": "Alert Webhook Ingestion",
+          "nodeType": "CONNECTOR_EVENT_TRIGGER",
+          "connectorEventTrigger": {
+            "eventType": "webhook_received",
+            "inputParameters": {
+              "endpoint": "/api/alerts"
+            }
+          },
+          "outputSchema": {
+            "properties": {
+              "alert_id": {
+                "type": "STRING",
+                "description": "Unique alert ID"
+              },
+              "service_name": {
+                "type": "STRING",
+                "description": "Affected microservice"
+              },
+              "raw_payload": {
+                "type": "STRING",
+                "description": "Raw JSON alert payload"
+              }
+            },
+            "required": ["alert_id", "service_name"]
+          }
+        },
+        {
+          "id": "triage_agent",
+          "displayName": "Alert Triage Specialist",
+          "nodeType": "AGENT_NODE",
+          "agentNode": {
+            "model": "gemini-2.5-flash",
+            "instruction": "Analyze incoming alert telemetry.\nDetermine severity classification: CRITICAL or STANDARD.\nOutput structured assessment schema with severity and root_cause_hypothesis.",
+            "outputDisplayEnabled": true
+          },
+          "outputSchema": {
+            "properties": {
+              "severity": {
+                "type": "STRING",
+                "description": "Triage severity: CRITICAL or STANDARD"
+              },
+              "root_cause_hypothesis": {
+                "type": "STRING",
+                "description": "Initial diagnosis hypothesis"
+              },
+              "affected_users_count": {
+                "type": "NUMBER",
+                "description": "Estimated impact count"
+              }
+            },
+            "required": ["severity", "root_cause_hypothesis"]
+          }
+        },
+        {
+          "id": "severity_condition",
+          "displayName": "Severity Branch Router",
+          "nodeType": "CONDITION_NODE",
+          "conditionNode": {
+            "ruleBasedRouting": {
+              "rules": [
+                {
+                  "branch": "CRITICAL",
+                  "rule": {
+                    "rootExpression": {
+                      "logicalGroup": {
+                        "logicalOperator": "AND",
+                        "expressions": [
+                          {
+                            "condition": {
+                              "left": {
+                                "variablePath": "triage_agent.severity"
+                              },
+                              "conditionOperator": "EQUALS",
+                              "right": {
+                                "literal": "CRITICAL"
+                              }
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  }
+                },
+                {
+                  "branch": "STANDARD",
+                  "rule": {
+                    "rootExpression": {
+                      "logicalGroup": {
+                        "logicalOperator": "AND",
+                        "expressions": [
+                          {
+                            "condition": {
+                              "left": {
+                                "variablePath": "triage_agent.severity"
+                              },
+                              "conditionOperator": "EQUALS",
+                              "right": {
+                                "literal": "STANDARD"
+                              }
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        },
+        {
+          "id": "critical_escalation_agent",
+          "displayName": "Critical Escalation Commander",
+          "nodeType": "AGENT_NODE",
+          "agentNode": {
+            "model": "gemini-2.5-pro",
+            "instruction": "Formulate critical incident bridge brief and immediate mitigation runbook instructions.",
+            "outputDisplayEnabled": true
+          },
+          "outputSchema": {
+            "properties": {
+              "incident_channel_topic": {
+                "type": "STRING"
+              },
+              "war_room_summary": {
+                "type": "STRING"
+              }
+            }
+          }
+        },
+        {
+          "id": "page_oncall_sre",
+          "displayName": "Page On-Call SRE",
+          "nodeType": "CONNECTOR_NODE",
+          "connectorNode": {
+            "toolName": "pagerduty_trigger",
+            "inputParameters": {
+              "service": "${alert_webhook.service_name}",
+              "summary": "${critical_escalation_agent.war_room_summary}",
+              "urgency": "high"
+            }
+          },
+          "outputSchema": {
+            "properties": {
+              "incident_key": {
+                "type": "STRING"
+              }
+            }
+          }
+        },
+        {
+          "id": "standard_resolver_agent",
+          "displayName": "Standard Ticket Resolver",
+          "nodeType": "AGENT_NODE",
+          "agentNode": {
+            "model": "gemini-2.5-flash",
+            "instruction": "Generate standard JIRA issue details with remediation suggestions.",
+            "outputDisplayEnabled": true
+          },
+          "outputSchema": {
+            "properties": {
+              "jira_summary": {
+                "type": "STRING"
+              },
+              "suggested_fix": {
+                "type": "STRING"
+              }
+            }
+          }
+        },
+        {
+          "id": "log_jira_issue",
+          "displayName": "Log JIRA Issue",
+          "nodeType": "CONNECTOR_NODE",
+          "connectorNode": {
+            "toolName": "jira_create_issue",
+            "inputParameters": {
+              "project": "INFRA",
+              "summary": "${standard_resolver_agent.jira_summary}",
+              "description": "${standard_resolver_agent.suggested_fix}"
+            }
+          },
+          "outputSchema": {
+            "properties": {
+              "issue_id": {
+                "type": "STRING"
+              }
+            }
+          }
+        }
+      ],
+      "edges": [
+        {
+          "sourceNodeId": "alert_webhook",
+          "targetNodeId": "triage_agent"
+        },
+        {
+          "sourceNodeId": "triage_agent",
+          "targetNodeId": "severity_condition"
+        },
+        {
+          "sourceNodeId": "severity_condition",
+          "targetNodeId": "critical_escalation_agent",
+          "routeString": "CRITICAL"
+        },
+        {
+          "sourceNodeId": "critical_escalation_agent",
+          "targetNodeId": "page_oncall_sre"
+        },
+        {
+          "sourceNodeId": "severity_condition",
+          "targetNodeId": "standard_resolver_agent",
+          "routeString": "STANDARD"
+        },
+        {
+          "sourceNodeId": "standard_resolver_agent",
+          "targetNodeId": "log_jira_issue"
+        }
+      ]
+    }
+  }
+}

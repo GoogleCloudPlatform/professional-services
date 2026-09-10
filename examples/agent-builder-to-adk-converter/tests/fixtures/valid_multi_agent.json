@@ -1,0 +1,162 @@
+{
+  "name": "projects/test-project/locations/global/collections/default_collection/engines/multi-engine/assistants/default_assistant/agents/agent-multi-003",
+  "displayName": "Collaborative Multi-Agent Synthesis Pipeline",
+  "description": "Orchestrates research, external subagent query execution, code synthesis, and final quality review.",
+  "createTime": "2026-07-03T12:00:00Z",
+  "updateTime": "2026-07-03T12:00:00Z",
+  "state": "ACTIVE",
+  "workflowAgentDefinition": {
+    "agentFlow": {
+      "nodes": [
+        {
+          "id": "query_trigger",
+          "displayName": "Inbound Research Prompt",
+          "nodeType": "CONNECTOR_EVENT_TRIGGER",
+          "connectorEventTrigger": {
+            "eventType": "pubsub_message_received",
+            "inputParameters": {
+              "topic": "projects/test-project/topics/research-tasks"
+            }
+          },
+          "outputSchema": {
+            "properties": {
+              "prompt_id": {
+                "type": "STRING"
+              },
+              "user_query": {
+                "type": "STRING"
+              },
+              "complexity": {
+                "type": "STRING"
+              }
+            },
+            "required": ["prompt_id", "user_query"]
+          }
+        },
+        {
+          "id": "coordinator_agent",
+          "displayName": "Project Coordinator Agent",
+          "nodeType": "AGENT_NODE",
+          "agentNode": {
+            "model": "gemini-2.5-pro",
+            "instruction": "Break down complex scientific and engineering queries into subtasks.\nAssign specific investigation targets to research specialist.",
+            "outputDisplayEnabled": true
+          },
+          "outputSchema": {
+            "properties": {
+              "subtasks": {
+                "type": "ARRAY",
+                "items": {
+                  "type": "STRING"
+                }
+              },
+              "architecture_plan": {
+                "type": "STRING"
+              }
+            }
+          }
+        },
+        {
+          "id": "research_specialist",
+          "displayName": "Deep Research Specialist",
+          "nodeType": "AGENT_NODE",
+          "agentNode": {
+            "model": "gemini-2.5-flash",
+            "instruction": "Gather factual evidence, API specifications, and performance tradeoffs for the requested architecture.",
+            "outputDisplayEnabled": true
+          },
+          "outputSchema": {
+            "properties": {
+              "findings": {
+                "type": "STRING"
+              },
+              "confidence_score": {
+                "type": "NUMBER"
+              }
+            }
+          }
+        },
+        {
+          "id": "code_gen_subagent_ref",
+          "displayName": "Code Generator External Subagent",
+          "nodeType": "AGENT_REFERENCE_NODE",
+          "agentReferenceNode": {
+            "agent": "projects/test-project/locations/global/collections/default_collection/engines/coding-assistant/assistants/default_assistant/agents/codegen-subagent-99",
+            "agentReferenceType": "ADK_AGENT",
+            "inputParameters": {
+              "specification": "${research_specialist.findings}"
+            }
+          }
+        },
+        {
+          "id": "code_review_agent",
+          "displayName": "Static Analysis & Review Agent",
+          "nodeType": "AGENT_NODE",
+          "agentNode": {
+            "model": "gemini-2.5-flash",
+            "instruction": "Audit generated code against security standards and style guidelines.\nVerify edge case handling and robustness.",
+            "outputDisplayEnabled": true
+          },
+          "outputSchema": {
+            "properties": {
+              "review_verdict": {
+                "type": "STRING"
+              },
+              "improvements": {
+                "type": "ARRAY",
+                "items": {
+                  "type": "STRING"
+                }
+              },
+              "is_approved": {
+                "type": "BOOLEAN"
+              }
+            },
+            "required": ["review_verdict", "is_approved"]
+          }
+        },
+        {
+          "id": "publish_artifact",
+          "displayName": "Publish Solution Artifact",
+          "nodeType": "CONNECTOR_NODE",
+          "connectorNode": {
+            "toolName": "artifact_repository_upload",
+            "inputParameters": {
+              "artifact_id": "${query_trigger.prompt_id}",
+              "verdict": "${code_review_agent.review_verdict}"
+            }
+          },
+          "outputSchema": {
+            "properties": {
+              "storage_uri": {
+                "type": "STRING"
+              }
+            }
+          }
+        }
+      ],
+      "edges": [
+        {
+          "sourceNodeId": "query_trigger",
+          "targetNodeId": "coordinator_agent"
+        },
+        {
+          "sourceNodeId": "coordinator_agent",
+          "targetNodeId": "research_specialist"
+        },
+        {
+          "sourceNodeId": "research_specialist",
+          "targetNodeId": "code_gen_subagent_ref"
+        },
+        {
+          "sourceNodeId": "code_gen_subagent_ref",
+          "targetNodeId": "code_review_agent"
+        },
+        {
+          "sourceNodeId": "code_review_agent",
+          "targetNodeId": "publish_artifact"
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "name": "projects/test-project/locations/global/collections/default_collection/engines/missing-flow/assistants/default_assistant/agents/agent-001",
+  "displayName": "Malformed Missing Flow Agent",
+  "description": "Workflow definition missing agentFlow object.",
+  "workflowAgentDefinition": {
+    "version": "1.0"
+  }
+}
