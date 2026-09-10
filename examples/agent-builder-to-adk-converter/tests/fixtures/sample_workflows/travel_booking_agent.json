@@ -1,0 +1,235 @@
+{
+  "name": "projects/travel-portal/locations/global/collections/default_collection/engines/travel-engine/assistants/default_assistant/agents/travel-booking-agent-v1",
+  "displayName": "Travel Booking Agent",
+  "description": "Multi-agent corporate travel booking workflow coordinating flight/hotel subagents, policy compliance checking, executive human-in-the-loop approval, and calendar scheduling.",
+  "createTime": "2026-06-02T09:00:00Z",
+  "updateTime": "2026-06-02T09:00:00Z",
+  "state": "ACTIVE",
+  "workflowAgentDefinition": {
+    "agentFlow": {
+      "nodes": [
+        {
+          "id": "travel_request_trigger",
+          "displayName": "Travel Request Submission",
+          "nodeType": "CONNECTOR_EVENT_TRIGGER",
+          "connectorEventTrigger": {
+            "eventType": "travel_request_submitted",
+            "inputParameters": {
+              "form_endpoint": "/api/v1/travel/requests"
+            },
+            "dataConnector": {
+              "name": "projects/travel-portal/dataConnectors/travel-portal-connector",
+              "dataSource": "travel_portal"
+            }
+          },
+          "outputSchema": {
+            "properties": {
+              "request_id": {
+                "type": "STRING",
+                "description": "Unique travel request ID"
+              },
+              "employee_name": {
+                "type": "STRING",
+                "description": "Traveling employee name"
+              },
+              "employee_email": {
+                "type": "STRING",
+                "description": "Employee email address"
+              },
+              "origin": {
+                "type": "STRING",
+                "description": "Departure city or airport code"
+              },
+              "destination": {
+                "type": "STRING",
+                "description": "Arrival city or airport code"
+              },
+              "departure_date": {
+                "type": "STRING",
+                "description": "Outbound travel date YYYY-MM-DD"
+              },
+              "return_date": {
+                "type": "STRING",
+                "description": "Inbound travel date YYYY-MM-DD"
+              },
+              "budget_limit": {
+                "type": "NUMBER",
+                "description": "Estimated budget cap in USD"
+              }
+            },
+            "required": ["request_id", "employee_email", "origin", "destination", "departure_date", "return_date"]
+          }
+        },
+        {
+          "id": "itinerary_planner_agent",
+          "displayName": "Itinerary Planning Agent",
+          "nodeType": "AGENT_NODE",
+          "agentNode": {
+            "model": "gemini-2.5-pro",
+            "instruction": "You are an executive travel coordinator. Analyze the travel dates, origin, and destination.\nSynthesize the optimal flight and lodging combination optimizing cost, connection times, and proximity to conference venues.\nCompute the total projected cost and return structured itinerary details.",
+            "outputDisplayEnabled": true
+          },
+          "outputSchema": {
+            "properties": {
+              "flight_itinerary": {
+                "type": "STRING",
+                "description": "Carrier, flight numbers, and schedule"
+              },
+              "hotel_recommendation": {
+                "type": "STRING",
+                "description": "Hotel property name and room tier"
+              },
+              "projected_cost": {
+                "type": "NUMBER",
+                "description": "Estimated total expenditure in USD"
+              },
+              "currency": {
+                "type": "STRING",
+                "description": "Three-letter currency code, e.g. USD"
+              }
+            },
+            "required": ["flight_itinerary", "hotel_recommendation", "projected_cost"]
+          }
+        },
+        {
+          "id": "policy_compliance_agent",
+          "displayName": "Corporate Policy Compliance Agent",
+          "nodeType": "AGENT_NODE",
+          "agentNode": {
+            "model": "gemini-2.5-flash",
+            "instruction": "Audit proposed flight and hotel options against corporate guidelines:\n- Flights under 6 hours must be Economy class.\n- Hotel nightly rates must not exceed $250/night.\n- Total trip cost exceeding $1,500 requires VP executive sign-off.\nOutput compliance status and flags.",
+            "outputDisplayEnabled": true
+          },
+          "outputSchema": {
+            "properties": {
+              "policy_approved": {
+                "type": "BOOLEAN",
+                "description": "Whether trip adheres to guidelines"
+              },
+              "requires_executive_approval": {
+                "type": "BOOLEAN",
+                "description": "Whether VP review gate is mandatory"
+              },
+              "policy_notes": {
+                "type": "STRING",
+                "description": "Audit rationale"
+              }
+            },
+            "required": ["policy_approved", "requires_executive_approval"]
+          }
+        },
+        {
+          "id": "budget_approval_gate",
+          "displayName": "Executive Budget Approval Gate",
+          "nodeType": "APPROVAL_NODE",
+          "approvalNode": {
+            "message": "Trip ${travel_request_trigger.request_id} to ${travel_request_trigger.destination} for ${travel_request_trigger.employee_name} ($${itinerary_planner_agent.projected_cost}) requires executive review. Policy notes: ${policy_compliance_agent.policy_notes}. Do you approve this booking?",
+            "approvalBranch": "Approved",
+            "rejectionBranch": "Declined"
+          }
+        },
+        {
+          "id": "flight_booking_subagent",
+          "displayName": "Flight Reservation Subagent",
+          "nodeType": "AGENT_REFERENCE_NODE",
+          "agentReferenceNode": {
+            "agent": "projects/travel-portal/locations/global/collections/default_collection/engines/flights-engine/assistants/default_assistant/agents/flight-booking-service",
+            "agentReferenceType": "ADK_AGENT",
+            "inputParameters": {
+              "passenger": "${travel_request_trigger.employee_name}",
+              "flight": "${itinerary_planner_agent.flight_itinerary}"
+            }
+          }
+        },
+        {
+          "id": "hotel_booking_subagent",
+          "displayName": "Hotel Reservation Subagent",
+          "nodeType": "AGENT_REFERENCE_NODE",
+          "agentReferenceNode": {
+            "agent": "projects/travel-portal/locations/global/collections/default_collection/engines/hotels-engine/assistants/default_assistant/agents/hotel-booking-service",
+            "agentReferenceType": "ADK_AGENT",
+            "inputParameters": {
+              "guest": "${travel_request_trigger.employee_name}",
+              "hotel": "${itinerary_planner_agent.hotel_recommendation}"
+            }
+          }
+        },
+        {
+          "id": "confirm_calendar_tool",
+          "displayName": "Schedule Calendar Tool",
+          "nodeType": "CONNECTOR_NODE",
+          "connectorNode": {
+            "toolName": "google_calendar_create_event",
+            "inputParameters": {
+              "summary": "Business Trip: ${travel_request_trigger.destination}",
+              "start": "${travel_request_trigger.departure_date}",
+              "end": "${travel_request_trigger.return_date}",
+              "attendee": "${travel_request_trigger.employee_email}"
+            }
+          },
+          "outputSchema": {
+            "properties": {
+              "event_id": {
+                "type": "STRING"
+              },
+              "html_link": {
+                "type": "STRING"
+              }
+            }
+          }
+        },
+        {
+          "id": "notify_declined_tool",
+          "displayName": "Send Declined Notice Tool",
+          "nodeType": "CONNECTOR_NODE",
+          "connectorNode": {
+            "toolName": "send_slack_notification",
+            "inputParameters": {
+              "channel": "#travel-ops",
+              "message": "Travel request ${travel_request_trigger.request_id} for ${travel_request_trigger.employee_name} was declined."
+            }
+          },
+          "outputSchema": {
+            "properties": {
+              "delivered": {
+                "type": "BOOLEAN"
+              }
+            }
+          }
+        }
+      ],
+      "edges": [
+        {
+          "sourceNodeId": "travel_request_trigger",
+          "targetNodeId": "itinerary_planner_agent"
+        },
+        {
+          "sourceNodeId": "itinerary_planner_agent",
+          "targetNodeId": "policy_compliance_agent"
+        },
+        {
+          "sourceNodeId": "policy_compliance_agent",
+          "targetNodeId": "budget_approval_gate"
+        },
+        {
+          "sourceNodeId": "budget_approval_gate",
+          "targetNodeId": "flight_booking_subagent",
+          "routeString": "Approved"
+        },
+        {
+          "sourceNodeId": "flight_booking_subagent",
+          "targetNodeId": "hotel_booking_subagent"
+        },
+        {
+          "sourceNodeId": "hotel_booking_subagent",
+          "targetNodeId": "confirm_calendar_tool"
+        },
+        {
+          "sourceNodeId": "budget_approval_gate",
+          "targetNodeId": "notify_declined_tool",
+          "routeString": "Declined"
+        }
+      ]
+    }
+  }
+}

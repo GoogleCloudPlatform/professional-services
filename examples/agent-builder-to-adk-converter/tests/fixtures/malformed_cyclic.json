@@ -1,0 +1,52 @@
+{
+  "name": "projects/test-project/locations/global/collections/default_collection/engines/cyclic-workflow/assistants/default_assistant/agents/agent-004",
+  "displayName": "Cyclic Dependency Agent",
+  "description": "Workflow containing a closed cycle among nodes A -> B -> C -> A.",
+  "workflowAgentDefinition": {
+    "agentFlow": {
+      "nodes": [
+        {
+          "id": "node_cycle_a",
+          "displayName": "Cycle Node A",
+          "nodeType": "AGENT_NODE",
+          "agentNode": {
+            "model": "gemini-2.5-flash",
+            "instruction": "First node in loop"
+          }
+        },
+        {
+          "id": "node_cycle_b",
+          "displayName": "Cycle Node B",
+          "nodeType": "AGENT_NODE",
+          "agentNode": {
+            "model": "gemini-2.5-flash",
+            "instruction": "Second node in loop"
+          }
+        },
+        {
+          "id": "node_cycle_c",
+          "displayName": "Cycle Node C",
+          "nodeType": "AGENT_NODE",
+          "agentNode": {
+            "model": "gemini-2.5-flash",
+            "instruction": "Third node in loop"
+          }
+        }
+      ],
+      "edges": [
+        {
+          "sourceNodeId": "node_cycle_a",
+          "targetNodeId": "node_cycle_b"
+        },
+        {
+          "sourceNodeId": "node_cycle_b",
+          "targetNodeId": "node_cycle_c"
+        },
+        {
+          "sourceNodeId": "node_cycle_c",
+          "targetNodeId": "node_cycle_a"
+        }
+      ]
+    }
+  }
+}
