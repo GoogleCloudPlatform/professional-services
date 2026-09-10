@@ -92,7 +92,7 @@ matplotlib-inline==0.1.7
 mcp==1.12.0
 mdurl==0.1.2
 multidict==6.6.3
-nltk==3.10.0
+nltk==3.10.3
 numpy==2.3.1
 oauthlib==3.3.1
 openai==1.97.0
