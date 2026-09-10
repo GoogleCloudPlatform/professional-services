@@ -1,0 +1,319 @@
+{
+  "name": "projects/enterprise-support/locations/global/collections/default_collection/engines/support-engine/assistants/default_assistant/agents/customer-support-agent-v1",
+  "displayName": "Customer Support Agent",
+  "description": "Enterprise customer support workflow classifying inquiries into Billing, Technical Support, or General categories, executing diagnostic and resolution tools, and updating CRM records.",
+  "createTime": "2026-06-01T08:00:00Z",
+  "updateTime": "2026-06-01T08:00:00Z",
+  "state": "ACTIVE",
+  "workflowAgentDefinition": {
+    "agentFlow": {
+      "nodes": [
+        {
+          "id": "inbound_ticket_trigger",
+          "displayName": "Inbound Customer Ticket",
+          "nodeType": "CONNECTOR_EVENT_TRIGGER",
+          "connectorEventTrigger": {
+            "eventType": "zendesk_ticket_created",
+            "inputParameters": {
+              "webhook_url": "https://support.example.com/api/v1/tickets"
+            },
+            "dataConnector": {
+              "name": "projects/enterprise-support/dataConnectors/zendesk-connector",
+              "dataSource": "zendesk"
+            }
+          },
+          "outputSchema": {
+            "properties": {
+              "ticket_id": {
+                "type": "STRING",
+                "description": "Unique support ticket identifier"
+              },
+              "customer_email": {
+                "type": "STRING",
+                "description": "Sender email address"
+              },
+              "customer_tier": {
+                "type": "STRING",
+                "description": "Customer tier: ENTERPRISE, PRO, or STANDARD"
+              },
+              "subject": {
+                "type": "STRING",
+                "description": "Ticket subject line"
+              },
+              "message_body": {
+                "type": "STRING",
+                "description": "Full customer inquiry text"
+              }
+            },
+            "required": ["ticket_id", "customer_email", "message_body"]
+          }
+        },
+        {
+          "id": "triage_classifier_agent",
+          "displayName": "Triage & Classification Agent",
+          "nodeType": "AGENT_NODE",
+          "agentNode": {
+            "model": "gemini-2.5-flash",
+            "instruction": "You are a customer support intake and categorization specialist.\nAnalyze the subject and body of incoming tickets.\n1. Categorize into exactly one: BILLING, TECHNICAL, or GENERAL.\n2. Determine urgency priority: P1 (urgent outage/financial loss), P2 (major disruption), or P3 (routine question).\n3. Extract key intent summary.\nProduce structured JSON response matching the output schema.",
+            "outputDisplayEnabled": true
+          },
+          "outputSchema": {
+            "properties": {
+              "category": {
+                "type": "STRING",
+                "description": "Assigned ticket category: BILLING, TECHNICAL, or GENERAL"
+              },
+              "priority": {
+                "type": "STRING",
+                "description": "Calculated priority level: P1, P2, or P3"
+              },
+              "issue_summary": {
+                "type": "STRING",
+                "description": "One sentence summary of customer issue"
+              },
+              "sentiment": {
+                "type": "STRING",
+                "description": "Customer sentiment: POSITIVE, NEUTRAL, or FRUSTRATED"
+              }
+            },
+            "required": ["category", "priority", "issue_summary"]
+          }
+        },
+        {
+          "id": "category_router",
+          "displayName": "Category Routing Condition",
+          "nodeType": "CONDITION_NODE",
+          "conditionNode": {
+            "ruleBasedRouting": {
+              "rules": [
+                {
+                  "branch": "BILLING",
+                  "rule": {
+                    "rootExpression": {
+                      "logicalGroup": {
+                        "logicalOperator": "AND",
+                        "expressions": [
+                          {
+                            "condition": {
+                              "left": {
+                                "variablePath": "triage_classifier_agent.category"
+                              },
+                              "conditionOperator": "EQUALS",
+                              "right": {
+                                "literal": "BILLING"
+                              }
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  }
+                },
+                {
+                  "branch": "TECHNICAL",
+                  "rule": {
+                    "rootExpression": {
+                      "logicalGroup": {
+                        "logicalOperator": "AND",
+                        "expressions": [
+                          {
+                            "condition": {
+                              "left": {
+                                "variablePath": "triage_classifier_agent.category"
+                              },
+                              "conditionOperator": "EQUALS",
+                              "right": {
+                                "literal": "TECHNICAL"
+                              }
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  }
+                },
+                {
+                  "branch": "GENERAL",
+                  "rule": {
+                    "rootExpression": {
+                      "logicalGroup": {
+                        "logicalOperator": "AND",
+                        "expressions": [
+                          {
+                            "condition": {
+                              "left": {
+                                "variablePath": "triage_classifier_agent.category"
+                              },
+                              "conditionOperator": "EQUALS",
+                              "right": {
+                                "literal": "GENERAL"
+                              }
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        },
+        {
+          "id": "billing_agent",
+          "displayName": "Billing Specialist Agent",
+          "nodeType": "AGENT_NODE",
+          "agentNode": {
+            "model": "gemini-2.5-pro",
+            "instruction": "Handle subscription inquiries, payment failures, invoice downloads, and refund calculations.\nVerify policy limits: refund allowed under $500 without supervisor approval.\nProvide detailed settlement instructions and client-facing response.",
+            "outputDisplayEnabled": true
+          },
+          "outputSchema": {
+            "properties": {
+              "action_taken": {
+                "type": "STRING"
+              },
+              "refund_amount": {
+                "type": "NUMBER"
+              },
+              "resolution_message": {
+                "type": "STRING"
+              }
+            },
+            "required": ["action_taken", "resolution_message"]
+          }
+        },
+        {
+          "id": "technical_support_agent",
+          "displayName": "Technical Diagnostics Agent",
+          "nodeType": "AGENT_NODE",
+          "agentNode": {
+            "model": "gemini-2.5-pro",
+            "instruction": "Troubleshoot system errors, stack traces, API response codes, and credential setup.\nFormulate clear, numbered troubleshooting steps with code snippets where applicable.",
+            "outputDisplayEnabled": true
+          },
+          "outputSchema": {
+            "properties": {
+              "root_cause": {
+                "type": "STRING"
+              },
+              "troubleshooting_steps": {
+                "type": "ARRAY",
+                "items": {
+                  "type": "STRING"
+                }
+              },
+              "resolution_message": {
+                "type": "STRING"
+              }
+            },
+            "required": ["root_cause", "resolution_message"]
+          }
+        },
+        {
+          "id": "general_support_agent",
+          "displayName": "General Knowledge Agent",
+          "nodeType": "AGENT_NODE",
+          "agentNode": {
+            "model": "gemini-2.5-flash",
+            "instruction": "Answer product capability questions, documentation links, and operational hours courteously.",
+            "outputDisplayEnabled": true
+          },
+          "outputSchema": {
+            "properties": {
+              "resolution_message": {
+                "type": "STRING"
+              }
+            },
+            "required": ["resolution_message"]
+          }
+        },
+        {
+          "id": "update_crm_tool",
+          "displayName": "Update CRM Case Tool",
+          "nodeType": "CONNECTOR_NODE",
+          "connectorNode": {
+            "toolName": "salesforce_update_case",
+            "inputParameters": {
+              "ticket_id": "${inbound_ticket_trigger.ticket_id}",
+              "category": "${triage_classifier_agent.category}",
+              "priority": "${triage_classifier_agent.priority}",
+              "status": "Closed"
+            }
+          },
+          "outputSchema": {
+            "properties": {
+              "update_success": {
+                "type": "BOOLEAN"
+              },
+              "record_id": {
+                "type": "STRING"
+              }
+            }
+          }
+        },
+        {
+          "id": "send_email_reply_tool",
+          "displayName": "Send Email Reply Tool",
+          "nodeType": "CONNECTOR_NODE",
+          "connectorNode": {
+            "toolName": "send_customer_email",
+            "inputParameters": {
+              "to": "${inbound_ticket_trigger.customer_email}",
+              "subject": "Re: ${inbound_ticket_trigger.subject} [Ticket #${inbound_ticket_trigger.ticket_id}]",
+              "body": "${triage_classifier_agent.issue_summary}"
+            }
+          },
+          "outputSchema": {
+            "properties": {
+              "delivery_receipt": {
+                "type": "STRING"
+              }
+            }
+          }
+        }
+      ],
+      "edges": [
+        {
+          "sourceNodeId": "inbound_ticket_trigger",
+          "targetNodeId": "triage_classifier_agent"
+        },
+        {
+          "sourceNodeId": "triage_classifier_agent",
+          "targetNodeId": "category_router"
+        },
+        {
+          "sourceNodeId": "category_router",
+          "targetNodeId": "billing_agent",
+          "routeString": "BILLING"
+        },
+        {
+          "sourceNodeId": "category_router",
+          "targetNodeId": "technical_support_agent",
+          "routeString": "TECHNICAL"
+        },
+        {
+          "sourceNodeId": "category_router",
+          "targetNodeId": "general_support_agent",
+          "routeString": "GENERAL"
+        },
+        {
+          "sourceNodeId": "billing_agent",
+          "targetNodeId": "update_crm_tool"
+        },
+        {
+          "sourceNodeId": "technical_support_agent",
+          "targetNodeId": "update_crm_tool"
+        },
+        {
+          "sourceNodeId": "general_support_agent",
+          "targetNodeId": "update_crm_tool"
+        },
+        {
+          "sourceNodeId": "update_crm_tool",
+          "targetNodeId": "send_email_reply_tool"
+        }
+      ]
+    }
+  }
+}
