@@ -1,0 +1,30 @@
+{
+  "name": "projects/test-project/locations/global/collections/default_collection/engines/invalid-edges/assistants/default_assistant/agents/agent-002",
+  "displayName": "Malformed Invalid Edges Agent",
+  "description": "Workflow where edges reference non-existent node IDs.",
+  "workflowAgentDefinition": {
+    "agentFlow": {
+      "nodes": [
+        {
+          "id": "existing_node_alpha",
+          "displayName": "Alpha Node",
+          "nodeType": "AGENT_NODE",
+          "agentNode": {
+            "model": "gemini-2.5-flash",
+            "instruction": "Do something"
+          }
+        }
+      ],
+      "edges": [
+        {
+          "sourceNodeId": "ghost_source_node_999",
+          "targetNodeId": "existing_node_alpha"
+        },
+        {
+          "sourceNodeId": "existing_node_alpha",
+          "targetNodeId": "phantom_target_node_888"
+        }
+      ]
+    }
+  }
+}

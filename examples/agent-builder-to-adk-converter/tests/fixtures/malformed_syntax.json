@@ -1,0 +1,15 @@
+{
+  "name": "projects/test-project/locations/global/collections/default_collection/engines/bad-syntax",
+  "displayName": "Corrupted JSON Syntax Workflow",
+  "description": "This file contains intentionally invalid syntax to verify parser failure handling.",
+  "workflowAgentDefinition": {
+    "agentFlow": {
+      "nodes": [
+        {
+          "id": "node_1",
+          "nodeType": "AGENT_NODE"
+          // Missing comma, invalid syntax here
+          "incomplete": true
+      ]
+  }
+}
