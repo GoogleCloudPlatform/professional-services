@@ -1,0 +1,131 @@
+{
+  "name": "projects/test-project/locations/global/collections/default_collection/engines/linear-engine/assistants/default_assistant/agents/agent-linear-001",
+  "displayName": "Linear Data Pipeline Agent",
+  "description": "A clean linear agent workflow that triggers on file creation, processes content with an LLM agent, and sends an alert email.",
+  "createTime": "2026-07-01T10:00:00Z",
+  "updateTime": "2026-07-01T10:00:00Z",
+  "state": "ACTIVE",
+  "workflowAgentDefinition": {
+    "agentFlow": {
+      "nodes": [
+        {
+          "id": "trigger_file_created",
+          "displayName": "When a file is uploaded",
+          "nodeType": "CONNECTOR_EVENT_TRIGGER",
+          "connectorEventTrigger": {
+            "eventType": "file_uploaded",
+            "inputParameters": {
+              "bucket": "input-data-bucket",
+              "prefix": "incoming/"
+            },
+            "dataConnector": {
+              "name": "projects/test-project/dataConnectors/gcs-connector",
+              "dataSource": "google_cloud_storage"
+            }
+          },
+          "outputSchema": {
+            "properties": {
+              "file_name": {
+                "description": "Name of uploaded file",
+                "type": "STRING"
+              },
+              "bucket_name": {
+                "description": "Storage bucket",
+                "type": "STRING"
+              },
+              "file_size": {
+                "description": "File size in bytes",
+                "type": "NUMBER"
+              },
+              "content_type": {
+                "description": "MIME type of file",
+                "type": "STRING"
+              }
+            },
+            "required": ["file_name", "bucket_name"]
+          }
+        },
+        {
+          "id": "summary_agent",
+          "displayName": "Document Summarizer Agent",
+          "nodeType": "AGENT_NODE",
+          "agentNode": {
+            "model": "gemini-2.5-flash",
+            "instruction": "You are an analytical assistant. Read the uploaded file and generate a concise executive summary.\nExtract key metrics and identify potential risks.\nReturn structured findings in JSON format.",
+            "selectedTools": {
+              "tools": [
+                {
+                  "name": "send_alert_email"
+                }
+              ]
+            },
+            "outputDisplayEnabled": true
+          },
+          "outputSchema": {
+            "properties": {
+              "executive_summary": {
+                "description": "High level executive summary",
+                "type": "STRING"
+              },
+              "risk_level": {
+                "description": "Assessed risk level: LOW, MEDIUM, or HIGH",
+                "type": "STRING"
+              },
+              "metrics_count": {
+                "description": "Total metrics extracted",
+                "type": "NUMBER"
+              },
+              "is_action_required": {
+                "description": "Whether human intervention is necessary",
+                "type": "BOOLEAN"
+              }
+            },
+            "required": ["executive_summary", "risk_level"]
+          }
+        },
+        {
+          "id": "send_alert_email",
+          "displayName": "Send Alert Notification",
+          "nodeType": "CONNECTOR_NODE",
+          "connectorNode": {
+            "toolName": "send_email",
+            "dataStoreSpecs": {
+              "specs": [
+                {
+                  "dataStore": "google_mail"
+                }
+              ]
+            },
+            "inputParameters": {
+              "recipient": "ops-team@example.com",
+              "subject": "New Summary Generated: ${summary_agent.file_name}",
+              "body": "${summary_agent.executive_summary}"
+            }
+          },
+          "outputSchema": {
+            "properties": {
+              "message_id": {
+                "description": "Gmail message identifier",
+                "type": "STRING"
+              },
+              "status": {
+                "description": "Delivery status code",
+                "type": "STRING"
+              }
+            }
+          }
+        }
+      ],
+      "edges": [
+        {
+          "sourceNodeId": "trigger_file_created",
+          "targetNodeId": "summary_agent"
+        },
+        {
+          "sourceNodeId": "summary_agent",
+          "targetNodeId": "send_alert_email"
+        }
+      ]
+    }
+  }
+}
