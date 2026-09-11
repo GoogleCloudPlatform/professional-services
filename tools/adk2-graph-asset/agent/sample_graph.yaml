@@ -1,0 +1,63 @@
+version: "1.0"
+kind: Agent
+ 
+metadata:
+  id: a9d1c72d-706f-4a17-8790-3fe1d925c472
+  name: JokeTellingAgentWithInputs
+  description: Joke telling agent with 2 inputs
+  tenant_id: 66e846c4-682d-490e-ae7b-03e191874a66
+  owner_id: f2136453-156c-4870-a204-964ef2ce46dd
+  user_id: f2136453-156c-4870-a204-964ef2ce46dd
+  subscription_id: fccac961-f275-42e2-97ac-1cdef10ad570
+  version: "1.0"
+  created_at: "2026-02-24T08:59:03.259554+00:00"
+  updated_at: "2026-03-11T09:48:21.127376+00:00"
+ 
+spec:
+  llms:
+    - id: llm-80c35e83-03cd-4305-8595-904f61349fef
+      provider: vertexai
+      model: gemini-2.5-flash
+      temperature: 0.5
+      max_tokens: 8192
+      project_id: otl-eng-avstudio
+ 
+  tools: []
+ 
+  memory:
+    type: standard
+    persistence: true
+ 
+workflow:
+  nodes:
+    - id: start
+      type: start
+ 
+    - id: assistant
+      type: llm
+      config:
+        llm_id: llm-80c35e83-03cd-4305-8595-904f61349fef
+        instructions: >
+          Tell me a joke on a {"input":"topic"} and {"input":"place"}
+        system_prompt: ""
+        tool_ids: []
+        knowledge_ids: []
+      inputs:
+        - name: topic
+          type: text
+        - name: place
+          type: text
+      outputs: []
+ 
+    - id: end
+      type: end
+ 
+  edges:
+    - source: start
+      target: assistant
+    - source: assistant
+      target: end
+ 
+observability:
+  tracing:
+    enabled: true
