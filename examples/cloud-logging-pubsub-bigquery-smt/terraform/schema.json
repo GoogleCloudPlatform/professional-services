@@ -1,0 +1,274 @@
+[
+  {
+    "name": "subscription_name",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "Name of the Pub/Sub subscription that delivered the message."
+  },
+  {
+    "name": "message_id",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "Unique identifier assigned to the message by Pub/Sub."
+  },
+  {
+    "name": "publish_time",
+    "type": "TIMESTAMP",
+    "mode": "NULLABLE",
+    "description": "Timestamp when the message was published to the Pub/Sub topic."
+  },
+  {
+    "name": "attributes",
+    "type": "JSON",
+    "mode": "NULLABLE",
+    "description": "Pub/Sub message attributes, including any diagnostic metadata such as udf_error."
+  },
+  {
+    "name": "insertId",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "Unique identifier for the log entry assigned by Cloud Logging."
+  },
+  {
+    "name": "logName",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "Resource name of the log to which this log entry belongs."
+  },
+  {
+    "name": "timestamp",
+    "type": "TIMESTAMP",
+    "mode": "NULLABLE",
+    "description": "Timestamp of the event described by the log entry (used for daily table partitioning)."
+  },
+  {
+    "name": "receiveTimestamp",
+    "type": "TIMESTAMP",
+    "mode": "NULLABLE",
+    "description": "Timestamp when the log entry was received by the Cloud Logging API."
+  },
+  {
+    "name": "severity",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "Severity level of the log entry (e.g., DEFAULT, DEBUG, INFO, NOTICE, WARNING, ERROR, CRITICAL, ALERT, EMERGENCY)."
+  },
+  {
+    "name": "textPayload",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "Plain-text log entry payload representation."
+  },
+  {
+    "name": "jsonPayload",
+    "type": "JSON",
+    "mode": "NULLABLE",
+    "description": "Structured JSON log payload stringified by the Pub/Sub inline SMT JavaScript UDF."
+  },
+  {
+    "name": "protoPayload",
+    "type": "JSON",
+    "mode": "NULLABLE",
+    "description": "Protocol buffer audit or system payload serialized into JSON by the Pub/Sub inline SMT JavaScript UDF."
+  },
+  {
+    "name": "resource",
+    "type": "RECORD",
+    "mode": "NULLABLE",
+    "description": "Monitored resource that produced the log entry.",
+    "fields": [
+      {
+        "name": "type",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": "Monitored resource type identifier (e.g., gce_instance, k8s_container, cloud_run_revision)."
+      },
+      {
+        "name": "labels",
+        "type": "JSON",
+        "mode": "NULLABLE",
+        "description": "Dynamic monitored resource labels stringified into JSON by the inline SMT UDF."
+      }
+    ]
+  },
+  {
+    "name": "labels",
+    "type": "JSON",
+    "mode": "NULLABLE",
+    "description": "User-defined and system key-value labels associated with the log entry, stored as native JSON."
+  },
+  {
+    "name": "httpRequest",
+    "type": "RECORD",
+    "mode": "NULLABLE",
+    "description": "Information about the HTTP request associated with this log entry, if applicable.",
+    "fields": [
+      {
+        "name": "requestMethod",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": "HTTP request method (e.g., GET, POST, PUT, DELETE)."
+      },
+      {
+        "name": "requestUrl",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": "Requested URL including scheme, host, path, and query parameters."
+      },
+      {
+        "name": "requestSize",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": "Size of the HTTP request message in bytes, including headers and body."
+      },
+      {
+        "name": "status",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": "HTTP response status code (e.g., 200, 404, 500)."
+      },
+      {
+        "name": "responseSize",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": "Size of the HTTP response message sent back to the client in bytes."
+      },
+      {
+        "name": "userAgent",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": "User-Agent header sent by the HTTP client."
+      },
+      {
+        "name": "remoteIp",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": "IP address (IPv4 or IPv6) of the client that issued the HTTP request."
+      },
+      {
+        "name": "serverIp",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": "IP address (IPv4 or IPv6) of the origin server that handled the request."
+      },
+      {
+        "name": "referer",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": "Referer URL header value of the HTTP request."
+      },
+      {
+        "name": "latency",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": "Processing latency on the server, formatted in seconds (e.g., '0.124s')."
+      },
+      {
+        "name": "cacheLookup",
+        "type": "BOOLEAN",
+        "mode": "NULLABLE",
+        "description": "True if a cache lookup was performed for this HTTP request."
+      },
+      {
+        "name": "cacheHit",
+        "type": "BOOLEAN",
+        "mode": "NULLABLE",
+        "description": "True if the HTTP response was served directly from an edge or CDN cache."
+      },
+      {
+        "name": "cacheValidatedWithOriginServer",
+        "type": "BOOLEAN",
+        "mode": "NULLABLE",
+        "description": "True if the cached entry was validated with the origin server before serving."
+      },
+      {
+        "name": "cacheFillBytes",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": "Number of bytes inserted into the cache as a result of this request."
+      },
+      {
+        "name": "protocol",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": "Network protocol used for the request (e.g., HTTP/1.1, HTTP/2, HTTP/3)."
+      }
+    ]
+  },
+  {
+    "name": "operation",
+    "type": "RECORD",
+    "mode": "NULLABLE",
+    "description": "Information about a long-running operation or grouped execution context.",
+    "fields": [
+      {
+        "name": "id",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": "Unique identifier of the operation across related log entries."
+      },
+      {
+        "name": "producer",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": "Identifier of the service or subsystem producing the operation."
+      },
+      {
+        "name": "first",
+        "type": "BOOLEAN",
+        "mode": "NULLABLE",
+        "description": "True if this log entry is the first entry in the operation."
+      },
+      {
+        "name": "last",
+        "type": "BOOLEAN",
+        "mode": "NULLABLE",
+        "description": "True if this log entry is the final entry in the operation."
+      }
+    ]
+  },
+  {
+    "name": "trace",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "Cloud Trace resource name associated with the log entry (projects/{PROJECT_ID}/traces/{TRACE_ID})."
+  },
+  {
+    "name": "spanId",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "Span ID within the Cloud Trace for distributed request correlation."
+  },
+  {
+    "name": "traceSampled",
+    "type": "BOOLEAN",
+    "mode": "NULLABLE",
+    "description": "True if the trace associated with this log entry was sampled for storage."
+  },
+  {
+    "name": "sourceLocation",
+    "type": "RECORD",
+    "mode": "NULLABLE",
+    "description": "Source code location information where the log entry was generated.",
+    "fields": [
+      {
+        "name": "file",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": "Source file path or module name."
+      },
+      {
+        "name": "line",
+        "type": "INTEGER",
+        "mode": "NULLABLE",
+        "description": "Line number within the source file."
+      },
+      {
+        "name": "function",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": "Name of the function or method that invoked the logger."
+      }
+    ]
+  }
+]

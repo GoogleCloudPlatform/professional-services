@@ -96,3 +96,4 @@
 ./examples/slo-assistant
 ./examples/gemini-live-multimodal-avatar/frontend
 ./examples/agent-builder-to-adk-converter
+./examples/cloud-logging-pubsub-bigquery-smt
