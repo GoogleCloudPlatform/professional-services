@@ -1,5 +1,5 @@
 annotated-types==0.7.0
-anyio==4.9.0
+anyio==4.14.2
 cachetools==5.5.2
 certifi==2025.1.31
 charset-normalizer==3.4.1
