@@ -1,7 +1,6 @@
 import logging
 import os
 from kubernetes import client, config
-from kubernetes.client.rest import ApiException
 import k8s_resources
 
 
