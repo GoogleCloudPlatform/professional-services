@@ -65,13 +65,45 @@ def _get_fargate_profiles(eks_client, cluster_name):
     return fargate_profiles
 
 
+def _get_addons(eks_client, cluster_name):
+    """Get all EKS add-ons for a given cluster."""
+    addons = []
+    try:
+        paginator = eks_client.get_paginator("list_addons")
+        for page in paginator.paginate(clusterName=cluster_name):
+            for addon_name in page.get("addons", []):
+                logging.info(
+                    "  - Found addon '%s' in cluster '%s'. Getting details...",
+                    addon_name,
+                    cluster_name,
+                )
+                details = eks_client.describe_addon(
+                    clusterName=cluster_name, addonName=addon_name
+                )["addon"]
+                addons.append(
+                    {
+                        "addonName": details.get("addonName"),
+                        "addonVersion": details.get("addonVersion"),
+                        "status": details.get("status"),
+                        "serviceAccountRoleArn": details.get("serviceAccountRoleArn"),
+                        "health": details.get("health"),
+                    }
+                )
+    except ClientError as e:
+        logging.error(
+            "Could not describe add-ons for %s: %s",
+            cluster_name,
+            e,
+        )
+    return addons
+
+
 def get_eks_data_for_region(session, region):
     logging.info("Scanning EKS clusters in region: %s", region)
     try:
         eks_client = session.client("eks", region_name=region)
         clusters_data = []
 
-        # Paginate through all clusters in the region
         paginator = eks_client.get_paginator("list_clusters")
         for page in paginator.paginate():
             for cluster_name in page["clusters"]:
@@ -87,6 +119,7 @@ def get_eks_data_for_region(session, region):
 
                 nodegroups = _get_nodegroups(eks_client, cluster_name)
                 fargate_profiles = _get_fargate_profiles(eks_client, cluster_name)
+                addons = _get_addons(eks_client, cluster_name)
 
                 launch_types = []
                 if nodegroups:
@@ -97,8 +130,8 @@ def get_eks_data_for_region(session, region):
 
                 cluster_details["nodegroups"] = nodegroups
                 cluster_details["fargate_profiles"] = fargate_profiles
+                cluster_details["addons"] = addons
 
-                # Only attempt to get Kubernetes details if the cluster is in an ACTIVE state.
                 if cluster_details.get("status") == "ACTIVE":
                     kubernetes_details = get_k8s_details_for_eks(cluster_details)
                 else:
@@ -112,7 +145,6 @@ def get_eks_data_for_region(session, region):
                         "error": f"Cluster is not in ACTIVE state (status: {status})."
                     }
 
-                # Structure the final output
                 final_cluster_data = {
                     "hosting_provider_details": cluster_details,
                     "kubernetes_details": kubernetes_details,
@@ -120,7 +152,6 @@ def get_eks_data_for_region(session, region):
                 clusters_data.append(final_cluster_data)
         return clusters_data
     except ClientError as e:
-        # Handles regions where EKS might not be enabled or accessible.
         logging.warning(
             "Could not access EKS in region %s. Skipping. Error: %s", region, e
         )

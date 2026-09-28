@@ -71,6 +71,9 @@ def _get_api_clients_from_kubeconfig_content(kubeconfig_content):
             client.AutoscalingV2Api(api_client),
             client.RbacAuthorizationV1Api(api_client),
             client.PolicyV1Api(api_client),
+            client.StorageV1Api(api_client),
+            client.ApiextensionsV1Api(api_client),
+            client.CustomObjectsApi(api_client),
         )
     finally:
         if os.path.exists(kubeconfig_path):
@@ -83,7 +86,6 @@ def _get_api_clients_for_gke(cluster_details, credentials):
     cluster_name = cluster_details.get("name")
     endpoint = cluster_details.get("endpoint")
 
-    # A cluster might not have an endpoint or auth info if it's not running (e.g., provisioning, stopped).
     if not endpoint:
         raise ValueError(
             f"Cluster '{cluster_name}' is missing an endpoint. Cannot connect to Kubernetes API."
@@ -100,7 +102,6 @@ def _get_api_clients_for_gke(cluster_details, credentials):
 
     logging.info("  - Generating GKE token for cluster '%s'", cluster_name)
 
-    # Refresh credentials to get an access token.
     request = google.auth.transport.requests.Request()
     credentials.refresh(request)
     token = credentials.token
@@ -127,6 +128,9 @@ def _get_api_clients_for_gke(cluster_details, credentials):
             client.AutoscalingV2Api(api_client),
             client.RbacAuthorizationV1Api(api_client),
             client.PolicyV1Api(api_client),
+            client.StorageV1Api(api_client),
+            client.ApiextensionsV1Api(api_client),
+            client.CustomObjectsApi(api_client),
         )
     finally:
         if ca_cert_path and os.path.exists(ca_cert_path):
@@ -139,7 +143,6 @@ def _get_api_clients_for_eks(cluster_details):
     cluster_name = cluster_details["name"]
     endpoint = cluster_details["endpoint"]
     ca_data = cluster_details["certificateAuthority"]["data"]
-    # region = cluster_details["region"]
 
     logging.info("  - Generating EKS token for cluster '%s'", cluster_name)
     token = get_token(cluster_name=cluster_name)["status"]["token"]
@@ -166,6 +169,9 @@ def _get_api_clients_for_eks(cluster_details):
             client.AutoscalingV2Api(api_client),
             client.RbacAuthorizationV1Api(api_client),
             client.PolicyV1Api(api_client),
+            client.StorageV1Api(api_client),
+            client.ApiextensionsV1Api(api_client),
+            client.CustomObjectsApi(api_client),
         )
     finally:
         if ca_cert_path and os.path.exists(ca_cert_path):
@@ -188,16 +194,21 @@ def get_node_details(api_client):
                         else "Unknown"
                     ),
                     "instance_type": node.metadata.labels.get(
-                        "beta.kubernetes.io/instance-type", "N/A"
+                        "beta.kubernetes.io/instance-type",
+                        node.metadata.labels.get("node.kubernetes.io/instance-type", "N/A"),
                     ),
                     "zone": node.metadata.labels.get(
-                        "topology.kubernetes.io/zone", "N/A"
+                        "topology.kubernetes.io/zone",
+                        node.metadata.labels.get("failure-domain.beta.kubernetes.io/zone", "N/A"),
                     ),
                     "os_image": node.status.node_info.os_image,
                     "kernel_version": node.status.node_info.kernel_version,
                     "kubelet_version": node.status.node_info.kubelet_version,
                     "allocatable_cpu": node.status.allocatable.get("cpu", "0"),
                     "allocatable_memory_gib": f"{mem_gib} GiB",
+                    "creation_timestamp": node.metadata.creation_timestamp,
+                    "labels": json.dumps(node.metadata.labels or {}),
+                    "annotations": json.dumps(node.metadata.annotations or {}),
                 }
             )
     except ApiException as e:
@@ -210,17 +221,40 @@ def get_pod_details(api_client):
     try:
         response = api_client.list_pod_for_all_namespaces()
         for pod in response.items:
-            containers = pod.spec.containers
-            container_images = [c.image for c in containers]
+            containers_info = []
+            for container in pod.spec.containers:
+                sec_context = container.security_context
+                containers_info.append(
+                    {
+                        "name": container.name,
+                        "image": container.image,
+                        "resources": (
+                            container.resources.to_dict()
+                            if container.resources
+                            else {}
+                        ),
+                        "privileged": sec_context.privileged if sec_context else False,
+                    }
+                )
+
+            owner_refs = []
+            if pod.metadata.owner_references:
+                for ref in pod.metadata.owner_references:
+                    owner_refs.append(f"{ref.kind}/{ref.name}")
+
             pods.append(
                 {
                     "namespace": pod.metadata.namespace,
                     "name": pod.metadata.name,
                     "status": pod.status.phase,
-                    "pod_ip": pod.status.pod_ip,
                     "node_name": pod.spec.node_name,
-                    "service_account": pod.spec.service_account_name,
-                    "container_images": ", ".join(container_images),
+                    "containers": containers_info,
+                    "creation_timestamp": pod.metadata.creation_timestamp,
+                    "service_account_name": pod.spec.service_account_name,
+                    "host_network": pod.spec.host_network or False,
+                    "owner_references": ", ".join(owner_refs),
+                    "labels": json.dumps(pod.metadata.labels or {}),
+                    "annotations": json.dumps(pod.metadata.annotations or {}),
                 }
             )
     except ApiException as e:
@@ -232,34 +266,34 @@ def get_deployment_details(api_client):
     deployments = []
     try:
         response = api_client.list_deployment_for_all_namespaces()
-        for deployment in response.items:
-            containers = deployment.spec.template.spec.containers
-            container_images = [c.image for c in containers]
-            mounts = []
-            for c in containers:
-                if c.volume_mounts:
-                    for vm in c.volume_mounts:
-                        mounts.append(f"{c.name}:{vm.mount_path} -> {vm.name}")
+        for dep in response.items:
+            containers = []
+            for container in dep.spec.template.spec.containers:
+                sec_context = container.security_context
+                containers.append(
+                    {
+                        "name": container.name,
+                        "image": container.image,
+                        "resources": (
+                            container.resources.to_dict()
+                            if container.resources
+                            else {}
+                        ),
+                        "privileged": sec_context.privileged if sec_context else False,
+                    }
+                )
+
             deployments.append(
                 {
-                    "namespace": deployment.metadata.namespace,
-                    "name": deployment.metadata.name,
-                    "replicas": deployment.spec.replicas,
-                    "replicas_ready": deployment.status.ready_replicas or 0,
-                    "strategy": deployment.spec.strategy.type,
-                    "creation_timestamp": deployment.metadata.creation_timestamp,
-                    "containers": [
-                        {
-                            "name": c.name,
-                            "image": c.image,
-                            "resources": api_client.api_client.sanitize_for_serialization(
-                                c.resources
-                            ),
-                        }
-                        for c in deployment.spec.template.spec.containers
-                    ],
-                    "container_images": ", ".join(container_images),
-                    "volume_mounts": " | ".join(mounts),
+                    "namespace": dep.metadata.namespace,
+                    "name": dep.metadata.name,
+                    "replicas": dep.spec.replicas,
+                    "containers": containers,
+                    "creation_timestamp": dep.metadata.creation_timestamp,
+                    "service_account_name": dep.spec.template.spec.service_account_name,
+                    "host_network": dep.spec.template.spec.host_network or False,
+                    "labels": json.dumps(dep.metadata.labels or {}),
+                    "annotations": json.dumps(dep.metadata.annotations or {}),
                 }
             )
     except ApiException as e:
@@ -270,26 +304,29 @@ def get_deployment_details(api_client):
 def get_service_details(api_client):
     services = []
     try:
+        response = api_client.list_service_account_for_all_namespaces()
+    except Exception:
+        pass
+    try:
         response = api_client.list_service_for_all_namespaces()
-        for service in response.items:
-            ports = (
-                [f"{p.name}:{p.port}/{p.protocol}" for p in service.spec.ports]
-                if service.spec.ports
-                else []
-            )
-            load_balancer_ip = ""
-            if service.status.load_balancer and service.status.load_balancer.ingress:
-                load_balancer_ip = service.status.load_balancer.ingress[0].ip
-
+        for svc in response.items:
+            ports = [
+                f"{p.port}:{p.target_port}/{p.protocol}"
+                for p in (svc.spec.ports or [])
+            ]
             services.append(
                 {
-                    "namespace": service.metadata.namespace,
-                    "name": service.metadata.name,
-                    "type": service.spec.type,
-                    "cluster_ip": service.spec.cluster_ip,
-                    "external_ip": load_balancer_ip or "N/A",
+                    "namespace": svc.metadata.namespace,
+                    "name": svc.metadata.name,
+                    "type": svc.spec.type,
+                    "cluster_ip": svc.spec.cluster_ip,
                     "ports": ", ".join(ports),
-                    "selector": str(service.spec.selector),
+                    "external_traffic_policy": svc.spec.external_traffic_policy,
+                    "session_affinity": svc.spec.session_affinity,
+                    "load_balancer_class": svc.spec.load_balancer_class,
+                    "creation_timestamp": svc.metadata.creation_timestamp,
+                    "annotations": json.dumps(svc.metadata.annotations or {}),
+                    "labels": json.dumps(svc.metadata.labels or {}),
                 }
             )
     except ApiException as e:
@@ -302,37 +339,32 @@ def get_statefulset_details(api_client):
     try:
         response = api_client.list_stateful_set_for_all_namespaces()
         for ss in response.items:
-            containers = ss.spec.template.spec.containers
-            container_images = [c.image for c in containers]
-            volume_templates = (
-                json.dumps(
-                    api_client.api_client.sanitize_for_serialization(
-                        ss.spec.volume_claim_templates
-                    )
+            containers = []
+            for container in ss.spec.template.spec.containers:
+                sec_context = container.security_context
+                containers.append(
+                    {
+                        "name": container.name,
+                        "image": container.image,
+                        "resources": (
+                            container.resources.to_dict()
+                            if container.resources
+                            else {}
+                        ),
+                        "privileged": sec_context.privileged if sec_context else False,
+                    }
                 )
-                if ss.spec.volume_claim_templates
-                else "[]"
-            )
             statefulsets.append(
                 {
                     "namespace": ss.metadata.namespace,
                     "name": ss.metadata.name,
                     "replicas": ss.spec.replicas,
-                    "replicas_ready": ss.status.ready_replicas or 0,
-                    "service_name": ss.spec.service_name,
+                    "containers": containers,
                     "creation_timestamp": ss.metadata.creation_timestamp,
-                    "containers": [
-                        {
-                            "name": c.name,
-                            "image": c.image,
-                            "resources": api_client.api_client.sanitize_for_serialization(
-                                c.resources
-                            ),
-                        }
-                        for c in ss.spec.template.spec.containers
-                    ],
-                    "container_images": ", ".join(container_images),
-                    "volume_claim_templates": volume_templates,
+                    "service_account_name": ss.spec.template.spec.service_account_name,
+                    "host_network": ss.spec.template.spec.host_network or False,
+                    "labels": json.dumps(ss.metadata.labels or {}),
+                    "annotations": json.dumps(ss.metadata.annotations or {}),
                 }
             )
     except ApiException as e:
@@ -345,36 +377,33 @@ def get_daemonset_details(api_client):
     try:
         response = api_client.list_daemon_set_for_all_namespaces()
         for ds in response.items:
-            containers = ds.spec.template.spec.containers
-            container_images = [c.image for c in containers]
-            resources = []
-            for c in containers:
-                if c.resources and (c.resources.requests or c.resources.limits):
-                    req = c.resources.requests or {}
-                    lim = c.resources.limits or {}
-                    resources.append(
-                        f"{c.name}(req: cpu={req.get('cpu','-')},mem={req.get('memory','-')}; "
-                        f"lim: cpu={lim.get('cpu','-')},mem={lim.get('memory','-')})"
-                    )
+            containers = []
+            for container in ds.spec.template.spec.containers:
+                sec_context = container.security_context
+                containers.append(
+                    {
+                        "name": container.name,
+                        "image": container.image,
+                        "resources": (
+                            container.resources.to_dict()
+                            if container.resources
+                            else {}
+                        ),
+                        "privileged": sec_context.privileged if sec_context else False,
+                    }
+                )
             daemonsets.append(
                 {
                     "namespace": ds.metadata.namespace,
                     "name": ds.metadata.name,
                     "desired_scheduled": ds.status.desired_number_scheduled,
                     "current_scheduled": ds.status.current_number_scheduled,
+                    "containers": containers,
                     "creation_timestamp": ds.metadata.creation_timestamp,
-                    "containers": [
-                        {
-                            "name": c.name,
-                            "image": c.image,
-                            "resources": api_client.api_client.sanitize_for_serialization(
-                                c.resources
-                            ),
-                        }
-                        for c in ds.spec.template.spec.containers
-                    ],
-                    "container_images": ", ".join(container_images),
-                    "container_resources": " | ".join(resources),
+                    "service_account_name": ds.spec.template.spec.service_account_name,
+                    "host_network": ds.spec.template.spec.host_network or False,
+                    "labels": json.dumps(ds.metadata.labels or {}),
+                    "annotations": json.dumps(ds.metadata.annotations or {}),
                 }
             )
     except ApiException as e:
@@ -387,17 +416,15 @@ def get_job_details(api_client):
     try:
         response = api_client.list_job_for_all_namespaces()
         for job in response.items:
-            containers = job.spec.template.spec.containers
-            container_images = [c.image for c in containers]
             jobs.append(
                 {
                     "namespace": job.metadata.namespace,
                     "name": job.metadata.name,
                     "completions": job.spec.completions,
-                    "succeeded": job.status.succeeded or 0,
-                    "failed": job.status.failed or 0,
-                    "container_images": ", ".join(container_images),
-                    "start_time": job.status.start_time,
+                    "parallelism": job.spec.parallelism,
+                    "succeeded": job.status.succeeded,
+                    "failed": job.status.failed,
+                    "creation_timestamp": job.metadata.creation_timestamp,
                 }
             )
     except ApiException as e:
@@ -410,19 +437,15 @@ def get_cronjob_details(api_client):
     try:
         response = api_client.list_cron_job_for_all_namespaces()
         for cj in response.items:
-            containers = cj.spec.job_template.spec.template.spec.containers
-            container_images = [c.image for c in containers]
             cronjobs.append(
                 {
                     "namespace": cj.metadata.namespace,
                     "name": cj.metadata.name,
                     "schedule": cj.spec.schedule,
                     "suspend": cj.spec.suspend,
+                    "active": len(cj.status.active) if cj.status.active else 0,
                     "last_schedule_time": cj.status.last_schedule_time,
-                    "container_images": ", ".join(container_images),
-                    "active_jobs": len(cj.status.active) if cj.status.active else 0,
-                    "concurrency_policy": cj.spec.concurrency_policy,
-                    "restart_policy": cj.spec.job_template.spec.template.spec.restart_policy,
+                    "creation_timestamp": cj.metadata.creation_timestamp,
                 }
             )
     except ApiException as e:
@@ -435,22 +458,29 @@ def get_pv_details(api_client):
     try:
         response = api_client.list_persistent_volume()
         for pv in response.items:
+            csi_info = pv.spec.csi
+            ebs_info = pv.spec.aws_elastic_block_store
+            volume_handle = csi_info.volume_handle if csi_info else (ebs_info.volume_id if ebs_info else None)
+            csi_driver = csi_info.driver if csi_info else ("kubernetes.io/aws-ebs" if ebs_info else None)
+
             pvs.append(
                 {
                     "name": pv.metadata.name,
-                    "capacity": pv.spec.capacity.get("storage", "N/A"),
-                    "access_modes": (
-                        ", ".join(pv.spec.access_modes) if pv.spec.access_modes else ""
+                    "capacity": (
+                        pv.spec.capacity.get("storage")
+                        if pv.spec.capacity
+                        else None
                     ),
+                    "access_modes": ", ".join(pv.spec.access_modes or []),
                     "reclaim_policy": pv.spec.persistent_volume_reclaim_policy,
-                    "status": pv.status.phase,
                     "storage_class": pv.spec.storage_class_name,
-                    "claim_namespace": (
-                        pv.spec.claim_ref.namespace if pv.spec.claim_ref else "N/A"
-                    ),
-                    "claim_name": (
-                        pv.spec.claim_ref.name if pv.spec.claim_ref else "N/A"
-                    ),
+                    "status": pv.status.phase,
+                    "volume_mode": pv.spec.volume_mode,
+                    "volume_handle": volume_handle,
+                    "ebs_volume_id": ebs_info.volume_id if ebs_info else None,
+                    "csi_driver": csi_driver,
+                    "node_affinity": json.dumps(pv.spec.node_affinity.to_dict() if pv.spec.node_affinity else {}),
+                    "creation_timestamp": pv.metadata.creation_timestamp,
                 }
             )
     except ApiException as e:
@@ -458,82 +488,7 @@ def get_pv_details(api_client):
     return pvs
 
 
-def get_namespace_details(api_client):
-    """Fetches details for all Namespace objects."""
-    namespaces = []
-    try:
-        response = api_client.list_namespace()
-        for ns in response.items:
-            labels = json.dumps(ns.metadata.labels) if ns.metadata.labels else "{}"
-            namespaces.append(
-                {
-                    "name": ns.metadata.name,
-                    "status": ns.status.phase,
-                    "creation_timestamp": ns.metadata.creation_timestamp,
-                    "labels": labels,
-                }
-            )
-    except ApiException as e:
-        logging.error("Error fetching namespaces: %s", e)
-    return namespaces
-
-
-def get_secret_details(api_client):
-    """Fetches metadata for all Secret objects."""
-    secrets = []
-    try:
-        response = api_client.list_secret_for_all_namespaces()
-        for secret in response.items:
-            secrets.append(
-                {
-                    "namespace": secret.metadata.namespace,
-                    "name": secret.metadata.name,
-                    "type": secret.type,
-                    "data_keys": ", ".join(secret.data.keys()) if secret.data else "",
-                }
-            )
-    except ApiException as e:
-        logging.error("Error fetching secrets: %s", e)
-    return secrets
-
-
-def get_configmap_details(api_client):
-    """Fetches metadata for all ConfigMap objects."""
-    configmaps = []
-    try:
-        response = api_client.list_config_map_for_all_namespaces()
-        for cm in response.items:
-            data_count = 0
-            data_size_bytes = 0
-            data_summary = ""
-            if cm.data:
-                data_count = len(cm.data)
-                data_size_bytes = sum(
-                    len(str(v).encode("utf-8")) for v in cm.data.values()
-                )
-                keys = list(cm.data.keys())
-                summary_keys = keys[:3]
-                data_summary = ", ".join(summary_keys)
-                if len(keys) > 3:
-                    data_summary += ", ..."
-
-            configmaps.append(
-                {
-                    "namespace": cm.metadata.namespace,
-                    "name": cm.metadata.name,
-                    "data_count": data_count,
-                    "data_size_bytes": data_size_bytes,
-                    "data_summary": data_summary,
-                    "data_keys": ", ".join(cm.data.keys()) if cm.data else "",
-                }
-            )
-    except ApiException as e:
-        logging.error("Error fetching configmaps: %s", e)
-    return configmaps
-
-
 def get_pvc_details(api_client):
-    """Fetches details for all PersistentVolumeClaim objects."""
     pvcs = []
     try:
         response = api_client.list_persistent_volume_claim_for_all_namespaces()
@@ -543,19 +498,14 @@ def get_pvc_details(api_client):
                     "namespace": pvc.metadata.namespace,
                     "name": pvc.metadata.name,
                     "status": pvc.status.phase,
-                    "capacity_request": (
-                        pvc.spec.resources.requests.get("storage", "N/A")
-                        if pvc.spec.resources.requests
-                        else "N/A"
-                    ),
-                    "access_modes": (
-                        ", ".join(pvc.spec.access_modes)
-                        if pvc.spec.access_modes
-                        else ""
-                    ),
-                    "storage_class": pvc.spec.storage_class_name,
                     "volume_name": pvc.spec.volume_name,
-                    "volume_mode": pvc.spec.volume_mode,
+                    "storage_class": pvc.spec.storage_class_name,
+                    "requested_storage": (
+                        pvc.spec.resources.requests.get("storage")
+                        if pvc.spec.resources and pvc.spec.resources.requests
+                        else None
+                    ),
+                    "creation_timestamp": pvc.metadata.creation_timestamp,
                 }
             )
     except ApiException as e:
@@ -563,41 +513,87 @@ def get_pvc_details(api_client):
     return pvcs
 
 
+def get_namespace_details(api_client):
+    namespaces = []
+    try:
+        response = api_client.list_namespace()
+        for ns in response.items:
+            namespaces.append(
+                {
+                    "name": ns.metadata.name,
+                    "status": ns.status.phase,
+                    "creation_timestamp": ns.metadata.creation_timestamp,
+                    "labels": json.dumps(ns.metadata.labels or {}),
+                    "annotations": json.dumps(ns.metadata.annotations or {}),
+                }
+            )
+    except ApiException as e:
+        logging.error("Error fetching namespaces: %s", e)
+    return namespaces
+
+
+def get_secret_details(api_client):
+    secrets = []
+    try:
+        response = api_client.list_secret_for_all_namespaces()
+        for secret in response.items:
+            secrets.append(
+                {
+                    "namespace": secret.metadata.namespace,
+                    "name": secret.metadata.name,
+                    "type": secret.type,
+                    "data_keys": (
+                        ", ".join(secret.data.keys()) if secret.data else ""
+                    ),
+                    "creation_timestamp": secret.metadata.creation_timestamp,
+                }
+            )
+    except ApiException as e:
+        logging.error("Error fetching secrets: %s", e)
+    return secrets
+
+
+def get_configmap_details(api_client):
+    configmaps = []
+    try:
+        response = api_client.list_config_map_for_all_namespaces()
+        for cm in response.items:
+            configmaps.append(
+                {
+                    "namespace": cm.metadata.namespace,
+                    "name": cm.metadata.name,
+                    "data_keys": (
+                        ", ".join(cm.data.keys()) if cm.data else ""
+                    ),
+                    "creation_timestamp": cm.metadata.creation_timestamp,
+                }
+            )
+    except ApiException as e:
+        logging.error("Error fetching configmaps: %s", e)
+    return configmaps
+
+
 def get_ingress_details(api_client):
-    """Fetches details for all Ingress objects."""
     ingresses = []
     try:
         response = api_client.list_ingress_for_all_namespaces()
-        for ingress in response.items:
-            hosts = (
-                [rule.host for rule in ingress.spec.rules if rule.host]
-                if ingress.spec.rules
-                else []
-            )
-            tls_secrets = (
-                [tls.secret_name for tls in ingress.spec.tls if tls.secret_name]
-                if ingress.spec.tls
-                else []
-            )
-            annotations = (
-                json.dumps(ingress.metadata.annotations)
-                if ingress.metadata.annotations
-                else "{}"
-            )
-            load_balancer_ips = (
-                [i.ip for i in ingress.status.load_balancer.ingress if i.ip]
-                if ingress.status.load_balancer.ingress
-                else []
-            )
+        for ing in response.items:
+            rules_summary = []
+            if ing.spec.rules:
+                for rule in ing.spec.rules:
+                    host = rule.host or "*"
+                    paths = [
+                        p.path or "/"
+                        for p in (rule.http.paths if rule.http else [])
+                    ]
+                    rules_summary.append(f"{host}: [{', '.join(paths)}]")
             ingresses.append(
                 {
-                    "namespace": ingress.metadata.namespace,
-                    "name": ingress.metadata.name,
-                    "class": ingress.spec.ingress_class_name or "N/A",
-                    "hosts": ", ".join(hosts),
-                    "load_balancer_ips": ", ".join(load_balancer_ips),
-                    "tls_secret": ", ".join(tls_secrets),
-                    "annotations": annotations,
+                    "namespace": ing.metadata.namespace,
+                    "name": ing.metadata.name,
+                    "ingress_class_name": ing.spec.ingress_class_name,
+                    "rules": "; ".join(rules_summary),
+                    "creation_timestamp": ing.metadata.creation_timestamp,
                 }
             )
     except ApiException as e:
@@ -606,59 +602,28 @@ def get_ingress_details(api_client):
 
 
 def get_networkpolicy_details(api_client):
-    """Fetches details for all NetworkPolicy objects."""
-    netpols = []
+    network_policies = []
     try:
         response = api_client.list_network_policy_for_all_namespaces()
         for np in response.items:
-            ingress_rules = (
-                json.dumps(
-                    api_client.api_client.sanitize_for_serialization(np.spec.ingress)
-                )
-                if np.spec.ingress
-                else "[]"
-            )
-            egress_rules = (
-                json.dumps(
-                    api_client.api_client.sanitize_for_serialization(np.spec.egress)
-                )
-                if np.spec.egress
-                else "[]"
-            )
-            netpols.append(
+            network_policies.append(
                 {
                     "namespace": np.metadata.namespace,
                     "name": np.metadata.name,
-                    "pod_selector": (
-                        str(np.spec.pod_selector.match_labels)
-                        if np.spec.pod_selector
-                        else "{}"
-                    ),
-                    "policy_types": (
-                        ", ".join(np.spec.policy_types) if np.spec.policy_types else ""
-                    ),
-                    "ingress_rules": ingress_rules,
-                    "egress_rules": egress_rules,
+                    "policy_types": ", ".join(np.spec.policy_types or []),
+                    "creation_timestamp": np.metadata.creation_timestamp,
                 }
             )
     except ApiException as e:
         logging.error("Error fetching network policies: %s", e)
-    return netpols
+    return network_policies
 
 
 def get_hpa_details(api_client):
-    """Fetches details for all HorizontalPodAutoscaler objects."""
     hpas = []
     try:
         response = api_client.list_horizontal_pod_autoscaler_for_all_namespaces()
         for hpa in response.items:
-            metrics = (
-                json.dumps(
-                    api_client.api_client.sanitize_for_serialization(hpa.spec.metrics)
-                )
-                if hpa.spec.metrics
-                else "[]"
-            )
             hpas.append(
                 {
                     "namespace": hpa.metadata.namespace,
@@ -668,7 +633,7 @@ def get_hpa_details(api_client):
                     "max_replicas": hpa.spec.max_replicas,
                     "current_replicas": hpa.status.current_replicas,
                     "desired_replicas": hpa.status.desired_replicas,
-                    "metrics": metrics,
+                    "creation_timestamp": hpa.metadata.creation_timestamp,
                 }
             )
     except ApiException as e:
@@ -677,30 +642,21 @@ def get_hpa_details(api_client):
 
 
 def get_role_details(api_client):
-    """Fetches details for all Role objects."""
     roles = []
     try:
         response = api_client.list_role_for_all_namespaces()
         for role in response.items:
-            rules_summary = (
-                [
-                    f"[{','.join(rule.api_groups)}][{','.join(rule.resources)}][{','.join(rule.verbs)}]"
-                    for rule in role.rules
-                ]
-                if role.rules
-                else []
-            )
-            annotations = (
-                json.dumps(role.metadata.annotations)
-                if role.metadata.annotations
-                else "{}"
-            )
+            rules_summary = [
+                f"APIGroups:{r.api_groups}/Resources:{r.resources}/Verbs:{r.verbs}"
+                for r in role.rules
+            ]
             roles.append(
                 {
                     "namespace": role.metadata.namespace,
                     "name": role.metadata.name,
-                    "rules": " | ".join(rules_summary),
-                    "annotations": annotations,
+                    "rules": json.dumps(rules_summary),
+                    "creation_timestamp": role.metadata.creation_timestamp,
+                    "annotations": json.dumps(role.metadata.annotations or {}),
                 }
             )
     except ApiException as e:
@@ -709,112 +665,214 @@ def get_role_details(api_client):
 
 
 def get_rolebinding_details(api_client):
-    """Fetches details for all RoleBinding objects."""
-    bindings = []
+    role_bindings = []
     try:
         response = api_client.list_role_binding_for_all_namespaces()
         for rb in response.items:
-            subjects = (
-                [f"{s.kind}:{s.name}" for s in rb.subjects] if rb.subjects else []
-            )
-            bindings.append(
+            subjects = [
+                f"{s.kind}:{s.name}" for s in (rb.subjects or [])
+            ]
+            role_bindings.append(
                 {
                     "namespace": rb.metadata.namespace,
                     "name": rb.metadata.name,
                     "role_ref": f"{rb.role_ref.kind}/{rb.role_ref.name}",
                     "subjects": ", ".join(subjects),
+                    "creation_timestamp": rb.metadata.creation_timestamp,
+                    "annotations": json.dumps(rb.metadata.annotations or {}),
                 }
             )
     except ApiException as e:
         logging.error("Error fetching role bindings: %s", e)
-    return bindings
+    return role_bindings
+
+
+def get_cluster_role_details(api_client):
+    cluster_roles = []
+    try:
+        response = api_client.list_cluster_role()
+        for cr in response.items:
+            rules_summary = [
+                f"APIGroups:{r.api_groups}/Resources:{r.resources}/Verbs:{r.verbs}"
+                for r in (cr.rules or [])
+            ]
+            cluster_roles.append(
+                {
+                    "name": cr.metadata.name,
+                    "rules": json.dumps(rules_summary),
+                    "creation_timestamp": cr.metadata.creation_timestamp,
+                    "annotations": json.dumps(cr.metadata.annotations or {}),
+                }
+            )
+    except ApiException as e:
+        logging.error("Error fetching cluster roles: %s", e)
+    return cluster_roles
+
+
+def get_cluster_role_binding_details(api_client):
+    cluster_role_bindings = []
+    try:
+        response = api_client.list_cluster_role_binding()
+        for crb in response.items:
+            subjects = [
+                f"{s.kind}:{s.name}" for s in (crb.subjects or [])
+            ]
+            cluster_role_bindings.append(
+                {
+                    "name": crb.metadata.name,
+                    "role_ref": f"{crb.role_ref.kind}/{crb.role_ref.name}",
+                    "subjects": ", ".join(subjects),
+                    "creation_timestamp": crb.metadata.creation_timestamp,
+                    "annotations": json.dumps(crb.metadata.annotations or {}),
+                }
+            )
+    except ApiException as e:
+        logging.error("Error fetching cluster role bindings: %s", e)
+    return cluster_role_bindings
+
+
+def get_storageclass_details(api_client):
+    storage_classes = []
+    try:
+        response = api_client.list_storage_class()
+        for sc in response.items:
+            storage_classes.append(
+                {
+                    "name": sc.metadata.name,
+                    "provisioner": sc.provisioner,
+                    "reclaim_policy": sc.reclaim_policy,
+                    "volume_binding_mode": sc.volume_binding_mode,
+                    "allow_volume_expansion": sc.allow_volume_expansion,
+                    "parameters": json.dumps(sc.parameters or {}),
+                    "creation_timestamp": sc.metadata.creation_timestamp,
+                    "annotations": json.dumps(sc.metadata.annotations or {}),
+                }
+            )
+    except ApiException as e:
+        logging.error("Error fetching storage classes: %s", e)
+    return storage_classes
+
+
+def get_crd_details(api_client):
+    crds = []
+    try:
+        response = api_client.list_custom_resource_definition()
+        for crd in response.items:
+            versions = [v.name for v in (crd.spec.versions or [])]
+            crds.append(
+                {
+                    "name": crd.metadata.name,
+                    "group": crd.spec.group,
+                    "scope": crd.spec.scope,
+                    "kind": crd.spec.names.kind,
+                    "plural": crd.spec.names.plural,
+                    "versions": ", ".join(versions),
+                    "creation_timestamp": crd.metadata.creation_timestamp,
+                }
+            )
+    except ApiException as e:
+        logging.error("Error fetching CRDs: %s", e)
+    return crds
+
+
+def get_custom_resource_details(custom_objects_api, crds):
+    custom_resources = []
+    if not crds:
+        return custom_resources
+    for crd in crds:
+        group = crd.get("group")
+        plural = crd.get("plural")
+        version = crd.get("versions", "").split(", ")[0] if crd.get("versions") else None
+        scope = crd.get("scope")
+        if not (group and plural and version):
+            continue
+        try:
+            if scope == "Namespaced":
+                res = custom_objects_api.list_custom_object_for_all_namespaces(group, version, plural)
+            else:
+                res = custom_objects_api.list_cluster_custom_object(group, version, plural)
+            for item in res.get("items", []):
+                metadata = item.get("metadata", {})
+                custom_resources.append(
+                    {
+                        "crd_name": crd.get("name"),
+                        "group": group,
+                        "version": version,
+                        "kind": item.get("kind", crd.get("kind")),
+                        "namespace": metadata.get("namespace", "cluster-scoped"),
+                        "name": metadata.get("name"),
+                        "creation_timestamp": metadata.get("creationTimestamp"),
+                        "labels": json.dumps(metadata.get("labels", {})),
+                        "annotations": json.dumps(metadata.get("annotations", {})),
+                    }
+                )
+        except ApiException as e:
+            logging.debug("Could not fetch instances for CRD %s: %s", crd.get("name"), e)
+        except Exception as e:
+            logging.debug("Unexpected error fetching CRD %s instances: %s", crd.get("name"), e)
+    return custom_resources
 
 
 def get_resourcequota_details(api_client):
-    """Fetches details for all ResourceQuota objects."""
-    quotas = []
+    resource_quotas = []
     try:
         response = api_client.list_resource_quota_for_all_namespaces()
-        for quota in response.items:
-            quotas.append(
+        for rq in response.items:
+            resource_quotas.append(
                 {
-                    "namespace": quota.metadata.namespace,
-                    "name": quota.metadata.name,
-                    "hard_limits": (
-                        json.dumps(quota.spec.hard) if quota.spec.hard else "{}"
-                    ),
-                    "used": (
-                        json.dumps(quota.status.used) if quota.status.used else "{}"
-                    ),
+                    "namespace": rq.metadata.namespace,
+                    "name": rq.metadata.name,
+                    "hard": json.dumps(rq.spec.hard or {}),
+                    "used": json.dumps(rq.status.used if rq.status else {}),
+                    "creation_timestamp": rq.metadata.creation_timestamp,
                 }
             )
     except ApiException as e:
         logging.error("Error fetching resource quotas: %s", e)
-    return quotas
+    return resource_quotas
 
 
 def get_limitrange_details(api_client):
-    """Fetches details for all LimitRange objects."""
-    ranges = []
+    limit_ranges = []
     try:
         response = api_client.list_limit_range_for_all_namespaces()
         for lr in response.items:
-            if not lr.spec.limits:
-                continue
-            for item in lr.spec.limits:
-                ranges.append(
+            limits = []
+            for limit in lr.spec.limits:
+                limits.append(
                     {
-                        "name": lr.metadata.name,
-                        "namespace": lr.metadata.namespace,
-                        "type": item.type,
-                        "max_cpu": item.max.get("cpu", "N/A") if item.max else "N/A",
-                        "max_mem": item.max.get("memory", "N/A") if item.max else "N/A",
-                        "min_cpu": item.min.get("cpu", "N/A") if item.min else "N/A",
-                        "min_mem": item.min.get("memory", "N/A") if item.min else "N/A",
-                        "default_cpu": (
-                            item.default.get("cpu", "N/A") if item.default else "N/A"
-                        ),
-                        "default_mem": (
-                            item.default.get("memory", "N/A") if item.default else "N/A"
-                        ),
-                        "default_request_cpu": (
-                            item.default_request.get("cpu", "N/A")
-                            if item.default_request
-                            else "N/A"
-                        ),
-                        "default_request_mem": (
-                            item.default_request.get("memory", "N/A")
-                            if item.default_request
-                            else "N/A"
-                        ),
+                        "type": limit.type,
+                        "max": limit.max,
+                        "min": limit.min,
+                        "default": limit.default,
+                        "defaultRequest": limit.default_request,
                     }
                 )
+            limit_ranges.append(
+                {
+                    "namespace": lr.metadata.namespace,
+                    "name": lr.metadata.name,
+                    "limits": json.dumps(limits),
+                    "creation_timestamp": lr.metadata.creation_timestamp,
+                }
+            )
     except ApiException as e:
         logging.error("Error fetching limit ranges: %s", e)
-    return ranges
+    return limit_ranges
 
 
 def get_pdb_details(policy_v1_api, core_v1_api):
-    """
-    Fetches details for all PodDisruptionBudget objects.
-    It attempts a cluster-wide query first and falls back to per-namespace
-    queries if the cluster-wide call is denied due to permissions.
-    """
     pdbs = []
     items = []
     try:
-        # First, try the more efficient cluster-wide call
         items = policy_v1_api.list_pod_disruption_budget_for_all_namespaces().items
     except ApiException as e:
         if e.status not in [401, 403]:
             logging.error("Error fetching PDBs: %s", e)
             return []
 
-        # If unauthorized, fall back to listing PDBs in each namespace individually.
         logging.warning(
-            "Could not list PDBs cluster-wide (reason: %s). "
-            "Falling back to per-namespace requests. "
-            "This may be slower and some resources may be missed if namespace access is restricted.",
+            "Could not list PDBs cluster-wide (reason: %s). Falling back to per-namespace requests.",
             e.reason,
         )
         try:
@@ -863,19 +921,22 @@ def get_pdb_details(policy_v1_api, core_v1_api):
 
 
 def get_serviceaccount_details(api_client):
-    """
-    Fetches details for all ServiceAccount objects.
-    """
     service_accounts = []
     try:
         response = api_client.list_service_account_for_all_namespaces()
         for sa in response.items:
+            annotations = (
+                json.dumps(sa.metadata.annotations)
+                if sa.metadata.annotations
+                else "{}"
+            )
             service_accounts.append(
                 {
                     "namespace": sa.metadata.namespace,
                     "name": sa.metadata.name,
                     "automount_token": sa.automount_service_account_token,
                     "creation_timestamp": sa.metadata.creation_timestamp,
+                    "annotations": annotations,
                 }
             )
     except ApiException as e:
@@ -884,10 +945,20 @@ def get_serviceaccount_details(api_client):
 
 
 def get_kubernetes_resources(
-    core_v1, apps_v1, batch_v1, networking_v1, autoscaling_v2, rbac_v1, policy_v1
+    core_v1,
+    apps_v1,
+    batch_v1,
+    networking_v1,
+    autoscaling_v2,
+    rbac_v1,
+    policy_v1,
+    storage_v1,
+    apiextensions_v1,
+    custom_objects_api,
 ):
     """Fetches various resources from a Kubernetes cluster."""
     logging.info("  - Fetching Kubernetes resource details...")
+    crds = get_crd_details(apiextensions_v1)
     all_resources = {
         "nodes": get_node_details(core_v1),
         "pods": get_pod_details(core_v1),
@@ -907,6 +978,11 @@ def get_kubernetes_resources(
         "hpas": get_hpa_details(autoscaling_v2),
         "roles": get_role_details(rbac_v1),
         "role_bindings": get_rolebinding_details(rbac_v1),
+        "cluster_roles": get_cluster_role_details(rbac_v1),
+        "cluster_role_bindings": get_cluster_role_binding_details(rbac_v1),
+        "storage_classes": get_storageclass_details(storage_v1),
+        "crds": crds,
+        "custom_resources": get_custom_resource_details(custom_objects_api, crds),
         "resource_quotas": get_resourcequota_details(core_v1),
         "limit_ranges": get_limitrange_details(core_v1),
         "pod_disruption_budgets": get_pdb_details(policy_v1, core_v1),
@@ -930,6 +1006,9 @@ def get_k8s_details_for_eks(cluster_details):
             autoscaling_v2,
             rbac_v1,
             policy_v1,
+            storage_v1,
+            apiextensions_v1,
+            custom_objects_api,
         ):
             return get_kubernetes_resources(
                 core_v1,
@@ -939,6 +1018,9 @@ def get_k8s_details_for_eks(cluster_details):
                 autoscaling_v2,
                 rbac_v1,
                 policy_v1,
+                storage_v1,
+                apiextensions_v1,
+                custom_objects_api,
             )
     except Exception as e:
         logging.error(
@@ -970,6 +1052,9 @@ def get_k8s_details_for_aks(aks_client, resource_group, cluster_name):
             autoscaling_v2,
             rbac_v1,
             policy_v1,
+            storage_v1,
+            apiextensions_v1,
+            custom_objects_api,
         ):
             return get_kubernetes_resources(
                 core_v1,
@@ -979,6 +1064,9 @@ def get_k8s_details_for_aks(aks_client, resource_group, cluster_name):
                 autoscaling_v2,
                 rbac_v1,
                 policy_v1,
+                storage_v1,
+                apiextensions_v1,
+                custom_objects_api,
             )
     except Exception as e:
         logging.error(
@@ -1004,6 +1092,9 @@ def get_k8s_details_for_gke_cluster(cluster_details, credentials):
             autoscaling_v2,
             rbac_v1,
             policy_v1,
+            storage_v1,
+            apiextensions_v1,
+            custom_objects_api,
         ):
             return get_kubernetes_resources(
                 core_v1,
@@ -1013,6 +1104,9 @@ def get_k8s_details_for_gke_cluster(cluster_details, credentials):
                 autoscaling_v2,
                 rbac_v1,
                 policy_v1,
+                storage_v1,
+                apiextensions_v1,
+                custom_objects_api,
             )
     except Exception as e:
         logging.error(
