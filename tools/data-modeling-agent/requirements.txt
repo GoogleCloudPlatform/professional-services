@@ -94,7 +94,7 @@ mdurl==0.1.2
 multidict==6.6.3
 nltk==3.10.3
 numpy==2.3.1
-oauthlib==3.3.1
+oauthlib==4.0.0
 openai==1.97.0
 opentelemetry-api==1.35.0
 opentelemetry-exporter-gcp-trace==1.9.0
