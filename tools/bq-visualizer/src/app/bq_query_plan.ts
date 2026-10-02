@@ -410,15 +410,15 @@ export class BqQueryPlan {
       const duration = endMs - startMs;
       const slotMs = Number(_.get(node, 'slotMs', 0));
       result.push(new KeyValue({ key: 'slotMs', value: slotMs.toLocaleString('en') }));
-      
       result.push(new KeyValue({ key: 'avg slots', value: (slotMs / duration).toLocaleString('en') }));
-      const startPct = (100 * (startMs - jobStartMs)) / (jobEndMs - jobStartMs);
-      const endPct = (100 * (endMs - jobStartMs)) / (jobEndMs - jobStartMs);
+      result.push(new KeyValue({ key: 'duration (ms)', value: duration.toLocaleString('en') }));
       result.push(new KeyValue({ key: 'startTime', value: new Date(startMs).toLocaleString('en') }));
       result.push(new KeyValue({ key: 'endTime', value: new Date(endMs).toLocaleString('en') }));
+      const startPct = (100 * (startMs - jobStartMs)) / (jobEndMs - jobStartMs);
+      const endPct = (100 * (endMs - jobStartMs)) / (jobEndMs - jobStartMs);
       result.push(new KeyValue({
-        key: 'duration', value: startPct.toLocaleString('en') + '% - ' +
-          endPct.toLocaleString('en') + '%'
+        key: 'timeline window', value: startPct.toFixed(2) + '% - ' +
+          endPct.toFixed(2) + '% of job'
       }));
     }
     // performance insights
