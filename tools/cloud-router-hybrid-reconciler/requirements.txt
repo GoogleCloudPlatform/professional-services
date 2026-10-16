@@ -1,0 +1,9 @@
+fastapi==0.143.0
+fastapi[standard]==0.143.0
+google-auth==2.62.0
+requests==2.34.2
+google-cloud-compute==1.56.0
+pyOpenSSL==26.4.0
+netaddr==1.3.0
+python-json-logger==4.2.0
+grpcio==1.84.0
