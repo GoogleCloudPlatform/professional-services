@@ -1,0 +1,9 @@
+{
+  "name": "place_pizza_order",
+  "pythonFunction": {
+    "name": "place_pizza_order",
+    "pythonCode": "tools/place_pizza_order/python_function/python_code.py"
+  },
+  "executionType": "SYNCHRONOUS",
+  "displayName": "place_pizza_order"
+}

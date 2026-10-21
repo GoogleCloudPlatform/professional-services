@@ -1,0 +1,59 @@
+{
+  "name": "asop-studio",
+  "private": false,
+  "version": "0.1.7",
+  "type": "module",
+  "bin": {
+    "asopcli": "./dist-server/cli.js"
+  },
+  "files": [
+    "dist",
+    "dist-server",
+    "src/core/assets"
+  ],
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build && npm run build:server",
+    "build:server": "esbuild src/server/server.ts --bundle --platform=node --format=esm --target=node20 --packages=external --outfile=dist-server/server.js && esbuild src/cli/cli.ts --bundle --platform=node --format=esm --target=node20 --packages=external --outfile=dist-server/cli.js",
+    "start": "node dist-server/server.js",
+    "lint": "eslint .",
+    "test": "vitest run",
+    "test:e2e": "npx playwright test tests/visualizer.e2e.test.ts",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@dagrejs/dagre": "^3.0.0",
+    "@xyflow/react": "^12.11.0",
+    "adm-zip": "^0.5.17",
+    "commander": "^14.0.3",
+    "express": "^4.21.2",
+    "jspdf": "^4.2.1",
+    "jszip": "^3.10.1",
+    "lucide-react": "^1.17.0",
+    "picocolors": "^1.1.1",
+    "pyodide": "^314.0.3",
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6",
+    "yaml": "^2.9.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@playwright/test": "^1.62.0",
+    "@types/adm-zip": "^0.5.8",
+    "@types/express": "^5.0.0",
+    "@types/jszip": "^3.4.0",
+    "@types/node": "^24.12.3",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.1",
+    "esbuild": "^0.27.0",
+    "eslint": "^10.3.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-react-refresh": "^0.5.2",
+    "globals": "^17.6.0",
+    "typescript": "~6.0.2",
+    "typescript-eslint": "^8.59.2",
+    "vite": "^8.0.12",
+    "vitest": "^4.1.10"
+  }
+}

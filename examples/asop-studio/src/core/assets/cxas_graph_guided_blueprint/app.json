@@ -1,0 +1,60 @@
+{
+  "name": "asop-studio-exported-agent",
+  "displayName": "ASOP Studio Exported Agent",
+  "description": "Exported from ASOP Studio (Graph Guided)",
+  "rootAgent": "main",
+  "modelSettings": {
+    "model": "gemini-3.1-flash-live"
+  },
+  "audioProcessingConfig": {
+    "synthesizeSpeechConfigs": {
+      "en-US": {
+        "voice": "en-US-Chirp3-HD-Zephyr"
+      }
+    }
+  },
+  "loggingSettings": {
+    "cloudLoggingSettings": {
+      "enableCloudLogging": true
+    }
+  },
+  "languageSettings": {
+    "defaultLanguageCode": "en-US",
+    "supportedLanguageCodes": [],
+    "enableMultilingualSupport": false
+  },
+  "timeZoneSettings": {
+    "timeZone": "America/Los_Angeles"
+  },
+  "toolExecutionMode": "PARALLEL",
+  "variableDeclarations": [
+    {
+      "name": "int__flow_specification",
+      "description": "JSON representation of the complete deterministic flow SOP.",
+      "schema": {
+        "type": "OBJECT"
+      }
+    },
+    {
+      "name": "int__current_flow_id",
+      "description": "ID of the current active sub-flow.",
+      "schema": {
+        "type": "STRING"
+      }
+    },
+    {
+      "name": "int__flow_root_node_id",
+      "description": "ID of the starting root node of the flow.",
+      "schema": {
+        "type": "STRING"
+      }
+    },
+    {
+      "name": "int__available_node_ids",
+      "description": "Allowed next flow/node destinations.",
+      "schema": {
+        "type": "OBJECT"
+      }
+    }
+  ]
+}
