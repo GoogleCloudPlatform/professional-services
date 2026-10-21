@@ -1,0 +1,7 @@
+{
+  "name": "flow-agent",
+  "displayName": "flow_agent",
+  "description": "Navigates a given JSON deterministic flow programmatically tracking state and decision trees.",
+  "instruction": "agents/flow_agent/instruction.txt",
+  "tools": ["enter_node", "end_session"]
+}
