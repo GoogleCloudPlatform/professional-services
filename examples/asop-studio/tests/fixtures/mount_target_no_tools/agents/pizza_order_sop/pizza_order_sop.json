@@ -1,0 +1,9 @@
+{
+  "name": "9a616067-b4c9-40ae-9ebc-a85299dc33b0",
+  "displayName": "pizza_order_sop",
+  "modelSettings": {
+    "model": "gemini-3.5-flash",
+    "temperature": 1.0
+  },
+  "tools": ["end_session"]
+}

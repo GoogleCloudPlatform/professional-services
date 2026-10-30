@@ -1,0 +1,10 @@
+{
+  "name": "enter_node",
+  "pythonFunction": {
+    "name": "enter_node",
+    "pythonCode": "tools/enter_node/python_function/python_code.py",
+    "description": "Traverses the deterministic flow programmatically tracking state and resolving decision trees.\n\nArgs:\n    node_id: The target node ID to transition to.\n    flow_id: The ID of the target/current flow.\n    set_variables: A map of extracted session variables to write to state (pass empty dict if none).\n\nReturns:\n    The execution results including current_flow_id, current_node_id, accumulated_instructions, action_results, and available_intent_transitions."
+  },
+  "executionType": "SYNCHRONOUS",
+  "displayName": "enter_node"
+}

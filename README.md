@@ -27,6 +27,10 @@ them to fit your particular use case.
     Solution to federate two private GKE clusters using Anthos Service Mesh.
 *   [Anthos CICD with Gitlab](examples/anthos-cicd-with-gitlab) - A step-by-step
     guide to create an example CI/CD solution using Anthos and Gitlab.
+*   [ASOP Studio](examples/asop-studio) - A visual browser, interactive editor,
+    and agent compiler for Agentic Standard Operating Procedures (ASOPs) that
+    turns business-friendly YAML support flowcharts into runnable Google Cloud
+    CX Agent Studio (CXAS) and Agent Development Kit (ADK) packages.
 *   [Audio Content Profiling](examples/ml-audio-content-profiling) - A tool that
     builds a pipeline to scale the process of moderating audio files for
     inappropriate content using machine learning APIs.
