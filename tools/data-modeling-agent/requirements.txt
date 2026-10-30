@@ -27,7 +27,7 @@ docstring_parser==0.16
 executing==2.2.0
 Faker==37.5.3
 fastapi==0.116.1
-filelock==3.18.0
+filelock==4.2.1
 fonttools==4.59.0
 frozenlist==1.7.0
 fsspec==2025.7.0
