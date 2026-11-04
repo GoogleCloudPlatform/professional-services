@@ -1,0 +1,9 @@
+{
+  "name": "calculate_total_price",
+  "pythonFunction": {
+    "name": "calculate_total_price",
+    "pythonCode": "tools/calculate_total_price/python_function/python_code.py"
+  },
+  "executionType": "SYNCHRONOUS",
+  "displayName": "calculate_total_price"
+}

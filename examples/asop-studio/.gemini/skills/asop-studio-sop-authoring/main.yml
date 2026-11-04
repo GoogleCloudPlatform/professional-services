@@ -1,0 +1,161 @@
+flow:
+  id: pizza-order-main-flow
+  version: 2
+  root_node_id: welcome-node
+  
+  global_instructions: |
+    # Core Behavioral Standards
+    - Identify as the Luigi's Pizza virtual assistant.
+    - Keep a friendly, polite, and helpful tone.
+    - Confirm order accuracy before completing any transaction.
+    - Ensure address is provided for delivery order types.
+
+  global_intent_routes:
+    - intent: "Customer wants to order a new pizza"
+      target_flow: customize-pizza-flow.yml
+    - intent: "Customer wants to check or track their order status"
+      target_node: track-order-triage
+    - intent: "Customer wants to speak to support or transfer to a manager"
+      target_node: transfer-to-support
+
+  input_variables:
+    - name: session_customer_phone
+      type: string
+      default: "+15551234"
+    - name: order_id
+      type: string
+      default: ""
+
+  nodes:
+    - id: welcome-node
+      agent_instructions: |
+        Greet the customer warmly and welcome them to Luigi's Pizza. Ask how you can assist them today.
+      intent_routes:
+        - intent: "Customer asks about today's opening hours"
+          target_node: explain-hours
+
+    - id: explain-hours
+      agent_instructions: |
+        Inform the customer that Luigi's Pizza is open from 11:00 AM to 11:00 PM every day.
+        Ask if they would like to place an order or if there is anything else you can help them with.
+      intent_routes:
+        - intent: "Customer says they are done"
+          target_node: END
+
+    - id: track-order-triage
+      actions:
+        - type: tool
+          tool_name: get_order_status
+          tool_params:
+            phone: session_customer_phone
+            order_id: order_id
+          store_result_variable: order_info
+          mock_responses:
+            default: {"order_found": false, "status": "none", "eta": ""}
+            active_delivery: {"order_found": true, "status": "out_for_delivery", "eta": "12 minutes"}
+            active_pickup: {"order_found": true, "status": "baking", "eta": "8 minutes"}
+      condition_routes:
+        - condition: "order_info.order_found == true"
+          target_node: explain-order-status
+        - condition: "order_info.order_found == false"
+          target_node: request-order-id
+
+    - id: request-order-id
+      agent_instructions: |
+        Politely explain that you couldn't find an active order linked to their phone number.
+        Ask them if they can provide their Order ID to search again, or if they want to place a new order.
+      intent_routes:
+        - intent: "Customer provides an order ID"
+          target_node: track-order-triage
+          set_variables:
+            - name: order_id
+              type: string
+        - intent: "Customer wants to place a new order instead"
+          target_flow: customize-pizza-flow.yml
+
+    - id: explain-order-status
+      agent_instructions: |
+        Review the action_results. Inform the customer that their order was found.
+        State the current status (e.g. baking, out for delivery) and ETA.
+        Ask if there is anything else they need.
+      intent_routes:
+        - intent: "Customer has no other requests"
+          target_node: END
+
+    - id: transfer-to-support
+      agent_instructions: |
+        Apologize to the customer for the inconvenience and let them know you are transferring them to a live support representative.
+      condition_routes:
+        - condition: "true"
+          target_node: END
+
+example_journeys:
+  - name: "Ordering a Large Margherita with Delivery"
+    steps:
+      - agent_says: "Welcome to Luigi's Pizza! How can I help you today?"
+        user_says: "Hi, I'd like to order a pizza."
+        notes: "Customer initiates conversation"
+        current_flow: main.yml
+        current_node: welcome-node
+      - agent_says: "Sure! We have Margherita ($10.00), Pepperoni ($12.00), and Veggie Supreme ($13.00). Which pizza and size (Small, Medium, Large) would you like?"
+        user_says: "Yes, I want to order a large Margherita pizza"
+        notes: "Triggers global intent route to customize-pizza-flow"
+        current_flow: customize-pizza-flow.yml
+        current_node: customize-pizza-start
+      - agent_says: "Excellent, a Large Margherita. Would you like extra cheese or extra mushrooms, or are you ready to checkout?"
+        user_says: "Please add extra cheese"
+        notes: "Selects pizza and size"
+        current_flow: customize-pizza-flow.yml
+        current_node: add-toppings-triage
+      - agent_says: "Got it, extra cheese added. Any other toppings, or ready to checkout?"
+        user_says: "No more toppings, I'm ready to checkout"
+        notes: "Adds topping and loops back to toppings triage"
+        current_flow: customize-pizza-flow.yml
+        current_node: add-toppings-triage
+      - agent_says: "Your total is $14.50. Would you like delivery or pickup?"
+        user_says: "I'd like it delivered"
+        notes: "Triggers checkout transition to payment-delivery-flow"
+        current_flow: payment-delivery-flow.yml
+        current_node: calculate-order-price
+      - agent_says: "Great, could you please provide your delivery address?"
+        user_says: "My address is 123 Main Street"
+        notes: "Customer chooses delivery"
+        current_flow: payment-delivery-flow.yml
+        current_node: get-delivery-address
+      - agent_says: "Thank you. Would you prefer to pay by card or cash?"
+        user_says: "I will pay with card"
+        notes: "Customer provides delivery address"
+        current_flow: payment-delivery-flow.yml
+        current_node: select-payment-method
+      - agent_says: "Perfect. Please confirm you want to charge your card for the total amount of $14.50."
+        user_says: "Yes, confirm card payment"
+        notes: "Customer selects card payment"
+        current_flow: payment-delivery-flow.yml
+        current_node: confirm-card-payment
+      - agent_says: "Processing your order... Success!"
+        notes: "Confirm payment and process order"
+        current_flow: payment-delivery-flow.yml
+        current_node: submit-pizza-order
+      - agent_says: "Your order was successfully placed! Order ID: PIZZA-9912. ETA is 25 minutes. Anything else I can do for you?"
+        user_says: "No, that's all. Thank you!"
+        notes: "Order successfully submitted"
+        current_flow: payment-delivery-flow.yml
+        current_node: explain-order-success
+
+  - name: "Checking Active Order Status"
+    steps:
+      - agent_says: "Welcome to Luigi's Pizza! How can I help you today?"
+        user_says: "Can you track my pizza order?"
+        notes: "Triggers global intent route for order tracking"
+        current_flow: main.yml
+        current_node: welcome-node
+        mock_journey: "active_delivery"
+      - agent_says: "Let me check that for you. Looking up order status for your phone number (+15551234)..."
+        notes: "Looks up order info. Found active delivery."
+        current_flow: main.yml
+        current_node: track-order-triage
+      - agent_says: "I found your order! It is currently out for delivery and the ETA is 12 minutes. Anything else I can help with?"
+        user_says: "No, that's perfect. Thanks!"
+        notes: "Displays status information"
+        current_flow: main.yml
+        current_node: explain-order-status

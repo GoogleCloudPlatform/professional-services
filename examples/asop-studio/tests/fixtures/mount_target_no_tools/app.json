@@ -1,0 +1,14 @@
+{
+  "name": "7fcccd0d-3719-4922-beda-f6cb70ade493",
+  "displayName": "[manual] Test ASOP mount",
+  "rootAgent": "Root agent",
+  "loggingSettings": {
+    "conversationLoggingSettings": {
+      "retentionWindow": "31536000s"
+    }
+  },
+  "guardrails": ["Default Safety Guardrail", "Default Prompt Guardrail"],
+  "timeZoneSettings": {
+    "timeZone": "Europe/Paris"
+  }
+}

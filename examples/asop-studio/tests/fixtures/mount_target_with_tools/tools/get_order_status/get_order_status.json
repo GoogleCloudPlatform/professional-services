@@ -1,0 +1,9 @@
+{
+  "name": "get_order_status",
+  "pythonFunction": {
+    "name": "get_order_status",
+    "pythonCode": "tools/get_order_status/python_function/python_code.py"
+  },
+  "executionType": "SYNCHRONOUS",
+  "displayName": "get_order_status"
+}

@@ -1,0 +1,124 @@
+flow:
+  id: payment-delivery-flow
+  version: 2
+  root_node_id: calculate-order-price
+  
+  nodes:
+    - id: calculate-order-price
+      actions:
+        - type: tool
+          tool_name: calculate_total_price
+          tool_params:
+            pizza: chosen_pizza
+            size: chosen_size
+            cheese: extra_cheese
+            mushrooms: extra_mushrooms
+          store_result_variable: price_details
+          mock_responses:
+            default: {"total_price": 14.50}
+            veggie_large: {"total_price": 18.00}
+      agent_instructions: |
+        Review the action_results. Inform the customer of the total price.
+        Ask if they want delivery or if they will pick up the order.
+      intent_routes:
+        - intent: "Customer wants delivery"
+          target_node: get-delivery-address
+          set_variables:
+            - name: order_type
+              type: "enum[delivery,pickup]"
+        - intent: "Customer wants pickup"
+          target_node: select-payment-method
+          set_variables:
+            - name: order_type
+              type: "enum[delivery,pickup]"
+
+    - id: get-delivery-address
+      agent_instructions: |
+        Ask the customer to provide their delivery address.
+      intent_routes:
+        - intent: "Customer provides address details"
+          target_node: select-payment-method
+          set_variables:
+            - name: delivery_address
+              type: "string"
+
+    - id: select-payment-method
+      agent_instructions: |
+        Ask the customer if they would prefer to pay by card or cash.
+      intent_routes:
+        - intent: "Customer wants to pay by card"
+          target_node: confirm-card-payment
+          set_variables:
+            - name: payment_method
+              type: "enum[card,cash]"
+        - intent: "Customer wants to pay by cash"
+          target_node: submit-pizza-order
+          set_variables:
+            - name: payment_method
+              type: "enum[card,cash]"
+
+    - id: confirm-card-payment
+      agent_instructions: |
+        Ask the customer to confirm they want to charge their card for the total amount.
+      intent_routes:
+        - intent: "Customer confirms card payment"
+          target_node: submit-pizza-order
+        - intent: "Customer decides to pay with cash instead"
+          target_node: submit-pizza-order
+          set_variables:
+            - name: payment_method
+              type: "enum[cash]"
+
+    - id: submit-pizza-order
+      actions:
+        - type: tool
+          tool_name: place_pizza_order
+          tool_params:
+            pizza: chosen_pizza
+            size: chosen_size
+            cheese: extra_cheese
+            mushrooms: extra_mushrooms
+            order_type: order_type
+            address: delivery_address
+            payment: payment_method
+          store_result_variable: placement_status
+          mock_responses:
+            default: {"success": true, "order_id": "PIZZA-9912", "eta": "25 minutes"}
+            payment_failure: {"success": false, "order_id": "", "eta": ""}
+      review_requests:
+        - id: "rev-pay-01"
+          date: "2026-06-16T15:35:00Z"
+          topic: TECHNICAL
+          from: "Backend Dev Team"
+          reason: "Ensure place_pizza_order handles payment gateway timeout and does not double-charge."
+          resolved: false
+      condition_routes:
+        - condition: "placement_status.success == true"
+          target_node: explain-order-success
+        - condition: "placement_status.success == false"
+          target_node: explain-order-failure
+
+    - id: explain-order-success
+      agent_instructions: |
+        Review the action_results. Inform the customer that their order has been placed.
+        Provide the Order ID and the estimated delivery/pickup time.
+        Ask if they need anything else.
+      intent_routes:
+        - intent: "Customer wants to ask another question or place a new order"
+          target_flow: main.yml
+        - intent: "Customer is satisfied and says goodbye"
+          target_node: END
+
+    - id: explain-order-failure
+      agent_instructions: |
+        Review the action_results. Apologize and let the customer know the order couldn't be placed.
+        Ask if they'd like to try again with cash, or speak to support.
+      intent_routes:
+        - intent: "Customer wants to switch to cash"
+          target_node: submit-pizza-order
+          set_variables:
+            - name: payment_method
+              type: "enum[cash]"
+        - intent: "Customer wants to talk to support"
+          target_flow: main.yml
+          target_node: transfer-to-support

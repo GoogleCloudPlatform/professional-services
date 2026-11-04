@@ -1,0 +1,7 @@
+{
+  "name": "02fe7a40-c265-460f-93b8-1ba5015b2fdc",
+  "displayName": "Root agent",
+  "instruction": "agents/Root_agent/instruction.txt",
+  "tools": ["end_session"],
+  "childAgents": ["pizza_order_sop"]
+}

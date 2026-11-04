@@ -1,0 +1,8 @@
+{
+  "name": "root-agent",
+  "displayName": "main",
+  "description": "Main entry point coordinator agent for Graph Guided flow.",
+  "instruction": "agents/main/instruction.txt",
+  "childAgents": ["flow_agent"],
+  "tools": ["end_session"]
+}

@@ -1,0 +1,8 @@
+{
+  "name": "root-agent",
+  "displayName": "main",
+  "description": "Main entry point coordinator agent",
+  "instruction": "agents/main/instruction.txt",
+  "childAgents": [],
+  "tools": ["end_session"]
+}

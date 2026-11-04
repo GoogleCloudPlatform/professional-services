@@ -1,0 +1,62 @@
+# Copyright 2026 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+flow:
+  id: customize-pizza-flow
+  version: 2
+  root_node_id: customize-pizza-start
+  
+  nodes:
+    - id: customize-pizza-start
+      actions:
+        - type: tool
+          tool_name: get_pizza_menu
+          mock_responses:
+            default: {"pizzas": [{"name": "margherita", "price": 10.0}, {"name": "pepperoni", "price": 12.0}, {"name": "veggie_supreme", "price": 13.0}]}
+      agent_instructions: |
+        Review the action_results. Present the available pizza types and prices.
+        Ask the customer which pizza they would like to order, and what size (Small, Medium, or Large) they prefer.
+      intent_routes:
+        - intent: "Customer chooses a pizza and size"
+          target_node: add-toppings-triage
+          set_variables:
+            - name: chosen_pizza
+              type: "enum[margherita,pepperoni,veggie_supreme]"
+            - name: chosen_size
+              type: "enum[small,medium,large]"
+
+    - id: add-toppings-triage
+      agent_instructions: |
+        Ask the customer if they would like to add extra toppings (extra cheese or extra mushrooms) to their pizza or if they are ready to checkout. Mention the pizza name and size.
+        If they do not want any more toppings or are ready to complete the order, proceed to checkout.
+      review_requests:
+        - id: "rev-cust-01"
+          date: "2026-06-16T15:30:00Z"
+          topic: DESIGN
+          from: "UX Design Team"
+          reason: "Confirm if toppings should be selected via multi-select rather than conversational loop."
+          resolved: false
+      intent_routes:
+        - intent: "Customer wants to add extra cheese"
+          target_node: add-toppings-triage
+          set_variables:
+            - name: extra_cheese
+              type: "bool"
+        - intent: "Customer wants to add extra mushrooms"
+          target_node: add-toppings-triage
+          set_variables:
+            - name: extra_mushrooms
+              type: "bool"
+        - intent: "Customer is ready to proceed to checkout"
+          target_flow: payment-delivery-flow.yml

@@ -1,0 +1,9 @@
+node_modules
+dist
+dist-server
+.git
+.gemini
+terraform
+*.tfvars
+*.tfvars.example
+.DS_Store

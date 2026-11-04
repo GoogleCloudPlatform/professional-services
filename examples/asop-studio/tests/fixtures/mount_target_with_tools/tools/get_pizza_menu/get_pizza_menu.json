@@ -1,0 +1,9 @@
+{
+  "name": "get_pizza_menu",
+  "pythonFunction": {
+    "name": "get_pizza_menu",
+    "pythonCode": "tools/get_pizza_menu/python_function/python_code.py"
+  },
+  "executionType": "SYNCHRONOUS",
+  "displayName": "get_pizza_menu"
+}

@@ -1,0 +1,37 @@
+# Copyright 2026 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# GCP Project ID to deploy the resources to
+project_id = "your-gcp-project-id"
+
+# GCP Region for resource deployment (e.g. us-central1)
+region = "us-central1"
+
+# Cloud Run service name (also prefixes Artifact Registry and IAM resources)
+service_name = "asop-studio"
+
+# ------------------------------------------------------------------------------
+# Optional: Identity-Aware Proxy (IAP) + Global External HTTPS Load Balancer
+# Leave commented out for a fast, direct Cloud Run deployment.
+# Uncomment and configure below for enterprise IAP-protected deployment
+# (see docs/06_gcp_deployment_and_iap.md for step-by-step OAuth setup).
+# ------------------------------------------------------------------------------
+# enable_iap        = true
+# iap_client_id     = "your-oauth-client-id.apps.googleusercontent.com"
+# iap_client_secret = "your-oauth-client-secret"
+# allowed_identities = [
+#   "user:your-email@example.com",
+#   "group:team-group@example.com"
+# ]
+# domain_name = "asop.example.com"
