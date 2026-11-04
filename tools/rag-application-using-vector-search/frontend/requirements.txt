@@ -2,7 +2,7 @@ altair==5.5.0
 attrs==25.3.0
 blinker==1.9.0
 cachetools==5.5.2
-certifi==2025.1.31
+certifi==2026.10.18
 charset-normalizer==3.4.1
 click==8.1.8
 gitdb==4.0.12
