@@ -1,0 +1,86 @@
+[
+  {
+    "id": "row-1",
+    "data": {
+      "title": "Supply Chain Forecasting with Vertex AI",
+      "uri": "https://example.com/papers/supply-chain-ai",
+      "link": "https://example.com/papers/supply-chain-ai",
+      "publication_date": "2026-01-15T10:00:00Z",
+      "categories": ["AI", "Supply Chain"],
+      "department": "Data Science",
+      "region_code": "APAC-IN",
+      "warehouse_id": "WH-BLR-01",
+      "supplier_rating": 4.8,
+      "is_priority_shipment": true,
+      "document_owner": "Alice Sharma",
+      "cost_center": "CC-AI-101",
+      "shipment_status": "IN_TRANSIT",
+      "lead_time_days": 3,
+      "carrier_name": "DHL Express",
+      "order_value_usd": 45000.0
+    }
+  },
+  {
+    "id": "row-2",
+    "data": {
+      "title": "Real-Time Warehouse Telemetry on BigQuery",
+      "uri": "https://example.com/papers/warehouse-telemetry",
+      "link": "https://example.com/papers/warehouse-telemetry",
+      "publication_date": "2026-02-20T14:30:00Z",
+      "categories": ["BigQuery", "Data Engineering"],
+      "department": "Platform Engineering",
+      "region_code": "US-EAST",
+      "warehouse_id": "WH-NYC-04",
+      "supplier_rating": 4.5,
+      "is_priority_shipment": false,
+      "document_owner": "Rahul Verma",
+      "cost_center": "CC-DATA-202",
+      "shipment_status": "DELIVERED",
+      "lead_time_days": 5,
+      "carrier_name": "FedEx Freight",
+      "order_value_usd": 28500.5
+    }
+  },
+  {
+    "id": "row-3",
+    "data": {
+      "title": "Cold Chain IoT Sensor Anomaly Detection",
+      "uri": "https://example.com/papers/cold-chain-iot",
+      "link": "https://example.com/papers/cold-chain-iot",
+      "publication_date": "2026-03-10T08:15:00Z",
+      "categories": ["IoT", "Cold Chain"],
+      "department": "Logistics Operations",
+      "region_code": "EU-WEST",
+      "warehouse_id": "WH-FRA-02",
+      "supplier_rating": 4.9,
+      "is_priority_shipment": true,
+      "document_owner": "Meera Nair",
+      "cost_center": "CC-LOG-303",
+      "shipment_status": "IN_TRANSIT",
+      "lead_time_days": 2,
+      "carrier_name": "Maersk Cold Chain",
+      "order_value_usd": 92000.0
+    }
+  },
+  {
+    "id": "row-4",
+    "data": {
+      "title": "Automated Supplier Risk Scoring with Gemini",
+      "uri": "https://example.com/papers/supplier-risk-gemini",
+      "link": "https://example.com/papers/supplier-risk-gemini",
+      "publication_date": "2026-04-05T16:45:00Z",
+      "categories": ["GenAI", "Procurement"],
+      "department": "Procurement Analytics",
+      "region_code": "APAC-SG",
+      "warehouse_id": "WH-SIN-01",
+      "supplier_rating": 4.2,
+      "is_priority_shipment": false,
+      "document_owner": "Vikram Desai",
+      "cost_center": "CC-PROC-404",
+      "shipment_status": "PENDING",
+      "lead_time_days": 7,
+      "carrier_name": "UPS Supply Chain",
+      "order_value_usd": 19750.0
+    }
+  }
+]

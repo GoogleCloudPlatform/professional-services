@@ -1,0 +1,27 @@
+{
+  "abstracts_schema": {
+    "struct_schema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string",
+          "keyPropertyMapping": "title",
+          "retrievable": true
+        },
+        "abstract_text": {
+          "type": "string",
+          "searchable": true,
+          "retrievable": true
+        }
+      }
+    }
+  },
+  "fallback_schema": {
+    "struct_schema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {}
+    }
+  }
+}
