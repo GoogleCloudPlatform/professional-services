@@ -15,7 +15,7 @@
 # limitations under the License.
 
 # Sets up per-team usage tracking in a shared project. Safe to run more than once.
-# shellcheck disable=SC1091,SC2153
+# shellcheck disable=SC1090,SC1091,SC2153
 source "$(dirname "$0")/common.sh"
 
 step "1. Enable the APIs"

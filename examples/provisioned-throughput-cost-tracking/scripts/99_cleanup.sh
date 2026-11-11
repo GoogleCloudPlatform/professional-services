@@ -15,7 +15,7 @@
 # limitations under the License.
 
 # Removes what 01_setup.sh created. Deleting the dataset deletes the logs permanently.
-# shellcheck disable=SC1091,SC2153
+# shellcheck disable=SC1090,SC1091,SC2153
 source "$(dirname "$0")/common.sh"
 read -r -p "This deletes dataset ${PROJECT_ID}:${DATASET}, sink ${SINK_NAME} and the team service accounts. Type 'delete' to continue: " ANSWER
 [[ "$ANSWER" == "delete" ]] || { echo "Cancelled."; exit 1; }

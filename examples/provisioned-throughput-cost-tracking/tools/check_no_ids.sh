@@ -18,7 +18,7 @@
 # Usage: tools/check_no_ids.sh [extra_pattern ...]
 set -euo pipefail
 cd "$(dirname "$0")/.."
-PATTERNS=("[a-z]+-[a-z]+-[0-9]{6}\b" "[0-9A-F]{6}[-_][0-9A-F]{6}[-_][0-9A-F]{6}" "service-[0-9]{9,}@" "@google\.com" "\bgo/[a-z]" "\bb/[0-9]{6,}" "$@")
+PATTERNS=('[a-z]+-[a-z]+-[0-9]{6}\b' '[0-9A-F]{6}[-_][0-9A-F]{6}[-_][0-9A-F]{6}' 'service-[0-9]{9,}@' '@google\.com' '\bgo/[a-z]' '\bb/[0-9]{6,}' "$@")
 FOUND=0
 for p in "${PATTERNS[@]}"; do
   if git ls-files -co --exclude-standard . | grep -v 'check_no_ids.sh$' | grep -vE '\.(png|jpg)$' \

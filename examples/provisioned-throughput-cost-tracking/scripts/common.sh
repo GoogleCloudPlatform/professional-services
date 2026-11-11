@@ -31,7 +31,7 @@ TEAMS="${TEAMS:-team-a team-b}"
 export ROOT PROJECT_ID LOCATION MODEL TEAMS DATASET USAGE_TABLE BQ_LOCATION SINK_NAME BILLING_TABLE
 
 GCLOUD=(gcloud --quiet)
-[[ -n "${GCLOUD_ACCOUNT:-}" ]] && GCLOUD+=(--account="$GCLOUD_ACCOUNT")
+[[ -n "${GCLOUD_ACCOUNT:-}" ]] && GCLOUD+=("--account=$GCLOUD_ACCOUNT")
 
 if [[ "$LOCATION" == "global" ]]; then API_HOST="aiplatform.googleapis.com"; else API_HOST="${LOCATION}-aiplatform.googleapis.com"; fi
 export API_HOST

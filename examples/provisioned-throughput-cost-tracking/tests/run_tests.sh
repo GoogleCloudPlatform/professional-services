@@ -46,7 +46,7 @@ SINK_NAME="gemini-usage-sink"
 BILLING_TABLE="bill-proj.bill_ds.gcp_billing_export_resource_v1_XXXXXX_XXXXXX_XXXXXX"
 EOF
 
-# shellcheck disable=SC1091
+# shellcheck disable=SC1090,SC1091
 CONFIG="$TMP_DIR/config.env" source "$EXAMPLE_DIR/scripts/common.sh"
 
 [[ "$(sa_email "alpha")" == "alpha-sa@unit-test-proj.iam.gserviceaccount.com" ]] \

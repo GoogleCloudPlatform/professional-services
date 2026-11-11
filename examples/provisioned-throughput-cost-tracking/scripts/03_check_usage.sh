@@ -16,7 +16,7 @@
 
 # Shows each team's usage from the inference request metadata log and, if BILLING_TABLE is set,
 # cost from the Cloud Billing export.
-# shellcheck disable=SC1091,SC2153
+# shellcheck disable=SC1090,SC1091,SC2153
 source "$(dirname "$0")/common.sh"
 SQL="$ROOT/sql"
 

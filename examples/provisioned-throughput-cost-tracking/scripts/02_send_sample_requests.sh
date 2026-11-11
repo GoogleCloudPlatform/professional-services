@@ -17,7 +17,7 @@
 # Sends sample Gemini requests as each team and prints the token counts. Each round sends one request with a
 # "consumer" label (reaches the billing export), one with a header label (log only) and one with no label.
 # Usage: scripts/02_send_sample_requests.sh [requests_per_team]
-# shellcheck disable=SC1091,SC2153
+# shellcheck disable=SC1090,SC1091,SC2153
 source "$(dirname "$0")/common.sh"
 N="${1:-3}"
 URL="https://${API_HOST}/v1/projects/${PROJECT_ID}/locations/${LOCATION}/publishers/google/models/${MODEL}:generateContent"
