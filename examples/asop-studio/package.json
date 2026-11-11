@@ -26,7 +26,7 @@
     "@xyflow/react": "^12.11.0",
     "adm-zip": "^0.5.17",
     "commander": "^14.0.3",
-    "express": "^4.21.2",
+    "express": "^4.22.3",
     "jspdf": "^4.2.1",
     "jszip": "^3.10.1",
     "lucide-react": "^1.17.0",
