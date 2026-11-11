@@ -1,0 +1,7 @@
+config.env
+*.tfstate*
+.terraform/
+.terraform.lock.hcl
+terraform.tfvars
+__pycache__/
+.ipynb_checkpoints/

@@ -307,6 +307,8 @@ Built for creators, marketers, and developers, this application provides a hands
 *   [Personal Workbench Notebooks Deployer](examples/personal-workbench-notebooks-deployer) - Terraform sample modules to provision Dataproc Hub using personal auth clusters, and workbench managed notebooks for individual analytical users.
 *   [Project factory with Terragrunt](examples/terragrunt-project-factory-gcp/) -
     This implements a `State-Scalable` project factory pattern for creating Google Cloud Platform projects using Terragrunt and public Terraform modules
+*   [Provisioned Throughput Cost Tracking per Team](examples/provisioned-throughput-cost-tracking) -
+    Per-team usage and cost attribution for shared Vertex AI Gemini Provisioned Throughput using inference request metadata logs, Cloud Billing export labels, BigQuery allocation SQL, and Terraform.
 *   [Python CI/CD with Cloud Builder and CSR](examples/python-cicd-with-cloudbuilder) -
     Example that uses Cloud Builder and Cloud Source Repositories to automate
     testing and linting.
