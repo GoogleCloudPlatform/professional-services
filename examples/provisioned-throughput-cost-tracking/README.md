@@ -56,6 +56,7 @@ flowchart LR
 | [`sql/`](sql/) | Reusable queries: usage per account, reserved vs pay-as-you-go, usage per label, failed requests, monthly allocation, cost per label, unlabeled cost, label typos |
 | [`notebooks/`](notebooks/) | `gemini_cost_attribution.ipynb`: sends requests as each team and builds the report with the Google Gen AI SDK |
 | [`docs/`](docs/) | Allocation models, Provisioned Throughput guide, billing export behavior, gateway pattern, troubleshooting |
+| [`tests/`](tests/) | `run_tests.sh`: offline unit tests for `common.sh`, SQL template rendering, Terraform defaults, notebook hygiene, and ID checks |
 
 ## Before you start
 
@@ -192,6 +193,12 @@ Provisioned Throughput order, check for these extra signs. The full checklist is
 - [Log requests and responses](https://docs.cloud.google.com/gemini-enterprise-agent-platform/models/capabilities/request-response-logging), if you also need content
 - [Apigee samples](https://github.com/GoogleCloudPlatform/apigee-samples) (`llm-token-limits`), for a gateway that enforces per-team quotas
 - [FinOps for AI](https://www.finops.org/topic/ai-value/) from the FinOps Foundation
+
+## Testing
+
+```bash
+bash tests/run_tests.sh
+```
 
 ## Clean up
 
