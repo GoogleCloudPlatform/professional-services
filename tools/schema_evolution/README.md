@@ -44,7 +44,8 @@ schema_evolution/
 ├── config.example.yaml           # copy to config.yaml and edit
 ├── schemas/                      # your schema.json files
 │   ├── example_schema.json
-│   └── example_wrapped_schema.json
+│   ├── example_wrapped_schema.json
+│   └── sample_data.json          # sample rows loaded by the demo scripts
 ├── src/schema_evolution/         # the package
 │   ├── cli.py                    # config loader, multi-target runner, and CLI
 │   ├── evolver.py                # SchemaEvolver and evolve_schema()
@@ -72,7 +73,7 @@ schema_evolution/
 
 ```bash
 git clone https://github.com/GoogleCloudPlatform/professional-services.git
-cd professional-services/tools/<this-tool-folder>
+cd professional-services/tools/schema_evolution
 ```
 
 ### 2. Install the dependencies
