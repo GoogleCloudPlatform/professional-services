@@ -603,6 +603,10 @@ Platform usage.
 *   [Reddit Comment Streaming](tools/reddit-comment-streaming/) -
     Use PRAW, TextBlob, and Google Python API to collect and analyze
     reddit comments. Pushes comments to a Google Pub/sub Topic.
+*   [Schema Evolution for Vertex AI Search](tools/schema_evolution) - A
+    config-driven utility and Python library that creates and safely evolves
+    Vertex AI Search / Gemini Enterprise datastore schemas, applying only
+    additive changes and blocking unsupported type changes.
 *   [Secret Manager Helper](tools/secret-manager-helper) - A Java library to
     make it easy to replace placeholder strings with Secret Manager secret
     payloads.
