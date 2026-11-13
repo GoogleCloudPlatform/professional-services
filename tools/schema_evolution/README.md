@@ -21,20 +21,35 @@ safe. Terraform does not manage datastore schemas, so this utility fills that ga
   CI-friendly exit codes.
 - 🐍 **Also a library:** `from schema_evolution import evolve_schema` inside your own pipelines.
 
+## 🧭 Three ways to use it
+
+| Mode | File | Best for |
+|---|---|---|
+| **1. Config-driven CLI** | [`main.py`](main.py) + `config.yaml` | Many projects / datastores, CI/CD, dry runs and reports |
+| **2. Import the package** | [`step_by_step_demo.py`](step_by_step_demo.py) | Calling `evolve_schema()` from your own importer / pipeline |
+| **3. Single standalone file** | [`standalone_demo.py`](standalone_demo.py) | Copy-pasting the core logic into a script with no package dependency |
+
+Modes 1 and 2 use the full package logic. Mode 3 is a minimal, self-contained version; see
+[Demo scripts](#-demo-scripts-modes-2-and-3) for how to run it and its limits.
+
 ## 📁 Folder structure
 
 ```text
 schema_evolution/
 ├── README.md
 ├── main.py                       # entry point: python3 main.py --config config.yaml
+├── standalone_demo.py            # self-contained single-file example (no package import)
+├── step_by_step_demo.py          # example importing `from schema_evolution import evolve_schema`
 ├── requirements.txt
 ├── config.example.yaml           # copy to config.yaml and edit
 ├── schemas/                      # your schema.json files
 │   ├── example_schema.json
 │   └── example_wrapped_schema.json
 ├── src/schema_evolution/         # the package
-│   ├── cli.py  config.py  runner.py  evolver.py  diff.py  loader.py  models.py  exceptions.py
-├── tests/
+│   ├── cli.py                    # config loader, multi-target runner, and CLI
+│   ├── evolver.py                # SchemaEvolver and evolve_schema()
+│   └── schema.py                 # models, exceptions, schema loading/validation, diff/merge
+├── tests/                        # test_cli.py, test_cli_config.py, test_evolver.py, test_schema.py
 └── pyproject.toml                # optional: pip install . to get the `schema-evolution` command
 ```
 
@@ -228,6 +243,28 @@ print(result.summary())  # CREATED | UPDATED | RECREATED | NO_CHANGE
 
 All errors subclass `SchemaEvolutionError`: `ConfigError`, `InvalidSchemaError`,
 `BreakingSchemaChangeError`, `DatastoreNotFoundError`, `SchemaFetchError`, `SchemaApplyError`.
+
+## 🎬 Demo scripts (modes 2 and 3)
+
+Both demos evolve the schema of two datastores from `schemas/example_schema.json` (creating the
+second datastore if missing) and then load `schemas/sample_data.json`. They can be run from any
+folder, straight from a clone (no `pip install .` needed).
+
+```bash
+export GCP_PROJECT_ID=my-project
+export GCP_LOCATION=global                 # global | us | eu
+export EXISTING_DATASTORE_ID=my-datastore
+export NEW_DATASTORE_ID=my-new-datastore
+
+python3 step_by_step_demo.py               # mode 2: uses `from schema_evolution import evolve_schema`
+python3 standalone_demo.py                 # mode 3: single file, no package import
+```
+
+> [!NOTE]
+> `standalone_demo.py` is intentionally minimal. Compared with the package it
+> compares **top-level fields only** (no nested `properties` / array `items`), has **no dry run**,
+> does **not** validate `keyPropertyMapping` rules, and **raises** on any type change instead of
+> skipping it. Use the package (modes 1 and 2) when you need those.
 
 ## 🧪 Running the tests
 

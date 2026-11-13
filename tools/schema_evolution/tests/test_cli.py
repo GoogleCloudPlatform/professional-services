@@ -18,7 +18,6 @@ from pathlib import Path
 import pytest
 
 import schema_evolution.cli as cli
-import schema_evolution.runner as runner_mod
 from schema_evolution import (
     Action,
     BreakingSchemaChangeError,
@@ -102,7 +101,7 @@ def test_arguments_passed_to_evolver_and_json_report():
 
 def test_default_factory_builds_evolver_with_options():
     t = target("d", on_breaking="skip", operation_timeout=60)
-    ev = runner_mod._default_factory(t, use_cache=False)
+    ev = cli._default_factory(t, use_cache=False)
     assert (ev.project_id, ev.location, ev.datastore_id) == ("p", "us", "d")
     assert ev.on_breaking == "skip" and ev.operation_timeout == 60 and ev.use_cache is False
     assert t.options["location"] == "us"  # target options not mutated

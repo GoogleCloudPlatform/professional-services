@@ -24,8 +24,16 @@ Typical usage inside an importer::
 
 import logging
 
-from schema_evolution.config import Target, filter_targets, load_config, parse_config
-from schema_evolution.diff import diff_schemas, merge_schemas
+from schema_evolution.cli import (
+    RunReport,
+    Status,
+    Target,
+    TargetOutcome,
+    filter_targets,
+    load_config,
+    parse_config,
+    run_targets,
+)
 from schema_evolution.evolver import (
     DEFAULT_RETRY,
     ON_BREAKING_RAISE,
@@ -34,18 +42,24 @@ from schema_evolution.evolver import (
     clear_cache,
     evolve_schema,
 )
-from schema_evolution.exceptions import (
+from schema_evolution.schema import (
+    Action,
     BreakingSchemaChangeError,
+    ChangeType,
     ConfigError,
     DatastoreNotFoundError,
+    EvolutionResult,
     InvalidSchemaError,
     SchemaApplyError,
+    SchemaChange,
     SchemaEvolutionError,
     SchemaFetchError,
+    check_key_properties,
+    diff_schemas,
+    load_schema,
+    merge_schemas,
+    validate_schema,
 )
-from schema_evolution.loader import check_key_properties, load_schema, validate_schema
-from schema_evolution.models import Action, ChangeType, EvolutionResult, SchemaChange
-from schema_evolution.runner import RunReport, Status, TargetOutcome, run_targets
 
 __version__ = "0.1.0"
 

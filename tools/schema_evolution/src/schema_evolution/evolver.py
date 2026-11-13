@@ -35,22 +35,24 @@ from google.api_core.client_options import ClientOptions
 from google.auth.exceptions import GoogleAuthError
 from google.cloud import discoveryengine_v1 as discoveryengine
 
-from schema_evolution.diff import diff_schemas, merge_schemas
-from schema_evolution.exceptions import (
+from schema_evolution.schema import (
+    JSON_SCHEMA_VERSION,
+    Action,
     BreakingSchemaChangeError,
+    ChangeType,
     DatastoreNotFoundError,
+    EvolutionResult,
     InvalidSchemaError,
     SchemaApplyError,
+    SchemaChange,
     SchemaFetchError,
-)
-from schema_evolution.loader import (
-    JSON_SCHEMA_VERSION,
     SchemaKey,
     SchemaSource,
     check_key_properties,
+    diff_schemas,
     load_schema,
+    merge_schemas,
 )
-from schema_evolution.models import Action, ChangeType, EvolutionResult, SchemaChange
 
 logger = logging.getLogger(__name__)
 

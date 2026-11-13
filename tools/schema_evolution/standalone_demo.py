@@ -1,28 +1,58 @@
+# Copyright 2026 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 """Standalone schema evolution script (no imports from schema_evolution).
+
+A single, copy-pasteable file showing the core flow: read the live schema,
+diff it against schema.json, then create or update it additively.
+
+Scope (intentionally minimal; use the `schema_evolution` package for more):
+  * compares top-level fields only (no nested `properties` / array `items`);
+  * no dry run and no keyPropertyMapping validation;
+  * raises on any field type change instead of skipping it.
 
 Reads:
   - Schema:      schemas/example_schema.json
   - Sample data: schemas/sample_data.json
 
-Run:
-  .venv/bin/python standalone_demo.py
+Run (from anywhere):
+  export GCP_PROJECT_ID=my-project GCP_LOCATION=global \
+         EXISTING_DATASTORE_ID=my-ds NEW_DATASTORE_ID=my-new-ds
+  python3 standalone_demo.py
 """
+
+from __future__ import annotations
 
 import copy
 import json
+import os
 from pathlib import Path
+from typing import Dict, List, Tuple
+
 from google.api_core import exceptions as gexc
 from google.api_core.client_options import ClientOptions
 from google.cloud import discoveryengine_v1 as discoveryengine
 from google.protobuf import struct_pb2
 
-PROJECT_ID = "poc-projects-513715"
-LOCATION = "global"
-EXISTING_DS = "se-e2e-empty-global"
-NEW_DS = "se-step-by-step-demo"
+PROJECT_ID = os.environ.get("GCP_PROJECT_ID", "your-gcp-project-id")
+LOCATION = os.environ.get("GCP_LOCATION", "global")
+EXISTING_DS = os.environ.get("EXISTING_DATASTORE_ID", "your-existing-datastore")
+NEW_DS = os.environ.get("NEW_DATASTORE_ID", "your-new-datastore")
 
-SCHEMA_FILE = Path("schemas/example_schema.json")
-DATA_FILE = Path("schemas/sample_data.json")
+BASE_DIR = Path(__file__).resolve().parent
+SCHEMA_FILE = BASE_DIR / "schemas" / "example_schema.json"
+DATA_FILE = BASE_DIR / "schemas" / "sample_data.json"
 JSON_SCHEMA_VERSION = "https://json-schema.org/draft/2020-12/schema"
 BOOL_ANNOTATIONS = {"retrievable", "indexable", "searchable", "dynamicFacetable", "completable"}
 
@@ -44,9 +74,9 @@ def _norm(key: str, val):
     return val
 
 
-def diff_and_merge(desired: dict, live: dict) -> tuple[list[str], dict]:
+def diff_and_merge(desired: Dict, live: Dict) -> Tuple[List[str], Dict]:
     """Compare desired schema against live schema and build an additive merged schema."""
-    changes: list[str] = []
+    changes: List[str] = []
     merged = copy.deepcopy(live) if live else {"$schema": JSON_SCHEMA_VERSION, "type": "object", "properties": {}}
     merged.setdefault("$schema", desired.get("$schema", JSON_SCHEMA_VERSION))
     merged.setdefault("type", "object")
@@ -156,7 +186,7 @@ def load_sample_rows(datastore_id: str) -> None:
                 allow_missing=True,
             )
         )
-    print(f"Loaded {len(rows)} rows from {DATA_FILE} into '{datastore_id}'.")
+    print(f"Loaded {len(rows)} rows from {DATA_FILE.name} into '{datastore_id}'.")
 
 
 def run_step(title: str, datastore_id: str, create_first: bool = False) -> None:
