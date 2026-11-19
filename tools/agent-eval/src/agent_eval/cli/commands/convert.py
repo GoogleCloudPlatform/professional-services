@@ -44,7 +44,7 @@ console = Console()
     "--trace-format",
     default="adk",
     help=
-    "Format of the trace input ('adk', 'openinference', 'langgraph', 'crewai', 'otel', 'llamaindex', 'autogen').",
+    "Format of the trace input ('adk', 'openinference', 'langgraph', 'crewai', 'otel', 'llamaindex', 'autogen', 'ge-agent', 'ge-stream', 'ge-transcript').",
 )
 def convert(agent_dir, questions_file, output_dir, output_file, trace_format):
     """Convert ADK or OpenInference simulation history to evaluation JSONL format."""
