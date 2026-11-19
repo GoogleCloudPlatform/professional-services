@@ -969,3 +969,39 @@ class TestGEStreamTraceConverter:
         assert len(rows[0]["extracted_data.tool_interactions"]) == 1
         assert rows[0]["extracted_data.tool_interactions"][0]["tool_name"] == "get_account"
 
+    def test_ge_tool_error_propagates_to_event_and_span(self):
+        from agent_eval.core.deterministic_metrics import calculate_tool_success_rate
+
+        raw_stream = {
+            "session_id": "ge_err_001",
+            "prompt": "Run failing tool",
+            "events": [
+                {
+                    "step": {
+                        "toolCall": {
+                            "id": "err_1",
+                            "functionCall": {"name": "mcp__failing_tool", "arguments": {}},
+                        }
+                    }
+                },
+                {
+                    "step": {
+                        "toolResult": {
+                            "callId": "err_1",
+                            "functionResult": {
+                                "name": "mcp__failing_tool",
+                                "result": {"isError": True, "message": "boom"},
+                            },
+                        }
+                    }
+                },
+            ],
+        }
+        ad = GEStreamTraceConverter().convert_to_agent_data(raw_stream)
+        tool_events = [e for e in ad.turns[1].events if e.event_type == "TOOL_CALL"]
+        assert len(tool_events) == 1
+        assert tool_events[0].status == "ERROR"
+        success_rate, _, details = calculate_tool_success_rate(getattr(ad, "session_trace", []))
+        assert success_rate == 0.0
+        assert details["failed_tool_calls"] == 1
+

@@ -899,11 +899,15 @@ class GEStreamTraceConverter(BaseTraceConverter):
             with path.open("r", encoding="utf-8") as f:
                 for line in f:
                     stripped = line.strip()
-                    if stripped:
-                        with contextlib.suppress(Exception):
-                            obj = json.loads(stripped)
-                            if isinstance(obj, dict):
-                                records.append(obj)
+                    if not stripped:
+                        continue
+                    try:
+                        obj = json.loads(stripped)
+                    except json.JSONDecodeError as exc:
+                        logger.warning(f"Skipping malformed JSONL line in {path}: {exc}")
+                        continue
+                    if isinstance(obj, dict):
+                        records.append(obj)
 
             # In-VM transcript.jsonl stores one step per line rather than one session per line.
             if records and all(
@@ -978,7 +982,7 @@ class GEStreamTraceConverter(BaseTraceConverter):
                     if isinstance(fargs, str):
                         try:
                             fargs = json.loads(fargs)
-                        except Exception:
+                        except (json.JSONDecodeError, TypeError):
                             fargs = {"raw": fargs}
                     _append_step(
                         {
@@ -1012,7 +1016,7 @@ class GEStreamTraceConverter(BaseTraceConverter):
                 if isinstance(raw_c, str):
                     try:
                         res_obj = json.loads(raw_c)
-                    except Exception:
+                    except (json.JSONDecodeError, TypeError):
                         res_obj = {"output": raw_c}
                 _append_step(
                     {
@@ -1024,6 +1028,62 @@ class GEStreamTraceConverter(BaseTraceConverter):
                 )
 
         return stream_events
+
+    def _extract_stream_events(
+        self, raw_trace: dict[str, Any]
+    ) -> list[dict[str, Any]]:
+        """Extract chronological `:stream` event dicts from `steps`, `chunks`, or `events`."""
+        if isinstance(raw_trace.get("steps"), list):
+            return self._steps_to_stream_events(raw_trace["steps"])
+        if isinstance(raw_trace.get("chunks"), list):
+            return [
+                ev
+                for chunk in raw_trace["chunks"]
+                if isinstance(chunk, dict)
+                for ev in (chunk.get("events") or [])
+            ]
+        if isinstance(raw_trace.get("events"), list):
+            return list(raw_trace["events"])
+        return []
+
+    @staticmethod
+    def _build_tool_exchange_event(
+        call_id: str,
+        tool_name: str,
+        args: dict[str, Any],
+        result: Any,
+        fallback_index: int,
+    ) -> tuple[AgentEvent, dict[str, Any]]:
+        """Build a paired `TOOL_CALL` `AgentEvent` and synthetic OTel span."""
+        resp_dict = result if isinstance(result, dict) else {"result": result}
+        is_error = resp_dict.get("isError") is True or resp_dict.get(
+            "status"
+        ) in ("ERROR", "FAILED")
+        status_str = "ERROR" if is_error else "OK"
+        event = AgentEvent(
+            event_id=call_id or f"ge_tool_{fallback_index}",
+            event_type="TOOL_CALL",
+            status=status_str,
+            author="model",
+            payload={
+                "tool_name": tool_name,
+                "arguments": args,
+                "result": resp_dict,
+                "input_arguments": args,
+                "output_result": resp_dict,
+            },
+            tool_calls=[{"name": tool_name, "args": args}],
+            tool_responses=[{"name": tool_name, "response": resp_dict}],
+        )
+        span = {
+            "name": f"tool.{tool_name}",
+            "status": {"code": "ERROR" if is_error else "OK"},
+            "attributes": {
+                "Tool Name": tool_name,
+                "Tool Status": "ERROR" if is_error else "SUCCESS",
+            },
+        }
+        return event, span
 
     def convert_to_agent_data(
         self, raw_trace: dict[str, Any] | list[Any]
@@ -1042,20 +1102,7 @@ class GEStreamTraceConverter(BaseTraceConverter):
             or "ge_agent_session"
         )
         prompt_override = raw_trace.get("prompt") or raw_trace.get("user_input") or ""
-
-        if isinstance(raw_trace.get("steps"), list):
-            stream_events = self._steps_to_stream_events(raw_trace["steps"])
-        elif isinstance(raw_trace.get("chunks"), list):
-            stream_events = [
-                ev
-                for chunk in raw_trace["chunks"]
-                if isinstance(chunk, dict)
-                for ev in (chunk.get("events") or [])
-            ]
-        elif isinstance(raw_trace.get("events"), list):
-            stream_events = list(raw_trace["events"])
-        else:
-            stream_events = []
+        stream_events = self._extract_stream_events(raw_trace)
 
         usage = dict.fromkeys(self._STEP_USAGE_MAP.values(), 0)
         invoked_skills: list[str] = []
@@ -1146,7 +1193,7 @@ class GEStreamTraceConverter(BaseTraceConverter):
                 if isinstance(fargs, str):
                     try:
                         fargs = json.loads(fargs)
-                    except Exception:
+                    except (json.JSONDecodeError, TypeError):
                         fargs = {"raw": fargs}
                 if not isinstance(fargs, dict):
                     fargs = {"value": fargs}
@@ -1180,37 +1227,11 @@ class GEStreamTraceConverter(BaseTraceConverter):
 
                 clean_name = str(cmeta.get("name") or fr_name).split("__")[-1]
                 cargs = cmeta.get("args") if isinstance(cmeta.get("args"), dict) else {}
-                resp_dict = fres if isinstance(fres, dict) else {"result": fres}
-                is_error = resp_dict.get("isError") is True or resp_dict.get(
-                    "status"
-                ) in ("ERROR", "FAILED")
-
-                current_events.append(
-                    AgentEvent(
-                        event_id=cid or f"ge_tool_{len(current_events)}",
-                        event_type="TOOL_CALL",
-                        status="ERROR" if is_error else "OK",
-                        author="model",
-                        payload={
-                            "tool_name": clean_name,
-                            "arguments": cargs,
-                            "result": resp_dict,
-                            "input_arguments": cargs,
-                            "output_result": resp_dict,
-                        },
-                        tool_calls=[{"name": clean_name, "args": cargs}],
-                        tool_responses=[{"name": clean_name, "response": resp_dict}],
-                    )
+                tool_ev, tool_span = self._build_tool_exchange_event(
+                    cid, clean_name, cargs, fres, len(current_events)
                 )
-                synthetic_spans.append(
-                    {
-                        "name": f"tool.{clean_name}",
-                        "attributes": {
-                            "Tool Name": clean_name,
-                            "Tool Status": "ERROR" if is_error else "SUCCESS",
-                        },
-                    }
-                )
+                current_events.append(tool_ev)
+                synthetic_spans.append(tool_span)
 
         _flush_model_turn()
 
