@@ -13,7 +13,7 @@ import logging
 import re
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import Any
+from typing import Any, ClassVar
 
 from agent_eval.core.schema import AgentData, AgentEvent, AgentTurn
 
@@ -830,7 +830,56 @@ def _decode_proto_value(obj: Any) -> Any:
 class GEStreamTraceConverter(BaseTraceConverter):
     """Converts Gemini Enterprise (GE Agent) TaskService `:stream` snapshots and VM `transcript.jsonl` logs into canonical AgentData."""
 
-    _SKILL_PATH_RE = re.compile(r"/skills/([a-zA-Z0-9_.-]+)/SKILL\.md")
+    _SKILL_PATH_RE = re.compile(r"(?:^|/)skills/([a-zA-Z0-9_.-]+)/SKILL\.md")
+    _STEP_USAGE_MAP: ClassVar[dict[str, str]] = {
+        "totalInputTokens": "prompt_token_count",
+        "totalOutputTokens": "candidates_token_count",
+        "totalCachedTokens": "cached_content_token_count",
+        "totalTokens": "total_token_count",
+        "totalThoughtTokens": "thoughts_token_count",
+    }
+    _TRANSCRIPT_STEP_TYPES: ClassVar[set[str]] = {
+        "USER_INPUT",
+        "PLANNER_RESPONSE",
+        "TOOL_RESPONSE",
+        "TOOL_RESULT",
+    }
+
+    @staticmethod
+    def _extract_ge_text(items: Any) -> str:
+        """Extract and join text segments from GE `:stream` thought/content parts."""
+        if not isinstance(items, list):
+            return ""
+        segments: list[str] = []
+        for item in items:
+            if not isinstance(item, dict):
+                continue
+            tf = item.get("text")
+            if isinstance(tf, dict) and tf.get("text"):
+                segments.append(str(tf["text"]))
+            elif isinstance(tf, str) and tf.strip():
+                segments.append(tf)
+        return "\n".join(segments).strip()
+
+    @staticmethod
+    def _build_user_turn(turn_index: int, text: str) -> AgentTurn:
+        """Construct a canonical user `AgentTurn`."""
+        return AgentTurn(
+            turn_id=turn_index,
+            turn_index=turn_index,
+            role="user",
+            content=text,
+            events=[
+                AgentEvent(
+                    event_id=f"ge_user_{turn_index}",
+                    event_type="USER_INPUT",
+                    status="OK",
+                    author="USER",
+                    content=text,
+                    payload={"content": text},
+                )
+            ],
+        )
 
     def convert_file(
         self,
@@ -845,76 +894,55 @@ class GEStreamTraceConverter(BaseTraceConverter):
         if not path.exists():
             raise FileNotFoundError(f"Trace file or directory not found: {path}")
 
-        if path.is_dir():
-            results: list[AgentData] = []
-            json_files = sorted(
-                f
-                for f in path.iterdir()
-                if f.is_file() and f.suffix.lower() in (".json", ".jsonl")
-            )
-            for f in json_files:
-                results.extend(self.convert_file(f, questions_file=questions_file))
-            return results
-
         if path.suffix.lower() == ".jsonl":
             records: list[dict[str, Any]] = []
             with path.open("r", encoding="utf-8") as f:
                 for line in f:
                     stripped = line.strip()
-                    if not stripped:
-                        continue
-                    with contextlib.suppress(Exception):
-                        obj = json.loads(stripped)
-                        if isinstance(obj, dict):
-                            records.append(obj)
+                    if stripped:
+                        with contextlib.suppress(Exception):
+                            obj = json.loads(stripped)
+                            if isinstance(obj, dict):
+                                records.append(obj)
 
-            # In-VM transcript.jsonl stores one step per line with `type` in
-            # {"USER_INPUT", "PLANNER_RESPONSE", "TOOL_RESPONSE", "TOOL_RESULT"}.
+            # In-VM transcript.jsonl stores one step per line rather than one session per line.
             if records and all(
-                "type" in r and "events" not in r and "chunks" not in r
+                r.get("type") in self._TRANSCRIPT_STEP_TYPES
+                and "events" not in r
+                and "chunks" not in r
                 for r in records
             ):
                 ad = self.convert_to_agent_data(
                     {"session_id": path.stem, "steps": records}
                 )
                 return [self._merge_golden_data(ad)]
+        elif path.is_file():
+            with path.open("r", encoding="utf-8") as f:
+                content = json.load(f)
+            # Raw `:stream` snapshots are JSON arrays of chunk dicts containing `"events"`.
+            if (
+                isinstance(content, list)
+                and content
+                and all(isinstance(c, dict) and "events" in c for c in content)
+            ):
+                ad = self.convert_to_agent_data(
+                    {"session_id": path.stem, "chunks": content}
+                )
+                return [self._merge_golden_data(ad)]
 
-            return [
-                self._merge_golden_data(self.convert_to_agent_data(r))
-                for r in records
-            ]
+        return super().convert_file(path, questions_file=questions_file)
 
-        with path.open("r", encoding="utf-8") as f:
-            content = json.load(f)
-
-        # A raw `:stream` snapshot is a JSON array of chunk dicts containing `"events"`.
-        if isinstance(content, list) and content and all(
-            isinstance(c, dict) and "events" in c for c in content
-        ):
-            ad = self.convert_to_agent_data(
-                {"session_id": path.stem, "chunks": content}
-            )
-            return [self._merge_golden_data(ad)]
-
-        if isinstance(content, list):
-            return [
-                self._merge_golden_data(self.convert_to_agent_data(item))
-                for item in content
-                if isinstance(item, dict)
-            ]
-        if isinstance(content, dict):
-            ad = self.convert_to_agent_data(content)
-            return [self._merge_golden_data(ad)]
-        return []
-
-    def _steps_to_stream_events(
-        self, steps: list[dict[str, Any]]
-    ) -> tuple[list[dict[str, Any]], list[str]]:
+    @staticmethod
+    def _steps_to_stream_events(steps: list[dict[str, Any]]) -> list[dict[str, Any]]:
         """Normalize in-VM `transcript.jsonl` steps into TaskService `:stream` event dicts."""
         stream_events: list[dict[str, Any]] = []
-        user_prompts: list[str] = []
         pending_calls: list[tuple[str, str]] = []
-        seq = 1
+        seq = 0
+
+        def _append_step(step_body: dict[str, Any]) -> None:
+            nonlocal seq
+            seq += 1
+            stream_events.append({"seqNum": str(seq), "step": step_body})
 
         for step_obj in steps:
             if not isinstance(step_obj, dict):
@@ -923,44 +951,28 @@ class GEStreamTraceConverter(BaseTraceConverter):
             if stype == "USER_INPUT":
                 txt = str(step_obj.get("content") or "").strip()
                 if txt:
-                    user_prompts.append(txt)
-                    stream_events.append(
+                    _append_step(
                         {
-                            "seqNum": str(seq),
-                            "step": {
-                                "content": {
-                                    "role": "user",
-                                    "content": [{"text": {"text": txt}}],
-                                }
-                            },
+                            "content": {
+                                "role": "user",
+                                "content": [{"text": {"text": txt}}],
+                            }
                         }
                     )
-                    seq += 1
             elif stype == "PLANNER_RESPONSE":
                 th = str(step_obj.get("thinking") or "").strip()
                 if th:
-                    stream_events.append(
-                        {
-                            "seqNum": str(seq),
-                            "step": {
-                                "thought": {"summary": [{"text": {"text": th}}]}
-                            },
-                        }
-                    )
-                    seq += 1
+                    _append_step({"thought": {"summary": [{"text": {"text": th}}]}})
                 for tc in step_obj.get("tool_calls") or []:
                     if not isinstance(tc, dict):
                         continue
-                    cid = str(tc.get("id") or f"tc_{seq}")
-                    fname = str(
-                        tc.get("name")
-                        or (tc.get("function") or {}).get("name")
-                        or "tool"
-                    )
+                    cid = str(tc.get("id") or f"tc_{seq + 1}")
+                    fn = tc.get("function") or {}
+                    fname = str(tc.get("name") or fn.get("name") or "tool")
                     fargs = (
                         tc.get("args")
                         or tc.get("arguments")
-                        or (tc.get("function") or {}).get("arguments")
+                        or fn.get("arguments")
                         or {}
                     )
                     if isinstance(fargs, str):
@@ -968,43 +980,32 @@ class GEStreamTraceConverter(BaseTraceConverter):
                             fargs = json.loads(fargs)
                         except Exception:
                             fargs = {"raw": fargs}
-                    stream_events.append(
+                    _append_step(
                         {
-                            "seqNum": str(seq),
-                            "step": {
-                                "toolCall": {
-                                    "id": cid,
-                                    "functionCall": {
-                                        "name": fname,
-                                        "arguments": fargs,
-                                    },
-                                }
-                            },
+                            "toolCall": {
+                                "id": cid,
+                                "functionCall": {"name": fname, "arguments": fargs},
+                            }
                         }
                     )
                     pending_calls.append((cid, fname))
-                    seq += 1
                 txt = str(step_obj.get("content") or "").strip()
                 if txt:
-                    stream_events.append(
+                    _append_step(
                         {
-                            "seqNum": str(seq),
-                            "step": {
-                                "content": {
-                                    "role": "model",
-                                    "content": [{"text": {"text": txt}}],
-                                }
-                            },
+                            "content": {
+                                "role": "model",
+                                "content": [{"text": {"text": txt}}],
+                            }
                         }
                     )
-                    seq += 1
             elif stype in ("TOOL_RESPONSE", "TOOL_RESULT") or (
                 pending_calls and step_obj.get("source") == "TOOL"
             ):
                 cid, fname = (
                     pending_calls.pop(0)
                     if pending_calls
-                    else (f"tc_{seq}", str(step_obj.get("name") or "tool"))
+                    else (f"tc_{seq + 1}", str(step_obj.get("name") or "tool"))
                 )
                 raw_c = step_obj.get("content")
                 res_obj: Any = raw_c
@@ -1013,23 +1014,16 @@ class GEStreamTraceConverter(BaseTraceConverter):
                         res_obj = json.loads(raw_c)
                     except Exception:
                         res_obj = {"output": raw_c}
-                stream_events.append(
+                _append_step(
                     {
-                        "seqNum": str(seq),
-                        "step": {
-                            "toolResult": {
-                                "callId": cid,
-                                "functionResult": {
-                                    "name": fname,
-                                    "result": res_obj,
-                                },
-                            }
-                        },
+                        "toolResult": {
+                            "callId": cid,
+                            "functionResult": {"name": fname, "result": res_obj},
+                        }
                     }
                 )
-                seq += 1
 
-        return stream_events, user_prompts
+        return stream_events
 
     def convert_to_agent_data(
         self, raw_trace: dict[str, Any] | list[Any]
@@ -1047,29 +1041,23 @@ class GEStreamTraceConverter(BaseTraceConverter):
             or raw_trace.get("id")
             or "ge_agent_session"
         )
-
         prompt_override = raw_trace.get("prompt") or raw_trace.get("user_input") or ""
-        stream_events: list[dict[str, Any]] = []
-        user_prompts: list[str] = []
 
         if isinstance(raw_trace.get("steps"), list):
-            stream_events, user_prompts = self._steps_to_stream_events(
-                raw_trace["steps"]
-            )
+            stream_events = self._steps_to_stream_events(raw_trace["steps"])
         elif isinstance(raw_trace.get("chunks"), list):
-            for chunk in raw_trace["chunks"]:
-                if isinstance(chunk, dict):
-                    stream_events.extend(chunk.get("events") or [])
+            stream_events = [
+                ev
+                for chunk in raw_trace["chunks"]
+                if isinstance(chunk, dict)
+                for ev in (chunk.get("events") or [])
+            ]
         elif isinstance(raw_trace.get("events"), list):
             stream_events = list(raw_trace["events"])
+        else:
+            stream_events = []
 
-        usage = {
-            "prompt_token_count": 0,
-            "candidates_token_count": 0,
-            "cached_content_token_count": 0,
-            "total_token_count": 0,
-            "thoughts_token_count": 0,
-        }
+        usage = dict.fromkeys(self._STEP_USAGE_MAP.values(), 0)
         invoked_skills: list[str] = []
         thoughts: list[str] = []
         calls_by_id: dict[str, dict[str, Any]] = {}
@@ -1079,27 +1067,21 @@ class GEStreamTraceConverter(BaseTraceConverter):
         turns: list[AgentTurn] = []
         current_events: list[AgentEvent] = []
         current_model_texts: list[str] = []
-        turn_idx = 0
-
-        def _record_skills(blob: str) -> None:
-            for m in self._SKILL_PATH_RE.findall(blob or ""):
-                if m not in invoked_skills:
-                    invoked_skills.append(m)
 
         def _flush_model_turn() -> None:
-            nonlocal turn_idx, current_events, current_model_texts
+            nonlocal current_events, current_model_texts
             if not current_events and not current_model_texts:
                 return
+            t_idx = len(turns)
             turns.append(
                 AgentTurn(
-                    turn_id=turn_idx,
-                    turn_index=turn_idx,
+                    turn_id=t_idx,
+                    turn_index=t_idx,
                     role="model",
                     content=current_model_texts[-1] if current_model_texts else "",
                     events=current_events,
                 )
             )
-            turn_idx += 1
             current_events = []
             current_model_texts = []
 
@@ -1108,27 +1090,18 @@ class GEStreamTraceConverter(BaseTraceConverter):
                 continue
             u = ev.get("stepUsage")
             if isinstance(u, dict):
-                usage["total_token_count"] += int(u.get("totalTokens") or 0)
-                usage["prompt_token_count"] += int(u.get("totalInputTokens") or 0)
-                usage["candidates_token_count"] += int(u.get("totalOutputTokens") or 0)
-                usage["cached_content_token_count"] += int(u.get("totalCachedTokens") or 0)
-                usage["thoughts_token_count"] += int(u.get("totalThoughtTokens") or 0)
+                for src_key, dst_key in self._STEP_USAGE_MAP.items():
+                    usage[dst_key] += int(u.get(src_key) or 0)
 
             step = ev.get("step") or {}
             if not isinstance(step, dict):
                 continue
 
             if "thought" in step:
-                seg = []
-                for tp in (step.get("thought") or {}).get("summary") or []:
-                    if isinstance(tp, dict):
-                        tf = tp.get("text")
-                        if isinstance(tf, dict) and tf.get("text"):
-                            seg.append(str(tf["text"]))
-                        elif isinstance(tf, str) and tf.strip():
-                            seg.append(tf)
-                if seg:
-                    thought_text = "\n".join(seg).strip()
+                thought_text = self._extract_ge_text(
+                    (step.get("thought") or {}).get("summary")
+                )
+                if thought_text:
                     thoughts.append(thought_text)
                     current_events.append(
                         AgentEvent(
@@ -1144,37 +1117,11 @@ class GEStreamTraceConverter(BaseTraceConverter):
             if "content" in step:
                 c = step.get("content") or {}
                 role = str(c.get("role") or "model").lower()
-                seg_c = []
-                for pt in c.get("content") or c.get("parts") or []:
-                    if isinstance(pt, dict):
-                        tf = pt.get("text")
-                        if isinstance(tf, dict) and tf.get("text"):
-                            seg_c.append(str(tf["text"]))
-                        elif isinstance(tf, str) and tf.strip():
-                            seg_c.append(tf)
-                if seg_c:
-                    txt_c = "\n".join(seg_c).strip()
+                txt_c = self._extract_ge_text(c.get("content") or c.get("parts"))
+                if txt_c:
                     if role == "user":
                         _flush_model_turn()
-                        turns.append(
-                            AgentTurn(
-                                turn_id=turn_idx,
-                                turn_index=turn_idx,
-                                role="user",
-                                content=txt_c,
-                                events=[
-                                    AgentEvent(
-                                        event_id=f"ge_user_{turn_idx}",
-                                        event_type="USER_INPUT",
-                                        status="OK",
-                                        author="USER",
-                                        content=txt_c,
-                                        payload={"content": txt_c},
-                                    )
-                                ],
-                            )
-                        )
-                        turn_idx += 1
+                        turns.append(self._build_user_turn(len(turns), txt_c))
                     else:
                         current_model_texts.append(txt_c)
                         current_events.append(
@@ -1203,7 +1150,11 @@ class GEStreamTraceConverter(BaseTraceConverter):
                         fargs = {"raw": fargs}
                 if not isinstance(fargs, dict):
                     fargs = {"value": fargs}
-                _record_skills(json.dumps(fargs, ensure_ascii=False))
+                for m in self._SKILL_PATH_RE.findall(
+                    json.dumps(fargs, ensure_ascii=False)
+                ):
+                    if m not in invoked_skills:
+                        invoked_skills.append(m)
                 calls_by_id[cid] = {"name": fname, "args": fargs}
 
             elif "toolResult" in step:
@@ -1227,24 +1178,18 @@ class GEStreamTraceConverter(BaseTraceConverter):
                     )
                     cmeta = calls_by_id.pop(mk) if mk else {"name": fr_name, "args": {}}
 
-                cname = str(cmeta.get("name") or fr_name)
-                clean_name = cname.split("__")[-1]
+                clean_name = str(cmeta.get("name") or fr_name).split("__")[-1]
                 cargs = cmeta.get("args") if isinstance(cmeta.get("args"), dict) else {}
                 resp_dict = fres if isinstance(fres, dict) else {"result": fres}
-                is_error = (
-                    isinstance(resp_dict, dict)
-                    and (
-                        resp_dict.get("isError") is True
-                        or resp_dict.get("status") in ("ERROR", "FAILED")
-                    )
-                )
-                status_str = "ERROR" if is_error else "OK"
+                is_error = resp_dict.get("isError") is True or resp_dict.get(
+                    "status"
+                ) in ("ERROR", "FAILED")
 
                 current_events.append(
                     AgentEvent(
                         event_id=cid or f"ge_tool_{len(current_events)}",
                         event_type="TOOL_CALL",
-                        status=status_str,
+                        status="ERROR" if is_error else "OK",
                         author="model",
                         payload={
                             "tool_name": clean_name,
@@ -1270,28 +1215,10 @@ class GEStreamTraceConverter(BaseTraceConverter):
         _flush_model_turn()
 
         if prompt_override and not any(t.role == "user" for t in turns):
-            user_turn = AgentTurn(
-                turn_id=0,
-                turn_index=0,
-                role="user",
-                content=str(prompt_override),
-                events=[
-                    AgentEvent(
-                        event_id="ge_user_0",
-                        event_type="USER_INPUT",
-                        status="OK",
-                        author="USER",
-                        content=str(prompt_override),
-                        payload={"content": str(prompt_override)},
-                    )
-                ],
-            )
             for idx, t in enumerate(turns, start=1):
                 t.turn_id = idx
                 t.turn_index = idx
-            turns.insert(0, user_turn)
-        elif user_prompts and not any(t.role == "user" for t in turns):
-            pass
+            turns.insert(0, self._build_user_turn(0, str(prompt_override)))
 
         if any(usage.values()):
             synthetic_spans.append(
