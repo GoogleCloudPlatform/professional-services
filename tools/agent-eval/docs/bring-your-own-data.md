@@ -115,3 +115,18 @@ To unlock the absolute maximum power of `agent-eval`—lighting up every graph, 
 If you are generating this dataset directly via SQL in BigQuery, **do not** use `TO_JSON_STRING()` on your final `SELECT` payload. 
 
 Instead, construct the schema natively using BigQuery `STRUCT`s and `ARRAY`s, outputting them as standard columns. Then, use the BigQuery UI button **"Save Results -> JSON (Newline Delimited)"**. This ensures there are no accidental string escaping issues, placing your data perfectly into the required format.
+
+---
+
+## Gemini Enterprise (GE Agent) `:stream` & `transcript.jsonl` Ingestion
+
+If you run evaluations against **Gemini Enterprise (`GE Agent`)** via `TaskService` (`GET /v1beta1/{task_name}:stream?nextStepSeqNum=0&snapshot=true`) or in-VM `transcript.jsonl` logs, convert them directly to `agent-eval` evaluation JSONL with:
+
+```bash
+agent-eval convert \
+  --agent-dir path/to/ge_traces_or_transcript.jsonl \
+  --questions-file tests/eval/dataset.jsonl \
+  --trace-format ge-agent
+```
+
+`GEStreamTraceConverter` (`--trace-format ge-agent` / `ge-stream` / `ge-transcript`) decodes Protobuf `Struct`/`ListValue` tool arguments and results, extracts `step.thought.summary` reasoning, `SKILL.md` invocations, `stepUsage` token counts, and tool call/response pairs into canonical `AgentData`.
