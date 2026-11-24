@@ -24,7 +24,7 @@
   "dependencies": {
     "@dagrejs/dagre": "^3.0.0",
     "@xyflow/react": "^12.11.0",
-    "adm-zip": "^0.5.17",
+    "adm-zip": "^0.6.1",
     "commander": "^14.0.3",
     "express": "^4.22.3",
     "jspdf": "^4.2.1",
