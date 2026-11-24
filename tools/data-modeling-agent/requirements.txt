@@ -94,7 +94,7 @@ mdurl==0.1.2
 multidict==6.6.3
 nltk==3.10.4
 numpy==2.3.1
-oauthlib==4.0.0
+oauthlib==4.0.1
 openai==1.97.0
 opentelemetry-api==1.35.0
 opentelemetry-exporter-gcp-trace==1.9.0
@@ -115,7 +115,7 @@ protobuf==6.31.1
 ptyprocess==0.7.0
 pure_eval==0.2.3
 pyarrow==21.0.0
-pyasn1==0.6.4
+pyasn1==0.6.5
 pyasn1_modules==0.4.2
 pycparser==2.22
 pydantic==2.11.7
