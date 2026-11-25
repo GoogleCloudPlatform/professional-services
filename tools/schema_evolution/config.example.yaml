@@ -1,0 +1,48 @@
+# Copyright 2026 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Schema evolution utility - run configuration.
+# Copy to config.yaml and edit:  cp config.example.yaml config.yaml
+#
+# Structure: projects -> datastores -> schema file.
+# Option precedence: datastore entry > project entry > defaults.
+# Relative schema_file paths are resolved against this file's folder.
+# ${VAR} values are read from environment variables.
+
+defaults:
+  location: us                 # global | us | eu
+  on_breaking: raise           # raise | skip
+  recreate_if_empty: false     # delete + recreate schema for type changes, ONLY if datastore has 0 documents
+  operation_timeout: 3600      # seconds to wait for each schema operation
+
+projects:
+  - project_id: ${DEV_PROJECT_ID}          # e.g. export DEV_PROJECT_ID=my-dev-project
+    datastores:
+      - datastore_id: journals-datastore
+        schema_file: schemas/example_schema.json
+
+      - datastore_id: abstracts-datastore
+        schema_file: schemas/example_wrapped_schema.json
+        schema_key: [abstracts_schema, fallback_schema]   # wrapper file: first key found is used
+        on_breaking: skip                                 # override for this datastore only
+
+      - datastore_id: old-datastore
+        schema_file: schemas/example_schema.json
+        enabled: false                                    # keep in config, skip during runs
+
+  - project_id: my-prod-project
+    location: global                       # project-level override
+    datastores:
+      - datastore_id: journals-datastore
+        schema_file: schemas/example_schema.json

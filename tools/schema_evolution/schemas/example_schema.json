@@ -1,0 +1,102 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "keyPropertyMapping": "title",
+      "retrievable": true
+    },
+    "uri": {
+      "type": "string",
+      "keyPropertyMapping": "uri",
+      "retrievable": true
+    },
+    "link": {
+      "type": "string",
+      "keyPropertyMapping": null,
+      "retrievable": true
+    },
+    "publication_date": {
+      "type": "datetime",
+      "indexable": true,
+      "retrievable": true
+    },
+    "categories": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "indexable": true,
+        "dynamicFacetable": true,
+        "retrievable": true
+      }
+    },
+    "department": {
+      "type": "string",
+      "indexable": true,
+      "retrievable": true,
+      "searchable": true,
+      "dynamicFacetable": true
+    },
+    "region_code": {
+      "type": "string",
+      "indexable": true,
+      "retrievable": true,
+      "dynamicFacetable": true
+    },
+    "warehouse_id": {
+      "type": "string",
+      "indexable": true,
+      "retrievable": true,
+      "searchable": true,
+      "dynamicFacetable": true
+    },
+    "supplier_rating": {
+      "type": "number",
+      "indexable": true,
+      "retrievable": true
+    },
+    "is_priority_shipment": {
+      "type": "boolean",
+      "indexable": true,
+      "retrievable": true,
+      "dynamicFacetable": true
+    },
+    "document_owner": {
+      "type": "string",
+      "searchable": true,
+      "indexable": true,
+      "retrievable": true
+    },
+    "cost_center": {
+      "type": "string",
+      "indexable": true,
+      "retrievable": true,
+      "dynamicFacetable": true
+    },
+    "shipment_status": {
+      "type": "string",
+      "searchable": true,
+      "indexable": true,
+      "retrievable": true,
+      "dynamicFacetable": true
+    },
+    "lead_time_days": {
+      "type": "number",
+      "indexable": true,
+      "retrievable": true
+    },
+    "carrier_name": {
+      "type": "string",
+      "searchable": true,
+      "indexable": true,
+      "retrievable": true,
+      "dynamicFacetable": true
+    },
+    "order_value_usd": {
+      "type": "number",
+      "indexable": true,
+      "retrievable": true
+    }
+  }
+}
