@@ -23,6 +23,7 @@ from agent_eval.core.schema import AgentData
 from agent_eval.core.trace_converters import (
     ADKTraceConverter,
     BaseTraceConverter,
+    GEStreamTraceConverter,
     OpenInferenceOTelConverter,
     get_trace_converter,
 )
@@ -764,4 +765,243 @@ class TestE2ETraceToDataMapperPipeline:
         assert lines[0]["prompt"] == "Test CLI prompt"
         assert lines[0]["response"] == "Test CLI response"
         assert lines[0]["reference_data"]["golden_answer"] == "Golden answer"
+
+
+class TestGEStreamTraceConverter:
+    """Tests for Gemini Enterprise (GE Agent) :stream and transcript.jsonl ingestion."""
+
+    def test_factory_returns_ge_converter(self):
+        for fmt in ("ge-agent", "ge-stream", "ge-transcript"):
+            conv = get_trace_converter(fmt)
+            assert isinstance(conv, GEStreamTraceConverter)
+
+    def test_ge_stream_snapshot_with_proto_struct_and_usage(self):
+        from agent_eval.core.deterministic_metrics import (
+            calculate_token_usage,
+            calculate_tool_success_rate,
+            calculate_tool_utilization,
+        )
+
+        raw_stream = {
+            "session_id": "ge_task_001",
+            "prompt": "Check loan status for ID 42",
+            "chunks": [
+                {
+                    "events": [
+                        {
+                            "stepUsage": {
+                                "totalInputTokens": 1200,
+                                "totalOutputTokens": 250,
+                                "totalCachedTokens": 400,
+                                "totalThoughtTokens": 80,
+                                "totalTokens": 1450,
+                            },
+                            "step": {
+                                "thought": {
+                                    "summary": [
+                                        {"text": {"text": "Need to read skill and query loan API."}}
+                                    ]
+                                }
+                            },
+                        },
+                        {
+                            "step": {
+                                "toolCall": {
+                                    "id": "call_1",
+                                    "functionCall": {
+                                        "name": "mcp_server__read_file",
+                                        "arguments": {
+                                            "fields": [
+                                                {
+                                                    "name": "path",
+                                                    "value": {
+                                                        "stringValue": "/workspace/skills/loan-check/SKILL.md"
+                                                    },
+                                                }
+                                            ]
+                                        },
+                                    },
+                                }
+                            }
+                        },
+                        {
+                            "step": {
+                                "toolResult": {
+                                    "callId": "call_1",
+                                    "functionResult": {
+                                        "name": "mcp_server__read_file",
+                                        "result": {
+                                            "structValue": {
+                                                "fields": [
+                                                    {
+                                                        "name": "status",
+                                                        "value": {"stringValue": "OK"},
+                                                    },
+                                                    {
+                                                        "name": "loan_id",
+                                                        "value": {"numberValue": 42.0},
+                                                    },
+                                                ]
+                                            }
+                                        },
+                                    },
+                                }
+                            }
+                        },
+                        {
+                            "step": {
+                                "content": {
+                                    "role": "model",
+                                    "content": [{"text": {"text": "Loan 42 is active."}}],
+                                }
+                            }
+                        },
+                    ]
+                }
+            ],
+        }
+
+        conv = GEStreamTraceConverter()
+        ad = conv.convert_to_agent_data(raw_stream)
+
+        assert ad.session_id == "ge_task_001"
+        assert len(ad.turns) == 2
+        assert ad.turns[0].role == "user"
+        assert ad.turns[0].content == "Check loan status for ID 42"
+        assert ad.turns[1].role == "model"
+        assert ad.turns[1].content == "Loan 42 is active."
+
+        tool_events = [e for e in ad.turns[1].events if e.event_type == "TOOL_CALL"]
+        assert len(tool_events) == 1
+        assert tool_events[0].payload["tool_name"] == "read_file"
+        assert tool_events[0].payload["arguments"] == {
+            "path": "/workspace/skills/loan-check/SKILL.md"
+        }
+        assert tool_events[0].payload["result"] == {"status": "OK", "loan_id": 42}
+        assert ad.metadata["invoked_skills"] == ["loan-check"]
+        assert ad.metadata["thoughts"] == ["Need to read skill and query loan API."]
+
+        # Verify deterministic metrics compatibility
+        spans = getattr(ad, "session_trace", [])
+        tool_util, _, tool_details = calculate_tool_utilization(spans)
+        assert tool_util == 1.0
+        assert tool_details["tool_counts"]["read_file"] == 1
+        success_rate, _, _ = calculate_tool_success_rate(spans)
+        assert success_rate == 1.0
+        _, _, tok_details = calculate_token_usage(spans)
+        assert tok_details["prompt_tokens"] == 1200
+        assert tok_details["cached_tokens"] == 400
+        assert tok_details["total_tokens"] == 1450
+
+    def test_ge_vm_transcript_jsonl_and_cli_convert(self, tmp_path: Path):
+        from click.testing import CliRunner
+        from agent_eval.cli.commands.convert import convert
+
+        steps = [
+            {"step_index": 0, "type": "USER_INPUT", "content": "Check account 99"},
+            {
+                "step_index": 1,
+                "type": "PLANNER_RESPONSE",
+                "thinking": "Calling get_account",
+                "tool_calls": [
+                    {"id": "tc_1", "name": "get_account", "args": {"id": "99"}}
+                ],
+                "content": "",
+            },
+            {
+                "step_index": 2,
+                "type": "TOOL_RESPONSE",
+                "content": json.dumps({"balance": 100}),
+            },
+            {
+                "step_index": 3,
+                "type": "PLANNER_RESPONSE",
+                "content": "Account 99 has balance 100.",
+            },
+        ]
+        transcript_file = tmp_path / "ge_vm_run.jsonl"
+        transcript_file.write_text(
+            "\n".join(json.dumps(s) for s in steps) + "\n", encoding="utf-8"
+        )
+
+        golden_file = tmp_path / "golden.jsonl"
+        golden_file.write_text(
+            json.dumps(
+                {
+                    "id": "ge_vm_run",
+                    "prompt": "Check account 99",
+                    "reference_data": {"expected_response": "Account 99 has balance 100."},
+                }
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+
+        out_dir = tmp_path / "results"
+        runner = CliRunner()
+        result = runner.invoke(
+            convert,
+            [
+                "--agent-dir",
+                str(transcript_file),
+                "--questions-file",
+                str(golden_file),
+                "--trace-format",
+                "ge-agent",
+                "--output-dir",
+                str(out_dir),
+                "--output-file",
+                "ge_out.jsonl",
+            ],
+        )
+        assert result.exit_code == 0, result.output
+        converted_files = list(out_dir.glob("**/ge_out.jsonl"))
+        assert len(converted_files) == 1
+        rows = [
+            json.loads(line)
+            for line in converted_files[0].read_text(encoding="utf-8").splitlines()
+            if line.strip()
+        ]
+        assert len(rows) == 1
+        assert rows[0]["prompt"] == "Check account 99"
+        assert rows[0]["response"] == "Account 99 has balance 100."
+        assert rows[0]["reference_data"]["expected_response"] == "Account 99 has balance 100."
+        assert len(rows[0]["extracted_data.tool_interactions"]) == 1
+        assert rows[0]["extracted_data.tool_interactions"][0]["tool_name"] == "get_account"
+
+    def test_ge_tool_error_propagates_to_event_and_span(self):
+        from agent_eval.core.deterministic_metrics import calculate_tool_success_rate
+
+        raw_stream = {
+            "session_id": "ge_err_001",
+            "prompt": "Run failing tool",
+            "events": [
+                {
+                    "step": {
+                        "toolCall": {
+                            "id": "err_1",
+                            "functionCall": {"name": "mcp__failing_tool", "arguments": {}},
+                        }
+                    }
+                },
+                {
+                    "step": {
+                        "toolResult": {
+                            "callId": "err_1",
+                            "functionResult": {
+                                "name": "mcp__failing_tool",
+                                "result": {"isError": True, "message": "boom"},
+                            },
+                        }
+                    }
+                },
+            ],
+        }
+        ad = GEStreamTraceConverter().convert_to_agent_data(raw_stream)
+        tool_events = [e for e in ad.turns[1].events if e.event_type == "TOOL_CALL"]
+        assert len(tool_events) == 1
+        assert tool_events[0].status == "ERROR"
+        success_rate, _, details = calculate_tool_success_rate(getattr(ad, "session_trace", []))
+        assert success_rate == 0.0
+        assert details["failed_tool_calls"] == 1
 
